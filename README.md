@@ -1,10 +1,10 @@
 # ReMatter
 
-An industrial chemistry mod for **LatroX's Xtreme - Tech ReForging**, built for Minecraft **26.1.2** and NeoForge.
+An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Use it in your own pack, with **LatroX's Xtreme - Tech ReForging** as its reference integration.
 
-Recover substances from materials, store them in a shared matter inventory, and synthesize raw materials. Solids, liquids, and gases are part of the same production system. Manufacturing components and equipment remains with the modpack's existing production chains.
+Recover substances from materials, store them in a shared matter inventory, and synthesize raw materials. Solids, liquids, and gases are part of the same production system. Manufacturing components and equipment remains with your existing production chains.
 
-**Development build.** No release is available yet.
+**Development build.** Build from source for testing; no mod-platform release is available yet. Other Minecraft versions and loaders are not currently supported.
 
 ## Machines and materials
 
@@ -24,7 +24,7 @@ Synthesis uses an explicit allowlist. Machines, weapons, tools, armor, plates, w
 ## Getting started
 
 1. Place a Matter Storage and connect a Decomposer and Material Synthesizer using Matter Pipes. Use one storage per connected network.
-2. Supply FE to each processing machine from a compatible energy source.
+2. Supply FE to each processing machine from a compatible energy source. ReMatter does not include a generator; Matter Pipes carry the matter network, not FE.
 3. Insert a copper ingot in the Decomposer. Its copper becomes available in the shared storage.
 4. Choose Copper Ingot in the Material Synthesizer to recover an ingot from that stored copper.
 5. Import water through a Decomposer's tank, select Water Electrolysis in an Electrolyzer, and use Water Synthesis in a Chemical Reactor for the reverse process. Select Water in the Material Synthesizer to export it to a tank.
@@ -32,6 +32,14 @@ Synthesis uses an explicit allowlist. Machines, weapons, tools, armor, plates, w
 Machines belong to the player who places them. Item and fluid automation is off by default and can be enabled from the machine screen. Filled machines retain their contents when picked up.
 
 For the Industrial Reactor, place eight Reactor Casings around the controller in a flat 3×3 ring, with the controller at the center. A broken ring pauses processing.
+
+## Tutorial and integrations
+
+Craft the **ReMatter Guide** from a book and a copper ingot. It explains the first copper loop, water processing, automation, upgrades, and the reactor casing ring. The book works on its own. With **GuideME** installed, it opens an extended guide with interactive 3D construction scenes.
+
+Optional recipe-viewer, HUD, and chemical-transfer support is described in [Integrations](docs/integrations.md). ReMatter does not require ReForging, JEI, EMI, Jade, GuideME, or Mekanism to load. An external FE source is needed to operate processing machines.
+
+The separate [ReForging integration](integrations/reforging/README.md) supplies optional quartz and machine-copying rules for packs that also use Replication and Equivox. It is not activated by installing the mod.
 
 ## Build
 

@@ -162,4 +162,40 @@ class MatterInventoryTest {
         assertTrue(inventory.commit(second));
         assertEquals(800, inventory.amount(COPPER));
     }
+
+    @Test
+    void inPlaceRollbackPreservesIdentityUnknownMatterAndReservations() {
+        SubstanceKey unknown = SubstanceKey.of("missing_mod:gas", Phase.GAS);
+        MatterInventory inventory = new MatterInventory(2_000);
+        MatterInventory retainedReference = inventory;
+        inventory.insert(WATER, 1_000);
+        inventory.insert(unknown, 100);
+        UUID token = inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
+        MatterInventory.Snapshot before = inventory.snapshot();
+
+        assertTrue(inventory.commit(token));
+        inventory.extract(unknown, 100);
+        assertTrue(inventory.setCapacity(4_000));
+        inventory.restoreInPlace(before);
+
+        assertSame(retainedReference, inventory);
+        assertEquals(before, retainedReference.snapshot());
+        assertEquals(100, retainedReference.amount(unknown));
+        assertEquals(0, retainedReference.available(WATER));
+        assertTrue(retainedReference.commit(token));
+    }
+
+    @Test
+    void invalidInPlaceRestoreLeavesEveryExistingFieldUnchanged() {
+        MatterInventory inventory = new MatterInventory(2_000);
+        inventory.insert(WATER, 1_000);
+        inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
+        MatterInventory.Snapshot before = inventory.snapshot();
+        MatterInventory.Snapshot invalid = new MatterInventory.Snapshot(1, 3_000,
+                List.of(new SubstanceStack(COPPER, 50)),
+                List.of(new MatterInventory.Reservation(UUID.randomUUID(), Map.of(COPPER, 51L), Map.of())));
+
+        assertThrows(IllegalArgumentException.class, () -> inventory.restoreInPlace(invalid));
+        assertEquals(before, inventory.snapshot());
+    }
 }

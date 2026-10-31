@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -65,17 +67,28 @@ public final class MachineBlock extends Block implements EntityBlock {
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
     @Override protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
-        ItemStack drop = new ItemStack(this);
         if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof MachineBlockEntity machine) {
-            drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveWithoutMetadata(builder.getLevel().registryAccess())));
+            return List.of(storedDrop(machine, builder.getLevel().registryAccess()));
         }
-        return List.of(drop);
+        return List.of(new ItemStack(this));
+    }
+    private ItemStack storedDrop(MachineBlockEntity machine, HolderLookup.Provider registries) {
+        ItemStack drop = new ItemStack(this);
+        // Placement loads custom BE data and item components through separate vanilla paths.
+        drop.applyComponents(machine.collectComponents());
+        drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveCustomOnly(registries)));
+        return drop;
+    }
+    @Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
+        // Vanilla appends full block data after this call, so an empty result must stop foreign data picks.
+        if (includeData && level.getBlockEntity(pos) instanceof MachineBlockEntity machine && !machine.canAccess(player)) {
+            return ItemStack.EMPTY;
+        }
+        return new ItemStack(this);
     }
     @Override public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
         if (!level.isClientSide() && player.isCreative() && level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.hasStoredResources()) {
-            ItemStack drop = new ItemStack(this);
-            drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveWithoutMetadata(level.registryAccess())));
-            popResource(level, pos, drop);
+            popResource(level, pos, storedDrop(machine, level.registryAccess()));
         }
         return super.playerWillDestroy(level, pos, state, player);
     }

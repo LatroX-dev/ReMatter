@@ -12,6 +12,8 @@
 build/
 out/
 *.class
+__pycache__/
+*.py[cod]
 
 # Local Minecraft development instances and runtime data
 /run/

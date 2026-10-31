@@ -1,0 +1,88 @@
+package dev.latrox.rematter.compat.mekanism;
+
+import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.ModContent;
+import mekanism.api.MekanismAPI;
+import mekanism.api.chemical.ChemicalResource;
+import mekanism.common.capabilities.Capabilities;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+
+/**
+ * Loaded only when Mekanism is present. Compiled against Version Locked 26.1.2-2.11,
+ * whose chemical capability uses NeoForge transactions rather than the legacy API.
+ */
+public final class MekanismCompat {
+    private MekanismCompat() {}
+
+    public static void register(IEventBus modBus) {
+        modBus.addListener(MekanismCompat::registerCapabilities);
+    }
+
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        try {
+            var capability = Capabilities.CHEMICAL.block();
+            // Earlier fork releases share mod version 10.8.0 but expose another
+            // capability type. The mod version alone cannot establish compatibility.
+            if (!capability.typeClass().equals(ResourceHandler.class)
+                    || !capability.contextClass().equals(Direction.class)) {
+                ReMatter.LOGGER.warn("Mekanism chemical integration disabled: incompatible chemical capability; expected Version Locked 26.1.2-2.11 API");
+                return;
+            }
+            List<ChemicalResource> resources = new ArrayList<>();
+            for (var mapping : ChemicalMappings.ALL) {
+                Identifier id = Identifier.parse(mapping.chemicalId());
+                var chemical = MekanismAPI.CHEMICAL_REGISTRY.get(id);
+                if (chemical.isEmpty()) {
+                    ReMatter.LOGGER.warn("Mekanism chemical integration disabled: missing chemical {}", id);
+                    return;
+                }
+                resources.add(ChemicalResource.of(chemical.get()));
+            }
+            List<ChemicalResource> registeredResources = List.copyOf(resources);
+            // Exactly one handler/journal per block, even when different faces are
+            // involved in a nested transaction. Weak owner callbacks avoid retaining
+            // unloaded worlds through the capability provider's cache.
+            Map<MachineBlockEntity, MekanismChemicalHandler> handlers = new WeakHashMap<>();
+            event.registerBlockEntity(capability, ModContent.MACHINE_ENTITY.get(), (machine, side) -> {
+                if (side == null || !allowed(machine)) return null;
+                return handlers.computeIfAbsent(machine, owner -> handler(owner, registeredResources));
+            });
+            ReMatter.LOGGER.info("Mekanism chemical integration enabled: hydrogen, oxygen and water vapor; exact 1:1 units (Version Locked 26.1.2-2.11 API)");
+        } catch (LinkageError incompatibleApi) {
+            ReMatter.LOGGER.warn("Mekanism chemical integration disabled: incompatible API; expected Version Locked 26.1.2-2.11", incompatibleApi);
+        }
+    }
+
+    private static MekanismChemicalHandler handler(MachineBlockEntity owner, List<ChemicalResource> resources) {
+        WeakReference<MachineBlockEntity> reference = new WeakReference<>(owner);
+        ChemicalTransfers transfers = new ChemicalTransfers(
+                () -> {
+                    MachineBlockEntity current = reference.get();
+                    return current == null ? null : current.matterInventory();
+                },
+                () -> allowed(reference.get()),
+                key -> ReMatter.chemistry().isKnown(key),
+                () -> {
+                    MachineBlockEntity current = reference.get();
+                    if (current != null) current.setChanged();
+                });
+        return new MekanismChemicalHandler(transfers, resources);
+    }
+
+    private static boolean allowed(MachineBlockEntity machine) {
+        if (machine == null || !machine.chemicalAutomationAllowed()) return false;
+        var server = machine.getLevel().getServer();
+        return server != null && server.isSameThread();
+    }
+}

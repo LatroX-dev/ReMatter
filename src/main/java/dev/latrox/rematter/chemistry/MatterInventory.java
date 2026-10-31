@@ -265,6 +265,24 @@ public final class MatterInventory {
         return restored;
     }
 
+    /**
+     * Restores a validated snapshot while retaining this storage's identity.
+     * Intended for rollback on the authoritative thread: other holders of this
+     * inventory must observe the rollback as well. No partial or invalid saved
+     * state is ever applied, and unknown definitions remain untouched.
+     */
+    public void restoreInPlace(Snapshot snapshot) {
+        MatterInventory restored = restore(snapshot);
+        synchronized (MUTATION_LOCK) {
+            capacity = restored.capacity;
+            total = restored.total;
+            contents.clear();
+            contents.putAll(restored.contents);
+            reservations.clear();
+            reservations.putAll(restored.reservations);
+        }
+    }
+
     private boolean canReserveLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
         for (Map.Entry<SubstanceKey, Long> input : inputs.entrySet()) {
             if (availableLocked(input.getKey(), null) < input.getValue()) {

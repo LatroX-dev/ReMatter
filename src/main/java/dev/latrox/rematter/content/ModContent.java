@@ -22,7 +22,6 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 
 public final class ModContent {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(ReMatter.MOD_ID);
@@ -47,6 +46,7 @@ public final class ModContent {
     public static final DeferredItem<BlockItem> REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_CASING);
     public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade", p -> p.stacksTo(4));
     public static final DeferredItem<Item> EFFICIENCY_UPGRADE = ITEMS.registerSimpleItem("efficiency_upgrade", p -> p.stacksTo(4));
+    public static final DeferredItem<TutorialBookItem> GUIDE = ITEMS.registerItem("guide", TutorialBookItem::new);
     public static final Supplier<BlockEntityType<MachineBlockEntity>> MACHINE_ENTITY = BLOCK_ENTITIES.register("machine",
             () -> new BlockEntityType<>(MachineBlockEntity::new, false, MACHINES.values().stream().map(Supplier::get).toArray(Block[]::new)));
     public static final Supplier<MenuType<MachineMenu>> MACHINE_MENU = MENUS.register("machine",
@@ -60,6 +60,7 @@ public final class ModContent {
                         output.accept(REACTOR_CASING_ITEM.get());
                         output.accept(SPEED_UPGRADE.get());
                         output.accept(EFFICIENCY_UPGRADE.get());
+                        output.accept(GUIDE.get());
                     }).build());
 
     private ModContent() {}
@@ -74,7 +75,7 @@ public final class ModContent {
     }
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.energy());
-        event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.automation() && side != null ? new WorldlyContainerWrapper(machine, side) : null);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.automation() && side != null ? machine.automatedItems(side) : null);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.automation() ? machine.automatedFluids() : null);
     }
 }

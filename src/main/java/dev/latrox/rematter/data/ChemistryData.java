@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.network.CatalogWireCodec;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
@@ -109,6 +110,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         synthesis.forEach(builder::allowSynthesis);
         ChemistryRegistry result = builder.build();
         SynthesisOutputs.validate(result);
+        CatalogWireCodec.encode(result);
         return result;
     }
 

@@ -17,17 +17,40 @@ java {
 
 repositories {
     mavenCentral()
+    maven {
+        url = 'https://maven.blamejared.com'
+        content { includeGroup 'mezz.jei' }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
 }
 
 dependencies {
+    compileOnly('mezz.jei:jei-26.1.2-common-api:29.53.0.114') { transitive = false }
+    compileOnly('maven.modrinth:jade:26.1.12+neoforge') { transitive = false }
+    compileOnly('curse.maven:semi-seasonal-emi-1706958:8945319') { transitive = false }
+    compileOnly('org.appliedenergistics:guideme:26.1.17-beta:api') { transitive = false }
+    compileOnly('curse.maven:mekanism-version-locked-1713956:9267959') { transitive = false }
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.google.code.gson:gson:2.13.2'
+    testImplementation("net.neoforged:neoforge:${neo_version}:universal") { transitive = false }
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test', Test) {
     useJUnitPlatform()
+}
+
+sourceSets.test {
+    java.srcDir 'integrations/reforging/tests/java'
+    resources.srcDir 'integrations/reforging/datapack'
 }
 
 neoForge {

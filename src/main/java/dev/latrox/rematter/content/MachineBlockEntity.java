@@ -25,9 +25,12 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
+import org.jspecify.annotations.Nullable;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
-import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
+import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
@@ -63,31 +66,38 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         @Override protected void onContentsChanged(int index, FluidStack previous) { setChanged(); }
     };
 
-    private final ResourceHandler<FluidResource> automatedFluids = new DelegatingResourceHandler<>(fluids) {
-        @Override public boolean isValid(int index, FluidResource resource) { return automation && super.isValid(index, resource); }
-        @Override public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
-            return automation ? super.insert(index, resource, amount, transaction) : 0;
-        }
-        @Override public int extract(int index, FluidResource resource, int amount, TransactionContext transaction) {
-            return automation ? super.extract(index, resource, amount, transaction) : 0;
-        }
-        @Override public int insert(FluidResource resource, int amount, TransactionContext transaction) {
-            return automation ? super.insert(resource, amount, transaction) : 0;
-        }
-        @Override public int extract(FluidResource resource, int amount, TransactionContext transaction) {
-            return automation ? super.extract(resource, amount, transaction) : 0;
-        }
-    };
+    private final ResourceHandler<FluidResource> automatedFluids = new AutomationResourceHandler<>(
+            fluids, this::automationAllowed, 1, FluidResource.EMPTY);
+    private final RootCommitJournal inputTransferCommit = new RootCommitJournal(() -> {
+        analyzedId = "";
+        running = true;
+        setChanged();
+    });
 
     public MachineBlockEntity(BlockPos pos, BlockState state) { super(ModContent.MACHINE_ENTITY.get(), pos, state); }
     public MachineKind kind() { return ((MachineBlock) getBlockState().getBlock()).kind(); }
     public SimpleEnergyHandler energy() { return energy; }
     public FluidStacksResourceHandler fluids() { return fluids; }
     public ResourceHandler<FluidResource> automatedFluids() { return automatedFluids; }
+    public ResourceHandler<ItemResource> automatedItems(Direction side) {
+        return new AutomationResourceHandler<>(new WorldlyContainerWrapper(this, Objects.requireNonNull(side)), this::automationAllowed, 2, ItemResource.EMPTY);
+    }
     public boolean automation() { return automation; }
+    private boolean automationAllowed() {
+        if (!automation || isRemoved() || level == null || level.isClientSide()) return false;
+        var server = level.getServer();
+        return server != null && server.isSameThread() && level.hasChunkAt(worldPosition)
+                && level.getBlockEntity(worldPosition) == this;
+    }
     public void claim(Player player) { if (owner == null) { owner = player.getUUID(); setChanged(); } }
+    public boolean canAccess(Player player) { return owner == null || owner.equals(player.getUUID()); }
+    public @Nullable MachineSnapshot snapshotFor(Player player) { return canAccess(player) ? snapshot(-1) : null; }
+    public MatterInventory matterInventory() { return matter; }
+    public boolean chemicalAutomationAllowed() {
+        return kind() == MachineKind.STORAGE && preservedMatter == null && automationAllowed();
+    }
     public boolean canUse(Player player) {
-        boolean allowed = owner == null || owner.equals(player.getUUID());
+        boolean allowed = canAccess(player);
         if (!allowed && !player.level().isClientSide()) player.sendSystemMessage(Component.translatable("message.rematter.private_machine"));
         return allowed;
     }
@@ -167,12 +177,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                             () -> { if (analyze) analyzedId = id; else items.get(0).shrink(1); });
                 }
             }
-            if (kind() == MachineKind.DECOMPOSER && fluids.getAmountAsLong(0) >= 1000) {
+            if (kind() == MachineKind.DECOMPOSER) {
                 FluidResource fluid = fluids.getResource(0);
-                SubstanceKey substance = fluid.getFluid() == Fluids.WATER ? BuiltinChemistry.WATER : fluid.getFluid() == Fluids.LAVA ? BuiltinChemistry.LAVA : null;
-                if (substance != null && registry.isKnown(substance)) return new Operation("fluid:" + substance.id(), Map.of(), Map.of(substance, 1000L), cost(2000), 80,
-                        () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= 1000,
-                        () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - 1000));
+                var conversion = fluid.getFluid() == Fluids.WATER ? FluidConversions.WATER : fluid.getFluid() == Fluids.LAVA ? FluidConversions.LAVA : null;
+                if (conversion != null && registry.isKnown(conversion.substance()) && fluids.getAmountAsLong(0) >= conversion.amount()) {
+                    return new Operation("fluid:" + conversion.fluidId(), Map.of(), Map.of(conversion.substance(), (long) conversion.amount()),
+                            cost(conversion.decompositionEnergy()), conversion.ticks(),
+                            () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= conversion.amount(),
+                            () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - conversion.amount()));
+                }
             }
             return null;
         }
@@ -183,13 +196,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         selectedId = choice.id;
         if (kind() == MachineKind.SYNTHESIZER) {
             if (!registry.synthesisPolicy().allows(choice.id)) return null;
-            if (choice.id.equals("minecraft:water") || choice.id.equals("minecraft:lava")) {
-                boolean water = choice.id.equals("minecraft:water");
-                if (!registry.isKnown(water ? BuiltinChemistry.WATER : BuiltinChemistry.LAVA)) return null;
-                var resource = FluidResource.of(water ? Fluids.WATER : Fluids.LAVA);
-                return new Operation(choice.id, Map.of(water ? BuiltinChemistry.WATER : BuiltinChemistry.LAVA, 1000L), Map.of(), cost(water ? 2000 : 24000), 80,
-                        () -> (fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource)) && fluids.getAmountAsLong(0) <= 15000,
-                        () -> fluids.set(0, resource, (int) fluids.getAmountAsLong(0) + 1000));
+            var conversion = FluidConversions.ALL.stream().filter(value -> value.fluidId().equals(choice.id)).findFirst().orElse(null);
+            if (conversion != null) {
+                if (!registry.isKnown(conversion.substance())) return null;
+                var resource = FluidResource.of(BuiltInRegistries.FLUID.getValue(Identifier.parse(conversion.fluidId())));
+                return new Operation(choice.id, Map.of(conversion.substance(), (long) conversion.amount()), Map.of(),
+                        cost(conversion.synthesisEnergy()), conversion.ticks(),
+                        () -> (fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource)) && fluids.getAmountAsLong(0) <= 16_000 - conversion.amount(),
+                        () -> fluids.set(0, resource, (int) fluids.getAmountAsLong(0) + conversion.amount()));
             }
             var profile = registry.profile(choice.id).orElse(null);
             Identifier outputId = Identifier.parse(choice.id);
@@ -237,8 +251,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                     if (item != null) result.add(new Choice(profile.itemId(), item.getName(item.getDefaultInstance()).getString()));
                 }
             }
-            if (registry.synthesisPolicy().allows("minecraft:water")) result.add(new Choice("minecraft:water", "Water"));
-            if (registry.synthesisPolicy().allows("minecraft:lava")) result.add(new Choice("minecraft:lava", "Lava"));
+            for (var conversion : FluidConversions.ALL) {
+                if (registry.synthesisPolicy().allows(conversion.fluidId()) && registry.isKnown(conversion.substance())) {
+                    result.add(new Choice(conversion.fluidId(), pretty(conversion.substance().id().path())));
+                }
+            }
             return result.stream().sorted(Comparator.comparing(Choice::name)).limit(256).toList();
         }
         if (kind() == MachineKind.ELECTROLYZER || kind() == MachineKind.REACTOR || kind() == MachineKind.INDUSTRIAL_REACTOR) {
@@ -397,6 +414,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public void setItem(int index, ItemStack stack) { items.set(index, stack);
         if (index == 0 && kind() == MachineKind.ANALYZER) { analyzedId = ""; running = true; }
         stack.limitSize(getMaxStackSize(stack)); setChanged(); }
+    @Override public void setItem(int index, ItemStack stack, boolean insideTransaction) {
+        if (insideTransaction) items.set(index, stack);
+        else setItem(index, stack);
+    }
+    @Override public void onTransfer(int index, int amountChange, TransactionContext transaction) {
+        if (index == 0 && amountChange != 0 && kind() == MachineKind.ANALYZER) inputTransferCommit.updateSnapshots(transaction);
+    }
     @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
         if (index == 1) return false;
@@ -404,9 +428,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.ANALYZER) && stack.getComponentsPatch().isEmpty()
                 && ReMatter.chemistry().profile(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()).isPresent();
     }
-    @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automation && index == 1; }
-    @Override public int[] getSlotsForFace(Direction side) { return automation ? new int[] {0, 1} : new int[0]; }
-    @Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction side) { return automation && index == 0 && canPlaceItem(index, stack); }
-    @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) { return automation && index == 1; }
+    @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automationAllowed() && index == 1; }
+    @Override public int[] getSlotsForFace(Direction side) { return automationAllowed() ? new int[] {0, 1} : new int[0]; }
+    @Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && index == 0 && canPlaceItem(index, stack); }
+    @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && index == 1; }
     @Override public void clearContent() { items.clear(); setChanged(); }
 }

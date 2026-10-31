@@ -1,0 +1,37 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "rematter:analyzer",
+      "required": false
+    },
+    {
+      "id": "rematter:decomposer",
+      "required": false
+    },
+    {
+      "id": "rematter:material_synthesizer",
+      "required": false
+    },
+    {
+      "id": "rematter:electrolyzer",
+      "required": false
+    },
+    {
+      "id": "rematter:chemical_reactor",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_storage",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_terminal",
+      "required": false
+    },
+    {
+      "id": "rematter:industrial_reactor",
+      "required": false
+    }
+  ]
+}

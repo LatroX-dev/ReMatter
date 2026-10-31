@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "required_mod": "rematter",
+  "translation_key": "item.minecraft.quartz",
+  "symbol": "SiO₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}
