@@ -9,5 +9,6 @@ public final class MachineRenderState extends BlockEntityRenderState {
     public MachineKind kind = MachineKind.ANALYZER;
     public Direction facing = Direction.NORTH;
     public boolean active;
-    public float time;
+    public float phase;
+    public float drive;
 }

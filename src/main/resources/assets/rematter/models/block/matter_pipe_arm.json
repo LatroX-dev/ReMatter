@@ -9,6 +9,10 @@
     "hazard": "rematter:block/hazard",
     "port_matter": "rematter:block/port_matter",
     "port_energy": "rematter:block/port_energy",
+    "vent": "rematter:block/vent",
+    "panel": "rematter:block/panel",
+    "keyboard": "rematter:block/keyboard",
+    "vessel": "rematter:block/vessel",
     "screen": "rematter:block/display_idle",
     "status": "rematter:block/indicator_idle",
     "particle": "rematter:block/graphite"
@@ -27,6 +31,70 @@
       ],
       "faces": {
         "north": {
+          "texture": "#graphite"
+        },
+        "south": {
+          "texture": "#graphite"
+        },
+        "east": {
+          "texture": "#graphite"
+        },
+        "west": {
+          "texture": "#graphite"
+        },
+        "up": {
+          "texture": "#graphite"
+        },
+        "down": {
+          "texture": "#graphite"
+        }
+      }
+    },
+    {
+      "from": [
+        5.3,
+        5.3,
+        0
+      ],
+      "to": [
+        10.7,
+        10.7,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#frame"
+        },
+        "south": {
+          "texture": "#frame"
+        },
+        "east": {
+          "texture": "#frame"
+        },
+        "west": {
+          "texture": "#frame"
+        },
+        "up": {
+          "texture": "#frame"
+        },
+        "down": {
+          "texture": "#frame"
+        }
+      }
+    },
+    {
+      "from": [
+        5.65,
+        5.65,
+        1
+      ],
+      "to": [
+        10.35,
+        10.35,
+        1.45
+      ],
+      "faces": {
+        "north": {
           "texture": "#copper_trim"
         },
         "south": {
@@ -54,39 +122,39 @@
       ],
       "to": [
         10.7,
-        10.7,
-        1.3
+        5.55,
+        1
       ],
       "faces": {
         "north": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         },
         "south": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         },
         "east": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         },
         "west": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         },
         "up": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         },
         "down": {
-          "texture": "#frame"
+          "texture": "#brushed_steel"
         }
       }
     },
     {
       "from": [
-        6.8,
-        9.85,
-        1.3
+        7.5,
+        9.95,
+        1.6
       ],
       "to": [
-        9.2,
-        10.15,
+        8.5,
+        10.08,
         4.8
       ],
       "faces": {
@@ -110,7 +178,7 @@
         }
       },
       "shade": false,
-      "light_emission": 8
+      "light_emission": 3
     }
   ]
 }

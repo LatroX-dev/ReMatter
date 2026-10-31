@@ -9,6 +9,10 @@
     "hazard": "rematter:block/hazard",
     "port_matter": "rematter:block/port_matter",
     "port_energy": "rematter:block/port_energy",
+    "vent": "rematter:block/vent",
+    "panel": "rematter:block/panel",
+    "keyboard": "rematter:block/keyboard",
+    "vessel": "rematter:block/vessel",
     "screen": "rematter:block/display_idle",
     "status": "rematter:block/indicator_idle",
     "particle": "rematter:block/graphite"
@@ -68,19 +72,57 @@
           ]
         },
         "south": {
-          "texture": "#port_matter"
+          "texture": "#rubber"
         },
         "east": {
-          "texture": "#port_matter"
+          "texture": "#rubber"
         },
         "west": {
-          "texture": "#port_matter"
+          "texture": "#rubber"
         },
         "up": {
-          "texture": "#port_matter"
+          "texture": "#rubber"
         },
         "down": {
-          "texture": "#port_matter"
+          "texture": "#rubber"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        10.95,
+        6
+      ],
+      "to": [
+        10,
+        11.15,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rubber"
+        },
+        "south": {
+          "texture": "#rubber"
+        },
+        "east": {
+          "texture": "#rubber"
+        },
+        "west": {
+          "texture": "#rubber"
+        },
+        "up": {
+          "texture": "#panel",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#rubber"
         }
       }
     }
