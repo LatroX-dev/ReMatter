@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/material_synthesizer",
+  "textures": {
+    "screen": "rematter:block/display_active",
+    "status": "rematter:block/indicator_active"
+  }
+}

@@ -6,11 +6,18 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = ReMatter.MOD_ID, value = Dist.CLIENT)
 public final class ClientSetup {
     private ClientSetup() {}
     @SubscribeEvent public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModContent.MACHINE_MENU.get(), MachineScreen::new);
+    }
+    @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);
+    }
+    @SubscribeEvent public static void registerLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(MachineRenderer.LAYER, MachineRenderer::createLayer);
     }
 }

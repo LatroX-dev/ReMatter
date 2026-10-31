@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:block/matter_pipe"
+    "model": "rematter:item/matter_pipe"
   }
 }

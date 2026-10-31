@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:block/electrolyzer"
+    "model": "rematter:item/electrolyzer"
   }
 }

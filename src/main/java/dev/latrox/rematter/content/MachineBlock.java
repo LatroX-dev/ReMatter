@@ -2,10 +2,13 @@ package dev.latrox.rematter.content;
 
 import com.mojang.serialization.MapCodec;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -24,26 +28,50 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 public final class MachineBlock extends Block implements EntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     private final MachineKind kind;
     private final MapCodec<MachineBlock> codec;
+    private final Map<Direction, VoxelShape> shapes;
 
     public MachineBlock(MachineKind kind, Properties properties) {
         super(properties);
         this.kind = kind;
         this.codec = simpleCodec(p -> new MachineBlock(kind, p));
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.shapes = Shapes.rotateHorizontal(outline(kind));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
     public MachineKind kind() { return kind; }
     @Override protected MapCodec<? extends Block> codec() { return codec; }
-    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING); }
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, ACTIVE); }
+    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return shapes.get(state.getValue(FACING)); }
+    private static VoxelShape outline(MachineKind kind) {
+        VoxelShape base = box(1, 0, 1, 15, 3, 15);
+        if (kind != MachineKind.TERMINAL) base = Shapes.or(base,
+                box(0.5, 4, 6, 2, 9, 11), box(14, 4, 6, 15.5, 9, 11), box(5, 4, 14, 11, 10, 15.5));
+        return switch (kind) {
+            case TERMINAL -> Shapes.or(base, box(6, 3, 7, 10, 8, 11), box(2, 8, 5, 14, 16, 11), box(3, 5, 2, 13, 7, 7));
+            case SYNTHESIZER, ANALYZER -> Shapes.or(base, box(2, 3, 4, 4, 14, 14), box(12, 3, 4, 14, 14, 14), box(2, 13, 4, 14, 16, 14), box(4, 3, 4, 12, 6, 13));
+            case ELECTROLYZER -> Shapes.or(base, box(2, 3, 4, 7, 15, 12), box(9, 3, 4, 14, 15, 12), box(5, 10, 8, 11, 14, 13));
+            case REACTOR -> Shapes.or(base, box(3, 3, 3, 13, 14, 13), box(5, 14, 5, 11, 16, 11));
+            case DECOMPOSER -> Shapes.or(base, box(3, 3, 3, 13, 11, 14), box(2, 11, 2, 14, 16, 14));
+            case STORAGE, INDUSTRIAL_REACTOR -> Shapes.or(base, box(2, 3, 2, 14, 16, 14));
+        };
+    }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
+    @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        MatterPipeBlock.refreshLoadedAround(level, pos);
+    }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new MachineBlockEntity(pos, state); }
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide() || type != ModContent.MACHINE_ENTITY.get()) return null;

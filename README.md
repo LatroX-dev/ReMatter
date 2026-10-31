@@ -17,6 +17,8 @@ Recover substances from materials, store them in a shared matter inventory, and 
 - **Matter Pipes** — connect machines to one shared storage. Networks operate within loaded chunks.
 - **Speed and Efficiency Upgrades** — bounded upgrades with different energy costs.
 
+Each machine has its own industrial silhouette, with graphite housings, copper fittings, visible ports, and cyan displays. Working analyzers scan their sample bed; decomposers turn twin cutters; synthesizers cycle their press; electrolyzers show rising bubbles; and both reactor types rotate their drive. Motion and active displays follow processing and stop when a machine pauses or cannot proceed. Matter Pipes connect visually in all six directions.
+
 Copper, iron, gold, stone, dirt, sand, quartz, water, and lava form the starting catalogue. Optional profiles cover selected metal ingots and dusts from AllTheOres, Mekanism, Occultism, Ender IO, FTB Industrial Contraptions, Energized Power, and Oritech. These profiles are not a claim of complete support for every material or production chain in those mods.
 
 Synthesis uses an explicit allowlist. Machines, weapons, tools, armor, plates, wires, gears, and circuits remain outside that list.

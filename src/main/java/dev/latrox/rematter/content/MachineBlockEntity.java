@@ -56,6 +56,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private ChemistryRegistry lastRegistry;
     private BlockPos cachedStorage;
     private long nextNetworkScan;
+    private boolean processedThisTick;
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 16_000, 0) {
         @Override public int insert(int amount, TransactionContext transaction) {
@@ -130,6 +131,17 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
 
     public void serverTick() {
         if (level == null || level.isClientSide()) return;
+        processedThisTick = false;
+        try {
+            tickMachine();
+        } finally {
+            BlockState state = getBlockState();
+            if (!isRemoved() && state.getValue(MachineBlock.ACTIVE) != processedThisTick) {
+                level.setBlock(worldPosition, state.setValue(MachineBlock.ACTIVE, processedThisTick), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+            }
+        }
+    }
+    private void tickMachine() {
         ChemistryRegistry registry = ReMatter.chemistry();
         if (registry != lastRegistry) {
             lastRegistry = registry;
@@ -155,6 +167,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (energy.getAmountAsLong() < operation.cost) { status = "energy"; return; }
         if (!operation.canFinish()) { status = "output"; return; }
         progress = (int) Math.min(duration, (long) progress + speed());
+        processedThisTick = true;
         status = "working";
         setChanged();
         if (progress < duration) return;

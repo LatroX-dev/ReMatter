@@ -19,9 +19,9 @@ Machines can touch face-to-face. Use <ItemLink id="rematter:matter_pipe" /> to b
 
 <GameScene zoom="3" interactive={true}>
   <Block x="0" id="rematter:decomposer" />
-  <Block x="1" id="rematter:matter_pipe" />
+  <Block x="1" id="rematter:matter_pipe" p:west="true" p:east="true" />
   <Block x="2" id="rematter:matter_storage" />
-  <Block x="3" id="rematter:matter_pipe" />
+  <Block x="3" id="rematter:matter_pipe" p:west="true" p:east="true" />
   <Block x="4" id="rematter:material_synthesizer" />
   <Block x="2" z="-1" id="rematter:analyzer" />
   <Block x="2" z="1" id="rematter:matter_terminal" />

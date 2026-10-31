@@ -1,7 +1,62 @@
 {
-  "variants": {
-    "": {
-      "model": "rematter:block/matter_pipe"
+  "multipart": [
+    {
+      "apply": {
+        "model": "rematter:block/matter_pipe"
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm"
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "down": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_pipe_arm",
+        "x": 90
+      }
     }
-  }
+  ]
 }

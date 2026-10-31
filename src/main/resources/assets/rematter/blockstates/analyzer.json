@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,active=false": {
       "model": "rematter:block/analyzer"
     },
-    "facing=east": {
+    "facing=north,active=true": {
+      "model": "rematter:block/analyzer_active"
+    },
+    "facing=east,active=false": {
       "model": "rematter:block/analyzer",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,active=true": {
+      "model": "rematter:block/analyzer_active",
+      "y": 90
+    },
+    "facing=south,active=false": {
       "model": "rematter:block/analyzer",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,active=true": {
+      "model": "rematter:block/analyzer_active",
+      "y": 180
+    },
+    "facing=west,active=false": {
       "model": "rematter:block/analyzer",
+      "y": 270
+    },
+    "facing=west,active=true": {
+      "model": "rematter:block/analyzer_active",
       "y": 270
     }
   }

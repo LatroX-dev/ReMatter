@@ -26,7 +26,7 @@ Place the controller in the middle of a **3 by 3 square**. Fill all eight surrou
   <Block x="0" y="1" z="2" id="rematter:reactor_casing" />
   <Block x="1" y="1" z="2" id="rematter:reactor_casing" />
   <Block x="2" y="1" z="2" id="rematter:reactor_casing" />
-  <Block x="1" y="0" z="1" id="rematter:matter_pipe" />
+  <Block x="1" y="0" z="1" id="rematter:matter_pipe" p:up="true" p:north="true" />
   <Block x="1" y="0" z="0" id="rematter:matter_storage" />
   <BlockAnnotation x="1" y="1" z="1" color="#63d8bf">Controller: connect FE directly above it. The pipe underneath links its matter storage.</BlockAnnotation>
   <BlockAnnotation x="1" y="0" z="1" color="#8dcfff">Matter Pipe below the controller. Casings do not transfer matter or energy.</BlockAnnotation>

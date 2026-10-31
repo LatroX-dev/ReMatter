@@ -33,13 +33,13 @@ public final class ModContent {
     static {
         for (MachineKind kind : MachineKind.values()) {
             var block = BLOCKS.registerBlock(kind.id(), p -> new MachineBlock(kind, p),
-                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL));
+                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
             MACHINES.put(kind, block);
             ITEMS.registerSimpleBlockItem(block, p -> p.stacksTo(1));
         }
     }
-    public static final DeferredBlock<Block> MATTER_PIPE = BLOCKS.registerSimpleBlock("matter_pipe",
-            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.0F).sound(SoundType.METAL));
+    public static final DeferredBlock<MatterPipeBlock> MATTER_PIPE = BLOCKS.registerBlock("matter_pipe", MatterPipeBlock::new,
+            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.0F).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<Block> REACTOR_CASING = BLOCKS.registerSimpleBlock("reactor_casing",
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL));
     public static final DeferredItem<BlockItem> MATTER_PIPE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_PIPE);

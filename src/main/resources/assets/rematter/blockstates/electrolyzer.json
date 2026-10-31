@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,active=false": {
       "model": "rematter:block/electrolyzer"
     },
-    "facing=east": {
+    "facing=north,active=true": {
+      "model": "rematter:block/electrolyzer_active"
+    },
+    "facing=east,active=false": {
       "model": "rematter:block/electrolyzer",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,active=true": {
+      "model": "rematter:block/electrolyzer_active",
+      "y": 90
+    },
+    "facing=south,active=false": {
       "model": "rematter:block/electrolyzer",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,active=true": {
+      "model": "rematter:block/electrolyzer_active",
+      "y": 180
+    },
+    "facing=west,active=false": {
       "model": "rematter:block/electrolyzer",
+      "y": 270
+    },
+    "facing=west,active=true": {
+      "model": "rematter:block/electrolyzer_active",
       "y": 270
     }
   }
