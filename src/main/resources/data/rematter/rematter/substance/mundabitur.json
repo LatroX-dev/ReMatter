@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.mundabitur",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:calcium": 1,
+    "rematter:carbon": 1,
+    "rematter:oxygen": 3,
+    "rematter:arcane_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

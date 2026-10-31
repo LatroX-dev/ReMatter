@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.clay",
+  "symbol": "Al₂Si₂O₅(OH)₄",
+  "kind": "compound",
+  "composition": {
+    "rematter:aluminum": 2,
+    "rematter:silicon": 2,
+    "rematter:oxygen": 9,
+    "rematter:hydrogen": 4
+  },
+  "phases": [
+    "solid"
+  ]
+}

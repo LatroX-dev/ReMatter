@@ -33,3 +33,5 @@ jobs:
         run: ./gradlew build --no-daemon
       - name: Test optional integration configuration merge
         run: python3 -m unittest discover -s integrations/reforging/tests -p 'test_*.py'
+      - name: Verify curated material data matches generated resources
+        run: python3 tools/generate_material_data.py --check

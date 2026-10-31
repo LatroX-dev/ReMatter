@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.lapis",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:sodium": 8,
+    "rematter:aluminum": 6,
+    "rematter:silicon": 6,
+    "rematter:oxygen": 24,
+    "rematter:sulfur": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

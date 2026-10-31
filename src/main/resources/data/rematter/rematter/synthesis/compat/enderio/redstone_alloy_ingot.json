@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:redstone_alloy_ingot",
+  "category": "raw_material"
+}

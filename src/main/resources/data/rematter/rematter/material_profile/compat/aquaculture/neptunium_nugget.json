@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "aquaculture",
+  "item": "aquaculture:neptunium_nugget",
+  "item_count": 9,
+  "matter": [
+    {
+      "substance": "rematter:aquaculture_neptunium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 100
+}

@@ -21,4 +21,6 @@ The <ItemLink id="rematter:analyzer" /> reveals the stored composition of a supp
 
 An unupgraded scan costs 500 FE and takes 40 ticks. The composition appears only after the scan completes. To analyze a new sample, insert it and press Run again.
 
+Some materials use a batch to keep quantities exact. You can scan a single nugget, but **Amounts per 9 items** means the displayed composition describes nine nuggets together. The Decomposer needs the complete batch before it starts; the Analyzer still keeps your single sample.
+
 If the machine stays at **Insert sample**, that item has no usable profile or carries unsupported custom data. An unknown item is not converted to an arbitrary replacement material. Analysis is information, not permission to synthesize the original item.

@@ -9,14 +9,21 @@ import java.util.TreeMap;
 
 /** Immutable, fully validated definitions. A reload can replace this registry atomically. */
 public final class ChemistryRegistry {
+    public static final int MAX_SUBSTANCES = 8_192;
+    public static final int MAX_MATERIAL_PROFILES = 32_768;
+    public static final int MAX_FLUID_PROFILES = 4_096;
+    public static final int MAX_PROCESSES = 8_192;
+    public static final int MAX_SYNTHESIS_ENTRIES = 65_536;
     private final Map<SubstanceId, SubstanceDefinition> substances;
     private final Map<String, MaterialProfile> profiles;
+    private final Map<String, FluidProfile> fluidProfiles;
     private final Map<SubstanceId, ProcessRecipe> processes;
     private final SynthesisPolicy synthesisPolicy;
 
     private ChemistryRegistry(Builder builder) {
         substances = Collections.unmodifiableMap(new TreeMap<>(builder.substances));
         profiles = Collections.unmodifiableMap(new TreeMap<>(builder.profiles));
+        fluidProfiles = Collections.unmodifiableMap(new TreeMap<>(builder.fluidProfiles));
         processes = Collections.unmodifiableMap(new TreeMap<>(builder.processes));
         synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis);
         validate();
@@ -30,6 +37,7 @@ public final class ChemistryRegistry {
         Builder builder = new Builder();
         substances.values().forEach(builder::addSubstance);
         profiles.values().forEach(builder::addProfile);
+        fluidProfiles.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
         synthesisPolicy.entries().forEach(builder::allowSynthesis);
         return builder;
@@ -41,6 +49,14 @@ public final class ChemistryRegistry {
 
     public Optional<MaterialProfile> profile(String itemId) {
         return Optional.ofNullable(profiles.get(itemId));
+    }
+
+    public Optional<FluidProfile> fluidProfile(String fluidId) {
+        return Optional.ofNullable(fluidProfiles.get(fluidId));
+    }
+
+    public Collection<FluidProfile> fluidProfiles() {
+        return fluidProfiles.values();
     }
 
     public Optional<ProcessRecipe> recipe(SubstanceId id) {
@@ -83,6 +99,11 @@ public final class ChemistryRegistry {
     }
 
     private void validate() {
+        if (substances.size() > MAX_SUBSTANCES || profiles.size() > MAX_MATERIAL_PROFILES
+                || fluidProfiles.size() > MAX_FLUID_PROFILES || processes.size() > MAX_PROCESSES
+                || synthesisPolicy.entries().size() > MAX_SYNTHESIS_ENTRIES) {
+            throw new IllegalArgumentException("Chemistry catalogue exceeds its supported entry limits");
+        }
         for (SubstanceDefinition substance : substances.values()) {
             for (SubstanceId element : substance.composition().elements().keySet()) {
                 SubstanceDefinition definition = substances.get(element);
@@ -94,11 +115,21 @@ public final class ChemistryRegistry {
         for (MaterialProfile profile : profiles.values()) {
             elementAmounts(profile.matter());
         }
+        for (FluidProfile profile : fluidProfiles.values()) {
+            elementAmounts(profile.matter());
+        }
         for (Map.Entry<String, SynthesisCategory> allowed : synthesisPolicy.entries().entrySet()) {
             if ((allowed.getValue() == SynthesisCategory.RAW_MATERIAL
                     || allowed.getValue() == SynthesisCategory.NATURAL_MATERIAL)
                     && !profiles.containsKey(allowed.getKey())) {
                 throw new IllegalArgumentException("Synthesis requires an explicit material profile: " + allowed.getKey());
+            }
+            if (allowed.getValue() == SynthesisCategory.FLUID && !fluidProfiles.containsKey(allowed.getKey())) {
+                throw new IllegalArgumentException("Fluid synthesis requires an explicit fluid profile: " + allowed.getKey());
+            }
+            if (allowed.getValue() == SynthesisCategory.GAS
+                    && !isKnown(new SubstanceKey(SubstanceId.parse(allowed.getKey()), Phase.GAS))) {
+                throw new IllegalArgumentException("Gas synthesis requires a known gaseous substance: " + allowed.getKey());
             }
         }
         for (ProcessRecipe recipe : processes.values()) {
@@ -122,6 +153,7 @@ public final class ChemistryRegistry {
     public static final class Builder {
         private final Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
         private final Map<String, MaterialProfile> profiles = new TreeMap<>();
+        private final Map<String, FluidProfile> fluidProfiles = new TreeMap<>();
         private final Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         private final Map<String, SynthesisCategory> allowedSynthesis = new TreeMap<>();
 
@@ -137,6 +169,14 @@ public final class ChemistryRegistry {
             Objects.requireNonNull(profile, "profile");
             if (profiles.putIfAbsent(profile.itemId(), profile) != null) {
                 throw new IllegalArgumentException("Duplicate material profile: " + profile.itemId());
+            }
+            return this;
+        }
+
+        public Builder addFluidProfile(FluidProfile profile) {
+            Objects.requireNonNull(profile, "profile");
+            if (fluidProfiles.putIfAbsent(profile.fluidId(), profile) != null) {
+                throw new IllegalArgumentException("Duplicate fluid profile: " + profile.fluidId());
             }
             return this;
         }

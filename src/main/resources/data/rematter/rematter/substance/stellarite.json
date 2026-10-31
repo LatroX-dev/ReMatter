@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.stellarite",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:stellar_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

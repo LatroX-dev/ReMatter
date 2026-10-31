@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.fluorite",
+  "symbol": "CaF₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:calcium": 1,
+    "rematter:fluorine": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

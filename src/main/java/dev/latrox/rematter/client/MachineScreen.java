@@ -19,7 +19,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final int PAPER = 0xffe4efec, MUTED = 0xff9eb2b6, CYAN = 0xff67e1ce, COPPER = 0xffcc9169;
     private static final int PAGE_SIZE = 5;
     private EditBox search;
-    private Button run, automation, previousChoice, nextChoice, previousPage, nextPage;
+    private Button run, automation, previousChoice, nextChoice, selectChoice, previousPage, nextPage;
     private int page;
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
@@ -38,6 +38,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         addRenderableWidget(search);
         previousChoice = control("<", 8, 122, 20, 16, button -> send(0), "Previous process");
         nextChoice = control(">", 80, 122, 20, 16, button -> send(1), "Next process");
+        selectChoice = control("Select", 30, 122, 48, 16,
+                button -> minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)), "Search all available processes");
         previousPage = control("<", 114, 108, 20, 16, button -> page = Math.max(0, page - 1), "Previous substances");
         nextPage = control(">", 260, 108, 20, 16, button -> page++, "Next substances");
         run = control("", 8, 143, 94, 18, button -> send(2), "Pause or resume processing");
@@ -65,8 +67,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         page = Math.clamp(page, 0, pages - 1);
         previousPage.active = page > 0;
         nextPage.active = page + 1 < pages;
-        previousChoice.active = nextChoice.active = state.choices().size() > 1;
-        run.active = state.kind() != MachineKind.STORAGE.ordinal() && state.kind() != MachineKind.TERMINAL.ordinal();
+        previousChoice.active = nextChoice.active = state.choiceCount() > 1;
+        selectChoice.active = state.choiceCount() > 0;
+        run.active = state.kind() != MachineKind.STORAGE.ordinal() && state.kind() != MachineKind.TERMINAL.ordinal()
+                && !state.status().equals("selection_unavailable");
         run.setMessage(Component.translatable(state.running() ? "screen.rematter.pause" : "screen.rematter.run"));
         automation.setMessage(Component.translatable(state.automation() ? "screen.rematter.automation_on" : "screen.rematter.automation_off"));
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -75,8 +79,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             graphics.setTooltipForNextFrame(Component.literal(String.format(Locale.ROOT, "%,d / 1,000,000 FE", state.energy())), mouseX, mouseY);
         } else if (state.kind() != MachineKind.ANALYZER.ordinal() && mx >= 112 && mx < 282 && my >= 127 && my < 139) {
             graphics.setTooltipForNextFrame(Component.literal(String.format(Locale.ROOT, "%,d / %,d stored units", state.used(), state.capacity())), mouseX, mouseY);
-        } else if (mx >= 10 && mx < 103 && my >= 110 && my < 121 && !state.choices().isEmpty()) {
-            graphics.setTooltipForNextFrame(Component.literal(state.choices().get(Math.floorMod(state.selected(), state.choices().size()))), mouseX, mouseY);
+        } else if (mx >= 10 && mx < 103 && my >= 110 && my < 121 && state.choiceCount() > 0) {
+            String choice = state.selected() < 0 ? "Unavailable: " + state.selectedId()
+                    : state.selectedName() + " · " + (state.selected() + 1) + "/" + state.choiceCount();
+            graphics.setTooltipForNextFrame(Component.literal(choice), mouseX, mouseY);
         } else if (mx >= 114 && mx < 282 && my >= 46 && my < 106) {
             int line = (my - 46) / 12;
             int index = page * PAGE_SIZE + line;
@@ -154,11 +160,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         graphics.text(font, Component.translatable("status.rematter." + state.status()), 22, 51, MUTED, false);
         graphics.text(font, Component.translatable("screen.rematter.input"), 12, 84, MUTED, false);
         graphics.text(font, Component.translatable("screen.rematter.output"), 66, 84, MUTED, false);
-        if (!state.choices().isEmpty()) {
-            int selected = Math.floorMod(state.selected(), state.choices().size());
-            graphics.text(font, font.plainSubstrByWidth(state.choices().get(selected), 90), 11, 112, PAPER, false);
-            String counter = (selected + 1) + "/" + state.choices().size();
-            graphics.text(font, counter, 54 - font.width(counter) / 2, 126, MUTED, false);
+        if (state.choiceCount() > 0) {
+            String selectedName = state.selected() < 0 ? "Select a process" : state.selectedName();
+            graphics.text(font, font.plainSubstrByWidth(selectedName, 90), 11, 112, PAPER, false);
         }
         List<MachineSnapshot.Entry> values = entries();
         int pages = Math.max(1, (values.size() + PAGE_SIZE - 1) / PAGE_SIZE);
@@ -175,7 +179,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (values.isEmpty()) graphics.text(font, search.getValue().isBlank() ? "No substances" : "No matches", 122, 70, MUTED, false);
         String pagesText = (page + 1) + " / " + pages;
         graphics.text(font, pagesText, 198 - font.width(pagesText) / 2, 112, MUTED, false);
-        String storage = state.kind() == MachineKind.ANALYZER.ordinal() ? "Sample composition" : compact(state.used()) + " / " + compact(state.capacity()) + " u";
+        String storage = state.kind() == MachineKind.ANALYZER.ordinal()
+                ? (state.sampleBatchSize() > 1 ? "Amounts per " + state.sampleBatchSize() + " items" : "Sample composition")
+                : compact(state.used()) + " / " + compact(state.capacity()) + " u";
         graphics.text(font, storage, 114, 127, MUTED, false);
         graphics.text(font, "TANK", 13, 178, MUTED, false);
         graphics.text(font, compact(state.fluidAmount()), 22, 191, PAPER, false);

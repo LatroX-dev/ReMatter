@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:energite_dust",
+  "matter": [
+    {
+      "substance": "rematter:energite",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 100
+}

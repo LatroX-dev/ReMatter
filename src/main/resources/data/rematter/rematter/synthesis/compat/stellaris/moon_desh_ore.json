@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "stellaris",
+  "item": "stellaris:moon_desh_ore",
+  "disabled": true
+}

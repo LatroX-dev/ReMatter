@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.basalt",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:magnesium": 1,
+    "rematter:iron": 1,
+    "rematter:oxygen": 6
+  },
+  "phases": [
+    "solid"
+  ]
+}

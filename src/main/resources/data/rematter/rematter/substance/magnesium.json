@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.magnesium",
+  "symbol": "Mg",
+  "kind": "element",
+  "composition": {
+    "rematter:magnesium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

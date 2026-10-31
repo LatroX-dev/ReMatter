@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.packed_ice",
+  "item": "jaopca:storage_blocks.packed_ice",
+  "category": "raw_material"
+}

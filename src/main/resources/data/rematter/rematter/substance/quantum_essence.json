@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.quantum_essence",
+  "symbol": "Qnt",
+  "kind": "element",
+  "composition": {
+    "rematter:quantum_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

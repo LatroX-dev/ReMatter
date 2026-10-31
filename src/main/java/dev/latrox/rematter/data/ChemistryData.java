@@ -39,12 +39,15 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         ChemistryRegistry defaults = BuiltinChemistry.create();
         Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
         Map<String, MaterialProfile> profiles = new TreeMap<>();
+        Map<String, FluidProfile> fluids = new TreeMap<>();
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         Map<String, SynthesisCategory> synthesis = new TreeMap<>(defaults.synthesisPolicy().entries());
         Map<String, Identifier> profileSources = new HashMap<>();
+        Map<String, Identifier> fluidSources = new HashMap<>();
         Map<String, Identifier> synthesisSources = new HashMap<>();
         defaults.substances().forEach(s -> substances.put(s.id(), s));
         defaults.profiles().forEach(p -> profiles.put(p.itemId(), p));
+        defaults.fluidProfiles().forEach(p -> fluids.put(p.fluidId(), p));
         defaults.processes().forEach(p -> processes.put(p.id(), p));
 
         readDirectory(manager, "rematter/substance", (id, json) -> {
@@ -70,16 +73,32 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             requireUniqueTarget(profileSources, item, id);
             if (disabled(json)) {
                 profiles.remove(item);
-                synthesis.remove(item);
+                if (synthesis.get(item) == SynthesisCategory.RAW_MATERIAL || synthesis.get(item) == SynthesisCategory.NATURAL_MATERIAL) {
+                    synthesis.remove(item);
+                }
                 return;
             }
             Identifier itemId = Identifier.parse(item);
             if (!BuiltInRegistries.ITEM.containsKey(itemId) || item.equals("minecraft:air")) {
                 throw new IllegalArgumentException("Unknown item " + item + "; optional profiles need required_mod");
             }
-            profiles.put(item, new MaterialProfile(item, amounts(json, "matter"),
+            profiles.put(item, new MaterialProfile(item,
+                    json.has("item_count") ? Math.toIntExact(positiveLong(json, "item_count")) : 1, amounts(json, "matter"),
                     positiveLong(json, "decomposition_energy"), positiveLong(json, "synthesis_energy"),
                     Math.toIntExact(positiveLong(json, "ticks"))));
+        });
+
+        readDirectory(manager, "rematter/fluid_profile", (id, json) -> {
+            String fluid = string(json, "fluid");
+            requireUniqueTarget(fluidSources, fluid, id);
+            if (disabled(json)) {
+                fluids.remove(fluid);
+                if (synthesis.get(fluid) == SynthesisCategory.FLUID) synthesis.remove(fluid);
+                return;
+            }
+            fluids.put(fluid, new FluidProfile(fluid, Math.toIntExact(positiveLong(json, "amount")),
+                    amounts(json, "matter"), positiveLong(json, "decomposition_energy"),
+                    positiveLong(json, "synthesis_energy"), Math.toIntExact(positiveLong(json, "ticks"))));
         });
 
         readDirectory(manager, "rematter/process", (id, json) -> {
@@ -106,6 +125,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
         substances.values().forEach(builder::addSubstance);
         profiles.values().forEach(builder::addProfile);
+        fluids.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
         synthesis.forEach(builder::allowSynthesis);
         ChemistryRegistry result = builder.build();
@@ -123,6 +143,9 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
 
     private static void readDirectory(ResourceManager manager, String directory, BiConsumer<Identifier, JsonObject> consume) {
         Map<Identifier, Resource> resources = new TreeMap<>(manager.listResources(directory, id -> id.getPath().endsWith(".json")));
+        if (resources.size() > ChemistryRegistry.MAX_SYNTHESIS_ENTRIES) {
+            throw new IllegalArgumentException("Too many chemistry documents in " + directory);
+        }
         for (var entry : resources.entrySet()) {
             Identifier source = entry.getKey();
             String path = source.getPath().substring(directory.length() + 1, source.getPath().length() - 5);
@@ -130,6 +153,9 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             try (Reader reader = entry.getValue().openAsReader()) {
                 JsonObject json = JsonParser.parseString(readBounded(reader)).getAsJsonObject();
                 if (json.has("required_mod") && !ModList.get().isLoaded(string(json, "required_mod"))) {
+                    continue;
+                }
+                if (json.has("required_item") && !BuiltInRegistries.ITEM.containsKey(Identifier.parse(string(json, "required_item")))) {
                     continue;
                 }
                 if (positiveLong(json, "schema_version") != 1) {

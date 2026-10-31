@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:amethyst_block",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 128000,
+  "synthesis_energy": 256000,
+  "ticks": 400
+}

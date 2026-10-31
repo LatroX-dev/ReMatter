@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:plutonium_dust",
+  "matter": [
+    {
+      "substance": "rematter:plutonium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

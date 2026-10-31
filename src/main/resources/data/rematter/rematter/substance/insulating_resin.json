@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.insulating_resin",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 5,
+    "rematter:hydrogen": 8,
+    "rematter:oxygen": 2,
+    "rematter:silicon": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

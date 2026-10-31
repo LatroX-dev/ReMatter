@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.diorite",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:aluminum": 2,
+    "rematter:calcium": 1,
+    "rematter:oxygen": 8
+  },
+  "phases": [
+    "solid"
+  ]
+}

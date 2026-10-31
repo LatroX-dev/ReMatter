@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekmm",
+  "item": "mekmm:silver_ore",
+  "disabled": true
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.invar",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:iron": 2,
+    "rematter:nickel": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

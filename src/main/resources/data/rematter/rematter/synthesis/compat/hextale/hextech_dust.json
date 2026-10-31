@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "hextale",
+  "item": "hextale:hextech_dust",
+  "category": "raw_material"
+}

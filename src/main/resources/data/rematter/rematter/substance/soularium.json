@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.soularium",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:gold": 3,
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:vital_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

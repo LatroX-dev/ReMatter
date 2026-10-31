@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.bronze",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:copper": 3,
+    "rematter:tin": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

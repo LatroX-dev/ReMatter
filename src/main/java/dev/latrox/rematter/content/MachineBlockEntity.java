@@ -67,7 +67,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     };
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, 16_000) {
         @Override public boolean isValid(int index, FluidResource resource) {
-            return resource.isComponentsPatchEmpty() && (resource.getFluid() == Fluids.WATER || resource.getFluid() == Fluids.LAVA);
+            return !resource.isEmpty() && resource.isComponentsPatchEmpty()
+                    && ReMatter.chemistry().fluidProfile(BuiltInRegistries.FLUID.getKey(resource.getFluid()).toString()).isPresent();
         }
         @Override protected void onContentsChanged(int index, FluidStack previous) { setChanged(); }
     };
@@ -118,15 +119,33 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level != null) level.invalidateCapabilities(worldPosition);
         setChanged();
     }
-    public void toggleRunning() { running = !running; setChanged(); }
+    public void toggleRunning() {
+        if (!running && selection < 0 && !selectedId.isEmpty()) return;
+        running = !running;
+        setChanged();
+    }
     public void select(int offset) {
         var choices = choices();
         if (!choices.isEmpty()) {
-            selection = Math.floorMod(selection + offset, choices.size());
+            selection = selection < 0 ? (offset < 0 ? choices.size() - 1 : 0)
+                    : (int) Math.floorMod((long) selection + offset, choices.size());
             selectedId = choices.get(selection).id();
             resetProgress();
             setChanged();
         }
+    }
+    public boolean selectRecipe(String exactId) {
+        var choices = choices();
+        for (int i = 0; i < choices.size(); i++) {
+            if (choices.get(i).id().equals(exactId)) {
+                selection = i;
+                selectedId = exactId;
+                resetProgress();
+                setChanged();
+                return true;
+            }
+        }
+        return false;
     }
 
     public void serverTick() {
@@ -148,8 +167,17 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             analyzedId = "";
             resetProgress();
             var options = choices();
-            selection = 0;
-            for (int i = 0; i < options.size(); i++) if (options.get(i).id().equals(selectedId)) selection = i;
+            if (kind() == MachineKind.SYNTHESIZER && registry.fluidProfile(selectedId).isPresent()
+                    && !registry.synthesisPolicy().allowsItem(selectedId)) selectedId = MachineChoices.fluidChoiceId(selectedId);
+            var restored = RecipeSelection.restore(selectedId, options.stream().map(MachineChoices.Choice::id).toList());
+            selection = restored.index();
+            selectedId = restored.id();
+            if (restored.unavailable()) { running = false; status = "selection_unavailable"; setChanged(); }
+        }
+        if (selection < 0 && !selectedId.isEmpty()) {
+            if (running) { running = false; setChanged(); }
+            status = "selection_unavailable";
+            return;
         }
         if (!running) { if (!status.equals("analyzed")) status = "paused"; return; }
         if (kind() == MachineKind.STORAGE) { status = preservedMatter == null ? "ready" : "unknown_schema"; return; }
@@ -192,17 +220,19 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 var profile = registry.profile(id).orElse(null);
                 if (profile != null) {
                     boolean analyze = kind() == MachineKind.ANALYZER;
-                    return new Operation("item:" + id, Map.of(), analyze ? Map.of() : profile.matter(),
+                    int requiredItems = analyze ? 1 : profile.itemCount();
+                    if (input.getCount() < requiredItems) return null;
+                    return new Operation("item:" + id + ":" + requiredItems, Map.of(), analyze ? Map.of() : profile.matter(),
                             cost(analyze ? 500 : profile.decompositionEnergy()), analyze ? 40 : profile.ticks(),
-                            () -> !items.get(0).isEmpty() && items.get(0).getItem() == input.getItem() && items.get(0).getComponentsPatch().isEmpty(),
-                            () -> { if (analyze) analyzedId = id; else items.get(0).shrink(1); });
+                            () -> items.get(0).getCount() >= requiredItems && items.get(0).getItem() == input.getItem() && items.get(0).getComponentsPatch().isEmpty(),
+                            () -> { if (analyze) analyzedId = id; else items.get(0).shrink(requiredItems); });
                 }
             }
             if (kind() == MachineKind.DECOMPOSER) {
                 FluidResource fluid = fluids.getResource(0);
-                var conversion = fluid.getFluid() == Fluids.WATER ? FluidConversions.WATER : fluid.getFluid() == Fluids.LAVA ? FluidConversions.LAVA : null;
-                if (conversion != null && registry.isKnown(conversion.substance()) && fluids.getAmountAsLong(0) >= conversion.amount()) {
-                    return new Operation("fluid:" + conversion.fluidId(), Map.of(), Map.of(conversion.substance(), (long) conversion.amount()),
+                var conversion = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
+                if (conversion != null && fluid.isComponentsPatchEmpty() && fluids.getAmountAsLong(0) >= conversion.amount()) {
+                    return new Operation("fluid:" + conversion.fluidId(), Map.of(), conversion.matter(),
                             cost(conversion.decompositionEnergy()), conversion.ticks(),
                             () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= conversion.amount(),
                             () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - conversion.amount()));
@@ -211,36 +241,36 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             return null;
         }
         var options = choices();
-        if (options.isEmpty()) return null;
+        if (options.isEmpty() || selection < 0) return null;
         selection = Math.floorMod(selection, options.size());
-        Choice choice = options.get(selection);
-        selectedId = choice.id;
+        MachineChoices.Choice choice = options.get(selection);
+        selectedId = choice.id();
         if (kind() == MachineKind.SYNTHESIZER) {
-            if (!registry.synthesisPolicy().allows(choice.id)) return null;
-            var conversion = FluidConversions.ALL.stream().filter(value -> value.fluidId().equals(choice.id)).findFirst().orElse(null);
+            var conversion = choice.id().startsWith("fluid:") ? registry.fluidProfile(choice.id().substring(6)).orElse(null) : null;
             if (conversion != null) {
-                if (!registry.isKnown(conversion.substance())) return null;
+                if (!registry.synthesisPolicy().allowsFluid(conversion.fluidId())) return null;
                 var resource = FluidResource.of(BuiltInRegistries.FLUID.getValue(Identifier.parse(conversion.fluidId())));
-                return new Operation(choice.id, Map.of(conversion.substance(), (long) conversion.amount()), Map.of(),
+                return new Operation(choice.id(), conversion.matter(), Map.of(),
                         cost(conversion.synthesisEnergy()), conversion.ticks(),
                         () -> (fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource)) && fluids.getAmountAsLong(0) <= 16_000 - conversion.amount(),
                         () -> fluids.set(0, resource, (int) fluids.getAmountAsLong(0) + conversion.amount()));
             }
-            var profile = registry.profile(choice.id).orElse(null);
-            Identifier outputId = Identifier.parse(choice.id);
+            if (!registry.synthesisPolicy().allowsItem(choice.id())) return null;
+            var profile = registry.profile(choice.id()).orElse(null);
+            Identifier outputId = Identifier.parse(choice.id());
             if (!BuiltInRegistries.ITEM.containsKey(outputId)) return null;
             Item output = BuiltInRegistries.ITEM.getValue(outputId);
             if (profile == null || output == null) return null;
-            var result = new ItemStack(output);
-            return new Operation(choice.id, profile.matter(), Map.of(), cost(profile.synthesisEnergy()), profile.ticks(),
+            var result = new ItemStack(output, profile.itemCount());
+            return new Operation(choice.id() + ":" + profile.itemCount(), profile.matter(), Map.of(), cost(profile.synthesisEnergy()), profile.ticks(),
                     () -> fitsOutput(result), () -> {
                         if (items.get(1).isEmpty()) items.set(1, result);
-                        else items.get(1).grow(1);
+                        else items.get(1).grow(result.getCount());
                     });
         }
-        var recipe = registry.recipe(SubstanceId.parse(choice.id)).orElse(null);
+        var recipe = registry.recipe(SubstanceId.parse(choice.id())).orElse(null);
         if (recipe == null) return null;
-        return new Operation(choice.id, recipe.inputs(), recipe.outputs(), cost(recipe.energy()), recipe.ticks(), () -> true, () -> {});
+        return new Operation(choice.id(), recipe.inputs(), recipe.outputs(), cost(recipe.energy()), recipe.ticks(), () -> true, () -> {});
     }
 
     private int speed() {
@@ -257,38 +287,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     private boolean fitsOutput(ItemStack result) {
         ItemStack output = items.get(1);
-        return output.isEmpty() || (ItemStack.isSameItemSameComponents(output, result) && output.getCount() < output.getMaxStackSize());
+        int maximum = Math.min(getMaxStackSize(), result.getMaxStackSize());
+        return result.getCount() <= maximum && (output.isEmpty()
+                || (ItemStack.isSameItemSameComponents(output, result) && result.getCount() <= maximum - output.getCount()));
     }
     private void resetProgress() { progress = 0; duration = 0; job = ""; }
 
-    public List<Choice> choices() {
-        ChemistryRegistry registry = ReMatter.chemistry();
-        if (kind() == MachineKind.SYNTHESIZER) {
-            var result = new ArrayList<Choice>();
-            for (var profile : registry.profiles()) {
-                if (registry.synthesisPolicy().allows(profile.itemId())) {
-                    Identifier itemId = Identifier.parse(profile.itemId());
-                    Item item = BuiltInRegistries.ITEM.containsKey(itemId) ? BuiltInRegistries.ITEM.getValue(itemId) : null;
-                    if (item != null) result.add(new Choice(profile.itemId(), item.getName(item.getDefaultInstance()).getString()));
-                }
-            }
-            for (var conversion : FluidConversions.ALL) {
-                if (registry.synthesisPolicy().allows(conversion.fluidId()) && registry.isKnown(conversion.substance())) {
-                    result.add(new Choice(conversion.fluidId(), pretty(conversion.substance().id().path())));
-                }
-            }
-            return result.stream().sorted(Comparator.comparing(Choice::name)).limit(256).toList();
-        }
-        if (kind() == MachineKind.ELECTROLYZER || kind() == MachineKind.REACTOR || kind() == MachineKind.INDUSTRIAL_REACTOR) {
-            return registry.recipes().stream()
-                    .filter(recipe -> kind() != MachineKind.ELECTROLYZER || recipe.type() == ProcessType.ELECTROLYSIS)
-                    .filter(recipe -> kind() == MachineKind.ELECTROLYZER || recipe.type() != ProcessType.ELECTROLYSIS)
-                    .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
-                    .limit(256).map(recipe -> new Choice(recipe.id().toString(), pretty(recipe.id().path()))).toList();
-        }
-        return List.of();
-    }
-    public record Choice(String id, String name) {}
+    public List<MachineChoices.Choice> choices() { return MachineChoices.forKind(kind(), ReMatter.chemistry()); }
     private record Operation(String signature, Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
                              long cost, int ticks, java.util.function.BooleanSupplier ready, Runnable finish) {
         boolean canFinish() { return ready.getAsBoolean(); }
@@ -361,10 +366,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                         .forEach(entry -> entries.add(new MachineSnapshot.Entry(pretty(entry.getKey().id().path()), entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue())));
             });
         }
+        var choices = choices();
+        int selected = choices.isEmpty() || selection < 0 ? -1 : Math.floorMod(selection, choices.size());
+        var chosen = selected < 0 ? null : choices.get(selected);
+        int sampleBatch = kind() == MachineKind.ANALYZER && !items.get(0).isEmpty()
+                ? ReMatter.chemistry().profile(BuiltInRegistries.ITEM.getKey(items.get(0).getItem()).toString()).map(MaterialProfile::itemCount).orElse(1) : 1;
         return new MachineSnapshot(containerId, kind().ordinal(), (int) energy.getAmountAsLong(), progress, duration,
-                status, selection, choices().stream().map(Choice::name).toList(), entries,
+                status, selected, chosen == null ? selectedId : chosen.id(), chosen == null ? selectedId : chosen.name(), choices.size(), sampleBatch, entries,
                 store == null ? 0 : store.matter.total(), store == null ? 0 : store.matter.capacity(), automation, running,
-                (int) fluids.getAmountAsLong(0), fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getFluid() == Fluids.WATER ? "Water" : "Lava");
+                (int) fluids.getAmountAsLong(0), fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getHoverName().getString());
     }
 
     @Override protected void saveAdditional(ValueOutput output) {

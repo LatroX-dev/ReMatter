@@ -22,11 +22,13 @@ Pause after one item while learning. A running machine repeats whenever its inpu
 
 ## 2. Synthesize copper
 
-Open a connected, powered <ItemLink id="rematter:material_synthesizer" />. Use the **lower-left recipe arrows** to select **Copper Ingot**, then press Run. The process consumes 1,000 copper units and produces one ingot in the right-hand output slot.
+Open a connected, powered <ItemLink id="rematter:material_synthesizer" />. Press **Select**, search for **Copper Ingot**, and choose the result. Then press Run. The process consumes 1,000 copper units and produces one ingot in the right-hand output slot. The arrows also step through the available processes.
 
 <RecipeFor id="rematter:material_synthesizer" />
 
 An ordinary copper block represents 9,000 copper units. Raw copper can be decomposed, but it is not a synthesis output. Use the selected material's live recipe for the current FE and time costs; servers may customize profiles.
+
+Small forms use whole batches: nine supported copper nuggets represent the same 1,000 units as one ingot. Synthesis needs room for all nine output items. Partial batches wait without consuming items, substances or FE.
 
 ## 3. Continue normal manufacturing
 

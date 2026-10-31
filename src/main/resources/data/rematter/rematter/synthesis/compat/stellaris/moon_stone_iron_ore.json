@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "stellaris",
+  "item": "stellaris:moon_stone_iron_ore",
+  "disabled": true
+}

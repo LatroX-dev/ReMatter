@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.tuff",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 4,
+    "rematter:aluminum": 2,
+    "rematter:calcium": 1,
+    "rematter:oxygen": 12
+  },
+  "phases": [
+    "solid"
+  ]
+}

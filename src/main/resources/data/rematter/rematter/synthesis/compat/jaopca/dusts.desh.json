@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:dusts.desh",
+  "item": "jaopca:dusts.desh",
+  "category": "raw_material"
+}

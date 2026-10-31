@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:dust_fluorite",
+  "category": "raw_material"
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.obsidian",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 7,
+    "rematter:aluminum": 2,
+    "rematter:oxygen": 17
+  },
+  "phases": [
+    "solid"
+  ]
+}

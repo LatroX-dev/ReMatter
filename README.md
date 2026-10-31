@@ -9,7 +9,7 @@ Recover substances from materials, store them in a shared matter inventory, and 
 ## Machines and materials
 
 - **Analyzer** — inspect the substances in a supported sample.
-- **Decomposer** — recover substances from materials, water, and lava.
+- **Decomposer** — recover substances from supported items and fluids in exact batches.
 - **Matter Storage and Terminal** — store solids, liquids, and gases as quantities, with search and paging.
 - **Material Synthesizer** — turn stored substances into approved raw materials and natural materials.
 - **Electrolyzer and Chemical Reactor** — separate and recombine substances, including water, hydrogen, and oxygen.
@@ -19,7 +19,11 @@ Recover substances from materials, store them in a shared matter inventory, and 
 
 Each machine has its own industrial silhouette, with graphite housings, copper fittings, visible ports, and cyan displays. Working analyzers scan their sample bed; decomposers turn twin cutters; synthesizers cycle their press; electrolyzers show rising bubbles; and both reactor types rotate their drive. Motion and active displays follow processing and stop when a machine pauses or cannot proceed. Matter Pipes connect visually in all six directions.
 
-Copper, iron, gold, stone, dirt, sand, quartz, water, and lava form the starting catalogue. Optional profiles cover selected metal ingots and dusts from AllTheOres, Mekanism, Occultism, Ender IO, FTB Industrial Contraptions, Energized Power, and Oritech. These profiles are not a claim of complete support for every material or production chain in those mods.
+Copper, iron, gold, stone, dirt, sand, quartz, water, and lava form the starting catalogue. Optional definitions expand it with reviewed metals, alloys, minerals, crystals, and mod-specific raw materials. Each definition identifies an exact item or fluid; shared tags do not automatically grant conversions. Materials with different processing requirements keep separate identities.
+
+Small forms use whole batches: nine supported nuggets represent exactly one ingot, with no rounded fractions. The Analyzer labels batch quantities, and recipe viewers show the required item count. A searchable process picker handles large catalogues.
+
+See the [material coverage table](docs/material-coverage.md) for supported families, exact item profiles, and exclusions.
 
 Synthesis uses an explicit allowlist. Machines, weapons, tools, armor, plates, wires, gears, and circuits remain outside that list.
 
@@ -28,7 +32,7 @@ Synthesis uses an explicit allowlist. Machines, weapons, tools, armor, plates, w
 1. Place a Matter Storage and connect a Decomposer and Material Synthesizer using Matter Pipes. Use one storage per connected network.
 2. Supply FE to each processing machine from a compatible energy source. ReMatter does not include a generator; Matter Pipes carry the matter network, not FE.
 3. Insert a copper ingot in the Decomposer. Its copper becomes available in the shared storage.
-4. Choose Copper Ingot in the Material Synthesizer to recover an ingot from that stored copper.
+4. Press **Select** in the Material Synthesizer, search for Copper Ingot, and choose it to recover an ingot from that stored copper.
 5. Import water through a Decomposer's tank, select Water Electrolysis in an Electrolyzer, and use Water Synthesis in a Chemical Reactor for the reverse process. Select Water in the Material Synthesizer to export it to a tank.
 
 Machines belong to the player who places them. Item and fluid automation is off by default and can be enabled from the machine screen. Filled machines retain their contents when picked up.
@@ -41,7 +45,7 @@ Craft the **ReMatter Guide** from a book and a copper ingot. It explains the fir
 
 Optional recipe-viewer, HUD, and chemical-transfer support is described in [Integrations](docs/integrations.md). ReMatter does not require ReForging, JEI, EMI, Jade, GuideME, or Mekanism to load. An external FE source is needed to operate processing machines.
 
-The separate [ReForging integration](integrations/reforging/README.md) supplies optional quartz and machine-copying rules for packs that also use Replication and Equivox. It is not activated by installing the mod.
+The separate [ReForging integration](integrations/reforging/README.md) supplies quartz, silicon progression, and machine-copying rules for packs that also use Replication and Equivox. It is not activated by installing the mod.
 
 ## Build
 

@@ -6,6 +6,8 @@ import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 import java.util.Objects;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -19,19 +21,28 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
     private final BooleanSupplier automationAllowed;
     private final Predicate<SubstanceKey> known;
     private final Runnable committed;
+    private final List<ChemicalMappings.Mapping> mappings;
     private MatterInventory transactionInventory;
 
     ChemicalTransfers(Supplier<MatterInventory> inventory, BooleanSupplier automationAllowed,
                       Predicate<SubstanceKey> known, Runnable committed) {
+        this(inventory, automationAllowed, known, committed, ChemicalMappings.ALL);
+    }
+
+    ChemicalTransfers(Supplier<MatterInventory> inventory, BooleanSupplier automationAllowed,
+                      Predicate<SubstanceKey> known, Runnable committed, List<ChemicalMappings.Mapping> mappings) {
         this.inventory = Objects.requireNonNull(inventory);
         this.automationAllowed = Objects.requireNonNull(automationAllowed);
         this.known = Objects.requireNonNull(known);
         this.committed = Objects.requireNonNull(committed);
+        this.mappings = List.copyOf(mappings);
     }
 
     int size() {
-        return ChemicalMappings.ALL.size();
+        return mappings.size();
     }
+
+    String chemicalId(int index) { return mapping(index).chemicalId(); }
 
     boolean isEnabled(int index) {
         var mapping = mapping(index);
@@ -39,11 +50,11 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
     }
 
     long amount(int index) {
-        return isEnabled(index) ? inventory.get().available(mapping(index).matter()) : 0;
+        return isEnabled(index) ? inventory.get().available(mapping(index).matter()) / mapping(index).unitsPerChemical() : 0;
     }
 
     long capacity(int index) {
-        return isEnabled(index) ? inventory.get().capacity() : 0;
+        return isEnabled(index) ? inventory.get().capacity() / mapping(index).unitsPerChemical() : 0;
     }
 
     boolean isValid(int index, String chemicalId) {
@@ -54,20 +65,24 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
         checkArguments(amount, transaction);
         if (!isValid(index, chemicalId) || amount == 0) return 0;
         MatterInventory target = inventory.get();
-        int accepted = (int) Math.min(amount, target.freeSpace());
+        var mapping = mapping(index);
+        int accepted = (int) Math.min(amount, target.freeSpace() / mapping.unitsPerChemical());
         if (accepted == 0) return 0;
+        long internal = Math.multiplyExact((long) accepted, mapping.unitsPerChemical());
         updateSnapshots(transaction);
-        return Math.toIntExact(target.insert(mapping(index).matter(), accepted));
+        return target.apply(Map.of(), Map.of(mapping.matter(), internal)) ? accepted : 0;
     }
 
     int extract(int index, String chemicalId, int amount, TransactionContext transaction) {
         checkArguments(amount, transaction);
         if (!isValid(index, chemicalId) || amount == 0) return 0;
         MatterInventory source = inventory.get();
-        int extracted = (int) Math.min(amount, source.available(mapping(index).matter()));
+        var mapping = mapping(index);
+        int extracted = (int) Math.min(amount, source.available(mapping.matter()) / mapping.unitsPerChemical());
         if (extracted == 0) return 0;
+        long internal = Math.multiplyExact((long) extracted, mapping.unitsPerChemical());
         updateSnapshots(transaction);
-        return Math.toIntExact(source.extract(mapping(index).matter(), extracted));
+        return source.apply(Map.of(mapping.matter(), internal), Map.of()) ? extracted : 0;
     }
 
     @Override
@@ -88,8 +103,8 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
         committed.run();
     }
 
-    private static ChemicalMappings.Mapping mapping(int index) {
-        return ChemicalMappings.ALL.get(index);
+    private ChemicalMappings.Mapping mapping(int index) {
+        return mappings.get(index);
     }
 
     private MatterInventory currentInventory() {

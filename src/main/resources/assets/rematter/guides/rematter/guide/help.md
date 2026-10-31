@@ -3,7 +3,7 @@ navigation:
   title: When a machine waits
   icon: rematter:analyzer
   parent: index.md
-  position: 8
+  position: 9
 ---
 # When a machine waits
 

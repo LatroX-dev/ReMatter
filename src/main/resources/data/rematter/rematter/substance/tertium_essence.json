@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.tertium_essence",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:vital_essence": 64,
+    "rematter:arcane_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

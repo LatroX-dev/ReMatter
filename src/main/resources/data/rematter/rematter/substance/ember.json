@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.ember",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:sulfur": 1,
+    "rematter:nether_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

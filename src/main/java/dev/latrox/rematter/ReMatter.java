@@ -6,6 +6,7 @@ import dev.latrox.rematter.compat.mekanism.MekanismCompat;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.data.ChemistryData;
 import dev.latrox.rematter.network.CatalogSync;
+import dev.latrox.rematter.network.SelectProcessPayload;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -21,6 +22,7 @@ public final class ReMatter {
     public ReMatter(IEventBus modBus, ModContainer container) {
         ModContent.register(modBus);
         modBus.addListener(CatalogSync::register);
+        modBus.addListener(SelectProcessPayload::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);
         NeoForge.EVENT_BUS.addListener(CatalogSync::sync);
         if (ModList.get().isLoaded("mekanism")) {

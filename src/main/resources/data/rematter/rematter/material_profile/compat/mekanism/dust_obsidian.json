@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:dust_obsidian",
+  "matter": [
+    {
+      "substance": "rematter:obsidian",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

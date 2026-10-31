@@ -3,7 +3,7 @@ navigation:
   title: Upgrades
   icon: rematter:speed_upgrade
   parent: index.md
-  position: 7
+  position: 8
 item_ids:
   - rematter:speed_upgrade
   - rematter:efficiency_upgrade

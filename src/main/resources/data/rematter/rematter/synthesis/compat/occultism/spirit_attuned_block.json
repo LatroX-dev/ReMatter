@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "occultism",
+  "item": "occultism:spirit_attuned_block",
+  "category": "raw_material"
+}

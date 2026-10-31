@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "fluid": "mekanism:lithium",
+  "amount": 1000,
+  "matter": [
+    {
+      "substance": "rematter:lithium",
+      "phase": "gas",
+      "amount": 10000
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 100
+}

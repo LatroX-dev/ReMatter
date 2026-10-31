@@ -30,7 +30,9 @@ class ChemicalTransfersTest {
 
     @Test
     void mappingUsesOnlyExactRegisteredIdsWithoutSteamOrNitrogenAliases() {
-        assertEquals(Set.of("mekanism:hydrogen", "mekanism:oxygen", "mekanism:water_vapor"),
+        assertEquals(Set.of("mekanism:hydrogen", "mekanism:oxygen", "mekanism:water_vapor", "mekanism:chlorine",
+                        "mekanism:sulfur_dioxide", "mekanism:sulfur_trioxide", "mekanism:sulfuric_acid",
+                        "mekanism:hydrogen_chloride", "mekanism:hydrofluoric_acid", "mekanism:ethene", "mekanism:lithium", "mekanism:osmium"),
                 ChemicalMappings.ALL.stream().map(ChemicalMappings.Mapping::chemicalId).collect(Collectors.toSet()));
         assertEquals(ChemicalMappings.ALL.size(), ChemicalMappings.ALL.stream().map(ChemicalMappings.Mapping::matter).distinct().count());
         assertTrue(ChemicalMappings.ALL.stream().allMatch(mapping -> mapping.matter().phase() == Phase.GAS));
@@ -279,6 +281,71 @@ class ChemicalTransfersTest {
             transaction.commit();
         }
         assertEquals(0, inventory.total());
+    }
+
+    @Test void scaledLithiumTransfersKeepPartialInternalUnitsAndRespectWholeExternalCapacity() {
+        var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:lithium")).findFirst().orElseThrow();
+        assertEquals(10, mapping.unitsPerChemical()); // 100 native units <-> 1 lithium dust (1000 internal units).
+        MatterInventory inventory = new MatterInventory(24);
+        inventory.insert(mapping.matter(), 9);
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        assertEquals(0, handler.amount(0));
+        assertEquals(2, handler.capacity(0));
+        var before = inventory.snapshot();
+        try (Transaction tx = Transaction.openRoot()) {
+            assertEquals(1, handler.insert(0, mapping.chemicalId(), 50, tx));
+            assertEquals(19, inventory.amount(mapping.matter()));
+            assertEquals(0, handler.insert(0, mapping.chemicalId(), 1, tx));
+            assertEquals(1, handler.extract(0, mapping.chemicalId(), 50, tx));
+            assertEquals(9, inventory.amount(mapping.matter()));
+            tx.commit();
+        }
+        assertEquals(before, inventory.snapshot());
+    }
+
+    @Test void scaledChemicalsAbortAcrossNestedTransactionsWithoutLosingRemaindersOrReservations() {
+        var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:osmium")).findFirst().orElseThrow();
+        assertEquals(5, mapping.unitsPerChemical()); // 1 native ingot (1000 internal units) -> 200 chemical units.
+        MatterInventory inventory = new MatterInventory(2_000);
+        inventory.insert(mapping.matter(), 1_003);
+        inventory.reserve(Map.of(mapping.matter(), 7L), Map.of()).orElseThrow();
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        var before = inventory.snapshot();
+        try (Transaction outer = Transaction.openRoot()) {
+            assertEquals(199, handler.extract(0, mapping.chemicalId(), 200, outer));
+            assertEquals(8, inventory.amount(mapping.matter()));
+            try (Transaction nested = Transaction.open(outer)) {
+                assertEquals(200, handler.insert(0, mapping.chemicalId(), 200, nested));
+                nested.commit();
+            }
+        }
+        assertEquals(before, inventory.snapshot());
+    }
+
+    @Test void scaledLongCapacityNeverOverflowsOrRoundsARequestedExternalUnit() {
+        var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:lithium")).findFirst().orElseThrow();
+        MatterInventory inventory = new MatterInventory(Long.MAX_VALUE);
+        inventory.insert(mapping.matter(), Long.MAX_VALUE - 7);
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        try (Transaction tx = Transaction.openRoot()) {
+            assertEquals(0, handler.insert(0, mapping.chemicalId(), Integer.MAX_VALUE, tx));
+            assertEquals(Integer.MAX_VALUE, handler.extract(0, mapping.chemicalId(), Integer.MAX_VALUE, tx));
+            tx.commit();
+        }
+        assertEquals(Long.MAX_VALUE - 7 - 10L * Integer.MAX_VALUE, inventory.amount(mapping.matter()));
+    }
+
+    @Test void hydrogenChlorideInfusingUsesTwoFormulaUnitsForItsOneNativeOutput() {
+        var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:hydrogen_chloride")).findFirst().orElseThrow();
+        MatterInventory inventory = new MatterInventory(100);
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        try (Transaction tx = Transaction.openRoot()) {
+            assertEquals(1, handler.insert(0, mapping.chemicalId(), 1, tx));
+            tx.commit();
+        }
+        // The installed recipe consumes one H2 and one Cl2, i.e. two HCl formula units.
+        assertEquals(2, inventory.amount(mapping.matter()));
+        assertEquals(1, handler.amount(0));
     }
 
     private static ChemicalTransfers handler(MatterInventory inventory, AtomicInteger commits) {

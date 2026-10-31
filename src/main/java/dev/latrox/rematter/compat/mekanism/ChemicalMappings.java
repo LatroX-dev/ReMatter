@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.mekanism;
 
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.chemistry.Phase;
 
 import java.util.List;
 
@@ -18,11 +19,32 @@ final class ChemicalMappings {
      * The distinct mekanism:steam chemical is deliberately not an alias here.
      */
     static final List<Mapping> ALL = List.of(
-            new Mapping("mekanism:hydrogen", HYDROGEN),
-            new Mapping("mekanism:oxygen", OXYGEN),
-            new Mapping("mekanism:water_vapor", STEAM));
+            new Mapping("mekanism:hydrogen", HYDROGEN, 1),
+            new Mapping("mekanism:oxygen", OXYGEN, 1),
+            new Mapping("mekanism:water_vapor", STEAM, 1),
+            gas("chlorine", 1),
+            gas("sulfur_dioxide", 1),
+            gas("sulfur_trioxide", 1),
+            gas("sulfuric_acid", 1),
+            // Native infusing: 1 H2 + 1 Cl2 -> 1 external HCl unit.
+            // One ordinary HCl formula unit therefore occupies half that amount.
+            gas("hydrogen_chloride", 2),
+            gas("hydrofluoric_acid", 1),
+            gas("ethene", 1),
+            // Native oxidizing/crystallizing: 1 dust <-> 100 lithium units.
+            gas("lithium", 10),
+            // Native chemical conversion: 1 ingot -> 200 osmium units.
+            gas("osmium", 5));
 
     private ChemicalMappings() {}
 
-    record Mapping(String chemicalId, SubstanceKey matter) {}
+    private static Mapping gas(String path, long units) {
+        return new Mapping("mekanism:" + path, SubstanceKey.of("rematter:" + path, Phase.GAS), units);
+    }
+
+    record Mapping(String chemicalId, SubstanceKey matter, long unitsPerChemical) {
+        Mapping {
+            if (unitsPerChemical <= 0) throw new IllegalArgumentException("Chemical ratios must be positive integral quantities");
+        }
+    }
 }

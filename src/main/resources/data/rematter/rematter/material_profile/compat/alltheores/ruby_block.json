@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "alltheores",
+  "item": "alltheores:ruby_block",
+  "matter": [
+    {
+      "substance": "rematter:ruby",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 900
+}

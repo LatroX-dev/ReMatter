@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.netherite_scrap",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:nether_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

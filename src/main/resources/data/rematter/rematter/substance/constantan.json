@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.constantan",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:copper": 1,
+    "rematter:nickel": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

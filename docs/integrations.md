@@ -4,7 +4,7 @@ ReMatter targets Minecraft 26.1.2 and NeoForge 26.1.2.124. It is a standalone ch
 
 ## Recipe viewers
 
-The recipe catalogue comes from the server, including its data packs. Viewers display exact substance quantities, base FE costs, processing times, and explicit synthesis permissions. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
+The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs, processing times, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
 
 - **JEI:** built against JEI 29.53.0.114 for 26.1.2. Displays decomposition, synthesis, electrolysis, and reactions.
 - **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2**, the continuation used in ReForging. The original EMI project currently has no 26.1.2 build. When SEMI and JEI are installed together, the native EMI integration supplies the ReMatter categories.
@@ -34,8 +34,21 @@ Enable automation on a **Matter Storage**, then use chemical automation against 
 | `mekanism:hydrogen` | Hydrogen, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:oxygen` | Oxygen, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:water_vapor` | Steam, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:chlorine` | Chlorine, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:sulfur_dioxide` | Sulfur dioxide, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:sulfur_trioxide` | Sulfur trioxide, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:sulfuric_acid` | Sulfuric acid, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:hydrogen_chloride` | Hydrogen chloride, gas | 1 chemical unit = 2 matter units |
+| `mekanism:hydrofluoric_acid` | Hydrogen fluoride, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:ethene` | Ethene, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:lithium` | Lithium, gas | 1 chemical unit = 10 matter units |
+| `mekanism:osmium` | Osmium, gas | 1 chemical unit = 5 matter units |
 
 Water vapor is not an alias for every mod's steam fluid. Unknown gases are not accepted automatically. ReMatter's base water electrolysis uses 1,000 water to produce 1,000 hydrogen and 500 oxygen; the reverse reaction consumes those exact quantities. Packs that change hydrogen fuel values should review their complete energy balance.
+
+The non-unit ratios preserve the targeted Mekanism recipes: one hydrogen and one chlorine produce one external hydrogen-chloride unit, 100 lithium units crystallize into one dust, and one osmium ingot produces 200 chemical units. Transfers only export whole chemical units; insufficient capacity and fractional remainders stay in storage. These mappings do not add new reactions between the stored substances.
+
+Ten matching source fluids are supported through explicit profiles: hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrofluoric acid, ethene, and lithium. Each conversion handles 1,000 mB and uses the ratios above. Their rotary recipes exchange one fluid mB for one chemical unit. Flowing variants are not separate inputs. Thermal steam, superheated sodium, radioactive chemicals, nuclear fuels, and antimatter are not mapped by these rules.
 
 ## Energy, fluids, and items
 
@@ -45,8 +58,8 @@ Item and fluid automation is off by default. Enable it deliberately from the mac
 
 ## Material coverage and pack authoring
 
-Optional profiles cover selected metal ingots and dusts from AllTheOres, Mekanism, Occultism, Ender IO, FTB Industrial Contraptions, Energized Power, and Oritech. Profiles activate only when their required mod is present. This is selected material coverage, not complete support for those mods' production systems.
+The [material catalogue](material-coverage.md) lists the reviewed material families and remaining exclusions. Optional profiles activate only when their required mod is present; generated JAOPCA items additionally require the exact registered item. This is material support, not complete support for those mods' production systems.
 
 Add or rebalance profiles with [chemistry data packs](data-packs.md). Decomposition does not grant synthesis permission. Every synthesized output needs an explicit allowed category; manufactured components, machines, and equipment remain excluded.
 
-For ReForging's current coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It keeps quartz crystals separate from ordinary silica and provides targeted exclusions for ReMatter machines. These rules are not included in the standalone mod's default catalogue.
+For ReForging's current coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It preserves ReForging's existing crystalline-silica identity, requires that quartz feedstock for silicon electrolysis, corrects the quartz grinding bonus, and provides targeted exclusions for ReMatter machines. These additional pack rules are not activated by installing the standalone mod.

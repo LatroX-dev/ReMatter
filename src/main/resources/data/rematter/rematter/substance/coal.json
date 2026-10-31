@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.coal",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 100,
+    "rematter:hydrogen": 10,
+    "rematter:oxygen": 1,
+    "rematter:sulfur": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

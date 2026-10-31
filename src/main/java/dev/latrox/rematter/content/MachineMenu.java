@@ -38,6 +38,13 @@ public final class MachineMenu extends AbstractContainerMenu {
     }
     public MachineSnapshot snapshot() { return snapshot; }
     public void acceptSnapshot(MachineSnapshot value) { snapshot = value; }
+    public boolean selectRecipe(Player player, String id) {
+        if (machine == null || player.containerMenu != this || !stillValid(player)
+                || id.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || !machine.selectRecipe(id)) return false;
+        nextSnapshot = 0;
+        broadcastChanges();
+        return true;
+    }
     @Override public void broadcastChanges() {
         super.broadcastChanges();
         if (machine == null || !(player instanceof ServerPlayer serverPlayer)) return;
@@ -64,6 +71,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         return true;
     }
     @Override public ItemStack quickMoveStack(Player player, int index) {
+        if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
         Slot slot = slots.get(index);
         if (!slot.hasItem()) return ItemStack.EMPTY;
         ItemStack original = slot.getItem();

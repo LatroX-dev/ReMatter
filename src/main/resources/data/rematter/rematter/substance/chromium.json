@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.chromium",
+  "symbol": "Cr",
+  "kind": "element",
+  "composition": {
+    "rematter:chromium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

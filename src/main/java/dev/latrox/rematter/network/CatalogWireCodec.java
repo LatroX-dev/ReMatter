@@ -10,10 +10,10 @@ import java.util.zip.InflaterInputStream;
 /** Versioned, bounded catalogue transport. Contains recipes, never player inventories. */
 public final class CatalogWireCodec {
     public static final int MAX_COMPRESSED_BYTES = 524_288;
-    private static final int MAX_RAW_BYTES = 4_194_304;
-    private static final int MAX_RECORDS = 8_192;
+    private static final int MAX_RAW_BYTES = 16_777_216;
+    private static final int MAX_RECORDS = ChemistryRegistry.MAX_SYNTHESIS_ENTRIES;
     private static final int MAX_AMOUNTS = 1_024;
-    private static final int VERSION = 1;
+    private static final int VERSION = 2;
 
     private CatalogWireCodec() {}
 
@@ -22,7 +22,7 @@ public final class CatalogWireCodec {
             BoundedBytes raw = new BoundedBytes(MAX_RAW_BYTES);
             DataOutputStream out = new DataOutputStream(raw);
             out.writeInt(VERSION);
-            writeCount(out, registry.substances().size(), MAX_RECORDS);
+            writeCount(out, registry.substances().size(), ChemistryRegistry.MAX_SUBSTANCES);
             for (SubstanceDefinition value : registry.substances()) {
                 string(out, value.id().toString());
                 string(out, value.translationKey());
@@ -35,12 +35,17 @@ public final class CatalogWireCodec {
                 writeCount(out, value.phases().size(), Phase.values().length);
                 for (Phase phase : Phase.values()) if (value.phases().contains(phase)) string(out, phase.name());
             }
-            writeCount(out, registry.profiles().size(), MAX_RECORDS);
+            writeCount(out, registry.profiles().size(), ChemistryRegistry.MAX_MATERIAL_PROFILES);
             for (MaterialProfile value : registry.profiles()) {
-                string(out, value.itemId()); amounts(out, value.matter());
+                string(out, value.itemId()); out.writeInt(value.itemCount()); amounts(out, value.matter());
                 out.writeLong(value.decompositionEnergy()); out.writeLong(value.synthesisEnergy()); out.writeInt(value.ticks());
             }
-            writeCount(out, registry.processes().size(), MAX_RECORDS);
+            writeCount(out, registry.fluidProfiles().size(), ChemistryRegistry.MAX_FLUID_PROFILES);
+            for (FluidProfile value : registry.fluidProfiles()) {
+                string(out, value.fluidId()); out.writeInt(value.amount()); amounts(out, value.matter());
+                out.writeLong(value.decompositionEnergy()); out.writeLong(value.synthesisEnergy()); out.writeInt(value.ticks());
+            }
+            writeCount(out, registry.processes().size(), ChemistryRegistry.MAX_PROCESSES);
             for (ProcessRecipe value : registry.processes()) {
                 string(out, value.id().toString()); string(out, value.type().name());
                 amounts(out, value.inputs()); amounts(out, value.outputs());
@@ -71,7 +76,7 @@ public final class CatalogWireCodec {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(raw.toByteArray()));
             if (in.readInt() != VERSION) throw new IllegalArgumentException("Unsupported chemistry catalogue version");
             ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
-            int substances = count(in, MAX_RECORDS);
+            int substances = count(in, ChemistryRegistry.MAX_SUBSTANCES);
             for (int i = 0; i < substances; i++) {
                 SubstanceId id = SubstanceId.parse(string(in));
                 String translation = string(in), symbol = string(in);
@@ -90,11 +95,15 @@ public final class CatalogWireCodec {
                 }
                 builder.addSubstance(new SubstanceDefinition(id, translation, symbol, kind, new Composition(composition), phases));
             }
-            int profiles = count(in, MAX_RECORDS);
+            int profiles = count(in, ChemistryRegistry.MAX_MATERIAL_PROFILES);
             for (int i = 0; i < profiles; i++) {
-                builder.addProfile(new MaterialProfile(string(in), amounts(in), in.readLong(), in.readLong(), in.readInt()));
+                builder.addProfile(new MaterialProfile(string(in), in.readInt(), amounts(in), in.readLong(), in.readLong(), in.readInt()));
             }
-            int processes = count(in, MAX_RECORDS);
+            int fluids = count(in, ChemistryRegistry.MAX_FLUID_PROFILES);
+            for (int i = 0; i < fluids; i++) {
+                builder.addFluidProfile(new FluidProfile(string(in), in.readInt(), amounts(in), in.readLong(), in.readLong(), in.readInt()));
+            }
+            int processes = count(in, ChemistryRegistry.MAX_PROCESSES);
             for (int i = 0; i < processes; i++) {
                 builder.addProcess(new ProcessRecipe(SubstanceId.parse(string(in)), ProcessType.valueOf(string(in)),
                         amounts(in), amounts(in), in.readLong(), in.readInt()));

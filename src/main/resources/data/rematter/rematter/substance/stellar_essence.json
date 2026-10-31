@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.stellar_essence",
+  "symbol": "Stl",
+  "kind": "element",
+  "composition": {
+    "rematter:stellar_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

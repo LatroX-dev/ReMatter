@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.fluxite",
+  "symbol": "",
+  "kind": "compound",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:quantum_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

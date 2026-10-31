@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "mysticalagriculture",
+  "item": "mysticalagriculture:inferium_block",
+  "matter": [
+    {
+      "substance": "rematter:inferium_essence",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 900
+}

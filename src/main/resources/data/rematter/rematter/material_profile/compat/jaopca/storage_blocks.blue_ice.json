@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.blue_ice",
+  "item": "jaopca:storage_blocks.blue_ice",
+  "matter": [
+    {
+      "substance": "rematter:blue_ice",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 144000,
+  "synthesis_energy": 288000,
+  "ticks": 900
+}

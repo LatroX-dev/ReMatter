@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.lithium",
+  "symbol": "Li",
+  "kind": "element",
+  "composition": {
+    "rematter:lithium": 1
+  },
+  "phases": [
+    "solid",
+    "gas"
+  ]
+}

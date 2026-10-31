@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ae2omnicells",
+  "item": "ae2omnicells:netherite_scrap_block",
+  "matter": [
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 900
+}

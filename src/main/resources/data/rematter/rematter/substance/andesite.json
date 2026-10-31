@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.andesite",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:aluminum": 1,
+    "rematter:iron": 1,
+    "rematter:oxygen": 7
+  },
+  "phases": [
+    "solid"
+  ]
+}

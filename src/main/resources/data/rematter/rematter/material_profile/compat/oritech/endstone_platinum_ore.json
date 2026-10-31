@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:endstone_platinum_ore",
+  "matter": [
+    {
+      "substance": "rematter:platinum",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

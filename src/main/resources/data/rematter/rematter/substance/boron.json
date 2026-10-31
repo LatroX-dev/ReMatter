@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.boron",
+  "symbol": "B",
+  "kind": "element",
+  "composition": {
+    "rematter:boron": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

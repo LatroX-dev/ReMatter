@@ -78,6 +78,8 @@ public final class BuiltinChemistry {
         material(builder, "minecraft:dirt", SOIL, 1_000, SynthesisCategory.NATURAL_MATERIAL);
         material(builder, "minecraft:sand", SILICA, 1_000, SynthesisCategory.NATURAL_MATERIAL);
         material(builder, "minecraft:quartz", SILICA, 1_000, SynthesisCategory.RAW_MATERIAL);
+        builder.addFluidProfile(new FluidProfile("minecraft:water", 1_000, Map.of(WATER, 1_000L), 2_000, 2_000, 80));
+        builder.addFluidProfile(new FluidProfile("minecraft:lava", 1_000, Map.of(LAVA, 1_000L), 2_000, 24_000, 80));
         builder.allowSynthesis("minecraft:water", SynthesisCategory.FLUID);
         builder.allowSynthesis("minecraft:lava", SynthesisCategory.FLUID);
         builder.allowSynthesis(HYDROGEN.id().toString(), SynthesisCategory.GAS);

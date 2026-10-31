@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "infinity_nexus_mod",
+  "item": "infinity_nexus_mod:nickel_nugget",
+  "item_count": 9,
+  "matter": [
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

@@ -38,8 +38,8 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryDisplay> {
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ChemistryDisplay recipe, IFocusGroup focuses) {
-        if (!recipe.itemInput().isEmpty()) builder.addInputSlot(9, 27).setStandardSlotBackground().add(item(recipe.itemInput()));
-        if (!recipe.itemOutput().isEmpty()) builder.addOutputSlot(106, 27).setOutputSlotBackground().add(item(recipe.itemOutput()));
+        if (!recipe.itemInput().isEmpty()) builder.addInputSlot(9, 27).setStandardSlotBackground().add(item(recipe.itemInput(), recipe.itemCount()));
+        if (!recipe.itemOutput().isEmpty()) builder.addOutputSlot(106, 27).setOutputSlotBackground().add(item(recipe.itemOutput(), recipe.itemCount()));
         if (recipe.fluidInput() != null) builder.addInputSlot(9, 27).setStandardSlotBackground()
                 .add(BuiltInRegistries.FLUID.getValue(Identifier.parse(recipe.fluidInput().fluidId())), recipe.fluidInput().amount());
         if (recipe.fluidOutput() != null) builder.addOutputSlot(106, 27).setOutputSlotBackground()
@@ -75,6 +75,7 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryDisplay> {
     public void getTooltip(ITooltipBuilder tooltip, ChemistryDisplay recipe, IRecipeSlotsView slots, double mouseX, double mouseY) {
         if (mouseY < 103) return;
         tooltip.add(Component.literal(recipe.energy() + " FE per operation; " + recipe.ticks() + " ticks before upgrades"));
+        if (recipe.itemCount() > 1) tooltip.add(Component.literal("Exact batch: " + recipe.itemCount() + " items per operation"));
         if (recipe.fluidInput() != null) tooltip.add(Component.literal("Fluid consumed: " + recipe.fluidInput().amount() + " mB " + recipe.fluidInput().fluidId()));
         if (recipe.fluidOutput() != null) tooltip.add(Component.literal("Fluid produced: " + recipe.fluidOutput().amount() + " mB " + recipe.fluidOutput().fluidId()));
         if (!recipe.inputs().isEmpty()) {
@@ -91,5 +92,5 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryDisplay> {
         return Identifier.fromNamespaceAndPath("rematter", "jei/" + kind.name().toLowerCase(java.util.Locale.ROOT)
                 + "/" + recipe.id().replace(':', '/') + "/" + Integer.toUnsignedString(recipe.hashCode(), 16));
     }
-    private static ItemStack item(String id) { return BuiltInRegistries.ITEM.getValue(Identifier.parse(id)).getDefaultInstance(); }
+    private static ItemStack item(String id, int count) { return new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(id)), count); }
 }

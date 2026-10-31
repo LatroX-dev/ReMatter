@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "electrolysis",
+  "inputs": [
+    {
+      "substance": "reforging:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 1000
+    }
+  ],
+  "energy": 64000,
+  "ticks": 400
+}

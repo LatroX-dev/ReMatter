@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.graphite",
+  "symbol": "C",
+  "kind": "allotrope",
+  "composition": {
+    "rematter:carbon": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

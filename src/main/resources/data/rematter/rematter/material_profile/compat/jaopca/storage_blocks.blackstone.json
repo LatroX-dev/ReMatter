@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.blackstone",
+  "item": "jaopca:storage_blocks.blackstone",
+  "matter": [
+    {
+      "substance": "rematter:blackstone",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 900
+}

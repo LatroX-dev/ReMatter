@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.amber",
+  "symbol": "",
+  "kind": "compound",
+  "composition": {
+    "rematter:carbon": 10,
+    "rematter:hydrogen": 16,
+    "rematter:oxygen": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:netherite_block",
+  "matter": [
+    {
+      "substance": "rematter:netherite",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 900
+}

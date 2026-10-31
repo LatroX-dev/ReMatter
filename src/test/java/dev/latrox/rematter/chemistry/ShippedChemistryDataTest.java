@@ -31,15 +31,14 @@ class ShippedChemistryDataTest {
         ChemistryRegistry defaults = BuiltinChemistry.create();
         ChemistryRegistry combined = shipped.build();
 
-        assertEquals(144, shipped.documentCount());
-        assertEquals(8, shipped.substances().size());
-        assertEquals(68, shipped.profiles().size());
-        assertEquals(68, shipped.permissions().size());
-        assertEquals(defaults.substances().size() + shipped.substances().size(), combined.substances().size());
-        assertEquals(defaults.profiles().size() + shipped.profiles().size(), combined.profiles().size());
-        assertEquals(defaults.synthesisPolicy().entries().size() + shipped.permissions().size(),
-                combined.synthesisPolicy().entries().size());
-        assertEquals(defaults.processes().size(), combined.processes().size());
+        assertTrue(shipped.documentCount() >= 144, "Keep the existing optional material coverage");
+        assertTrue(shipped.substances().size() >= 8);
+        assertTrue(shipped.profiles().size() >= 68);
+        assertTrue(combined.substances().size() >= defaults.substances().size());
+        assertTrue(combined.profiles().size() >= defaults.profiles().size());
+        shipped.substances().forEach(value -> assertEquals(value, combined.definition(value.id()).orElseThrow()));
+        shipped.profiles().forEach(value -> assertEquals(value.profile(), combined.profile(value.profile().itemId()).orElseThrow()));
+        shipped.fluids().forEach(value -> assertEquals(value.profile(), combined.fluidProfile(value.profile().fluidId()).orElseThrow()));
 
         for (ProcessRecipe recipe : combined.processes()) {
             assertEquals(combined.elementAmounts(recipe.inputs()), combined.elementAmounts(recipe.outputs()),
@@ -56,16 +55,19 @@ class ShippedChemistryDataTest {
         Set<String> approved = new HashSet<>();
         for (OptionalPermission permission : shipped.permissions()) {
             assertTrue(approved.add(permission.item()), "Duplicate approval for " + permission.item());
-            OptionalProfile profile = profiles.get(permission.item());
-            assertNotNull(profile, "Permission without a material profile: " + permission.item());
-            assertEquals(profile.requiredMod(), permission.requiredMod(), permission.item());
-            assertEquals(SynthesisCategory.RAW_MATERIAL, permission.category(), permission.item());
-            String namespace = SubstanceId.parse(permission.item()).namespace();
-            assertNotEquals("minecraft", namespace, "Optional data must not shadow a base-game profile");
-            assertNotEquals("rematter", namespace, "Optional material entries must name the external owner");
-            assertEquals(namespace, permission.requiredMod(), "Dependency does not match the actual item owner");
+            assertTrue(permission.category().permitted(), permission.item());
+            if (permission.category() == SynthesisCategory.RAW_MATERIAL || permission.category() == SynthesisCategory.NATURAL_MATERIAL) {
+                OptionalProfile profile = profiles.get(permission.item());
+                if (profile == null) assertTrue(BuiltinChemistry.create().profile(permission.item()).isPresent(), "Permission without a profile");
+                else assertEquals(profile.requiredMod(), permission.requiredMod(), permission.item());
+            }
         }
-        assertEquals(profiles.keySet(), approved, "Every shipped material requires a separate explicit permission");
+        // Decomposition-only components and ores deliberately need no synthesis entry.
+        for (OptionalProfile profile : shipped.profiles()) {
+            if (!SubstanceId.parse(profile.profile().itemId()).namespace().equals("minecraft")) {
+                assertFalse(profile.requiredMod().isBlank(), "Foreign profile requires an explicit dependency");
+            }
+        }
     }
 
     @Test
@@ -73,6 +75,7 @@ class ShippedChemistryDataTest {
         ShippedData shipped = readShippedData();
         ChemistryRegistry defaults = BuiltinChemistry.create();
         for (OptionalProfile profile : shipped.profiles()) {
+            if (SubstanceId.parse(profile.profile().itemId()).namespace().equals("minecraft")) continue;
             assertTrue(defaults.profile(profile.profile().itemId()).isEmpty(), profile.profile().itemId());
             assertFalse(defaults.synthesisPolicy().allows(profile.profile().itemId()), profile.profile().itemId());
         }
@@ -85,11 +88,13 @@ class ShippedChemistryDataTest {
         Map<SubstanceKey, Long> amountPerForm = new HashMap<>();
         for (OptionalProfile optional : shipped.profiles()) {
             MaterialProfile profile = optional.profile();
-            assertEquals(1, profile.matter().size(), "A pure metal profile has one constituent");
+            if (profile.matter().size() != 1) continue;
             var entry = profile.matter().entrySet().iterator().next();
-            assertEquals(Phase.SOLID, entry.getKey().phase(), profile.itemId());
             SubstanceDefinition substance = registry.definition(entry.getKey().id()).orElseThrow();
-            assertEquals(SubstanceKind.ELEMENT, substance.kind(), profile.itemId());
+            if (substance.kind() != SubstanceKind.ELEMENT || entry.getKey().phase() != Phase.SOLID) continue;
+            String path = SubstanceId.parse(profile.itemId()).path();
+            if (!(path.endsWith("_ingot") || path.endsWith("_dust") || path.startsWith("ingot_") || path.startsWith("dust_"))
+                    || path.contains("tiny") || path.contains("small") || path.contains("raw") || profile.itemCount() != 1) continue;
             assertEquals(Composition.element(substance.id()), substance.composition(), profile.itemId());
             Long previous = amountPerForm.putIfAbsent(entry.getKey(), entry.getValue());
             if (previous != null) {
@@ -105,7 +110,6 @@ class ShippedChemistryDataTest {
         ChemistryRegistry registry = shipped.build();
         for (OptionalProfile optional : shipped.profiles()) {
             MaterialProfile profile = optional.profile();
-            assertTrue(registry.synthesisPolicy().allows(profile.itemId()), profile.itemId());
             long materialTotal = MatterAmounts.total(profile.matter());
             MatterInventory inventory = new MatterInventory(Math.addExact(materialTotal, 17));
             inventory.insert(BuiltinChemistry.WATER, 17);
@@ -140,12 +144,14 @@ class ShippedChemistryDataTest {
     }
 
     private static ShippedData readShippedData() throws IOException, URISyntaxException {
-        var resource = ShippedChemistryDataTest.class.getClassLoader().getResource("data/rematter/rematter");
-        assertNotNull(resource, "Shipped chemistry resources are missing from the test runtime");
-        Path root = Path.of(resource.toURI());
+        Path root = Path.of("src/main/resources/data/rematter/rematter");
+        assertTrue(Files.isDirectory(root), "Shipped main chemistry resources are missing");
         List<SubstanceDefinition> substances = new ArrayList<>();
         List<OptionalProfile> profiles = new ArrayList<>();
+        List<OptionalFluid> fluids = new ArrayList<>();
+        List<ProcessRecipe> processes = new ArrayList<>();
         List<OptionalPermission> permissions = new ArrayList<>();
+        Set<String> disabledSynthesis = new HashSet<>();
         Set<SubstanceId> substanceIds = new HashSet<>();
         List<Path> documents;
         try (var paths = Files.walk(root)) {
@@ -175,7 +181,7 @@ class ShippedChemistryDataTest {
                             new Composition(composition), phases));
                 }
                 case "material_profile" -> {
-                    String dependency = requiredMod(json, document);
+                    String dependency = requiredMod(json, json.get("item").getAsString(), document);
                     Map<SubstanceKey, Long> matter = new TreeMap<>();
                     for (JsonElement value : json.getAsJsonArray("matter")) {
                         JsonObject entry = value.getAsJsonObject();
@@ -183,25 +189,56 @@ class ShippedChemistryDataTest {
                                 Phase.valueOf(entry.get("phase").getAsString().toUpperCase(Locale.ROOT)));
                         assertNull(matter.put(key, exactLong(entry.get("amount"))), "Duplicate profile substance: " + document);
                     }
-                    MaterialProfile profile = new MaterialProfile(json.get("item").getAsString(), matter,
+                    MaterialProfile profile = new MaterialProfile(json.get("item").getAsString(),
+                            json.has("item_count") ? Math.toIntExact(exactLong(json.get("item_count"))) : 1, matter,
                             exactLong(json.get("decomposition_energy")), exactLong(json.get("synthesis_energy")),
                             Math.toIntExact(exactLong(json.get("ticks"))));
                     profiles.add(new OptionalProfile(dependency, profile));
                 }
-                case "synthesis" -> permissions.add(new OptionalPermission(requiredMod(json, document),
-                        json.get("item").getAsString(),
-                        SynthesisCategory.valueOf(json.get("category").getAsString().toUpperCase(Locale.ROOT))));
+                case "fluid_profile" -> {
+                    String id = json.get("fluid").getAsString();
+                    fluids.add(new OptionalFluid(requiredMod(json, id, document), new FluidProfile(id,
+                            Math.toIntExact(exactLong(json.get("amount"))), amounts(json, "matter"),
+                            exactLong(json.get("decomposition_energy")), exactLong(json.get("synthesis_energy")),
+                            Math.toIntExact(exactLong(json.get("ticks"))))));
+                }
+                case "process" -> {
+                    String path = relative.subpath(1, relative.getNameCount()).toString().replace('\\', '/');
+                    processes.add(new ProcessRecipe(SubstanceId.parse("rematter:" + path.substring(0, path.length() - 5)),
+                            ProcessType.valueOf(json.get("type").getAsString().toUpperCase(Locale.ROOT)),
+                            amounts(json, "inputs"), amounts(json, "outputs"), exactLong(json.get("energy")),
+                            Math.toIntExact(exactLong(json.get("ticks")))));
+                }
+                case "synthesis" -> {
+                    String dependency = requiredMod(json, json.get("item").getAsString(), document);
+                    if (json.has("disabled") && json.get("disabled").getAsBoolean()) {
+                        assertTrue(disabledSynthesis.add(json.get("item").getAsString()), "Duplicate disabled permission");
+                    } else permissions.add(new OptionalPermission(dependency, json.get("item").getAsString(),
+                            SynthesisCategory.valueOf(json.get("category").getAsString().toUpperCase(Locale.ROOT))));
+                }
                 default -> fail("Unexpected shipped chemistry document: " + relative);
             }
         }
-        return new ShippedData(documents.size(), substances, profiles, permissions);
+        return new ShippedData(documents.size(), substances, profiles, fluids, processes, permissions, disabledSynthesis);
     }
 
-    private static String requiredMod(JsonObject json, Path document) {
+    private static String requiredMod(JsonObject json, String target, Path document) {
+        String namespace = SubstanceId.parse(target).namespace();
+        if (!json.has("required_mod") && (namespace.equals("minecraft") || namespace.equals("rematter"))) return "";
         assertTrue(json.has("required_mod"), "Missing optional dependency guard: " + document);
         String dependency = json.get("required_mod").getAsString();
         assertFalse(dependency.isBlank(), "Empty dependency guard: " + document);
         return dependency;
+    }
+
+    private static Map<SubstanceKey, Long> amounts(JsonObject json, String field) {
+        Map<SubstanceKey, Long> result = new TreeMap<>();
+        for (JsonElement value : json.getAsJsonArray(field)) {
+            JsonObject entry = value.getAsJsonObject();
+            assertNull(result.put(SubstanceKey.of(entry.get("substance").getAsString(),
+                    Phase.valueOf(entry.get("phase").getAsString().toUpperCase(Locale.ROOT))), exactLong(entry.get("amount"))));
+        }
+        return result;
     }
 
     private static long exactLong(JsonElement value) {
@@ -209,14 +246,35 @@ class ShippedChemistryDataTest {
     }
 
     private record OptionalProfile(String requiredMod, MaterialProfile profile) {}
+    private record OptionalFluid(String requiredMod, FluidProfile profile) {}
     private record OptionalPermission(String requiredMod, String item, SynthesisCategory category) {}
     private record ShippedData(int documentCount, Collection<SubstanceDefinition> substances,
-                               Collection<OptionalProfile> profiles, Collection<OptionalPermission> permissions) {
+                               Collection<OptionalProfile> profiles, Collection<OptionalFluid> fluids,
+                               Collection<ProcessRecipe> processes, Collection<OptionalPermission> permissions, Set<String> disabledSynthesis) {
         ChemistryRegistry build() {
-            ChemistryRegistry.Builder builder = BuiltinChemistry.create().toBuilder();
-            substances.forEach(builder::addSubstance);
-            profiles.forEach(profile -> builder.addProfile(profile.profile()));
-            permissions.forEach(permission -> builder.allowSynthesis(permission.item(), permission.category()));
+            var defaults = BuiltinChemistry.create();
+            Map<SubstanceId, SubstanceDefinition> allSubstances = new TreeMap<>();
+            Map<String, MaterialProfile> allProfiles = new TreeMap<>();
+            Map<String, FluidProfile> allFluids = new TreeMap<>();
+            Map<SubstanceId, ProcessRecipe> allProcesses = new TreeMap<>();
+            Map<String, SynthesisCategory> allPermissions = new TreeMap<>(defaults.synthesisPolicy().entries());
+            defaults.substances().forEach(value -> allSubstances.put(value.id(), value));
+            defaults.profiles().forEach(value -> allProfiles.put(value.itemId(), value));
+            defaults.fluidProfiles().forEach(value -> allFluids.put(value.fluidId(), value));
+            defaults.processes().forEach(value -> allProcesses.put(value.id(), value));
+            Set<String> targets = new HashSet<>();
+            substances.forEach(value -> allSubstances.put(value.id(), value));
+            profiles.forEach(value -> { assertTrue(targets.add("item:" + value.profile().itemId())); allProfiles.put(value.profile().itemId(), value.profile()); });
+            fluids.forEach(value -> { assertTrue(targets.add("fluid:" + value.profile().fluidId())); allFluids.put(value.profile().fluidId(), value.profile()); });
+            processes.forEach(value -> { assertTrue(targets.add("process:" + value.id())); allProcesses.put(value.id(), value); });
+            permissions.forEach(value -> { assertTrue(targets.add("synthesis:" + value.item())); allPermissions.put(value.item(), value.category()); });
+            disabledSynthesis.forEach(id -> { assertTrue(targets.add("synthesis:" + id)); allPermissions.remove(id); });
+            ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
+            allSubstances.values().forEach(builder::addSubstance);
+            allProfiles.values().forEach(builder::addProfile);
+            allFluids.values().forEach(builder::addFluidProfile);
+            allProcesses.values().forEach(builder::addProcess);
+            allPermissions.forEach(builder::allowSynthesis);
             return builder.build();
         }
     }

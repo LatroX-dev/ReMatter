@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.plastic",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 2,
+    "rematter:hydrogen": 4
+  },
+  "phases": [
+    "solid"
+  ]
+}

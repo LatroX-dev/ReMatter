@@ -40,31 +40,35 @@ public final class MekanismCompat {
                 return;
             }
             List<ChemicalResource> resources = new ArrayList<>();
+            List<ChemicalMappings.Mapping> mappings = new ArrayList<>();
             for (var mapping : ChemicalMappings.ALL) {
                 Identifier id = Identifier.parse(mapping.chemicalId());
                 var chemical = MekanismAPI.CHEMICAL_REGISTRY.get(id);
                 if (chemical.isEmpty()) {
-                    ReMatter.LOGGER.warn("Mekanism chemical integration disabled: missing chemical {}", id);
-                    return;
+                    ReMatter.LOGGER.warn("Mekanism chemical mapping unavailable: missing chemical {}", id);
+                    continue;
                 }
                 resources.add(ChemicalResource.of(chemical.get()));
+                mappings.add(mapping);
             }
             List<ChemicalResource> registeredResources = List.copyOf(resources);
+            List<ChemicalMappings.Mapping> registeredMappings = List.copyOf(mappings);
             // Exactly one handler/journal per block, even when different faces are
             // involved in a nested transaction. Weak owner callbacks avoid retaining
             // unloaded worlds through the capability provider's cache.
             Map<MachineBlockEntity, MekanismChemicalHandler> handlers = new WeakHashMap<>();
             event.registerBlockEntity(capability, ModContent.MACHINE_ENTITY.get(), (machine, side) -> {
                 if (side == null || !allowed(machine)) return null;
-                return handlers.computeIfAbsent(machine, owner -> handler(owner, registeredResources));
+                return handlers.computeIfAbsent(machine, owner -> handler(owner, registeredResources, registeredMappings));
             });
-            ReMatter.LOGGER.info("Mekanism chemical integration enabled: hydrogen, oxygen and water vapor; exact 1:1 units (Version Locked 26.1.2-2.11 API)");
+            ReMatter.LOGGER.info("Mekanism chemical integration registered {} exact mappings; each requires its chemistry definition (Version Locked 26.1.2-2.11 API)", registeredMappings.size());
         } catch (LinkageError incompatibleApi) {
             ReMatter.LOGGER.warn("Mekanism chemical integration disabled: incompatible API; expected Version Locked 26.1.2-2.11", incompatibleApi);
         }
     }
 
-    private static MekanismChemicalHandler handler(MachineBlockEntity owner, List<ChemicalResource> resources) {
+    private static MekanismChemicalHandler handler(MachineBlockEntity owner, List<ChemicalResource> resources,
+                                                   List<ChemicalMappings.Mapping> mappings) {
         WeakReference<MachineBlockEntity> reference = new WeakReference<>(owner);
         ChemicalTransfers transfers = new ChemicalTransfers(
                 () -> {
@@ -76,7 +80,7 @@ public final class MekanismCompat {
                 () -> {
                     MachineBlockEntity current = reference.get();
                     if (current != null) current.setChanged();
-                });
+                }, mappings);
         return new MekanismChemicalHandler(transfers, resources);
     }
 

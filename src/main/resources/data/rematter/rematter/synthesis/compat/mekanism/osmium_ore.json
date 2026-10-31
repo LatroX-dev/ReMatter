@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:osmium_ore",
+  "disabled": true
+}

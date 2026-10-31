@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.vital_essence",
+  "symbol": "Vt",
+  "kind": "element",
+  "composition": {
+    "rematter:vital_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

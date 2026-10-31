@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "appgen",
+  "item": "appgen:ember_block",
+  "matter": [
+    {
+      "substance": "rematter:ember",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 128000,
+  "synthesis_energy": 256000,
+  "ticks": 400
+}

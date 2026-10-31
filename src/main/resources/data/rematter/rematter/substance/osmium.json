@@ -7,6 +7,7 @@
     "rematter:osmium": 1
   },
   "phases": [
-    "solid"
+    "solid",
+    "gas"
   ]
 }

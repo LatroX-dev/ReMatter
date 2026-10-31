@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:raw_platinum_block",
+  "matter": [
+    {
+      "substance": "rematter:platinum",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 900
+}

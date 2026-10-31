@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.amethyst",
+  "symbol": "SiO₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

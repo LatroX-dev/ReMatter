@@ -3,7 +3,7 @@ navigation:
   title: Water and gases
   icon: rematter:electrolyzer
   parent: index.md
-  position: 4
+  position: 5
 item_ids:
   - rematter:electrolyzer
   - rematter:chemical_reactor

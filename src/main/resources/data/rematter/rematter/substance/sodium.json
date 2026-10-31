@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sodium",
+  "symbol": "Na",
+  "kind": "element",
+  "composition": {
+    "rematter:sodium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

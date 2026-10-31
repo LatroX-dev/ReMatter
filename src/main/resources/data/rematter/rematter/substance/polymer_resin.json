@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.polymer_resin",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 5,
+    "rematter:hydrogen": 8,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

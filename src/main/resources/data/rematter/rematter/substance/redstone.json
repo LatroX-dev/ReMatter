@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.redstone",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:arcane_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

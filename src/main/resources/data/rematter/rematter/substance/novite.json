@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.novite",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:titanium": 2,
+    "rematter:stellar_essence": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

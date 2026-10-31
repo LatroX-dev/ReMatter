@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.salt",
+  "item": "jaopca:storage_blocks.salt",
+  "category": "raw_material"
+}

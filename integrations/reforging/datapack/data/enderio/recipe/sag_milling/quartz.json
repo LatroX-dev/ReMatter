@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "input": "#c:gems/quartz",
+  "outputs": [
+    {
+      "item": {
+        "id": "enderio:powdered_quartz"
+      }
+    }
+  ],
+  "energy": 2400,
+  "bonus": "none"
+}

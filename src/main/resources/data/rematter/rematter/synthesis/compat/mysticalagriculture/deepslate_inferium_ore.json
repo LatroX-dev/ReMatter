@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "mysticalagriculture",
+  "item": "mysticalagriculture:deepslate_inferium_ore",
+  "disabled": true
+}

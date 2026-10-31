@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:quartz_block",
+  "matter": [
+    {
+      "substance": "reforging:crystalline_silica",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 128000,
+  "synthesis_energy": 256000,
+  "ticks": 400
+}

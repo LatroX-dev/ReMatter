@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "infinity_nexus_mod",
+  "item": "infinity_nexus_mod:uranium_dust",
+  "matter": [
+    {
+      "substance": "rematter:uranium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.awakened_supremium_metal",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:vital_essence": 4096,
+    "rematter:arcane_essence": 1,
+    "rematter:iron": 4
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.iridium",
+  "symbol": "Ir",
+  "kind": "element",
+  "composition": {
+    "rematter:iridium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "energizedpower",
+  "item": "energizedpower:deepslate_tin_ore",
+  "disabled": true
+}

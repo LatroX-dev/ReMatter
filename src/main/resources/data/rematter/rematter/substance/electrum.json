@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.electrum",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:gold": 1,
+    "rematter:silver": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

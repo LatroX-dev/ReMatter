@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "hextale",
+  "item": "hextale:riftmetal_block",
+  "matter": [
+    {
+      "substance": "rematter:riftmetal",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 900
+}

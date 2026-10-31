@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:aluminum_block",
+  "matter": [
+    {
+      "substance": "rematter:aluminum",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 900
+}

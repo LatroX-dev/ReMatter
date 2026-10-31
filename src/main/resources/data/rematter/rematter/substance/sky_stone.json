@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sky_stone",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 4,
+    "rematter:aluminum": 2,
+    "rematter:iron": 1,
+    "rematter:oxygen": 12,
+    "rematter:stellar_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "colossal_reactors",
+  "item": "colossal_reactors:uranium_block",
+  "matter": [
+    {
+      "substance": "rematter:uranium",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 900
+}

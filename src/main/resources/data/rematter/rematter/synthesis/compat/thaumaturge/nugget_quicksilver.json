@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "thaumaturge",
+  "item": "thaumaturge:nugget_quicksilver",
+  "category": "raw_material"
+}

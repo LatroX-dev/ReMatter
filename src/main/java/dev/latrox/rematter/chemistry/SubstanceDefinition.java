@@ -24,6 +24,10 @@ public record SubstanceDefinition(
                 && (composition.elements().size() != 1 || !composition.elements().containsKey(id))) {
             throw new IllegalArgumentException("An element must consist only of itself: " + id);
         }
+        if (kind == SubstanceKind.ALLOTROPE
+                && (composition.elements().size() != 1 || composition.elements().containsKey(id))) {
+            throw new IllegalArgumentException("An allotrope needs a distinct identity and exactly one underlying element: " + id);
+        }
     }
 
     public boolean supports(Phase phase) {

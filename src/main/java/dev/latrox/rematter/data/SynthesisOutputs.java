@@ -10,6 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.material.FlowingFluid;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -26,6 +27,25 @@ final class SynthesisOutputs {
     private SynthesisOutputs() {}
 
     static void validate(ChemistryRegistry registry) {
+        registry.profiles().forEach(profile -> {
+            Identifier id = Identifier.parse(profile.itemId());
+            if (!BuiltInRegistries.ITEM.containsKey(id) || profile.itemId().equals("minecraft:air")) {
+                reject(profile.itemId(), "material profile needs a registered item");
+            }
+            if (profile.itemCount() > BuiltInRegistries.ITEM.getValue(id).getDefaultInstance().getMaxStackSize()) {
+                reject(profile.itemId(), "material batch exceeds the actual item stack limit");
+            }
+        });
+        registry.fluidProfiles().forEach(profile -> {
+            Identifier id = Identifier.parse(profile.fluidId());
+            if (!BuiltInRegistries.FLUID.containsKey(id) || profile.fluidId().equals("minecraft:empty")) {
+                reject(profile.fluidId(), "fluid profile needs a registered fluid");
+            }
+            var fluid = BuiltInRegistries.FLUID.getValue(id);
+            if (fluid instanceof FlowingFluid flowing && flowing.getSource() != fluid) {
+                reject(profile.fluidId(), "use the canonical source fluid, not its flowing variant");
+            }
+        });
         registry.synthesisPolicy().entries().forEach((name, category) -> {
             Identifier id = Identifier.parse(name);
             if (category == SynthesisCategory.GAS) {

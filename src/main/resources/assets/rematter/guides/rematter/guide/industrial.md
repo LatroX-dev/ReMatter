@@ -3,7 +3,7 @@ navigation:
   title: Industrial Reactor
   icon: rematter:industrial_reactor
   parent: index.md
-  position: 5
+  position: 6
 item_ids:
   - rematter:industrial_reactor
   - rematter:reactor_casing

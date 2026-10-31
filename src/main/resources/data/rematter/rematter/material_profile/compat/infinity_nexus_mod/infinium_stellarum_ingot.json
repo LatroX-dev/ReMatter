@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "infinity_nexus_mod",
+  "item": "infinity_nexus_mod:infinium_stellarum_ingot",
+  "matter": [
+    {
+      "substance": "rematter:stellarum",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 100
+}

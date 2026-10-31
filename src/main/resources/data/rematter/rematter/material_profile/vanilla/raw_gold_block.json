@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:raw_gold_block",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 900
+}

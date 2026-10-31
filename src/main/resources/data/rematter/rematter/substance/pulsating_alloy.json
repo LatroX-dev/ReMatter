@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.pulsating_alloy",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:iron": 2,
+    "rematter:ender_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

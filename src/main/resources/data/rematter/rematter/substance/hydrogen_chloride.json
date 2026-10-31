@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.hydrogen_chloride",
+  "symbol": "HCl",
+  "kind": "compound",
+  "composition": {
+    "rematter:hydrogen": 1,
+    "rematter:chlorine": 1
+  },
+  "phases": [
+    "gas"
+  ]
+}

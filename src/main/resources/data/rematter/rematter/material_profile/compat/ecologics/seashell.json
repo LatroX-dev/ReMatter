@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ecologics",
+  "item": "ecologics:seashell",
+  "matter": [
+    {
+      "substance": "rematter:seashell",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 100
+}

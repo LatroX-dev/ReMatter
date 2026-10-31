@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.crystalline_silicon",
+  "symbol": "Si",
+  "kind": "allotrope",
+  "composition": {
+    "rematter:silicon": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

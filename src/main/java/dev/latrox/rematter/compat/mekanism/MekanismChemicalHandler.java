@@ -27,36 +27,37 @@ final class MekanismChemicalHandler implements ResourceHandler<ChemicalResource>
 
     @Override
     public ChemicalResource getResource(int index) {
-        return transfers.amount(index) > 0 ? resources.get(index) : ChemicalResource.EMPTY;
+        return getAmountAsLong(index) > 0 ? resources.get(index) : ChemicalResource.EMPTY;
     }
 
     @Override
     public long getAmountAsLong(int index) {
-        return transfers.amount(index);
+        return resources.get(index).isRadioactive() ? 0 : transfers.amount(index);
     }
 
     @Override
     public long getCapacityAsLong(int index, ChemicalResource resource) {
+        if (resources.get(index).isRadioactive()) return 0;
         if (resource.isEmpty()) return transfers.capacity(index);
         return isValid(index, resource) ? transfers.capacity(index) : 0;
     }
 
     @Override
     public boolean isValid(int index, ChemicalResource resource) {
-        return resources.get(index).equals(resource) && transfers.isEnabled(index);
+        return !resource.isRadioactive() && resources.get(index).equals(resource) && transfers.isEnabled(index);
     }
 
     @Override
     public int insert(int index, ChemicalResource resource, int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
         if (!isValid(index, resource)) return 0;
-        return transfers.insert(index, ChemicalMappings.ALL.get(index).chemicalId(), amount, transaction);
+        return transfers.insert(index, transfers.chemicalId(index), amount, transaction);
     }
 
     @Override
     public int extract(int index, ChemicalResource resource, int amount, TransactionContext transaction) {
         TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
         if (!isValid(index, resource)) return 0;
-        return transfers.extract(index, ChemicalMappings.ALL.get(index).chemicalId(), amount, transaction);
+        return transfers.extract(index, transfers.chemicalId(index), amount, transaction);
     }
 }

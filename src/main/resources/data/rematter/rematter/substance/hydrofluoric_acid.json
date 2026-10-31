@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.hydrofluoric_acid",
+  "symbol": "HF",
+  "kind": "compound",
+  "composition": {
+    "rematter:hydrogen": 1,
+    "rematter:fluorine": 1
+  },
+  "phases": [
+    "gas"
+  ]
+}

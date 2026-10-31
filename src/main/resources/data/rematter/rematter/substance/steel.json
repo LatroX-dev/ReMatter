@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.steel",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:iron": 99,
+    "rematter:carbon": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

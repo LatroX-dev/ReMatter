@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.hextech",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:iron": 2,
+    "rematter:copper": 2,
+    "rematter:arcane_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

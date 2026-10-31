@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:deepslate_diamond_ore",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

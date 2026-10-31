@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.mercury",
+  "symbol": "Hg",
+  "kind": "element",
+  "composition": {
+    "rematter:mercury": 1
+  },
+  "phases": [
+    "liquid"
+  ]
+}

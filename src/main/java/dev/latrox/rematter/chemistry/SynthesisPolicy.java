@@ -27,6 +27,15 @@ public final class SynthesisPolicy {
         return allowed.containsKey(exactId);
     }
 
+    public boolean allowsItem(String exactId) {
+        SynthesisCategory category = allowed.get(exactId);
+        return category == SynthesisCategory.RAW_MATERIAL || category == SynthesisCategory.NATURAL_MATERIAL;
+    }
+
+    public boolean allowsFluid(String exactId) {
+        return allowed.get(exactId) == SynthesisCategory.FLUID;
+    }
+
     public Optional<SynthesisCategory> category(String exactId) {
         return Optional.ofNullable(allowed.get(exactId));
     }

@@ -3,7 +3,7 @@ navigation:
   title: Storage and automation
   icon: rematter:matter_terminal
   parent: index.md
-  position: 6
+  position: 7
 ---
 # Storage and automation
 

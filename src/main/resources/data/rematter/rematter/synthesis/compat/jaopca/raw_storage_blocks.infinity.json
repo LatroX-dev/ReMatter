@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:raw_storage_blocks.infinity",
+  "item": "jaopca:raw_storage_blocks.infinity",
+  "disabled": true
+}

@@ -11,14 +11,23 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /** A bounded view of the open menu, sent only when values change. */
 public record MachineSnapshot(int containerId, int kind, int energy, int progress, int duration, String status,
-                              int selected, List<String> choices, List<Entry> entries, long used, long capacity,
+                              int selected, String selectedId, String selectedName, int choiceCount, int sampleBatchSize,
+                              List<Entry> entries, long used, long capacity,
                               boolean automation, boolean running, int fluidAmount, String fluidName) implements CustomPacketPayload {
+    public static final int MAX_CHOICE_ID_LENGTH = 520;
     public static final Type<MachineSnapshot> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "machine_snapshot"));
-    public static final MachineSnapshot EMPTY = new MachineSnapshot(-1, 0, 0, 0, 0, "idle", 0, List.of(), List.of(), 0, 0, false, true, 0, "");
+    public static final MachineSnapshot EMPTY = new MachineSnapshot(-1, 0, 0, 0, 0, "idle", -1, "", "", 0, 1, List.of(), 0, 0, false, true, 0, "");
     public MachineSnapshot {
-        choices = choices.stream().map(value -> clipped(value, 256)).toList();
+        selectedName = clipped(selectedName, 256);
+        status = clipped(status, 64);
+        fluidName = clipped(fluidName, 64);
         entries = List.copyOf(entries);
-        if (choices.size() > 256 || entries.size() > 512) throw new IllegalArgumentException("Menu snapshot too large");
+        if (selectedId.length() > MAX_CHOICE_ID_LENGTH || choiceCount < 0 || choiceCount > MachineChoices.MAX_CHOICES
+                || selected < -1 || selected >= choiceCount
+                || sampleBatchSize < 1 || sampleBatchSize > 64 || entries.size() > 512
+                || kind < 0 || kind >= MachineKind.values().length || energy < 0 || energy > MachineBlockEntity.ENERGY_CAPACITY
+                || progress < 0 || duration < 0 || progress > duration || used < 0 || capacity < used
+                || fluidAmount < 0 || fluidAmount > 16_000) throw new IllegalArgumentException("Invalid menu snapshot");
     }
     public record Entry(String name, String phase, long amount) {
         public Entry { name = clipped(name, 256); phase = clipped(phase, 16); }
@@ -33,20 +42,21 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
             int duration = buffer.readVarInt();
             String status = buffer.readUtf(64);
             int selected = buffer.readVarInt();
-            int choiceCount = count(buffer, 256);
-            List<String> choices = new ArrayList<>(choiceCount);
-            for (int i = 0; i < choiceCount; i++) choices.add(buffer.readUtf(256));
+            String selectedId = buffer.readUtf(MAX_CHOICE_ID_LENGTH);
+            String selectedName = buffer.readUtf(256);
+            int choiceCount = count(buffer, MachineChoices.MAX_CHOICES);
+            int sampleBatchSize = buffer.readVarInt();
             int entryCount = count(buffer, 512);
             List<Entry> entries = new ArrayList<>(entryCount);
             for (int i = 0; i < entryCount; i++) entries.add(new Entry(buffer.readUtf(256), buffer.readUtf(16), buffer.readVarLong()));
-            return new MachineSnapshot(container, kind, energy, progress, duration, status, selected, choices, entries,
+            return new MachineSnapshot(container, kind, energy, progress, duration, status, selected, selectedId, selectedName, choiceCount, sampleBatchSize, entries,
                     buffer.readVarLong(), buffer.readVarLong(), buffer.readBoolean(), buffer.readBoolean(), buffer.readVarInt(), buffer.readUtf(64));
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, MachineSnapshot value) {
             buffer.writeVarInt(value.containerId); buffer.writeVarInt(value.kind); buffer.writeVarInt(value.energy);
             buffer.writeVarInt(value.progress); buffer.writeVarInt(value.duration); buffer.writeUtf(value.status, 64);
-            buffer.writeVarInt(value.selected); buffer.writeVarInt(value.choices.size());
-            value.choices.forEach(choice -> buffer.writeUtf(choice, 256));
+            buffer.writeVarInt(value.selected); buffer.writeUtf(value.selectedId, MAX_CHOICE_ID_LENGTH);
+            buffer.writeUtf(value.selectedName, 256); buffer.writeVarInt(value.choiceCount); buffer.writeVarInt(value.sampleBatchSize);
             buffer.writeVarInt(value.entries.size());
             for (Entry entry : value.entries) { buffer.writeUtf(entry.name, 256); buffer.writeUtf(entry.phase, 16); buffer.writeVarLong(entry.amount); }
             buffer.writeVarLong(value.used); buffer.writeVarLong(value.capacity); buffer.writeBoolean(value.automation);
@@ -60,7 +70,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     };
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(TYPE, CODEC, (snapshot, context) -> {
+        event.registrar("2").playToClient(TYPE, CODEC, (snapshot, context) -> {
             if (context.player().containerMenu instanceof MachineMenu menu && menu.containerId == snapshot.containerId) menu.acceptSnapshot(snapshot);
         });
     }

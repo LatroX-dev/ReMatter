@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.nether_essence",
+  "symbol": "Ntr",
+  "kind": "element",
+  "composition": {
+    "rematter:nether_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

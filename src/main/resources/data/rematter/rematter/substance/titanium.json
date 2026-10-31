@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.titanium",
+  "symbol": "Ti",
+  "kind": "element",
+  "composition": {
+    "rematter:titanium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

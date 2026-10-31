@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.azurite",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:oxygen": 4,
+    "rematter:quantum_essence": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

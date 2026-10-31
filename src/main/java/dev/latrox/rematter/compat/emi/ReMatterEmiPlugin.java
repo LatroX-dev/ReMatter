@@ -13,7 +13,6 @@ import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.ProcessType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MachineKind;
-import dev.latrox.rematter.content.FluidConversions;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
@@ -22,6 +21,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 
 /** Native SEMI/EMI integration; no JEI classes or recipe bridge are required. */
 @EmiEntrypoint
@@ -66,25 +66,24 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         for (var profile : catalogue.profiles()) {
             Identifier itemId = Identifier.parse(profile.itemId());
             if (!BuiltInRegistries.ITEM.containsKey(itemId) || itemId.toString().equals("minecraft:air")) continue;
-            EmiStack item = EmiStack.of(BuiltInRegistries.ITEM.getValue(itemId));
+            EmiStack item = EmiStack.of(new ItemStack(BuiltInRegistries.ITEM.getValue(itemId), profile.itemCount()));
             List<EmiStack> matter = matter(profile.matter());
-            boolean allowed = catalogue.synthesisPolicy().allows(profile.itemId());
+            boolean allowed = catalogue.synthesisPolicy().allowsItem(profile.itemId());
             registry.addRecipe(new ChemistryEmiRecipe(decomposition, recipeId("decomposition", itemId), List.of(item), matter,
                     profile.decompositionEnergy(), profile.ticks(), allowed ? "Synthesis allowed" : "Synthesis not allowed"));
             if (allowed) registry.addRecipe(new ChemistryEmiRecipe(synthesis, recipeId("synthesis", itemId),
                     asIngredients(matter), List.of(item), profile.synthesisEnergy(), profile.ticks(), "Synthesis allowed"));
         }
-        for (var conversion : FluidConversions.ALL) {
-            if (!catalogue.isKnown(conversion.substance())) continue;
+        for (var conversion : catalogue.fluidProfiles()) {
             Identifier fluidId = Identifier.parse(conversion.fluidId());
             EmiStack fluid = EmiStack.of(BuiltInRegistries.FLUID.getValue(fluidId), conversion.amount());
-            EmiStack matter = new MatterEmiStack(conversion.substance(), conversion.amount());
-            boolean allowed = catalogue.synthesisPolicy().allows(conversion.fluidId());
+            List<EmiStack> matter = matter(conversion.matter());
+            boolean allowed = catalogue.synthesisPolicy().allowsFluid(conversion.fluidId());
             registry.addRecipe(new ChemistryEmiRecipe(decomposition, recipeId("fluid_decomposition", fluidId),
-                    List.of(fluid), List.of(matter), conversion.decompositionEnergy(), conversion.ticks(),
+                    List.of(fluid), matter, conversion.decompositionEnergy(), conversion.ticks(),
                     allowed ? "Synthesis allowed" : "Synthesis not allowed"));
             if (allowed) registry.addRecipe(new ChemistryEmiRecipe(synthesis, recipeId("fluid_synthesis", fluidId),
-                    List.of(matter), List.of(fluid), conversion.synthesisEnergy(), conversion.ticks(), "Synthesis allowed"));
+                    asIngredients(matter), List.of(fluid), conversion.synthesisEnergy(), conversion.ticks(), "Synthesis allowed"));
         }
         for (var process : catalogue.processes()) {
             var category = process.type() == ProcessType.ELECTROLYSIS ? electrolysis : reaction;
