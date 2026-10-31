@@ -167,11 +167,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             analyzedId = "";
             resetProgress();
             var options = choices();
+            String previousSelectedId = selectedId;
             if (kind() == MachineKind.SYNTHESIZER && registry.fluidProfile(selectedId).isPresent()
                     && !registry.synthesisPolicy().allowsItem(selectedId)) selectedId = MachineChoices.fluidChoiceId(selectedId);
             var restored = RecipeSelection.restore(selectedId, options.stream().map(MachineChoices.Choice::id).toList());
             selection = restored.index();
             selectedId = restored.id();
+            if (!selectedId.equals(previousSelectedId)) setChanged();
             if (restored.unavailable()) { running = false; status = "selection_unavailable"; setChanged(); }
         }
         if (selection < 0 && !selectedId.isEmpty()) {
