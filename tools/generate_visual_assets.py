@@ -201,7 +201,10 @@ models['matter_terminal'] = e
 # Industrial controller: reinforced corners, two visible levels and a top turbine.
 e = base()
 e += [box((3, 3.5, 3), (13, 6, 13)), box((4, 6, 4), (12, 10, 12), 'status', shade=False),
-      box((3, 10, 3), (13, 11.3, 13), 'copper_trim'), box((3, 14.5, 3), (13, 16, 13), 'frame')]
+      box((3, 10, 3), (13, 11.3, 13), 'copper_trim')]
+# An open top guard keeps the turbine visible inside the full-height casing ring.
+e += [box((3, 14.5, 3), (13, 16, 4), 'frame'), box((3, 14.5, 12), (13, 16, 13), 'frame'),
+      box((3, 14.5, 4), (4, 16, 12), 'frame'), box((12, 14.5, 4), (13, 16, 12), 'frame')]
 for x in (2, 12):
     for z in (2, 12): e += [box((x, 3, z), (x + 2, 15.5, z + 2), 'frame'), box((x + .6, 4, z - .03), (x + 1.4, 12, z + .1), 'copper_trim')]
 display(e, (5, 4, 1.5), (11, 6.8, 2.2))
