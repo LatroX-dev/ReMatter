@@ -28,6 +28,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
@@ -57,6 +58,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private long nextNetworkScan;
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 16_000, 0) {
+        @Override public int insert(int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonNegative(amount);
+            return isLiveServerMachine() ? super.insert(amount, transaction) : 0;
+        }
         @Override protected void onEnergyChanged(int previous) { setChanged(); }
     };
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, 16_000) {
@@ -84,7 +89,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     public boolean automation() { return automation; }
     private boolean automationAllowed() {
-        if (!automation || isRemoved() || level == null || level.isClientSide()) return false;
+        return automation && isLiveServerMachine();
+    }
+    private boolean isLiveServerMachine() {
+        if (isRemoved() || level == null || level.isClientSide()) return false;
         var server = level.getServer();
         return server != null && server.isSameThread() && level.hasChunkAt(worldPosition)
                 && level.getBlockEntity(worldPosition) == this;
