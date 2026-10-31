@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.lead",
+  "symbol": "Pb",
+  "kind": "element",
+  "composition": {
+    "rematter:lead": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

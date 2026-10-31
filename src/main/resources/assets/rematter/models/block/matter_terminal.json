@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "top": "rematter:block/machine_top",
+    "front": "rematter:block/matter_terminal",
+    "side": "rematter:block/machine_side"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.zinc",
+  "symbol": "Zn",
+  "kind": "element",
+  "composition": {
+    "rematter:zinc": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

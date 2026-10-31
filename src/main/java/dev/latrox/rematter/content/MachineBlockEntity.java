@@ -1,0 +1,412 @@
+package dev.latrox.rematter.content;
+
+import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.chemistry.*;
+import java.util.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
+import net.neoforged.neoforge.transfer.DelegatingResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
+
+/** Server-owned machine state. Inputs remain untouched until the entire output can commit. */
+public final class MachineBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
+    public static final int ENERGY_CAPACITY = 1_000_000;
+    public static final long MATTER_CAPACITY = 1_000_000;
+    private NonNullList<ItemStack> items = NonNullList.withSize(3, ItemStack.EMPTY);
+    private MatterInventory matter = new MatterInventory(MATTER_CAPACITY);
+    private CompoundTag preservedMatter;
+    private UUID owner;
+    private boolean automation;
+    private boolean running = true;
+    private int selection;
+    private String selectedId = "";
+    private int progress;
+    private int duration;
+    private String job = "";
+    private String analyzedId = "";
+    private String status = "idle";
+    private ChemistryRegistry lastRegistry;
+    private BlockPos cachedStorage;
+    private long nextNetworkScan;
+
+    private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 16_000, 0) {
+        @Override protected void onEnergyChanged(int previous) { setChanged(); }
+    };
+    private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, 16_000) {
+        @Override public boolean isValid(int index, FluidResource resource) {
+            return resource.isComponentsPatchEmpty() && (resource.getFluid() == Fluids.WATER || resource.getFluid() == Fluids.LAVA);
+        }
+        @Override protected void onContentsChanged(int index, FluidStack previous) { setChanged(); }
+    };
+
+    private final ResourceHandler<FluidResource> automatedFluids = new DelegatingResourceHandler<>(fluids) {
+        @Override public boolean isValid(int index, FluidResource resource) { return automation && super.isValid(index, resource); }
+        @Override public int insert(int index, FluidResource resource, int amount, TransactionContext transaction) {
+            return automation ? super.insert(index, resource, amount, transaction) : 0;
+        }
+        @Override public int extract(int index, FluidResource resource, int amount, TransactionContext transaction) {
+            return automation ? super.extract(index, resource, amount, transaction) : 0;
+        }
+        @Override public int insert(FluidResource resource, int amount, TransactionContext transaction) {
+            return automation ? super.insert(resource, amount, transaction) : 0;
+        }
+        @Override public int extract(FluidResource resource, int amount, TransactionContext transaction) {
+            return automation ? super.extract(resource, amount, transaction) : 0;
+        }
+    };
+
+    public MachineBlockEntity(BlockPos pos, BlockState state) { super(ModContent.MACHINE_ENTITY.get(), pos, state); }
+    public MachineKind kind() { return ((MachineBlock) getBlockState().getBlock()).kind(); }
+    public SimpleEnergyHandler energy() { return energy; }
+    public FluidStacksResourceHandler fluids() { return fluids; }
+    public ResourceHandler<FluidResource> automatedFluids() { return automatedFluids; }
+    public boolean automation() { return automation; }
+    public void claim(Player player) { if (owner == null) { owner = player.getUUID(); setChanged(); } }
+    public boolean canUse(Player player) {
+        boolean allowed = owner == null || owner.equals(player.getUUID());
+        if (!allowed && !player.level().isClientSide()) player.sendSystemMessage(Component.translatable("message.rematter.private_machine"));
+        return allowed;
+    }
+    public boolean hasStoredResources() {
+        return preservedMatter != null || matter.total() > 0 || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
+    }
+    public void toggleAutomation() {
+        automation = !automation;
+        if (level != null) level.invalidateCapabilities(worldPosition);
+        setChanged();
+    }
+    public void toggleRunning() { running = !running; setChanged(); }
+    public void select(int offset) {
+        var choices = choices();
+        if (!choices.isEmpty()) {
+            selection = Math.floorMod(selection + offset, choices.size());
+            selectedId = choices.get(selection).id();
+            resetProgress();
+            setChanged();
+        }
+    }
+
+    public void serverTick() {
+        if (level == null || level.isClientSide()) return;
+        ChemistryRegistry registry = ReMatter.chemistry();
+        if (registry != lastRegistry) {
+            lastRegistry = registry;
+            analyzedId = "";
+            resetProgress();
+            var options = choices();
+            selection = 0;
+            for (int i = 0; i < options.size(); i++) if (options.get(i).id().equals(selectedId)) selection = i;
+        }
+        if (!running) { if (!status.equals("analyzed")) status = "paused"; return; }
+        if (kind() == MachineKind.STORAGE) { status = preservedMatter == null ? "ready" : "unknown_schema"; return; }
+        MachineBlockEntity store = networkStorage(false);
+        if (store == null) { status = "no_storage"; return; }
+        if (store.preservedMatter != null) { status = "unknown_schema"; return; }
+        if (kind() == MachineKind.TERMINAL) { status = "ready"; return; }
+        if (kind() == MachineKind.INDUSTRIAL_REACTOR && !hasReactorStructure()) { status = "structure"; return; }
+        Operation operation = operation(registry);
+        if (operation == null) { status = kind() == MachineKind.ANALYZER ? "insert_sample" : "input"; resetProgress(); return; }
+        String fingerprint = operation.signature + ":" + operation.cost + ":" + operation.ticks + ":" + speed();
+        if (!fingerprint.equals(job)) { progress = 0; job = fingerprint; }
+        duration = operation.ticks;
+        if (!store.matter.canApply(operation.inputs, operation.outputs)) { status = "matter"; return; }
+        if (energy.getAmountAsLong() < operation.cost) { status = "energy"; return; }
+        if (!operation.canFinish()) { status = "output"; return; }
+        progress = (int) Math.min(duration, (long) progress + speed());
+        status = "working";
+        setChanged();
+        if (progress < duration) return;
+        // A changed connection or owner never grants a final transfer against a cached storage.
+        if (networkStorage(true) != store) { status = "no_storage"; return; }
+        if (!operation.canFinish() || energy.getAmountAsLong() < operation.cost) return;
+        if (!store.matter.apply(operation.inputs, operation.outputs)) { status = "matter"; return; }
+        operation.finish.run();
+        energy.set((int) (energy.getAmountAsLong() - operation.cost));
+        store.setChanged();
+        resetProgress();
+        status = kind() == MachineKind.ANALYZER ? "analyzed" : "ready";
+        if (kind() == MachineKind.ANALYZER) running = false;
+        setChanged();
+    }
+
+    private Operation operation(ChemistryRegistry registry) {
+        if (kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER) {
+            ItemStack input = items.get(0);
+            if (!input.isEmpty() && input.getComponentsPatch().isEmpty()) {
+                String id = BuiltInRegistries.ITEM.getKey(input.getItem()).toString();
+                var profile = registry.profile(id).orElse(null);
+                if (profile != null) {
+                    boolean analyze = kind() == MachineKind.ANALYZER;
+                    return new Operation("item:" + id, Map.of(), analyze ? Map.of() : profile.matter(),
+                            cost(analyze ? 500 : profile.decompositionEnergy()), analyze ? 40 : profile.ticks(),
+                            () -> !items.get(0).isEmpty() && items.get(0).getItem() == input.getItem() && items.get(0).getComponentsPatch().isEmpty(),
+                            () -> { if (analyze) analyzedId = id; else items.get(0).shrink(1); });
+                }
+            }
+            if (kind() == MachineKind.DECOMPOSER && fluids.getAmountAsLong(0) >= 1000) {
+                FluidResource fluid = fluids.getResource(0);
+                SubstanceKey substance = fluid.getFluid() == Fluids.WATER ? BuiltinChemistry.WATER : fluid.getFluid() == Fluids.LAVA ? BuiltinChemistry.LAVA : null;
+                if (substance != null && registry.isKnown(substance)) return new Operation("fluid:" + substance.id(), Map.of(), Map.of(substance, 1000L), cost(2000), 80,
+                        () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= 1000,
+                        () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - 1000));
+            }
+            return null;
+        }
+        var options = choices();
+        if (options.isEmpty()) return null;
+        selection = Math.floorMod(selection, options.size());
+        Choice choice = options.get(selection);
+        selectedId = choice.id;
+        if (kind() == MachineKind.SYNTHESIZER) {
+            if (!registry.synthesisPolicy().allows(choice.id)) return null;
+            if (choice.id.equals("minecraft:water") || choice.id.equals("minecraft:lava")) {
+                boolean water = choice.id.equals("minecraft:water");
+                if (!registry.isKnown(water ? BuiltinChemistry.WATER : BuiltinChemistry.LAVA)) return null;
+                var resource = FluidResource.of(water ? Fluids.WATER : Fluids.LAVA);
+                return new Operation(choice.id, Map.of(water ? BuiltinChemistry.WATER : BuiltinChemistry.LAVA, 1000L), Map.of(), cost(water ? 2000 : 24000), 80,
+                        () -> (fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource)) && fluids.getAmountAsLong(0) <= 15000,
+                        () -> fluids.set(0, resource, (int) fluids.getAmountAsLong(0) + 1000));
+            }
+            var profile = registry.profile(choice.id).orElse(null);
+            Identifier outputId = Identifier.parse(choice.id);
+            if (!BuiltInRegistries.ITEM.containsKey(outputId)) return null;
+            Item output = BuiltInRegistries.ITEM.getValue(outputId);
+            if (profile == null || output == null) return null;
+            var result = new ItemStack(output);
+            return new Operation(choice.id, profile.matter(), Map.of(), cost(profile.synthesisEnergy()), profile.ticks(),
+                    () -> fitsOutput(result), () -> {
+                        if (items.get(1).isEmpty()) items.set(1, result);
+                        else items.get(1).grow(1);
+                    });
+        }
+        var recipe = registry.recipe(SubstanceId.parse(choice.id)).orElse(null);
+        if (recipe == null) return null;
+        return new Operation(choice.id, recipe.inputs(), recipe.outputs(), cost(recipe.energy()), recipe.ticks(), () -> true, () -> {});
+    }
+
+    private int speed() {
+        int base = kind() == MachineKind.INDUSTRIAL_REACTOR ? 2 : 1;
+        return base * (items.get(2).is(ModContent.SPEED_UPGRADE.get()) ? 1 + Math.min(4, items.get(2).getCount()) : 1);
+    }
+    private long cost(long base) {
+        // Speed pays more total energy, efficiency has a bounded 20% maximum saving.
+        if (base > ENERGY_CAPACITY) return base;
+        int count = Math.min(4, items.get(2).getCount());
+        if (items.get(2).is(ModContent.SPEED_UPGRADE.get())) return Math.addExact(base, Math.multiplyExact(base, count) / 4);
+        if (items.get(2).is(ModContent.EFFICIENCY_UPGRADE.get())) return base - (base / 20) * count;
+        return base;
+    }
+    private boolean fitsOutput(ItemStack result) {
+        ItemStack output = items.get(1);
+        return output.isEmpty() || (ItemStack.isSameItemSameComponents(output, result) && output.getCount() < output.getMaxStackSize());
+    }
+    private void resetProgress() { progress = 0; duration = 0; job = ""; }
+
+    public List<Choice> choices() {
+        ChemistryRegistry registry = ReMatter.chemistry();
+        if (kind() == MachineKind.SYNTHESIZER) {
+            var result = new ArrayList<Choice>();
+            for (var profile : registry.profiles()) {
+                if (registry.synthesisPolicy().allows(profile.itemId())) {
+                    Identifier itemId = Identifier.parse(profile.itemId());
+                    Item item = BuiltInRegistries.ITEM.containsKey(itemId) ? BuiltInRegistries.ITEM.getValue(itemId) : null;
+                    if (item != null) result.add(new Choice(profile.itemId(), item.getName(item.getDefaultInstance()).getString()));
+                }
+            }
+            if (registry.synthesisPolicy().allows("minecraft:water")) result.add(new Choice("minecraft:water", "Water"));
+            if (registry.synthesisPolicy().allows("minecraft:lava")) result.add(new Choice("minecraft:lava", "Lava"));
+            return result.stream().sorted(Comparator.comparing(Choice::name)).limit(256).toList();
+        }
+        if (kind() == MachineKind.ELECTROLYZER || kind() == MachineKind.REACTOR || kind() == MachineKind.INDUSTRIAL_REACTOR) {
+            return registry.recipes().stream()
+                    .filter(recipe -> kind() != MachineKind.ELECTROLYZER || recipe.type() == ProcessType.ELECTROLYSIS)
+                    .filter(recipe -> kind() == MachineKind.ELECTROLYZER || recipe.type() != ProcessType.ELECTROLYSIS)
+                    .sorted(Comparator.comparing(recipe -> recipe.id().toString()))
+                    .limit(256).map(recipe -> new Choice(recipe.id().toString(), pretty(recipe.id().path()))).toList();
+        }
+        return List.of();
+    }
+    public record Choice(String id, String name) {}
+    private record Operation(String signature, Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
+                             long cost, int ticks, java.util.function.BooleanSupplier ready, Runnable finish) {
+        boolean canFinish() { return ready.getAsBoolean(); }
+    }
+    private static String pretty(String id) {
+        String value = id.replace('_', ' ');
+        return value.isEmpty() ? value : Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    private MachineBlockEntity networkStorage(boolean force) {
+        if (kind() == MachineKind.STORAGE) return this;
+        if (level == null) return null;
+        if (!force && level.getGameTime() < nextNetworkScan) {
+            if (cachedStorage != null && level.hasChunkAt(cachedStorage) && level.getBlockEntity(cachedStorage) instanceof MachineBlockEntity cached
+                    && cached.kind() == MachineKind.STORAGE && Objects.equals(cached.owner, owner)) return cached;
+            return null;
+        }
+        nextNetworkScan = level.getGameTime() + 20;
+        cachedStorage = null;
+        Set<BlockPos> visited = new HashSet<>();
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        queue.add(worldPosition);
+        visited.add(worldPosition);
+        MachineBlockEntity found = null;
+        while (!queue.isEmpty()) {
+            BlockPos pos = queue.removeFirst();
+            if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.kind() == MachineKind.STORAGE) {
+                if (found != null && found != machine) return null;
+                found = machine;
+            }
+            for (Direction side : Direction.values()) {
+                BlockPos next = pos.relative(side);
+                if (visited.contains(next) || !level.hasChunkAt(next)) continue;
+                boolean compatible = level.getBlockState(next).is(ModContent.MATTER_PIPE.get());
+                if (!compatible && level.getBlockEntity(next) instanceof MachineBlockEntity machine) compatible = Objects.equals(machine.owner, owner);
+                if (!compatible) continue;
+                // Count connected nodes, not adjacent air; at most six boundary reads per node.
+                if (visited.size() == 64) return null;
+                visited.add(next);
+                queue.add(next);
+            }
+        }
+        if (found != null) cachedStorage = found.worldPosition;
+        return found;
+    }
+    private boolean hasReactorStructure() {
+        if (level == null) return false;
+        for (int x = -1; x <= 1; x++) for (int z = -1; z <= 1; z++) {
+            if (x == 0 && z == 0) continue;
+            BlockPos pos = worldPosition.offset(x, 0, z);
+            if (!level.hasChunkAt(pos) || !level.getBlockState(pos).is(ModContent.REACTOR_CASING.get())) return false;
+        }
+        return true;
+    }
+
+    public MachineSnapshot snapshot(int containerId) {
+        MachineBlockEntity store = kind().isStorage() ? this : networkStorage(false);
+        var entries = new ArrayList<MachineSnapshot.Entry>();
+        if (store != null) {
+            store.matter.contents().entrySet().stream().sorted(Comparator.comparing(e -> e.getKey().id().toString()))
+                    .limit(512).forEach(entry -> entries.add(new MachineSnapshot.Entry(
+                            pretty(entry.getKey().id().path()), entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue())));
+        }
+        if (kind() == MachineKind.ANALYZER) entries.clear();
+        if (kind() == MachineKind.ANALYZER && !items.get(0).isEmpty()) {
+            String itemId = BuiltInRegistries.ITEM.getKey(items.get(0).getItem()).toString();
+            if (itemId.equals(analyzedId) && items.get(0).getComponentsPatch().isEmpty()) ReMatter.chemistry().profile(itemId).ifPresent(profile -> {
+                entries.clear();
+                profile.matter().entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().id().toString())).limit(512)
+                        .forEach(entry -> entries.add(new MachineSnapshot.Entry(pretty(entry.getKey().id().path()), entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue())));
+            });
+        }
+        return new MachineSnapshot(containerId, kind().ordinal(), (int) energy.getAmountAsLong(), progress, duration,
+                status, selection, choices().stream().map(Choice::name).toList(), entries,
+                store == null ? 0 : store.matter.total(), store == null ? 0 : store.matter.capacity(), automation, running,
+                (int) fluids.getAmountAsLong(0), fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getFluid() == Fluids.WATER ? "Water" : "Lava");
+    }
+
+    @Override protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("schema", 1);
+        if (owner != null) output.putString("owner", owner.toString());
+        output.putBoolean("automation", automation);
+        output.putBoolean("running", running);
+        output.putString("selection", selectedId);
+        // Progress is deliberately not persisted: no input or energy was consumed before final commit.
+        output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
+        energy.serialize(output.child("power"));
+        fluids.serialize(output.child("tank"));
+        if (preservedMatter != null) output.store("matter", CompoundTag.CODEC, preservedMatter);
+        else {
+            ValueOutput storage = output.child("matter");
+            storage.putInt("schema", 1);
+            storage.putLong("capacity", matter.capacity());
+            var list = storage.childrenList("contents");
+            matter.contents().forEach((key, amount) -> {
+                var entry = list.addChild();
+                entry.putString("substance", key.id().toString());
+                entry.putString("phase", key.phase().name());
+                entry.putLong("amount", amount);
+            });
+        }
+    }
+    @Override protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        try { owner = input.getString("owner").map(UUID::fromString).orElse(null); }
+        catch (IllegalArgumentException exception) { owner = new UUID(0, 0); }
+        automation = input.getBooleanOr("automation", false);
+        running = input.getBooleanOr("running", true);
+        selectedId = input.getStringOr("selection", "");
+        items = NonNullList.withSize(3, ItemStack.EMPTY);
+        input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).ifPresent(list -> { for (int i = 0; i < Math.min(3, list.size()); i++) items.set(i, list.get(i)); });
+        energy.deserialize(input.childOrEmpty("power"));
+        fluids.deserialize(input.childOrEmpty("tank"));
+        preservedMatter = input.read("matter", CompoundTag.CODEC).orElse(null);
+        try {
+            ValueInput storage = input.childOrEmpty("matter");
+            if (storage.getIntOr("schema", 1) != 1) throw new IllegalArgumentException("Unknown schema");
+            long capacity = storage.getLongOr("capacity", MATTER_CAPACITY);
+            List<SubstanceStack> contents = new ArrayList<>();
+            for (ValueInput entry : storage.childrenListOrEmpty("contents")) {
+                contents.add(new SubstanceStack(new SubstanceKey(SubstanceId.parse(entry.getStringOr("substance", "")),
+                        Phase.valueOf(entry.getStringOr("phase", ""))), entry.getLongOr("amount", -1)));
+            }
+            matter = MatterInventory.restore(new MatterInventory.Snapshot(1, capacity, contents, List.of()));
+            preservedMatter = null;
+        } catch (RuntimeException ignored) {
+            // Keep the exact raw payload for future schema support; do not erase unknown resources.
+            matter = new MatterInventory(MATTER_CAPACITY);
+        }
+        resetProgress();
+        lastRegistry = null;
+        cachedStorage = null;
+        nextNetworkScan = 0;
+    }
+
+    @Override public Component getDisplayName() { return Component.translatable("block.rematter." + kind().id()); }
+    @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) { return canUse(player) ? new MachineMenu(id, inventory, this) : null; }
+    @Override public int getContainerSize() { return 3; }
+    @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
+    @Override public ItemStack getItem(int index) { return items.get(index); }
+    @Override public ItemStack removeItem(int index, int amount) { ItemStack result = ContainerHelper.removeItem(items, index, amount); if (!result.isEmpty()) setChanged(); return result; }
+    @Override public ItemStack removeItemNoUpdate(int index) { return ContainerHelper.takeItem(items, index); }
+    @Override public void setItem(int index, ItemStack stack) { items.set(index, stack);
+        if (index == 0 && kind() == MachineKind.ANALYZER) { analyzedId = ""; running = true; }
+        stack.limitSize(getMaxStackSize(stack)); setChanged(); }
+    @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
+    @Override public boolean canPlaceItem(int index, ItemStack stack) {
+        if (index == 1) return false;
+        if (index == 2) return kind().processes() && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));
+        return (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.ANALYZER) && stack.getComponentsPatch().isEmpty()
+                && ReMatter.chemistry().profile(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()).isPresent();
+    }
+    @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automation && index == 1; }
+    @Override public int[] getSlotsForFace(Direction side) { return automation ? new int[] {0, 1} : new int[0]; }
+    @Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction side) { return automation && index == 0 && canPlaceItem(index, stack); }
+    @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) { return automation && index == 1; }
+    @Override public void clearContent() { items.clear(); setChanged(); }
+}

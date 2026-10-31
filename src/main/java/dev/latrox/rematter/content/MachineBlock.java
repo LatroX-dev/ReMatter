@@ -1,0 +1,82 @@
+package dev.latrox.rematter.content;
+
+import com.mojang.serialization.MapCodec;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+
+public final class MachineBlock extends Block implements EntityBlock {
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    private final MachineKind kind;
+    private final MapCodec<MachineBlock> codec;
+
+    public MachineBlock(MachineKind kind, Properties properties) {
+        super(properties);
+        this.kind = kind;
+        this.codec = simpleCodec(p -> new MachineBlock(kind, p));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+    }
+    public MachineKind kind() { return kind; }
+    @Override protected MapCodec<? extends Block> codec() { return codec; }
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING); }
+    @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
+    @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new MachineBlockEntity(pos, state); }
+    @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (level.isClientSide() || type != ModContent.MACHINE_ENTITY.get()) return null;
+        return (world, pos, blockState, entity) -> ((MachineBlockEntity) entity).serverTick();
+    }
+    @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (placer instanceof Player player && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) machine.claim(player);
+    }
+    @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
+            if (!level.isClientSide() && machine.canUse(player)) player.openMenu(machine);
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.PASS;
+    }
+    @Override protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.canUse(player)) {
+            if (!level.isClientSide() && FluidUtil.interactWithFluidHandler(player, hand, pos, machine.fluids(), null)) return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
+    }
+    @Override protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+        ItemStack drop = new ItemStack(this);
+        if (builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY) instanceof MachineBlockEntity machine) {
+            drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveWithoutMetadata(builder.getLevel().registryAccess())));
+        }
+        return List.of(drop);
+    }
+    @Override public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide() && player.isCreative() && level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.hasStoredResources()) {
+            ItemStack drop = new ItemStack(this);
+            drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveWithoutMetadata(level.registryAccess())));
+            popResource(level, pos, drop);
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+}

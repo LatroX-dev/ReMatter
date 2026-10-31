@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.tin",
+  "symbol": "Sn",
+  "kind": "element",
+  "composition": {
+    "rematter:tin": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

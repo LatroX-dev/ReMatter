@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "rematter:block/electrolyzer"
+    },
+    "facing=east": {
+      "model": "rematter:block/electrolyzer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "rematter:block/electrolyzer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "rematter:block/electrolyzer",
+      "y": 270
+    }
+  }
+}

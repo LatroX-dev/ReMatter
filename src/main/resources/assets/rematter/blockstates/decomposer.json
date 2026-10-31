@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "rematter:block/decomposer"
+    },
+    "facing=east": {
+      "model": "rematter:block/decomposer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "rematter:block/decomposer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "rematter:block/decomposer",
+      "y": 270
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.platinum",
+  "symbol": "Pt",
+  "kind": "element",
+  "composition": {
+    "rematter:platinum": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

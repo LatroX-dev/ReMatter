@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "rematter:block/analyzer"
+    },
+    "facing=east": {
+      "model": "rematter:block/analyzer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "rematter:block/analyzer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "rematter:block/analyzer",
+      "y": 270
+    }
+  }
+}

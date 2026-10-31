@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible bug or a problem in the documentation.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ReMatter is under active development; there is no published release yet.
+        You can write in English or German. Include your version or commit when reporting a development build.
+        Search existing issues first. Remove credentials and personal information from attachments.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is wrong?
+      description: Explain the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the affected documentation page or the steps needed to trigger the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and environment
+      description: For gameplay bugs, include ReMatter, Minecraft, NeoForge, and ReForging versions, plus singleplayer or server. For documentation, provide the page or commit if known.
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, screenshots, or other details
+      description: Attach relevant excerpts or files. Check them for credentials and personal information first.

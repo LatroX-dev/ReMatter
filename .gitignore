@@ -1,0 +1,54 @@
+# OS and editor files
+.DS_Store
+._*
+.idea/
+.vscode/
+*.iml
+*.swp
+*~
+
+# Java / Gradle output (keep the future Gradle wrapper tracked)
+.gradle/
+build/
+out/
+*.class
+
+# Local Minecraft development instances and runtime data
+/run/
+/runs/
+/runClient/
+/runServer/
+/saves/
+/world/
+/worlds/
+/mods/
+logs/
+crash-reports/
+*.log
+
+# Credentials and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+local.properties
+*.local.properties
+
+# Private assets, QA data, transfers and temporary files
+/AGENTS.md
+/private/
+/local/
+/reference-library/
+/qa-worlds/
+/qa-tools/
+/installation/
+/backups/
+/.tmp/
+/tmp/
+*.zip
+*.7z
+*.tar
+*.tar.gz

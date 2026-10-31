@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:analyzer",
+    "rematter:decomposer",
+    "rematter:material_synthesizer",
+    "rematter:electrolyzer",
+    "rematter:chemical_reactor",
+    "rematter:matter_storage",
+    "rematter:matter_terminal",
+    "rematter:industrial_reactor",
+    "rematter:matter_pipe",
+    "rematter:reactor_casing"
+  ]
+}

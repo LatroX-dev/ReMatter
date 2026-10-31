@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.nickel",
+  "symbol": "Ni",
+  "kind": "element",
+  "composition": {
+    "rematter:nickel": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.osmium",
+  "symbol": "Os",
+  "kind": "element",
+  "composition": {
+    "rematter:osmium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}
