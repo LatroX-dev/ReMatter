@@ -19,7 +19,7 @@ public final class MatterPipeConnections {
         long nextTick = level.getGameTime() + 1;
         // The chunk is not FULL during this event. Inspect its own palette and enqueue
         // ordinary block ticks directly; defer all world/neighbor access until ticking.
-        chunk.findBlocks(state -> state.getBlock() instanceof MatterPipeBlock || state.getBlock() instanceof MachineBlock,
+        chunk.findBlocks(state -> state.getBlock() instanceof MatterPipeBlock || state.getBlock() instanceof MachineBlock || state.getBlock() instanceof MachinePortBlock,
                 (pos, state) -> chunk.getBlockTicks().schedule(new ScheduledTick<>(
                         state.getBlock(), pos.immutable(), nextTick, TickPriority.NORMAL, 0)));
     }

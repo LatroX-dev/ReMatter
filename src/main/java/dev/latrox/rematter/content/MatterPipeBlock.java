@@ -30,7 +30,7 @@ public final class MatterPipeBlock extends PipeBlock {
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
     }
     private static boolean connects(BlockState neighbor) {
-        return neighbor.getBlock() instanceof MatterPipeBlock || neighbor.getBlock() instanceof MachineBlock;
+        return neighbor.getBlock() instanceof MatterPipeBlock || neighbor.getBlock() instanceof MachineBlock || neighbor.getBlock() instanceof MachinePortBlock;
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();

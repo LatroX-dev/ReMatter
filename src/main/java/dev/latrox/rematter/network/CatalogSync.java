@@ -16,7 +16,7 @@ public final class CatalogSync {
     private CatalogSync() {}
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("2").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
+        event.registrar("6").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
                 ClientChemistry.accept(CatalogWireCodec.decode(payload.bytes)));
     }
 

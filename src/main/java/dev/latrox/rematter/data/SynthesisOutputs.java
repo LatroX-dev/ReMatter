@@ -4,6 +4,7 @@ import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SynthesisCategory;
+import dev.latrox.rematter.content.MatterCellItem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -64,6 +65,7 @@ final class SynthesisOutputs {
                 reject(name, "unknown item");
             }
             Item item = BuiltInRegistries.ITEM.getValue(id);
+            if (item instanceof MatterCellItem) reject(name, "storage cells are manufactured containers, not raw materials");
             var components = item.components();
             if (components.has(DataComponents.TOOL) || components.has(DataComponents.WEAPON)
                     || components.has(DataComponents.MAX_DAMAGE) || components.has(DataComponents.EQUIPPABLE)
@@ -76,7 +78,7 @@ final class SynthesisOutputs {
                 reject(name, "machines and block entities cannot be synthesized");
             }
             if (Arrays.stream(id.getPath().split("[_/.-]")).anyMatch(MANUFACTURED_PARTS::contains)
-                    || name.equals("minecraft:nether_star")) {
+                    || name.equals("minecraft:nether_star") || name.equals("rematter:matrix_cluster")) {
                 reject(name, "manufactured components and special loot are outside the synthesis catalogue");
             }
         });

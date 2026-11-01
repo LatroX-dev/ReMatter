@@ -8,11 +8,15 @@ public enum MachineKind {
     REACTOR("chemical_reactor"),
     STORAGE("matter_storage"),
     TERMINAL("matter_terminal"),
-    INDUSTRIAL_REACTOR("industrial_reactor");
+    INDUSTRIAL_REACTOR("industrial_reactor"),
+    DRIVE("matter_drive"),
+    PREPARATOR("material_preparator"),
+    HAND_PREPARATOR("hand_preparator"),
+    INDUSTRIAL_PREPARATOR("industrial_preparator");
 
     private final String id;
     MachineKind(String id) { this.id = id; }
     public String id() { return id; }
-    public boolean isStorage() { return this == STORAGE; }
-    public boolean processes() { return this != STORAGE && this != TERMINAL; }
+    public boolean isStorage() { return this == STORAGE || this == DRIVE; }
+    public boolean processes() { return !isStorage() && this != TERMINAL; }
 }

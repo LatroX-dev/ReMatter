@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/industrial_preparator",
+  "textures": {
+    "screen": "rematter:block/display_active",
+    "status": "rematter:block/indicator_active"
+  }
+}

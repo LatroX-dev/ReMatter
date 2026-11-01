@@ -4,6 +4,8 @@ import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
+import dev.latrox.rematter.compat.PreparationDisplay;
+import dev.latrox.rematter.content.preparation.PreparationRecipes;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -27,19 +29,26 @@ import net.neoforged.fml.ModList;
 @JeiPlugin
 public final class ReMatterJeiPlugin implements IModPlugin {
     private static final Map<ChemistryDisplay.Kind, IRecipeType<ChemistryDisplay>> TYPES = new EnumMap<>(ChemistryDisplay.Kind.class);
+    private static final Map<MachineKind, IRecipeType<PreparationDisplay>> PREPARATION_TYPES = new EnumMap<>(MachineKind.class);
     static {
         for (var kind : ChemistryDisplay.Kind.values()) TYPES.put(kind,
                 IRecipeType.create("rematter", kind.name().toLowerCase(java.util.Locale.ROOT), ChemistryDisplay.class));
+        for (var machine : PreparationDisplay.MACHINES) PREPARATION_TYPES.put(machine,
+                IRecipeType.create("rematter", "preparation/" + machine.id(), PreparationDisplay.class));
     }
     private final Map<ChemistryDisplay, ChemistryDisplay> knownRecipes = new HashMap<>();
     private List<ChemistryDisplay> visibleRecipes = List.of();
     private List<MatterIngredient> visibleIngredients = List.of();
+    private final Map<PreparationDisplay, PreparationDisplay> knownPreparation = new HashMap<>();
+    private List<PreparationDisplay> visiblePreparation = List.of();
     private IJeiRuntime runtime;
     private final Consumer<ChemistryRegistry> catalogueListener = this::refresh;
+    private final Consumer<List<PreparationRecipes.Entry>> preparationListener = this::refreshPreparation;
 
     private static boolean enabled() { return !ModList.get().isLoaded("emi"); }
     @Override public Identifier getPluginUid() { return Identifier.fromNamespaceAndPath("rematter", "chemistry"); }
     static IRecipeType<ChemistryDisplay> type(ChemistryDisplay.Kind kind) { return TYPES.get(kind); }
+    static IRecipeType<PreparationDisplay> preparationType(MachineKind kind) { return PREPARATION_TYPES.get(kind); }
     static Block machine(ChemistryDisplay.Kind kind) {
         return ModContent.MACHINES.get(switch (kind) {
             case DECOMPOSITION -> MachineKind.DECOMPOSER;
@@ -59,6 +68,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         if (!enabled()) return;
         for (var kind : ChemistryDisplay.Kind.values()) registration.addRecipeCategories(new ChemistryCategory(kind, registration.getJeiHelpers().getGuiHelper()));
+        for (var machine : PreparationDisplay.MACHINES) registration.addRecipeCategories(new PreparationCategory(machine, registration.getJeiHelpers().getGuiHelper()));
     }
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
@@ -66,23 +76,57 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         visibleRecipes = ChemistryDisplay.from(ClientChemistry.current());
         visibleRecipes.forEach(recipe -> knownRecipes.put(recipe, recipe));
         for (var kind : ChemistryDisplay.Kind.values()) registration.addRecipes(type(kind), forKind(visibleRecipes, kind));
+        visiblePreparation = PreparationDisplay.from(PreparationRecipes.clientRecipes());
+        visiblePreparation.forEach(recipe -> knownPreparation.put(recipe, recipe));
+        for (var machine : PreparationDisplay.MACHINES) registration.addRecipes(preparationType(machine), forMachine(visiblePreparation, machine));
     }
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         if (!enabled()) return;
         for (var kind : ChemistryDisplay.Kind.values()) registration.addCraftingStation(type(kind), machine(kind));
         registration.addCraftingStation(type(ChemistryDisplay.Kind.REACTION), ModContent.MACHINES.get(MachineKind.INDUSTRIAL_REACTOR).get());
+        for (var machine : PreparationDisplay.MACHINES) registration.addCraftingStation(preparationType(machine), ModContent.MACHINES.get(machine).get());
     }
     @Override public void onRuntimeAvailable(IJeiRuntime runtime) {
         if (!enabled()) return;
         this.runtime = runtime;
         ClientChemistry.removeListener(catalogueListener);
         ClientChemistry.addListener(catalogueListener);
+        PreparationRecipes.removeClientListener(preparationListener);
+        PreparationRecipes.addClientListener(preparationListener);
         refresh(ClientChemistry.current());
+        refreshPreparation(PreparationRecipes.clientRecipes());
     }
     @Override public void onRuntimeUnavailable() {
         ClientChemistry.removeListener(catalogueListener);
+        PreparationRecipes.removeClientListener(preparationListener);
         runtime = null; knownRecipes.clear(); visibleRecipes = List.of(); visibleIngredients = List.of();
+        knownPreparation.clear(); visiblePreparation = List.of();
+    }
+
+    private void refreshPreparation(List<PreparationRecipes.Entry> entries) {
+        if (runtime == null) return;
+        var desired = PreparationDisplay.from(entries);
+        var manager = runtime.getRecipeManager();
+        for (var machine : PreparationDisplay.MACHINES) {
+            var old = forMachine(visiblePreparation, machine);
+            var next = forMachine(desired, machine);
+            manager.hideRecipes(preparationType(machine), old.stream().filter(value -> !next.contains(value)).toList());
+            List<PreparationDisplay> fresh = new ArrayList<>();
+            List<PreparationDisplay> reveal = new ArrayList<>();
+            for (var recipe : next) {
+                var existing = knownPreparation.putIfAbsent(recipe, recipe);
+                if (existing == null) fresh.add(recipe);
+                else if (!old.contains(existing)) reveal.add(existing);
+            }
+            if (!fresh.isEmpty()) manager.addRecipes(preparationType(machine), fresh);
+            if (!reveal.isEmpty()) manager.unhideRecipes(preparationType(machine), reveal);
+        }
+        visiblePreparation = desired;
+    }
+
+    private static List<PreparationDisplay> forMachine(List<PreparationDisplay> recipes, MachineKind machine) {
+        return recipes.stream().filter(recipe -> recipe.machine() == machine).toList();
     }
 
     private void refresh(ChemistryRegistry registry) {

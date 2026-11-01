@@ -2,15 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "SG",
+    "FC"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:spyglass"
+    "S": "minecraft:spyglass",
+    "G": "minecraft:glass",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:analyzer",

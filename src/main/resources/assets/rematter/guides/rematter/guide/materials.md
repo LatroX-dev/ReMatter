@@ -1,28 +1,42 @@
 ---
 navigation:
-  title: Materials and batches
-  icon: minecraft:iron_nugget
+  title: Materials and the matrix
+  icon: rematter:matrix_crystal
   parent: index.md
-  position: 4
+  position: 6
 ---
-# Materials and batches
+# Materials and the matrix
 
-Press **Select** in a processing machine to open its process list. Search by a material name or an exact identifier such as `minecraft:iron_ingot`. The list includes only processes available to that machine in the server's current catalogue.
+The Decomposer recovers the supported constituents of its input. The Synthesizer uses stored ingredients to make an explicitly allowed material. Neither machine creates missing ingredients.
 
-## Whole batches
+## Why a Crystal?
 
-Nine supported metal nuggets contain the same stored quantity as one ingot. The Decomposer waits for all nine; the Synthesizer needs room for all nine outputs. Nothing is consumed while a complete operation cannot finish.
+The Matrix Crystal is an artificial crystalline composite: a reusable, ordered storage medium. It is inspired by selective binding in porous materials. Its ability to hold all ReMatter's supported substances and phases in a portable Cell is fictional.
 
-The Analyzer can inspect a single nugget. Its **Amounts per 9 items** label means the displayed quantities describe the processing batch, even though your single sample stays in the input slot. Check the recipe viewer for the exact batch of another material; some powders and storage blocks also have special ratios.
+The Crystal does not provide FE or change one element into another. The Cell's metal and glass housing holds the matrix; the Crystal is not consumed for each job. The Synthesizer also uses a Crystal as part of its assembly mechanism.
 
-## Materials with different identities
+The Hand Preparator extracts Silith from sand and Argil from clay. Mix these two fractions into Matrix Blend and heat it in a furnace to form the artificial crystalline composite. Its controlled substance binding is the fictional part of ReMatter.
 
-Quartz crystals and ordinary silica are separate stocks. Diamond and graphite also remain separate, even though both contain carbon. An alloy's stored composition does not automatically provide a recipe for recovering each constituent.
+The sieve sorts grains; it does not remove impurities or make pure chemicals. No added water or fluid connection is needed. [Powered preparation](preparation.md) supplies Rhedon, Virel and Lumin for larger matrix assemblies. These five fractions are crafted intermediates, not a collection of separate atom items.
 
-Unrefined and refined materials may need different processes. For example, refined obsidian dust is a precursor; its stored material does not directly synthesize the finished ingot. Continue that step in the original machine.
+## Stock is different from a recipe
 
-Ore and raw-ore profiles recover a conservative amount of material. ReMatter does not synthesize ore blocks, and recovery does not reproduce Fortune, washing, or other ore-processing bonuses. Fuel, charged crystals, and special progression resources only work where an explicit profile and permission exist.
+A filled Cell contains substance quantities. It does not store a scanned item pattern or unlock a product.
 
-## Server changes
+The Synthesizer's product list shows approved recipes. Selecting one only prepares a job. You still need every ingredient, enough FE and room for the complete output. The Analyzer supplies information; it grants no synthesis permission.
 
-If a selected process becomes unavailable after a catalogue change, the machine pauses. Choose another process deliberately and press Run. Existing stored quantities retain their substance identities; similar names or formulas never convert a stock automatically.
+Frames, Control Circuits, Cells and machines remain assembled items. Craft them normally.
+
+## One batch is not always one item
+
+Nine supported metal nuggets contain the same stored quantity as one ingot. The Decomposer waits for all nine; synthesis produces all nine together.
+
+The optional Analyzer can inspect one nugget. Its batch label describes all nine while keeping the sample. Powders and storage blocks can use other ratios, so check the displayed output count.
+
+## Keep material identities distinct
+
+Quartz crystals and ordinary silica are separate stocks. Diamond and graphite also remain distinct despite containing carbon. A similar formula does not grant a conversion.
+
+Ore and raw-ore profiles recover conservative quantities. They do not reproduce Fortune, washing or other processing bonuses. Ore blocks, fuels and progression materials only work where explicitly supported.
+
+If a recipe changes or disappears, existing stock is retained. Choose another available recipe deliberately; stored identities are never silently converted.

@@ -1,0 +1,11 @@
+{
+  "type": "rematter:preparation",
+  "primary": "minecraft:redstone",
+  "result": {
+    "id": "rematter:rhedon",
+    "count": 1
+  },
+  "energy": 2000,
+  "ticks": 90,
+  "minimum_tier": 1
+}

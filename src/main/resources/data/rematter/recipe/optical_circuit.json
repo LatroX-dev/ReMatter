@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:control_circuit",
+    "rematter:lumin",
+    "minecraft:glass"
+  ],
+  "result": {
+    "id": "rematter:optical_circuit",
+    "count": 1
+  }
+}

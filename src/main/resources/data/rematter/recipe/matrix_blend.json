@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:silith",
+  "secondary": "rematter:argil",
+  "result": {
+    "id": "rematter:matrix_blend",
+    "count": 4
+  },
+  "energy": 4000,
+  "ticks": 120,
+  "minimum_tier": 0
+}

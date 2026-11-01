@@ -64,7 +64,8 @@ class ShippedChemistryDataTest {
         }
         // Decomposition-only components and ores deliberately need no synthesis entry.
         for (OptionalProfile profile : shipped.profiles()) {
-            if (!SubstanceId.parse(profile.profile().itemId()).namespace().equals("minecraft")) {
+            String namespace = SubstanceId.parse(profile.profile().itemId()).namespace();
+            if (!namespace.equals("minecraft") && !namespace.equals("rematter")) {
                 assertFalse(profile.requiredMod().isBlank(), "Foreign profile requires an explicit dependency");
             }
         }
@@ -75,7 +76,8 @@ class ShippedChemistryDataTest {
         ShippedData shipped = readShippedData();
         ChemistryRegistry defaults = BuiltinChemistry.create();
         for (OptionalProfile profile : shipped.profiles()) {
-            if (SubstanceId.parse(profile.profile().itemId()).namespace().equals("minecraft")) continue;
+            String namespace = SubstanceId.parse(profile.profile().itemId()).namespace();
+            if (namespace.equals("minecraft") || namespace.equals("rematter")) continue;
             assertTrue(defaults.profile(profile.profile().itemId()).isEmpty(), profile.profile().itemId());
             assertFalse(defaults.synthesisPolicy().allows(profile.profile().itemId()), profile.profile().itemId());
         }

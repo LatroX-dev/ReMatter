@@ -9,7 +9,12 @@
     "rematter:matter_storage",
     "rematter:matter_terminal",
     "rematter:industrial_reactor",
+    "rematter:matter_drive",
+    "rematter:material_preparator",
     "rematter:matter_pipe",
-    "rematter:reactor_casing"
+    "rematter:reactor_casing",
+    "rematter:industrial_preparator",
+    "rematter:reactor_glass",
+    "rematter:machine_port"
   ]
 }

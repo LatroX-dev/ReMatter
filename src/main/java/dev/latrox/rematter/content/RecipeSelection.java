@@ -6,8 +6,12 @@ import java.util.Objects;
 /** Keeps removed recipe identities instead of selecting a different product on reload. */
 public record RecipeSelection(int index, String id) {
     public static RecipeSelection restore(String savedId, List<String> availableIds) {
+        return restore(savedId, availableIds, true);
+    }
+
+    public static RecipeSelection restore(String savedId, List<String> availableIds, boolean chooseFirstWhenEmpty) {
         Objects.requireNonNull(savedId);
-        if (savedId.isEmpty()) return availableIds.isEmpty()
+        if (savedId.isEmpty()) return !chooseFirstWhenEmpty || availableIds.isEmpty()
                 ? new RecipeSelection(-1, "") : new RecipeSelection(0, availableIds.getFirst());
         return new RecipeSelection(availableIds.indexOf(savedId), savedId);
     }

@@ -51,7 +51,7 @@ def main():
             stream.write("\n")
     except (OSError, ValueError) as error:
         parser.error(str(error))
-    print("Prepared exclusions for eight ReMatter machines; review the new file before installation.")
+    print(f"Prepared exclusions for {len(protected_items())} ReMatter machines and Cells; review the new file before installation.")
 
 
 if __name__ == "__main__":

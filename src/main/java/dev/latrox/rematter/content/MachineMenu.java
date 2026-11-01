@@ -1,5 +1,7 @@
 package dev.latrox.rematter.content;
 
+import dev.latrox.rematter.content.preparation.PreparationTier;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -11,31 +13,57 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class MachineMenu extends AbstractContainerMenu {
+    public static final int FIRST_PLAYER_SLOT = 4;
     private final Container inventory;
     private final MachineBlockEntity machine;
     private final Player player;
     private MachineSnapshot snapshot = MachineSnapshot.EMPTY;
     private long nextSnapshot;
+    private boolean settingsOpen;
 
-    public MachineMenu(int id, Inventory inventory) { this(id, inventory, new SimpleContainer(3), null); }
+    public MachineMenu(int id, Inventory inventory) { this(id, inventory, new SimpleContainer(4), null); }
     public MachineMenu(int id, Inventory inventory, MachineBlockEntity machine) { this(id, inventory, machine, machine); }
     private MachineMenu(int id, Inventory playerInventory, Container inventory, MachineBlockEntity machine) {
         super(ModContent.MACHINE_MENU.get(), id);
         this.inventory = inventory;
         this.machine = machine;
         this.player = playerInventory.player;
-        addSlot(new Slot(inventory, 0, 17, 66) {
-            @Override public boolean mayPlace(ItemStack stack) { return inventory.canPlaceItem(0, stack); }
+        addSlot(new Slot(inventory, 0, 18, 70) {
+            @Override public boolean mayPlace(ItemStack stack) {
+                return (kind() != MachineKind.DRIVE || stack.getItem() instanceof MatterCellItem && stack.getCount() == 1)
+                        && inventory.canPlaceItem(0, stack);
+            }
+            @Override public int getMaxStackSize() { return kind() == MachineKind.DRIVE ? 1 : super.getMaxStackSize(); }
+            @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player) && (kind() != MachineKind.DRIVE || machine.canRemoveCell()); }
+            @Override public boolean isActive() { return kind() == MachineKind.DRIVE || inputRole() && !settingsOpen || settingsOpen && hasItem(); }
         });
-        addSlot(new Slot(inventory, 1, 71, 66) {
+        addSlot(new Slot(inventory, 1, 80, 70) {
             @Override public boolean mayPlace(ItemStack stack) { return false; }
+            @Override public boolean isActive() { return !settingsOpen && (PreparationTier.isPreparation(kind()) || kind() == MachineKind.SYNTHESIZER && (!snapshot.preview().outputKind().equals("fluid") || hasItem())) || settingsOpen && hasItem(); }
         });
-        addSlot(new Slot(inventory, 2, 44, 93) {
+        addSlot(new Slot(inventory, 2, 50, 108) {
             @Override public boolean mayPlace(ItemStack stack) { return inventory.canPlaceItem(2, stack); }
             @Override public int getMaxStackSize() { return 4; }
+            @Override public boolean isActive() { return settingsOpen && (kind().processes() && !PreparationTier.manual(kind()) || hasItem()); }
         });
-        addStandardInventorySlots(playerInventory, 65, 174);
+        Container cellInventory = inventory.getContainerSize() > 3 ? inventory : new SimpleContainer(1);
+        int cellIndex = inventory.getContainerSize() > 3 ? 3 : 0;
+        addSlot(new Slot(cellInventory, cellIndex, 16, 180) {
+            @Override public boolean mayPlace(ItemStack stack) {
+                if(PreparationTier.isPreparation(kind()))return cellInventory.canPlaceItem(cellIndex,stack);
+                return MachineCellAccess.hasLocalSlot(kind()) && stack.getItem() instanceof MatterCellItem
+                        && stack.getCount() == 1 && cellInventory.canPlaceItem(cellIndex, stack);
+            }
+            @Override public int getMaxStackSize() { return PreparationTier.isPreparation(kind())?64:1; }
+            @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player) && machine.canRemoveCell(); }
+            @Override public boolean isActive() { return MachineCellAccess.hasLocalSlot(kind()) || PreparationTier.isPreparation(kind()); }
+        });
+        addStandardInventorySlots(playerInventory, 149, 160);
     }
+    public MachineKind kind() { return machine == null ? MachineKind.values()[snapshot.kind()] : machine.kind(); }
+    public boolean inputRole() { return kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER || PreparationTier.isPreparation(kind()); }
+    public void setSettingsOpen(boolean value) { settingsOpen = value; }
+    public boolean settingsOpen() { return settingsOpen; }
     public MachineSnapshot snapshot() { return snapshot; }
     public void acceptSnapshot(MachineSnapshot value) { snapshot = value; }
     public boolean selectRecipe(Player player, String id) {
@@ -64,6 +92,9 @@ public final class MachineMenu extends AbstractContainerMenu {
             case 1 -> machine.select(1);
             case 2 -> machine.toggleRunning();
             case 3 -> machine.toggleAutomation();
+            case 4 -> machine.requestBatch();
+            case 5 -> machine.toggleRepeat();
+            case 6 -> { if(!machine.crank(player))return false; }
             default -> { return false; }
         }
         nextSnapshot = 0;
@@ -73,13 +104,19 @@ public final class MachineMenu extends AbstractContainerMenu {
     @Override public ItemStack quickMoveStack(Player player, int index) {
         if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
         Slot slot = slots.get(index);
-        if (!slot.hasItem()) return ItemStack.EMPTY;
+        if (!slot.hasItem() || !slot.mayPickup(player)) return ItemStack.EMPTY;
+        if(index==MachineCellAccess.slot(kind())&&machine!=null&&!machine.prepareCellRemoval())return ItemStack.EMPTY;
         ItemStack original = slot.getItem();
         ItemStack result = original.copy();
-        if (index < 3) {
-            if (!moveItemStackTo(original, 3, slots.size(), true)) return ItemStack.EMPTY;
+        if (index < FIRST_PLAYER_SLOT) {
+            if (!moveItemStackTo(original, FIRST_PLAYER_SLOT, slots.size(), true)) return ItemStack.EMPTY;
+        } else if (original.getItem() instanceof MatterCellItem) {
+            int target = MachineCellAccess.slot(kind());
+            if (target < 0 || !moveItemStackTo(original, target, target + 1, false)) return ItemStack.EMPTY;
         } else if (original.is(ModContent.SPEED_UPGRADE.get()) || original.is(ModContent.EFFICIENCY_UPGRADE.get())) {
             if (!moveItemStackTo(original, 2, 3, false)) return ItemStack.EMPTY;
+        } else if (PreparationTier.isPreparation(kind())) {
+            if(!moveItemStackTo(original,0,1,false)&&!moveItemStackTo(original,3,4,false))return ItemStack.EMPTY;
         } else if (!moveItemStackTo(original, 0, 1, false)) return ItemStack.EMPTY;
         if (original.isEmpty()) slot.setByPlayer(ItemStack.EMPTY); else slot.setChanged();
         if (original.getCount() == result.getCount()) return ItemStack.EMPTY;

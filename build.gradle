@@ -51,6 +51,8 @@ tasks.named('test', Test) {
 sourceSets.test {
     java.srcDir 'integrations/reforging/tests/java'
     resources.srcDir 'integrations/reforging/datapack'
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.compileClasspath
 }
 
 neoForge {

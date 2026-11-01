@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot",
+    "minecraft:glass",
+    "minecraft:glass",
+    "rematter:control_circuit",
+    "rematter:matrix_cluster"
+  ],
+  "result": {
+    "id": "rematter:matter_cell_256k",
+    "count": 1
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "rematter:control_circuit",
+    "minecraft:piston",
+    "minecraft:flint",
+    "minecraft:iron_bars"
+  ],
+  "result": {
+    "id": "rematter:material_preparator",
+    "count": 1
+  }
+}

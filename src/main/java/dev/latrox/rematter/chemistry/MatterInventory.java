@@ -9,6 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.HashSet;
 
 /**
  * Exact, capacity-limited storage. All changes, including transfers between two
@@ -21,14 +22,28 @@ public final class MatterInventory {
 
     private long capacity;
     private long total;
+    private final int maximumTypes;
     private final TreeMap<SubstanceKey, Long> contents = new TreeMap<>();
     private final LinkedHashMap<UUID, Reservation> reservations = new LinkedHashMap<>();
 
     public MatterInventory(long capacity) {
+        this(capacity, Integer.MAX_VALUE);
+    }
+
+    public MatterInventory(long capacity, int maximumTypes) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("Capacity must be positive");
         }
         this.capacity = capacity;
+        if (maximumTypes < 1) throw new IllegalArgumentException("Type capacity must be positive");
+        this.maximumTypes = maximumTypes;
+    }
+
+    public int maximumTypes() { return maximumTypes; }
+    public int typeCount() { synchronized (MUTATION_LOCK) { return contents.size(); } }
+    public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        var checkedInputs = MatterAmounts.copy(inputs); var checkedOutputs = MatterAmounts.copy(outputs);
+        synchronized (MUTATION_LOCK) { return hasTypeSpaceLocked(checkedInputs, checkedOutputs, null); }
     }
 
     public long capacity() {
@@ -107,6 +122,7 @@ public final class MatterInventory {
         Objects.requireNonNull(key, "key");
         requireNonNegative(maximum);
         synchronized (MUTATION_LOCK) {
+            if (!hasTypeSpaceLocked(Map.of(), Map.of(key, 1L), null)) return 0;
             long accepted = Math.min(maximum, capacity - total - reservedExpansion(null));
             if (accepted > 0) {
                 contents.merge(key, accepted, Math::addExact);
@@ -211,6 +227,7 @@ public final class MatterInventory {
             return 0;
         }
         synchronized (MUTATION_LOCK) {
+            if (!destination.hasTypeSpaceLocked(Map.of(), Map.of(key, 1L), null)) return 0;
             long moved = Math.min(maximum, availableLocked(key, null));
             moved = Math.min(moved,
                     destination.capacity - destination.total - destination.reservedExpansion(null));
@@ -238,11 +255,15 @@ public final class MatterInventory {
      * Missing substance definitions are deliberately preserved by ID and phase.
      */
     public static MatterInventory restore(Snapshot snapshot) {
+        return restore(snapshot, Integer.MAX_VALUE);
+    }
+    public static MatterInventory restore(Snapshot snapshot, int maximumTypes) {
         Objects.requireNonNull(snapshot, "snapshot");
         if (snapshot.schemaVersion() != SCHEMA_VERSION) {
             throw new IllegalArgumentException("Unsupported matter storage schema: " + snapshot.schemaVersion());
         }
-        MatterInventory restored = new MatterInventory(snapshot.capacity());
+        MatterInventory restored = new MatterInventory(snapshot.capacity(), maximumTypes);
+        if (snapshot.contents().size() > maximumTypes) throw new IllegalArgumentException("Saved matter exceeds type capacity");
         synchronized (MUTATION_LOCK) {
             for (SubstanceStack stack : snapshot.contents()) {
                 if (restored.contents.containsKey(stack.key())) {
@@ -272,7 +293,7 @@ public final class MatterInventory {
      * state is ever applied, and unknown definitions remain untouched.
      */
     public void restoreInPlace(Snapshot snapshot) {
-        MatterInventory restored = restore(snapshot);
+        MatterInventory restored = restore(snapshot, maximumTypes);
         synchronized (MUTATION_LOCK) {
             capacity = restored.capacity;
             total = restored.total;
@@ -284,13 +305,14 @@ public final class MatterInventory {
     }
 
     private boolean canReserveLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        if (reservations.size() >= maximumTypes) return false;
         for (Map.Entry<SubstanceKey, Long> input : inputs.entrySet()) {
             if (availableLocked(input.getKey(), null) < input.getValue()) {
                 return false;
             }
         }
         long expansion = Math.max(0, MatterAmounts.total(outputs) - MatterAmounts.total(inputs));
-        return expansion <= capacity - total - reservedExpansion(null);
+        return expansion <= capacity - total - reservedExpansion(null) && hasTypeSpaceLocked(inputs, outputs, null);
     }
 
     private boolean canApplyLocked(
@@ -302,7 +324,17 @@ public final class MatterInventory {
         }
         long remaining = total - MatterAmounts.total(inputs);
         long occupiedByReservations = reservedExpansion(excludedReservation);
-        return MatterAmounts.total(outputs) <= capacity - remaining - occupiedByReservations;
+        return MatterAmounts.total(outputs) <= capacity - remaining - occupiedByReservations
+                && hasTypeSpaceLocked(inputs, outputs, excludedReservation);
+    }
+
+    private boolean hasTypeSpaceLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs, UUID excludedReservation) {
+        if (maximumTypes == Integer.MAX_VALUE) return true;
+        var types = new HashSet<SubstanceKey>();
+        contents.forEach((key, amount) -> { if (amount > inputs.getOrDefault(key, 0L)) types.add(key); });
+        types.addAll(outputs.keySet());
+        for (var reservation : reservations.values()) if (!reservation.token().equals(excludedReservation)) types.addAll(reservation.outputs().keySet());
+        return types.size() <= maximumTypes;
     }
 
     private void applyLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {

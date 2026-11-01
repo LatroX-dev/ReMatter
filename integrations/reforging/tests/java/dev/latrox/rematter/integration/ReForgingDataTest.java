@@ -110,7 +110,7 @@ class ReForgingDataTest {
     }
 
     @Test
-    void replicationTagsProtectExactlyAllStatefulMachinesAndPreserveExistingMembers() throws Exception {
+    void replicationTagsProtectExactlyAllStatefulMachinesAndCellsAndPreserveExistingMembers() throws Exception {
         JsonObject machines = read("data/reforging/tags/item/rematter/stateful_machines.json");
         assertFalse(machines.get("replace").getAsBoolean());
         Set<String> actual = new HashSet<>();
@@ -120,8 +120,9 @@ class ReForgingDataTest {
             assertTrue(actual.add(entry.get("id").getAsString()), "Duplicate protected item");
         }
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
+        expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m"));
         assertEquals(expected, actual);
-        assertEquals(8, actual.size());
+        assertEquals(15, actual.size());
         for (String tag : Set.of("cant_be_scanned", "cant_be_disintegrated", "skip_calculation")) {
             JsonObject rule = read("data/replication/tags/item/" + tag + ".json");
             assertFalse(rule.get("replace").getAsBoolean());

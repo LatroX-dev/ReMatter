@@ -50,14 +50,16 @@ class MachineMotionTest {
         assertTrue(whole.drive() > 0 && whole.drive() < 1);
     }
 
-    @Test void coastingIsIndependentOfFramePartitioning() {
+    @Test void inactiveFramesNeverPerformWorkRegardlessOfFramePartitioning() {
         var whole = runningMotion(41);
         var frames = runningMotion(41);
+        float parked = whole.phase();
         whole.advance(45, false);
         for (int frame = 1; frame <= 40; frame++) frames.advance(40 + frame / 8.0, false);
         assertEquals(whole.drive(), frames.drive(), TOLERANCE);
         assertEquals(whole.phase(), frames.phase(), TOLERANCE);
-        assertTrue(whole.drive() > 0 && whole.drive() < 1);
+        assertEquals(parked, whole.phase());
+        assertEquals(0, whole.drive());
     }
 
     @Test void pausingAndChangingActivityAtTheSameTimeNeverSnapsTheAngle() {
@@ -69,13 +71,12 @@ class MachineMotionTest {
         assertEquals(drive, motion.drive());
     }
 
-    @Test void stopCoastsThenKeepsItsFinalAngleAndRestartDoesNotResetIt() {
+    @Test void blockageFreezesItsPoseAndRestartDoesNotResetIt() {
         var motion = runningMotion(41);
-        float runningDrive = motion.drive();
         float runningPhase = motion.phase();
         motion.advance(41, false);
-        assertTrue(motion.drive() > 0 && motion.drive() < runningDrive);
-        assertTrue(forwardDistance(runningPhase, motion.phase()) > 0);
+        assertEquals(0, motion.drive());
+        assertEquals(runningPhase, motion.phase());
         for (int tick = 42; tick <= 100; tick++) motion.advance(tick, false);
         assertEquals(0, motion.drive());
         float parked = motion.phase();
@@ -86,6 +87,16 @@ class MachineMotionTest {
         motion.advance(200.01, true);
         assertTrue(motion.drive() > 0 && motion.drive() < 0.01);
         assertTrue(forwardDistance(parked, motion.phase()) < 0.001);
+    }
+
+    @Test void inactiveLongGapCannotFinishAnAnimationCycle() {
+        var motion = runningMotion(41);
+        float phase = motion.phase();
+        motion.advance(1_000_000, false);
+        assertEquals(phase, motion.phase());
+        assertEquals(0, motion.drive());
+        motion.advance(1_000_000.25, true);
+        assertTrue(forwardDistance(phase, motion.phase()) < 0.001);
     }
 
     @Test void anUnobservedGapDoesNotFastForwardTheMechanism() {

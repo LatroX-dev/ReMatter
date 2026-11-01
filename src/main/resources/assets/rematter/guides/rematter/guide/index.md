@@ -6,28 +6,34 @@ navigation:
 item_ids:
   - rematter:guide
 ---
-# ReMatter Guide
+# A Cell of material, a choice of products
 
-Start with a familiar material. Analyze it, store its substances, and turn those substances back into useful raw materials.
+Start by turning **sand into stored silica, then glass**. First make the crystal medium with a Hand Preparator and furnace. Then use a Decomposer, a Synthesizer and one reusable Matter Cell, with external FE.
 
-ReMatter stores **quantities of solids, liquids and gases**. You do not need an inventory item for every chemical.
+1. [Craft the starter kit](setup.md).
+2. [Make your first glass](copper.md).
+3. [Add a Drive and automate later](automation.md).
 
-Follow [Your first setup](setup.md), then try [The copper loop](copper.md) and [Water and gases](water.md). Rotate the 3D scenes to inspect their block placement; hover the colored outlines for instructions.
+The Cell holds your ingredients. The Synthesizer's product list tells you what you can make from them; knowing a recipe does not supply its material.
+
+You do **not** need a Drive, Analyzer, Terminal, AE2 or Refined Storage for the first batch.
 
 <SubPages />
 
-## Getting this book
+## This book
 
 <RecipeFor id="rematter:guide" />
 
-Use the book to return here. **Sneak-use** opens the basic vanilla book instead. That version also works without GuideME.
+Use the book to return here. **Sneak-use** opens the basic vanilla book, which also works without GuideME. Rotate the 3D scenes and hover their marked parts for instructions.
+
+## What the crystal means
+
+A Matrix Crystal is a reusable material holder, inspired by selective binding in porous structures. Its universal storage ability here is fictional. It does not create elements or supply energy.
+
+The Cell's contents are actual quantities, not an item pattern or a research unlock. Read [Materials and the matrix](materials.md) after your first batch.
 
 <OptionalSection modId="jei">
 
-JEI can show ReMatter material profiles and chemical processes alongside ordinary crafting recipes. The server's active definitions determine which materials and processes are available.
+JEI shows the material and process recipes available on this server.
 
 </OptionalSection>
-
-## What synthesis makes
-
-Synthesizers make explicitly allowed raw materials, natural materials, liquids and gases. Plates, wires, gears, circuits, tools, armor and machines remain products of normal crafting and other machinery. An analysis result does not unlock manufactured components.

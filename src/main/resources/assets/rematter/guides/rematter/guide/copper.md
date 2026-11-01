@@ -1,37 +1,53 @@
 ---
 navigation:
-  title: The copper loop
-  icon: rematter:decomposer
+  title: Your first glass
+  icon: minecraft:glass
   parent: index.md
-  position: 3
+  position: 2
 item_ids:
   - rematter:decomposer
   - rematter:material_synthesizer
 ---
-# The copper loop
+# Sand, a Cell, then glass
 
-This first experiment recovers one copper ingot from its own material. Both processing steps consume FE; the loop creates no extra copper.
+Use your [two-machine starter kit](setup.md), its **64k Matter Cell**, external power and **one sand**.
 
-## 1. Decompose the ingot
+## 1. Load the Decomposer
 
-Connect and power a <ItemLink id="rematter:decomposer" />. Place the ingot from your Analyzer in its input slot. When the process finishes, the ingot is removed and the connected storage gains **1,000 copper units**. Open the storage or terminal to check the amount.
+Open the Decomposer. Put the Cell in its **Cell slot**, separate from the material input. Put the sand in the material input.
 
-<RecipeFor id="rematter:decomposer" />
+Inserting a Cell pauses the machine so you can check its source before processing. Press **Start**.
 
-Pause after one item while learning. A running machine repeats whenever its inputs, energy and output space allow another operation.
+Wait for the cutter to finish. The sand is consumed only when its full result can be stored. The displayed local stock now contains **Silica**.
 
-## 2. Synthesize copper
+## 2. Carry the Cell to the Synthesizer
 
-Open a connected, powered <ItemLink id="rematter:material_synthesizer" />. Press **Select**, search for **Copper Ingot**, and choose the result. Then press Run. The process consumes 1,000 copper units and produces one ingot in the right-hand output slot. The arrows also step through the available processes.
+Remove the Cell from the Decomposer and put it in the Synthesizer's **Cell slot**. Its silica travels with it.
 
-<RecipeFor id="rematter:material_synthesizer" />
+The Cell does not stay active in both machines. Removing or inserting it pauses work. Check that the Synthesizer is using its local Cell.
 
-An ordinary copper block represents 9,000 copper units. Raw copper can be decomposed, but it is not a synthesis output. Use the selected material's live recipe for the current FE and time costs; servers may customize profiles.
+## 3. Choose and make glass
 
-Small forms use whole batches: nine supported copper nuggets represent the same 1,000 units as one ingot. Synthesis needs room for all nine output items. Partial batches wait without consuming items, substances or FE.
+1. Press **Choose product**.
+2. Search for **Glass**, then select its icon.
+3. Inspect the required ingredients and output.
+4. Press **Use recipe**.
+5. Press **Make once**.
 
-## 3. Continue normal manufacturing
+Take **one glass** from the output when the press finishes. Leave **Repeat: off** for this experiment.
 
-Turn the recovered ingot into wires, plates or components using the crafting and machine recipes that normally make those products. ReMatter does not synthesize finished components or machines.
+**The same sand-derived silica has become a useful building material.** The Cell remains usable; the Crystal is not spent. It is not a free-copy recipe, and does not multiply the amount of material.
 
-The machine waits when storage is full, ingredients are missing, energy is insufficient, or its output is blocked. It does not consume the input before the whole operation can complete.
+## What the numbers mean
+
+With default recipes and no upgrades, one sand produces **1,000 solid silica units** using **8,000 FE** over **100 ticks**. One glass consumes those **1,000 units**, plus **16,000 FE** over **100 ticks**.
+
+The Cell stores these quantities without separate silica inventory items. One batch of nuggets or fluid can have a different item count or volume; **Make once means the displayed complete batch**.
+
+Server recipes can differ. Always use the machine's displayed requirements.
+
+## Try another material later
+
+The product list contains only approved outputs. Stored ingredients can be used for another listed recipe when its exact requirements are met. Knowing that recipe does not add missing stock.
+
+For continuing production without moving the Cell by hand, see [Drive and automation](automation.md). If the first batch waits, check [the machine's status](help.md).

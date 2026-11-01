@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:copper_ingot",
+    "minecraft:redstone",
+    "minecraft:glass"
+  ],
+  "result": {
+    "id": "rematter:machine_port",
+    "count": 2
+  }
+}

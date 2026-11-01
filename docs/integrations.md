@@ -2,6 +2,8 @@
 
 ReMatter targets Minecraft 26.1.2 and NeoForge 26.1.2.124. It is a standalone chemistry mod; ReForging supplies a reference collection of optional integrations and external energy sources. Support for another Minecraft version or loader requires a separate port.
 
+A Hand Preparator first makes the dry matrix feedstock without FE. The first chemistry setup is then a Decomposer and Material Synthesizer with one Matter Cell moved between their local Cell slots. A Drive and network are optional later additions. Applied Energistics 2 and Refined Storage are not required for storage, recipe selection, or production. ReMatter uses its own matter network and standard item and fluid capabilities. Dedicated AE2/RS storage-network adapters are not implemented.
+
 ## Recipe viewers
 
 The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs, processing times, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
@@ -15,7 +17,7 @@ The SEMI integration is compiled against its 26.1.2 release and uses that releas
 
 ## In-game guide
 
-The **ReMatter Guide** is crafted with one book and one copper ingot. Its English tutorial is available without a book framework. When **GuideME 26.1.17-beta** is installed, the same item opens a richer guide with interactive 3D scenes for a starter network and the Industrial Reactor's flat casing ring. GuideME is an optional dependency.
+The **ReMatter Guide** is crafted with one book and one copper ingot. Its English tutorial starts with hand extraction of Silith and Argil, their dry mixture, furnace-grown Matrix Crystals and ordinary iron/copper parts, then follows sand into a local Cell and back out as glass. It continues with a Drive, hoppers and chests for automatic production. The basic book needs no framework. With **GuideME 26.1.17-beta**, the same item opens interactive 3D scenes of hand and powered preparation, the two-machine Cell setup, later Drive and hopper automation and the complete 3×3×3 preparation and 3×3×4 reactor chambers with Glass and separate Ports.
 
 Patchouli and Ponder are not required. ReMatter does not add duplicate books to those frameworks.
 
@@ -27,7 +29,7 @@ The optional Jade integration targets **Jade 26.1.12**. Its machine overlay read
 
 The adapter targets **Mekanism Version Locked 26.1.2-2.11**, whose chemical capability uses NeoForge's transactional `ResourceHandler<ChemicalResource>` API. The upstream Mekanism version number alone does not identify that API. An incompatible chemical capability disables the adapter instead of guessing a conversion.
 
-Enable automation on a **Matter Storage**, then use chemical automation against a block face. The shared storage capacity applies to solids, liquids, and gases together. Transfers use exact integer quantities and roll back aborted transactions.
+Enable automation on a **Matter Drive with a readable Cell** or an original **Matter Storage**, then use chemical automation against a block face. The shared storage capacity applies to solids, liquids, and gases together. Transfers use exact integer quantities and roll back aborted transactions. A missing or unreadable Cell refuses transfers; the Cell itself is not an automation slot.
 
 | Mekanism chemical | ReMatter substance | Conversion |
 | --- | --- | --- |
@@ -54,7 +56,11 @@ Ten matching source fluids are supported through explicit profiles: hydrogen, ox
 
 Processing machines accept FE from external energy sources. ReMatter has no survival or creative generator. Matter Pipes connect matter storage; they do not distribute power.
 
-Item and fluid automation is off by default. Enable it deliberately from the machine screen. Input and output slots are separate, upgrade slots are not automation slots, and a network connects machines owned by the same player. One connected network uses one Matter Storage and only traverses loaded chunks.
+Item and fluid automation is off by default. Enable it in the processing machine's **Settings**. For an automated glass line, put the Cell in a Drive and leave the two local Cell slots empty. A hopper feeds sand into the Decomposer; another extracts glass from the Synthesizer. Start the Decomposer, select Glass and turn **Repeat** on to keep producing. Feeding input through a pipe does not request synthesis jobs on its own.
+
+Input and output slots are separate. Upgrades and Matter Cells cannot be moved through these automation slots. Connected machines have the same owner and only traverse loaded chunks. Use one Matter Drive or original Matter Storage per network. An inserted local Cell takes priority over that network, including when it is full or unreadable; the screen identifies the active source. Cell changes pause processing.
+
+The Drive holds one portable Cell with 64,000, 256,000 or 1,000,000 total units and at most 512 substance/phase pairs. Ordinary item storage can carry a Cell as an item; that does not make its internal substance inventory an AE2/RS inventory. Original Matter Storage blocks retain their built-in contents and require no Cell.
 
 ## Material coverage and pack authoring
 

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FIF",
+    "PSP",
+    " P "
+  ],
+  "key": {
+    "F": "minecraft:flint",
+    "I": "minecraft:iron_bars",
+    "P": "#minecraft:planks",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "rematter:hand_preparator",
+    "count": 1
+  }
+}

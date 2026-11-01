@@ -26,9 +26,9 @@ The standalone catalogue keeps ambiguous alloys as their own mixtures and gives 
 
 The data tests retain conservative energy floors for the included water-to-hydrogen, water-to-steam and stone-to-lava routes, including the maximum 20% ReMatter efficiency saving. These floors depend on the target pack's generator configuration; changing fuel values, turbine efficiencies, chemical conversion ratios or adding new feedstock routes requires another balance review. They do not imply that every generator, resource farm or recipe combination has been exercised in gameplay. Intentional ore enrichment, crystal growth, seeds and bees are not disabled by these rules.
 
-## Machines
+## Machines and Cells
 
-These eight machines are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
+These twelve machines and three Matter Cells are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
 
 - `rematter:analyzer`
 - `rematter:decomposer`
@@ -38,10 +38,17 @@ These eight machines are excluded from Replication scanning, disintegration, and
 - `rematter:matter_storage`
 - `rematter:matter_terminal`
 - `rematter:industrial_reactor`
+- `rematter:matter_drive`
+- `rematter:material_preparator`
+- `rematter:hand_preparator`
+- `rematter:industrial_preparator`
+- `rematter:matter_cell_64k`
+- `rematter:matter_cell_256k`
+- `rematter:matter_cell_1m`
 
-The machine exclusions cover empty and filled variants of those exact items. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
+The exclusions cover empty and filled variants of those exact items. The existing `reforging:rematter/stateful_machines` tag ID is retained and now also includes the portable Cells. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
 
-Replication's `skip_calculation` tag does not override an explicit matter-value recipe. Existing patterns, previously learned knowledge, and later third-party overrides must be checked after activation. Do not add these machines to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
+Replication's `skip_calculation` tag does not override an explicit matter-value recipe. Existing patterns, previously learned knowledge, and later third-party overrides must be checked after activation. Do not add these machines or Cells to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
 
 ## Installation
 
@@ -56,7 +63,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
    ```
 
 4. Review the generated file, then replace `config/Equivox/custom_emc.json` after backing up the original. The helper never edits the input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
-5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and all eight machines with stored contents. Automated data checks do not replace this gameplay and balance check.
+5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and all twelve machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
 
 Removing this integration while crystalline silica is stored is not a migration strategy. Keep the data definitions available until those stores have been handled deliberately. No conversion of Replication patterns, Equivox knowledge, or EMC balances is provided.
 

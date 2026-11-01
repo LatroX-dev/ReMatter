@@ -31,4 +31,12 @@ class RecipeSelectionTest {
         assertEquals(new RecipeSelection(-1, ""), RecipeSelection.restore("", List.of()));
         assertTrue(RecipeSelection.restore("example:unknown", List.of()).unavailable());
     }
+
+    @Test void newManualMachinesWaitForSelectionWhileLegacyAutomaticMachinesKeepTheirDefault() {
+        List<String> ids = List.of("example:first", "example:chosen");
+        assertEquals(new RecipeSelection(-1, ""), RecipeSelection.restore("", ids, false));
+        assertEquals(new RecipeSelection(0, "example:first"), RecipeSelection.restore("", ids, true));
+        assertEquals(new RecipeSelection(1, "example:chosen"), RecipeSelection.restore("example:chosen", ids, false));
+        assertTrue(RecipeSelection.restore("example:removed", ids, false).unavailable());
+    }
 }

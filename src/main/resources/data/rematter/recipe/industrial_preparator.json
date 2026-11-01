@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "CMC",
+    "IPI"
+  ],
+  "key": {
+    "I": "minecraft:iron_block",
+    "P": "minecraft:piston",
+    "C": "rematter:control_circuit",
+    "M": "rematter:matrix_cluster"
+  },
+  "result": {
+    "id": "rematter:industrial_preparator",
+    "count": 1
+  }
+}

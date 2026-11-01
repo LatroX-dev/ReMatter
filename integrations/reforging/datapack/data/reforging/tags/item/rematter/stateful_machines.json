@@ -32,6 +32,34 @@
     {
       "id": "rematter:industrial_reactor",
       "required": false
+    },
+    {
+      "id": "rematter:matter_drive",
+      "required": false
+    },
+    {
+      "id": "rematter:material_preparator",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_64k",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_256k",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_1m",
+      "required": false
+    },
+    {
+      "id": "rematter:hand_preparator",
+      "required": false
+    },
+    {
+      "id": "rematter:industrial_preparator",
+      "required": false
     }
   ]
 }

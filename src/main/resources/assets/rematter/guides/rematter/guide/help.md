@@ -1,22 +1,60 @@
 ---
 navigation:
   title: When a machine waits
-  icon: rematter:analyzer
+  icon: rematter:decomposer
   parent: index.md
-  position: 9
+  position: 10
 ---
 # When a machine waits
 
-The status below the FE bar explains why a machine is waiting.
+Read the status and the displayed storage source before changing ingredients.
 
-- **Link storage:** connect exactly one Matter Storage through face-adjacent machines or Matter Pipes. Check that the owners match, the route is loaded, and the network has no more than 64 nodes.
-- **Needs FE:** supply enough energy to the processing machine. Matter Pipes do not carry FE. The machine needs the whole operation's energy available before it progresses.
-- **Insert sample:** put a supported, unmodified item in the Analyzer input.
-- **Needs input:** check the Decomposer's input or the selected process. For water or lava imports, leave the item input empty and supply at least 1,000 mB.
-- **Check matter:** confirm the required substances and phases are present, and the resulting stock fits into storage.
-- **Output full:** remove output items or drain the machine's fluid tank. Different fluid types cannot share its tank.
-- **Needs casing:** complete the Industrial Reactor's eight-casing ring on the controller's own level.
-- **Paused:** press Run when you are ready. An Analyzer pauses after a successful scan.
-- **Data protected:** the machine is preserving storage data it cannot safely interpret. Keep the block and ask the server maintainer to restore a compatible mod or data version.
+## Prepare the matrix first
 
-Recipe and material availability can differ between servers. Your machine's recipe selector and supported analysis results reflect the active definitions. A missing profile does not grant permission to synthesize an item.
+For a single extraction, put the raw material in the primary input and leave the second input empty. For Matrix Blend, put Silith in the primary input and Argil in the second. Keep room for the entire output.
+
+The Hand Preparator needs repeated **Crank** presses instead of FE. Rhedon, Virel and Lumin require the powered Material Preparator. No preparation machine needs a Cell or matter network. The Industrial Preparator also needs its complete casing structure.
+
+## Choose a source
+
+For the first manual setup, insert a readable Cell in the Decomposer or Synthesizer's dedicated Cell slot.
+
+For network production, remove the processor's local Cell and connect one Drive containing a Cell, or an original Matter Storage. An inserted local Cell takes priority even when empty, full or unreadable; the machine does not quietly take stock from somewhere else.
+
+A Drive needs its own inserted Cell. An original Matter Storage has built-in capacity.
+
+## Start after changing a Cell
+
+Inserting or removing a Cell pauses the processor and resets unfinished progress. Its uncommitted input and FE are kept.
+
+Press **Start** on the Decomposer. On the Synthesizer, choose the product and press **Make once**, or deliberately enable **Repeat**. If a pending job is paused, **Resume** continues it.
+
+Changing the connected storage also pauses work. Confirm the intended source before resuming.
+
+## Supply power
+
+The Material Preparator and both processors need external FE. A Drive needs none, and Matter Pipes do not carry it. The full batch's energy must be available before progress advances.
+
+## Add missing material
+
+Compare needed and available quantities and phases. A partial batch waits: nine nuggets require all nine.
+
+For fluids, empty the Decomposer's item input and supply a complete fluid batch. The optional Analyzer needs a supported, unmodified sample and FE, but no storage.
+
+## Make room
+
+Cells have both a total capacity and a limit of 512 substance/phase pairs. Use or export stock to free space. Swapping to an empty Cell does not move the old Cell's contents into it.
+
+Collect the Synthesizer's output, make room in its output chest, or drain its tank. Enable Automation for hoppers and pipes. A complete batch must fit; different fluids cannot share a tank.
+
+## Check a network or reactor
+
+Use one Drive or Matter Storage per connected network. Keep all owners the same and the route loaded, with no more than 64 machines and pipes.
+
+Industrial preparation needs a full 3×3×3 chamber; the Industrial Reactor needs 3×3×4. Include floor and roof, Casing edges/corners and at least two Ports. Keep the interior empty. Connect FE and the matter network to outward Port faces, not to the controller or Glass.
+
+## Preserve unreadable contents
+
+Keep a Cell or machine that reports protected data. Ask the server maintainer to restore a compatible version; do not discard it or craft with it.
+
+An Analyzer may need a new scan after its sample or material profile changes. An old result cannot supply ingredients or grant a new recipe.

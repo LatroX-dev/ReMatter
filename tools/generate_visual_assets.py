@@ -10,8 +10,8 @@ import zlib
 ROOT = Path(__file__).resolve().parents[1] / 'src/main/resources/assets/rematter'
 FACES = ('north', 'south', 'east', 'west', 'up', 'down')
 PALETTE = {
-    'graphite': (33, 41, 48), 'edge': (65, 77, 85), 'steel': (165, 181, 184),
-    'copper': (160, 99, 65), 'copper_light': (211, 150, 98), 'rubber': (13, 19, 24),
+    'graphite': (57, 63, 65), 'edge': (76, 83, 84), 'steel': (174, 183, 181), 'ceramic': (229, 222, 204),
+    'copper': (174, 111, 73), 'copper_light': (218, 158, 110), 'rubber': (30, 37, 39),
     'cyan': (64, 193, 185), 'ice': (173, 230, 224), 'screen': (9, 23, 29),
     'vessel': (25, 55, 62),
 }
@@ -37,16 +37,21 @@ def material(name, base, style='metal'):
     def pixel(x, y):
         c = PALETTE[base]
         # Continuous, quiet material sheets: no repeated panel grid or speckled noise.
-        d = 2 if y in (5, 21) else -1 if y in (6, 22) else 0
-        if x == 0 or y == 31: d = -10
-        if x == 1 or y == 1: d = 7
+        d = 2 if y < 3 else -3 if y > 28 else 0
+        if x == 0 or y == 31: d = -6
+        if x == 1 or y == 1: d = 4
+        if base == 'ceramic':
+            # Broad fired-ceramic pixel clusters, not random noise or a tiled panel grid.
+            d = 5 if x < 3 or y < 3 else -7 if x > 28 or y > 28 else 0
+            if 5 <= x <= 17 and 5 <= y <= 11: d += 3
+            if 17 <= x <= 27 and 17 <= y <= 25: d -= 4
         if style == 'hazard':
             if y < 7 or y > 24: return rgba(PALETTE['graphite'])
             return rgba(PALETTE['copper_light'] if ((x + y) // 7) % 2 else PALETTE['rubber'])
         return rgba(c, d)
     png(f'textures/block/{name}.png', 32, 32, pixel)
 
-for name, color in [('graphite', 'graphite'), ('brushed_steel', 'steel'), ('copper_trim', 'copper'),
+for name, color in [('ceramic', 'ceramic'), ('graphite', 'graphite'), ('brushed_steel', 'steel'), ('copper_trim', 'copper'),
                     ('frame', 'edge'), ('rubber', 'rubber'), ('vessel', 'vessel')]:
     material(name, color)
 material('hazard', 'copper', 'hazard')
@@ -128,12 +133,20 @@ def mechanism_pixel(x, y):
     return rgba(PALETTE['steel'], 5 if y < 10 else -10)
 png('textures/entity/mechanism.png', 32, 32, mechanism_pixel)
 png('textures/entity/light.png', 16, 16, lambda x, y: rgba(PALETTE['ice'] if 5 <= x <= 10 else PALETTE['cyan']))
+# Original oiled timber for the non-electronic hand bench; long restrained grain.
+def wood_pixel(x, y):
+    delta = -13 if x in (0, 31) else 14 if x in (1, 2) else 5 if x in (6, 18, 27) else -7 if x in (5, 17, 26) else 0
+    if 7 <= x <= 13 and 8 <= y <= 21: delta += 4
+    if 20 <= x <= 23 and 12 <= y <= 27: delta -= 4
+    if y in (0, 31): delta -= 8
+    return rgba((192, 161, 113), delta)
+png('textures/block/bench_wood.png', 32, 32, wood_pixel)
 
-TEXTURES = {name: f'rematter:block/{name}' for name in ('graphite', 'brushed_steel', 'copper_trim', 'frame', 'rubber', 'hazard', 'port_matter', 'port_energy', 'vent', 'panel', 'keyboard', 'vessel')}
-TEXTURES |= {'screen': 'rematter:block/display_idle', 'status': 'rematter:block/indicator_idle', 'particle': 'rematter:block/graphite'}
+TEXTURES = {name: f'rematter:block/{name}' for name in ('ceramic', 'graphite', 'brushed_steel', 'copper_trim', 'frame', 'rubber', 'hazard', 'port_matter', 'port_energy', 'vent', 'panel', 'keyboard', 'vessel')}
+TEXTURES |= {'screen': 'rematter:block/display_idle', 'status': 'rematter:block/indicator_idle', 'wood': 'rematter:block/bench_wood', 'particle': 'rematter:block/ceramic'}
 
 def box(a, b, texture='graphite', face=None, rotation=None, shade=True):
-    faces = {d: {'texture': '#' + texture} for d in FACES}
+    faces = {d: {'texture': '#' + texture, 'uv': [0, 0, 16, 16]} for d in FACES}
     for d, t in (face or {}).items(): faces[d] = {'texture': '#' + t, 'uv': [0, 0, 16, 16]}
     element = {'from': list(a), 'to': list(b), 'faces': faces}
     if rotation: element['rotation'] = {'origin': rotation[0], 'axis': rotation[1], 'angle': rotation[2], 'rescale': False}
@@ -144,193 +157,208 @@ def box(a, b, texture='graphite', face=None, rotation=None, shade=True):
         element['light_emission'] = 2
     return element
 
-def bolt(e, x, y, z):
-    e.append(box((x - .18, y - .18, z - .08), (x + .18, y + .18, z + .06), 'brushed_steel'))
-    e.append(box((x - .11, y - .025, z - .09), (x + .11, y + .025, z - .08), 'rubber'))
+def pin(e, x, y, z):
+    """A single readable copper fastener, never a busy repeating texture."""
+    e.append(box((x-.26,y-.26,z-.06),(x+.26,y+.26,z+.12),'copper_trim'))
 
-def panel(e, a, b, texture='panel'):
-    e.append(box(a, b, 'rubber', {'north': texture}))
+def base(width=14):
+    x=(16-width)/2
+    e=[box((x,.7,1),(16-x,2.1,15),'graphite'),
+       box((x+.3,2.1,1.3),(15.7-x,3.2,14.7),'ceramic')]
+    for xx in (x+.5,12.5-x):
+        for z in (2,11.5):e.append(box((xx,0,z),(xx+2.5,.7,z+2.5),'rubber'))
     return e
 
-def base():
-    e = [box((1, 1, 1), (15, 2.2, 15), 'frame'), box((1.6, 2.2, 1.6), (14.4, 3.4, 14.4))]
-    for x in (2, 11):
-        for z in (2, 11): e.append(box((x, 0, z), (x + 3, 1, z + 3), 'rubber'))
-    e += [box((2, 2.2, 1.5), (14, 2.4, 1.65), 'brushed_steel'),
-          box((2, 1.3, .95), (4.5, 1.65, 1.1), 'copper_trim'), box((11.5, 1.3, .95), (14, 1.65, 1.1), 'copper_trim'),
-          box((6, .6, 6), (10, 1, 10), 'frame', {'down': 'port_matter'})]
-    for x in (2.6, 13.4): bolt(e, x, 2.8, 1.48)
+def ports(e, top=False):
+    # Recessed, readable matter and FE connectors; frame never covers the working window.
+    e.extend([box((.85,4.7,7),(2,8.3,10.6),'graphite',{'west':'port_matter'}),
+              box((14,4.7,7),(15.15,8.3,10.6),'graphite',{'east':'port_matter'}),
+              box((5.8,4.5,14),(10.2,8.9,15.1),'graphite',{'south':'port_energy'})])
+    if top:e.append(box((6,14.8,6),(10,15.15,10),'graphite',{'up':'port_energy'}))
     return e
 
-def ports(e, top=True):
-    e += [box((.5, 4, 6), (2, 9, 11), 'frame', {'west': 'port_matter'}),
-          box((14, 4, 6), (15.5, 9, 11), 'frame', {'east': 'port_matter'}),
-          box((5, 4, 14), (11, 10, 15.5), 'frame', {'south': 'port_energy'})]
-    if top: e += [box((6, 15, 6), (10, 16, 10), 'frame', {'up': 'port_energy'})]
-    return e
+def status(e,x=12.8,y=12.2,z=1.7):
+    e.extend([box((x-.14,y-.14,z+.04),(x+1.14,y+1.14,z+.3),'graphite'),
+              box((x,y,z),(x+1,y+1,z+.12),'status',shade=False)])
 
-def display(e, a=(5, 5, 1.3), b=(11, 8.5, 2.0)):
-    e.append(box((a[0] - .25, a[1] - .22, a[2] + .04), (b[0] + .25, b[1] + .22, b[2]), 'frame'))
-    e.append(box(a, b, 'rubber', {'north': 'screen'}))
-    e.append(box((a[0], a[1] - .55, a[2] - .02), (a[0] + 1.6, a[1] - .3, a[2] + .08), 'status', shade=False))
-    return e
+def display(e,a=(4,4,1.7),b=(12,7.5,2)):
+    e.append(box(a,b,'rubber',{'north':'screen'}))
 
-def idle_wheel(cx, cy, cz, radius, vertical=False, blades=6, phase=0):
-    # Six stepped blades, expressed with valid vanilla cuboids (no unsupported 60-degree rotations).
-    e = []
+
+def shell(e, opening_bottom=3.5, opening_top=12, roof=14.8):
+    # Three large ceramic panels surround the open chamber. Dark corner guards are short.
+    e.extend([box((1.2,3.2,2),(3.1,roof,14.8),'ceramic'),
+              box((12.9,3.2,2),(14.8,roof,14.8),'ceramic'),
+              box((3.1,3.2,12.6),(12.9,roof,14.8),'ceramic'),
+              box((3.1,opening_top,2),(12.9,roof,12.6),'ceramic'),
+              box((3.1,3.2,2),(12.9,opening_bottom,12.6),'graphite'),
+              box((3.1,opening_bottom,12.35),(12.9,opening_top,12.6),'rubber'),
+              box((2.9,opening_bottom,1.8),(3.25,opening_top,2.3),'graphite'),
+              box((12.75,opening_bottom,1.8),(13.1,opening_top,2.3),'graphite'),
+              box((3.25,opening_top-.15,1.8),(12.75,opening_top+.15,2.3),'graphite')])
+    for x in (1,13.5):
+        e.append(box((x,roof-1.1,1.8),(x+1.5,roof+.12,4.3),'graphite'))
+        pin(e,x+.75,roof-.45,1.74)
+    ports(e)
+
+def tray(e,y=3.3,z=.6,width=10):
+    x=(16-width)/2
+    e.extend([box((x,y,z),(16-x,y+.35,z+5),'brushed_steel'),
+              box((x,y+.35,z),(x+.3,y+1,z+5),'graphite'),
+              box((15.7-x,y+.35,z),(16-x,y+1,z+5),'graphite'),
+              box((x,y+.35,z+4.7),(16-x,y+1,z+5),'graphite'),
+              box((x-.1,y-.2,z-.15),(16.1-x,y+.4,z+.15),'graphite'),
+              box((5.5,y-.08,z-.5),(10.5,y+.27,z-.15),'ceramic')])
+
+def feed(e,y=14.8,x1=4,x2=12,z1=5,z2=12,mat='graphite'):
+    e.extend([box((x1,y,z1),(x2,y+1,z1+.65),mat),
+              box((x1,y,z2-.65),(x2,y+1,z2),mat),
+              box((x1,y,z1+.65),(x1+.65,y+1,z2-.65),mat),
+              box((x2-.65,y,z1+.65),(x2,y+1,z2-.65),mat)])
+
+
+def idle_wheel(cx,cy,cz,radius,vertical=False,blades=6,phase=0):
+    e=[]
     for n in range(blades):
-        angle = n * math.tau / blades + phase
-        for r in (.95, 1.45, 1.95, 2.45, 2.95):
-            if r + .3 > radius: continue
-            u, v = r * math.cos(angle), r * math.sin(angle)
-            if vertical:
-                e.append(box((cx + u - .25, cy + v - .25, cz - .8), (cx + u + .25, cy + v + .25, cz + .8), 'brushed_steel'))
-            else:
-                e.append(box((cx + u - .4, cy - .3, cz + v - .4), (cx + u + .4, cy + .3, cz + v + .4), 'brushed_steel'))
-    if vertical:
-        e += [box((cx - .85, cy - .85, cz - .8), (cx + .85, cy + .85, cz + .8), 'copper_trim'),
-              box((cx - .35, cy - .35, cz - .95), (cx + .35, cy + .35, cz - .8), 'rubber')]
-    else:
-        e += [box((cx - 1, cy - .5, cz - 1), (cx + 1, cy + .5, cz + 1), 'copper_trim'),
-              box((cx - .45, cy + .5, cz - .45), (cx + .45, cy + .65, cz + .45), 'frame')]
+        a=n*math.tau/blades+phase
+        for r in (.8,1.3,1.8,2.3,2.8,3.2):
+            if r+.3>radius:continue
+            u,v=r*math.cos(a),r*math.sin(a)
+            if vertical:e.append(box((cx+u-.28,cy+v-.28,cz-.8),(cx+u+.28,cy+v+.28,cz+.8),'brushed_steel'))
+            else:e.append(box((cx+u-.35,cy-.2,cz+v-.35),(cx+u+.35,cy+.2,cz+v+.35),'brushed_steel'))
+    if vertical:e.append(box((cx-.8,cy-.8,cz-1.05),(cx+.8,cy+.8,cz+1.05),'frame'))
+    else:e.append(box((cx-.7,cy-.4,cz-.7),(cx+.7,cy+.4,cz+.7),'frame'))
     return e
 
-models = {}
-idle_parts = {}
-# Analyzer: asymmetrical instrument housing around an open, steel-edged sample stage.
-# Scanner travel remains x4..12, y10.7..11.3, z4.1..10.9.
-e = base()
-e += [box((3.6, 3.4, 2.8), (12.4, 4.5, 12), 'frame'), box((4, 4.5, 3.2), (12, 4.65, 11.7), 'brushed_steel'),
-      box((4.45, 4.65, 3.65), (11.55, 4.69, 11.2), 'rubber'),
-      box((2, 3.4, 9.5), (4, 14.7, 14)), box((12.2, 3.4, 11), (14, 12.8, 14), 'frame'),
-      box((2, 13, 4), (4, 15, 14)), box((4, 13.7, 4.2), (14, 14.8, 7.1), 'frame'),
-      box((4, 14.3, 7.1), (12.2, 15, 11.8)), box((4, 12.9, 4.2), (12, 13.15, 6.6), 'brushed_steel'),
-      box((3.45, 5, 10.3), (3.8, 12.8, 10.8), 'brushed_steel'), box((12.2, 5, 11.1), (12.55, 12.8, 11.6), 'brushed_steel'),
-      box((2.15, 12, 9.2), (3.6, 12.4, 9.5), 'copper_trim'),
-      box((5, 4.69, 4.2), (5.15, 4.7, 10.6), 'frame'), box((10.85, 4.69, 4.2), (11, 4.7, 10.6), 'frame')]
-display(e, (5.2, 8.2, 11.9), (10.8, 11.5, 12.4))
-panel(e, (2.25, 6.2, 9.25), (3.7, 10.7, 9.5), 'vent')
-for x in (2.7, 13.2): bolt(e, x, 14.25, 4)
-models['analyzer'] = ports(e)
-idle_parts['analyzer'] = [box((4, 10.7, 7.1), (12, 11.3, 7.9), 'brushed_steel'),
-                          box((5.3, 10.58, 7.3), (10.7, 10.7, 7.65), 'rubber'),
-                          box((4, 10.8, 7.06), (5, 11.15, 7.1), 'copper_trim')]
-# Decomposer: wide open cutter throat, an angular feed hopper and a low output tray.
-# The swept cutter bay x3.2..12.8/y4.5..9.5/z3.8..6.2 is kept completely unobstructed.
-e = base()
-e += [box((2.5, 3.4, 8), (13.5, 11.4, 14)), box((2, 4, 3), (3.1, 11.3, 9), 'frame'),
-      box((12.9, 4, 3), (14, 11.3, 9), 'frame'), box((3.1, 4, 7.8), (12.9, 10, 8), 'rubber'),
-      box((3.1, 10, 2.8), (12.9, 11.3, 8), 'graphite'), box((4, 10.2, 2.65), (12, 10.6, 2.85), 'hazard'),
-      box((3.7, 3.2, .7), (12.3, 4, 6), 'frame'), box((4.1, 4, 1), (11.9, 4.15, 3.7), 'brushed_steel'),
-      box((4.5, 4.15, 1.3), (11.5, 4.2, 3.6), 'rubber'),
-      box((2, 13.5, 2), (14, 15.8, 3.1), 'frame'), box((2, 13.5, 12.9), (14, 15.8, 14), 'frame'),
-      box((2, 13.5, 3.1), (3.1, 15.8, 12.9), 'frame'), box((12.9, 13.5, 3.1), (14, 15.8, 12.9), 'frame'),
-      box((3.3, 10.8, 4), (4.1, 14, 12), 'brushed_steel', rotation=([4, 11, 8], 'z', -22.5)),
-      box((11.9, 10.8, 4), (12.7, 14, 12), 'brushed_steel', rotation=([12, 11, 8], 'z', 22.5)),
-      box((2, 15.8, 2), (14, 16, 3.1), 'brushed_steel'), box((2, 15.8, 12.9), (14, 16, 14), 'brushed_steel')]
-for x in (2.55, 13.45):
-    bolt(e, x, 5, 2.9); bolt(e, x, 9.4, 2.9)
-panel(e, (4.6, 6, 13.9), (11.4, 9.7, 14.15), 'vent')
-models['decomposer'] = ports(e, False)
-idle_parts['decomposer'] = idle_wheel(5.5, 7, 5, 2.25, True) + idle_wheel(10.5, 7, 5, 2.25, True, phase=math.pi / 6)
-# Synthesizer: deep press opening, machined bed and heavy pale-edged structural posts.
-e = base()
-e += [box((2, 3.4, 3.4), (3.75, 14, 13), 'frame'), box((12.25, 3.4, 3.4), (14, 14, 13), 'frame'),
-      box((2.3, 4, 3.2), (2.65, 12.7, 3.5), 'brushed_steel'), box((13.35, 4, 3.2), (13.7, 12.7, 3.5), 'brushed_steel'),
-      box((4, 4, 4), (12, 5.3, 12), 'brushed_steel'), box((4.5, 5.3, 4.5), (11.5, 5.5, 11.5), 'rubber'),
-      box((2, 13, 4), (14, 15.5, 13)), box((3, 12.8, 3.7), (13, 13.2, 4), 'hazard'),
-      box((4.1, 5, 11.7), (4.55, 13, 12.2), 'brushed_steel'), box((11.45, 5, 11.7), (11.9, 13, 12.2), 'brushed_steel'),
-      box((5.3, 5.5, 5), (5.5, 5.55, 11), 'frame'), box((10.5, 5.5, 5), (10.7, 5.55, 11), 'frame')]
-display(e, (5, 13.5, 3.3), (11, 15.2, 4))
-for x in (2.9, 13.1): bolt(e, x, 11.8, 3.25); bolt(e, x, 6, 3.25)
-models['material_synthesizer'] = ports(e)
-idle_parts['material_synthesizer'] = [box((4.5, 9, 4.5), (11.5, 11, 11.5), 'frame'),
-      box((4.9, 8.7, 4.9), (11.1, 9, 11.1), 'brushed_steel'), box((5, 10.4, 4.45), (6.5, 10.75, 4.5), 'copper_trim'),
-      box((7.35, 11, 7.35), (8.65, 14.5, 8.65), 'brushed_steel')]
-# Electrolyzer: two tall dark vessels with narrow luminous level indicators and front apertures.
-e = base()
-for x in (2.5, 9.5):
-    e += [box((x, 3.5, 4.5), (x + 4, 4.9, 12), 'frame'), box((x + .4, 4.9, 7.1), (x + 3.6, 13.2, 11.5), 'vessel'),
-          box((x, 13.2, 4.5), (x + 4, 14.8, 12), 'frame'), box((x + .25, 14.8, 4.75), (x + 3.75, 15, 5.05), 'brushed_steel'),
-          box((x + .25, 14.8, 11.45), (x + 3.75, 15, 11.75), 'brushed_steel'),
-          box((x + .25, 14.8, 5.05), (x + .55, 15, 11.45), 'brushed_steel'),
-          box((x + 3.45, 14.8, 5.05), (x + 3.75, 15, 11.45), 'brushed_steel'),
-          box((x + .05, 5, 4.8), (x + .45, 13.2, 5.2), 'brushed_steel'),
-          box((x + 3.55, 5, 4.8), (x + 3.95, 13.2, 5.2), 'brushed_steel'),
-          box((x + 2.7, 5.7, 6.98), (x + 3.1, 12.5, 7.1), 'status', shade=False),
-          box((x + .4, 5.3, 7), (x + 3.6, 5.55, 7.15), 'copper_trim'),
-          box((x + .4, 12.55, 7), (x + 3.6, 12.8, 7.15), 'copper_trim'),
-          box((x, 8.4, 4.8), (x + .7, 8.75, 7.2), 'frame')]
-    for y in (6.4, 7.4, 8.4, 9.4, 10.4, 11.4): e.append(box((x + 3.14, y, 6.96), (x + 3.4, y + .1, 7.12), 'brushed_steel'))
-e += [box((6, 11, 9), (10, 12.8, 11.5)), box((6.5, 12.8, 9.5), (9.5, 13.15, 10.5), 'copper_trim')]
-display(e, (5.2, 3.6, 1.25), (10.8, 5.1, 1.9))
-models['electrolyzer'] = ports(e, False)
-# Reactor: a stepped vessel with a front inspection opening and visible mechanical agitation.
-e = base()
-e += [box((4, 3.5, 3), (12, 4.5, 13), 'frame'), box((3, 4, 4), (13, 5, 12), 'frame'),
-      box((4.2, 5, 11), (11.8, 12.7, 12.7), 'vessel'),
-      box((3, 5, 4), (4, 13, 12), 'frame'), box((12, 5, 4), (13, 13, 12), 'frame'),
-      box((4.2, 5, 4.2), (11.8, 6.8, 10.5), 'vessel'), box((4.5, 6.8, 4.5), (11.5, 6.9, 10.4), 'status', shade=False),
-      box((4, 12.9, 3), (12, 14.1, 13), 'frame'), box((3, 12.9, 4), (13, 14.1, 12), 'frame'),
-      box((4, 14.1, 3.3), (12, 14.35, 3.65), 'brushed_steel'),
-      box((4, 14.1, 12.35), (12, 14.35, 12.7), 'brushed_steel'),
-      box((4, 14.1, 3.65), (4.35, 14.35, 12.35), 'brushed_steel'),
-      box((11.65, 14.1, 3.65), (12, 14.35, 12.35), 'brushed_steel'), box((6, 14.35, 6), (10, 15.7, 10)),
-      box((3.1, 5.1, 3.8), (3.9, 12.4, 4), 'brushed_steel'), box((12.1, 5.1, 3.8), (12.9, 12.4, 4), 'brushed_steel'),
-      box((3.2, 7.1, 3.7), (12.8, 7.35, 4), 'copper_trim')]
-display(e, (5.3, 9.5, 12.6), (10.7, 12, 13.1))
-for x in (3.5, 12.5): bolt(e, x, 5.7, 3.65); bolt(e, x, 11.8, 3.65)
-models['chemical_reactor'] = ports(e, False)
-idle_parts['chemical_reactor'] = [box((7.55, 8.5, 7.55), (8.45, 13.5, 8.45), 'brushed_steel')] + idle_wheel(8, 11, 8, 2.8, blades=3)
+def idle_roller(cx,cy,cz,radius):
+    # Octagonal solid roller, axis X. The renderer uses the exact same two crossed cuboids.
+    t=radius/math.sqrt(2)
+    return [box((cx-4,cy-t,cz-t),(cx+4,cy+t,cz+t),'brushed_steel'),
+            box((cx-4,cy-t,cz-t),(cx+4,cy+t,cz+t),'brushed_steel',rotation=([cx,cy,cz],'x',45)),
+            box((cx-4.3,cy-.3,cz-.3),(cx+4.3,cy+.3,cz+.3),'frame')]
 
-# Storage: three independent cartridges, dark protective shells and steel release handles.
-e = base()
-e += [box((2, 3.5, 11.8), (14, 14.5, 14)), box((2, 3.5, 3), (3.3, 15, 14), 'frame'),
-      box((12.7, 3.5, 3), (14, 15, 14), 'frame'), box((2, 14, 3), (14, 16, 14))]
-for x in (3.7, 7.1, 10.5):
-    e += [box((x, 4, 4.3), (x + 2, 13.4, 10.7), 'frame'), box((x + .2, 5.3, 4.1), (x + 1.8, 12.3, 4.3), 'graphite'),
-          box((x - .1, 4.2, 4), (x + 2.1, 4.65, 10.9), 'copper_trim'),
-          box((x - .1, 12.95, 4), (x + 2.1, 13.4, 10.9), 'brushed_steel'),
-          box((x + .7, 6.1, 3.98), (x + 1.1, 11.7, 4.16), 'status', shade=False),
-          box((x + .4, 5, 3.65), (x + 1.6, 5.3, 4.3), 'brushed_steel'),
-          box((x + .4, 11.9, 3.65), (x + 1.6, 12.2, 4.3), 'brushed_steel')]
-display(e, (4, 14.35, 2.3), (12, 15.5, 3))
-for x in (2.65, 13.35): bolt(e, x, 6.2, 2.9); bolt(e, x, 12.8, 2.9)
-models['matter_storage'] = ports(e, False)
-# Terminal: slim slanted screen, offset pedestal, a real keyboard and a separate touch pad.
-e = base()
-e += [box((6.2, 3.4, 7.7), (9.8, 9, 10.8), 'frame'), box((6.2, 3.7, 7.5), (6.55, 8.5, 7.8), 'copper_trim')]
-pivot = [8, 10, 8]
-e += [box((2, 8, 7), (14, 15, 8.7), 'frame', rotation=(pivot, 'x', -22.5)),
-      box((2.7, 8.55, 6.75), (13.3, 14.45, 7.04), 'rubber', {'north': 'screen'}, rotation=(pivot, 'x', -22.5)),
-      box((2, 14.8, 7), (14, 15, 8.7), 'brushed_steel', rotation=(pivot, 'x', -22.5)),
-      box((2.6, 4.7, 2), (13.4, 5.7, 7.2), 'frame'), box((3.1, 5.7, 2.4), (10, 5.9, 6.7), 'rubber', {'up': 'keyboard'}),
-      box((10.6, 5.71, 3.1), (12.6, 5.85, 5.9), 'rubber'), box((11, 5.86, 3.5), (12.2, 5.91, 3.7), 'status', shade=False)]
-models['matter_terminal'] = e
-# Industrial controller: open turbine well, layered dark reaction core and exposed load-bearing cage.
-e = base()
-e += [box((3, 3.4, 3), (13, 6, 13)), box((4, 6, 4), (12, 10, 12), 'vessel'),
-      box((4.3, 6.5, 3.9), (4.65, 9.5, 4.1), 'status', shade=False),
-      box((11.35, 6.5, 3.9), (11.7, 9.5, 4.1), 'status', shade=False),
-      box((3, 10, 3), (13, 11.25, 13), 'frame'), box((4, 11.25, 4), (12, 11.4, 12), 'rubber'),
-      box((3, 10.1, 2.9), (13, 10.4, 3.1), 'copper_trim')]
-# Nothing covers x/z4..12 above y11.4: full-height neighboring casings cannot hide the rotor.
-e += [box((3, 14.5, 3), (13, 15.65, 4), 'frame'), box((3, 14.5, 12), (13, 15.65, 13), 'frame'),
-      box((3, 14.5, 4), (4, 15.65, 12), 'frame'), box((12, 14.5, 4), (13, 15.65, 12), 'frame'),
-      box((3, 15.65, 3), (13, 16, 4), 'brushed_steel'), box((3, 15.65, 12), (13, 16, 13), 'brushed_steel'),
-      box((3, 15.65, 4), (4, 16, 12), 'brushed_steel'), box((12, 15.65, 4), (13, 16, 12), 'brushed_steel')]
-for x in (2, 12):
-    for z in (2, 12):
-        e += [box((x, 3, z), (x + 2, 15.5, z + 2), 'frame'),
-              box((x + .25, 4, z - .03), (x + .5, 13.5, z + .1), 'brushed_steel'),
-              box((x + .65, 12.5, z - .04), (x + 1.4, 14, z + .12), 'copper_trim')]
-for x in (3, 13): bolt(e, x, 5.1, 1.9); bolt(e, x, 11.4, 1.9)
-display(e, (5, 4, 1.5), (11, 6.7, 2.2))
-models['industrial_reactor'] = ports(e, False)
-idle_parts['industrial_reactor'] = idle_wheel(8, 13, 8, 3.6)
+def idle_sieve(cx,cy,cz,width):
+    a=width/2;e=[box((cx-a,cy-.15,cz-3),(cx+a,cy+.15,cz-2.7),'frame'),
+      box((cx-a,cy-.15,cz+2.7),(cx+a,cy+.15,cz+3),'frame'),
+      box((cx-a,cy-.15,cz-2.7),(cx-a+.3,cy+.15,cz+2.7),'frame'),
+      box((cx+a-.3,cy-.15,cz-2.7),(cx+a,cy+.15,cz+2.7),'frame')]
+    for k in range(-3,4):
+        e.append(box((cx+k,cy-.04,cz-2.7),(cx+k+.12,cy+.06,cz+2.7),'brushed_steel'))
+    for k in range(-2,3):e.append(box((cx-a+.3,cy-.04,cz+k),(cx+a-.3,cy+.06,cz+k+.12),'brushed_steel'))
+    return e
+
+models={};idle_parts={};model_textures={}
+# Hand Preparator: an open pale-oak bench, two full-width rollers, sieve and collecting drawer.
+e=[]
+for x in (1.4,12.6):
+    for z in (3,11.5):
+        e.extend([box((x,.5,z),(x+2,8.1,z+2),'wood'),
+                  box((x-.1,0,z-.1),(x+2.1,.65,z+2.1),'graphite')])
+e.extend([box((1,7.5,2.8),(3.5,9,14),'wood'),box((12.5,7.5,2.8),(15,9,14),'wood'),
+          box((3.5,7.5,12),(12.5,9,14),'wood'),
+          box((1.3,3,3.5),(3.3,4,13),'wood'),box((12.7,3,3.5),(14.7,4,13),'wood'),
+          box((3.3,3,11.8),(12.7,4,13),'wood'),
+          box((2.6,8.8,3.8),(4,13.1,12.2),'wood'),box((12,8.8,3.8),(13.4,13.1,12.2),'wood'),
+          box((2.4,10,4.8),(4.03,12,7.2),'graphite'),box((11.97,10,4.8),(14.8,12,7.2),'graphite'),
+          box((2.4,10,8.8),(4.03,12,11.2),'graphite'),box((11.97,10,8.8),(13.6,12,11.2),'graphite')])
+# A wide open hopper, no opaque plate over the rolls.
+feed(e,13.2,2.5,13.5,3.5,12.8,'wood')
+e.extend([box((2.4,13.15,3.4),(13.6,13.45,4.2),'graphite'),
+          box((2.4,13.15,12.1),(13.6,13.45,12.9),'graphite')])
+tray(e,2.2,.7)
+for x in (2.2,13.8):pin(e,x,8.2,2.7)
+models['hand_preparator']=e
+idle_parts['hand_preparator']=idle_roller(8,11,6,1.6)+idle_roller(8,11,10,1.6)+idle_sieve(8,7.7,4.8,9)
+idle_parts['hand_preparator'] += [box((13.4,10.8,5.8),(15.4,11.2,6.2),'frame'),
+    box((14.95,10.78,5.78),(15.25,12.5,6.22),'copper_trim'),box((15.25,12.15,5.75),(15.95,12.55,6.25),'wood')]
+# Electric Preparator: one calm shell; visible stacked rollers, mesh screen and a lower mixing well.
+e=base();shell(e,3.5,12.7,14.8)
+# Roof is open beneath the feeding throat, unlike a decorative hopper on a solid lid.
+# Replace the single ceiling with four broad strips around x4..12,z3.8..11.6.
+e=[v for v in e if not (v['from']==[3.1,12.7,2] and v['to']==[12.9,14.8,12.6])]
+e.extend([box((3.1,12.7,2),(12.9,14.8,3.8),'ceramic'),box((3.1,12.7,11.6),(12.9,14.8,12.6),'ceramic'),
+          box((3.1,12.7,3.8),(4,14.8,11.6),'ceramic'),box((12,12.7,3.8),(12.9,14.8,11.6),'ceramic'),
+          box((3.3,8.1,3.2),(4,9.7,10),'frame'),box((12,8.1,3.2),(12.7,9.7,10),'frame'),
+          box((5.3,3.4,4.3),(10.7,3.65,9.7),'rubber')])
+e.extend([box((14.8,11.5,5.5),(15.02,13,12.4),'rubber'),
+          box((15.02,11.85,5.8),(15.08,12.05,12.1),'frame'),box((15.02,12.45,5.8),(15.08,12.65,12.1),'frame')])
+feed(e,14.8,3.5,12.5,3.3,12.1);tray(e,3.2,.7);status(e,12.95,10.9,1.72)
+models['material_preparator']=e
+idle_parts['material_preparator']=idle_roller(8,8.9,4.7,1.35)+idle_roller(8,8.9,8.3,1.35)+idle_sieve(8,6.3,6.4,8.5)
+idle_parts['material_preparator'] += idle_wheel(8,4.7,7,1.8,blades=3)+[box((7.78,3.7,6.78),(8.22,5.95,7.22),'brushed_steel')]
+# Analyzer: an asymmetric instrument bridge over a broad exposed sample stage.
+e=base();e.extend([box((2,3.2,10.8),(4,14.7,14.5),'ceramic'),
+ box((12.2,3.2,10.8),(14,12.2,14.5),'ceramic'),box((4,12.7,3.5),(14,14.8,14.5),'ceramic'),
+ box((3.5,4.1,3),(12.5,4.5,12),'frame'),box((4,4.5,3.5),(12,4.68,11.5),'brushed_steel'),
+ box((4.8,4.68,4.3),(11.2,4.7,10.7),'rubber'),box((3.5,5,10.5),(3.8,12.7,10.85),'brushed_steel'),
+ box((12.15,5,10.5),(12.5,12.7,10.85),'brushed_steel'),box((4.1,12.4,3.5),(11.9,12.7,4),'graphite'),
+ box((4,4.5,12.2),(12,12.7,12.6),'rubber')]);ports(e);status(e,12.6,13.2,3.2)
+display(e,(5.5,7,12),(10.5,9.5,12.2));models['analyzer']=e
+idle_parts['analyzer']=[box((4,10.7,7.1),(12,11.3,7.9),'brushed_steel'),box((4.4,10.5,7.25),(11.6,10.7,7.75),'frame')]
+# Decomposer: low broad crushing window, a generous top inlet and an open collecting shelf.
+e=base();shell(e,4.25,10.1,13.5);tray(e,3.5,.7)
+feed(e,13.5,4,12,4.5,11.5);e.append(box((4.6,13.49,5.15),(11.4,13.51,10.85),'rubber'))
+status(e,12.95,11.5,1.7);models['decomposer']=e
+idle_parts['decomposer']=idle_wheel(5.5,7,5,2.22,True)+idle_wheel(10.5,7,5,2.22,True,phase=math.pi/6)
+# Synthesizer: a large white press arch, matte guide columns and a recessed die bed.
+e=base();e.extend([box((1.3,3.2,3),(3.7,14.8,14.8),'ceramic'),box((12.3,3.2,3),(14.7,14.8,14.8),'ceramic'),
+ box((3.7,13,3),(12.3,15,14.8),'ceramic'),box((3.7,3.2,12.3),(12.3,13,14.8),'ceramic'),
+ box((4.1,4.2,4.1),(11.9,5.3,11.9),'frame'),box((4.5,5.3,4.5),(11.5,5.55,11.5),'brushed_steel'),
+ box((3.9,5.5,9.5),(4.3,13,10),'brushed_steel'),box((11.7,5.5,9.5),(12.1,13,10),'brushed_steel'),
+ box((3.7,12.6,3),(12.3,13,3.5),'graphite')]);ports(e);status(e,12.7,13.1,2.8)
+for x in (2.5,13.5):pin(e,x,4.2,2.94)
+models['material_synthesizer']=e
+idle_parts['material_synthesizer']=[box((4.5,9,4.5),(11.5,11,11.5),'brushed_steel'),box((4.9,8.7,4.9),(11.1,9,11.1),'frame'),box((7.35,11,7.35),(8.65,14.5,8.65),'brushed_steel')]
+# Electrolyzer: two clearly separated cells against a pale rear spine.
+e=base();e.extend([box((1.5,3.2,11.5),(14.5,15,14.8),'ceramic'),box((7.2,3.2,4.8),(8.8,14.5,11.5),'ceramic')])
+for cx in (4.5,11.5):
+ e.extend([box((cx-2.6,3.4,4.2),(cx+2.6,5.1,10.5),'ceramic'),box((cx-2.4,12.4,4.2),(cx+2.4,14.7,10.5),'ceramic'),
+           box((cx-2,5.1,8.4),(cx+2,12.4,9),'vessel'),box((cx-2.25,5.1,5.5),(cx-1.9,12.4,9.1),'frame'),
+           box((cx+1.9,5.1,5.5),(cx+2.25,12.4,9.1),'frame'),box((cx-.25,5.1,7.2),(cx+.25,12.4,7.7),'brushed_steel')])
+ports(e);status(e,7.5,10,4.55);models['electrolyzer']=e;idle_parts['electrolyzer']=[]
+# Reactor: open cylindrical-looking vessel assembled from broad stepped panels.
+e=base();e.extend([box((3,3.2,3),(13,7.4,13),'ceramic'),box((2,4,5),(3,7.4,11),'ceramic'),box((13,4,5),(14,7.4,11),'ceramic'),
+ box((3,7.4,10.9),(13,13.8,13),'ceramic'),box((3,7.4,4),(4.8,13.8,10.9),'ceramic'),box((11.2,7.4,4),(13,13.8,10.9),'ceramic'),
+ box((4.8,7.4,4),(11.2,7.7,10.9),'rubber'),box((3,13.8,4),(13,15,6.1),'graphite'),
+ box((3,13.8,10.9),(13,15,13),'graphite'),box((3,13.8,6.1),(4.8,15,10.9),'graphite'),box((11.2,13.8,6.1),(13,15,10.9),'graphite')]);ports(e);status(e,10.7,4.5,2.8)
+models['chemical_reactor']=e;idle_parts['chemical_reactor']=idle_wheel(8,11,8,2.8,blades=3)+[box((7.55,8.5,7.55),(8.45,13.5,8.45),'brushed_steel')]
+# Drive: one empty horizontal bay; actual cartridge is rendered only from the server-synced flag.
+e=base();shell(e,5.2,10.8,14.4)
+e.extend([box((3.4,5.2,2.9),(12.6,5.65,11),'graphite'),box((3.5,5.65,3),(3.85,10.4,11),'brushed_steel'),
+ box((12.15,5.65,3),(12.5,10.4,11),'brushed_steel'),box((3.4,10.4,10.7),(12.6,10.8,11),'frame'),
+ box((3.2,11.2,1.85),(11,13.8,2.2),'ceramic')]);status(e,12.95,12,1.7)
+models['matter_drive']=e;idle_parts['matter_drive']=[]
+# Legacy storage: a tall closed three-column vault, distinct from the one-cell open Drive.
+e=base();e.extend([box((1.2,3.2,2),(14.8,15.5,14.8),'ceramic'),box((3,4.1,1.6),(13,13.9,2),'graphite')])
+for x in (3.5,6.8,10.1):
+ e.extend([box((x,4.6,1.2),(x+2.4,13.4,1.7),'frame'),box((x+.35,5.1,1),(x+2.05,12.9,1.25),'ceramic'),
+           box((x+.85,8, .85),(x+1.55,11.5,1.02),'vessel'),box((x+.85,11.7,.83),(x+1.55,12.3,1.02),'status',shade=False)])
+ports(e);models['matter_storage']=e;idle_parts['matter_storage']=[]
+# Terminal: a short pedestal and a single large angled face, with one quiet keyboard shelf.
+e=base();e.extend([box((4,3.2,7),(12,8,13.5),'ceramic'),box((2,7.8,5.5),(14,14.7,13.5),'ceramic'),
+ box((2.6,8.3,5.2),(13.4,14.2,5.6),'graphite',rotation=([8,8,5.5],'x',-22.5)),
+ box((3.2,8.9,5.1),(12.8,13.6,5.25),'rubber',{'north':'screen'},rotation=([8,8,5.5],'x',-22.5)),
+ box((2,6.6,1.7),(14,7.5,7),'ceramic'),box((3.2,7.5,2.5),(12.8,7.65,5.5),'rubber',{'up':'keyboard'})]);ports(e)
+models['matter_terminal']=e;idle_parts['matter_terminal']=[]
+# Industrial controller items are front panels, not miniature complete machines.
+# Their working mechanisms are rendered only inside the formed 3-D shell behind this block.
+for name in ('industrial_reactor','industrial_preparator'):
+ e=[box((0,0,0),(1.4,16,3),'graphite'),box((14.6,0,0),(16,16,3),'graphite'),
+    box((1.4,0,.2),(14.6,1.4,3),'ceramic'),box((1.4,14.6,.2),(14.6,16,3),'ceramic'),
+    box((1.4,1.4,.2),(14.6,7.8,3),'ceramic'),
+    box((2.5,2.1,.08),(13.5,7.2,.25),'graphite'),
+    box((3.1,2.7,.02),(11.9,6.6,.1),'rubber',{'north':'screen'}),
+    box((1.4,7.8,.55),(14.6,14.6,.7),'glass'),
+    box((1.4,7.65,.15),(14.6,8,.5),'graphite')]
+ for x in (.7,15.3):
+  for y in (.7,15.3):pin(e,x,y,.08)
+ status(e,12.3,3.9,.04)
+ models[name]=e
+ model_textures[name]={'glass':'rematter:block/reactor_glass'}
+ idle_parts[name]=[]
 
 for name, elements in models.items():
-    model = {'parent': 'minecraft:block/block', 'textures': TEXTURES, 'elements': elements}
+    model = {'parent': 'minecraft:block/block', 'textures': TEXTURES | model_textures.get(name, {}), 'elements': elements}
     json_file(f'models/block/{name}.json', model)
     json_file(f'models/block/{name}_active.json', {'parent': f'rematter:block/{name}', 'textures': {'screen': 'rematter:block/display_active', 'status': 'rematter:block/indicator_active'}})
     variants = {}
@@ -345,39 +373,61 @@ for name, elements in models.items():
     json_file(f'models/item/{name}.json', item)
     json_file(f'items/{name}.json', {'model': {'type': 'minecraft:model', 'model': f'rematter:item/{name}'}})
 
-# Structural casing: inset maintenance panels, a continuous dark shell and slim reinforcement.
-e = [box((.5, .5, .5), (15.5, 15.5, 15.5))]
-for x in (0, 13.5):
-    for z in (0, 13.5):
-        e += [box((x, 0, z), (x + 2.5, 16, z + 2.5), 'frame'),
-              box((x + .5, 15.9, z + .5), (x + 1, 16, z + 1), 'brushed_steel')]
-e += [box((2.5, 1.2, .35), (13.5, 1.45, .55), 'brushed_steel'), box((2.5, 14.55, .35), (13.5, 14.8, .55), 'brushed_steel'),
-      box((2.5, 1.2, 15.45), (13.5, 1.45, 15.65), 'brushed_steel'), box((2.5, 14.55, 15.45), (13.5, 14.8, 15.65), 'brushed_steel'),
-      box((3, 4, .35), (13, 12, .55), 'rubber', {'north': 'vent'}),
-      box((3, 4, 15.45), (13, 12, 15.65), 'rubber', {'south': 'vent'}),
-      box((.35, 4, 3), (.55, 12, 13), 'rubber', {'west': 'panel'}),
-      box((15.45, 4, 3), (15.65, 12, 13), 'rubber', {'east': 'panel'}),
-      box((3, 15.5, 3), (13, 15.7, 13), 'rubber', {'up': 'panel'}),
-      box((2.5, 2, .3), (4.5, 2.4, .55), 'copper_trim'), box((11.5, 2, .3), (13.5, 2.4, .55), 'copper_trim')]
-json_file('models/block/reactor_casing.json', {'parent': 'minecraft:block/block', 'textures': TEXTURES, 'elements': e})
+# Large clean casing panels stay readable as a complete multiblock ring.
+e=[box((.35,.35,.35),(15.65,15.65,15.65),'ceramic')]
+for x in (0,14.5):
+ for z in (0,14.5):e.append(box((x,0,z),(x+1.5,16,z+1.5),'graphite'))
+for z in (.28,15.65):
+ e.append(box((2.5,2.5,z),(13.5,13.5,z+.07),'ceramic'))
+for x in (2.1,13.9):
+ for y in (2.1,13.9):pin(e,x,y,.22)
+json_file('models/block/reactor_casing.json',{'parent':'minecraft:block/block','textures':TEXTURES,'elements':e})
+# Connected matter conduit: ceramic collars around a dark line; six state-driven arms remain unchanged.
+core=[box((5,5,5),(11,11,11),'ceramic'),box((6,6,4.8),(10,10,5.05),'graphite',{'north':'port_matter'})]
+arm=[box((6.3,6.3,1.3),(9.7,9.7,6),'graphite'),box((5.4,5.4,0),(10.6,10.6,1.3),'ceramic'),
+     box((6.1,6.1,1.3),(9.9,9.9,1.6),'copper_trim')]
+json_file('models/block/matter_pipe.json',{'parent':'minecraft:block/block','textures':TEXTURES,'elements':core})
+json_file('models/block/matter_pipe_arm.json',{'parent':'minecraft:block/block','textures':TEXTURES,'elements':arm})
+multipart=[{'apply':{'model':'rematter:block/matter_pipe'}}]
+for side,rotation in [('north',{}),('east',{'y':90}),('south',{'y':180}),('west',{'y':270}),('up',{'x':270}),('down',{'x':90})]:
+ multipart.append({'when':{side:'true'},'apply':{'model':'rematter:block/matter_pipe_arm',**rotation}})
+json_file('blockstates/matter_pipe.json',{'multipart':multipart})
+rear_arm=copy.deepcopy(arm)
+for element in rear_arm:element['from'][2],element['to'][2]=16-element['to'][2],16-element['from'][2]
+json_file('models/item/matter_pipe.json',{'parent':'minecraft:block/block','textures':TEXTURES,'elements':core+arm+rear_arm})
+json_file('items/matter_pipe.json',{'model':{'type':'minecraft:model','model':'rematter:item/matter_pipe'}})
+print(f'Generated {len(models)} Clean Lab machine models, state variants, complete item models, pipe parts and original materials.')
 
-# Pipe manifold plus six independently selected arms. Dark conduit, steel couplings, slim copper collars.
-core = [box((5, 5, 5), (11, 11, 11), 'frame'),
-        box((6, 6, 4.8), (10, 10, 5.05), 'rubber', {'north': 'port_matter'}),
-        box((6, 10.95, 6), (10, 11.15, 10), 'rubber', {'up': 'panel'})]
-arm = [box((6, 6, 0), (10, 10, 6), 'graphite'), box((5.3, 5.3, 0), (10.7, 10.7, 1), 'frame'),
-       box((5.65, 5.65, 1), (10.35, 10.35, 1.45), 'copper_trim'),
-       box((5.3, 5.3, 0), (10.7, 5.55, 1), 'brushed_steel'),
-       box((7.5, 9.95, 1.6), (8.5, 10.08, 4.8), 'status', shade=False)]
-json_file('models/block/matter_pipe.json', {'parent': 'minecraft:block/block', 'textures': TEXTURES, 'elements': core})
-json_file('models/block/matter_pipe_arm.json', {'parent': 'minecraft:block/block', 'textures': TEXTURES, 'elements': arm})
-multipart = [{'apply': {'model': 'rematter:block/matter_pipe'}}]
-for side, rotation in [('north', {}), ('east', {'y': 90}), ('south', {'y': 180}), ('west', {'y': 270}), ('up', {'x': 270}), ('down', {'x': 90})]:
-    multipart.append({'when': {side: 'true'}, 'apply': {'model': 'rematter:block/matter_pipe_arm', **rotation}})
-json_file('blockstates/matter_pipe.json', {'multipart': multipart})
-rear_arm = copy.deepcopy(arm)
-for element in rear_arm:
-    element['from'][2], element['to'][2] = 16 - element['to'][2], 16 - element['from'][2]
-json_file('models/item/matter_pipe.json', {'parent': 'minecraft:block/block', 'textures': TEXTURES, 'elements': core + arm + rear_arm})
-json_file('items/matter_pipe.json', {'model': {'type': 'minecraft:model', 'model': 'rematter:item/matter_pipe'}})
-print(f'Generated {len(models)} machine models, state variants, complete item models, pipe parts and original pixel materials.')
+# Clear laboratory glass: cutout highlights leave the chamber genuinely visible.
+def glass_pixel(x,y):
+    if x in (0,31) or y in (0,31): return rgba(PALETTE['steel'])
+    if x in (1,30) or y in (1,30): return rgba((199,220,215))
+    if 5 <= x <= 11 and y == 26-x or 21 <= x <= 25 and y == 29-x:
+        return rgba((205,229,224))
+    return (0,0,0,0)
+png('textures/block/reactor_glass.png',32,32,glass_pixel)
+glass_textures=TEXTURES|{'glass':'rematter:block/reactor_glass'}
+e=[box((.55,.55,.55),(15.45,15.45,15.45),'glass')]
+for x in (0,15.2):
+ for z in (0,15.2):e.append(box((x,0,z),(x+.8,16,z+.8),'ceramic'))
+for y in (0,15.2):
+ for z in (0,15.2):e.append(box((.8,y,z),(15.2,y+.8,z+.8),'ceramic'))
+ for x in (0,15.2):e.append(box((x,y,.8),(x+.8,y+.8,15.2),'ceramic'))
+json_file('models/block/reactor_glass.json',{'parent':'minecraft:block/block','textures':glass_textures,'elements':e})
+json_file('blockstates/reactor_glass.json',{'variants':{'':{'model':'rematter:block/reactor_glass'}}})
+json_file('items/reactor_glass.json',{'model':{'type':'minecraft:model','model':'rematter:block/reactor_glass'}})
+# A single combined connector is deliberately the same on every service face.
+def combined_port(x,y):
+    if min(x,y,31-x,31-y)<3:return rgba(PALETTE['ceramic'],4 if x<2 or y<2 else 0)
+    if (x in (5,26) and y in (5,26)):return rgba(PALETTE['copper'])
+    if min(x,y,31-x,31-y)<7:return rgba(PALETTE['graphite'])
+    if x in (7,24) or y in (7,24):return rgba(PALETTE['steel'], -25)
+    if (10 <= x <= 12 and 11 <= y <= 20) or (11 <= x <= 15 and y in (14,15)):
+        return rgba(PALETTE['copper_light'])
+    if (x in (19,20) and 12 <= y <= 20) or (17 <= x <= 22 and y in (12,19,20)):
+        return rgba(PALETTE['cyan'])
+    return rgba(PALETTE['rubber'])
+png('textures/block/port_combined.png',32,32,combined_port)
+json_file('models/block/machine_port.json',{'parent':'minecraft:block/cube_all','textures':{'all':'rematter:block/port_combined'}})
+json_file('blockstates/machine_port.json',{'variants':{'':{'model':'rematter:block/machine_port'}}})
+json_file('items/machine_port.json',{'model':{'type':'minecraft:model','model':'rematter:block/machine_port'}})

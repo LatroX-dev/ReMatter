@@ -17,14 +17,17 @@ public final class MachineMotion {
         // Hidden or unloaded mechanisms do not catch up with a sudden burst.
         double elapsed = Math.clamp(time - lastTime, 0, 5);
         lastTime = time;
-        double target = active ? 1 : 0;
-        double damping = active ? 0.28 : 0.38;
+        if (elapsed == 0) return;
+        // A blocked or paused job does no visual work. Retain its exact pose so
+        // stopping does not snap a press or scanner back through its chamber.
+        if (!active) { drive = 0; return; }
+        double damping = 0.28;
         double decay = Math.exp(-damping * elapsed);
-        // Integrating speed keeps the angle continuous when power changes.
-        double travelled = target * elapsed + (drive - target) * (1 - decay) / damping;
+        // Integrating the starting speed makes every restart smooth, without
+        // moving through time during which the server reported no work.
+        double travelled = elapsed + (drive - 1) * (1 - decay) / damping;
         phase = (phase + travelled / 80) % 1;
-        drive = target + (drive - target) * decay;
-        if (!active && drive < 0.001) drive = 0;
+        drive = 1 + (drive - 1) * decay;
     }
 
     public float phase() { return (float) phase; }

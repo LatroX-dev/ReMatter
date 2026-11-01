@@ -2,15 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "PI",
+    "FC"
   ],
   "key": {
+    "P": "minecraft:piston",
     "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:piston"
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:decomposer",

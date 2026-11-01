@@ -1,17 +1,13 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "minecraft:crafting_shapeless",
   "category": "misc",
-  "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+  "ingredients": [
+    "minecraft:piston",
+    "minecraft:glass",
+    "rematter:matrix_crystal",
+    "rematter:machine_frame",
+    "rematter:control_circuit"
   ],
-  "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:diamond"
-  },
   "result": {
     "id": "rematter:material_synthesizer",
     "count": 1

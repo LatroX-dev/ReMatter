@@ -3,14 +3,14 @@ navigation:
   title: Upgrades
   icon: rematter:speed_upgrade
   parent: index.md
-  position: 8
+  position: 9
 item_ids:
   - rematter:speed_upgrade
   - rematter:efficiency_upgrade
 ---
 # Upgrades
 
-Processing machines have one upgrade slot below the input and output. It holds up to **four upgrades of one type**.
+Open a processing machine's **Settings** to reach its upgrade slot. It holds up to **four upgrades of one type**.
 
 ## Speed
 
@@ -26,4 +26,4 @@ Each <ItemLink id="rematter:efficiency_upgrade" /> reduces FE per operation by *
 
 The Industrial Reactor's base throughput is twice that of the Chemical Reactor. Upgrades scale from that base. They do not bypass its casing requirement.
 
-Changing upgrade type or count restarts an unfinished process. Inputs and energy are consumed only when the entire result can be committed. Storage and Terminal do not process recipes and do not benefit from these upgrades.
+Changing upgrade type or count restarts an unfinished process. Inputs and energy are consumed only when the entire result can be committed. Drive, Storage and Terminal do not process recipes and do not benefit from these upgrades.

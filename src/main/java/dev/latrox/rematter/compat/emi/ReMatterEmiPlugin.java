@@ -14,9 +14,12 @@ import dev.latrox.rematter.chemistry.ProcessType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
+import dev.latrox.rematter.compat.PreparationDisplay;
+import dev.latrox.rematter.content.preparation.PreparationRecipes;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -27,21 +30,29 @@ import net.minecraft.world.item.ItemStack;
 @EmiEntrypoint
 public final class ReMatterEmiPlugin implements EmiPlugin {
     private static volatile ChemistryRegistry displayed;
+    private static volatile List<PreparationRecipes.Entry> displayedPreparation = List.of();
     private static boolean reloadWarningLogged;
     static {
         ClientChemistry.addListener(catalogue -> {
-            if (catalogue == displayed || Minecraft.getInstance().level == null) return;
-            // SEMI 1.1.24 for 26.1.2 has no public API to rebuild recipes after custom data sync.
-            // Its reload manager coalesces requests while a reload is already running.
-            try {
-                if (EmiReloadManager.getStatus() != 0) EmiReloadManager.reload();
-            } catch (LinkageError | RuntimeException exception) {
-                if (!reloadWarningLogged) {
-                    reloadWarningLogged = true;
-                    LogUtils.getLogger().warn("ReMatter cannot refresh this SEMI version after chemistry sync; reconnect to refresh recipes", exception);
-                }
-            }
+            if (catalogue != displayed) refreshRecipes();
         });
+        PreparationRecipes.addClientListener(catalogue -> {
+            if (catalogue != displayedPreparation) refreshRecipes();
+        });
+    }
+
+    private static void refreshRecipes() {
+        if (Minecraft.getInstance().level == null) return;
+        // SEMI 1.1.24 for 26.1.2 has no public API to rebuild after an extra native recipe sync.
+        // The installed reload manager coalesces requests while a reload is already running.
+        try {
+            if (EmiReloadManager.getStatus() != 0) EmiReloadManager.reload();
+        } catch (LinkageError | RuntimeException exception) {
+            if (!reloadWarningLogged) {
+                reloadWarningLogged = true;
+                LogUtils.getLogger().warn("ReMatter cannot refresh this SEMI version after recipe sync; reconnect to refresh recipes", exception);
+            }
+        }
     }
 
     @Override public void initialize(EmiInitRegistry registry) {
@@ -51,6 +62,19 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     @Override public void register(EmiRegistry registry) {
         ChemistryRegistry catalogue = ClientChemistry.current();
         displayed = catalogue;
+        displayedPreparation = PreparationRecipes.clientRecipes();
+        var preparationCategories = new EnumMap<MachineKind, EmiRecipeCategory>(MachineKind.class);
+        for (var machine : PreparationDisplay.MACHINES) {
+            var preparation = new EmiRecipeCategory(Identifier.fromNamespaceAndPath("rematter", "preparation/" + machine.id()),
+                    EmiStack.of(ModContent.MACHINES.get(machine).get())) {
+                @Override public Component getName() { return Component.translatable("block.rematter." + machine.id()); }
+            };
+            preparationCategories.put(machine, preparation);
+            registry.addCategory(preparation);
+            registry.addWorkstation(preparation, (EmiStack) preparation.icon);
+        }
+        for (var recipe : PreparationDisplay.from(displayedPreparation))
+            registry.addRecipe(new PreparationEmiRecipe(preparationCategories.get(recipe.machine()), recipe));
         EmiRecipeCategory decomposition = category("decomposition", "Decomposition", MachineKind.DECOMPOSER);
         EmiRecipeCategory synthesis = category("synthesis", "Synthesis", MachineKind.SYNTHESIZER);
         EmiRecipeCategory electrolysis = category("electrolysis", "Electrolysis", MachineKind.ELECTROLYZER);
