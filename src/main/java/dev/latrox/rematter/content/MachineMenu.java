@@ -28,7 +28,8 @@ public final class MachineMenu extends AbstractContainerMenu {
         this.inventory = inventory;
         this.machine = machine;
         this.player = playerInventory.player;
-        addSlot(new Slot(inventory, 0, 18, 70) {
+        // Shared fixed client/server layout: role changes never replace slots or alter their inventory identity.
+        addSlot(new Slot(inventory, 0, 44, 62) {
             @Override public boolean mayPlace(ItemStack stack) {
                 return (kind() != MachineKind.DRIVE || stack.getItem() instanceof MatterCellItem && stack.getCount() == 1)
                         && inventory.canPlaceItem(0, stack);
@@ -37,18 +38,18 @@ public final class MachineMenu extends AbstractContainerMenu {
             @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player) && (kind() != MachineKind.DRIVE || machine.canRemoveCell()); }
             @Override public boolean isActive() { return kind() == MachineKind.DRIVE || inputRole() && !settingsOpen || settingsOpen && hasItem(); }
         });
-        addSlot(new Slot(inventory, 1, 80, 70) {
+        addSlot(new Slot(inventory, 1, 188, 62) {
             @Override public boolean mayPlace(ItemStack stack) { return false; }
             @Override public boolean isActive() { return !settingsOpen && (PreparationTier.isPreparation(kind()) || kind() == MachineKind.SYNTHESIZER && (!snapshot.preview().outputKind().equals("fluid") || hasItem())) || settingsOpen && hasItem(); }
         });
-        addSlot(new Slot(inventory, 2, 50, 108) {
+        addSlot(new Slot(inventory, 2, 44, 100) {
             @Override public boolean mayPlace(ItemStack stack) { return inventory.canPlaceItem(2, stack); }
             @Override public int getMaxStackSize() { return 4; }
             @Override public boolean isActive() { return settingsOpen && (kind().processes() && !PreparationTier.manual(kind()) || hasItem()); }
         });
         Container cellInventory = inventory.getContainerSize() > 3 ? inventory : new SimpleContainer(1);
         int cellIndex = inventory.getContainerSize() > 3 ? 3 : 0;
-        addSlot(new Slot(cellInventory, cellIndex, 16, 180) {
+        addSlot(new Slot(cellInventory, cellIndex, 80, 62) {
             @Override public boolean mayPlace(ItemStack stack) {
                 if(PreparationTier.isPreparation(kind()))return cellInventory.canPlaceItem(cellIndex,stack);
                 return MachineCellAccess.hasLocalSlot(kind()) && stack.getItem() instanceof MatterCellItem
@@ -58,7 +59,7 @@ public final class MachineMenu extends AbstractContainerMenu {
             @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player) && machine.canRemoveCell(); }
             @Override public boolean isActive() { return MachineCellAccess.hasLocalSlot(kind()) || PreparationTier.isPreparation(kind()); }
         });
-        addStandardInventorySlots(playerInventory, 149, 160);
+        addStandardInventorySlots(playerInventory, 47, 158);
     }
     public MachineKind kind() { return machine == null ? MachineKind.values()[snapshot.kind()] : machine.kind(); }
     public boolean inputRole() { return kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER || PreparationTier.isPreparation(kind()); }

@@ -21,7 +21,7 @@ The iron Machine Frame supports the machine, the copper Control Circuit controls
 3. **Power both machines.** Place them where their fronts are accessible and connect an external FE supply. They do not need a Drive or a connection to each other for this first experiment.
 4. **Store sand.** Insert the Cell in the Decomposer's dedicated Cell slot and put sand in its material input. Press **Start**. The completed batch stores silica in the Cell.
 5. **Move the Cell.** Take it out of the Decomposer and insert it in the Synthesizer's Cell slot. Changing a Cell pauses the machine; it does not start another job.
-6. **Make glass.** Press **Choose product**, select **Glass**, confirm with **Use recipe**, then press **Make once**. Collect the glass from the output.
+6. **Make glass.** Press **Choose recipe** (or **Recipe** to change an existing selection), select **Glass**, confirm with **Use recipe**, then press **Start**. Collect the glass from the output.
 
 The default batch turns one sand into enough stored silica for one glass, using 24,000 FE across both machines. It does not multiply material. The same stored feedstock can later serve other explicitly supported products.
 
@@ -33,9 +33,9 @@ Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **51
 
 The 64k Cell uses one Matrix Crystal. A Matrix Cluster combines four Crystals, Rhedon and Virel; one Cluster goes into a 256k Cell. A 1M Cell uses four Clusters and an Optical Circuit, made from a Control Circuit, Lumin and glass. All Cells also need their iron/glass housing. Larger Cells are crafted empty and do not consume your old Cell.
 
-A Cell inserted directly in a Decomposer or Synthesizer is that machine's active stock. It takes priority over a connected network, even when empty or full. Remove it to use network storage instead. The machine shows which source it is using.
+A Cell inserted directly in a Decomposer or Synthesizer is that machine's active stock. It takes priority over a connected network, even when empty or full. Remove it to use network storage instead. Open **Details** to check which source the machine is using.
 
-For continuous production, add a **Matter Drive**, put the Cell in it, and connect the two processors. Leave their local Cell slots empty. Hoppers and chests feed input and collect output; enable **Automation** and the Synthesizer's **Repeat** mode. The Drive replaces hand-carried Cell transfers.
+For continuous production, add a **Matter Drive**, put the Cell in it, and connect the two processors. Leave their local Cell slots empty. Hoppers and chests feed input and collect output; enable **Automation** under **Details** on both processors and press **Run nonstop** under the Synthesizer's **Details**. The Drive replaces hand-carried Cell transfers.
 
 Use one Drive or original Matter Storage per network. Matter Pipes bridge gaps but do not carry FE. A Matter Terminal gives another view of the connected stock. Existing Matter Storages retain their built-in contents and need no Cell.
 
@@ -75,7 +75,7 @@ Pause before rebuilding and follow the displayed reason if a shell or module is 
 
 The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. Small forms use complete batches: nine supported nuggets represent one ingot without rounded fractions. Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions.
 
-Machines belong to their placer. Connected machines need the same owner and loaded chunks. **Make once** means one displayed recipe batch. **Repeat** keeps producing; **Pause** keeps pending work. Selecting another recipe cancels the old request and waits for a new instruction. A Cell change pauses work and resets unfinished progress without spending its uncommitted resources.
+Machines belong to their placer. Connected machines need the same owner and loaded chunks. On the Synthesizer, Electrolyzer and reactors, **Start** requests one displayed recipe batch. **Details → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction. A Cell change pauses work and resets unfinished progress without spending its uncommitted resources.
 
 Filled machines and Cells retain their contents when carried. Mechanisms animate while processing and stop when work waits; the menu explains the reason.
 

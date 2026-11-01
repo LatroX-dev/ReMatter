@@ -26,9 +26,9 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     public static final MachineSnapshot EMPTY = new MachineSnapshot(-1, 0, 0, 0, 0, "idle", -1, "", "", 0, 1,
             List.of(), true, 0, 0, false, false, 0, "", false, 0, Preview.EMPTY, CellView.EMPTY);
     public MachineSnapshot {
-        selectedName = clipped(selectedName, 256);
-        status = clipped(status, 64);
-        fluidName = clipped(fluidName, 64);
+        selectedName = Fields.clipped(selectedName, 256);
+        status = Fields.clipped(status, 64);
+        fluidName = Fields.clipped(fluidName, 64);
         entries = List.copyOf(entries);
         if (preview == null || cell == null || structure == null || selectedId.length() > MAX_CHOICE_ID_LENGTH || choiceCount < 0 || choiceCount > MachineChoices.MAX_CHOICES
                 || selected < -1 || selected >= choiceCount
@@ -90,22 +90,22 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     public record CellView(boolean installed, boolean readable, String name, long capacity, int types, int maxTypes) {
         public static final CellView EMPTY = new CellView(false,false,"",0,0,0);
         public CellView {
-            name=clipped(name,256);
+            name=Fields.clipped(name,256);
             if(capacity<0 || types<0 || maxTypes<0 || maxTypes>MatterCellData.MAX_TYPES || types>maxTypes
                     || readable&&!installed)throw new IllegalArgumentException("Invalid cell view");
         }
     }
     public record Entry(String id, String name, String phase, long amount, long available) {
         public Entry {
-            validateSubstance(id, phase);
-            name = clipped(name, 256);
+            Fields.validateSubstance(id, phase);
+            name = Fields.clipped(name, 256);
             if (amount < 0 || available < 0 || available > amount) throw new IllegalArgumentException("Invalid displayed stock");
         }
     }
     public record Amount(String id, String name, String phase, long required, long available) {
         public Amount {
-            validateSubstance(id, phase);
-            name = clipped(name, 256);
+            Fields.validateSubstance(id, phase);
+            name = Fields.clipped(name, 256);
             if (required <= 0 || available < 0) throw new IllegalArgumentException("Invalid displayed requirement");
         }
     }
@@ -113,7 +113,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                           long energy, int ticks, String outputKind, String outputId, int outputCount) {
         public static final Preview EMPTY = new Preview("", "", List.of(), List.of(), true, 0, 0, "none", "", 0);
         public Preview {
-            inputs = List.copyOf(inputs); outputs = List.copyOf(outputs); name = clipped(name, 256);
+            inputs = List.copyOf(inputs); outputs = List.copyOf(outputs); name = Fields.clipped(name, 256);
             if (id.length() > MAX_CHOICE_ID_LENGTH || outputId.length() > MAX_SUBSTANCE_ID_LENGTH
                     || inputs.size() > MAX_PREVIEW_AMOUNTS || outputs.size() > MAX_PREVIEW_AMOUNTS
                     || energy < 0 || ticks < 0 || outputCount < 0 || outputCount > 16_000
@@ -126,13 +126,17 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
             }
         }
     }
-    private static void validateSubstance(String id, String phase) {
-        if (id.length() > MAX_SUBSTANCE_ID_LENGTH || !Set.of("solid", "liquid", "gas").contains(phase)) {
-            throw new IllegalArgumentException("Invalid displayed substance");
+    /** Nested EMPTY values must not initialize the enclosing snapshot while their own initialization is in progress. */
+    private static final class Fields {
+        private Fields() {}
+        static void validateSubstance(String id, String phase) {
+            if (id.length() > MAX_SUBSTANCE_ID_LENGTH || !Set.of("solid", "liquid", "gas").contains(phase)) {
+                throw new IllegalArgumentException("Invalid displayed substance");
+            }
+            SubstanceId.parse(id);
         }
-        SubstanceId.parse(id);
+        static String clipped(String value, int maximum) { return value.length() > maximum ? value.substring(0, maximum) : value; }
     }
-    private static String clipped(String value, int maximum) { return value.length() > maximum ? value.substring(0, maximum) : value; }
     public static final StreamCodec<RegistryFriendlyByteBuf, MachineSnapshot> CODEC = new StreamCodec<>() {
         @Override public MachineSnapshot decode(RegistryFriendlyByteBuf buffer) {
             int container = buffer.readVarInt();

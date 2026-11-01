@@ -23,7 +23,7 @@ Once [sand-to-glass](copper.md) works, add a **Matter Drive** for continuous pro
 
 Place Decomposer, Drive and Synthesizer in a touching row. Put the Cell in the Drive. **Leave the two processors' local Cell slots empty.**
 
-An inserted local Cell always takes priority over a network, even when empty, full or unreadable. Removing it selects the connected storage instead. Check the displayed source before starting work.
+An inserted local Cell always takes priority over a network, even when empty, full or unreadable. Removing it selects the connected storage instead. Check the source under **Details** before starting work.
 
 The Drive needs no FE. Both processors still need their own FE connections.
 
@@ -59,11 +59,11 @@ You can dig space below the Synthesizer for its hopper and chest.
 
 ## 3. Start continuous production
 
-Enable **Automation** in both processors' **Settings**. Press **Start** on the Decomposer if it is paused.
+Enable **Automation** in both processors' **Details**. Press **Start** on the Decomposer if it is paused.
 
-Select **Glass** on the Synthesizer and enable **Repeat**. Put sand in the input chest. The line now produces glass without further menu clicks while input, power and space remain available.
+On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then open **Details** and press **Run nonstop**. Put sand in the input chest. The line now produces glass without further menu clicks while input, power and space remain available.
 
-Hoppers do not select recipes or request synthesis jobs. Repeat supplies the continuing requests. **Pause** keeps pending work; changing the product cancels the old request.
+Hoppers do not select recipes or request synthesis jobs. **Run nonstop** supplies the continuing requests. **Stop repeat** stops continuous production. **Pause** keeps the current order and **Resume** continues it; changing the product cancels the old request.
 
 ## Larger Cells
 

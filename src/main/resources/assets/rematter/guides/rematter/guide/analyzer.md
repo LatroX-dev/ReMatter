@@ -14,7 +14,7 @@ The <ItemLink id="rematter:analyzer" /> shows a supported sample's composition a
 1. Place the Analyzer and connect external FE.
 2. Put a copper ingot in its input.
 3. The new sample starts a scan automatically.
-4. After the scan, read **1,000 units of solid copper** and take your ingot back.
+4. After the scan, hover the recipe title to inspect **1,000 units of solid copper**, then take your ingot back.
 
 An unupgraded scan costs **500 FE** and takes **40 ticks**. Results appear after completion. The scanner stops when finished. Its completed result is kept when you reopen the world, provided the sample and recipe are unchanged. Inserting a new sample starts the next scan.
 
@@ -28,7 +28,7 @@ An unupgraded scan costs **500 FE** and takes **40 ticks**. Results appear after
 
 ## Read the batch size
 
-You can scan a single nugget. **Amounts per 9 items** means the displayed composition describes nine nuggets; your sample is still kept. The Decomposer needs all nine to process that batch.
+You can scan a single nugget, but its composition is reported for the complete recipe batch. For a nine-nugget profile, the quantities describe **nine nuggets**, not the single sample. Your sample is still kept; the Decomposer needs all nine to process that batch.
 
 Unsupported or modified items cannot provide a usable analysis. A missing profile never becomes arbitrary replacement material. Analysis does not grant permission to synthesize the original item.
 

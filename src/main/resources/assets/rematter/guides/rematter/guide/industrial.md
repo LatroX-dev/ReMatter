@@ -85,9 +85,9 @@ This minimum **3 wide × 3 deep × 4 high** glass example uses **24 Casings, 7 G
 
 A Port connects only on its **outside face**. In the example, the left Port receives external FE. The upper front Port connects one owned Matter Drive with a Cell, or an original Matter Storage; a Matter Pipe can bridge the gap. The controller, Casings, Glass and internal modules are not transfer connections.
 
-Ports are general-purpose connections and hold no separate stock. Item and fluid transfers require **Automation** in the controller's Settings. Reaction ingredients and outputs remain quantities in the connected storage.
+Ports are general-purpose connections and hold no separate stock. Item and fluid transfers require **Automation** in the controller's **Details**. Reaction ingredients and outputs remain quantities in the connected storage.
 
-Press **Choose process**, inspect a recipe, confirm with **Use recipe**, then press **Run once**. Enable **Repeat** separately for continuing work. Open **Settings** for upgrades.
+Press **Choose recipe** (or **Recipe** to change the selection), inspect a recipe, confirm with **Use recipe**, then press **Start** for one batch. Open **Details** for upgrades and **Run nonstop**. **Stop repeat** stops continuous production; **Pause** and **Resume** retain the current order.
 
 ## Fit another complete column
 

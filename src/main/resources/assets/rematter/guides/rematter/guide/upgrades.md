@@ -10,7 +10,7 @@ item_ids:
 ---
 # Upgrades
 
-Open a processing machine's **Settings** to reach its upgrade slot. It holds up to **four upgrades of one type**.
+Open a processing machine's **Details** to reach its upgrade slot. It holds up to **four upgrades of one type**.
 
 ## Speed
 

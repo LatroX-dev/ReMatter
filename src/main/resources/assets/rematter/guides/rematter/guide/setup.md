@@ -68,7 +68,7 @@ The machines do not need to touch for this manual setup. You carry the Cell betw
   <Block x="0" y="1" id="rematter:decomposer" />
   <Block x="2" y="1" id="rematter:material_synthesizer" />
   <BlockAnnotation x="0" y="1" color="#63d8bf">Decomposer: Cell in the dedicated Cell slot, sand in the material input, then Start.</BlockAnnotation>
-  <BlockAnnotation x="2" y="1" color="#8dcfff">Synthesizer: insert that same Cell, choose Glass, then Make once.</BlockAnnotation>
+  <BlockAnnotation x="2" y="1" color="#8dcfff">Synthesizer: insert that same Cell, choose Glass with Choose recipe, confirm Use recipe, then Start.</BlockAnnotation>
   <LineAnnotation from="0.7 1.7 0" to="2.3 1.7 0" color="#e6b676" thickness="3">Move the filled Cell by hand. This line is an instruction, not a pipe.</LineAnnotation>
   <LineAnnotation from="0.5 1.5 1" to="0.5 1.5 2" color="#f7bb56" thickness="3">External FE connection for the Decomposer.</LineAnnotation>
   <LineAnnotation from="2.5 1.5 1" to="2.5 1.5 2" color="#f7bb56" thickness="3">External FE connection for the Synthesizer.</LineAnnotation>

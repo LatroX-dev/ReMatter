@@ -27,9 +27,9 @@ A Drive needs its own inserted Cell. An original Matter Storage has built-in cap
 
 Inserting or removing a Cell pauses the processor and resets unfinished progress. Its uncommitted input and FE are kept.
 
-Press **Start** on the Decomposer. On the Synthesizer, choose the product and press **Make once**, or deliberately enable **Repeat**. If a pending job is paused, **Resume** continues it.
+Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or **Recipe**, choose the product, confirm with **Use recipe** and press **Start**. For continuous production, use **Details → Run nonstop**. **Stop repeat** stops that mode. If a pending job is paused, **Resume** continues the same order.
 
-Changing the connected storage also pauses work. Confirm the intended source before resuming.
+Changing the connected storage also pauses work. Confirm the intended source under **Details** before resuming.
 
 ## Supply power
 
