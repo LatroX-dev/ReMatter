@@ -37,7 +37,8 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                 || progress < 0 || duration < 0 || progress > duration || used < 0 || capacity < used
                 || queuedBatches < 0 || queuedBatches > MachineRunState.MAX_QUEUED_BATCHES || (repeat && queuedBatches != 0)
                 || fluidAmount < 0 || fluidAmount > 16_000
-                || !Set.of("none", "local", "network").contains(storageSource)) throw new IllegalArgumentException("Invalid menu snapshot");
+                || !Set.of("none", "local", "network", "legacy").contains(storageSource)
+                || storageSource.equals("legacy") && kind != MachineKind.STORAGE.ordinal()) throw new IllegalArgumentException("Invalid menu snapshot");
         if (structure.formed()) {
             var machineKind=MachineKind.values()[kind];
             if(!IndustrialStructure.isIndustrial(machineKind) || structure.height()<IndustrialStructure.height(machineKind))
@@ -215,7 +216,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     };
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("8").playToClient(TYPE, CODEC, (snapshot, context) -> {
+        event.registrar("9").playToClient(TYPE, CODEC, (snapshot, context) -> {
             if (context.player().containerMenu instanceof MachineMenu menu && menu.containerId == snapshot.containerId) menu.acceptSnapshot(snapshot);
         });
     }

@@ -218,6 +218,19 @@ public final class MatterInventory {
         }
     }
 
+    /** Moves the entire unreserved inventory to an empty destination, or leaves both owners unchanged. */
+    public boolean transferAllTo(MatterInventory destination) {
+        Objects.requireNonNull(destination, "destination");
+        synchronized (MUTATION_LOCK) {
+            if (destination == this || destination.total != 0 || !reservations.isEmpty() || !destination.reservations.isEmpty()
+                    || !destination.canApplyLocked(Map.of(), contents, null)) return false;
+            destination.applyLocked(Map.of(), contents);
+            contents.clear();
+            total = 0;
+            return true;
+        }
+    }
+
     /** Moves only what the destination can retain. No intermediate resource ownership is exposed. */
     public long transferTo(MatterInventory destination, SubstanceKey key, long maximum) {
         Objects.requireNonNull(destination, "destination");

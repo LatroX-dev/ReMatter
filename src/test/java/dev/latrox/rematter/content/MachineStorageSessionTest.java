@@ -7,15 +7,16 @@ import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineStorageSessionTest {
-    @Test void installingALocalCellOverridesNetworkRegardlessOfItsReadabilityOrCapacity() {
+    @Test void oldProcessorCellSlotsRemainRecoverableButNeverOverrideNetworkStorage() {
         for (var kind : new MachineKind[]{MachineKind.DECOMPOSER,MachineKind.SYNTHESIZER}) {
             assertEquals(3,MachineCellAccess.slot(kind));
             assertEquals(4,MachineCellAccess.inventorySize(kind));
-            // Presence selects the source. A full or unknown-schema cell must not fall back.
-            assertTrue(MachineCellAccess.usesOwnStorage(kind,true));
+            // A saved full or unknown cell is recovery-only, never another active resource owner.
+            assertFalse(MachineCellAccess.usesOwnStorage(kind,true));
             assertFalse(MachineCellAccess.usesOwnStorage(kind,false));
         }
         assertEquals(0,MachineCellAccess.slot(MachineKind.DRIVE));
+        assertEquals(0,MachineCellAccess.slot(MachineKind.STORAGE));
         assertEquals(3,MachineCellAccess.inventorySize(MachineKind.DRIVE));
         assertTrue(MachineCellAccess.usesOwnStorage(MachineKind.DRIVE,false));
         assertTrue(MachineCellAccess.usesOwnStorage(MachineKind.STORAGE,false));

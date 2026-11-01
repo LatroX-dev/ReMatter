@@ -9,6 +9,21 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineSnapshotTest {
+    @Test void legacyStorageAndStagedDiskRoundTripAsDistinctResourceOwners() {
+        var disk = new MachineSnapshot.CellView(true,true,"64k Matter Cell",64000,0,512);
+        var snapshot = new MachineSnapshot(3,MachineKind.STORAGE.ordinal(),0,0,0,"ready",-1,"","",0,1,
+                List.of(new MachineSnapshot.Entry("rematter:copper","Copper","solid",70000,70000)),true,
+                70000,1_000_000,false,false,0,"",false,0,MachineSnapshot.Preview.EMPTY,disk,"legacy");
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
+        try {
+            MachineSnapshot.CODEC.encode(buffer,snapshot);
+            assertEquals(snapshot,MachineSnapshot.CODEC.decode(buffer));
+            assertEquals(0,buffer.readableBytes());
+        } finally { buffer.release(); }
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot(3,MachineKind.SYNTHESIZER.ordinal(),
+                0,0,0,"ready",-1,"","",0,1,List.of(),true,0,0,false,false,0,"",false,0,
+                MachineSnapshot.Preview.EMPTY,disk,"legacy"));
+    }
     @Test void rectangularStructureAndEffectiveRateRoundTripWithoutChangingAxisOrder() {
         var structure = new MachineSnapshot.StructureView(4, 6, 5, 6,3,"ready");
         var snapshot = new MachineSnapshot(7, MachineKind.INDUSTRIAL_REACTOR.ordinal(), 64000, 2, 200, "working",

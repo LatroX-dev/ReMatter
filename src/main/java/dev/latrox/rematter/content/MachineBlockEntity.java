@@ -48,7 +48,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private final MatterCellMount cell = new MatterCellMount();
     private final MatterInventory unavailableCell = new MatterInventory(1);
     private final MachineStorageSession storageSession = new MachineStorageSession();
-    private CompoundTag preservedMatter;
+    private net.minecraft.nbt.Tag preservedMatter;
+    private MatterStorageState storageState = MatterStorageState.cell();
     private UUID owner;
     private boolean automation;
     private MachineRunState runState = MachineRunState.automatic();
@@ -59,6 +60,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private String job = "";
     private AnalysisState analysis = AnalysisState.EMPTY;
     private String status = "idle";
+    private String migrationFeedback = "";
+    private long migrationFeedbackUntil;
     private ChemistryRegistry lastRegistry;
     private BlockPos cachedStorage;
     private long nextNetworkScan;
@@ -108,7 +111,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
         if (supportsBatchControl()) runState = MachineRunState.manual();
         if (PreparationTier.manual(kind())) runState = MachineRunState.manual();
-        if (kind() == MachineKind.DRIVE) matter = new MatterInventory(1);
+        if (kind().isStorage()) matter = new MatterInventory(1);
     }
     private boolean supportsBatchControl() {
         return kind() == MachineKind.SYNTHESIZER || kind() == MachineKind.ELECTROLYZER
@@ -120,7 +123,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public ResourceHandler<FluidResource> automatedFluids() { return automatedFluids; }
     public ResourceHandler<ItemResource> automatedItems(Direction side) {
         return new AutomationResourceHandler<>(new WorldlyContainerWrapper(this, Objects.requireNonNull(side)), this::automationAllowed,
-                kind() == MachineKind.DRIVE || IndustrialStructure.isIndustrial(kind()) ? 0 : PreparationTier.isPreparation(kind()) ? 3 : 2, ItemResource.EMPTY);
+                kind().isStorage() || IndustrialStructure.isIndustrial(kind()) ? 0 : PreparationTier.isPreparation(kind()) ? 3 : 2, ItemResource.EMPTY);
     }
     ResourceHandler<ItemResource> industrialItems() {
         return new IndustrialItemHandler(VanillaContainerWrapper.of(this), this::automationAllowed, PreparationTier.industrial(kind()));
@@ -202,16 +205,21 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public boolean canAccess(Player player) { return owner == null || owner.equals(player.getUUID()); }
     public @Nullable MachineSnapshot snapshotFor(Player player) { return canAccess(player) ? snapshot(-1) : null; }
     public MatterInventory matterInventory() {
-        if (kind() == MachineKind.DRIVE || hasLocalCell()) return cell.inventory() == null ? unavailableCell : cell.inventory();
+        if (kind().isStorage() && !legacyInternalStorage()) return cell.inventory() == null ? unavailableCell : cell.inventory();
         return matter;
     }
+    private boolean legacyInternalStorage() {
+        return kind() == MachineKind.STORAGE && storageState.mode().orElse(null) == MatterStorageState.Mode.LEGACY_INTERNAL;
+    }
     public int cellSlot() { return MachineCellAccess.slot(kind()); }
-    private boolean hasLocalCell() { return MachineCellAccess.hasLocalSlot(kind()) && !items.get(cellSlot()).isEmpty(); }
+    private boolean hasRecoveryCell() { return MachineCellAccess.hasLocalSlot(kind()) && !items.get(cellSlot()).isEmpty(); }
     private ItemStack cellStack() { return cellSlot() < 0 ? ItemStack.EMPTY : items.get(cellSlot()); }
     public boolean chemicalAutomationAllowed() {
         return kind().isStorage() && storageStatus().equals("ready") && automationAllowed();
     }
-    public boolean canRemoveCell() { return cellSlot() < 0 || cell.canRemove(); }
+    public boolean canRemoveCell() {
+        return cellSlot() < 0 || cell.canRemove() && (!legacyInternalStorage() || matter.snapshot().reservations().isEmpty());
+    }
     public boolean prepareCellRemoval() {
         if (!canRemoveCell()) return false;
         if (cellSlot() >= 0) cell.flush();
@@ -219,6 +227,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     private void mountCell() {
         cell.mount(cellStack());
+        migrationFeedback = "";
         if (MachineCellAccess.hasLocalSlot(kind())) {
             runState = runState.pause();
             resetProgress();
@@ -231,12 +240,41 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
     }
     private String storageStatus() {
-        if (kind().isStorage() && preservedMatter != null) return "unknown_schema";
-        if (kind() == MachineKind.DRIVE || hasLocalCell()) {
+        if (kind().isStorage() && (preservedMatter != null || storageState.mode().isEmpty())) return "unknown_schema";
+        if (kind().isStorage() && !legacyInternalStorage()) {
             if (cellStack().isEmpty()) return "missing_cell";
             if (!cell.readable(cellStack())) return "unknown_schema";
         }
         return "ready";
+    }
+    /** Called only by the authorized open menu. Neither insertion nor world load migrates resources. */
+    public boolean migrateLegacyStorageToCell() {
+        if (!isLiveServerMachine() || !legacyInternalStorage()) return false;
+        if (preservedMatter != null) return migrationRefused("unknown_schema");
+        if (!canRemoveCell()) return migrationRefused("migration_busy");
+        if (cellStack().isEmpty()) return migrationRefused("missing_cell");
+        if (!cell.readable(cellStack())) return migrationRefused("unknown_schema");
+        var destination = cell.inventory();
+        String readiness = LegacyStorageMigration.readiness(matter, destination);
+        if (!readiness.equals("ready")) return migrationRefused(readiness);
+        // Prepare the serializable component before the atomic ownership move; no callbacks occur between these steps.
+        var prepared = MatterInventory.restore(new MatterInventory.Snapshot(1, destination.capacity(),
+                matter.snapshot().contents(), List.of()), destination.maximumTypes());
+        var data = MatterCellData.from(prepared);
+        if (!LegacyStorageMigration.migrate(matter, destination)) return false;
+        cellStack().set(MatterCellData.TYPE.get(), data);
+        storageState = MatterStorageState.cell();
+        migrationFeedback = "";
+        status = "ready";
+        level.invalidateCapabilities(worldPosition);
+        setChanged();
+        return true;
+    }
+    private boolean migrationRefused(String reason) {
+        migrationFeedback = reason;
+        migrationFeedbackUntil = level.getGameTime() + 100;
+        status = reason;
+        return false;
     }
     @Override public void setChanged() {
         if (cell != null && cellSlot() >= 0) cell.flush();
@@ -282,7 +320,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return allowed;
     }
     public boolean hasStoredResources() {
-        return preservedMatter != null || matter.total() > 0 || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
+        return preservedMatter != null || kind() == MachineKind.STORAGE && storageState.mode().isEmpty()
+                || matter.total() > 0 || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
     }
     public void toggleAutomation() {
         automation = !automation;
@@ -414,7 +453,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         if (supportsBatchControl() && selection < 0) { status = "choose_process"; return; }
         if(PreparationTier.manual(kind())){tickManualPreparation(registry);return;}
-        if (kind().isStorage()) { status = storageStatus(); return; }
+        if (kind().isStorage()) {
+            status = !migrationFeedback.isEmpty() && level.getGameTime() < migrationFeedbackUntil ? migrationFeedback : storageStatus();
+            return;
+        }
         if (kind() == MachineKind.TERMINAL) {
             var store = networkStorage(false);
             status = store == null ? "no_storage" : store.storageStatus();
@@ -432,7 +474,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         // Inspection never transfers matter and therefore needs no storage/network.
         boolean needsStorage = kind() != MachineKind.ANALYZER && !PreparationTier.isPreparation(kind());
         MachineBlockEntity store = needsStorage ? storageOwner(false) : null;
-        if (needsStorage && store == null) { status = MachineCellAccess.hasLocalSlot(kind()) ? "missing_cell" : "no_storage"; return; }
+        if (needsStorage && store == null) { status = "no_storage"; return; }
         if (store != null && !store.storageStatus().equals("ready")) { status = store.storageStatus(); return; }
         if (store != null && !storageSession.accepts(store.matterInventory())) {
             runState = runState.pause(); resetProgress(); status = "storage_changed"; setChanged(); return;
@@ -625,7 +667,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     private MachineBlockEntity storageOwner(boolean force) {
-        return MachineCellAccess.usesOwnStorage(kind(), hasLocalCell()) ? this : networkStorage(force);
+        return MachineCellAccess.usesOwnStorage(kind(), hasRecoveryCell()) ? this : networkStorage(force);
     }
     private MachineBlockEntity networkStorage(boolean force) {
         if (kind().isStorage()) return this;
@@ -726,7 +768,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getHoverName().getString(),
                 supportsBatchControl() && runState.repeat(), supportsBatchControl() ? runState.queuedBatches() : 0, preview(registry, readableStorage ? store : null),
                 cellSlot() >= 0 ? cell.view(cellStack()) : MachineSnapshot.CellView.EMPTY,
-                store == null ? "none" : store == this ? "local" : "network", structure);
+                store == null ? "none" : store == this ? legacyInternalStorage() ? "legacy" : "local" : "network", structure);
     }
 
     private MachineSnapshot.Preview preview(ChemistryRegistry registry, MachineBlockEntity store) {
@@ -841,8 +883,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
         energy.serialize(output.child("power"));
         fluids.serialize(output.child("tank"));
-        if (preservedMatter != null) output.store("matter", CompoundTag.CODEC, preservedMatter);
-        else if (kind() != MachineKind.DRIVE) {
+        if (kind() == MachineKind.STORAGE) output.store("storage_state", MatterStorageState.CODEC, storageState);
+        if (preservedMatter != null) output.store("matter", MatterStorageState.RAW_CODEC, preservedMatter);
+        else if (!kind().isStorage() || legacyInternalStorage()) {
             ValueOutput storage = output.child("matter");
             storage.putInt("schema", 1);
             storage.putLong("capacity", matter.capacity());
@@ -873,26 +916,23 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).ifPresent(list -> { for (int i = 0; i < Math.min(items.size(), list.size()); i++) items.set(i, list.get(i)); });
         energy.deserialize(input.childOrEmpty("power"));
         fluids.deserialize(input.childOrEmpty("tank"));
-        preservedMatter = input.read("matter", CompoundTag.CODEC).orElse(null);
-        if (kind() == MachineKind.DRIVE) {
+        storageState = kind() == MachineKind.STORAGE
+                ? input.read("storage_state", MatterStorageState.CODEC).orElseGet(MatterStorageState::legacy)
+                : MatterStorageState.cell();
+        preservedMatter = input.read("matter", MatterStorageState.RAW_CODEC).orElse(null);
+        if (kind().isStorage() && !legacyInternalStorage()) {
             // Never import legacy internal contents into a second cell-owned inventory implicitly.
+            matter = new MatterInventory(1);
             cell.mount(cellStack());
-        } else try {
-            ValueInput storage = input.childOrEmpty("matter");
-            if (storage.getIntOr("schema", 1) != 1) throw new IllegalArgumentException("Unknown schema");
-            long capacity = storage.getLongOr("capacity", MATTER_CAPACITY);
-            List<SubstanceStack> contents = new ArrayList<>();
-            for (ValueInput entry : storage.childrenListOrEmpty("contents")) {
-                contents.add(new SubstanceStack(new SubstanceKey(SubstanceId.parse(entry.getStringOr("substance", "")),
-                        Phase.valueOf(entry.getStringOr("phase", ""))), entry.getLongOr("amount", -1)));
-            }
-            matter = MatterInventory.restore(new MatterInventory.Snapshot(1, capacity, contents, List.of()));
-            preservedMatter = null;
-        } catch (RuntimeException ignored) {
-            // Keep the exact raw payload for future schema support; do not erase unknown resources.
-            matter = new MatterInventory(MATTER_CAPACITY);
+        } else {
+            var restored = preservedMatter == null ? Optional.of(new MatterInventory(MATTER_CAPACITY)) : LegacyMatterData.open(preservedMatter);
+            matter = restored.orElseGet(() -> new MatterInventory(MATTER_CAPACITY));
+            if (restored.isPresent()) preservedMatter = null;
         }
-        if (MachineCellAccess.hasLocalSlot(kind())) cell.mount(cellStack());
+        if (cellSlot() >= 0) cell.mount(cellStack());
+        // Former local cells are retained only for recovery. Loading them must not silently restart on a network.
+        if (hasRecoveryCell()) runState = runState.pause();
+        migrationFeedback = "";
         resetProgress();
         lastRegistry = null;
         lastPreparationRecipe = null;
@@ -921,6 +961,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (index == cellSlot()) {
             if (!prepareCellRemoval() || net.neoforged.neoforge.transfer.transaction.Transaction.getCurrentOpenedTransaction() != null) return;
             if (!stack.isEmpty() && (!(stack.getItem() instanceof MatterCellItem) || stack.getCount() != 1)) return;
+            if (!stack.isEmpty() && !kind().isStorage()) return;
             items.set(index, stack); mountCell(); return;
         }
         items.set(index, stack);
@@ -936,7 +977,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
-        if (index == cellSlot()) return stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell();
+        if (index == cellSlot()) return kind().isStorage() && stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell();
         if (index == 1) return false;
         if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));
         if(PreparationTier.isPreparation(kind())){
@@ -947,9 +988,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.ANALYZER) && stack.getComponentsPatch().isEmpty()
                 && ReMatter.chemistry().profile(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()).isPresent();
     }
-    @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && kind() != MachineKind.DRIVE && index == 1; }
-    @Override public int[] getSlotsForFace(Direction side) { return !automationAllowed()||kind()==MachineKind.DRIVE||IndustrialStructure.isIndustrial(kind())?new int[0]:PreparationTier.isPreparation(kind())?new int[]{0,3,1}:new int[]{0,1}; }
-    @Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && kind() != MachineKind.DRIVE && (index == 0 || PreparationTier.isPreparation(kind())&&index==3) && canPlaceItem(index, stack); }
-    @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && kind() != MachineKind.DRIVE && index == 1; }
+    @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && !kind().isStorage() && index == 1; }
+    @Override public int[] getSlotsForFace(Direction side) { return !automationAllowed()||kind().isStorage()||IndustrialStructure.isIndustrial(kind())?new int[0]:PreparationTier.isPreparation(kind())?new int[]{0,3,1}:new int[]{0,1}; }
+    @Override public boolean canPlaceItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && !kind().isStorage() && (index == 0 || PreparationTier.isPreparation(kind())&&index==3) && canPlaceItem(index, stack); }
+    @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && !kind().isStorage() && index == 1; }
     @Override public void clearContent() { if (!cellStack().isEmpty()) return; items.clear(); setChanged(); }
 }

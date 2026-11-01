@@ -128,7 +128,7 @@ public final class ModContent {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.kind().processes()
                 && !IndustrialStructure.isIndustrial(machine.kind()) && !dev.latrox.rematter.content.preparation.PreparationTier.manual(machine.kind()) ? machine.energy() : null);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> !IndustrialStructure.isIndustrial(machine.kind())
-                && machine.kind() != MachineKind.DRIVE && machine.automation() && side != null ? machine.automatedItems(side) : null);
+                && !machine.kind().isStorage() && machine.automation() && side != null ? machine.automatedItems(side) : null);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.automation()
                 && !IndustrialStructure.isIndustrial(machine.kind())
                 && (machine.kind() == MachineKind.DECOMPOSER || machine.kind() == MachineKind.SYNTHESIZER || machine.fluids().getAmountAsLong(0) > 0)

@@ -27,10 +27,10 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Accessible product buttons focus a preview; confirmation only changes the selected recipe. */
 public final class ProcessSelectionScreen extends Screen {
-    private static final int INK = 0xff10191e, PANEL = 0xff17252c, EDGE = 0xff394b51;
-    private static final int PAPER = 0xffe4efec, MUTED = 0xff9eb2b6, CYAN = 0xff67e1ce;
-    private static final int COPPER = 0xffcc9169, MISSING = 0xffeeae83, CELL = 32;
-    private static final int CERAMIC = 0xffe1dac7, CERAMIC_EDGE = 0xffaaa695, LABEL = 0xff293238;
+    private static final int INK = 0xffd6d4ca, PANEL = 0xffeee9dd, EDGE = 0xff8b9590;
+    private static final int PAPER = 0xff243639, MUTED = 0xff586b6c, CYAN = 0xff247c78;
+    private static final int COPPER = 0xffa15d38, MISSING = 0xffa54731, CELL = 32;
+    private static final int CERAMIC = 0xffe7e1d3, CERAMIC_EDGE = 0xff8b9590, LABEL = 0xff243639;
     private final MachineMenu menu;
     private ChemistryRegistry registry;
     private List<ProcessPresentation.Product> products = List.of(), filtered = List.of();
@@ -63,6 +63,8 @@ public final class ProcessSelectionScreen extends Screen {
         search = addRenderableWidget(new EditBox(font, left + 10, top + 28, panelWidth - 20, 18,
                 Component.literal("Search products or processes")));
         search.setMaxLength(128);
+        search.setBordered(false);
+        search.setTextColor(PAPER);
         search.setHint(Component.literal("Search by name or mod:item"));
         search.setValue(query);
         search.setResponder(value -> { page = 0; filter(); });
@@ -178,6 +180,8 @@ public final class ProcessSelectionScreen extends Screen {
         graphics.fill(left + 4, top + 24, left + panelWidth - 4, top + panelHeight - 4, INK);
         graphics.fill(left + 10, top + 20, left + 30, top + 22, COPPER);
         graphics.text(font, title, left + 10, top + 9, LABEL, false);
+        graphics.fill(left + 8, top + 26, left + panelWidth - 8, top + 47, EDGE);
+        graphics.fill(left + 9, top + 27, left + panelWidth - 9, top + 46, 0xfff7f2e6);
         graphics.text(font, filtered.size() + " results", left + 10, top + 53, MUTED, false);
         String pageLabel = (page + 1) + " / " + pages();
         graphics.text(font, pageLabel, left + 10 + (columns * CELL - font.width(pageLabel)) / 2,
@@ -330,7 +334,7 @@ public final class ProcessSelectionScreen extends Screen {
         return value.isEmpty() ? value : Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
     private static int phaseColor(String phase) {
-        return switch (phase) { case "gas" -> 0xffbea9e2; case "liquid" -> 0xff7ecce8; default -> COPPER; };
+        return switch (phase) { case "gas" -> 0xff806599; case "liquid" -> 0xff367ba0; default -> COPPER; };
     }
 
     private class PanelButton extends Button {
@@ -338,10 +342,10 @@ public final class ProcessSelectionScreen extends Screen {
         PanelButton(Builder builder) { this(builder, null); }
         PanelButton(Builder builder, String visualText) { super(builder); this.visualText = visualText; }
         void background(GuiGraphicsExtractor graphics, boolean selected) {
-            int edge = selected || active && isHoveredOrFocused() ? CYAN : active ? EDGE : 0xff27343a;
+            int edge = selected || active && isHoveredOrFocused() ? CYAN : active ? EDGE : 0xffaaa99d;
             graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), edge);
             graphics.fill(getX() + 1, getY() + 1, getX() + getWidth() - 1, getY() + getHeight() - 1,
-                    selected || active && isHoveredOrFocused() ? 0xff29434a : PANEL);
+                    selected || active && isHoveredOrFocused() ? 0xffd5e6de : PANEL);
         }
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             background(graphics, false);
@@ -360,7 +364,7 @@ public final class ProcessSelectionScreen extends Screen {
             if (product.id().equals(menu.snapshot().selectedId())) graphics.fill(getX() + 2, getY() + 2, getX() + 5, getY() + 5, COPPER);
             String quantity = product.outputKind().equals("item") ? product.outputCount() > 1 ? Long.toString(product.outputCount()) : ""
                     : product.outputKind().equals("fluid") ? "mB" : product.outputCount() > 1 ? "+" + (product.outputCount() - 1) : "";
-            if (!quantity.isEmpty()) graphics.text(font, quantity, getX() + getWidth() - 3 - font.width(quantity), getY() + 19, PAPER, true);
+            if (!quantity.isEmpty()) graphics.text(font, quantity, getX() + getWidth() - 3 - font.width(quantity), getY() + 19, PAPER, false);
         }
     }
 }
