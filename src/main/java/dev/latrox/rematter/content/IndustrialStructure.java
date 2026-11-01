@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
 import org.jspecify.annotations.Nullable;
@@ -12,7 +13,14 @@ import org.jspecify.annotations.Nullable;
 public final class IndustrialStructure {
     public static final int MAX_SIZE = 9;
     public enum Role { CONTROLLER, INTERIOR, FRAME, WALL }
-    public enum Material { AIR, CASING, GLASS, PORT, CONTROLLER, OTHER, UNLOADED }
+    public enum Material { AIR, CASING, GLASS, PORT, CONTROLLER, OTHER, UNLOADED,
+        MIXING_BASIN, SEPARATION_UNIT, GRINDING_UNIT, FIELD_COIL, REACTION_CHAMBER;
+        boolean module() { return ordinal() >= MIXING_BASIN.ordinal(); }
+        boolean interior() { return this == AIR || module(); }
+    }
+    public static final Set<String> DIAGNOSTICS = Set.of("ready", "structure", "structure_too_short", "structure_unloaded",
+            "structure_frame", "structure_wall", "structure_ports", "structure_modules_missing", "structure_module_incomplete",
+            "structure_module_position", "structure_module_type", "structure_interior", "structure_ambiguous");
     public record Cell(int x, int y, int depth, Role role, Direction outward) {}
     public record Shape(int width, int height, int depth, int controllerColumn) {
         public Shape {
@@ -20,16 +28,55 @@ public final class IndustrialStructure {
                     || controllerColumn < 1 || controllerColumn >= width - 1) throw new IllegalArgumentException("Invalid industrial dimensions");
         }
         public int innerVolume() { return (width - 2) * (height - 2) * (depth - 2); }
-        public int baseWorkRate(MachineKind kind) {
-            if (!isIndustrial(kind) || height < IndustrialStructure.height(kind)) throw new IllegalArgumentException("Wrong industrial tier");
-            return integerSquareRoot((kind == MachineKind.INDUSTRIAL_PREPARATOR ? 16 : 2) * innerVolume());
-        }
     }
     @FunctionalInterface public interface Materials { Material at(int x, int y, int depth); }
     public record Port(BlockPos position, Direction outward) {}
-    public record Formation(boolean formed, @Nullable Shape shape, List<Port> ports) {
-        public static final Formation EMPTY = new Formation(false, null, List.of());
-        public Formation { ports = List.copyOf(ports); if (formed != (shape != null)) throw new IllegalArgumentException("Invalid formation"); }
+    /** Retained only for break protection during repairs; never proof of a valid working structure. */
+    public record ProtectionClaim(Shape shape, Direction facing) {
+        public ProtectionClaim {
+            Objects.requireNonNull(shape);Objects.requireNonNull(facing);
+            if(!facing.getAxis().isHorizontal())throw new IllegalArgumentException("Invalid claim direction");
+        }
+        public CompoundTag save() {
+            var tag=new CompoundTag();tag.putInt("schema",1);tag.putInt("width",shape.width);tag.putInt("height",shape.height);
+            tag.putInt("depth",shape.depth);tag.putInt("column",shape.controllerColumn);tag.putString("facing",facing.getSerializedName());return tag;
+        }
+        public static Optional<ProtectionClaim> restore(CompoundTag tag) {
+            try {
+                if(tag.getIntOr("schema",0)!=1)return Optional.empty();
+                var facing=Direction.byName(tag.getStringOr("facing",""));
+                if(facing==null)return Optional.empty();
+                return Optional.of(new ProtectionClaim(new Shape(tag.getIntOr("width",0),tag.getIntOr("height",0),
+                        tag.getIntOr("depth",0),tag.getIntOr("column",0)),facing));
+            } catch(IllegalArgumentException invalid) {return Optional.empty();}
+        }
+        public boolean contains(BlockPos controller,BlockPos part) { return bounds(controller,facing,shape).contains(part); }
+    }
+    public record LocalModule(int x, int y, int depth, Material material) {
+        public LocalModule { if (!material.module()) throw new IllegalArgumentException("Not an industrial module"); }
+    }
+    public record Module(BlockPos position, IndustrialModuleKind kind, int x, int y, int depth) {
+        public Module { position = position.immutable(); Objects.requireNonNull(kind); }
+    }
+    public record Inspection(String diagnostic, List<LocalModule> modules) {
+        public Inspection { modules=List.copyOf(modules); if(!DIAGNOSTICS.contains(diagnostic))throw new IllegalArgumentException("Invalid diagnostic"); }
+        public boolean formed() { return diagnostic.equals("ready"); }
+        public int moduleCount() { return formed() ? (int)modules.stream().filter(m->m.y==0).count() : 0; }
+    }
+    public record Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, String diagnostic) {
+        public static final Formation EMPTY = invalid(null,"structure");
+        public Formation {
+            ports = List.copyOf(ports); modules = List.copyOf(modules);
+            if (!DIAGNOSTICS.contains(diagnostic) || formed != diagnostic.equals("ready")
+                    || formed && (shape == null || modules.isEmpty()) || !formed && (!ports.isEmpty() || !modules.isEmpty()))
+                throw new IllegalArgumentException("Invalid formation");
+        }
+        public int moduleCount() { return formed ? (int)modules.stream().filter(m->m.y==0).count() : 0; }
+        public int baseWorkRate(MachineKind kind) { return workRate(kind,moduleCount()); }
+        public String layoutFingerprint() {
+            return moduleFingerprint(modules.stream().map(m->new LocalModule(m.x,m.y,m.depth,Material.valueOf(m.kind.name()))).toList());
+        }
+        static Formation invalid(@Nullable Shape shape,String diagnostic) { return new Formation(false,shape,List.of(),List.of(),diagnostic); }
     }
     private record Bounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         boolean contains(BlockPos p) { return p.getX() >= minX && p.getX() <= maxX && p.getY() >= minY && p.getY() <= maxY && p.getZ() >= minZ && p.getZ() <= maxZ; }
@@ -53,7 +100,7 @@ public final class IndustrialStructure {
     public static boolean isIndustrial(MachineKind kind) { return kind == MachineKind.INDUSTRIAL_PREPARATOR || kind == MachineKind.INDUSTRIAL_REACTOR; }
     /** Minimum height, retained for minimum-size recipes and existing structures. */
     public static int height(MachineKind kind) {
-        return switch (kind) { case INDUSTRIAL_PREPARATOR -> 3; case INDUSTRIAL_REACTOR -> 4;
+        return switch (kind) { case INDUSTRIAL_PREPARATOR -> 5; case INDUSTRIAL_REACTOR -> 4;
             default -> throw new IllegalArgumentException("Not an industrial controller"); };
     }
     public static List<Cell> layout(MachineKind kind) { return layout(new Shape(3, height(kind), 3, 1)); }
@@ -71,43 +118,72 @@ public final class IndustrialStructure {
         }
         return List.copyOf(cells);
     }
-    /** Four rays from the air behind the controller determine one shape, never a set of size guesses. */
+    /** Rays traverse recognized interior parts, but only shell materials can terminate a ray. */
     public static Optional<Shape> detect(MachineKind kind, Materials blocks) {
-        if (!isIndustrial(kind) || blocks.at(0, 0, 1) != Material.AIR) return Optional.empty();
+        if (!isIndustrial(kind) || !blocks.at(0, 0, 1).interior()) return Optional.empty();
         int left = ray(blocks,-1,0,0), right = ray(blocks,1,0,0), rear = ray(blocks,0,0,1), top = ray(blocks,0,1,0);
         if (left < 1 || right < 1 || rear < 1 || top < 1) return Optional.empty();
         try {
             var shape = new Shape(left + right + 1, top + 2, rear + 2, left);
-            return shape.height >= height(kind) ? Optional.of(shape) : Optional.empty();
+            return Optional.of(shape);
         } catch (IllegalArgumentException oversized) { return Optional.empty(); }
     }
     private static int ray(Materials blocks, int dx, int dy, int dz) {
         for (int distance = 1; distance < MAX_SIZE; distance++) {
             Material material = blocks.at(dx * distance, dy * distance, 1 + dz * distance);
-            if (material == Material.UNLOADED) return -1;
-            if (material != Material.AIR) return distance;
+            if (material.interior()) continue;
+            return material == Material.CASING || material == Material.GLASS || material == Material.PORT ? distance : -1;
         }
         return -1;
     }
     public static boolean validates(MachineKind kind, Shape shape, Materials blocks) {
-        if (!isIndustrial(kind) || shape.height < height(kind)) return false;
+        return inspectLayout(kind,shape,blocks).formed();
+    }
+    /** Exactly one full floor-anchored work column per occupied interior X/Z; no hidden contents. */
+    public static Inspection inspectLayout(MachineKind kind, Shape shape, Materials blocks) {
+        if (!isIndustrial(kind) || shape.height < height(kind)) return invalidLayout("structure_too_short");
         int ports = 0;
+        var modules = new ArrayList<LocalModule>();
         for (var cell : layout(shape)) {
             var material = blocks.at(cell.x,cell.y,cell.depth);
+            if(material==Material.UNLOADED)return invalidLayout("structure_unloaded");
             switch (cell.role) {
-                case CONTROLLER -> { if (material != Material.CONTROLLER) return false; }
-                case INTERIOR -> { if (material != Material.AIR) return false; }
-                case FRAME -> { if (material != Material.CASING) return false; }
-                case WALL -> { if (material == Material.PORT) ports++; else if (material != Material.CASING && material != Material.GLASS) return false; }
+                case CONTROLLER -> { if (material != Material.CONTROLLER) return invalidLayout("structure"); }
+                case INTERIOR -> {
+                    if(material.module())modules.add(new LocalModule(cell.x,cell.y,cell.depth,material));
+                    else if(material!=Material.AIR)return invalidLayout("structure_interior");
+                }
+                case FRAME -> { if (material != Material.CASING) return invalidLayout("structure_frame"); }
+                case WALL -> { if (material == Material.PORT) ports++; else if (material != Material.CASING && material != Material.GLASS) return invalidLayout("structure_wall"); }
             }
         }
-        return ports >= 2;
+        if(ports<2)return invalidLayout("structure_ports");
+        if(modules.isEmpty())return invalidLayout("structure_modules_missing");
+        var required = kind == MachineKind.INDUSTRIAL_PREPARATOR
+                ? List.of(Material.MIXING_BASIN,Material.SEPARATION_UNIT,Material.GRINDING_UNIT)
+                : List.of(Material.FIELD_COIL,Material.REACTION_CHAMBER);
+        var columns = new HashMap<Long,Integer>();
+        for(var module:modules){
+            if(!required.contains(module.material))return invalidLayout("structure_module_type");
+            if(module.y>=required.size() || module.material!=required.get(module.y))return invalidLayout("structure_module_position");
+            long key=((long)module.x<<32)|(module.depth&0xffffffffL);
+            columns.merge(key,1,Integer::sum);
+        }
+        if(columns.values().stream().anyMatch(count->count!=required.size()))return invalidLayout("structure_module_incomplete");
+        return new Inspection("ready",modules);
     }
-    public static int integerSquareRoot(int value) {
-        if (value < 0) throw new IllegalArgumentException("Negative volume");
-        int low = 0, high = Math.min(value, 46340) + 1;
-        while (low + 1 < high) { int middle = low + (high-low)/2; if ((long)middle*middle <= value) low=middle; else high=middle; }
-        return low;
+    private static Inspection invalidLayout(String diagnostic) { return new Inspection(diagnostic,List.of()); }
+    public static int workRate(MachineKind kind,int columns) {
+        if(!isIndustrial(kind)||columns<0||columns>49)throw new IllegalArgumentException("Invalid module count");
+        return (kind==MachineKind.INDUSTRIAL_PREPARATOR?4:2)*columns;
+    }
+    /** An exact canonical description, not a collision-prone hash or a count-only job identity. */
+    public static String moduleFingerprint(List<LocalModule> modules) {
+        var ordered = new ArrayList<>(modules);
+        ordered.sort(Comparator.comparingInt(LocalModule::x).thenComparingInt(LocalModule::depth).thenComparingInt(LocalModule::y));
+        var key=new StringBuilder();
+        for(var module:ordered)key.append(module.x).append(',').append(module.y).append(',').append(module.depth).append('=').append(module.material.name()).append(';');
+        return key.toString();
     }
     public static Direction worldDirection(Direction facing, Direction relative) {
         if (!facing.getAxis().isHorizontal()) throw new IllegalArgumentException("Horizontal controller facing required");
@@ -119,8 +195,11 @@ public final class IndustrialStructure {
     }
     private static Bounds bounds(MachineBlockEntity machine, Shape shape) {
         var facing = machine.getBlockState().getValue(MachineBlock.FACING);
-        var a = worldPosition(machine.getBlockPos(),facing,new Cell(-shape.controllerColumn,-1,0,Role.FRAME,null));
-        var b = worldPosition(machine.getBlockPos(),facing,new Cell(shape.width-shape.controllerColumn-1,shape.height-2,shape.depth-1,Role.FRAME,null));
+        return bounds(machine.getBlockPos(),facing,shape);
+    }
+    private static Bounds bounds(BlockPos controller,Direction facing,Shape shape) {
+        var a = worldPosition(controller,facing,new Cell(-shape.controllerColumn,-1,0,Role.FRAME,null));
+        var b = worldPosition(controller,facing,new Cell(shape.width-shape.controllerColumn-1,shape.height-2,shape.depth-1,Role.FRAME,null));
         return new Bounds(Math.min(a.getX(),b.getX()),a.getY(),Math.min(a.getZ(),b.getZ()),Math.max(a.getX(),b.getX()),b.getY(),Math.max(a.getZ(),b.getZ()));
     }
     private static Bounds around(BlockPos p, int radius) { return new Bounds(p.getX()-radius,p.getY()-radius,p.getZ()-radius,p.getX()+radius,p.getY()+radius,p.getZ()+radius); }
@@ -148,13 +227,22 @@ public final class IndustrialStructure {
         Materials blocks=(x,y,depth)->material(level,machine,worldPosition(machine.getBlockPos(),facing,new Cell(x,y,depth,Role.INTERIOR,null)));
         var shape=detect(machine.kind(),blocks).orElse(null);
         Formation result=Formation.EMPTY;
-        if(shape!=null&&validates(machine.kind(),shape,blocks)){
+        if(shape!=null){
+            var inspection=inspectLayout(machine.kind(),shape,blocks);
+            if(!inspection.formed())result=Formation.invalid(shape,inspection.diagnostic);
+            else {
             var ports=new ArrayList<Port>();
             for(var cell:layout(shape))if(cell.role==Role.WALL){
                 var pos=worldPosition(machine.getBlockPos(),facing,cell);
                 if(level.getBlockState(pos).is(ModContent.MACHINE_PORT.get()))ports.add(new Port(pos,worldDirection(facing,cell.outward)));
             }
-            result=new Formation(true,shape,ports);
+            var modules=new ArrayList<Module>();
+            for(var module:inspection.modules){
+                var pos=worldPosition(machine.getBlockPos(),facing,new Cell(module.x,module.y,module.depth,Role.INTERIOR,null));
+                modules.add(new Module(pos,IndustrialModuleKind.valueOf(module.material.name()),module.x,module.y,module.depth));
+            }
+            result=new Formation(true,shape,ports,modules,"ready");
+            }
         }
         // A reentrant block/BE callback cannot publish a result observed during mutation.
         if(!observed.matches(level))return Formation.EMPTY;
@@ -169,6 +257,8 @@ public final class IndustrialStructure {
         if(state.is(ModContent.REACTOR_CASING.get()))return Material.CASING;
         if(state.is(ModContent.REACTOR_GLASS.get()))return Material.GLASS;
         if(state.is(ModContent.MACHINE_PORT.get())&&level.getBlockEntity(pos) instanceof MachinePortBlockEntity)return Material.PORT;
+        if(state.getBlock() instanceof IndustrialModuleBlock module && level.getBlockEntity(pos) instanceof IndustrialModuleBlockEntity)
+            return Material.valueOf(module.kind().name());
         return Material.OTHER;
     }
     public static Formation inspect(MachineBlockEntity machine) {
@@ -182,7 +272,7 @@ public final class IndustrialStructure {
         for(var other:candidates(level,bounds(machine,basic.shape).expand(MAX_SIZE-1))){
             if(other==machine)continue;
             var otherShell=raw(other);
-            if(otherShell.formed&&otherShell.ports.stream().anyMatch(port->portPositions.contains(port.position))){result=Formation.EMPTY;break;}
+            if(otherShell.formed&&otherShell.ports.stream().anyMatch(port->portPositions.contains(port.position))){result=Formation.invalid(basic.shape,"structure_ambiguous");break;}
         }
         if(cached==null||!cached.stamp.matches(level))return Formation.EMPTY;
         CACHE.put(machine,new Cached(cached.stamp,basic,result));return result;
@@ -223,8 +313,10 @@ public final class IndustrialStructure {
         if(!level.getServer().isSameThread()||!level.hasChunkAt(partPos))return List.of();
         var result=new ArrayList<MachineBlockEntity>();
         for(var machine:candidates(level,around(partPos,MAX_SIZE-1))){
-            var shell=raw(machine);if(!shell.formed)continue;
-            if(portOnly?shell.ports.stream().anyMatch(port->port.position.equals(partPos)):bounds(machine,shell.shape).contains(partPos))result.add(machine);
+            var shell=raw(machine);var claim=machine.industrialProtectionClaim();
+            boolean inside=shell.shape!=null&&bounds(machine,shell.shape).contains(partPos)
+                    || claim!=null&&claim.contains(machine.getBlockPos(),partPos);
+            if(portOnly?shell.formed&&shell.ports.stream().anyMatch(port->port.position.equals(partPos)):inside)result.add(machine);
         }
         return List.copyOf(result);
     }

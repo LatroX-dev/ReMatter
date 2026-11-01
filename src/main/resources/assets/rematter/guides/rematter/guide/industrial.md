@@ -3,24 +3,42 @@ navigation:
   title: Industrial Reactor
   icon: rematter:industrial_reactor
   parent: index.md
-  position: 8
+  position: 7
 item_ids:
   - rematter:industrial_reactor
+  - rematter:field_coil
+  - rematter:reaction_chamber
   - rematter:reactor_casing
   - rematter:reactor_glass
   - rematter:machine_port
 ---
-# Industrial Reactor
+# Build a working reactor
 
-The Industrial Reactor runs the Chemical Reactor's non-electrolysis processes. Its smallest chamber runs at **twice base speed**. Larger interiors increase throughput with diminishing gains, while the **total FE and material quantities per operation remain unchanged**.
+An Industrial Reactor surrounds real reaction machinery with a complete shell. Its controller manages one selected process; its internal columns supply the processing capacity.
 
-## Build a complete reactor chamber
+## Put two modules on the floor
 
-Build a rectangular shell **3–9 blocks wide, 3–9 deep and 4–9 high**, including its floor and roof. The controller goes in the **front wall, one block above the base**, in any column except the edge columns. The chamber extends behind its front face. The smallest example below is **3 wide × 3 deep × 4 high**.
+Build each column **bottom to top**: a **Field Coil** directly on the inside floor, then a **Reaction Chamber** directly above it. The Coil controls the reaction field; the Chamber holds the working region. These are machine components, not extra stored substances.
 
-Use **Reactor Casings on every edge and corner**. Fill all other wall panels with Casings or Reactor Glass, with **at least two separate Machine Ports**. Keep the entire interior empty. This smallest glass example uses **24 Casings, 7 Glass, 2 Ports and 1 controller**.
+This cutaway shows the two modules and one floor block. Add the full shell before connecting or running it.
 
-<GameScene zoom="3" interactive={true}>
+<GameScene zoom="4" interactive={true}>
+  <Block x="0" y="0" z="0" id="rematter:reactor_casing" />
+  <Block x="0" y="1" z="0" id="rematter:field_coil" />
+  <BlockAnnotation x="0" y="1" z="0" color="#63d8bf">1. Field Coil rests directly on the inside floor.</BlockAnnotation>
+  <Block x="0" y="2" z="0" id="rematter:reaction_chamber" />
+  <BlockAnnotation x="0" y="2" z="0" color="#63d8bf">2. Reaction Chamber sits directly above the Coil.</BlockAnnotation>
+</GameScene>
+
+## Close the shell
+
+Outer width and depth can each be **3–9 blocks**; height can be **4–9**. Put the controller in the front wall, one block above the base, away from the edge columns. Build the rectangular chamber behind its front face.
+
+Use Casings on all edges and corners, Casings or Reactor Glass on the other shell panels, and **at least two Machine Ports** away from edges. Leave every interior position outside the complete columns empty. Columns cannot float or stack on one another.
+
+This minimum **3 wide × 3 deep × 4 high** glass example uses **24 Casings, 7 Glass, 2 Ports, 1 controller, 1 Field Coil and 1 Reaction Chamber**.
+
+<GameScene zoom="2.6" interactive={true}>
   <Block x="0" y="0" z="0" id="rematter:reactor_casing" />
   <Block x="0" y="0" z="1" id="rematter:reactor_casing" />
   <Block x="0" y="0" z="2" id="rematter:reactor_casing" />
@@ -55,140 +73,90 @@ Use **Reactor Casings on every edge and corner**. Fill all other wall panels wit
   <Block x="2" y="3" z="0" id="rematter:reactor_casing" />
   <Block x="2" y="3" z="1" id="rematter:reactor_casing" />
   <Block x="2" y="3" z="2" id="rematter:reactor_casing" />
-  <BlockAnnotation x="1" y="1" z="0" color="#63d8bf">Controller in the front wall, one block above the base. Open its menu here.</BlockAnnotation>
-  <BlockAnnotation x="0" y="1" z="1" color="#f7bb56">Machine Port on the left face: connect external FE from outside.</BlockAnnotation>
-  <LineAnnotation from="0 1.5 1.5" to="-1 1.5 1.5" color="#f7bb56" thickness="3">External FE reaches the controller through this Port.</LineAnnotation>
-  <BoxAnnotation min="1 1 1" max="2 3 2" color="#8dcfff">Keep this interior empty. The guide shows the shell; processing mechanisms are seen in a formed in-world machine.</BoxAnnotation>
-  <Block x="1" y="2" z="-1" id="rematter:matter_drive" />
-  <BlockAnnotation x="1" y="2" z="0" color="#e6b676">Second Port above the controller: connect one owned Drive or Matter Pipe from outside.</BlockAnnotation>
-  <BlockAnnotation x="1" y="2" z="-1" color="#8dcfff">The Drive holds the Cell. Its stock reaches the reactor through the formed Port.</BlockAnnotation>
+  <Block x="1" y="1" z="1" id="rematter:field_coil" />
+  <Block x="1" y="2" z="1" id="rematter:reaction_chamber" />
+  <BlockAnnotation x="1" y="1" z="0" color="#63d8bf">Controller: front wall, one block above the base, away from the edges.</BlockAnnotation>
+  <BlockAnnotation x="0" y="1" z="1" color="#f7bb56">Connect external FE to the outside of this Port.</BlockAnnotation>
+  <LineAnnotation from="0 1.5 1.5" to="-1 1.5 1.5" color="#f7bb56" thickness="3">Connections enter through outward Port faces.</LineAnnotation>
+  <BlockAnnotation x="1" y="2" z="0" color="#e6b676">Connect one Matter Drive or Matter Pipe outside this Port.</BlockAnnotation>
 </GameScene>
 
-## A larger rectangular reactor
+## Connect and run one process
 
-This example is **4 wide × 6 deep × 5 high**, with the controller in the right-hand inner column. Its 24 empty interior blocks give **6× Chemical Reactor speed** before upgrades. A 200-tick process completes in 34 ticks. The machine performs one batch at a time and keeps the same recipe quantities and FE cost.
+A Port connects only on its **outside face**. In the example, the left Port receives external FE. The upper front Port connects one owned Matter Drive with a Cell, or an original Matter Storage; a Matter Pipe can bridge the gap. The controller, Casings, Glass and internal modules are not transfer connections.
 
-The glass example uses **44 Casings, 49 Glass, 2 Ports and 1 controller**. The menu shows the actual duration after upgrades. Pause processing before changing the chamber's shape, then check its formation and intended storage connection.
-
-<GameScene zoom="2" interactive={true}>
-  <Block x="0" y="0" z="0" id="rematter:reactor_casing" />
-  <Block x="0" y="0" z="1" id="rematter:reactor_casing" />
-  <Block x="0" y="0" z="2" id="rematter:reactor_casing" />
-  <Block x="0" y="0" z="3" id="rematter:reactor_casing" />
-  <Block x="0" y="0" z="4" id="rematter:reactor_casing" />
-  <Block x="0" y="0" z="5" id="rematter:reactor_casing" />
-  <Block x="1" y="0" z="0" id="rematter:reactor_casing" />
-  <Block x="1" y="0" z="1" id="rematter:reactor_glass" />
-  <Block x="1" y="0" z="2" id="rematter:reactor_glass" />
-  <Block x="1" y="0" z="3" id="rematter:reactor_glass" />
-  <Block x="1" y="0" z="4" id="rematter:reactor_glass" />
-  <Block x="1" y="0" z="5" id="rematter:reactor_casing" />
-  <Block x="2" y="0" z="0" id="rematter:reactor_casing" />
-  <Block x="2" y="0" z="1" id="rematter:reactor_glass" />
-  <Block x="2" y="0" z="2" id="rematter:reactor_glass" />
-  <Block x="2" y="0" z="3" id="rematter:reactor_glass" />
-  <Block x="2" y="0" z="4" id="rematter:reactor_glass" />
-  <Block x="2" y="0" z="5" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="0" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="1" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="2" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="3" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="4" id="rematter:reactor_casing" />
-  <Block x="3" y="0" z="5" id="rematter:reactor_casing" />
-  <Block x="0" y="1" z="0" id="rematter:reactor_casing" />
-  <Block x="0" y="1" z="1" id="rematter:machine_port" />
-  <Block x="0" y="1" z="2" id="rematter:reactor_glass" />
-  <Block x="0" y="1" z="3" id="rematter:reactor_glass" />
-  <Block x="0" y="1" z="4" id="rematter:reactor_glass" />
-  <Block x="0" y="1" z="5" id="rematter:reactor_casing" />
-  <Block x="1" y="1" z="0" id="rematter:reactor_glass" />
-  <Block x="1" y="1" z="5" id="rematter:reactor_glass" />
-  <Block x="2" y="1" z="0" id="rematter:industrial_reactor" p:facing="north" />
-  <Block x="2" y="1" z="5" id="rematter:reactor_glass" />
-  <Block x="3" y="1" z="0" id="rematter:reactor_casing" />
-  <Block x="3" y="1" z="1" id="rematter:reactor_glass" />
-  <Block x="3" y="1" z="2" id="rematter:reactor_glass" />
-  <Block x="3" y="1" z="3" id="rematter:reactor_glass" />
-  <Block x="3" y="1" z="4" id="rematter:reactor_glass" />
-  <Block x="3" y="1" z="5" id="rematter:reactor_casing" />
-  <Block x="0" y="2" z="0" id="rematter:reactor_casing" />
-  <Block x="0" y="2" z="1" id="rematter:reactor_glass" />
-  <Block x="0" y="2" z="2" id="rematter:reactor_glass" />
-  <Block x="0" y="2" z="3" id="rematter:reactor_glass" />
-  <Block x="0" y="2" z="4" id="rematter:reactor_glass" />
-  <Block x="0" y="2" z="5" id="rematter:reactor_casing" />
-  <Block x="1" y="2" z="0" id="rematter:reactor_glass" />
-  <Block x="1" y="2" z="5" id="rematter:reactor_glass" />
-  <Block x="2" y="2" z="0" id="rematter:machine_port" />
-  <Block x="2" y="2" z="5" id="rematter:reactor_glass" />
-  <Block x="3" y="2" z="0" id="rematter:reactor_casing" />
-  <Block x="3" y="2" z="1" id="rematter:reactor_glass" />
-  <Block x="3" y="2" z="2" id="rematter:reactor_glass" />
-  <Block x="3" y="2" z="3" id="rematter:reactor_glass" />
-  <Block x="3" y="2" z="4" id="rematter:reactor_glass" />
-  <Block x="3" y="2" z="5" id="rematter:reactor_casing" />
-  <Block x="0" y="3" z="0" id="rematter:reactor_casing" />
-  <Block x="0" y="3" z="1" id="rematter:reactor_glass" />
-  <Block x="0" y="3" z="2" id="rematter:reactor_glass" />
-  <Block x="0" y="3" z="3" id="rematter:reactor_glass" />
-  <Block x="0" y="3" z="4" id="rematter:reactor_glass" />
-  <Block x="0" y="3" z="5" id="rematter:reactor_casing" />
-  <Block x="1" y="3" z="0" id="rematter:reactor_glass" />
-  <Block x="1" y="3" z="5" id="rematter:reactor_glass" />
-  <Block x="2" y="3" z="0" id="rematter:reactor_glass" />
-  <Block x="2" y="3" z="5" id="rematter:reactor_glass" />
-  <Block x="3" y="3" z="0" id="rematter:reactor_casing" />
-  <Block x="3" y="3" z="1" id="rematter:reactor_glass" />
-  <Block x="3" y="3" z="2" id="rematter:reactor_glass" />
-  <Block x="3" y="3" z="3" id="rematter:reactor_glass" />
-  <Block x="3" y="3" z="4" id="rematter:reactor_glass" />
-  <Block x="3" y="3" z="5" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="0" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="1" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="2" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="3" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="4" id="rematter:reactor_casing" />
-  <Block x="0" y="4" z="5" id="rematter:reactor_casing" />
-  <Block x="1" y="4" z="0" id="rematter:reactor_casing" />
-  <Block x="1" y="4" z="1" id="rematter:reactor_glass" />
-  <Block x="1" y="4" z="2" id="rematter:reactor_glass" />
-  <Block x="1" y="4" z="3" id="rematter:reactor_glass" />
-  <Block x="1" y="4" z="4" id="rematter:reactor_glass" />
-  <Block x="1" y="4" z="5" id="rematter:reactor_casing" />
-  <Block x="2" y="4" z="0" id="rematter:reactor_casing" />
-  <Block x="2" y="4" z="1" id="rematter:reactor_glass" />
-  <Block x="2" y="4" z="2" id="rematter:reactor_glass" />
-  <Block x="2" y="4" z="3" id="rematter:reactor_glass" />
-  <Block x="2" y="4" z="4" id="rematter:reactor_glass" />
-  <Block x="2" y="4" z="5" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="0" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="1" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="2" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="3" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="4" id="rematter:reactor_casing" />
-  <Block x="3" y="4" z="5" id="rematter:reactor_casing" />
-  <BlockAnnotation x="2" y="1" z="0" color="#63d8bf">Controller: one block above the base, away from either front edge. This offset position is valid.</BlockAnnotation>
-  <BoxAnnotation min="1 1 1" max="3 4 5" color="#8dcfff">Keep the whole interior empty. More interior space raises throughput with diminishing gains.</BoxAnnotation>
-  <BlockAnnotation x="0" y="1" z="1" color="#f7bb56">External FE connects to this Port from the left.</BlockAnnotation>
-  <LineAnnotation from="0 1.5 1.5" to="-1 1.5 1.5" color="#f7bb56" thickness="3">Connect outside the shell.</LineAnnotation>
-  <BlockAnnotation x="2" y="2" z="0" color="#e6b676">Matter network Port: connect a Drive or Matter Pipe outside the front wall.</BlockAnnotation>
-</GameScene>
-
-## Connect through the Ports
-
-A Port connects only on its outside face. In the smallest example, the left Port receives external FE. The front upper Port connects one owned Matter Drive with a Cell; a Matter Pipe can bridge the gap instead. Casings, Glass and the controller itself are not external transfer ports.
-
-Both Ports are general-purpose connections. Item and fluid transfers require **Automation** in the controller's Settings. The reactor's ingredients and outputs remain substance quantities in the connected storage; the Ports hold no duplicate inventory.
-
-## Run one process
+Ports are general-purpose connections and hold no separate stock. Item and fluid transfers require **Automation** in the controller's Settings. Reaction ingredients and outputs remain quantities in the connected storage.
 
 Press **Choose process**, inspect a recipe, confirm with **Use recipe**, then press **Run once**. Enable **Repeat** separately for continuing work. Open **Settings** for upgrades.
 
-An incomplete shell, blocked interior, dimensions outside the allowed range or fewer than two Ports stops work safely. Restore the required shape and intended storage before resuming. Existing materials and FE remain stored. Former flat casing rings must be rebuilt into this chamber; they are no longer a working structure.
+## Fit another complete column
+
+Each full Coil-and-Chamber column contributes **2× ordinary reaction speed** before upgrades. One column processes a 200-tick recipe in 100 ticks; two columns take 50 ticks. Inputs, outputs and **FE per batch stay unchanged**. The machine still runs one batch at a time, and the controller shows its effective duration.
+
+A larger empty shell gives **no speed bonus**. This **4 wide × 3 deep × 4 high** example holds two columns and uses **28 Casings, 13 Glass, 2 Ports, 1 controller, 2 Field Coils and 2 Reaction Chambers**.
+
+<GameScene zoom="2.6" interactive={true}>
+  <Block x="0" y="0" z="0" id="rematter:reactor_casing" />
+  <Block x="0" y="0" z="1" id="rematter:reactor_casing" />
+  <Block x="0" y="0" z="2" id="rematter:reactor_casing" />
+  <Block x="1" y="0" z="0" id="rematter:reactor_casing" />
+  <Block x="1" y="0" z="1" id="rematter:reactor_glass" />
+  <Block x="1" y="0" z="2" id="rematter:reactor_casing" />
+  <Block x="2" y="0" z="0" id="rematter:reactor_casing" />
+  <Block x="2" y="0" z="1" id="rematter:reactor_glass" />
+  <Block x="2" y="0" z="2" id="rematter:reactor_casing" />
+  <Block x="3" y="0" z="0" id="rematter:reactor_casing" />
+  <Block x="3" y="0" z="1" id="rematter:reactor_casing" />
+  <Block x="3" y="0" z="2" id="rematter:reactor_casing" />
+  <Block x="0" y="1" z="0" id="rematter:reactor_casing" />
+  <Block x="0" y="1" z="1" id="rematter:machine_port" />
+  <Block x="0" y="1" z="2" id="rematter:reactor_casing" />
+  <Block x="1" y="1" z="0" id="rematter:industrial_reactor" p:facing="north" />
+  <Block x="1" y="1" z="2" id="rematter:reactor_glass" />
+  <Block x="2" y="1" z="0" id="rematter:reactor_glass" />
+  <Block x="2" y="1" z="2" id="rematter:reactor_glass" />
+  <Block x="3" y="1" z="0" id="rematter:reactor_casing" />
+  <Block x="3" y="1" z="1" id="rematter:reactor_glass" />
+  <Block x="3" y="1" z="2" id="rematter:reactor_casing" />
+  <Block x="0" y="2" z="0" id="rematter:reactor_casing" />
+  <Block x="0" y="2" z="1" id="rematter:reactor_glass" />
+  <Block x="0" y="2" z="2" id="rematter:reactor_casing" />
+  <Block x="1" y="2" z="0" id="rematter:machine_port" />
+  <Block x="1" y="2" z="2" id="rematter:reactor_glass" />
+  <Block x="2" y="2" z="0" id="rematter:reactor_glass" />
+  <Block x="2" y="2" z="2" id="rematter:reactor_glass" />
+  <Block x="3" y="2" z="0" id="rematter:reactor_casing" />
+  <Block x="3" y="2" z="1" id="rematter:reactor_glass" />
+  <Block x="3" y="2" z="2" id="rematter:reactor_casing" />
+  <Block x="0" y="3" z="0" id="rematter:reactor_casing" />
+  <Block x="0" y="3" z="1" id="rematter:reactor_casing" />
+  <Block x="0" y="3" z="2" id="rematter:reactor_casing" />
+  <Block x="1" y="3" z="0" id="rematter:reactor_casing" />
+  <Block x="1" y="3" z="1" id="rematter:reactor_glass" />
+  <Block x="1" y="3" z="2" id="rematter:reactor_casing" />
+  <Block x="2" y="3" z="0" id="rematter:reactor_casing" />
+  <Block x="2" y="3" z="1" id="rematter:reactor_glass" />
+  <Block x="2" y="3" z="2" id="rematter:reactor_casing" />
+  <Block x="3" y="3" z="0" id="rematter:reactor_casing" />
+  <Block x="3" y="3" z="1" id="rematter:reactor_casing" />
+  <Block x="3" y="3" z="2" id="rematter:reactor_casing" />
+  <Block x="1" y="1" z="1" id="rematter:field_coil" />
+  <Block x="1" y="2" z="1" id="rematter:reaction_chamber" />
+  <Block x="2" y="1" z="1" id="rematter:field_coil" />
+  <Block x="2" y="2" z="1" id="rematter:reaction_chamber" />
+  <BlockAnnotation x="1" y="1" z="0" color="#63d8bf">Controller: front wall, one block above the base, away from the edges.</BlockAnnotation>
+  <BlockAnnotation x="0" y="1" z="1" color="#f7bb56">Connect external FE to the outside of this Port.</BlockAnnotation>
+  <LineAnnotation from="0 1.5 1.5" to="-1 1.5 1.5" color="#f7bb56" thickness="3">Connections enter through outward Port faces.</LineAnnotation>
+  <BlockAnnotation x="1" y="2" z="0" color="#e6b676">Connect one Matter Drive or Matter Pipe outside this Port.</BlockAnnotation>
+</GameScene>
+
+Pause before rebuilding. The status distinguishes shell, Port and module faults. An incomplete or misplaced column stops processing; keep all other interior positions clear. Old empty chambers need the new modules before they can work again. Retrofit the existing controller and keep its connected stock.
 
 <RecipeFor id="rematter:industrial_reactor" />
+<RecipeFor id="rematter:field_coil" />
+<RecipeFor id="rematter:reaction_chamber" />
 <RecipeFor id="rematter:reactor_casing" />
 <RecipeFor id="rematter:reactor_glass" />
 <RecipeFor id="rematter:machine_port" />
 
-See [Upgrades](upgrades.md) and [Cell transport and automation](automation.md).
+See [Upgrades](upgrades.md), [When a machine waits](help.md) and [Cell transport and automation](automation.md).

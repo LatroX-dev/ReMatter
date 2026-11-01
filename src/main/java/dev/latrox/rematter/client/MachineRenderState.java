@@ -10,8 +10,6 @@ public final class MachineRenderState extends BlockEntityRenderState {
     public Direction facing = Direction.NORTH;
     public boolean active;
     public boolean cellInstalled;
-    public boolean industrialFormed;
-    public int industrialWidth, industrialHeight, industrialDepth, industrialControllerColumn;
     public float phase;
     public float drive;
     public float crusherPhase, sievePhase, mixerPhase;

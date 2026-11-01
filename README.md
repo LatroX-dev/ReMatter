@@ -53,11 +53,18 @@ The five named fractions are physical intermediate materials for the matrix tech
 
 The Hand Preparator supports Silith, Argil and their mixture. The powered **Material Preparator** also extracts the other three fractions. Give it external FE; it performs the grinding, sieving and mixing stages automatically. The sieve sorts grains; these fictional fractions are not claims of chemically pure elements.
 
-For greater throughput, build a complete rectangular industrial chamber. Both machines accept an outer **width and depth of 3–9 blocks**. The **Industrial Preparator** accepts **3–9 blocks of height**; the **Industrial Reactor** accepts **4–9**. The smallest chambers remain 3×3×3 and 3×3×4 respectively.
+For greater throughput, build a rectangular industrial chamber with **physical work columns inside**. Both machines accept an outer width and depth of **3–9 blocks**. The Industrial Preparator needs **5–9 blocks of height**; the Industrial Reactor needs **4–9**, including floor and roof.
 
-Include a floor and roof, Casing edges and corners, optional Glass wall panels and **at least two Machine Ports**. Put the controller in the front wall, one block above the base, in any column away from the edges. It may be off-center. Leave the entire interior empty. External connections use the Ports' outward faces, including the reactor's matter-network connection.
+Use Casing edges and corners, Glass or Casing panels and at least two Machine Ports away from the edges. Place the controller in the front wall, one block above the base, in any non-edge column. External connections use the Ports' outward faces, including the reactor's matter-network connection.
 
-More interior space increases throughput with diminishing gains. A 3×3×3 Preparator works at 4× ordinary preparation speed; a 5×5×5 chamber reaches 20× before upgrades. Each machine completes one recipe batch at a time. Recipe quantities and FE per batch stay the same: industrial preparation costs twice the ordinary recipe FE, while the Industrial Reactor uses the original reaction cost. The controller shows the effective duration. Pause the machine before rebuilding its chamber; a broken shell stops processing. Former flat rings are not valid structures.
+| Machine | Each column, bottom to top | Speed before upgrades |
+| --- | --- | --- |
+| Industrial Preparator | Mixing Basin → Separation Unit → Grinding Unit | 4× per complete column |
+| Industrial Reactor | Field Coil → Reaction Chamber | 2× per complete column |
+
+Every column rests directly on the inside floor; leave all other interior blocks empty. A bigger shell creates room for more columns, but **empty space adds no throughput**. Two preparation columns give 8× speed; two reactor columns give 4×. Each controller still runs one batch at a time. Recipe quantities and FE per batch do not scale with the number of columns: industrial preparation uses twice the ordinary recipe FE, and reactions retain their original FE cost. The controller shows the effective duration.
+
+Pause before rebuilding and follow the displayed reason if a shell or module is invalid. Older empty chambers need these modules before work can continue. Preparators shorter than five blocks must also grow taller. Retrofit the existing controller; the upgrade does not require discarding it or emptying the connected storage. Back up worlds before updating a development build.
 
 ## Build beyond the first batch
 

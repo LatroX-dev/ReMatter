@@ -73,7 +73,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private boolean manualMixing;
     private boolean industrialFormed;
     private IndustrialStructure.Shape industrialShape;
+    private IndustrialStructure.ProtectionClaim industrialClaim;
     private List<IndustrialStructure.Port> industrialPorts = List.of();
+    private List<IndustrialStructure.Module> industrialModules = List.of();
+    private boolean publishedModuleWorking;
+    private long lastIndustrialWorkTick = Long.MIN_VALUE;
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 16_000, 0) {
         @Override public int insert(int amount, TransactionContext transaction) {
@@ -128,24 +132,65 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private boolean industrialStructureReady() { return !IndustrialStructure.isIndustrial(kind()) || IndustrialStructure.inspect(this).formed(); }
     public boolean industrialFormed() { return level instanceof ServerLevel ? IndustrialStructure.inspect(this).formed() : industrialFormed; }
     private IndustrialStructure.Shape visibleIndustrialShape() {
-        return level instanceof ServerLevel ? IndustrialStructure.inspect(this).shape() : industrialFormed ? industrialShape : null;
+        if(level instanceof ServerLevel){var current=IndustrialStructure.inspect(this);return current.formed()?current.shape():null;}
+        return industrialFormed ? industrialShape : null;
     }
     public int industrialWidth() { var shape=visibleIndustrialShape(); return shape==null?0:shape.width(); }
     public int industrialHeight() { var shape=visibleIndustrialShape(); return shape==null?0:shape.height(); }
     public int industrialDepth() { var shape=visibleIndustrialShape(); return shape==null?0:shape.depth(); }
     public int industrialControllerColumn() { var shape=visibleIndustrialShape(); return shape==null?0:shape.controllerColumn(); }
+    IndustrialStructure.@Nullable ProtectionClaim industrialProtectionClaim() { return industrialClaim; }
+    /** Placement creates a new physical installation, even when a player copied full block data. */
+    public void clearIndustrialProtectionClaim() {
+        if(industrialClaim!=null){industrialClaim=null;setChanged();}
+    }
     private void refreshIndustrialFormation() {
         if (!IndustrialStructure.isIndustrial(kind())) return;
         var current = IndustrialStructure.inspect(this);
-        if (industrialFormed != current.formed() || !Objects.equals(industrialShape,current.shape()) || !industrialPorts.equals(current.ports())) {
+        if(current.formed()) {
+            var claim=new IndustrialStructure.ProtectionClaim(current.shape(),getBlockState().getValue(MachineBlock.FACING));
+            if(!claim.equals(industrialClaim)){industrialClaim=claim;setChanged();}
+        }
+        if (industrialFormed != current.formed() || !Objects.equals(industrialShape,current.shape()) || !industrialPorts.equals(current.ports())
+                || !industrialModules.equals(current.modules())) {
+            setModulesWorking(industrialModules,false);
+            publishedModuleWorking=false;
             var changed = new HashSet<BlockPos>();
             industrialPorts.forEach(port -> changed.add(port.position()));
             current.ports().forEach(port -> changed.add(port.position()));
-            industrialFormed = current.formed(); industrialShape=current.shape(); industrialPorts = current.ports();
+            industrialFormed = current.formed(); industrialShape=current.shape(); industrialPorts = current.ports(); industrialModules=current.modules();
             changed.stream().filter(level::hasChunkAt).forEach(level::invalidateCapabilities);
             level.invalidateCapabilities(worldPosition);
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
         }
+    }
+    /** Visual authority only: a module never owns an inventory, energy buffer or persistent association. */
+    public boolean isModuleWorking(BlockPos modulePosition) {
+        if(!isLiveServerMachine() || !IndustrialStructure.isIndustrial(kind()) || !processedThisTick
+                || lastIndustrialWorkTick < level.getGameTime()-1) return false;
+        var formation=IndustrialStructure.inspect(this);
+        return formation.formed() && formation.modules().stream().anyMatch(module->module.position().equals(modulePosition));
+    }
+    private void setModulesWorking(List<IndustrialStructure.Module> modules,boolean active) {
+        if(!(level instanceof ServerLevel server) || !server.getServer().isSameThread())return;
+        for(var module:modules)if(server.hasChunkAt(module.position())
+                && server.getBlockEntity(module.position()) instanceof IndustrialModuleBlockEntity entity)entity.setWorking(this,active);
+    }
+    private void publishIndustrialActivity() {
+        if(!IndustrialStructure.isIndustrial(kind()))return;
+        boolean active=processedThisTick && isLiveServerMachine() && industrialStructureReady();
+        if(active)lastIndustrialWorkTick=level.getGameTime();
+        // Rebind reloaded/replaced module BEs even if their positions and the controller's work state stayed identical.
+        // The module setter writes blockstate/update data only when its visible state actually changes.
+        if(active || publishedModuleWorking){
+            setModulesWorking(industrialModules,active);
+            publishedModuleWorking=active;
+        }
+    }
+    @Override public void setRemoved() {
+        processedThisTick=false;lastIndustrialWorkTick=Long.MIN_VALUE;
+        setModulesWorking(industrialModules,false);
+        super.setRemoved();
     }
     private boolean isLiveServerMachine() {
         if (isRemoved() || level == null || level.isClientSide()) return false;
@@ -309,6 +354,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 publishedPreparationMixing=preparationMixing;
                 level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
             }
+            publishIndustrialActivity();
         }
     }
     public boolean crank(Player player) {
@@ -374,6 +420,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             status = store == null ? "no_storage" : store.storageStatus();
             return;
         }
+        if (!industrialStructureReady()) { status = IndustrialStructure.inspect(this).diagnostic(); return; }
         if (!runState.running()) {
             if (kind() == MachineKind.ANALYZER) {
                 status = hasValidAnalysis(registry) ? "analyzed"
@@ -382,7 +429,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                     ? "awaiting_request" : "paused";
             return;
         }
-        if (!industrialStructureReady()) { status = "structure"; return; }
         // Inspection never transfers matter and therefore needs no storage/network.
         boolean needsStorage = kind() != MachineKind.ANALYZER && !PreparationTier.isPreparation(kind());
         MachineBlockEntity store = needsStorage ? storageOwner(false) : null;
@@ -395,6 +441,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         Operation operation = operation(registry);
         if (operation == null) { status = inputStatus(registry); resetProgress(); return; }
         String fingerprint = operation.signature + ":" + operation.cost + ":" + operation.ticks + ":" + speed();
+        if(IndustrialStructure.isIndustrial(kind()))fingerprint += ":" + IndustrialStructure.inspect(this).layoutFingerprint();
         if (!fingerprint.equals(job)) { progress = 0; job = fingerprint; }
         duration = operation.ticks;
         String reason = operationReadiness(needsStorage,store,operation);
@@ -407,7 +454,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         status = PreparationTier.isPreparation(kind()) ? PreparationWork.stageName(preparationStage,preparationMixing) : "working";
         setChanged();
         if (progress < duration) return;
-        if(!industrialStructureReady()){status="structure";processedThisTick=false;return;}
+        if(!industrialStructureReady()){status=IndustrialStructure.inspect(this).diagnostic();processedThisTick=false;return;}
         // Recheck actual connectivity, resources and output together at the final commit.
         if (needsStorage && (storageOwner(true) != store || !storageSession.accepts(store.matterInventory()))) {
             runState = runState.pause(); resetProgress(); status = "storage_changed"; processedThisTick = false; setChanged(); return;
@@ -538,8 +585,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if(PreparationTier.manual(kind()))return 1;
         int base = kind() == MachineKind.INDUSTRIAL_REACTOR ? 2 : PreparationTier.speed(kind());
         if(IndustrialStructure.isIndustrial(kind())){
-            var shape=IndustrialStructure.inspect(this).shape();
-            if(shape!=null)base=shape.baseWorkRate(kind());
+            var formation=IndustrialStructure.inspect(this);
+            if(formation.formed())base=formation.baseWorkRate(kind());
         }
         return base * (items.get(2).is(ModContent.SPEED_UPGRADE.get()) ? 1 + Math.min(4, items.get(2).getCount()) : 1);
     }
@@ -670,8 +717,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         int selected = choices.isEmpty() || selection < 0 ? -1 : Math.floorMod(selection, choices.size());
         var chosen = selected < 0 ? null : choices.get(selected);
         var formation = IndustrialStructure.isIndustrial(kind()) ? IndustrialStructure.inspect(this) : IndustrialStructure.Formation.EMPTY;
-        var structure = formation.formed() ? new MachineSnapshot.StructureView(formation.shape().width(), formation.shape().depth(),
-                formation.shape().height(), speed()) : MachineSnapshot.StructureView.EMPTY;
+        var structure = new MachineSnapshot.StructureView(formation.shape()==null?0:formation.shape().width(), formation.shape()==null?0:formation.shape().depth(),
+                formation.shape()==null?0:formation.shape().height(), formation.formed()?speed():0, formation.moduleCount(), formation.diagnostic());
         return new MachineSnapshot(containerId, kind().ordinal(), (int) energy.getAmountAsLong(), progress, duration,
                 status, selected, chosen == null ? selectedId : chosen.id(), chosen == null ? selectedId : chosen.name(), choices.size(), sampleBatch,
                 entries, entries.size() == displayed.size() && (store == null || readableStorage), !readableStorage ? 0 : store.matterInventory().total(), !readableStorage ? 0 : store.matterInventory().capacity(),
@@ -687,7 +734,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             var holder=preparationRecipe();if(holder==null)return MachineSnapshot.Preview.EMPTY;
             var recipe=holder.value();var result=recipe.result();
             return preview(registry,null,holder.id().identifier().toString(),result.getHoverName().getString(),Map.of(),Map.of(),
-                    preparationCost(recipe),(recipe.ticks()+speed()-1)/speed(),"item",BuiltInRegistries.ITEM.getKey(result.getItem()).toString(),result.getCount());
+                    preparationCost(recipe),recipe.ticks(),"item",BuiltInRegistries.ITEM.getKey(result.getItem()).toString(),result.getCount());
         }
         if (kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER) {
             ItemStack input = items.get(0);
@@ -783,6 +830,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.putBoolean("repeat", runState.repeat());
         output.putInt("queued_batches", runState.queuedBatches());
         output.putString("selection", selectedId);
+        if(IndustrialStructure.isIndustrial(kind())&&industrialClaim!=null)output.store("industrial_claim",CompoundTag.CODEC,industrialClaim.save());
         if (!analysis.isEmpty()) {
             ValueOutput savedAnalysis = output.child("analysis");
             savedAnalysis.putInt("schema", AnalysisState.SCHEMA_VERSION);
@@ -815,6 +863,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         runState = MachineRunState.restore(input.getIntOr("control_schema", 0), input.getBooleanOr("running", true),
                 input.getBooleanOr("repeat", true), input.getIntOr("queued_batches", 0));
         selectedId = input.getStringOr("selection", "");
+        industrialClaim=IndustrialStructure.isIndustrial(kind())?input.read("industrial_claim",CompoundTag.CODEC)
+                .flatMap(IndustrialStructure.ProtectionClaim::restore)
+                .filter(claim->claim.shape().height()>=IndustrialStructure.height(kind())).orElse(null):null;
         ValueInput savedAnalysis = input.childOrEmpty("analysis");
         analysis = AnalysisState.restore(savedAnalysis.getIntOr("schema", 0), savedAnalysis.getStringOr("item", ""),
                 savedAnalysis.getStringOr("profile", ""));

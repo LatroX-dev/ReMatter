@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:copper_ingot",
+    "minecraft:copper_ingot",
+    "minecraft:copper_ingot",
+    "minecraft:copper_ingot",
+    "rematter:control_circuit",
+    "rematter:rhedon"
+  ],
+  "result": {
+    "id": "rematter:field_coil",
+    "count": 1
+  }
+}

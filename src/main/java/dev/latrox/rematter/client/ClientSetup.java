@@ -16,8 +16,10 @@ public final class ClientSetup {
     }
     @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);
+        event.registerBlockEntityRenderer(ModContent.INDUSTRIAL_MODULE_ENTITY.get(), IndustrialModuleRenderer::new);
     }
     @SubscribeEvent public static void registerLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(MachineRenderer.LAYER, MachineRenderer::createLayer);
+        event.registerLayerDefinition(IndustrialModuleRenderer.LAYER, IndustrialModuleRenderer::createLayer);
     }
 }

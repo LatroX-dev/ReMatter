@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:glass",
+    "minecraft:glass",
+    "rematter:matrix_cluster",
+    "rematter:optical_circuit"
+  ],
+  "result": {
+    "id": "rematter:reaction_chamber",
+    "count": 1
+  }
+}

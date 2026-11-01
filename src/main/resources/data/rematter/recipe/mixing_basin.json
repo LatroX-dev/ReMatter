@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:cauldron",
+    "minecraft:piston",
+    "minecraft:copper_ingot"
+  ],
+  "result": {
+    "id": "rematter:mixing_basin",
+    "count": 1
+  }
+}

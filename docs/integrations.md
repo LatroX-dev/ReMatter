@@ -17,7 +17,7 @@ The SEMI integration is compiled against its 26.1.2 release and uses that releas
 
 ## In-game guide
 
-The **ReMatter Guide** is crafted with one book and one copper ingot. Its English tutorial starts with hand extraction of Silith and Argil, their dry mixture, furnace-grown Matrix Crystals and ordinary iron/copper parts, then follows sand into a local Cell and back out as glass. It continues with a Drive, hoppers and chests for automatic production. The basic book needs no framework. With **GuideME 26.1.17-beta**, the same item opens interactive 3D scenes of hand and powered preparation, the two-machine Cell setup, later Drive and hopper automation and the minimum and larger rectangular preparation/reactor chambers with Glass and separate Ports.
+The **ReMatter Guide** is crafted with one book and one copper ingot. Its English tutorial starts with hand extraction of Silith and Argil, their dry mixture, furnace-grown Matrix Crystals and ordinary iron/copper parts, then follows sand into a local Cell and back out as glass. It continues with a Drive, hoppers and chests for automatic production. The basic book needs no framework. With **GuideME 26.1.17-beta**, the same item opens interactive 3D scenes of hand and powered preparation, the two-machine Cell setup, later Drive and hopper automation and the minimum and larger rectangular preparation/reactor chambers with Glass, separate Ports and floor-mounted work columns. Preparation columns use Mixing Basin → Separation Unit → Grinding Unit; reactor columns use Field Coil → Reaction Chamber. Throughput depends on complete columns, not empty chamber volume.
 
 Patchouli and Ponder are not required. ReMatter does not add duplicate books to those frameworks.
 

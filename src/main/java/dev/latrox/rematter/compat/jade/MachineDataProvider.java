@@ -31,12 +31,14 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
             view.putLong("matter", snapshot.used());
             view.putLong("capacity", snapshot.capacity());
             view.putString("storageSource", snapshot.storageSource());
-            if (snapshot.structure().formed()) {
+            if (snapshot.structure().width() > 0) {
                 view.putInt("structureWidth", snapshot.structure().width());
                 view.putInt("structureDepth", snapshot.structure().depth());
                 view.putInt("structureHeight", snapshot.structure().height());
                 view.putInt("structureRate", snapshot.structure().workRate());
+                view.putInt("structureColumns", snapshot.structure().moduleCount());
             }
+            view.putString("structureDiagnostic", snapshot.structure().diagnostic());
             view.putBoolean("automation", snapshot.automation());
             view.putInt("fluidAmount", snapshot.fluidAmount());
             view.putString("fluidName", snapshot.fluidName());

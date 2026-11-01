@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:iron_bars",
+    "minecraft:iron_bars",
+    "minecraft:string",
+    "minecraft:string",
+    "rematter:control_circuit"
+  ],
+  "result": {
+    "id": "rematter:separation_unit",
+    "count": 1
+  }
+}

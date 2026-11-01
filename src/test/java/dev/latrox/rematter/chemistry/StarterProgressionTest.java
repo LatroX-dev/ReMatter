@@ -20,6 +20,20 @@ class StarterProgressionTest {
     private static final Set<String> START = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:decomposer", "rematter:matter_drive",
             "rematter:material_synthesizer", "rematter:matter_cell_64k");
 
+    @Test void industrialInternalsCanBeCraftedBeforeTheirFirstMultiblockAndCannotBeSynthesized() throws Exception {
+        for (String name : List.of("grinding_unit", "separation_unit", "mixing_basin", "field_coil", "reaction_chamber")) {
+            Set<String> leaves = new HashSet<>();
+            expand("rematter:" + name, new HashSet<>(), leaves);
+            assertFalse(leaves.isEmpty());
+            assertTrue(leaves.stream().allMatch(id -> id.startsWith("minecraft:") || id.startsWith("#minecraft:")));
+            assertEquals("rematter:" + name, recipe(name).getAsJsonObject("result").get("id").getAsString());
+            assertTrue(BuiltinChemistry.create().profile("rematter:" + name).isEmpty(), "An internal module is manufactured equipment");
+            assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + name + ".json"));
+            assertEquals("rematter:" + name, json("data/rematter/advancement/recipes/" + name + ".json")
+                    .getAsJsonObject("rewards").getAsJsonArray("recipes").get(0).getAsString());
+        }
+    }
+
     @Test void machinesAndTheirFirstCellHaveAnAcyclicVanillaRouteWithOneSpecialMaterial() throws Exception {
         Set<String> leaves = new HashSet<>();
         for (String target : START) expand(target, new HashSet<>(), leaves);

@@ -31,12 +31,19 @@ public final class ModContent {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, ReMatter.MOD_ID);
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ReMatter.MOD_ID);
     public static final Map<MachineKind, DeferredBlock<MachineBlock>> MACHINES = new EnumMap<>(MachineKind.class);
+    public static final Map<IndustrialModuleKind, DeferredBlock<IndustrialModuleBlock>> INDUSTRIAL_MODULES = new EnumMap<>(IndustrialModuleKind.class);
     static {
         for (MachineKind kind : MachineKind.values()) {
             var block = BLOCKS.registerBlock(kind.id(), p -> new MachineBlock(kind, p),
                     p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
             MACHINES.put(kind, block);
             ITEMS.registerSimpleBlockItem(block, p -> p.stacksTo(1));
+        }
+        for (IndustrialModuleKind kind : IndustrialModuleKind.values()) {
+            var block = BLOCKS.registerBlock(kind.id(), p -> new IndustrialModuleBlock(kind, p),
+                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
+            INDUSTRIAL_MODULES.put(kind, block);
+            ITEMS.registerSimpleBlockItem(block);
         }
     }
     public static final DeferredBlock<MatterPipeBlock> MATTER_PIPE = BLOCKS.registerBlock("matter_pipe", MatterPipeBlock::new,
@@ -74,6 +81,8 @@ public final class ModContent {
             () -> new MenuType<>(MachineMenu::new, FeatureFlags.DEFAULT_FLAGS));
     public static final Supplier<BlockEntityType<MachinePortBlockEntity>> MACHINE_PORT_ENTITY = BLOCK_ENTITIES.register("machine_port",
             () -> new BlockEntityType<>(MachinePortBlockEntity::new, false, MACHINE_PORT.get()));
+    public static final Supplier<BlockEntityType<IndustrialModuleBlockEntity>> INDUSTRIAL_MODULE_ENTITY = BLOCK_ENTITIES.register("industrial_module",
+            () -> new BlockEntityType<>(IndustrialModuleBlockEntity::new, false, INDUSTRIAL_MODULES.values().stream().map(Supplier::get).toArray(Block[]::new)));
     public static final Supplier<CreativeModeTab> TAB = TABS.register("rematter",
             () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.rematter"))
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
@@ -83,6 +92,7 @@ public final class ModContent {
                         output.accept(REACTOR_CASING_ITEM.get());
                         output.accept(REACTOR_GLASS_ITEM.get());
                         output.accept(MACHINE_PORT_ITEM.get());
+                        INDUSTRIAL_MODULES.values().forEach(block -> output.accept(block.get()));
                         output.accept(SPEED_UPGRADE.get());
                         output.accept(EFFICIENCY_UPGRADE.get());
                         output.accept(MATRIX_BLEND.get());

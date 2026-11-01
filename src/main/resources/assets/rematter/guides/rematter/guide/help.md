@@ -51,7 +51,18 @@ Collect the Synthesizer's output, make room in its output chest, or drain its ta
 
 Use one Drive or Matter Storage per connected network. Keep all owners the same and the route loaded, with no more than 64 machines and pipes.
 
-Industrial chambers are rectangular: width and depth 3–9, height 3–9 for preparation or 4–9 for reactions. Include floor and roof, Casing edges/corners and at least two Ports. Keep the whole interior empty. The front controller sits one block above the base, away from the edge columns. Connect FE and the matter network to outward Port faces, not to the controller or Glass.
+Industrial chambers have width/depth 3–9, with height **5–9 for preparation** or **4–9 for reactions**. Include floor and roof, Casing edges/corners and at least two Ports. The front controller sits one block above the base, away from the edge columns. Connect outside Port faces, not the controller or Glass.
+
+Check the reason shown by the controller:
+
+- **Too short:** raise the Preparator to at least five blocks, or Reactor to four.
+- **Frame, wall or Port fault:** complete the shell and provide two separate Ports away from its edges.
+- **Missing or incomplete modules:** build at least one complete column directly on the inside floor.
+- **Wrong module or position:** preparation needs Basin → Separation Unit → Grinding Unit; reaction needs Field Coil → Reaction Chamber. Follow the order from the floor upwards. Do not float or stack columns.
+- **Blocked interior:** remove unrelated blocks; space outside the complete columns must be air.
+- **Unloaded or ambiguous structure:** keep the chamber loaded and give it a single unambiguous controller.
+
+A larger shell without additional complete columns does not work faster. Pause before rebuilding. An older empty shell must be fitted with modules before work can continue; keep its controller and stored contents.
 
 ## Preserve unreadable contents
 

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MachineSnapshotTest {
     @Test void rectangularStructureAndEffectiveRateRoundTripWithoutChangingAxisOrder() {
-        var structure = new MachineSnapshot.StructureView(4, 6, 5, 6);
+        var structure = new MachineSnapshot.StructureView(4, 6, 5, 6,3,"ready");
         var snapshot = new MachineSnapshot(7, MachineKind.INDUSTRIAL_REACTOR.ordinal(), 64000, 2, 200, "working",
                 -1, "", "", 0, 1, List.of(), true, 0, 0, false, true, 0, "", false, 0,
                 MachineSnapshot.Preview.EMPTY, MachineSnapshot.CellView.EMPTY, "none", structure);
@@ -24,17 +24,43 @@ class MachineSnapshotTest {
         } finally { buffer.release(); }
         assertFalse(MachineSnapshot.StructureView.EMPTY.formed());
         assertEquals(0, MachineSnapshot.StructureView.EMPTY.volume());
-        assertEquals(343, new MachineSnapshot.StructureView(9, 9, 9, 370).volume());
+        assertEquals(3,structure.moduleCount());
+        assertEquals(343, new MachineSnapshot.StructureView(9, 9, 9, 980,49,"ready").volume());
     }
     @Test void malformedStructureSizesRatesAndControllerKindsAreRejected() {
-        for (var values : List.of(new int[]{0,3,3,4}, new int[]{3,10,3,4}, new int[]{3,3,2,4},
-                new int[]{3,3,3,0}, new int[]{3,3,3,371}))
+        for (var values : List.of(new int[]{0,3,5,4}, new int[]{3,10,5,4}, new int[]{3,3,2,4},
+                new int[]{3,3,5,0}, new int[]{9,9,9,981}))
             assertThrows(IllegalArgumentException.class,
-                    () -> new MachineSnapshot.StructureView(values[0], values[1], values[2], values[3]));
+                    () -> new MachineSnapshot.StructureView(values[0], values[1], values[2], values[3],1,"ready"));
         for (var kind : List.of(MachineKind.PREPARATOR, MachineKind.INDUSTRIAL_REACTOR))
             assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot(1, kind.ordinal(), 0, 0, 0, "idle",
                     -1, "", "", 0, 1, List.of(), true, 0, 0, false, false, 0, "", false, 0,
-                    MachineSnapshot.Preview.EMPTY, MachineSnapshot.CellView.EMPTY, "none", new MachineSnapshot.StructureView(3,3,3,4)));
+                    MachineSnapshot.Preview.EMPTY, MachineSnapshot.CellView.EMPTY, "none", new MachineSnapshot.StructureView(3,3,3,4,1,"ready")));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.StructureView(3,3,5,8,2,"ready"));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.StructureView(9,9,9,4,50,"ready"));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.StructureView(3,3,5,4,1,"structure_modules_missing"));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.StructureView(3,3,5,0,0,"arbitrary_unbounded_message"));
+    }
+    @Test void blockedStructureReasonAndUnpaidProgressRoundTripWithoutClaimingWorkCapacity() {
+        var structure=new MachineSnapshot.StructureView(5,4,5,0,0,"structure_module_incomplete");
+        var snapshot=new MachineSnapshot(8,MachineKind.INDUSTRIAL_PREPARATOR.ordinal(),64000,12,90,structure.diagnostic(),
+                -1,"","",0,1,List.of(),true,0,0,false,true,0,"",false,0,MachineSnapshot.Preview.EMPTY,
+                MachineSnapshot.CellView.EMPTY,"none",structure);
+        var buffer=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
+        try {MachineSnapshot.CODEC.encode(buffer,snapshot);assertEquals(snapshot,MachineSnapshot.CODEC.decode(buffer));}
+        finally {buffer.release();}
+        assertFalse(structure.formed());assertEquals(0,structure.workRate());assertEquals(0,structure.moduleCount());
+    }
+    @Test void maximumPhysicalColumnsAndUpgradesRoundTripWithoutOverflowOrRateInflation() {
+        var snapshot=new MachineSnapshot(9,MachineKind.INDUSTRIAL_PREPARATOR.ordinal(),1_000_000,90,90,"ready",
+                -1,"","",0,1,List.of(),true,0,0,false,true,0,"",false,0,MachineSnapshot.Preview.EMPTY,
+                MachineSnapshot.CellView.EMPTY,"none",new MachineSnapshot.StructureView(9,9,9,980,49,"ready"));
+        var buffer=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
+        try {MachineSnapshot.CODEC.encode(buffer,snapshot);assertEquals(snapshot,MachineSnapshot.CODEC.decode(buffer));}
+        finally {buffer.release();}
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot(9,MachineKind.INDUSTRIAL_REACTOR.ordinal(),0,0,0,"ready",
+                -1,"","",0,1,List.of(),true,0,0,false,true,0,"",false,0,MachineSnapshot.Preview.EMPTY,
+                MachineSnapshot.CellView.EMPTY,"none",new MachineSnapshot.StructureView(9,9,9,980,49,"ready")));
     }
     @Test void cellPresenceCapacityAndTypeCountRoundTripWithoutContents() {
         var cell=new MachineSnapshot.CellView(true,true,"64k Matter Cell",64000,2,512);

@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:grinding_unit",
+    "rematter:separation_unit",
+    "rematter:mixing_basin",
+    "rematter:field_coil",
+    "rematter:reaction_chamber"
+  ]
+}

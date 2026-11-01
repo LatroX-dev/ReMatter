@@ -64,10 +64,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private boolean preparator() { return menu.kind() == MachineKind.PREPARATOR || handPreparator() || menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR; }
     private boolean handPreparator() { return menu.kind() == MachineKind.HAND_PREPARATOR; }
     private Component statusText(String status) {
-        if (status.equals("structure") && menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR) return tr("preparation_structure");
-        if (status.equals("structure") && menu.kind() == MachineKind.INDUSTRIAL_REACTOR) return tr("reactor_structure");
+        if (status.equals("structure") && industrial())
+            return Component.translatable("status.rematter." + menu.snapshot().structure().diagnostic());
         return Component.translatable("status.rematter." + status);
     }
+    private boolean industrial() { return menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR || menu.kind() == MachineKind.INDUSTRIAL_REACTOR; }
     private static boolean working(String status) { return List.of("working", "grinding", "sieving", "collecting", "dosing", "mixing", "packing").contains(status); }
     private boolean selecting() {
         return menu.kind() == MachineKind.SYNTHESIZER || menu.kind() == MachineKind.ELECTROLYZER
@@ -290,8 +291,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             wrapped(g, name, 40, 179, 92, 2, MUTED);
             if (s.structure().formed()) {
                 g.text(font, dimensions(s), 16, 203, CYAN, false);
-                g.text(font, Component.translatable("screen.rematter.structure_speed", s.structure().workRate()), 16, 217, MUTED, false);
-            } else g.text(font, tr("dry_preparation"), 16, 207, CYAN, false);
+                g.text(font, columnSummary(s), 16, 217, MUTED, false);
+            } else if (industrial()) wrapped(g, Component.translatable("status.rematter." + s.structure().diagnostic()).getString(), 16, 203, 116, 3, COPPER);
+            else g.text(font, tr("dry_preparation"), 16, 207, CYAN, false);
             return;
         }
         if (menu.kind() == MachineKind.ANALYZER) {
@@ -301,10 +303,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         g.text(font, font.plainSubstrByWidth(tr("source_" + s.storageSource()).getString(), 104), 16, 163, PAPER, false);
         if (!s.entriesComplete()) g.text(font, "+", 130, 163, COPPER, false);
-        String detail = s.structure().formed() ? dimensions(s) + " · " + s.structure().workRate() + "×"
+        String detail = industrial() ? Component.translatable("status.rematter." + s.structure().diagnostic()).getString()
                 : directCell() && s.cell().installed() ? s.cell().name()
                 : directCell() ? tr("insert_cell").getString() : tr("stored_resources").getString();
-        wrapped(g, detail, directCell() ? 40 : 16, 179, directCell() ? 92 : 116, 2, MUTED);
+        if (s.structure().formed()) {
+            g.text(font, dimensions(s), 16, 179, MUTED, false);
+            g.text(font, columnSummary(s), 16, 190, MUTED, false);
+        } else wrapped(g, detail, directCell() ? 40 : 16, 179, directCell() ? 92 : 116, 2, MUTED);
         String amount = compact(s.used()) + " / " + compact(s.capacity()) + " u";
         g.text(font, font.plainSubstrByWidth(amount, 116), 16, 203, CYAN, false);
         if (s.queuedBatches() > 0)
@@ -320,11 +325,24 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return structure.width() + "×" + structure.depth() + "×" + structure.height();
     }
 
+    private Component columnSummary(MachineSnapshot snapshot) {
+        var structure = snapshot.structure();
+        return Component.translatable("screen.rematter.structure_columns_" + (structure.moduleCount() == 1 ? "one" : "many"),
+                structure.moduleCount(), structure.workRate());
+    }
+
     private void structureTooltip(List<Component> lines, MachineSnapshot snapshot) {
         var structure = snapshot.structure();
-        if (!structure.formed()) return;
-        lines.add(Component.translatable("screen.rematter.structure_size", structure.width(), structure.depth(), structure.height()));
-        lines.add(Component.translatable("screen.rematter.structure_volume", structure.volume()));
+        if (!industrial()) return;
+        if (structure.width() > 0)
+            lines.add(Component.translatable("screen.rematter.structure_size", structure.width(), structure.depth(), structure.height()));
+        if (!structure.formed()) {
+            lines.add(Component.translatable("status.rematter." + structure.diagnostic()));
+            lines.add(Component.translatable("screen.rematter.help_" + structure.diagnostic()));
+            lines.add(tr(menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR ? "preparation_stack" : "reactor_stack"));
+            return;
+        }
+        lines.add(Component.translatable("screen.rematter.structure_columns", structure.moduleCount()));
         lines.add(Component.translatable("screen.rematter.structure_speed", structure.workRate()));
         lines.add(tr("structure_scaling_hint"));
     }

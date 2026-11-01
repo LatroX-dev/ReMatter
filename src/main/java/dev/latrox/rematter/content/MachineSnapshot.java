@@ -38,9 +38,14 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                 || queuedBatches < 0 || queuedBatches > MachineRunState.MAX_QUEUED_BATCHES || (repeat && queuedBatches != 0)
                 || fluidAmount < 0 || fluidAmount > 16_000
                 || !Set.of("none", "local", "network").contains(storageSource)) throw new IllegalArgumentException("Invalid menu snapshot");
-        if (structure.formed() && (!IndustrialStructure.isIndustrial(MachineKind.values()[kind])
-                || kind == MachineKind.INDUSTRIAL_REACTOR.ordinal() && structure.height() < 4))
-            throw new IllegalArgumentException("Structure does not match its controller");
+        if (structure.formed()) {
+            var machineKind=MachineKind.values()[kind];
+            if(!IndustrialStructure.isIndustrial(machineKind) || structure.height()<IndustrialStructure.height(machineKind))
+                throw new IllegalArgumentException("Structure does not match its controller");
+            int base=IndustrialStructure.workRate(machineKind,structure.moduleCount());
+            if(structure.workRate()%base!=0 || structure.workRate()/base>5)
+                throw new IllegalArgumentException("Structure work rate does not match its modules");
+        }
     }
     /** Callers without an industrial structure retain the same menu contract. */
     public MachineSnapshot(int containerId, int kind, int energy, int progress, int duration, String status,
@@ -68,15 +73,18 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
         this(containerId,kind,energy,progress,duration,status,selected,selectedId,selectedName,choiceCount,sampleBatchSize,
                 entries,entriesComplete,used,capacity,automation,running,fluidAmount,fluidName,repeat,queuedBatches,preview,CellView.EMPTY);
     }
-    /** Dimensions describe the outside shell; speed includes installed upgrades. */
-    public record StructureView(int width, int depth, int height, int workRate) {
-        public static final StructureView EMPTY = new StructureView(0,0,0,0);
+    /** A detected but invalid shell can explain its failure without claiming production capacity. */
+    public record StructureView(int width, int depth, int height, int workRate, int moduleCount, String diagnostic) {
+        public static final StructureView EMPTY = new StructureView(0,0,0,0,0,"structure");
         public StructureView {
-            boolean empty = width == 0 && depth == 0 && height == 0 && workRate == 0;
-            if (!empty && (width < 3 || width > 9 || depth < 3 || depth > 9 || height < 3 || height > 9
-                    || workRate < 1 || workRate > 370)) throw new IllegalArgumentException("Invalid structure view");
+            boolean noShape=width==0&&depth==0&&height==0;
+            if(!IndustrialStructure.DIAGNOSTICS.contains(diagnostic)
+                    || !noShape&&(width<3||width>9||depth<3||depth>9||height<3||height>9)
+                    || moduleCount<0||moduleCount>49||workRate<0||workRate>980
+                    || diagnostic.equals("ready")&&(noShape||moduleCount<1||moduleCount>(width-2)*(depth-2)||workRate<2*moduleCount||workRate>20*moduleCount)
+                    || !diagnostic.equals("ready")&&(moduleCount!=0||workRate!=0))throw new IllegalArgumentException("Invalid structure view");
         }
-        public boolean formed() { return width != 0; }
+        public boolean formed() { return diagnostic.equals("ready"); }
         public int volume() { return formed() ? (width - 2) * (depth - 2) * (height - 2) : 0; }
     }
     public record CellView(boolean installed, boolean readable, String name, long capacity, int types, int maxTypes) {
@@ -151,7 +159,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                     buffer.readBoolean(), buffer.readVarLong(), buffer.readVarInt(), buffer.readUtf(16), buffer.readUtf(MAX_SUBSTANCE_ID_LENGTH), buffer.readVarInt());
             CellView cell=new CellView(buffer.readBoolean(),buffer.readBoolean(),buffer.readUtf(256),buffer.readVarLong(),buffer.readVarInt(),buffer.readVarInt());
             String storageSource = buffer.readUtf(8);
-            var structure = new StructureView(buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt());
+            var structure = new StructureView(buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(),buffer.readVarInt(),buffer.readUtf(64));
             return new MachineSnapshot(container, kind, energy, progress, duration, status, selected, selectedId, selectedName, choiceCount, sampleBatchSize,
                     entries, entriesComplete, used, capacity, automation, running, fluidAmount, fluidName, repeat, queued, preview,cell,storageSource,structure);
         }
@@ -179,6 +187,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
             buffer.writeUtf(value.storageSource,8);
             buffer.writeVarInt(value.structure.width); buffer.writeVarInt(value.structure.depth);
             buffer.writeVarInt(value.structure.height); buffer.writeVarInt(value.structure.workRate);
+            buffer.writeVarInt(value.structure.moduleCount);buffer.writeUtf(value.structure.diagnostic,64);
         }
         private List<Amount> amounts(RegistryFriendlyByteBuf buffer) {
             int size = count(buffer, MAX_PREVIEW_AMOUNTS);
@@ -202,7 +211,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     };
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("7").playToClient(TYPE, CODEC, (snapshot, context) -> {
+        event.registrar("8").playToClient(TYPE, CODEC, (snapshot, context) -> {
             if (context.player().containerMenu instanceof MachineMenu menu && menu.containerId == snapshot.containerId) menu.acceptSnapshot(snapshot);
         });
     }

@@ -79,7 +79,10 @@ public final class MachineBlock extends Block implements EntityBlock {
     }
     @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (placer instanceof Player player && level.getBlockEntity(pos) instanceof MachineBlockEntity machine) machine.claim(player);
+        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
+            machine.clearIndustrialProtectionClaim();
+            if(placer instanceof Player player)machine.claim(player);
+        }
     }
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
@@ -104,7 +107,9 @@ public final class MachineBlock extends Block implements EntityBlock {
         ItemStack drop = new ItemStack(this);
         // Placement loads custom BE data and item components through separate vanilla paths.
         drop.applyComponents(machine.collectComponents());
-        drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), machine.saveCustomOnly(registries)));
+        var data=machine.saveCustomOnly(registries);
+        data.remove("industrial_claim");
+        drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), data));
         return drop;
     }
     @Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:machine_frame",
+    "minecraft:piston",
+    "minecraft:piston",
+    "minecraft:flint",
+    "minecraft:flint",
+    "minecraft:iron_ingot",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "id": "rematter:grinding_unit",
+    "count": 1
+  }
+}
