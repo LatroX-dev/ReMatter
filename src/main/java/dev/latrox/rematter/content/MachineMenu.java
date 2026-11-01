@@ -104,6 +104,8 @@ public final class MachineMenu extends AbstractContainerMenu {
             case 5 -> machine.toggleRepeat();
             case 6 -> { if(!machine.crank(player))return false; }
             case 7 -> { if (!machine.migrateLegacyStorageToCell()) return false; }
+            case 8 -> { if (!machine.toggleNetworkJobs()) return false; }
+            case 9 -> { if (!machine.cycleAutomationBackend()) return false; }
             default -> { return false; }
         }
         nextSnapshot = 0;

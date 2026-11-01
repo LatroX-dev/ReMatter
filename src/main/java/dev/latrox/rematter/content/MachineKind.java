@@ -12,11 +12,12 @@ public enum MachineKind {
     DRIVE("matter_drive"),
     PREPARATOR("material_preparator"),
     HAND_PREPARATOR("hand_preparator"),
-    INDUSTRIAL_PREPARATOR("industrial_preparator");
+    INDUSTRIAL_PREPARATOR("industrial_preparator"),
+    NETWORK_INTERFACE("network_interface");
 
     private final String id;
     MachineKind(String id) { this.id = id; }
     public String id() { return id; }
     public boolean isStorage() { return this == STORAGE || this == DRIVE; }
-    public boolean processes() { return !isStorage() && this != TERMINAL; }
+    public boolean processes() { return !isStorage() && this != TERMINAL && this != NETWORK_INTERFACE; }
 }

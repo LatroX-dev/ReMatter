@@ -1,6 +1,8 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.chemistry.MatterInventory;
+import dev.latrox.rematter.chemistry.MatterNetworkInventory;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
@@ -49,4 +51,20 @@ class MachineStorageSessionTest {
         var newStorage=new MatterInventory(64000,512);session.bind(newStorage);
         assertEquals(0,newStorage.total());assertEquals(2000,original.total());
     }
+    @Test void rediscoveryWrapperRetainsMembersButSplitsMergesAndReplacementDoNot() {
+        var a = new MatterInventory(64000,512);
+        var b = new MatterInventory(64000,512);
+        var c = new MatterInventory(64000,512);
+        a.insert(COPPER,600); b.insert(COPPER,400);
+        var session = new MachineStorageSession();
+        session.bind(new MatterNetworkInventory(List.of(a,b)));
+        assertTrue(session.accepts(new MatterNetworkInventory(List.of(a,b))));
+        assertFalse(session.accepts(new MatterNetworkInventory(List.of(a))));
+        assertFalse(session.accepts(new MatterNetworkInventory(List.of(a,b,c))));
+        assertFalse(session.accepts(new MatterNetworkInventory(List.of(a,MatterInventory.restore(b.snapshot(),512)))));
+        assertEquals(600,a.amount(COPPER));
+        assertEquals(400,b.amount(COPPER));
+        assertEquals(0,c.total());
+    }
+
 }

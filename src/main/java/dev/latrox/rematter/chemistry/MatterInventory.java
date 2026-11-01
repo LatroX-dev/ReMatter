@@ -16,9 +16,9 @@ import java.util.HashSet;
  * stores, share a lock so callers cannot observe a partially committed transfer.
  * Definitions are intentionally not required when restoring saved resources.
  */
-public final class MatterInventory {
+public final class MatterInventory implements MatterStore {
     public static final int SCHEMA_VERSION = 1;
-    private static final Object MUTATION_LOCK = new Object();
+    static final Object MUTATION_LOCK = new Object();
 
     private long capacity;
     private long total;
@@ -40,6 +40,7 @@ public final class MatterInventory {
     }
 
     public int maximumTypes() { return maximumTypes; }
+    @Override public List<MatterInventory> members() { return List.of(this); }
     public int typeCount() { synchronized (MUTATION_LOCK) { return contents.size(); } }
     public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
         var checkedInputs = MatterAmounts.copy(inputs); var checkedOutputs = MatterAmounts.copy(outputs);
@@ -308,13 +309,20 @@ public final class MatterInventory {
     public void restoreInPlace(Snapshot snapshot) {
         MatterInventory restored = restore(snapshot, maximumTypes);
         synchronized (MUTATION_LOCK) {
-            capacity = restored.capacity;
-            total = restored.total;
-            contents.clear();
-            contents.putAll(restored.contents);
-            reservations.clear();
-            reservations.putAll(restored.reservations);
+            replaceWithValidated(restored);
         }
+    }
+
+    /** Only the network planner calls this after validating every member, under the shared mutation lock. */
+    void replaceWithValidated(MatterInventory restored) {
+        if (!Thread.holdsLock(MUTATION_LOCK) || restored.maximumTypes != maximumTypes)
+            throw new IllegalStateException("Unvalidated inventory replacement");
+        capacity = restored.capacity;
+        total = restored.total;
+        contents.clear();
+        contents.putAll(restored.contents);
+        reservations.clear();
+        reservations.putAll(restored.reservations);
     }
 
     private boolean canReserveLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {

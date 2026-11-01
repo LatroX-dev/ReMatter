@@ -123,9 +123,9 @@ class ReForgingDataTest {
             assertTrue(actual.add(entry.get("id").getAsString()), "Duplicate protected item");
         }
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
-        expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m"));
+        expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:recovered_matter", "rematter:automation_pattern"));
         assertEquals(expected, actual);
-        assertEquals(15, actual.size());
+        assertEquals(18, actual.size());
         for (String tag : Set.of("cant_be_scanned", "cant_be_disintegrated", "skip_calculation")) {
             JsonObject rule = read("data/replication/tags/item/" + tag + ".json");
             assertFalse(rule.get("replace").getAsBoolean());

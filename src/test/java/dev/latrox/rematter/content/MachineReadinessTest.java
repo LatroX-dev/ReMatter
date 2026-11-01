@@ -58,4 +58,15 @@ class MachineReadinessTest {
         assertEquals(1000, store.amount(WATER));
         assertEquals(0, store.amount(GAS));
     }
+    @Test void distributedInputsAndOutputCapacityAreCheckedWithoutMovingAnyUnits() {
+        var a = new MatterInventory(1000,2); a.insert(WATER,400);
+        var b = new MatterInventory(1000,2); b.insert(WATER,600);
+        var aBefore = a.snapshot(); var bBefore = b.snapshot();
+        var network = new MatterNetworkInventory(java.util.List.of(a,b));
+        assertEquals("ready",MachineReadiness.check(true,network,INPUT,OUTPUT,true,100,100));
+        assertEquals(aBefore,a.snapshot()); assertEquals(bBefore,b.snapshot());
+        assertEquals("missing_matter",MachineReadiness.check(true,new MatterNetworkInventory(java.util.List.of(a)),INPUT,OUTPUT,true,100,100));
+        assertEquals(aBefore,a.snapshot()); assertEquals(bBefore,b.snapshot());
+    }
+
 }

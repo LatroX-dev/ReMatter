@@ -6,7 +6,7 @@ import java.util.Objects;
 
 /** Presentation only: the existing menu actions remain server-authoritative. */
 public final class MachinePrimaryAction {
-    public enum Action { NONE, CHOOSE_RECIPE, MAKE_ONCE, START, PAUSE, RESUME, CRANK }
+    public enum Action { NONE, CHOOSE_RECIPE, MAKE_ONCE, START, PAUSE, RESUME, CRANK, LOCAL_CONTROL }
 
     /** Translation keys are suffixes of screen.rematter; choosing a recipe opens the existing picker. */
     public record Decision(Action action, String labelKey, String hintKey, boolean enabled) {
@@ -15,6 +15,7 @@ public final class MachinePrimaryAction {
                 case START, PAUSE, RESUME -> 2;
                 case MAKE_ONCE -> 4;
                 case CRANK -> 6;
+                case LOCAL_CONTROL -> 8;
                 case NONE, CHOOSE_RECIPE -> -1;
             };
         }
@@ -28,6 +29,7 @@ public final class MachinePrimaryAction {
         Objects.requireNonNull(snapshot);
         MachineKind kind = MachineKind.values()[snapshot.kind()];
         if (snapshot.containerId() < 0 || !kind.processes()) return NONE;
+        if(snapshot.networkJobs()) return new Decision(Action.LOCAL_CONTROL,"manual_control","network_jobs_hint",true);
         if (kind == MachineKind.HAND_PREPARATOR) {
             return new Decision(Action.CRANK, "crank", "crank_hint", !snapshot.preview().id().isEmpty());
         }

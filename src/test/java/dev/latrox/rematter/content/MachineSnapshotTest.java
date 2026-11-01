@@ -9,6 +9,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineSnapshotTest {
+    @Test void networkTotalsAreDistinctFromLocalDiskAndKeepLargeTypeCounts() {
+        var network=new MachineSnapshot.NetworkView("ready",12,3,2,90000,128000,1024);
+        var snapshot=new MachineSnapshot(3,MachineKind.DRIVE.ordinal(),0,0,0,"ready",-1,"","",0,1,
+                List.of(),true,1000,64000,false,false,0,"",false,0,MachineSnapshot.Preview.EMPTY,
+                MachineSnapshot.CellView.EMPTY,"local",MachineSnapshot.StructureView.EMPTY,network,false);
+        var buffer=new RegistryFriendlyByteBuf(Unpooled.buffer(),RegistryAccess.EMPTY);
+        try {MachineSnapshot.CODEC.encode(buffer,snapshot);var result=MachineSnapshot.CODEC.decode(buffer);
+            assertEquals(snapshot,result);assertEquals(1000,result.used());assertEquals(90000,result.network().used());
+        } finally {buffer.release();}
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("network_unloaded",12,3,2,1,100,1));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("ready",257,3,2,1,100,1));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("ready",1,3,2,1,100,1));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("ready",12,3,4,1,100,1));
+    }
     @Test void legacyStorageAndStagedDiskRoundTripAsDistinctResourceOwners() {
         var disk = new MachineSnapshot.CellView(true,true,"64k Matter Cell",64000,0,512);
         var snapshot = new MachineSnapshot(3,MachineKind.STORAGE.ordinal(),0,0,0,"ready",-1,"","",0,1,

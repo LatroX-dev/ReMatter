@@ -60,6 +60,18 @@
     {
       "id": "rematter:industrial_preparator",
       "required": false
+    },
+    {
+      "id": "rematter:network_interface",
+      "required": false
+    },
+    {
+      "id": "rematter:recovered_matter",
+      "required": false
+    },
+    {
+      "id": "rematter:automation_pattern",
+      "required": false
     }
   ]
 }

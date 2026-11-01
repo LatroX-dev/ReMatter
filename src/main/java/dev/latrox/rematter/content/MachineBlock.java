@@ -65,7 +65,7 @@ public final class MachineBlock extends Block implements EntityBlock {
             case ELECTROLYZER -> Shapes.or(base, box(2, 3, 4, 7, 15, 12), box(9, 3, 4, 14, 15, 12), box(5, 10, 8, 11, 14, 13));
             case REACTOR -> Shapes.or(base, box(3, 3, 3, 13, 14, 13), box(5, 14, 5, 11, 16, 11));
             case DECOMPOSER, PREPARATOR, HAND_PREPARATOR, INDUSTRIAL_PREPARATOR -> Shapes.or(base, box(3, 3, 3, 13, 11, 14), box(2, 11, 2, 14, 16, 14));
-            case STORAGE, DRIVE, INDUSTRIAL_REACTOR -> Shapes.or(base, box(2, 3, 2, 14, 16, 14));
+            case STORAGE, DRIVE, INDUSTRIAL_REACTOR, NETWORK_INTERFACE -> Shapes.or(base, box(2, 3, 2, 14, 16, 14));
         };
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }

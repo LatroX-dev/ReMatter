@@ -3,6 +3,8 @@ package dev.latrox.rematter.chemistry;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.AutomationRecipeCatalogue;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -25,6 +27,65 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Data-only validation of the packaged optional definitions, without Minecraft or FML initialization. */
 class ShippedChemistryDataTest {
+    @Test
+    void automationCatalogueRetainsEveryShippedBatchAndOnlyApprovedSynthesis() throws Exception {
+        ChemistryRegistry registry = readShippedData().build();
+        Map<String, AutomationPort.Recipe> actual = new HashMap<>();
+        // Activate every optional definition without claiming its external item exists in a live game.
+        for (AutomationPort.Recipe recipe : AutomationRecipeCatalogue.chemistry(registry, id -> true, id -> true)) {
+            assertNull(actual.put(recipe.id(), recipe), "Duplicate automation recipe: " + recipe.id());
+        }
+        Set<String> expectedIds = new HashSet<>();
+        for (MaterialProfile profile : registry.profiles()) {
+            var item = Map.of(AutomationPort.Resource.item(profile.itemId()), (long) profile.itemCount());
+            var matter = automationMatter(profile.matter());
+            assertAutomationRecipe(actual, expectedIds, "decompose_item", profile.itemId(), "decomposer",
+                    item, matter, profile.decompositionEnergy(), profile.ticks());
+            if (registry.synthesisPolicy().allowsItem(profile.itemId())) {
+                assertAutomationRecipe(actual, expectedIds, "synthesize_item", profile.itemId(), "material_synthesizer",
+                        matter, item, profile.synthesisEnergy(), profile.ticks());
+            }
+        }
+        for (FluidProfile profile : registry.fluidProfiles()) {
+            var fluid = Map.of(AutomationPort.Resource.fluid(profile.fluidId()), (long) profile.amount());
+            var matter = automationMatter(profile.matter());
+            assertAutomationRecipe(actual, expectedIds, "decompose_fluid", profile.fluidId(), "decomposer",
+                    fluid, matter, profile.decompositionEnergy(), profile.ticks());
+            if (registry.synthesisPolicy().allowsFluid(profile.fluidId())) {
+                assertAutomationRecipe(actual, expectedIds, "synthesize_fluid", profile.fluidId(), "material_synthesizer",
+                        matter, fluid, profile.synthesisEnergy(), profile.ticks());
+            }
+        }
+        for (ProcessRecipe process : registry.processes()) {
+            assertAutomationRecipe(actual, expectedIds, "process", process.id().toString(),
+                    process.type() == ProcessType.ELECTROLYSIS ? "electrolyzer" : "chemical_reactor",
+                    automationMatter(process.inputs()), automationMatter(process.outputs()), process.energy(), process.ticks());
+        }
+        assertEquals(expectedIds, actual.keySet(), "No missing batches or extra synthesis permissions");
+    }
+
+    private static Map<AutomationPort.Resource, Long> automationMatter(Map<SubstanceKey, Long> matter) {
+        Map<AutomationPort.Resource, Long> result = new TreeMap<>();
+        matter.forEach((key, amount) -> result.put(new AutomationPort.Resource(AutomationPort.Kind.MATTER,
+                key.id().toString(), key.phase().name().toLowerCase(Locale.ROOT)), amount));
+        return result;
+    }
+
+    private static void assertAutomationRecipe(Map<String, AutomationPort.Recipe> actual, Set<String> expectedIds,
+            String operation, String sourceId, String worker, Map<AutomationPort.Resource, Long> inputs,
+            Map<AutomationPort.Resource, Long> outputs, long energy, int ticks) {
+        String id = "rematter:automation/" + operation + "/" + sourceId.replace(':', '/');
+        assertTrue(expectedIds.add(id), "Expected duplicate recipe: " + id);
+        AutomationPort.Recipe recipe = actual.get(id);
+        assertNotNull(recipe, "Missing automation recipe: " + id);
+        assertAll(id,
+                () -> assertEquals(worker, recipe.workerKind()),
+                () -> assertEquals(inputs, recipe.inputs()),
+                () -> assertEquals(outputs, recipe.outputs()),
+                () -> assertEquals(energy, recipe.energy()),
+                () -> assertEquals(ticks, recipe.ticks()));
+    }
+
     @Test
     void allShippedDefinitionsBuildACompleteBalancedRegistry() throws Exception {
         ShippedData shipped = readShippedData();

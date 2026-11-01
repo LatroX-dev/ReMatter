@@ -28,7 +28,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final int TILE = 28, GRID_ROWS = 3;
     private final List<StockButton> stockButtons = new ArrayList<>();
     private EditBox search;
-    private Button primary, choose, automation, repeat, addBatch, migrate, previous, next;
+    private Button primary, choose, automation, networkJobs, backend, repeat, addBatch, migrate, previous, next;
     private TabButton processTab, upgradesTab, configurationTab;
     private int page;
 
@@ -49,6 +49,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }, "start_once_hint");
         choose = control("recipe", 198, 27, 46, 16, b -> openRecipes(), "choose_hint");
         automation = control("", 12, 94, 232, 18, b -> send(3), "automation_hint");
+        networkJobs = control("", 132, 94, 112, 18, b -> send(8), "network_jobs_hint");
+        backend = control("", 12, 116, 232, 18, b -> send(9), "backend_hint");
         repeat = control("", 12, 116, 146, 18, b -> send(5), "continuous_hint");
         addBatch = control("add_batch", 164, 116, 80, 18, b -> send(4), "add_batch_hint");
         migrate = control("move_to_disk", 12, 116, 232, 18, b -> send(7), "move_to_disk_hint");
@@ -112,9 +114,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         primary.visible = ready && main() && decision.visible(); primary.active = ready && decision.enabled();
         primary.setMessage(tr(decision.labelKey())); primary.setTooltip(Tooltip.create(tr(decision.hintKey())));
         primary.setX(leftPos + (decision.opensRecipeSelection() ? 62 : 91)); primary.setWidth(decision.opensRecipeSelection() ? 132 : 74);
-        choose.visible = ready && main() && selecting() && !decision.opensRecipeSelection(); choose.active = ready && s.choiceCount() > 0;
+        choose.visible = ready && main() && !s.networkJobs() && selecting() && !decision.opensRecipeSelection(); choose.active = ready && s.choiceCount() > 0;
         automation.visible = ready && configuration(); automation.setMessage(tr(s.automation() ? "automation_on" : "automation_off"));
-        repeat.visible = addBatch.visible = ready && configuration() && selecting();
+        repeat.visible = addBatch.visible = ready && configuration() && selecting() && !s.networkJobs();
         boolean valid = s.selected() >= 0 && !s.preview().id().isEmpty() && s.selectedId().equals(s.preview().id()) && !s.status().equals("selection_unavailable");
         repeat.active = valid; repeat.setMessage(tr(s.repeat() ? "stop_repeat" : "run_repeat"));
         addBatch.active = valid && !s.repeat() && s.queuedBatches() < 64;
@@ -122,7 +124,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         migrate.active = migrationBlocker(s) == null;
         migrate.setTooltip(Tooltip.create(migrationBlocker(s) == null ? tr("move_to_disk_hint") : migrationBlocker(s)));
         boolean recoveringUpgrade = configuration() && menu.slots.get(2).isActive();
-        automation.setX(leftPos + (recoveringUpgrade ? 94 : 12)); automation.setWidth(recoveringUpgrade ? 150 : 232);
+        boolean canNetwork = menu.kind().processes() && menu.kind()!=MachineKind.ANALYZER && !handPreparator() && !recoveringUpgrade;
+        networkJobs.visible = ready && configuration() && canNetwork;
+        networkJobs.setMessage(tr(s.networkJobs()?"network_jobs_on":"network_jobs_off"));
+        backend.visible = ready && configuration() && menu.kind()==MachineKind.NETWORK_INTERFACE;
+        String backendName=switch(s.selectedName()){case "ae2"->"AE2";case "rs"->"Refined Storage";default->"Unavailable";};
+        backend.setMessage(Component.translatable("screen.rematter.backend",backendName));
+        automation.setX(leftPos + (recoveringUpgrade ? 94 : 12)); automation.setWidth(recoveringUpgrade ? 150 : canNetwork ? 112 : 232);
         migrate.setX(leftPos + (recoveringUpgrade ? 94 : 12)); migrate.setWidth(recoveringUpgrade ? 150 : 232);
         page = Math.clamp(page, 0, pages() - 1);
         previous.visible = next.visible = ready && main() && passive(); previous.active = page > 0; next.active = page + 1 < pages();
@@ -203,7 +211,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var p=s.preview();String name=!p.name().isBlank()?p.name():!s.selectedName().isBlank()?s.selectedName():tr(selecting()?"choose_recipe":"add_input").getString();
         text(g,name,12,30,choose.visible?180:232,INK);
         if(!handPreparator())g.text(font,"FE",13,89,MUTED,false);
-        if(menu.inputRole())g.text(font,tr(menu.kind()==MachineKind.ANALYZER?"sample":"input"),40,48,MUTED,false);
+        if(menu.inputRole())g.text(font,tr(s.networkJobs()?"from_network":menu.kind()==MachineKind.ANALYZER?"sample":"input"),32,48,MUTED,false);
         else if(!p.inputs().isEmpty()) {
             for(int i=0;i<Math.min(2,p.inputs().size());i++) {
                 var a=p.inputs().get(i);text(g,a.name(),32,49+i*20,73,a.available()<a.required()?COPPER:INK);
@@ -211,12 +219,12 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             }
             if(p.inputs().size()>2||!p.complete())g.text(font,"+",98,83,MUTED,false);
         } else if(selecting())text(g,tr("stored_resources").getString(),32,61,73,MUTED);
-        if(preparator()&&menu.slots.get(3).isActive())g.text(font,tr("mix_slot"),78,48,MUTED,false);
+        if(preparator()&&!s.networkJobs()&&menu.slots.get(3).isActive())g.text(font,tr("mix_slot"),78,48,MUTED,false);
         if(menu.kind()==MachineKind.ANALYZER) {
             text(g,tr("analysis_result").getString(),177,48,67,MUTED);
             if(!p.outputs().isEmpty()){text(g,Component.translatable("screen.rematter.substance_count",p.outputs().size()).getString(),177,64,67,INK);text(g,tr("sample_kept").getString(),177,80,67,MUTED);}
         } else if(menu.slots.get(1).isActive()||!outputIcon(p).isEmpty()) {
-            g.text(font,tr("output"),181,48,MUTED,false);
+            g.text(font,tr(s.networkJobs()?"to_network":"output"),177,48,MUTED,false);
             if(p.outputCount()>0&&(p.outputKind().equals("fluid")||!menu.slots.get(1).hasItem()))text(g,p.outputCount()+(p.outputKind().equals("fluid")?" mB":""),188,83,56,MUTED);
         } else if(!p.outputs().isEmpty()) {
             var output=p.outputs().getFirst();text(g,output.name(),177,54,67,INK);text(g,compact(output.required())+" u",177,69,67,CYAN);
@@ -237,7 +245,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
     private void configurationLabels(GuiGraphicsExtractor g,MachineSnapshot s) {
         boolean recovery=directCellRecovery();
-        String heading=recovery?tr("recover_disk_short").getString():industrial()?s.structure().formed()?dimensions(s)+" · "+tr("columns_short").getString()+": "+s.structure().moduleCount():Component.translatable("status.rematter."+s.structure().diagnostic()).getString():tr("tab_configuration").getString();
+        String heading=recovery?tr("recover_disk_short").getString():industrial()?s.structure().formed()?dimensions(s)+" · "+tr("columns_short").getString()+": "+s.structure().moduleCount():Component.translatable("status.rematter."+s.structure().diagnostic()).getString():menu.kind()==MachineKind.NETWORK_INTERFACE?statusText().getString():tr("tab_configuration").getString();
         text(g,heading,12,30,232,recovery?COPPER:INK);
         boolean slots=false;
         for(int i:new int[]{0,1,3}) if(menu.slots.get(i).isActive()) {var slot=menu.slots.get(i);text(g,tr(i==1?"output":i==0&&disk()||i==3&&recovery?"disk_slot":i==3&&preparator()?"mix_slot":"input").getString(),slot.x-4,48,70,MUTED);slots=true;}
@@ -250,7 +258,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 : s.storageSource().equals("legacy") ? tr("legacy_move_hint").getString() : tr("automation_explain").getString();
         text(g,note,12,83,232,s.status().startsWith("migration_") ? COPPER : MUTED);
         if (menu.slots.get(2).isActive()) text(g,tr("upgrades").getString(),12,120,76,MUTED);
-        String summary=handPreparator()?tr("hand_powered").getString():compact(s.energy())+" FE";
+        String summary=handPreparator()?tr("hand_powered").getString():s.network().nodes()>0
+                ?Component.translatable("screen.rematter.network_summary",s.network().nodes(),s.network().storages(),s.network().cells()).getString():compact(s.energy())+" FE";
         if(s.queuedBatches()>0)summary+=" · "+s.queuedBatches()+" "+tr("queued_short").getString();
         if(industrial()&&s.structure().formed())summary+=" · "+s.structure().workRate()+"×";
         text(g,summary,12,137,232,MUTED);
@@ -283,9 +292,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         else{lines.add(Component.translatable("screen.rematter.structure_columns",v.moduleCount()));lines.add(Component.translatable("screen.rematter.structure_speed",v.workRate()));lines.add(tr("structure_scaling_hint"));}return lines;
     }
     private List<Component> storageDetails(MachineSnapshot s) {
-        var lines=new ArrayList<Component>();lines.add(tr("source_"+s.storageSource()));lines.add(Component.literal(number(s.used())+" / "+number(s.capacity())+" u"));
+        var lines=new ArrayList<Component>();if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());lines.add(tr("source_"+s.storageSource()));lines.add(Component.literal(number(s.used())+" / "+number(s.capacity())+" u"));
         if(s.storageSource().equals("legacy"))lines.add(tr("legacy_storage_hint"));
         if(s.cell().installed()){lines.add(Component.literal(s.cell().name()));lines.add(s.cell().readable()?Component.literal(s.cell().types()+" / "+s.cell().maxTypes()+" types"):tr("cell_unreadable"));}
+        var n=s.network();
+        if(!n.status().equals("none")) {
+            lines.add(Component.translatable("screen.rematter.network_summary",n.nodes(),n.storages(),n.cells()));
+            if(n.status().equals("ready"))lines.add(Component.translatable("screen.rematter.network_capacity",number(n.used()),number(n.capacity()),n.types()));
+            else lines.add(Component.translatable("status.rematter."+n.status()));
+        }
         if(s.fluidAmount()>0)lines.add(Component.literal(s.fluidName()+" · "+s.fluidAmount()+" mB"));
         if(!s.entriesComplete())lines.add(tr("partial_contents_hint"));if(directCellRecovery())lines.add(tr("recover_disk_hint"));return lines;
     }

@@ -37,6 +37,8 @@ dependencies {
     compileOnly('curse.maven:semi-seasonal-emi-1706958:8945319') { transitive = false }
     compileOnly('org.appliedenergistics:guideme:26.1.17-beta:api') { transitive = false }
     compileOnly('curse.maven:mekanism-version-locked-1713956:9267959') { transitive = false }
+    compileOnly('curse.maven:applied-energistics-2-223794:9022271') { transitive = false }
+    compileOnly('curse.maven:refined-storage-243076:8211383') { transitive = false }
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.google.code.gson:gson:2.13.2'

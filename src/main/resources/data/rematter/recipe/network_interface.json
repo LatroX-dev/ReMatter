@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "PFP",
+    " O "
+  ],
+  "key": {
+    "C": "rematter:control_circuit",
+    "P": "rematter:matter_pipe",
+    "F": "rematter:machine_frame",
+    "O": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:network_interface",
+    "count": 1
+  }
+}

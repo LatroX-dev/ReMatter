@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.latrox.rematter.compat.rs.mixin",
+  "plugin": "dev.latrox.rematter.compat.rs.mixin.RsMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["RsAutocrafterRecoveryMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

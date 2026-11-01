@@ -2,6 +2,8 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.content.preparation.*;
 import net.minecraft.server.level.ServerLevel;
 import java.util.*;
@@ -52,6 +54,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private MatterStorageState storageState = MatterStorageState.cell();
     private UUID owner;
     private boolean automation;
+    private boolean networkJobs;
+    private final UUID networkWorkerId = UUID.randomUUID();
+    private MachineAutomationHost automationHost;
+    private MachineAutomationHost assignedHost;
+    private UUID assignedOrder;
+    private MachineMatterNetwork assignedTopology;
+    private String networkWorkSignature = "";
     private MachineRunState runState = MachineRunState.automatic();
     private int selection = -1;
     private String selectedId = "";
@@ -63,9 +72,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private String migrationFeedback = "";
     private long migrationFeedbackUntil;
     private ChemistryRegistry lastRegistry;
-    private BlockPos cachedStorage;
-    private long nextNetworkScan;
+    private MachineMatterNetwork cachedNetwork;
+    private MachineMatterNetwork boundNetwork;
+    private long networkCacheUntil;
     private boolean processedThisTick;
+    private boolean committingOwnedState;
     private boolean visibleCell;
     private int preparationStage = -1;
     private int publishedPreparationStage = -1;
@@ -87,15 +98,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             TransferPreconditions.checkNonNegative(amount);
             return isLiveServerMachine() && !PreparationTier.manual(kind()) && industrialStructureReady() ? super.insert(amount, transaction) : 0;
         }
-        @Override protected void onEnergyChanged(int previous) { setChanged(); }
+        @Override protected void onEnergyChanged(int previous) { if (!committingOwnedState) setChanged(); }
     };
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, 16_000) {
         @Override public boolean isValid(int index, FluidResource resource) {
-            return (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER)
+            return !networkJobs && (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER)
                     && !resource.isEmpty() && resource.isComponentsPatchEmpty()
                     && ReMatter.chemistry().fluidProfile(BuiltInRegistries.FLUID.getKey(resource.getFluid()).toString()).isPresent();
         }
-        @Override protected void onContentsChanged(int index, FluidStack previous) { setChanged(); }
+        @Override protected void onContentsChanged(int index, FluidStack previous) { if (!committingOwnedState) setChanged(); }
     };
 
     private final ResourceHandler<FluidResource> automatedFluids = new AutomationResourceHandler<>(
@@ -130,7 +141,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     public boolean automation() { return automation; }
     private boolean automationAllowed() {
-        return automation && isLiveServerMachine() && industrialStructureReady();
+        return automation && !networkJobs && isLiveServerMachine() && industrialStructureReady();
     }
     private boolean industrialStructureReady() { return !IndustrialStructure.isIndustrial(kind()) || IndustrialStructure.inspect(this).formed(); }
     public boolean industrialFormed() { return level instanceof ServerLevel ? IndustrialStructure.inspect(this).formed() : industrialFormed; }
@@ -191,6 +202,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
     }
     @Override public void setRemoved() {
+        releaseNetworkWork();
+        if (automationHost != null) automationHost.close();
         processedThisTick=false;lastIndustrialWorkTick=Long.MIN_VALUE;
         setModulesWorking(industrialModules,false);
         super.setRemoved();
@@ -201,7 +214,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return server != null && server.isSameThread() && level.hasChunkAt(worldPosition)
                 && level.getBlockEntity(worldPosition) == this;
     }
-    public void claim(Player player) { if (owner == null) { owner = player.getUUID(); setChanged(); } }
+    // Package-local discovery access never exposes a mutable aggregate to external callers.
+    boolean networkLive() { return isLiveServerMachine(); }
+    UUID networkOwner() { return owner; }
+    String networkStorageStatus() { return storageStatus(); }
+    boolean networkUsesCell() { return kind().isStorage() && !legacyInternalStorage(); }
+    public void claim(Player player) { if (owner == null) { owner = player.getUUID(); setChanged(); if(level!=null)level.invalidateCapabilities(worldPosition); } }
     public boolean canAccess(Player player) { return owner == null || owner.equals(player.getUUID()); }
     public @Nullable MachineSnapshot snapshotFor(Player player) { return canAccess(player) ? snapshot(-1) : null; }
     public MatterInventory matterInventory() {
@@ -320,8 +338,80 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return allowed;
     }
     public boolean hasStoredResources() {
-        return preservedMatter != null || kind() == MachineKind.STORAGE && storageState.mode().isEmpty()
+        return automationHost != null && automationHost.hasContents() || preservedMatter != null || kind() == MachineKind.STORAGE && storageState.mode().isEmpty()
                 || matter.total() > 0 || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
+    }
+    public @Nullable MachineAutomationHost automationHost() {
+        if (kind() != MachineKind.NETWORK_INTERFACE) return null;
+        if (automationHost == null) automationHost = new MachineAutomationHost(this);
+        return automationHost;
+    }
+    public boolean cycleAutomationBackend() {
+        var host = automationHost();
+        return host != null && host.cycleBackend();
+    }
+    public boolean networkJobs() { return networkJobs; }
+    public boolean supportsNetworkJobs() { return kind().processes() && kind() != MachineKind.ANALYZER && !PreparationTier.manual(kind()); }
+    public boolean toggleNetworkJobs() {
+        if (!isLiveServerMachine() || !supportsNetworkJobs()) return false;
+        releaseNetworkWork(); networkJobs = !networkJobs;
+        runState = runState.pause(); resetProgress(); processedThisTick = false;
+        level.invalidateCapabilities(worldPosition); setChanged(); return true;
+    }
+    UUID networkWorkerId() { return networkWorkerId; }
+    boolean acceptsNetworkWork() {
+        if (!networkJobs || !supportsNetworkJobs() || !isLiveServerMachine() || !industrialStructureReady()
+                || fluids.getAmountAsLong(0) != 0) return false;
+        for (int slot = 0; slot < items.size(); slot++) if (slot != 2 && !items.get(slot).isEmpty()) return false;
+        return true;
+    }
+    void bindNetworkOrder(MachineAutomationHost host, UUID order) {
+        releaseNetworkWork(); resetProgress(); assignedHost = host; assignedOrder = order;
+        assignedTopology = matterNetwork(true); networkWorkSignature = "";
+    }
+    void releaseNetworkOrder(MachineAutomationHost host, UUID order) {
+        if (assignedHost != host || !Objects.equals(assignedOrder, order)) return;
+        assignedHost = null; assignedOrder = null; assignedTopology = null; networkWorkSignature = "";
+        resetProgress(); processedThisTick = false;
+    }
+    private void releaseNetworkWork() {
+        if (assignedHost != null && assignedOrder != null) assignedHost.release(assignedOrder, this);
+    }
+    private void tickNetworkWork() {
+        if (!acceptsNetworkWork()) { releaseNetworkWork(); status = industrialStructureReady() ? "automation_clear_slots" : IndustrialStructure.inspect(this).diagnostic(); return; }
+        if (assignedHost == null || assignedOrder == null) { status = "network_controlled"; return; }
+        var order = assignedHost.order(assignedOrder, this);
+        var topology = matterNetwork(false);
+        if (order == null || !topology.ready() || assignedTopology == null || !assignedTopology.sameTopology(topology)) {
+            releaseNetworkWork(); status = "storage_changed"; return;
+        }
+        var recipe = order.recipe();
+        long base = recipe.energy();
+        if (PreparationTier.industrial(kind())) base = base > Long.MAX_VALUE / 2 ? Long.MAX_VALUE : base * 2;
+        long required = cost(base);
+        String signature = recipe.revision() + ":" + required + ":" + speed();
+        if (IndustrialStructure.isIndustrial(kind())) signature += ":" + IndustrialStructure.inspect(this).layoutFingerprint();
+        if (!networkWorkSignature.isEmpty() && !networkWorkSignature.equals(signature)) { releaseNetworkWork(); status = "network_controlled"; return; }
+        networkWorkSignature = signature;
+        if (energy.getAmountAsLong() < required) { status = "insufficient_energy"; return; }
+        if (!assignedHost.advance(assignedOrder, this, speed())) { releaseNetworkWork(); status = "network_controlled"; return; }
+        order = assignedHost.order(assignedOrder, this);
+        if (order == null) { releaseNetworkWork(); status = "network_controlled"; return; }
+        progress = order.progress(); duration = recipe.ticks(); processedThisTick = true;
+        preparationStage = PreparationTier.isPreparation(kind()) ? PreparationWork.stage(progress,duration) : -1;
+        preparationMixing = PreparationTier.isPreparation(kind()) && recipe.inputs().values().stream().mapToLong(Long::longValue).sum() > 1;
+        status = PreparationTier.isPreparation(kind()) ? PreparationWork.stageName(preparationStage,preparationMixing) : "working";
+        if (progress >= duration) {
+            var fresh = matterNetwork(true);
+            if (!fresh.ready() || !assignedTopology.sameTopology(fresh) || !acceptsNetworkWork() || energy.getAmountAsLong() < required) {
+                releaseNetworkWork(); status = "storage_changed"; return;
+            }
+            // The ledger owns these inputs. Completion never withdraws the same matter or items again.
+            if (!assignedHost.complete(assignedOrder, this)) { releaseNetworkWork(); status = "network_controlled"; return; }
+            energy.set((int)(energy.getAmountAsLong() - required));
+            assignedHost.changed(); progress = 0; duration = 0;
+        }
+        setChanged();
     }
     public void toggleAutomation() {
         automation = !automation;
@@ -332,6 +422,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
     }
     public void toggleRunning() {
+        if (networkJobs) { toggleNetworkJobs(); return; }
         if(PreparationTier.manual(kind()))return;
         if (!kind().processes()) return;
         if (selection < 0 && !selectedId.isEmpty()) return;
@@ -339,18 +430,19 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
     }
     public boolean requestBatch() {
-        if (!supportsBatchControl() || selection < 0 || choices().isEmpty()) return false;
+        if (networkJobs || !supportsBatchControl() || selection < 0 || choices().isEmpty()) return false;
         runState = runState.requestBatch();
         setChanged();
         return true;
     }
     public boolean toggleRepeat() {
-        if (!supportsBatchControl() || selection < 0 || choices().isEmpty()) return false;
+        if (networkJobs || !supportsBatchControl() || selection < 0 || choices().isEmpty()) return false;
         runState = runState.toggleRepeat();
         setChanged();
         return true;
     }
     public void select(int offset) {
+        if (networkJobs) return;
         var options = choices();
         if (!options.isEmpty()) {
             int index = selection < 0 ? (offset < 0 ? options.size() - 1 : 0)
@@ -359,6 +451,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
     }
     public boolean selectRecipe(String exactId) {
+        if (networkJobs) return false;
         var options = choices();
         for (int i = 0; i < options.size(); i++) {
             if (options.get(i).id().equals(exactId)) {
@@ -376,7 +469,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     public void serverTick() {
-        if (level == null || level.isClientSide()) return;
+        if (!isLiveServerMachine()) return;
+        // A foreign transfer may roll back its member snapshots. Do not complete unrelated work inside it.
+        if (net.neoforged.neoforge.transfer.transaction.Transaction.getCurrentOpenedTransaction() != null) return;
         refreshIndustrialFormation();
         processedThisTick = false;
         if(PreparationTier.isPreparation(kind()))preparationStage=-1;
@@ -430,6 +525,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         status=reason.equals("ready")?"crank":reason;
     }
     private void tickMachine() {
+        if (kind() == MachineKind.NETWORK_INTERFACE) { var host = automationHost(); host.tick(); status = host.status(); return; }
+        if (networkJobs) { tickNetworkWork(); return; }
         ChemistryRegistry registry = ReMatter.chemistry();
         if (!analysis.isEmpty() && !hasValidAnalysis(registry)) { analysis = AnalysisState.EMPTY; setChanged(); }
         if (registry != lastRegistry) {
@@ -458,11 +555,26 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             return;
         }
         if (kind() == MachineKind.TERMINAL) {
-            var store = networkStorage(false);
-            status = store == null ? "no_storage" : store.storageStatus();
+            status = matterNetwork(false).status();
             return;
         }
-        if (!industrialStructureReady()) { status = IndustrialStructure.inspect(this).diagnostic(); return; }
+        if (!industrialStructureReady()) {
+            String diagnostic = IndustrialStructure.inspect(this).diagnostic();
+            if (boundNetwork != null) pauseChangedNetwork(diagnostic); else status = diagnostic;
+            return;
+        }
+        // Analysis and physical preparation are independent of the matter network.
+        boolean needsStorage = kind() != MachineKind.ANALYZER && !PreparationTier.isPreparation(kind());
+        MachineMatterNetwork network = needsStorage ? matterNetwork(false) : null;
+        MatterStore store = network == null ? null : network.inventory();
+        if (network != null && !network.ready()) {
+            if (boundNetwork != null) pauseChangedNetwork(network.status()); else status = network.status();
+            return;
+        }
+        if (network != null && !acceptsNetwork(network)) {
+            pauseChangedNetwork("storage_changed");
+            return;
+        }
         if (!runState.running()) {
             if (kind() == MachineKind.ANALYZER) {
                 status = hasValidAnalysis(registry) ? "analyzed"
@@ -471,15 +583,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                     ? "awaiting_request" : "paused";
             return;
         }
-        // Inspection never transfers matter and therefore needs no storage/network.
-        boolean needsStorage = kind() != MachineKind.ANALYZER && !PreparationTier.isPreparation(kind());
-        MachineBlockEntity store = needsStorage ? storageOwner(false) : null;
-        if (needsStorage && store == null) { status = "no_storage"; return; }
-        if (store != null && !store.storageStatus().equals("ready")) { status = store.storageStatus(); return; }
-        if (store != null && !storageSession.accepts(store.matterInventory())) {
-            runState = runState.pause(); resetProgress(); status = "storage_changed"; setChanged(); return;
-        }
-        if (kind() == MachineKind.TERMINAL) { status = "ready"; return; }
         Operation operation = operation(registry);
         if (operation == null) { status = inputStatus(registry); resetProgress(); return; }
         String fingerprint = operation.signature + ":" + operation.cost + ":" + operation.ticks + ":" + speed();
@@ -488,7 +591,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         duration = operation.ticks;
         String reason = operationReadiness(needsStorage,store,operation);
         if (!reason.equals("ready")) { status = reason; return; }
-        if (store != null) storageSession.bind(store.matterInventory());
+        if (store != null) { storageSession.bind(store); boundNetwork = network; }
         progress = (int) Math.min(duration, (long) progress + speed());
         processedThisTick = true;
         preparationStage=PreparationTier.isPreparation(kind())?PreparationWork.stage(progress,duration):-1;
@@ -497,34 +600,50 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
         if (progress < duration) return;
         if(!industrialStructureReady()){status=IndustrialStructure.inspect(this).diagnostic();processedThisTick=false;return;}
-        // Recheck actual connectivity, resources and output together at the final commit.
-        if (needsStorage && (storageOwner(true) != store || !storageSession.accepts(store.matterInventory()))) {
-            runState = runState.pause(); resetProgress(); status = "storage_changed"; processedThisTick = false; setChanged(); return;
+        // A fresh bounded graph must still have the same owners, routes and mounted inventories.
+        if (needsStorage) {
+            var finalNetwork = matterNetwork(true);
+            if (!finalNetwork.ready() || !acceptsNetwork(finalNetwork)) {
+                pauseChangedNetwork(finalNetwork.ready() ? "storage_changed" : finalNetwork.status());
+                return;
+            }
+            network = finalNetwork;
+            store = finalNetwork.inventory();
         }
-        if (store != null && !store.storageStatus().equals("ready")) { status = store.storageStatus(); processedThisTick = false; return; }
-        reason = operationReadiness(needsStorage,store,operation);
+        reason = operationReadiness(needsStorage, store, operation);
         if (!reason.equals("ready")) { status = reason; processedThisTick = false; return; }
-        if (needsStorage && !store.matterInventory().apply(operation.inputs, operation.outputs)) {
-            processedThisTick = false;
-            status = MachineReadiness.check(true, store.matterInventory(), operation.inputs, operation.outputs, true,
-                    energy.getAmountAsLong(), operation.cost);
-            return;
+        boolean changedOwnedState = false;
+        committingOwnedState = true;
+        try {
+            if (needsStorage && !store.apply(operation.inputs, operation.outputs)) {
+                processedThisTick = false;
+                status = MachineReadiness.check(true, store, operation.inputs, operation.outputs, true,
+                        energy.getAmountAsLong(), operation.cost);
+                return;
+            }
+            // Both callbacks below are deferred until matter, physical resources, FE and the queue agree.
+            changedOwnedState = true;
+            operation.finish.run();
+            energy.set((int) (energy.getAmountAsLong() - operation.cost));
+            if (supportsBatchControl()) runState = runState.completed();
+            resetProgress();
+            status = kind() == MachineKind.ANALYZER ? "analyzed" : "ready";
+            if (kind() == MachineKind.ANALYZER) runState = runState.pause();
+        } finally {
+            committingOwnedState = false;
+            if (changedOwnedState) {
+                // Also flush actual authoritative changes if an unexpected exception interrupts finalization.
+                if (network != null) network.markChanged();
+                setChanged();
+            }
         }
-        operation.finish.run();
-        energy.set((int) (energy.getAmountAsLong() - operation.cost));
-        if (store != null) store.setChanged();
-        if (supportsBatchControl()) runState = runState.completed();
-        resetProgress();
-        status = kind() == MachineKind.ANALYZER ? "analyzed" : "ready";
-        if (kind() == MachineKind.ANALYZER) runState = runState.pause();
-        setChanged();
     }
 
-    private String operationReadiness(boolean needsStorage,MachineBlockEntity store,Operation operation){
+    private String operationReadiness(boolean needsStorage,MatterStore store,Operation operation){
         if(PreparationTier.isPreparation(kind()))return PreparationWork.readiness(!items.get(0).isEmpty(),!items.get(3).isEmpty(),!lastPreparationRecipe.singleInput(),
                 items.get(0).getComponentsPatch().isEmpty()&&items.get(3).getComponentsPatch().isEmpty(),true,
                 operation.canFinish(),energy.getAmountAsLong(),operation.cost);
-        return MachineReadiness.check(needsStorage,store==null?null:store.matterInventory(),operation.inputs,operation.outputs,
+        return MachineReadiness.check(needsStorage,store,operation.inputs,operation.outputs,
                 operation.canFinish(),energy.getAmountAsLong(),operation.cost);
     }
     private String inputStatus(ChemistryRegistry registry) {
@@ -654,7 +773,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return result.getCount() <= maximum && (output.isEmpty()
                 || (ItemStack.isSameItemSameComponents(output, result) && result.getCount() <= maximum - output.getCount()));
     }
-    private void resetProgress() { progress = 0; duration = 0; job = ""; storageSession.clear(); }
+    private void resetProgress() { progress = 0; duration = 0; job = ""; storageSession.clear(); boundNetwork = null; }
 
     public List<MachineChoices.Choice> choices() { return MachineChoices.forKind(kind(), ReMatter.chemistry()); }
     private record Operation(String signature, Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
@@ -666,78 +785,87 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return value.isEmpty() ? value : Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
 
-    private MachineBlockEntity storageOwner(boolean force) {
-        return MachineCellAccess.usesOwnStorage(kind(), hasRecoveryCell()) ? this : networkStorage(force);
+    MachineMatterNetwork matterNetwork(boolean force) {
+        if (force || cachedNetwork == null || level == null || level.getGameTime() >= networkCacheUntil || !cachedNetwork.stillValid(this)) {
+            cachedNetwork = MachineMatterNetwork.discover(this);
+            networkCacheUntil = level == null ? 0 : level.getGameTime() + 20;
+        }
+        return cachedNetwork;
     }
-    private MachineBlockEntity networkStorage(boolean force) {
-        if (kind().isStorage()) return this;
-        if (level == null) return null;
-        if (!industrialStructureReady()) return null;
-        if (!force && level.getGameTime() < nextNetworkScan) {
-            if (cachedStorage != null && level.hasChunkAt(cachedStorage) && level.getBlockEntity(cachedStorage) instanceof MachineBlockEntity cached
-                    && cached.kind().isStorage() && Objects.equals(cached.owner, owner)) return cached;
-            return null;
+    /** Recovery parcels restore their real quantity; unknown definitions remain storable by stable key. */
+    public long recoverMatter(UUID actor, SubstanceKey key, long maximum) {
+        if (actor == null || key == null || maximum <= 0 || !Objects.equals(owner, actor) || !isLiveServerMachine()
+                || net.neoforged.neoforge.transfer.transaction.Transaction.getCurrentOpenedTransaction() != null) return 0;
+        if (kind().isStorage()) {
+            if (!storageStatus().equals("ready")) return 0;
+            long accepted = insertable(matterInventory(), key, maximum);
+            if (accepted == 0 || !matterInventory().apply(Map.of(), Map.of(key, accepted))) return 0;
+            setChanged();
+            return accepted;
         }
-        nextNetworkScan = level.getGameTime() + 20;
-        cachedStorage = null;
-        Set<BlockPos> visited = new HashSet<>();
-        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        queue.add(worldPosition);
-        visited.add(worldPosition);
-        MachineBlockEntity found = null;
-        while (!queue.isEmpty()) {
-            BlockPos pos = queue.removeFirst();
-            if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.kind().isStorage()) {
-                if (found != null && found != machine) return null;
-                found = machine;
-            }
-            for (BlockPos next : matterNeighbors(pos)) {
-                if (visited.contains(next) || !level.hasChunkAt(next)) continue;
-                boolean compatible = level.getBlockState(next).is(ModContent.MATTER_PIPE.get());
-                if (!compatible && level.getBlockEntity(next) instanceof MachinePortBlockEntity port) {
-                    var controller = port.controller(null);
-                    Direction outward = port.outward();
-                    compatible = controller != null && Objects.equals(controller.owner, owner) && outward != null
-                            && (pos.equals(controller.getBlockPos()) || pos.equals(next.relative(outward)));
-                }
-                if (!compatible && level.getBlockEntity(next) instanceof MachineBlockEntity machine) {
-                    compatible = Objects.equals(machine.owner, owner) && (!IndustrialStructure.isIndustrial(machine.kind())
-                            || level.getBlockEntity(pos) instanceof MachinePortBlockEntity port && port.controller(null) == machine);
-                }
-                if (!compatible) continue;
-                // Count connected nodes, not adjacent air; at most six boundary reads per node.
-                if (visited.size() == 64) return null;
-                visited.add(next);
-                queue.add(next);
-            }
-        }
-        if (found != null) cachedStorage = found.worldPosition;
-        return found;
+        var network = matterNetwork(true);
+        if (!network.ready()) return 0;
+        long accepted = insertable(network.inventory(), key, maximum);
+        if (accepted == 0 || !network.inventory().apply(Map.of(), Map.of(key, accepted))) return 0;
+        network.markChanged();
+        return accepted;
     }
-    private List<BlockPos> matterNeighbors(BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof MachinePortBlockEntity port) {
-            var controller = port.controller(null); Direction outward = port.outward();
-            if (controller == null || outward == null || !Objects.equals(controller.owner, owner)) return List.of();
-            return List.of(controller.getBlockPos(), pos.relative(outward));
+    static long insertable(MatterStore store, SubstanceKey key, long maximum) {
+        if (maximum <= 0) return 0;
+        long capacity = 0;
+        for (var member : store.members()) {
+            if (!member.hasTypeSpace(Map.of(), Map.of(key, 1L))) continue;
+            long add = Math.min(maximum - capacity, member.freeSpace());
+            capacity += add;
+            if (capacity == maximum) break;
         }
-        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && IndustrialStructure.isIndustrial(machine.kind())) {
-            if (!Objects.equals(machine.owner, owner)) return List.of();
-            var formation = IndustrialStructure.inspect(machine);
-            return formation.formed() ? formation.ports().stream().filter(port -> {
-                BlockPos outside=port.position().relative(port.outward());
-                return level.hasChunkAt(outside) && (level.getBlockState(outside).is(ModContent.MATTER_PIPE.get())
-                        || level.getBlockEntity(outside) instanceof MachineBlockEntity || level.getBlockEntity(outside) instanceof MachinePortBlockEntity);
-            }).map(IndustrialStructure.Port::position).toList() : List.of();
-        }
-        return Arrays.stream(Direction.values()).map(pos::relative).toList();
+        return capacity;
+    }
+    private boolean acceptsNetwork(MachineMatterNetwork network) {
+        return network.ready() && (boundNetwork == null || boundNetwork.sameTopology(network))
+                && storageSession.accepts(network.inventory());
+    }
+    private void pauseChangedNetwork(String diagnostic) {
+        runState = runState.pause();
+        resetProgress();
+        processedThisTick = false;
+        status = diagnostic;
+        setChanged();
+    }
+    /** Read-only discovery for optional integrations; no live mutable inventory escapes this boundary. */
+    public NetworkInspection inspectMatterNetwork(UUID requester) {
+        if (requester == null || !Objects.equals(owner, requester) || !isLiveServerMachine())
+            return new NetworkInspection(MachineSnapshot.NetworkView.EMPTY, List.of());
+        var network = matterNetwork(true);
+        var workers = network.ready() ? network.workers().stream()
+                .map(worker -> new NetworkWorker(worker.getBlockPos().immutable(), worker.kind(), worker.selectedId,
+                        worker.runState.running(), worker.runState.queuedBatches(), worker.runState.repeat())).toList() : List.<NetworkWorker>of();
+        return new NetworkInspection(network.view(), workers);
+    }
+    /** Integrations must revalidate immediately before dispatching an order on the server thread. */
+    public boolean isCurrentNetworkWorker(UUID requester, MachineBlockEntity worker) {
+        if (requester == null || !Objects.equals(owner, requester) || !isLiveServerMachine()
+                || worker == null || !worker.isLiveServerMachine() || worker.getLevel() != level
+                || !Objects.equals(worker.owner, requester)) return false;
+        var network = matterNetwork(true);
+        return network.ready() && network.workers().stream().anyMatch(member -> member == worker);
+    }
+    public record NetworkWorker(BlockPos position, MachineKind kind, String selectedRecipe,
+                                boolean running, int queuedBatches, boolean repeat) {}
+    public record NetworkInspection(MachineSnapshot.NetworkView network, List<NetworkWorker> workers) {
+        public NetworkInspection { workers = List.copyOf(workers); }
     }
     public boolean hasPreparationStructure() { return PreparationTier.industrial(kind()) && IndustrialStructure.inspect(this).formed(); }
 
     public MachineSnapshot snapshot(int containerId) {
         ChemistryRegistry registry = ReMatter.chemistry();
-        MachineBlockEntity store = kind() == MachineKind.ANALYZER || PreparationTier.isPreparation(kind()) ? null : storageOwner(false);
-        boolean readableStorage = store != null && store.storageStatus().equals("ready");
-        Map<SubstanceKey, Long> displayed = !readableStorage ? Map.of() : store.matterInventory().contents();
+        boolean independent = kind() == MachineKind.ANALYZER || PreparationTier.isPreparation(kind());
+        MachineMatterNetwork network = independent ? null : matterNetwork(false);
+        MatterStore store = independent ? null : kind().isStorage()
+                ? storageStatus().equals("ready") ? matterInventory() : null
+                : network.ready() ? network.inventory() : null;
+        boolean readableStorage = store != null;
+        Map<SubstanceKey, Long> displayed = !readableStorage ? Map.of() : store.contents();
         int sampleBatch = 1;
         if ((kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER) && !items.get(0).isEmpty()) {
             String itemId = BuiltInRegistries.ITEM.getKey(items.get(0).getItem()).toString();
@@ -753,7 +881,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             if (entry.getKey().id().toString().length() > MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH) continue;
             entries.add(new MachineSnapshot.Entry(entry.getKey().id().toString(), substanceName(registry, entry.getKey()),
                     entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue(),
-                    store == null ? 0 : store.matterInventory().available(entry.getKey())));
+                    store == null ? 0 : store.available(entry.getKey())));
         }
         var choices = choices();
         int selected = choices.isEmpty() || selection < 0 ? -1 : Math.floorMod(selection, choices.size());
@@ -762,16 +890,18 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         var structure = new MachineSnapshot.StructureView(formation.shape()==null?0:formation.shape().width(), formation.shape()==null?0:formation.shape().depth(),
                 formation.shape()==null?0:formation.shape().height(), formation.formed()?speed():0, formation.moduleCount(), formation.diagnostic());
         return new MachineSnapshot(containerId, kind().ordinal(), (int) energy.getAmountAsLong(), progress, duration,
-                status, selected, chosen == null ? selectedId : chosen.id(), chosen == null ? selectedId : chosen.name(), choices.size(), sampleBatch,
-                entries, entries.size() == displayed.size() && (store == null || readableStorage), !readableStorage ? 0 : store.matterInventory().total(), !readableStorage ? 0 : store.matterInventory().capacity(),
+                status, selected, chosen == null ? selectedId : chosen.id(), kind() == MachineKind.NETWORK_INTERFACE ? automationHost().backend() : chosen == null ? selectedId : chosen.name(), choices.size(), sampleBatch,
+                entries, entries.size() == displayed.size() && (independent || readableStorage), !readableStorage ? 0 : store.total(), !readableStorage ? 0 : store.capacity(),
                 automation, runState.running(), (int) fluids.getAmountAsLong(0),
                 fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getHoverName().getString(),
                 supportsBatchControl() && runState.repeat(), supportsBatchControl() ? runState.queuedBatches() : 0, preview(registry, readableStorage ? store : null),
                 cellSlot() >= 0 ? cell.view(cellStack()) : MachineSnapshot.CellView.EMPTY,
-                store == null ? "none" : store == this ? legacyInternalStorage() ? "legacy" : "local" : "network", structure);
+                store == null ? "none" : kind().isStorage() ? legacyInternalStorage() ? "legacy" : "local" : "network", structure,
+                network == null ? MachineSnapshot.NetworkView.EMPTY : network.view(), networkJobs);
     }
 
-    private MachineSnapshot.Preview preview(ChemistryRegistry registry, MachineBlockEntity store) {
+    private MachineSnapshot.Preview preview(ChemistryRegistry registry, MatterStore store) {
+        if (networkJobs) return networkOrderPreview(registry);
         if(PreparationTier.isPreparation(kind())){
             var holder=preparationRecipe();if(holder==null)return MachineSnapshot.Preview.EMPTY;
             var recipe=holder.value();var result=recipe.result();
@@ -823,7 +953,50 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 operation.cost, operation.ticks, outputKind, outputId, outputCount);
     }
 
-    private MachineSnapshot.Preview preview(ChemistryRegistry registry, MachineBlockEntity store, String id, String name,
+    /** Preview the transferred order itself, never a manually selected or inferred recipe. */
+    private MachineSnapshot.Preview networkOrderPreview(ChemistryRegistry registry) {
+        if (assignedHost == null || assignedOrder == null) return MachineSnapshot.Preview.EMPTY;
+        var order = assignedHost.order(assignedOrder, this);
+        if (order == null) return MachineSnapshot.Preview.EMPTY;
+        var recipe = order.recipe();
+        var inputs = new ArrayList<MachineSnapshot.Amount>();
+        var outputs = new ArrayList<MachineSnapshot.Amount>();
+        for (var entry : recipe.inputs().entrySet()) {
+            if (entry.getKey().kind() != AutomationPort.Kind.MATTER || inputs.size() == MachineSnapshot.MAX_PREVIEW_AMOUNTS) continue;
+            var key = entry.getKey().matterKey();
+            inputs.add(new MachineSnapshot.Amount(key.id().toString(),substanceName(registry,key),entry.getKey().phase(),
+                    entry.getValue(),order.ownedInputs().getOrDefault(entry.getKey(),0L)));
+        }
+        for (var entry : recipe.outputs().entrySet()) {
+            if (entry.getKey().kind() != AutomationPort.Kind.MATTER || outputs.size() == MachineSnapshot.MAX_PREVIEW_AMOUNTS) continue;
+            var key = entry.getKey().matterKey();
+            outputs.add(new MachineSnapshot.Amount(key.id().toString(),substanceName(registry,key),entry.getKey().phase(),entry.getValue(),0));
+        }
+        var first = recipe.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).findFirst().orElseThrow();
+        String name = first.getValue() + " " + automationResourceName(registry,first.getKey());
+        String physicalInputs = recipe.inputs().entrySet().stream().filter(entry -> entry.getKey().kind() != AutomationPort.Kind.MATTER)
+                .sorted(Map.Entry.comparingByKey()).map(entry -> entry.getValue()+" "+automationResourceName(registry,entry.getKey()))
+                .collect(java.util.stream.Collectors.joining(" + "));
+        if (!physicalInputs.isEmpty()) name = physicalInputs + " → " + name;
+        boolean matterOutput = first.getKey().kind() == AutomationPort.Kind.MATTER;
+        int count = matterOutput ? recipe.outputs().size() : Math.toIntExact(first.getValue());
+        String outputKind = first.getKey().kind().name().toLowerCase(Locale.ROOT);
+        long base = recipe.energy();
+        if (PreparationTier.industrial(kind())) base = base > Long.MAX_VALUE / 2 ? Long.MAX_VALUE : base * 2;
+        return new MachineSnapshot.Preview(recipe.id(),name,inputs,outputs,
+                inputs.size() == recipe.inputs().size() && outputs.size() == recipe.outputs().size(),cost(base),
+                (int)(((long)recipe.ticks()+speed()-1)/speed()),outputKind,first.getKey().id(),count);
+    }
+    private static String automationResourceName(ChemistryRegistry registry, AutomationPort.Resource resource) {
+        var id = Identifier.parse(resource.id());
+        if (resource.kind() == AutomationPort.Kind.ITEM && BuiltInRegistries.ITEM.containsKey(id))
+            return new ItemStack(BuiltInRegistries.ITEM.getValue(id)).getHoverName().getString();
+        if (resource.kind() == AutomationPort.Kind.FLUID && BuiltInRegistries.FLUID.containsKey(id))
+            return FluidResource.of(BuiltInRegistries.FLUID.getValue(id)).getHoverName().getString();
+        return resource.kind() == AutomationPort.Kind.MATTER ? substanceName(registry,resource.matterKey()) : resource.id();
+    }
+
+    private MachineSnapshot.Preview preview(ChemistryRegistry registry, MatterStore store, String id, String name,
                                             Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
                                             long energy, int ticks, String outputKind, String outputId, int outputCount) {
         var inputRows = previewAmounts(registry, store, inputs);
@@ -832,13 +1005,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 inputRows.size() == inputs.size() && outputRows.size() == outputs.size(), energy,
                 (int) (((long) ticks + speed() - 1) / speed()), outputKind, outputId, outputCount);
     }
-    private List<MachineSnapshot.Amount> previewAmounts(ChemistryRegistry registry, MachineBlockEntity store, Map<SubstanceKey, Long> amounts) {
+    private List<MachineSnapshot.Amount> previewAmounts(ChemistryRegistry registry, MatterStore store, Map<SubstanceKey, Long> amounts) {
         var rows = new ArrayList<MachineSnapshot.Amount>();
         for (var entry : new TreeMap<>(amounts).entrySet()) {
             if (rows.size() == MachineSnapshot.MAX_PREVIEW_AMOUNTS) break;
             if (entry.getKey().id().toString().length() > MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH) continue;
             rows.add(new MachineSnapshot.Amount(entry.getKey().id().toString(), substanceName(registry, entry.getKey()),
-                    entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue(), store == null ? 0 : store.matterInventory().available(entry.getKey())));
+                    entry.getKey().phase().name().toLowerCase(Locale.ROOT), entry.getValue(), store == null ? 0 : store.available(entry.getKey())));
         }
         return List.copyOf(rows);
     }
@@ -867,6 +1040,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.putInt("schema", 1);
         if (owner != null) output.putString("owner", owner.toString());
         output.putBoolean("automation", automation);
+        output.putBoolean("network_jobs", networkJobs);
+        if (automationHost != null) output.store("automation_host", MatterStorageState.RAW_CODEC, automationHost.save());
         output.putBoolean("running", runState.running());
         output.putInt("control_schema", MachineRunState.SCHEMA_VERSION);
         output.putBoolean("repeat", runState.repeat());
@@ -902,7 +1077,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         super.loadAdditional(input);
         try { owner = input.getString("owner").map(UUID::fromString).orElse(null); }
         catch (IllegalArgumentException exception) { owner = new UUID(0, 0); }
+        releaseNetworkWork();
         automation = input.getBooleanOr("automation", false);
+        networkJobs = supportsNetworkJobs() && input.getBooleanOr("network_jobs", false);
+        if (kind() == MachineKind.NETWORK_INTERFACE) input.read("automation_host", MatterStorageState.RAW_CODEC).ifPresent(raw -> automationHost().load(raw));
         runState = MachineRunState.restore(input.getIntOr("control_schema", 0), input.getBooleanOr("running", true),
                 input.getBooleanOr("repeat", true), input.getIntOr("queued_batches", 0));
         selectedId = input.getStringOr("selection", "");
@@ -936,8 +1114,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         resetProgress();
         lastRegistry = null;
         lastPreparationRecipe = null;
-        cachedStorage = null;
-        nextNetworkScan = 0;
+        cachedNetwork = null;
+        networkCacheUntil = 0;
     }
 
     @Override public Component getDisplayName() { return Component.translatable("block.rematter." + kind().id()); }
@@ -977,6 +1155,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
+        if (networkJobs && index != 2) return false;
         if (index == cellSlot()) return kind().isStorage() && stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell();
         if (index == 1) return false;
         if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));

@@ -16,6 +16,7 @@
     "rematter:industrial_preparator",
     "rematter:reactor_glass",
     "rematter:machine_port",
-    "#rematter:industrial_modules"
+    "#rematter:industrial_modules",
+    "rematter:network_interface"
   ]
 }
