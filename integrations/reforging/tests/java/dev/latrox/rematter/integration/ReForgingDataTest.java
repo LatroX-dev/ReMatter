@@ -2,6 +2,7 @@ package dev.latrox.rematter.integration;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.content.MachineKind;
 import java.io.InputStreamReader;
@@ -17,6 +18,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.common.conditions.NeverCondition;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReForgingDataTest {
@@ -207,7 +210,12 @@ class ReForgingDataTest {
         assertTrue(inventory.apply(block.matter(), Map.of()));
         assertEquals(0, inventory.total());
         JsonObject override = readFile(Path.of("integrations/reforging/datapack/data/occultism/recipe/crystallize/obsidian.json"));
-        assertEquals("neoforge:false", override.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject().get("type").getAsString());
+        var conditions = override.getAsJsonArray("neoforge:conditions");
+        assertEquals(1, conditions.size());
+        JsonObject condition = conditions.get(0).getAsJsonObject();
+        assertEquals("neoforge:never", condition.get("type").getAsString());
+        assertFalse(NeverCondition.CODEC.codec().parse(JsonOps.INSTANCE, condition).getOrThrow()
+                .test(ICondition.IContext.EMPTY));
     }
 
     private static long minimumCost(long energy) { return Math.multiplyExact(energy, 4) / 5; }
