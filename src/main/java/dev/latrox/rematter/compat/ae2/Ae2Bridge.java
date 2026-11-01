@@ -58,7 +58,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
             @Override public void onSaveChanges(Ae2Bridge bridge, IGridNode changed) { bridge.port.changed(); }
             @Override public void onGridChanged(Ae2Bridge bridge, IGridNode changed) { bridge.refreshRequested = true; }
             @Override public void onStateChanged(Ae2Bridge bridge, IGridNode changed, State reason) { bridge.refreshRequested = true; }
-        }).setTagName("ae2_node").setIdlePowerUsage(2).setFlags(GridFlags.REQUIRE_CHANNEL)
+        }).setInWorldNode(true).setTagName("ae2_node").setIdlePowerUsage(2).setFlags(GridFlags.REQUIRE_CHANNEL)
                 .addService(IStorageProvider.class, this).addService(ICraftingProvider.class, this);
     }
 

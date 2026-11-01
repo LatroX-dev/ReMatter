@@ -4,11 +4,16 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.*;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.refinedmods.refinedstorage.api.autocrafting.*;
+import com.refinedmods.refinedstorage.api.autocrafting.calculation.*;
+import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.autocrafting.task.*;
 import com.refinedmods.refinedstorage.api.resource.*;
 import com.refinedmods.refinedstorage.api.resource.list.*;
 import com.refinedmods.refinedstorage.api.storage.Actor;
+import com.refinedmods.refinedstorage.api.storage.StorageImpl;
+import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
 import com.refinedmods.refinedstorage.common.api.storage.PlayerActor;
+import net.minecraft.nbt.NbtOps;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,6 +25,41 @@ class RsTaskPersistenceTest {
     private static final Codec<ResourceKey> RESOURCE=KEY.flatComapMap(value->(ResourceKey)value,
             value->value instanceof Key key?DataResult.success(key):DataResult.error(()->"Unknown resource type"));
     private static final Codec<List<TaskSnapshot>> CODEC=RsTaskPersistence.create(RESOURCE);
+
+    @Test void nativeTaskStepsPersistExhaustedCountersAndKeepTransferredInputsOutOfRestoredCustody() {
+        ResourceKey input=new Key("test:iron","{}"),output=new Key("test:ingot","{}");
+        var pattern=new Pattern(UUID.randomUUID(),PatternLayout.external(List.of(new Ingredient(1000,List.of(input))),List.of(new ResourceAmount(output,1))));
+        var stock=new StorageImpl();stock.insert(input,16000,Action.EXECUTE,Actor.EMPTY);
+        var root=new RootStorageImpl();root.addSource(stock);
+        var patterns=new PatternRepositoryImpl();patterns.add(pattern,0);
+        var plan=TaskPlanCraftingCalculatorListener.calculatePlan(new CraftingCalculatorImpl(patterns,root),output,16,CancellationToken.NONE).orElseThrow();
+        var task=new TaskImpl(plan,Actor.EMPTY,false);
+        assertEquals(16000,stock.getStored());assertTrue(task.createSnapshot().internalStorage().isEmpty());
+        long[] ownedBySink={0};var sinkId=ExternalPatternSinkId.create();
+        ExternalPatternSink sink=new ExternalPatternSink(){
+            public Result insertAll(Pattern p,Collection<ResourceAmount> resources,Action action){
+                assertEquals(pattern,p);
+                if(action==Action.EXECUTE)for(var value:resources){assertEquals(input,value.resource());ownedBySink[0]+=value.amount();}
+                return Result.ACCEPTED;
+            }
+            public ExternalPatternSinkId getId(){return sinkId;}
+            public ExternalPatternSinkDetails getDetails(){return null;}
+        };
+        for(int tick=0;tick<64&&ownedBySink[0]<16000;tick++){
+            task.step(root,layout->List.of(sink),StepBehavior.DEFAULT,TaskListener.EMPTY);
+            var snapshot=task.createSnapshot();
+            var encoded=CODEC.encodeStart(NbtOps.INSTANCE,List.of(snapshot)).getOrThrow();
+            var restored=CODEC.parse(NbtOps.INSTANCE,encoded).getOrThrow().getFirst();
+            assertEquals(encoded,CODEC.encodeStart(NbtOps.INSTANCE,List.of(restored)).getOrThrow());
+            task=new TaskImpl(restored);
+        }
+        assertEquals(16000,ownedBySink[0]);assertEquals(0,stock.getStored());
+        var snapshot=task.createSnapshot();assertTrue(snapshot.internalStorage().isEmpty());
+        assertEquals(0L,snapshot.patterns().get(pattern).ingredients().get(0).get(input));
+        assertEquals(0,snapshot.patterns().get(pattern).externalPattern().iterationsToSendToSink());
+        for(int tick=0;tick<3;tick++)task.step(root,layout->List.of(sink),StepBehavior.DEFAULT,TaskListener.EMPTY);
+        assertEquals(16000,ownedBySink[0]);assertEquals(0,stock.getStored());
+    }
 
     @Test void everyNativeTaskFieldAndArbitraryResourcePayloadRoundTripsWithoutMinecraftBootstrap() {
         var original=sample();JsonElement encoded=CODEC.encodeStart(JsonOps.INSTANCE,List.of(original)).getOrThrow();
@@ -53,6 +93,11 @@ class RsTaskPersistenceTest {
         assertTrue(CODEC.parse(JsonOps.INSTANCE,fraction).result().isEmpty());
         var extra=encoded.deepCopy();extra.getAsJsonArray("tasks").get(0).getAsJsonObject().addProperty("future",true);
         assertTrue(CODEC.parse(JsonOps.INSTANCE,extra).result().isEmpty());
+        var negative=encoded.deepCopy();
+        negative.getAsJsonArray("tasks").get(0).getAsJsonObject().getAsJsonArray("patterns").get(0).getAsJsonObject()
+                .getAsJsonObject("state").getAsJsonArray("ingredients").get(0).getAsJsonObject()
+                .getAsJsonArray("possibilities").get(0).getAsJsonObject().addProperty("amount",-1);
+        assertTrue(CODEC.parse(JsonOps.INSTANCE,negative).result().isEmpty());
     }
     @Test void unsupportedSinkDetailsAreNotSilentlyDiscardedDuringSave() {
         var task=sample();var entries=new LinkedHashMap<>(task.patterns());

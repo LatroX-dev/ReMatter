@@ -2,7 +2,7 @@
 
 An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover substances from materials, carry them in a reusable Matter Cell, and assemble the materials you need.
 
-Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Then use **a Decomposer, a Material Synthesizer and one 64k Matter Cell**, moving the Cell between those two machines by hand. Powered preparation, a Drive and connected production come later; an Analyzer, AE2 and Refined Storage are not prerequisites.
+Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Then connect **a Decomposer, a Matter Storage and a Material Synthesizer**, with one **64k Matter Cell** in the storage. A Matter Drive can hold the Cell instead. An Analyzer, AE2 and Refined Storage are not prerequisites.
 
 **Development build.** Build from source for testing; no mod-platform release is available yet. Processing needs an external FE source. ReMatter does not include a generator. Other Minecraft versions and loaders are not currently supported.
 
@@ -17,27 +17,27 @@ The iron Machine Frame supports the machine, the copper Control Circuit controls
 ## Your first glass
 
 1. **Prepare the matrix by hand.** Craft a Hand Preparator from two flint, one iron bars item, three planks and one stick. Put sand in its primary input and press **Crank** to extract Silith; repeat with a clay ball to extract Argil. Then put Silith in the primary input and Argil in the second input and crank one mixing batch to get four Matrix Blend. No FE, added water or fluid connection is needed. Smelt each Blend in an ordinary furnace to get a Matrix Crystal.
-2. **Craft the starter kit.** Four iron ingots make a Machine Frame; copper, redstone and paper make a Control Circuit. Craft a Decomposer, Material Synthesizer and **64k Matter Cell**. The Cell uses two iron ingots, two glass, one Circuit and one Crystal. The Hand Preparator needs no Circuit or Crystal, so this path has no circular ingredient requirement.
-3. **Power both machines.** Place them where their fronts are accessible and connect an external FE supply. They do not need a Drive or a connection to each other for this first experiment.
-4. **Store sand.** Insert the Cell in the Decomposer's dedicated Cell slot and put sand in its material input. Press **Start**. The completed batch stores silica in the Cell.
-5. **Move the Cell.** Take it out of the Decomposer and insert it in the Synthesizer's Cell slot. Changing a Cell pauses the machine; it does not start another job.
+2. **Craft the starter kit.** Four iron ingots make a Machine Frame; copper, redstone and paper make a Control Circuit. Craft a Decomposer, Matter Storage (or Matter Drive), Material Synthesizer and **64k Matter Cell**. The Cell uses two iron ingots, two glass, one Circuit and one Crystal. The Hand Preparator needs no Circuit or Crystal, so this path has no circular ingredient requirement.
+3. **Connect the three blocks.** Place Decomposer → storage → Synthesizer next to one another, with accessible fronts. Supply external FE to both processors; the storage needs no FE.
+4. **Store sand.** Insert the Cell in the storage bay and put sand in the Decomposer's input. The Decomposer processes it automatically when running; resume it if paused. The completed batch stores silica in the Cell.
+5. **Check the stock.** Open the storage to see the silica. Leave the Cell there: both connected processors use the same stock.
 6. **Make glass.** Press **Choose recipe** (or **Recipe** to change an existing selection), select **Glass**, confirm with **Use recipe**, then press **Start**. Collect the glass from the output.
 
 The default batch turns one sand into enough stored silica for one glass, using 24,000 FE across both machines. It does not multiply material. The same stored feedstock can later serve other explicitly supported products.
 
 Craft the **ReMatter Guide** from a book and a copper ingot for the recipes and instructions. Optional **GuideME** adds interactive 3D views. Sneak-use opens the basic book.
 
-## Cells first, networks later
+## Cells and connected storage
 
 Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **512 substance/phase pairs** per Cell. Solids, liquids and gases share capacity; water and water vapor are different types.
 
 The 64k Cell uses one Matrix Crystal. A Matrix Cluster combines four Crystals, Rhedon and Virel; one Cluster goes into a 256k Cell. A 1M Cell uses four Clusters and an Optical Circuit, made from a Control Circuit, Lumin and glass. All Cells also need their iron/glass housing. Larger Cells are crafted empty and do not consume your old Cell.
 
-A Cell inserted directly in a Decomposer or Synthesizer is that machine's active stock. It takes priority over a connected network, even when empty or full. Remove it to use network storage instead. Open **Details** to check which source the machine is using.
+Matter Storage and Matter Drive each hold one Cell. Processors use the connected storage network. Cells left inside Decomposers or Synthesizers by an older build can be removed through **Configuration** and placed in a storage bay; those old slots no longer accept Cells or supply processing stock.
 
-For continuous production, add a **Matter Drive**, put the Cell in it, and connect the two processors. Leave their local Cell slots empty. Hoppers and chests feed input and collect output; enable **Automation** under **Details** on both processors and press **Run nonstop** under the Synthesizer's **Details**. The Drive replaces hand-carried Cell transfers.
+For continuous production, use hoppers and chests to feed input and collect output. Enable **Automation** under **Configuration** on both processors and press **Run nonstop** under the Synthesizer's **Configuration**.
 
-Use one Drive or original Matter Storage per network. Matter Pipes bridge gaps but do not carry FE. A Matter Terminal gives another view of the connected stock. Existing Matter Storages retain their built-in contents and need no Cell.
+Multiple Matter Storages and Drives can share one network; their available contents and capacity are combined. Matter Pipes bridge gaps but do not carry FE. A Matter Terminal gives another view of the connected stock. Older Matter Storages retain their built-in contents without a Cell. To move that stock into an empty Cell, insert one with enough capacity and use **Configuration → Move to cell**.
 
 ## Expand preparation
 
@@ -75,13 +75,13 @@ Pause before rebuilding and follow the displayed reason if a shell or module is 
 
 The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. Small forms use complete batches: nine supported nuggets represent one ingot without rounded fractions. Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions.
 
-Machines belong to their placer. Connected machines need the same owner and loaded chunks. On the Synthesizer, Electrolyzer and reactors, **Start** requests one displayed recipe batch. **Details → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction. A Cell change pauses work and resets unfinished progress without spending its uncommitted resources.
+Machines belong to their placer. Connected machines need the same owner and loaded chunks. On the Synthesizer, Electrolyzer and reactors, **Start** requests one displayed recipe batch. **Configuration → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction. Changing storage during a job stops work until its source is valid again; unfinished work does not spend its uncommitted resources.
 
 Filled machines and Cells retain their contents when carried. Mechanisms animate while processing and stop when work waits; the menu explains the reason.
 
 ## Optional integrations
 
-ReMatter is independent of ReForging, JEI, EMI, Jade, GuideME and Mekanism. The optional [integrations](docs/integrations.md) add recipe displays, a machine HUD, illustrated guides and supported chemical transfers. Dedicated AE2/RS storage-network adapters are not implemented.
+ReMatter remains standalone. Its optional [integrations](docs/integrations.md) add recipe displays, a machine HUD, illustrated guides, chemical transfers, and AE2/Refined Storage crafting requests through a **Network Interface**. To use both crafting networks at once, connect two interfaces to the same ReMatter network: one set to AE2 and the other to Refined Storage.
 
 [LatroX's Xtreme - Tech ReForging](integrations/reforging/README.md) is the reference pack integration. Its separate data pack supplies quartz/silicon progression and machine-copying rules for coexistence with Replication and Equivox. Those rules are not activated by installing ReMatter.
 

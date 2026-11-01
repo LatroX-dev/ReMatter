@@ -59,6 +59,13 @@ public final class RsTaskPersistence {
             return list(values,value->object(Map.of("resource",resource(value.resource()),"amount",number(value.amount()))));
         }
         T resourceList(ResourceList value){return amounts(value.copyState());}
+        T counters(Map<ResourceKey,Long> values){
+            if(values.size()>MAX_RESOURCES)throw new IllegalArgumentException("Too many ingredient alternatives");
+            return list(values.entrySet(),entry->{
+                if(entry.getValue()<0)throw new IllegalArgumentException("Negative ingredient counter");
+                return object(Map.of("resource",resource(entry.getKey()),"amount",number(entry.getValue())));
+            });
+        }
         T pattern(Pattern pattern){
             var layout=pattern.layout();if(layout.ingredients().size()>MAX_RESOURCES)throw new IllegalArgumentException("Too many ingredients");
             for(var ingredient:layout.ingredients())if(ingredient.inputs().size()>MAX_RESOURCES)throw new IllegalArgumentException("Too many ingredient alternatives");
@@ -70,7 +77,7 @@ public final class RsTaskPersistence {
             if(snapshot.ingredients().size()>MAX_RESOURCES)throw new IllegalArgumentException("Too many ingredient states");
             var fields=new LinkedHashMap<String,T>();fields.put("root",ops.createBoolean(snapshot.root()));fields.put("pattern",pattern(snapshot.pattern()));
             fields.put("ingredients",list(snapshot.ingredients().entrySet(),entry->object(Map.of("index",number(entry.getKey()),
-                    "possibilities",amounts(entry.getValue().entrySet().stream().map(e->new ResourceAmount(e.getKey(),e.getValue())).toList())))));
+                    "possibilities",counters(entry.getValue())))));
             if((snapshot.internalPattern()==null)==(snapshot.externalPattern()==null))throw new IllegalArgumentException("Invalid task pattern kind");
             if(snapshot.internalPattern()!=null){var value=snapshot.internalPattern();fields.put("internal",object(Map.of("original",number(value.originalIterationsRemaining()),"remaining",number(value.iterationsRemaining()))));}
             if(snapshot.externalPattern()!=null)fields.put("external",external(snapshot.externalPattern()));
@@ -126,6 +133,15 @@ public final class RsTaskPersistence {
             var result=new LinkedHashMap<ResourceKey,Long>();
             for(var row:amounts(value))if(result.putIfAbsent(row.resource(),row.amount())!=null)throw new IllegalArgumentException("Duplicate resource key");return result;
         }
+        Map<ResourceKey,Long> counters(T value){
+            var result=new LinkedHashMap<ResourceKey,Long>();
+            for(var entry:list(value,MAX_RESOURCES,Function.identity())){
+                var row=object(entry,Set.of("resource","amount"),Set.of());
+                if(result.putIfAbsent(resource(row.get("resource")),nonnegative(row.get("amount")))!=null)
+                    throw new IllegalArgumentException("Duplicate ingredient alternative");
+            }
+            return result;
+        }
         ResourceList resourceList(T value){
             var list=MutableResourceListImpl.orderPreserving();amountMap(value).forEach(list::add);return list;
         }
@@ -141,7 +157,7 @@ public final class RsTaskPersistence {
             var ingredients=new LinkedHashMap<Integer,Map<ResourceKey,Long>>();
             for(var element:list(row.get("ingredients"),MAX_RESOURCES,Function.identity())){
                 var entry=object(element,Set.of("index","possibilities"),Set.of());int index=Math.toIntExact(nonnegative(entry.get("index")));
-                if(ingredients.putIfAbsent(index,amountMap(entry.get("possibilities")))!=null)throw new IllegalArgumentException("Duplicate ingredient index");
+                if(ingredients.putIfAbsent(index,counters(entry.get("possibilities")))!=null)throw new IllegalArgumentException("Duplicate ingredient index");
             }
             TaskSnapshot.InternalPatternSnapshot internal=null;
             if(row.containsKey("internal")){var state=object(row.get("internal"),Set.of("original","remaining"),Set.of());internal=new TaskSnapshot.InternalPatternSnapshot(nonnegative(state.get("original")),nonnegative(state.get("remaining")));}
