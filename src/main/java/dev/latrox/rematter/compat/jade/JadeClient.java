@@ -49,6 +49,11 @@ final class JadeClient {
                 return;
             }
             tooltip.add(Component.translatable("status.rematter." + data.getStringOr("status", "idle")));
+            if (data.getIntOr("structureWidth", 0) > 0) {
+                tooltip.add(Component.translatable("screen.rematter.structure_size", data.getIntOr("structureWidth", 0),
+                        data.getIntOr("structureDepth", 0), data.getIntOr("structureHeight", 0)).withStyle(ChatFormatting.AQUA));
+                if (accessor.showDetails()) tooltip.add(Component.translatable("screen.rematter.structure_speed", data.getIntOr("structureRate", 0)));
+            }
             if (data.getBooleanOr("processes", false))
                 tooltip.add(Component.literal(data.getIntOr("energy", 0) + " / " + data.getIntOr("energyCapacity", 0) + " FE"));
             long capacity = data.getLongOr("capacity", 0);

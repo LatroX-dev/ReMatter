@@ -72,6 +72,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private int manualStage = -1;
     private boolean manualMixing;
     private boolean industrialFormed;
+    private IndustrialStructure.Shape industrialShape;
     private List<IndustrialStructure.Port> industrialPorts = List.of();
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 16_000, 0) {
@@ -125,15 +126,22 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return automation && isLiveServerMachine() && industrialStructureReady();
     }
     private boolean industrialStructureReady() { return !IndustrialStructure.isIndustrial(kind()) || IndustrialStructure.inspect(this).formed(); }
-    public boolean industrialFormed() { return industrialFormed; }
+    public boolean industrialFormed() { return level instanceof ServerLevel ? IndustrialStructure.inspect(this).formed() : industrialFormed; }
+    private IndustrialStructure.Shape visibleIndustrialShape() {
+        return level instanceof ServerLevel ? IndustrialStructure.inspect(this).shape() : industrialFormed ? industrialShape : null;
+    }
+    public int industrialWidth() { var shape=visibleIndustrialShape(); return shape==null?0:shape.width(); }
+    public int industrialHeight() { var shape=visibleIndustrialShape(); return shape==null?0:shape.height(); }
+    public int industrialDepth() { var shape=visibleIndustrialShape(); return shape==null?0:shape.depth(); }
+    public int industrialControllerColumn() { var shape=visibleIndustrialShape(); return shape==null?0:shape.controllerColumn(); }
     private void refreshIndustrialFormation() {
         if (!IndustrialStructure.isIndustrial(kind())) return;
         var current = IndustrialStructure.inspect(this);
-        if (industrialFormed != current.formed() || !industrialPorts.equals(current.ports())) {
+        if (industrialFormed != current.formed() || !Objects.equals(industrialShape,current.shape()) || !industrialPorts.equals(current.ports())) {
             var changed = new HashSet<BlockPos>();
             industrialPorts.forEach(port -> changed.add(port.position()));
             current.ports().forEach(port -> changed.add(port.position()));
-            industrialFormed = current.formed(); industrialPorts = current.ports();
+            industrialFormed = current.formed(); industrialShape=current.shape(); industrialPorts = current.ports();
             changed.stream().filter(level::hasChunkAt).forEach(level::invalidateCapabilities);
             level.invalidateCapabilities(worldPosition);
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
@@ -198,7 +206,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         CompoundTag tag=new CompoundTag();
         if(cellSlot()>=0)tag.putBoolean("cell_present",hasVisibleCell());
         if(PreparationTier.isPreparation(kind())){tag.putInt("preparation_stage",preparationStage);tag.putBoolean("preparation_mixing",preparationMixing);}
-        if(IndustrialStructure.isIndustrial(kind()))tag.putBoolean("industrial_formed",industrialFormed);
+        if(IndustrialStructure.isIndustrial(kind())){
+            tag.putBoolean("industrial_formed",industrialFormed);
+            if(industrialFormed&&industrialShape!=null){
+                tag.putInt("industrial_width",industrialShape.width());tag.putInt("industrial_height",industrialShape.height());
+                tag.putInt("industrial_depth",industrialShape.depth());tag.putInt("industrial_column",industrialShape.controllerColumn());
+            }
+        }
         return tag;
     }
     @Override public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket() {
@@ -207,7 +221,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public void handleUpdateTag(ValueInput input) {
         if(cellSlot()>=0)visibleCell=input.getBooleanOr("cell_present",false);
         if(PreparationTier.isPreparation(kind())){preparationStage=Math.clamp(input.getIntOr("preparation_stage",-1),-1,2);preparationMixing=input.getBooleanOr("preparation_mixing",false);}
-        if(IndustrialStructure.isIndustrial(kind()))industrialFormed=input.getBooleanOr("industrial_formed",false);
+        if(IndustrialStructure.isIndustrial(kind())){
+            industrialFormed=input.getBooleanOr("industrial_formed",false);industrialShape=null;
+            if(industrialFormed)try{
+                industrialShape=new IndustrialStructure.Shape(input.getIntOr("industrial_width",0),input.getIntOr("industrial_height",0),
+                        input.getIntOr("industrial_depth",0),input.getIntOr("industrial_column",0));
+                if(industrialShape.height()<IndustrialStructure.height(kind()))throw new IllegalArgumentException("Wrong industrial height");
+            }catch(IllegalArgumentException invalid){industrialFormed=false;industrialShape=null;}
+        }
     }
     @Override public void onDataPacket(net.minecraft.network.Connection connection,ValueInput input) { handleUpdateTag(input); }
     public boolean canUse(Player player) {
@@ -516,6 +537,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private int speed() {
         if(PreparationTier.manual(kind()))return 1;
         int base = kind() == MachineKind.INDUSTRIAL_REACTOR ? 2 : PreparationTier.speed(kind());
+        if(IndustrialStructure.isIndustrial(kind())){
+            var shape=IndustrialStructure.inspect(this).shape();
+            if(shape!=null)base=shape.baseWorkRate(kind());
+        }
         return base * (items.get(2).is(ModContent.SPEED_UPGRADE.get()) ? 1 + Math.min(4, items.get(2).getCount()) : 1);
     }
     private net.minecraft.world.item.crafting.RecipeHolder<PreparationRecipe> preparationRecipe(){
@@ -609,7 +634,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && IndustrialStructure.isIndustrial(machine.kind())) {
             if (!Objects.equals(machine.owner, owner)) return List.of();
             var formation = IndustrialStructure.inspect(machine);
-            return formation.formed() ? formation.ports().stream().map(IndustrialStructure.Port::position).toList() : List.of();
+            return formation.formed() ? formation.ports().stream().filter(port -> {
+                BlockPos outside=port.position().relative(port.outward());
+                return level.hasChunkAt(outside) && (level.getBlockState(outside).is(ModContent.MATTER_PIPE.get())
+                        || level.getBlockEntity(outside) instanceof MachineBlockEntity || level.getBlockEntity(outside) instanceof MachinePortBlockEntity);
+            }).map(IndustrialStructure.Port::position).toList() : List.of();
         }
         return Arrays.stream(Direction.values()).map(pos::relative).toList();
     }
@@ -640,6 +669,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         var choices = choices();
         int selected = choices.isEmpty() || selection < 0 ? -1 : Math.floorMod(selection, choices.size());
         var chosen = selected < 0 ? null : choices.get(selected);
+        var formation = IndustrialStructure.isIndustrial(kind()) ? IndustrialStructure.inspect(this) : IndustrialStructure.Formation.EMPTY;
+        var structure = formation.formed() ? new MachineSnapshot.StructureView(formation.shape().width(), formation.shape().depth(),
+                formation.shape().height(), speed()) : MachineSnapshot.StructureView.EMPTY;
         return new MachineSnapshot(containerId, kind().ordinal(), (int) energy.getAmountAsLong(), progress, duration,
                 status, selected, chosen == null ? selectedId : chosen.id(), chosen == null ? selectedId : chosen.name(), choices.size(), sampleBatch,
                 entries, entries.size() == displayed.size() && (store == null || readableStorage), !readableStorage ? 0 : store.matterInventory().total(), !readableStorage ? 0 : store.matterInventory().capacity(),
@@ -647,7 +679,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 fluids.getResource(0).isEmpty() ? "" : fluids.getResource(0).getHoverName().getString(),
                 supportsBatchControl() && runState.repeat(), supportsBatchControl() ? runState.queuedBatches() : 0, preview(registry, readableStorage ? store : null),
                 cellSlot() >= 0 ? cell.view(cellStack()) : MachineSnapshot.CellView.EMPTY,
-                store == null ? "none" : store == this ? "local" : "network");
+                store == null ? "none" : store == this ? "local" : "network", structure);
     }
 
     private MachineSnapshot.Preview preview(ChemistryRegistry registry, MachineBlockEntity store) {

@@ -53,13 +53,17 @@ The five named fractions are physical intermediate materials for the matrix tech
 
 The Hand Preparator supports Silith, Argil and their mixture. The powered **Material Preparator** also extracts the other three fractions. Give it external FE; it performs the grinding, sieving and mixing stages automatically. The sieve sorts grains; these fictional fractions are not claims of chemically pure elements.
 
-For greater throughput, build the **Industrial Preparator** as a complete **3×3×3 chamber**. The **Industrial Reactor** uses a **3×3×4 chamber**. Both have a floor and roof, Casing edges and corners, optional Glass face centers and **at least two Machine Ports**. Put the controller in the front wall, one block above the base, and leave the interior empty. External connections use the Ports' outward faces, including the reactor's matter-network connection. Former flat rings are not valid structures.
+For greater throughput, build a complete rectangular industrial chamber. Both machines accept an outer **width and depth of 3–9 blocks**. The **Industrial Preparator** accepts **3–9 blocks of height**; the **Industrial Reactor** accepts **4–9**. The smallest chambers remain 3×3×3 and 3×3×4 respectively.
+
+Include a floor and roof, Casing edges and corners, optional Glass wall panels and **at least two Machine Ports**. Put the controller in the front wall, one block above the base, in any column away from the edges. It may be off-center. Leave the entire interior empty. External connections use the Ports' outward faces, including the reactor's matter-network connection.
+
+More interior space increases throughput with diminishing gains. A 3×3×3 Preparator works at 4× ordinary preparation speed; a 5×5×5 chamber reaches 20× before upgrades. Each machine completes one recipe batch at a time. Recipe quantities and FE per batch stay the same: industrial preparation costs twice the ordinary recipe FE, while the Industrial Reactor uses the original reaction cost. The controller shows the effective duration. Pause the machine before rebuilding its chamber; a broken shell stops processing. Former flat rings are not valid structures.
 
 ## Build beyond the first batch
 
 - **Analyzer:** inspect a sample without consuming it. It needs FE, but no Cell or storage network.
 - **Electrolyzer and Chemical Reactor:** split and recombine stored substances, including water, hydrogen and oxygen.
-- **Industrial Reactor:** run reactor processes faster in a complete 3×3×4 chamber.
+- **Industrial Reactor:** run reactor processes faster in a complete chamber, starting at 3×3×4.
 - **Speed and Efficiency Upgrades:** trade energy for throughput or reduce the energy cost of each batch.
 
 The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. Small forms use complete batches: nine supported nuggets represent one ingot without rounded fractions. Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions.

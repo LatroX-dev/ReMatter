@@ -9,6 +9,33 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineSnapshotTest {
+    @Test void rectangularStructureAndEffectiveRateRoundTripWithoutChangingAxisOrder() {
+        var structure = new MachineSnapshot.StructureView(4, 6, 5, 6);
+        var snapshot = new MachineSnapshot(7, MachineKind.INDUSTRIAL_REACTOR.ordinal(), 64000, 2, 200, "working",
+                -1, "", "", 0, 1, List.of(), true, 0, 0, false, true, 0, "", false, 0,
+                MachineSnapshot.Preview.EMPTY, MachineSnapshot.CellView.EMPTY, "none", structure);
+        var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), RegistryAccess.EMPTY);
+        try {
+            MachineSnapshot.CODEC.encode(buffer, snapshot);
+            var decoded = MachineSnapshot.CODEC.decode(buffer);
+            assertEquals(snapshot, decoded);
+            assertEquals(24, decoded.structure().volume());
+            assertEquals(0, buffer.readableBytes());
+        } finally { buffer.release(); }
+        assertFalse(MachineSnapshot.StructureView.EMPTY.formed());
+        assertEquals(0, MachineSnapshot.StructureView.EMPTY.volume());
+        assertEquals(343, new MachineSnapshot.StructureView(9, 9, 9, 370).volume());
+    }
+    @Test void malformedStructureSizesRatesAndControllerKindsAreRejected() {
+        for (var values : List.of(new int[]{0,3,3,4}, new int[]{3,10,3,4}, new int[]{3,3,2,4},
+                new int[]{3,3,3,0}, new int[]{3,3,3,371}))
+            assertThrows(IllegalArgumentException.class,
+                    () -> new MachineSnapshot.StructureView(values[0], values[1], values[2], values[3]));
+        for (var kind : List.of(MachineKind.PREPARATOR, MachineKind.INDUSTRIAL_REACTOR))
+            assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot(1, kind.ordinal(), 0, 0, 0, "idle",
+                    -1, "", "", 0, 1, List.of(), true, 0, 0, false, false, 0, "", false, 0,
+                    MachineSnapshot.Preview.EMPTY, MachineSnapshot.CellView.EMPTY, "none", new MachineSnapshot.StructureView(3,3,3,4)));
+    }
     @Test void cellPresenceCapacityAndTypeCountRoundTripWithoutContents() {
         var cell=new MachineSnapshot.CellView(true,true,"64k Matter Cell",64000,2,512);
         var snapshot=new MachineSnapshot(1,MachineKind.DRIVE.ordinal(),0,0,0,"ready",-1,"","",0,1,List.of(),true,

@@ -16,7 +16,8 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                               int selected, String selectedId, String selectedName, int choiceCount, int sampleBatchSize,
                               List<Entry> entries, boolean entriesComplete, long used, long capacity,
                               boolean automation, boolean running, int fluidAmount, String fluidName,
-                              boolean repeat, int queuedBatches, Preview preview, CellView cell, String storageSource) implements CustomPacketPayload {
+                              boolean repeat, int queuedBatches, Preview preview, CellView cell, String storageSource,
+                              StructureView structure) implements CustomPacketPayload {
     public static final int MAX_CHOICE_ID_LENGTH = 520;
     public static final int MAX_SUBSTANCE_ID_LENGTH = 512;
     public static final int MAX_ENTRIES = 512;
@@ -29,7 +30,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
         status = clipped(status, 64);
         fluidName = clipped(fluidName, 64);
         entries = List.copyOf(entries);
-        if (preview == null || cell == null || selectedId.length() > MAX_CHOICE_ID_LENGTH || choiceCount < 0 || choiceCount > MachineChoices.MAX_CHOICES
+        if (preview == null || cell == null || structure == null || selectedId.length() > MAX_CHOICE_ID_LENGTH || choiceCount < 0 || choiceCount > MachineChoices.MAX_CHOICES
                 || selected < -1 || selected >= choiceCount
                 || sampleBatchSize < 1 || sampleBatchSize > 64 || entries.size() > MAX_ENTRIES
                 || kind < 0 || kind >= MachineKind.values().length || energy < 0 || energy > MachineBlockEntity.ENERGY_CAPACITY
@@ -37,6 +38,18 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                 || queuedBatches < 0 || queuedBatches > MachineRunState.MAX_QUEUED_BATCHES || (repeat && queuedBatches != 0)
                 || fluidAmount < 0 || fluidAmount > 16_000
                 || !Set.of("none", "local", "network").contains(storageSource)) throw new IllegalArgumentException("Invalid menu snapshot");
+        if (structure.formed() && (!IndustrialStructure.isIndustrial(MachineKind.values()[kind])
+                || kind == MachineKind.INDUSTRIAL_REACTOR.ordinal() && structure.height() < 4))
+            throw new IllegalArgumentException("Structure does not match its controller");
+    }
+    /** Callers without an industrial structure retain the same menu contract. */
+    public MachineSnapshot(int containerId, int kind, int energy, int progress, int duration, String status,
+                           int selected, String selectedId, String selectedName, int choiceCount, int sampleBatchSize,
+                           List<Entry> entries, boolean entriesComplete, long used, long capacity,
+                           boolean automation, boolean running, int fluidAmount, String fluidName,
+                           boolean repeat, int queuedBatches, Preview preview, CellView cell, String storageSource) {
+        this(containerId,kind,energy,progress,duration,status,selected,selectedId,selectedName,choiceCount,sampleBatchSize,
+                entries,entriesComplete,used,capacity,automation,running,fluidAmount,fluidName,repeat,queuedBatches,preview,cell,storageSource,StructureView.EMPTY);
     }
     public MachineSnapshot(int containerId, int kind, int energy, int progress, int duration, String status,
                            int selected, String selectedId, String selectedName, int choiceCount, int sampleBatchSize,
@@ -54,6 +67,17 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
                            boolean repeat, int queuedBatches, Preview preview) {
         this(containerId,kind,energy,progress,duration,status,selected,selectedId,selectedName,choiceCount,sampleBatchSize,
                 entries,entriesComplete,used,capacity,automation,running,fluidAmount,fluidName,repeat,queuedBatches,preview,CellView.EMPTY);
+    }
+    /** Dimensions describe the outside shell; speed includes installed upgrades. */
+    public record StructureView(int width, int depth, int height, int workRate) {
+        public static final StructureView EMPTY = new StructureView(0,0,0,0);
+        public StructureView {
+            boolean empty = width == 0 && depth == 0 && height == 0 && workRate == 0;
+            if (!empty && (width < 3 || width > 9 || depth < 3 || depth > 9 || height < 3 || height > 9
+                    || workRate < 1 || workRate > 370)) throw new IllegalArgumentException("Invalid structure view");
+        }
+        public boolean formed() { return width != 0; }
+        public int volume() { return formed() ? (width - 2) * (depth - 2) * (height - 2) : 0; }
     }
     public record CellView(boolean installed, boolean readable, String name, long capacity, int types, int maxTypes) {
         public static final CellView EMPTY = new CellView(false,false,"",0,0,0);
@@ -126,8 +150,10 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
             Preview preview = new Preview(buffer.readUtf(MAX_CHOICE_ID_LENGTH), buffer.readUtf(256), amounts(buffer), amounts(buffer),
                     buffer.readBoolean(), buffer.readVarLong(), buffer.readVarInt(), buffer.readUtf(16), buffer.readUtf(MAX_SUBSTANCE_ID_LENGTH), buffer.readVarInt());
             CellView cell=new CellView(buffer.readBoolean(),buffer.readBoolean(),buffer.readUtf(256),buffer.readVarLong(),buffer.readVarInt(),buffer.readVarInt());
+            String storageSource = buffer.readUtf(8);
+            var structure = new StructureView(buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt());
             return new MachineSnapshot(container, kind, energy, progress, duration, status, selected, selectedId, selectedName, choiceCount, sampleBatchSize,
-                    entries, entriesComplete, used, capacity, automation, running, fluidAmount, fluidName, repeat, queued, preview,cell,buffer.readUtf(8));
+                    entries, entriesComplete, used, capacity, automation, running, fluidAmount, fluidName, repeat, queued, preview,cell,storageSource,structure);
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, MachineSnapshot value) {
             buffer.writeVarInt(value.containerId); buffer.writeVarInt(value.kind); buffer.writeVarInt(value.energy);
@@ -151,6 +177,8 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
             buffer.writeBoolean(value.cell.installed);buffer.writeBoolean(value.cell.readable);buffer.writeUtf(value.cell.name,256);
             buffer.writeVarLong(value.cell.capacity);buffer.writeVarInt(value.cell.types);buffer.writeVarInt(value.cell.maxTypes);
             buffer.writeUtf(value.storageSource,8);
+            buffer.writeVarInt(value.structure.width); buffer.writeVarInt(value.structure.depth);
+            buffer.writeVarInt(value.structure.height); buffer.writeVarInt(value.structure.workRate);
         }
         private List<Amount> amounts(RegistryFriendlyByteBuf buffer) {
             int size = count(buffer, MAX_PREVIEW_AMOUNTS);
@@ -174,7 +202,7 @@ public record MachineSnapshot(int containerId, int kind, int energy, int progres
     };
     @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("6").playToClient(TYPE, CODEC, (snapshot, context) -> {
+        event.registrar("7").playToClient(TYPE, CODEC, (snapshot, context) -> {
             if (context.player().containerMenu instanceof MachineMenu menu && menu.containerId == snapshot.containerId) menu.acceptSnapshot(snapshot);
         });
     }

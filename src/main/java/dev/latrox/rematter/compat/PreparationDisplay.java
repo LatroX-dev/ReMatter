@@ -38,7 +38,8 @@ public record PreparationDisplay(Identifier sourceId, MachineKind machine, Ingre
     public ItemStack output() { return new ItemStack(resultItem, resultCount); }
     public Component cost() {
         return manual() ? Component.translatable("gui.rematter.preparation_cranks", cranks())
-                : Component.translatable("gui.rematter.preparation_cost", energy(), ticks());
+                : Component.translatable(PreparationTier.industrial(machine) ? "gui.rematter.preparation_minimum_cost"
+                : "gui.rematter.preparation_cost", energy(), ticks());
     }
     public Component note() {
         return Component.translatable(manual() ? "gui.rematter.preparation_manual"

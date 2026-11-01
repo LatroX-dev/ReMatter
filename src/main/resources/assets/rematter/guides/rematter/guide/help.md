@@ -51,7 +51,7 @@ Collect the Synthesizer's output, make room in its output chest, or drain its ta
 
 Use one Drive or Matter Storage per connected network. Keep all owners the same and the route loaded, with no more than 64 machines and pipes.
 
-Industrial preparation needs a full 3×3×3 chamber; the Industrial Reactor needs 3×3×4. Include floor and roof, Casing edges/corners and at least two Ports. Keep the interior empty. Connect FE and the matter network to outward Port faces, not to the controller or Glass.
+Industrial chambers are rectangular: width and depth 3–9, height 3–9 for preparation or 4–9 for reactions. Include floor and roof, Casing edges/corners and at least two Ports. Keep the whole interior empty. The front controller sits one block above the base, away from the edge columns. Connect FE and the matter network to outward Port faces, not to the controller or Glass.
 
 ## Preserve unreadable contents
 

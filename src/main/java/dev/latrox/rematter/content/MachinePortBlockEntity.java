@@ -29,9 +29,8 @@ public final class MachinePortBlockEntity extends BlockEntity {
     /** Null side is a graph lookup only; capability providers require an actual exterior side. */
     public @Nullable MachineBlockEntity controller(@Nullable Direction side) {
         if (!live()) return null;
-        var candidates = IndustrialStructure.matchingControllers((ServerLevel) level, worldPosition);
-        if (candidates.size() != 1) return null;
-        var candidate = candidates.getFirst();
+        var candidate = IndustrialStructure.associatedController(this);
+        if (candidate == null) return null;
         var formation = IndustrialStructure.inspect(candidate);
         if (!formation.formed()) return null;
         return formation.ports().stream().anyMatch(port -> port.position().equals(worldPosition)

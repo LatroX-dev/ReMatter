@@ -117,6 +117,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         boolean onCellSlot = menu.slots.get(3).isActive() && mx >= 15 && mx < 33 && my >= 179 && my < 197;
         if (mx >= 8 && mx < 140 && my >= 158 && my < 236 && !onCellSlot) {
             List<Component> lines = new java.util.ArrayList<>();
+            structureTooltip(lines, s);
             if (preparator()) {
                 lines.add(tr("secondary_ingredient"));
                 lines.add(tr("preparation_input_hint"));
@@ -153,7 +154,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 g.setTooltipForNextFrame(Component.literal(e.name() + " · " + e.phase() + "\n"
                         + String.format(Locale.ROOT, "%,d stored units", e.amount())), mouseX, mouseY);
             }
-        } else if (!passive() && !menu.settingsOpen() && mx >= 120 && mx < 308 && my >= 42 && my < 131) {
+        } else if (!passive() && !menu.settingsOpen() && !s.preview().id().isEmpty()
+                && mx >= 120 && mx < 308 && my >= 42 && my < 131) {
             List<Component> lines = new java.util.ArrayList<>();
             var p = s.preview();
             lines.add(Component.literal(p.name().isBlank() ? s.selectedName() : p.name()));
@@ -286,7 +288,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             ItemStack secondary = menu.slots.get(3).getItem();
             String name = secondary.isEmpty() ? tr("insert_secondary").getString() : secondary.getHoverName().getString();
             wrapped(g, name, 40, 179, 92, 2, MUTED);
-            g.text(font, tr("dry_preparation"), 16, 207, CYAN, false);
+            if (s.structure().formed()) {
+                g.text(font, dimensions(s), 16, 203, CYAN, false);
+                g.text(font, Component.translatable("screen.rematter.structure_speed", s.structure().workRate()), 16, 217, MUTED, false);
+            } else g.text(font, tr("dry_preparation"), 16, 207, CYAN, false);
             return;
         }
         if (menu.kind() == MachineKind.ANALYZER) {
@@ -296,7 +301,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         g.text(font, font.plainSubstrByWidth(tr("source_" + s.storageSource()).getString(), 104), 16, 163, PAPER, false);
         if (!s.entriesComplete()) g.text(font, "+", 130, 163, COPPER, false);
-        String detail = directCell() && s.cell().installed() ? s.cell().name()
+        String detail = s.structure().formed() ? dimensions(s) + " · " + s.structure().workRate() + "×"
+                : directCell() && s.cell().installed() ? s.cell().name()
                 : directCell() ? tr("insert_cell").getString() : tr("stored_resources").getString();
         wrapped(g, detail, directCell() ? 40 : 16, 179, directCell() ? 92 : 116, 2, MUTED);
         String amount = compact(s.used()) + " / " + compact(s.capacity()) + " u";
@@ -307,6 +313,20 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             String tank = compact(s.fluidAmount()) + " mB";
             g.text(font, tank, 132 - font.width(tank), 217, COPPER, false);
         }
+    }
+
+    private String dimensions(MachineSnapshot snapshot) {
+        var structure = snapshot.structure();
+        return structure.width() + "×" + structure.depth() + "×" + structure.height();
+    }
+
+    private void structureTooltip(List<Component> lines, MachineSnapshot snapshot) {
+        var structure = snapshot.structure();
+        if (!structure.formed()) return;
+        lines.add(Component.translatable("screen.rematter.structure_size", structure.width(), structure.depth(), structure.height()));
+        lines.add(Component.translatable("screen.rematter.structure_volume", structure.volume()));
+        lines.add(Component.translatable("screen.rematter.structure_speed", structure.workRate()));
+        lines.add(tr("structure_scaling_hint"));
     }
 
     private void wrapped(GuiGraphicsExtractor g, String value, int x, int y, int width, int lines, int color) {

@@ -8,6 +8,9 @@ import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.IndustrialStructure;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.WeakHashMap;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -49,7 +52,13 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
     private final ModelPart cellIndicator;
     private final ModelPart crusher, sieve, paddle;
     private final ModelPart handCrank, handGrip;
-    private final ModelPart industrialPrepFrame, industrialReactorFrame, industrialSpindle;
+    private final ModelPart industrialSpindle;
+    // Bound the per-shape static geometry cache independently of the number of loaded machines.
+    private final Map<IndustrialGeometryKey, IndustrialGeometry> industrialGeometry = new LinkedHashMap<>(32, 0.75F, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<IndustrialGeometryKey, IndustrialGeometry> entry) {
+            return size() > 32;
+        }
+    };
 
     public MachineRenderer(BlockEntityRendererProvider.Context context) {
         ModelPart root = context.bakeLayer(LAYER);
@@ -67,8 +76,6 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         paddle = root.getChild("preparation_paddle");
         handCrank = root.getChild("hand_crank");
         handGrip = root.getChild("hand_grip");
-        industrialPrepFrame = root.getChild("industrial_prep_frame");
-        industrialReactorFrame = root.getChild("industrial_reactor_frame");
         industrialSpindle = root.getChild("industrial_spindle");
     }
 
@@ -133,33 +140,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 .texOffs(0, 16).addBox(-0.15F, -0.22F, -0.22F, 0.3F, 1.72F, 0.44F), PartPose.ZERO);
         root.addOrReplaceChild("hand_grip", CubeListBuilder.create().texOffs(0, 0)
                 .addBox(0.15F, 1.15F, -0.25F, 0.7F, 0.4F, 0.5F), PartPose.ZERO);
-        // Multiblock hardware occupies the empty chamber, never the controller block.
-        // Local origin is the chamber's horizontal centre, one block behind the controller.
-        var prepFrame = CubeListBuilder.create().texOffs(0, 0)
-                .addBox(-3, 1.1F, -3, 6, 0.5F, 6)
-                .addBox(-3, 1.6F, -3, 0.4F, 2.5F, 6)
-                .addBox(2.6F, 1.6F, -3, 0.4F, 2.5F, 6)
-                .addBox(-2.6F, 1.6F, 2.6F, 5.2F, 2.5F, 0.4F);
-        for (int side : new int[] {-1, 1}) {
-            for (int end : new int[] {-1, 1})
-                prepFrame.addBox(side < 0 ? -6.5F : 5.7F, 1.1F, end < 0 ? -5.2F : 4.4F, 0.8F, 13.5F, 0.8F);
-            prepFrame.addBox(side < 0 ? -6.5F : 5.7F, 10.3F, -5.2F, 0.8F, 0.6F, 10.4F);
-            prepFrame.addBox(-5.7F, 14, side < 0 ? -5.2F : 4.4F, 11.4F, 0.6F, 0.8F);
-            for (int roller : new int[] {-1, 1})
-                prepFrame.addBox(side < 0 ? -5.7F : 4, 10.3F, roller * 3 - 0.7F, 1.7F, 1.4F, 1.4F);
-        }
-        var reactorFrame = CubeListBuilder.create().texOffs(0, 0);
-        // Four smaller panels preserve the shared 32-unit UV atlas without wrapping.
-        for (int x = 0; x < 2; x++) for (int z = 0; z < 2; z++) {
-            prepFrame.addBox(-6.5F + x * 6.5F, 0.5F, -6.5F + z * 6.5F, 6.5F, 0.6F, 6.5F);
-            reactorFrame.addBox(-6.5F + x * 6.5F, 0.5F, -6.5F + z * 6.5F, 6.5F, 1, 6.5F);
-            reactorFrame.addBox(-6.5F + x * 6.5F, 30.5F, -6.5F + z * 6.5F, 6.5F, 1, 6.5F);
-        }
-        root.addOrReplaceChild("industrial_prep_frame", prepFrame, PartPose.ZERO);
-        for (int side : new int[] {-1, 1}) {
-            reactorFrame.addBox(side < 0 ? -6.5F : 5.7F, 1.5F, 4.7F, 0.8F, 29, 0.8F);
-        }
-        root.addOrReplaceChild("industrial_reactor_frame", reactorFrame, PartPose.ZERO);
+        // This normalized spindle is scaled to each validated chamber's actual height.
         var spindle = root.addOrReplaceChild("industrial_spindle", CubeListBuilder.create().texOffs(0, 0)
                 .addBox(-0.6F, -14.5F, -0.6F, 1.2F, 29, 1.2F), PartPose.ZERO);
         for (int level = 0; level < 3; level++) {
@@ -179,15 +160,22 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 && BlockEntityRenderer.super.shouldRender(machine, camera);
     }
     @Override public AABB getRenderBoundingBox(MachineBlockEntity machine) {
-        if (!IndustrialStructure.isIndustrial(machine.kind()) || !machine.industrialFormed())
+        int width = machine.industrialWidth(), height = machine.industrialHeight();
+        int depth = machine.industrialDepth(), column = machine.industrialControllerColumn();
+        if (!machine.industrialFormed() || !validIndustrialShape(machine.kind(), width, height, depth, column))
             return new AABB(machine.getBlockPos());
         var facing = machine.getBlockState().getValue(MachineBlock.FACING);
         var pos = machine.getBlockPos();
-        var a = pos.relative(facing.getClockWise(), -1);
-        var b = pos.relative(facing.getClockWise()).relative(facing.getOpposite(), 2);
+        var a = pos.relative(facing.getClockWise(), -column);
+        var b = pos.relative(facing.getClockWise(), width - column - 1).relative(facing.getOpposite(), depth - 1);
         return new AABB(Math.min(a.getX(), b.getX()), pos.getY() - 1, Math.min(a.getZ(), b.getZ()),
-                Math.max(a.getX(), b.getX()) + 1, pos.getY() + IndustrialStructure.height(machine.kind()) - 1,
+                Math.max(a.getX(), b.getX()) + 1, pos.getY() + height - 1,
                 Math.max(a.getZ(), b.getZ()) + 1);
+    }
+    private static boolean validIndustrialShape(MachineKind kind, int width, int height, int depth, int column) {
+        return IndustrialStructure.isIndustrial(kind) && width >= 3 && width <= 9 && depth >= 3 && depth <= 9
+                && height >= (kind == MachineKind.INDUSTRIAL_REACTOR ? 4 : 3) && height <= 9
+                && column >= 1 && column <= width - 2;
     }
     @Override public int getViewDistance() { return 48; }
     @Override public void extractRenderState(MachineBlockEntity machine, MachineRenderState state, float partialTick,
@@ -195,7 +183,10 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         BlockEntityRenderer.super.extractRenderState(machine, state, partialTick, cameraPosition, breakProgress);
         state.kind = machine.kind();
         state.facing = machine.getBlockState().getValue(MachineBlock.FACING);
-        state.industrialFormed = IndustrialStructure.isIndustrial(machine.kind()) && machine.industrialFormed();
+        state.industrialWidth = machine.industrialWidth(); state.industrialHeight = machine.industrialHeight();
+        state.industrialDepth = machine.industrialDepth(); state.industrialControllerColumn = machine.industrialControllerColumn();
+        state.industrialFormed = machine.industrialFormed() && validIndustrialShape(machine.kind(),
+                state.industrialWidth, state.industrialHeight, state.industrialDepth, state.industrialControllerColumn);
         state.active = machine.getBlockState().getValue(MachineBlock.ACTIVE)
                 && (!IndustrialStructure.isIndustrial(machine.kind()) || state.industrialFormed);
         state.cellInstalled = machine.kind() == MachineKind.DRIVE && machine.hasVisibleCell();
@@ -272,21 +263,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                     pose.popPose();
                 } else part(paddle, 8, 4.7F, 7, state.mixerPhase * 720, false, false, state, pose, collector);
             }
-            case INDUSTRIAL_PREPARATOR -> {
-                if (state.industrialFormed) {
-                    ceramic(industrialPrepFrame, 8, 0, 24, state, pose, collector);
-                    for (int roller = 0; roller < 2; roller++) {
-                        pose.pushPose();
-                        pose.translate(0.5F, 11F / 16, (21F + roller * 6) / 16);
-                        pose.mulPose(Axis.XP.rotationDegrees(state.crusherPhase * (roller == 0 ? 1080 : -1080)));
-                        part(crusher, 0, 0, 0, 0, false, false, state, pose, collector);
-                        pose.popPose();
-                    }
-                    part(sieve, 8 + Mth.sin(state.sievePhase * Mth.TWO_PI * 8) * 0.12F, 7.4F, 24,
-                            0, false, false, state, pose, collector);
-                    part(paddle, 8, 4.5F, 24, state.mixerPhase * 720, false, false, state, pose, collector);
-                }
-            }
+            case INDUSTRIAL_PREPARATOR -> renderIndustrial(state, pose, collector, true);
             case ANALYZER -> {
                 float z = 7.5F + Mth.sin(cycle) * 3;
                 part(scanner, 8, 11, z, 0, false, false, state, pose, collector);
@@ -326,12 +303,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 }
             }
             case REACTOR -> part(agitator, 8, 11, 8, angle * 2, false, false, state, pose, collector);
-            case INDUSTRIAL_REACTOR -> {
-                if (state.industrialFormed) {
-                    ceramic(industrialReactorFrame, 8, 0, 24, state, pose, collector);
-                    part(industrialSpindle, 8, 16, 24, angle * 2, false, false, state, pose, collector);
-                }
-            }
+            case INDUSTRIAL_REACTOR -> renderIndustrial(state, pose, collector, false);
             case DRIVE -> {
                 if (state.cellInstalled) {
                     pose.pushPose();
@@ -343,6 +315,128 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 }
             }
             default -> { }
+        }
+        pose.popPose();
+    }
+
+    private record IndustrialGeometryKey(int width, int height, int depth, boolean preparation) {}
+    private record Bay(float x, float z, float width, float depth, float radialScale,
+                       float rollerY, float sieveY, float mixerY) {}
+    private record IndustrialGeometry(ModelPart frame, List<Bay> bays, float chamberHeight) {}
+
+    /** Static supports retain their thickness; only open spans follow the actual shell size. */
+    private static final class FrameBuilder {
+        private final MeshDefinition mesh = new MeshDefinition();
+        private final List<float[]> scales = new ArrayList<>();
+        void box(float x, float y, float z, float width, float height, float depth) {
+            if (width <= 0 || height <= 0 || depth <= 0) return;
+            String name = "support_" + scales.size();
+            mesh.getRoot().addOrReplaceChild(name, CubeListBuilder.create().texOffs(0, 0)
+                    .addBox(-2, -2, -2, 4, 4, 4), PartPose.offset(x + width / 2, y + height / 2, z + depth / 2));
+            scales.add(new float[] {width / 4, height / 4, depth / 4});
+        }
+        ModelPart bake() {
+            ModelPart root = LayerDefinition.create(mesh, 32, 32).bakeRoot();
+            for (int i = 0; i < scales.size(); i++) {
+                ModelPart child = root.getChild("support_" + i);
+                child.xScale = scales.get(i)[0]; child.yScale = scales.get(i)[1]; child.zScale = scales.get(i)[2];
+            }
+            return root;
+        }
+    }
+
+    private static IndustrialGeometry createIndustrialGeometry(IndustrialGeometryKey key) {
+        float width = (key.width() - 2) * 16F, height = (key.height() - 2) * 16F, depth = (key.depth() - 2) * 16F;
+        int columns = Math.min(3, (key.width() - 1) / 2), rows = Math.min(3, (key.depth() - 1) / 2);
+        float bayWidth = width / columns, bayDepth = depth / rows;
+        FrameBuilder frame = new FrameBuilder();
+        List<Bay> bays = new ArrayList<>();
+        frame.box(1, 0.5F, 1, width - 2, key.preparation() ? 0.6F : 1, depth - 2);
+        for (float x : new float[] {1, width - 1.8F}) for (float z : new float[] {1, depth - 1.8F})
+            frame.box(x, 1.1F, z, 0.8F, height - 2.3F, 0.8F);
+        for (float z : new float[] {1, depth - 1.8F}) frame.box(1, height - 1.2F, z, width - 2, 0.7F, 0.8F);
+        for (float x : new float[] {1, width - 1.8F}) frame.box(x, height - 1.2F, 1, 0.8F, 0.7F, depth - 2);
+        for (int row = 0; row < rows; row++) for (int column = 0; column < columns; column++) {
+            float x = (column + 0.5F) * bayWidth, z = (row + 0.5F) * bayDepth;
+            float scale = Math.min(Math.min(bayWidth, bayDepth), height) / 16;
+            float rollerY = height - 5 * scale, mixerY = 4.5F * scale, sieveY = height / 2 - 0.6F * scale;
+            bays.add(new Bay(x, z, bayWidth, bayDepth, scale, rollerY, sieveY, mixerY));
+            if (!key.preparation()) continue;
+            // Repeated tall, open processing lines: crusher above screen, shallow mixer below.
+            for (int side : new int[] {-1, 1}) {
+                float postX = x + side * bayWidth * 0.42F;
+                for (int end : new int[] {-1, 1})
+                    frame.box(postX - 0.4F, 1.1F, z + end * 3.9F * scale - 0.4F, 0.8F, height - 2.3F, 0.8F);
+                frame.box(postX - 0.4F, rollerY - 0.7F * scale, z - 3.9F * scale, 0.8F, 0.6F * scale, 7.8F * scale);
+                for (int roller : new int[] {-1, 1}) {
+                    float shaftEnd = x + side * bayWidth * 4.3F / 16;
+                    frame.box(Math.min(postX, shaftEnd), rollerY - 0.6F * scale, z + roller * 1.9F * scale - 0.7F * scale,
+                            Math.abs(shaftEnd - postX), 1.2F * scale, 1.4F * scale);
+                }
+            }
+            frame.box(x - 3 * scale, 1.1F, z - 3 * scale, 6 * scale, 1.6F * scale - 1.1F, 6 * scale);
+            frame.box(x - 3 * scale, 1.6F * scale, z - 3 * scale, 0.4F * scale, 3.8F * scale, 6 * scale);
+            frame.box(x + 2.6F * scale, 1.6F * scale, z - 3 * scale, 0.4F * scale, 3.8F * scale, 6 * scale);
+            frame.box(x - 2.6F * scale, 1.6F * scale, z + 2.6F * scale, 5.2F * scale, 3.8F * scale, 0.4F * scale);
+            frame.box(x - 2.6F * scale, 1.6F * scale, z - 3 * scale, 5.2F * scale, 0.6F * scale, 0.4F * scale);
+            // The lower agitator's shaft seats against a narrow carrier, clear of the moving screen.
+            for (int side : new int[] {-1, 1})
+                frame.box(x + side * 2.4F * scale - 0.2F * scale, 5.75F * scale, z - 2.6F * scale,
+                        0.4F * scale, 0.4F * scale, 5.2F * scale);
+            frame.box(x - 2.6F * scale, 5.75F * scale, z - 0.3F * scale, 5.2F * scale, 0.4F * scale, 0.6F * scale);
+            for (int gx : new int[] {-1, 1}) for (int gz : new int[] {-1, 1}) {
+                float bottom = mixerY + 1.25F * scale;
+                frame.box(x + gx * 2.4F * scale - 0.125F * scale, bottom, z + gz * 2.4F * scale - 0.125F * scale,
+                        0.25F * scale, sieveY - 0.3F - bottom, 0.25F * scale);
+            }
+        }
+        if (!key.preparation()) {
+            // A grid of upper cross-members anchors each full-height reactor shaft without an opaque ceiling.
+            for (int row = 0; row < rows; row++) frame.box(1, height - 1.5F, (row + 0.5F) * bayDepth - 0.6F, width - 2, 1, 1.2F);
+            for (int column = 0; column < columns; column++) frame.box((column + 0.5F) * bayWidth - 0.6F, height - 1.5F, 1, 1.2F, 1, depth - 2);
+        }
+        return new IndustrialGeometry(frame.bake(), List.copyOf(bays), height);
+    }
+
+    private void renderIndustrial(MachineRenderState state, PoseStack pose, SubmitNodeCollector collector, boolean preparation) {
+        if (!state.industrialFormed) return;
+        IndustrialGeometryKey key = new IndustrialGeometryKey(state.industrialWidth, state.industrialHeight, state.industrialDepth, preparation);
+        IndustrialGeometry layout = industrialGeometry.computeIfAbsent(key, MachineRenderer::createIndustrialGeometry);
+        pose.pushPose();
+        // Controller may occupy any non-edge front column. Geometry begins at the actual inner corner.
+        pose.translate(1 - state.industrialControllerColumn, 0, 1);
+        ceramic(layout.frame(), 0, 0, 0, state, pose, collector);
+        int index = 0;
+        for (Bay bay : layout.bays()) {
+            if (preparation) {
+                for (int roller = 0; roller < 2; roller++) {
+                    pose.pushPose();
+                    pose.translate(bay.x() / 16, bay.rollerY() / 16, (bay.z() + (roller == 0 ? -1.9F : 1.9F) * bay.radialScale()) / 16);
+                    pose.mulPose(Axis.XP.rotationDegrees(state.crusherPhase * (roller == 0 ? 1080 : -1080)));
+                    pose.scale(bay.width() / 16, bay.radialScale(), bay.radialScale());
+                    part(crusher, 0, 0, 0, 0, false, false, state, pose, collector);
+                    pose.popPose();
+                }
+                pose.pushPose();
+                pose.translate((bay.x() + Mth.sin(state.sievePhase * Mth.TWO_PI * 8) * 0.12F * bay.width() / 16) / 16,
+                        bay.sieveY() / 16, bay.z() / 16);
+                pose.scale(bay.width() / 16, 1, bay.depth() / 16);
+                part(sieve, 0, 0, 0, 0, false, false, state, pose, collector);
+                pose.popPose();
+                pose.pushPose();
+                pose.translate(bay.x() / 16, bay.mixerY() / 16, bay.z() / 16);
+                pose.scale(bay.radialScale(), bay.radialScale(), bay.radialScale());
+                part(paddle, 0, 0, 0, state.mixerPhase * 720, false, false, state, pose, collector);
+                pose.popPose();
+            } else {
+                float radiusScale = (Math.min(bay.width(), bay.depth()) - 3) / 13;
+                pose.pushPose();
+                pose.translate(bay.x() / 16, layout.chamberHeight() / 32, bay.z() / 16);
+                pose.scale(radiusScale, (layout.chamberHeight() - 3) / 29, radiusScale);
+                part(industrialSpindle, 0, 0, 0, state.phase * 720 + index * 30, false, false, state, pose, collector);
+                pose.popPose();
+            }
+            index++;
         }
         pose.popPose();
     }
