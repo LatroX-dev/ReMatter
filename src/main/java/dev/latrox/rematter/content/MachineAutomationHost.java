@@ -3,6 +3,7 @@ package dev.latrox.rematter.content;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.AutomationAdapter;
 import dev.latrox.rematter.automation.AutomationBackends;
+import dev.latrox.rematter.automation.AutomationNetworkPolicy;
 import dev.latrox.rematter.automation.AutomationPort;
 import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.automation.OrderLedgerCodec;
@@ -44,7 +45,7 @@ public final class MachineAutomationHost implements AutomationPort {
     private List<Recipe> eligibleRecipes = List.of();
     private final Map<UUID,MachineBlockEntity> assigned = new HashMap<>();
     private final Map<UUID,Long> completedAt = new HashMap<>();
-    private boolean closed, ticking, lease, catalogueInvalid;
+    private boolean closed, ticking, lease, revoking, catalogueInvalid;
     private long loadedAt = Long.MIN_VALUE;
 
     MachineAutomationHost(MachineBlockEntity machine) { this.machine = machine; }
@@ -57,8 +58,15 @@ public final class MachineAutomationHost implements AutomationPort {
     @Override public UUID ownerId() { return machine.networkOwner(); }
     @Override public UUID bridgeId() { return id; }
     private boolean live() { return !closed && machine.networkLive() && ownerId() != null; }
+    private boolean eligible() {
+        return live() && lockedData == null && machine.automation() && AutomationBackends.available().contains(backend());
+    }
     private boolean elected(MachineMatterNetwork network) {
-        return network.ready() && !network.interfaces().isEmpty() && network.interfaces().getFirst() == machine;
+        if (!network.ready() || !eligible()) return false;
+        return AutomationNetworkPolicy.elected(network.interfaces(), backend(),
+                candidate -> candidate.automationHost().backend(),
+                candidate -> candidate.automationHost() != null && candidate.automationHost().eligible())
+                .orElse(null) == machine;
     }
     @Override public boolean active() {
         return live() && lockedData == null && machine.automation() && lease
@@ -66,12 +74,12 @@ public final class MachineAutomationHost implements AutomationPort {
     }
     /** Only the selected optional backend can obtain a capability delegate. */
     public @Nullable AutomationAdapter adapter(String requested) {
-        if (!live() || lockedData != null || !machine.automation() || !elected(machine.matterNetwork(false)) || !backend().equals(requested)) return null;
+        if (revoking || !live() || lockedData != null || !machine.automation() || !elected(machine.matterNetwork(false)) || !backend().equals(requested)) return null;
         ensureAdapter();
         return adapter;
     }
     private void ensureAdapter() {
-        if (adapter != null || !live() || lockedData != null || backend().isEmpty()) return;
+        if (revoking || adapter != null || !live() || lockedData != null || backend().isEmpty()) return;
         adapter = AutomationBackends.create(backend(),machine,this);
         if (adapter != null && adapterData.contains(backend())) {
             var data = adapterData.getCompound(backend()).orElseThrow(() -> new IllegalStateException("Locked native adapter state"));
@@ -85,21 +93,32 @@ public final class MachineAutomationHost implements AutomationPort {
         adapterData.put(adapter.id(),output.buildResult());
     }
     private void revoke() {
-        lease = false;
-        releaseAll();
-        if (adapter != null) {
-            saveAdapter();
-            adapter.close();
-            adapter = null;
-            if (machine.getLevel() != null) machine.getLevel().invalidateCapabilities(machine.getBlockPos());
-        }
+        if (revoking) return;
+        revoking = true;
+        boolean invalidate = lease || adapter != null;
+        try {
+            lease = false;
+            releaseAll();
+            if (adapter != null) {
+                saveAdapter();
+                var previous = adapter; adapter = null;
+                previous.close();
+            }
+            if (invalidate && machine.getLevel() != null) machine.getLevel().invalidateCapabilities(machine.getBlockPos());
+        } finally { revoking = false; }
     }
     public void close() { revoke(); closed = true; }
     public boolean cycleBackend() {
-        if (!live() || lockedData != null || !ledger.snapshot().orders().isEmpty() || adapter != null && adapter.hasTasks()) return false;
+        if (revoking || !live() || lockedData != null || !ledger.snapshot().orders().isEmpty()) return false;
         var choices=AutomationBackends.available(); if(choices.size()<2)return false;
+        // A revoked or freshly loaded adapter can still own native tasks in its saved data.
+        // Read that state before permitting a switch; absence of a live delegate is not an empty queue.
+        ensureAdapter();
+        if (!live() || lockedData != null || adapter != null && adapter.hasTasks()
+                || adapter == null && adapterData.contains(backend())) return false;
         int current=choices.indexOf(backend());
         revoke(); backend=choices.get((current+1)%choices.size());
+        if(machine.getLevel()!=null)machine.getLevel().invalidateCapabilities(machine.getBlockPos());
         changed(); return true;
     }
     public String status() {
@@ -108,47 +127,74 @@ public final class MachineAutomationHost implements AutomationPort {
         if(!machine.automation())return "automation_off";
         var network=machine.matterNetwork(false);
         if(!network.ready())return network.status();
-        if(!elected(network))return "automation_interface_conflict";
         if(backend().isEmpty()||!AutomationBackends.available().contains(backend()))return "automation_backend_missing";
+        if(!elected(network))return "automation_interface_conflict";
         if(adapter==null||!adapter.connected())return "automation_disconnected";
         if(ledger.snapshot().orders().stream().anyMatch(OrderLedger.Order::quarantined))return "automation_quarantined";
         return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
     }
     public void tick() {
-        if(!live()||ticking||Transaction.getCurrentOpenedTransaction()!=null)return;
+        if(!live()||ticking||revoking||Transaction.getCurrentOpenedTransaction()!=null)return;
         ticking=true;
         try {
             var level=(ServerLevel)machine.getLevel();
             if(loadedAt==Long.MIN_VALUE)loadedAt=level.getGameTime();
             var network=machine.matterNetwork(false);
             if(lockedData!=null||!machine.automation()||!elected(network)) {revoke();return;}
-            // Revoke old providers synchronously before publishing the chosen provider after a merge.
+            // Each native backend has its own provider and queue. Revoke only same-backend losers.
             for(var other:network.interfaces())if(other!=machine) {
-                var host=other.automationHost(); if(host!=null)host.revoke();
+                var host=other.automationHost(); if(host!=null&&backend().equals(host.backend()))host.revoke();
             }
+            boolean newlyElected=!lease;
             lease=true;
             ensureAdapter();
+            if(newlyElected)level.invalidateCapabilities(machine.getBlockPos());
+            if(!active()){revoke();return;}
             refreshCatalogue();
             validateClaims(network);
             if(adapter!=null)adapter.tick();
             if(adapter==null||!adapter.connected()) {releaseAll();return;}
             for(var worker:network.workers()) {
-                if(!worker.acceptsNetworkWork()||assigned.containsValue(worker))continue;
+                if(!worker.acceptsNetworkWork()||!worker.networkOrderFree()||assigned.containsValue(worker)
+                        ||shouldYieldWorker(worker,network))continue;
                 for(var order:ledger.snapshot().orders()) {
                     Recipe current=catalogue.get(order.recipe().id());
                     if(order.workerId()!=null||order.cancelled()||order.quarantined()||order.remainingBatches()==0
                             ||current==null||!current.equals(order.recipe())||!MachineAutomationRecipes.supports(worker.kind(),current))continue;
                     if(ledger.claim(order.id(),worker.networkWorkerId(),current.revision())) {
-                        assigned.put(order.id(),worker);worker.bindNetworkOrder(this,order.id());changed();break;
+                        if(worker.tryBindNetworkOrder(this,order.id())) {
+                            assigned.put(order.id(),worker);changed();break;
+                        }
+                        // A different backend may already own this worker. Release only our failed claim.
+                        ledger.release(order.id(),worker.networkWorkerId());
                     }
                 }
             }
         } finally { ticking=false; }
     }
+    private boolean shouldYieldWorker(MachineBlockEntity worker,MachineMatterNetwork network) {
+        if(!worker.shouldYieldNetworkWork(backend(),true))return false;
+        for(var other:network.interfaces())if(other!=machine) {
+            var host=other.automationHost();
+            if(host!=null&&!backend().equals(host.backend())&&host.elected(network)&&host.hasReadyOrderFor(worker))return true;
+        }
+        return false;
+    }
+    private boolean hasReadyOrderFor(MachineBlockEntity worker) {
+        if(!active()||adapter==null||!adapter.connected())return false;
+        refreshCatalogue();
+        for(var order:ledger.snapshot().orders()) {
+            var current=catalogue.get(order.recipe().id());
+            if(order.workerId()==null&&!order.cancelled()&&!order.quarantined()&&order.remainingBatches()>0
+                    &&current!=null&&current.equals(order.recipe())&&MachineAutomationRecipes.supports(worker.kind(),current))return true;
+        }
+        return false;
+    }
     private void validateClaims(MachineMatterNetwork network) {
         for(var entry:new ArrayList<>(assigned.entrySet())) {
             var order=ledger.order(entry.getKey()).orElse(null);var worker=entry.getValue();
-            if(order==null||order.remainingBatches()==0||!worker.acceptsNetworkWork()
+            if(order==null||order.remainingBatches()==0||!Objects.equals(order.workerId(),worker.networkWorkerId())
+                    ||!worker.acceptsNetworkWork()||!worker.hasNetworkOrder(this,entry.getKey())
                     ||!network.workers().contains(worker)||!Objects.equals(catalogue.get(order.recipe().id()),order.recipe())) release(entry.getKey(),worker);
         }
     }
@@ -158,10 +204,11 @@ public final class MachineAutomationHost implements AutomationPort {
         ledger.release(orderId,worker.networkWorkerId());assigned.remove(orderId);worker.releaseNetworkOrder(this,orderId);changed();
     }
     OrderLedger.@Nullable Order order(UUID orderId,MachineBlockEntity worker) {
-        if(!active()||adapter==null||!adapter.connected()||assigned.get(orderId)!=worker
+        if(!active()||adapter==null||!adapter.connected()||assigned.get(orderId)!=worker||!worker.hasNetworkOrder(this,orderId)
                 ||!machine.isCurrentNetworkWorker(ownerId(),worker))return null;
         refreshCatalogue();var order=ledger.order(orderId).orElse(null);
-        return order!=null&&Objects.equals(catalogue.get(order.recipe().id()),order.recipe())?order:null;
+        return order!=null&&Objects.equals(order.workerId(),worker.networkWorkerId())
+                &&Objects.equals(catalogue.get(order.recipe().id()),order.recipe())?order:null;
     }
     boolean advance(UUID orderId,MachineBlockEntity worker,int ticks) {
         var order=order(orderId,worker);

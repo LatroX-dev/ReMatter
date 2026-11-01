@@ -4,6 +4,7 @@ import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.automation.AutomationPort;
 import dev.latrox.rematter.automation.OrderLedger;
+import dev.latrox.rematter.automation.AutomationWorkerLease;
 import dev.latrox.rematter.content.preparation.*;
 import net.minecraft.server.level.ServerLevel;
 import java.util.*;
@@ -57,8 +58,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private boolean networkJobs;
     private final UUID networkWorkerId = UUID.randomUUID();
     private MachineAutomationHost automationHost;
-    private MachineAutomationHost assignedHost;
-    private UUID assignedOrder;
+    private final AutomationWorkerLease<MachineAutomationHost> networkWorkLease = new AutomationWorkerLease<>();
     private MachineMatterNetwork assignedTopology;
     private String networkWorkSignature = "";
     private MachineRunState runState = MachineRunState.automatic();
@@ -365,25 +365,42 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         for (int slot = 0; slot < items.size(); slot++) if (slot != 2 && !items.get(slot).isEmpty()) return false;
         return true;
     }
-    void bindNetworkOrder(MachineAutomationHost host, UUID order) {
-        releaseNetworkWork(); resetProgress(); assignedHost = host; assignedOrder = order;
-        assignedTopology = matterNetwork(true); networkWorkSignature = "";
+    boolean tryBindNetworkOrder(MachineAutomationHost host, UUID order) {
+        if (networkWorkLease.matches(host,order)) return true;
+        if (networkWorkLease.current().isPresent() || !acceptsNetworkWork() || !host.active()) return false;
+        var topology = matterNetwork(true);
+        if (!topology.ready() || !topology.interfaces().contains(host.machine())
+                || !networkWorkLease.tryAcquire(host,order)) return false;
+        resetProgress(); assignedTopology = topology; networkWorkSignature = "";
+        return true;
     }
+    boolean hasNetworkOrder(MachineAutomationHost host, UUID order) { return networkWorkLease.matches(host,order); }
+    boolean networkOrderFree() { return networkWorkLease.current().isEmpty(); }
+    boolean shouldYieldNetworkWork(String backend,boolean otherBackendReady) { return networkWorkLease.shouldYield(backend,otherBackendReady); }
     void releaseNetworkOrder(MachineAutomationHost host, UUID order) {
-        if (assignedHost != host || !Objects.equals(assignedOrder, order)) return;
-        assignedHost = null; assignedOrder = null; assignedTopology = null; networkWorkSignature = "";
+        if (!networkWorkLease.release(host,order)) return;
+        assignedTopology = null; networkWorkSignature = "";
         resetProgress(); processedThisTick = false;
     }
     private void releaseNetworkWork() {
-        if (assignedHost != null && assignedOrder != null) assignedHost.release(assignedOrder, this);
+        var claim = networkWorkLease.current().orElse(null);
+        if (claim == null) return;
+        releaseNetworkWork(claim);
+    }
+    private void releaseNetworkWork(AutomationWorkerLease.Claim<MachineAutomationHost> claim) {
+        claim.owner().release(claim.orderId(), this);
+        // Also clear an orphaned local claim, without ever touching another interface's binding.
+        releaseNetworkOrder(claim.owner(),claim.orderId());
     }
     private void tickNetworkWork() {
         if (!acceptsNetworkWork()) { releaseNetworkWork(); status = industrialStructureReady() ? "automation_clear_slots" : IndustrialStructure.inspect(this).diagnostic(); return; }
-        if (assignedHost == null || assignedOrder == null) { status = "network_controlled"; return; }
+        var claim = networkWorkLease.current().orElse(null);
+        if (claim == null) { status = "network_controlled"; return; }
+        var assignedHost = claim.owner();var assignedOrder = claim.orderId();
         var order = assignedHost.order(assignedOrder, this);
         var topology = matterNetwork(false);
         if (order == null || !topology.ready() || assignedTopology == null || !assignedTopology.sameTopology(topology)) {
-            releaseNetworkWork(); status = "storage_changed"; return;
+            releaseNetworkWork(claim); status = "storage_changed"; return;
         }
         var recipe = order.recipe();
         long base = recipe.energy();
@@ -391,12 +408,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         long required = cost(base);
         String signature = recipe.revision() + ":" + required + ":" + speed();
         if (IndustrialStructure.isIndustrial(kind())) signature += ":" + IndustrialStructure.inspect(this).layoutFingerprint();
-        if (!networkWorkSignature.isEmpty() && !networkWorkSignature.equals(signature)) { releaseNetworkWork(); status = "network_controlled"; return; }
+        if (!networkWorkSignature.isEmpty() && !networkWorkSignature.equals(signature)) { releaseNetworkWork(claim); status = "network_controlled"; return; }
         networkWorkSignature = signature;
         if (energy.getAmountAsLong() < required) { status = "insufficient_energy"; return; }
-        if (!assignedHost.advance(assignedOrder, this, speed())) { releaseNetworkWork(); status = "network_controlled"; return; }
+        if (!assignedHost.advance(assignedOrder, this, speed())) { releaseNetworkWork(claim); status = "network_controlled"; return; }
         order = assignedHost.order(assignedOrder, this);
-        if (order == null) { releaseNetworkWork(); status = "network_controlled"; return; }
+        if (order == null) { releaseNetworkWork(claim); status = "network_controlled"; return; }
         progress = order.progress(); duration = recipe.ticks(); processedThisTick = true;
         preparationStage = PreparationTier.isPreparation(kind()) ? PreparationWork.stage(progress,duration) : -1;
         preparationMixing = PreparationTier.isPreparation(kind()) && recipe.inputs().values().stream().mapToLong(Long::longValue).sum() > 1;
@@ -404,11 +421,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (progress >= duration) {
             var fresh = matterNetwork(true);
             if (!fresh.ready() || !assignedTopology.sameTopology(fresh) || !acceptsNetworkWork() || energy.getAmountAsLong() < required) {
-                releaseNetworkWork(); status = "storage_changed"; return;
+                releaseNetworkWork(claim); status = "storage_changed"; return;
             }
             // The ledger owns these inputs. Completion never withdraws the same matter or items again.
-            if (!assignedHost.complete(assignedOrder, this)) { releaseNetworkWork(); status = "network_controlled"; return; }
+            if (!assignedHost.complete(assignedOrder, this)) { releaseNetworkWork(claim); status = "network_controlled"; return; }
             energy.set((int)(energy.getAmountAsLong() - required));
+            if(order.remainingBatches()==1)networkWorkLease.completed(assignedHost,assignedOrder,assignedHost.backend());
             assignedHost.changed(); progress = 0; duration = 0;
         }
         setChanged();
@@ -955,8 +973,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
 
     /** Preview the transferred order itself, never a manually selected or inferred recipe. */
     private MachineSnapshot.Preview networkOrderPreview(ChemistryRegistry registry) {
-        if (assignedHost == null || assignedOrder == null) return MachineSnapshot.Preview.EMPTY;
-        var order = assignedHost.order(assignedOrder, this);
+        var claim = networkWorkLease.current().orElse(null);
+        if (claim == null) return MachineSnapshot.Preview.EMPTY;
+        var order = claim.owner().order(claim.orderId(), this);
         if (order == null) return MachineSnapshot.Preview.EMPTY;
         var recipe = order.recipe();
         var inputs = new ArrayList<MachineSnapshot.Amount>();
