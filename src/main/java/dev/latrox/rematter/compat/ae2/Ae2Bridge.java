@@ -138,7 +138,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
 
     private final MEStorage stock = new MEStorage() {
         @Override public Component getDescription() {
-            return Component.translatableWithFallback("integration.rematter.storage", "ReMatter substance storage");
+            return Component.translatable("integration.rematter.storage");
         }
         @Override public long insert(AEKey key, long amount, Actionable action, IActionSource source) {
             MEStorage.checkPreconditions(key, amount, action, source);
