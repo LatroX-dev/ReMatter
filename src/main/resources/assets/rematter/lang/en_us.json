@@ -275,7 +275,7 @@
   "item.rematter.matrix_blend": "Matrix Blend",
   "item.rematter.matrix_crystal": "Matrix Crystal",
   "item.rematter.matrix_cluster": "Matrix Cluster",
-  "status.rematter.storage_changed": "Storage changed · start again",
+  "status.rematter.storage_changed": "Storage changed · batch restarts",
   "block.rematter.hand_preparator": "Hand Preparator",
   "block.rematter.industrial_preparator": "Industrial Preparator Controller",
   "item.rematter.silith": "Silith",

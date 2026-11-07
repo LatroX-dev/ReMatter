@@ -510,7 +510,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         if (!industrialStructureReady()) {
             String diagnostic = IndustrialStructure.inspect(this).diagnostic();
-            if (boundNetwork != null) pauseChangedNetwork(diagnostic); else work.status = diagnostic;
+            if (boundNetwork != null) restartChangedBatch(diagnostic); else work.status = diagnostic;
             return;
         }
         // Analysis and physical preparation are independent of the matter network.
@@ -518,11 +518,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         MachineMatterNetwork network = needsStorage ? matterNetwork(false) : null;
         MatterStore store = network == null ? null : network.inventory();
         if (network != null && !network.ready()) {
-            if (boundNetwork != null) pauseChangedNetwork(network.status()); else work.status = network.status();
+            if (boundNetwork != null) restartChangedBatch(network.status()); else work.status = network.status();
             return;
         }
         if (network != null && !acceptsNetwork(network)) {
-            pauseChangedNetwork("storage_changed");
+            restartChangedBatch("storage_changed");
             return;
         }
         var runState = control.runState();
@@ -558,7 +558,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (needsStorage) {
             var finalNetwork = matterNetwork(true);
             if (!finalNetwork.ready() || !acceptsNetwork(finalNetwork)) {
-                pauseChangedNetwork(finalNetwork.ready() ? "storage_changed" : finalNetwork.status());
+                restartChangedBatch(finalNetwork.ready() ? "storage_changed" : finalNetwork.status());
                 return;
             }
             network = finalNetwork;
@@ -684,12 +684,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return network.ready() && (boundNetwork == null || boundNetwork.sameTopology(network))
                 && storageSession.accepts(network.inventory());
     }
-    private void pauseChangedNetwork(String diagnostic) {
-        control.runState(control.runState().pause());
+    /**
+     * The unpaid batch restarts against the changed network or structure. Nothing was consumed, and the run
+     * state is kept, so repeat and queued work resumes by itself once the source is valid again.
+     */
+    private void restartChangedBatch(String diagnostic) {
         resetProgress();
         work.processedThisTick = false;
         work.status = diagnostic;
-        setChanged();
     }
     /** Read-only discovery for optional integrations; no live mutable inventory escapes this boundary. */
     public NetworkInspection inspectMatterNetwork(UUID requester) {
