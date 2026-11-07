@@ -24,6 +24,7 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
     private boolean enabled=true;
     private boolean delivering;
     private java.util.function.Predicate<Task> taskAdmission=task->true;
+    private Runnable refused=()->{};
     private record Entry(AutomationPort.Recipe recipe,Pattern pattern) {}
     private final java.util.function.Predicate<Actor> permitted;
     public RsBridgeNode(AutomationPort port,java.util.function.Predicate<Actor> permitted) {
@@ -92,13 +93,15 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
         if(!isActive()||getNetwork()==null)return;
         flushOutputs(getNetwork().getComponent(StorageNetworkComponent.class));
     }
-    void setTaskAdmission(java.util.function.Predicate<Task> admission){taskAdmission=java.util.Objects.requireNonNull(admission);}
+    void setTaskAdmission(java.util.function.Predicate<Task> admission,Runnable refusal) {
+        taskAdmission=java.util.Objects.requireNonNull(admission);refused=java.util.Objects.requireNonNull(refusal);
+    }
     /** RS has no way to refuse a planned task. A refused task is cancelled before its first step, so it never extracts anything. */
     @Override public void addTask(Task task) {
         super.addTask(task);
         boolean admitted;
         try {admitted=permitted.test(task.getActor())&&taskAdmission.test(task);} catch(RuntimeException invalid){admitted=false;}
-        if(!admitted)super.cancelTask(task.getId());
+        if(!admitted){super.cancelTask(task.getId());refused.run();}
         port.changed();
     }
     /** Restored tasks were admitted before they were saved. */

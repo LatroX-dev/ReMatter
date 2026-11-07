@@ -62,8 +62,9 @@ class RsBridgeNodeTest {
     }
     @Test void theSixtyFifthNativeTaskIsCancelledInsteadOfThrowingAndTheQueueStaysPersistable() {
         var port=new Port();var node=node(port);node.refreshCatalogue();
+        var refusals=new int[1];
         node.setTaskAdmission(task->node.getTasks().size()<=RsTaskPersistence.MAX_TASKS
-                &&RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).isPresent());
+                &&RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).isPresent(),()->refusals[0]++);
         var storage=new RootStorageImpl();storage.addSource(node.getStorage());
         var repository=new PatternRepositoryImpl();node.patterns().forEach(p->repository.add(p,0));
         var plan=TaskPlanCraftingCalculatorListener.calculatePlan(new CraftingCalculatorImpl(repository,storage),
@@ -71,6 +72,7 @@ class RsBridgeNodeTest {
         for(int i=0;i<RsTaskPersistence.MAX_TASKS;i++)node.addTask(new TaskImpl(plan,Actor.EMPTY,false));
         var refused=new TaskImpl(plan,Actor.EMPTY,false);
         assertDoesNotThrow(()->node.addTask(refused));
+        assertEquals(1,refusals[0]);
         assertEquals(RsTaskPersistence.MAX_TASKS+1,node.getTasks().size());
         assertTrue(refused.createSnapshot().cancelled());assertTrue(refused.createSnapshot().internalStorage().isEmpty());
         assertTrue(node.getTasks().stream().filter(task->task!=refused).noneMatch(task->((TaskImpl)task).createSnapshot().cancelled()));
@@ -96,7 +98,9 @@ class RsBridgeNodeTest {
         var plan=TaskPlanCraftingCalculatorListener.calculatePlan(new CraftingCalculatorImpl(repository,root),
                 new RsMatterKey(HYDROGEN),2000,CancellationToken.NONE).orElseThrow();
         var stolen=new TaskImpl(plan,foreign,true);var owned=new TaskImpl(plan,new PlayerActor(OWNER),true);
+        var refusals=new int[1];node.setTaskAdmission(task->true,()->refusals[0]++);
         node.addTask(stolen);node.addTask(owned);
+        assertEquals(1,refusals[0]);
         assertTrue(stolen.createSnapshot().cancelled(),"A foreign player's job never starts");
         assertFalse(owned.createSnapshot().cancelled());
         assertFalse(RsBridgeNode.permitted(new PlayerActor(OWNER),name->false),"An unresolvable name counts as foreign");

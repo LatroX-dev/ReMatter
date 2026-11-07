@@ -28,11 +28,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 /** Native container lifecycle and durable RS tasks are separate from the machine's transferred-input ledger. */
 public final class RsAdapter implements AutomationAdapter {
+    private static final long REFUSAL_STATUS_TICKS=200;
     private final MachineBlockEntity host;
     private final AutomationPort port;
     private final RsBridgeNode node;
     private final NetworkNodeContainerProvider provider;
-    private static final long REFUSAL_STATUS_TICKS=200;
     private final NativeTicker ticker=new NativeTicker();
     private Dynamic<?> opaque;
     private net.minecraft.nbt.Tag saved;
@@ -43,7 +43,7 @@ public final class RsAdapter implements AutomationAdapter {
     private int openFaces;
     public RsAdapter(MachineBlockEntity host,AutomationPort port) {
         this.host=host;this.port=port;node=new RsBridgeNode(port,actor->RsBridgeNode.permitted(actor,this::ownerNamed));
-        node.setTaskAdmission(this::admits);
+        node.setTaskAdmission(this::persistable,this::refused);
         provider=ownerBuilt(RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider(),host::canAccess);
         var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface")
                 .connectionStrategy(faces(host.getBlockPos(),this::open)).build();
@@ -124,10 +124,8 @@ public final class RsAdapter implements AutomationAdapter {
         return RsTaskPersistence.encode(RsTaskPersistence.CODEC,host.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE),node.getTasks());
     }
     /** Called after RS has added the task. Every admitted task list stays persistable. */
-    private boolean admits(Task task) {
-        boolean admitted=task instanceof TaskImpl&&node.getTasks().size()<=RsTaskPersistence.MAX_TASKS&&encode().isPresent();
-        if(!admitted)refused();
-        return admitted;
+    private boolean persistable(Task task) {
+        return task instanceof TaskImpl&&node.getTasks().size()<=RsTaskPersistence.MAX_TASKS&&encode().isPresent();
     }
     private void refused() {
         if(host.getLevel()==null)return;
