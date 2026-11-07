@@ -57,6 +57,27 @@ class AutomationResourceHandlerTest {
         assertEquals(13, delegate.amount);
     }
 
+    @Test void anOutputOnlyFaceNeverAdvertisesInsertableResources() {
+        AtomicBoolean input = new AtomicBoolean(false);
+        AtomicBoolean output = new AtomicBoolean(true);
+        TestContainer delegate = new TestContainer(new AtomicBoolean(true));
+        ResourceHandler<TestResource> face = new AutomationResourceHandler<>(delegate, input::get, output::get, 1, EMPTY);
+        assertFalse(face.isValid(0, MATERIAL));
+        assertEquals(10, face.getAmountAsLong(0));
+        try (Transaction tx = Transaction.openRoot()) {
+            assertEquals(0, face.insert(0, MATERIAL, 5, tx));
+            assertEquals(5, face.extract(0, MATERIAL, 5, tx));
+        }
+        input.set(true);
+        output.set(false);
+        assertTrue(face.isValid(0, MATERIAL));
+        try (Transaction tx = Transaction.openRoot()) {
+            assertEquals(5, face.insert(0, MATERIAL, 5, tx));
+            assertEquals(0, face.extract(0, MATERIAL, 5, tx));
+        }
+        assertEquals(10, delegate.amount);
+    }
+
     private static final class TestContainer extends SnapshotJournal<Integer> implements ResourceHandler<TestResource> {
         private final AtomicBoolean live;
         private int amount = 10;
