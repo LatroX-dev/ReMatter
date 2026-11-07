@@ -43,6 +43,7 @@ public final class OrderLedger {
     }
     public synchronized int remainingBatches() { return orders.values().stream().filter(o->!o.cancelled()).mapToInt(Order::remainingBatches).sum(); }
     public synchronized boolean busy() { return orders.size()>=MAX_ORDERS||remainingBatches()>=MAX_BATCHES; }
+    public synchronized boolean isEmpty() { return orders.isEmpty(); }
     public synchronized Optional<Order> order(UUID id) { return Optional.ofNullable(orders.get(id)); }
     public synchronized Optional<Order> next() { return orders.values().stream().filter(OrderLedger::pendingWork).filter(o->o.workerId()==null).findFirst(); }
     private static boolean pendingWork(Order order) {

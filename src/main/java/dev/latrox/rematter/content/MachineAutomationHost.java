@@ -69,9 +69,12 @@ public final class MachineAutomationHost implements AutomationPort {
         if (!network.ready() || !eligible()) return false;
         return AutomationNetworkPolicy.elected(network.interfaces(), backend(),
                 candidate -> candidate.automationHost().backend(),
-                candidate -> candidate.automationHost() != null && candidate.automationHost().eligible())
+                candidate -> candidate.automationHost() != null && candidate.automationHost().eligible(),
+                candidate -> candidate.automationHost().incumbency())
                 .orElse(null) == machine;
     }
+    /** Held work outranks a live lease, so queued orders drain before another interface takes over. */
+    private int incumbency() { return !ledger.isEmpty()||adapter!=null&&adapter.hasTasks()?2:lease?1:0; }
     @Override public boolean active() {
         return live() && lockedData == null && machine.automation() && lease
                 && elected(machine.matterNetwork(false));
