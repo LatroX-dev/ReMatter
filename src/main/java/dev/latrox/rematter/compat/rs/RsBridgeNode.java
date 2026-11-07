@@ -19,6 +19,7 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
     private final RsMatterStorage matter;
     private final Map<UUID,Entry> catalogue=new HashMap<>();
     private final Actor actor;
+    private final java.util.function.Predicate<Actor> permitted;
     private List<AutomationPort.Recipe> previous=List.of();
     private int previousSize;
     private boolean enabled=true;
@@ -26,7 +27,6 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
     private java.util.function.Predicate<Task> taskAdmission=task->true;
     private Runnable refused=()->{};
     private record Entry(AutomationPort.Recipe recipe,Pattern pattern) {}
-    private final java.util.function.Predicate<Actor> permitted;
     public RsBridgeNode(AutomationPort port,java.util.function.Predicate<Actor> permitted) {
         super(4,AutomationRecipeCatalogue.MAX_RECIPES);this.port=port;this.permitted=java.util.Objects.requireNonNull(permitted);
         actor=()->"ReMatter";matter=new RsMatterStorage(port,permitted);
