@@ -10,7 +10,11 @@ Connect a **Network Interface** to the native grid and the ReMatter matter netwo
 
 Eligible recipes from the connected machines appear in the native crafting catalogue: preparation, decomposition, permitted item/fluid synthesis and substance processes. Requests consume actual inputs, stored substances and FE. Finished outputs return to the network that requested them; synthesis permissions still apply.
 
-To use **AE2 and RS at the same time**, use two interfaces on the same ReMatter network, one selected for each. They share the connected substance stores and processing machines. Each machine handles one order at a time. Finish pending jobs before changing an interface's connection type.
+To use **AE2 and RS at the same time**, use two interfaces on the same ReMatter network, one selected for each. They share the connected substance stores and processing machines. Each machine handles one order at a time. Finish pending jobs before changing an interface's connection type. An interface that still holds jobs stays in charge of its connection type; a second interface of the same type waits until those jobs are done.
+
+The interface belongs to the player who placed it. Only that player can start jobs or move substances through it: AE2 checks the acting player or machine owner, and Refined Storage accepts a player only when the name belongs to the owner. AE2 and Refined Storage cables connect only on **Automatic** and **Matter Network** faces; set a face to **Disabled** to keep other networks out. Only players who may open the interface can place Refined Storage blocks directly against it.
+
+If a data pack or update removes a recipe or changes its ingredients, queued jobs for it are cancelled after 10 seconds and their transferred inputs return to the native network. Changes that only affect FE cost or processing time continue the queued jobs with the new values.
 
 ## Recipe viewers
 
