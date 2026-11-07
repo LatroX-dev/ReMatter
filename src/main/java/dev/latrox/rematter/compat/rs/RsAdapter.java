@@ -6,14 +6,23 @@ import com.refinedmods.refinedstorage.api.autocrafting.task.*;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractNetworkNode;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.support.network.ConnectionSink;
+import com.refinedmods.refinedstorage.common.api.support.network.ConnectionStrategy;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.*;
 import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.MachinePortMode;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
@@ -31,12 +40,48 @@ public final class RsAdapter implements AutomationAdapter {
     private boolean initializationRequested;
     private boolean initialized;
     private boolean closed;
+    private int openFaces;
     public RsAdapter(MachineBlockEntity host,AutomationPort port) {
-        this.host=host;this.port=port;node=new RsBridgeNode(port);
+        this.host=host;this.port=port;node=new RsBridgeNode(port,actor->RsBridgeNode.permitted(actor,this::ownerNamed));
         node.setTaskAdmission(this::admits);
-        provider=RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider();
-        var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface").build();
+        provider=ownerBuilt(RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider(),host::canAccess);
+        var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface")
+                .connectionStrategy(faces(host.getBlockPos(),this::open)).build();
         provider.addContainer(whileOpen(container,()->closed));
+        openFaces=openFaces();
+    }
+    /** Native cables connect only on faces that the owner leaves open for matter connections. */
+    static ConnectionStrategy faces(BlockPos origin,Predicate<Direction> open) {
+        return new ConnectionStrategy() {
+            @Override public void addOutgoingConnections(ConnectionSink sink) {
+                for(var side:Direction.values())if(open.test(side))sink.tryConnectInSameDimension(origin.relative(side),side.getOpposite());
+            }
+            @Override public boolean canAcceptIncomingConnection(Direction side,BlockState state){return open.test(side);}
+        };
+    }
+    /** Only players who may use the interface can extend its native network by building next to it. */
+    static NetworkNodeContainerProvider ownerBuilt(NetworkNodeContainerProvider delegate,Predicate<? super ServerPlayer> mayUse) {
+        return new NetworkNodeContainerProvider() {
+            @Override public java.util.Set<InWorldNetworkNodeContainer> getContainers(){return delegate.getContainers();}
+            @Override public void addContainer(InWorldNetworkNodeContainer container){delegate.addContainer(container);}
+            @Override public boolean canBuild(ServerPlayer player){return mayUse.test(player)&&delegate.canBuild(player);}
+            @Override public void update(Level level){delegate.update(level);}
+            @Override public void initialize(Level level,Runnable callback){delegate.initialize(level,callback);}
+            @Override public void remove(Level level){delegate.remove(level);}
+        };
+    }
+    private boolean open(Direction side){return host.allowsPort(side,MachinePortMode.MATTER);}
+    private int openFaces() {
+        int mask=0;for(var side:Direction.values())if(open(side))mask|=1<<side.ordinal();return mask;
+    }
+    /** RS names players only by name: an online player must be the owner, otherwise the owner's cached name must match. */
+    private boolean ownerNamed(String name) {
+        var owner=port.ownerId();
+        var server=host.getLevel()==null?null:host.getLevel().getServer();
+        if(owner==null||server==null)return false;
+        var online=server.getPlayerList().getPlayerByName(name);
+        if(online!=null)return owner.equals(online.getUUID());
+        return server.services().nameToIdCache().get(owner).map(profile->profile.name().equalsIgnoreCase(name)).orElse(false);
     }
     /** Native queued initialization checks this before it can attach an already revoked adapter. */
     static InWorldNetworkNodeContainer whileOpen(InWorldNetworkNodeContainer delegate,BooleanSupplier closed) {
@@ -101,6 +146,8 @@ public final class RsAdapter implements AutomationAdapter {
             provider.initialize(level,()->initialized(level));
         }
         if(!initialized)return;
+        int faces=openFaces();
+        if(faces!=openFaces){openFaces=faces;provider.update(level);}
         // Native RS block entities own both activeness and node ticks; this host must do the same.
         ticker.tick(level.getGameTime(),node,liveHost(level)&&port.active(),RefinedStorageApi.INSTANCE.isEnergyRequired());
     }

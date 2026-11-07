@@ -7,6 +7,7 @@ import com.refinedmods.refinedstorage.api.network.impl.node.patternprovider.Patt
 import com.refinedmods.refinedstorage.api.network.storage.*;
 import com.refinedmods.refinedstorage.api.resource.*;
 import com.refinedmods.refinedstorage.api.storage.*;
+import com.refinedmods.refinedstorage.common.api.storage.PlayerActor;
 import dev.latrox.rematter.automation.AutomationPort;
 import dev.latrox.rematter.automation.AutomationRecipeCatalogue;
 import java.nio.charset.StandardCharsets;
@@ -24,10 +25,15 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
     private boolean delivering;
     private java.util.function.Predicate<Task> taskAdmission=task->true;
     private record Entry(AutomationPort.Recipe recipe,Pattern pattern) {}
-    public RsBridgeNode(AutomationPort port) {
-        super(4,AutomationRecipeCatalogue.MAX_RECIPES);this.port=port;
-        actor=()->"ReMatter";matter=new RsMatterStorage(port);
+    private final java.util.function.Predicate<Actor> permitted;
+    public RsBridgeNode(AutomationPort port,java.util.function.Predicate<Actor> permitted) {
+        super(4,AutomationRecipeCatalogue.MAX_RECIPES);this.port=port;this.permitted=java.util.Objects.requireNonNull(permitted);
+        actor=()->"ReMatter";matter=new RsMatterStorage(port,permitted);
         setId(new ExternalPatternSinkId(port.bridgeId()));
+    }
+    /** RS identifies a player actor only by name. Other actors act inside the native network that the owner connected. */
+    static boolean permitted(Actor actor,java.util.function.Predicate<String> ownerNamed) {
+        return !(actor instanceof PlayerActor player)||ownerNamed.test(player.name());
     }
     @Override public Storage getStorage(){return matter.storage();}
     List<Pattern> patterns(){return catalogue.values().stream().map(Entry::pattern).toList();}
@@ -91,7 +97,7 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
     @Override public void addTask(Task task) {
         super.addTask(task);
         boolean admitted;
-        try {admitted=taskAdmission.test(task);} catch(RuntimeException invalid){admitted=false;}
+        try {admitted=permitted.test(task.getActor())&&taskAdmission.test(task);} catch(RuntimeException invalid){admitted=false;}
         if(!admitted)super.cancelTask(task.getId());
         port.changed();
     }

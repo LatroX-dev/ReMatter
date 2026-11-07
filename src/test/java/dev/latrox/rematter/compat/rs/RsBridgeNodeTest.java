@@ -13,6 +13,7 @@ import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.*;
 import com.refinedmods.refinedstorage.api.storage.Actor;
 import com.refinedmods.refinedstorage.api.storage.root.RootStorageImpl;
+import com.refinedmods.refinedstorage.common.api.storage.PlayerActor;
 import dev.latrox.rematter.automation.*;
 import dev.latrox.rematter.chemistry.*;
 import java.util.*;
@@ -23,7 +24,7 @@ import static dev.latrox.rematter.chemistry.BuiltinChemistry.*;
 /** Executes the real RS planner, storage cache and pattern sink without starting Minecraft. */
 class RsBridgeNodeTest {
     @Test void nativePlannerAccountsForExactMatterAndMultiOutputsWithoutStartingWork() throws Exception {
-        var port=new Port();var node=new RsBridgeNode(port);node.refreshCatalogue();
+        var port=new Port();var node=node(port);node.refreshCatalogue();
         var storage=new RootStorageImpl();storage.addSource(node.getStorage());
         var repository=new PatternRepositoryImpl();node.patterns().forEach(p->repository.add(p,0));
         class Plan implements CraftingCalculatorListener<Void> {
@@ -37,7 +38,7 @@ class RsBridgeNodeTest {
         assertEquals(16000,plan.extracted);assertEquals(0,plan.missing);assertEquals(16000,port.store.amount(WATER));assertEquals(0,port.ledger.remainingBatches());
     }
     @Test void realSinkOwnsInputsOnceAndOnlyAcknowledgesAcceptedOutputs() {
-        var port=new Port();var node=new RsBridgeNode(port);node.refreshCatalogue();var pattern=node.patterns().getFirst();
+        var port=new Port();var node=node(port);node.refreshCatalogue();var pattern=node.patterns().getFirst();
         var inputs=List.of(new ResourceAmount(new RsMatterKey(WATER),2000));
         assertEquals(ExternalPatternSink.Result.ACCEPTED,node.insertAll(pattern,inputs,Action.SIMULATE));
         assertEquals(0,port.ledger.remainingBatches());
@@ -53,14 +54,14 @@ class RsBridgeNodeTest {
         assertTrue(port.pendingOutputs().isEmpty());assertTrue(port.ledger.snapshot().orders().getFirst().quarantined());
     }
     @Test void stalePhasesRevisionsAndRevokedCacheCannotSupplyResources() {
-        var port=new Port();var node=new RsBridgeNode(port);node.refreshCatalogue();var pattern=node.patterns().getFirst();
+        var port=new Port();var node=node(port);node.refreshCatalogue();var pattern=node.patterns().getFirst();
         assertEquals(ExternalPatternSink.Result.REJECTED,node.insertAll(pattern,List.of(new ResourceAmount(new RsMatterKey(new SubstanceKey(WATER.id(),Phase.GAS)),1000)),Action.EXECUTE));
         var root=new RootStorageImpl();root.addSource(node.getStorage());assertEquals(16000,root.get(new RsMatterKey(WATER)));
         port.active=false;node.refreshCatalogue();assertEquals(0,root.get(new RsMatterKey(WATER)));assertTrue(node.patterns().isEmpty());
         assertEquals(0,root.extract(new RsMatterKey(WATER),1000,Action.EXECUTE,Actor.EMPTY));
     }
     @Test void theSixtyFifthNativeTaskIsCancelledInsteadOfThrowingAndTheQueueStaysPersistable() {
-        var port=new Port();var node=new RsBridgeNode(port);node.refreshCatalogue();
+        var port=new Port();var node=node(port);node.refreshCatalogue();
         node.setTaskAdmission(task->node.getTasks().size()<=RsTaskPersistence.MAX_TASKS
                 &&RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).isPresent());
         var storage=new RootStorageImpl();storage.addSource(node.getStorage());
@@ -80,6 +81,28 @@ class RsBridgeNodeTest {
         assertEquals(RsTaskPersistence.MAX_TASKS,TASKS.parse(JsonOps.INSTANCE,
                 RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).orElseThrow()).getOrThrow().size());
     }
+    @Test void foreignPlayerActorsGetNothingWhileTheOwnerAndNetworkActorsKeepAccess() {
+        var port=new Port();var node=node(port);var storage=node.getStorage();var water=new RsMatterKey(WATER);
+        var foreign=new PlayerActor("intruder");
+        assertEquals(0,storage.extract(water,1000,Action.EXECUTE,foreign));
+        assertEquals(0,storage.insert(water,1000,Action.EXECUTE,foreign));
+        assertEquals(16000,port.store.amount(WATER));
+        assertEquals(1000,storage.extract(water,1000,Action.EXECUTE,new PlayerActor(OWNER)));
+        assertEquals(1000,storage.insert(water,1000,Action.EXECUTE,Actor.EMPTY));
+        assertEquals(16000,port.store.amount(WATER));
+        node.refreshCatalogue();
+        var root=new RootStorageImpl();root.addSource(storage);
+        var repository=new PatternRepositoryImpl();node.patterns().forEach(p->repository.add(p,0));
+        var plan=TaskPlanCraftingCalculatorListener.calculatePlan(new CraftingCalculatorImpl(repository,root),
+                new RsMatterKey(HYDROGEN),2000,CancellationToken.NONE).orElseThrow();
+        var stolen=new TaskImpl(plan,foreign,true);var owned=new TaskImpl(plan,new PlayerActor(OWNER),true);
+        node.addTask(stolen);node.addTask(owned);
+        assertTrue(stolen.createSnapshot().cancelled(),"A foreign player's job never starts");
+        assertFalse(owned.createSnapshot().cancelled());
+        assertFalse(RsBridgeNode.permitted(new PlayerActor(OWNER),name->false),"An unresolvable name counts as foreign");
+    }
+    private static final String OWNER="owner";
+    private static RsBridgeNode node(Port port) { return new RsBridgeNode(port,actor->RsBridgeNode.permitted(actor,OWNER::equals)); }
     private static final Codec<List<TaskSnapshot>> TASKS=RsTaskPersistence.create(RsMatterKey.CODEC.codec().flatComapMap(key->(ResourceKey)key,
             key->key instanceof RsMatterKey matter?DataResult.success(matter):DataResult.error(()->"Not matter")));
     private static final class Port implements AutomationPort {

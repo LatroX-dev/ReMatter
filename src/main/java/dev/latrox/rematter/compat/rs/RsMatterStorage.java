@@ -9,13 +9,17 @@ import com.refinedmods.refinedstorage.api.storage.external.ExternalStorageProvid
 import dev.latrox.rematter.automation.AutomationPort;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 /** RS's actual cache-aware external-storage wrapper, backed by the one authoritative leased port. */
 public final class RsMatterStorage implements ExternalStorageProvider {
     private final AutomationPort port;
+    private final Predicate<Actor> permitted;
     private final ExternalStorage storage;
-    public RsMatterStorage(AutomationPort port) {
+    /** The listing feeds a network-wide RS cache, so only transfers can be checked per actor. */
+    public RsMatterStorage(AutomationPort port, Predicate<Actor> permitted) {
         this.port = port;
+        this.permitted = permitted;
         this.storage = new ExternalStorage(this, (resource, actor) -> {});
         refresh();
     }
@@ -28,11 +32,11 @@ public final class RsMatterStorage implements ExternalStorageProvider {
                 .map(entry -> new ResourceAmount(new RsMatterKey(entry.getKey()), entry.getValue())).iterator();
     }
     @Override public long insert(ResourceKey resource, long amount, Action action, Actor actor) {
-        if (!port.active() || amount <= 0 || !(resource instanceof RsMatterKey key)) return 0;
+        if (!port.active() || amount <= 0 || !(resource instanceof RsMatterKey key) || !permitted.test(actor)) return 0;
         return port.insert(key.substance(), amount, translate(action));
     }
     @Override public long extract(ResourceKey resource, long amount, Action action, Actor actor) {
-        if (!port.active() || amount <= 0 || !(resource instanceof RsMatterKey key)) return 0;
+        if (!port.active() || amount <= 0 || !(resource instanceof RsMatterKey key) || !permitted.test(actor)) return 0;
         return port.extract(key.substance(), amount, translate(action));
     }
     static AutomationPort.Action translate(Action action) {
