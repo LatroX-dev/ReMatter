@@ -1,12 +1,14 @@
 package dev.latrox.rematter.content.preparation;
 
+import dev.latrox.rematter.content.MachineEnergyPolicy;
 import java.util.HashSet;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 
 /** Shared bounds and physical batch readiness. No material or power is consumed until completion. */
 public final class PreparationWork {
-    public static final int MAX_ENERGY=1_000_000, MAX_TICKS=1_000_000;
+    /** The industrial tier doubles a preparation price, so its base must stay within half of a machine batch. */
+    public static final int MAX_ENERGY=(int)(MachineEnergyPolicy.MAX_BATCH_ENERGY/2), MAX_TICKS=1_000_000;
     public static final int CRANK_WORK=20, CRANK_COOLDOWN=5;
     public static final int MAX_RECIPES=256;
     private PreparationWork() {}

@@ -6,6 +6,7 @@ import dev.latrox.rematter.client.ScreenChrome.Icon;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.Phase;
+import dev.latrox.rematter.content.MachineBlockEntity;
 import dev.latrox.rematter.content.MachineCellAccess;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
@@ -251,7 +252,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         if (main() && !passive()) {
             if (inside(mx, my, 13, 74, 19, 38)) {
-                g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : Component.literal(number(s.energy()) + " / 1,000,000 FE"), mouseX, mouseY);
+                g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(s), mouseX, mouseY);
             } else if (inside(mx, my, 12, 114, primary.visible ? 149 : 272, 28)) {
                 var lines = new ArrayList<Component>();
                 lines.add(statusText());
@@ -320,7 +321,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         } else if (main() && !passive()) {
             if (!handPreparator()) {
                 ScreenChrome.inset(g, x + 14, y + 74, 12, 34);
-                int fill = (int) Math.clamp(30L * s.energy() / 1_000_000, 0, 30);
+                int fill = (int) Math.clamp(30L * s.energy() / MachineBlockEntity.ENERGY_CAPACITY, 0, 30);
                 g.fill(x + 16, y + 106 - fill, x + 24, y + 106, ACCENT);
             }
             int arrowStart = processArrowStart(), arrowEnd = 200;
@@ -560,7 +561,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(handPreparator()){lines.add(tr("hand_powered"));lines.add(tr("crank_hint"));return lines;}
         if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());
         lines.add(tr("source_"+s.storageSource()));lines.add(Component.literal(number(s.used())+" / "+number(s.capacity())+" u"));
-        if(menu.kind().processes())lines.add(Component.literal(number(s.energy())+" / 1,000,000 FE"));
+        if(menu.kind().processes())lines.add(energyLine(s));
         if(disk()) {
             lines.add(Component.translatable("screen.rematter.drive_cells",s.cells().stream().filter(MachineSnapshot.CellView::installed).count()));
             if(s.cells().stream().anyMatch(c->c.installed()&&!c.readable()))lines.add(tr("drive_blocked"));
@@ -597,6 +598,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void text(GuiGraphicsExtractor g,String v,int x,int y,int width,int color){g.text(font,fitted(v,width),x,y,color,false);}
     private ItemStack outputIcon(MachineSnapshot.Preview p){try{Identifier id=Identifier.parse(p.outputId());if(p.outputKind().equals("item")&&BuiltInRegistries.ITEM.containsKey(id))return new ItemStack(BuiltInRegistries.ITEM.getValue(id));if(p.outputKind().equals("fluid")&&BuiltInRegistries.FLUID.containsKey(id))return new ItemStack(BuiltInRegistries.FLUID.getValue(id).getBucket());}catch(RuntimeException ignored){}return ItemStack.EMPTY;}
     private static String number(long v){return String.format(Locale.ROOT,"%,d",v);}
+    private static Component energyLine(MachineSnapshot s){return Component.translatable("screen.rematter.energy_buffer",number(s.energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
     private static String compact(long v){if(v>=1_000_000_000_000L)return String.format(Locale.ROOT,"%.1e",(double)v);if(v>=1_000_000_000)return String.format(Locale.ROOT,"%.1fB",v/1e9);if(v>=1_000_000)return String.format(Locale.ROOT,"%.1fM",v/1e6);if(v>=10_000)return String.format(Locale.ROOT,"%.1fk",v/1000.0);return Long.toString(v);}
     private class ConsoleButton extends Button {
         ConsoleButton(Builder b){super(b);}

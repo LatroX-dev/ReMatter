@@ -34,6 +34,8 @@ class PreparationWorkTest {
         assertThrows(IllegalArgumentException.class,()->PreparationWork.validate(0,64,4000,120));
         assertThrows(IllegalArgumentException.class,()->PreparationWork.validate(4,64,0,120));
         assertThrows(IllegalArgumentException.class,()->PreparationWork.validate(4,64,1_000_001,120));
+        assertDoesNotThrow(()->PreparationWork.validate(4,64,PreparationWork.MAX_ENERGY,120));
+        assertThrows(IllegalArgumentException.class,()->PreparationWork.validate(4,64,PreparationWork.MAX_ENERGY+1,120));
         assertThrows(IllegalArgumentException.class,()->PreparationWork.validate(4,64,4000,2));
     }
     @Test void secondaryFeedIsNeverTreatedAsALocalMatterCell() {

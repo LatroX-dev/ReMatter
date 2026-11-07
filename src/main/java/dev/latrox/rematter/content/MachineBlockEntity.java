@@ -51,7 +51,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  * Pricing, operations, selection, cell bays, network jobs, side roles, visuals and menu views live in collaborators.
  */
 public final class MachineBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
-    public static final int ENERGY_CAPACITY = 1_000_000;
+    public static final int ENERGY_CAPACITY = 2_000_000;
     public static final int TANK_CAPACITY = 16_000;
     private static final Codec<Tag> RAW_TAG_CODEC = Codec.PASSTHROUGH.xmap(
             dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(), tag -> new Dynamic<>(NbtOps.INSTANCE, tag));
@@ -833,12 +833,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public ItemStack removeItem(int index, int amount) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.removeItem(items, index, amount);
+        if (index == 2) worker.forgetRefusal();
         if (!result.isEmpty()) { if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index); else setChanged(); }
         return result;
     }
     @Override public ItemStack removeItemNoUpdate(int index) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.takeItem(items, index);
+        if (index == 2) worker.forgetRefusal();
         if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index);
         return result;
     }
@@ -851,6 +853,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             items.set(index, stack); mountCell(index); return;
         }
         items.set(index, stack);
+        if (index == 2) worker.forgetRefusal();
         if (index == 0 && kind() == MachineKind.ANALYZER) { analysis = AnalysisState.EMPTY; control.runState(MachineRunState.automatic()); }
         stack.limitSize(getMaxStackSize(stack)); setChanged();
     }

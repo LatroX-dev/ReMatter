@@ -126,6 +126,7 @@ final class MachineOperations {
     }
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation) {
+        if (!MachineEnergyPolicy.fitsBuffer(operation.cost())) return "energy_exceeds_buffer";
         long energy = machine.energy().getAmountAsLong();
         if (PreparationTier.isPreparation(machine.kind())) {
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);

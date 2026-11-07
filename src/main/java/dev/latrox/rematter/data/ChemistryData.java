@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.content.MachineEnergyPolicy;
 import dev.latrox.rematter.content.preparation.PreparationRecipe;
 import dev.latrox.rematter.mixin.ReloadableServerResourcesAccessor;
 import dev.latrox.rematter.network.CatalogWireCodec;
@@ -155,6 +156,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         synthesis.forEach(builder::allowSynthesis);
         ChemistryRegistry result = builder.build();
         SynthesisOutputs.validate(result, this::defaultsFor);
+        MachineEnergyPolicy.requireFits(result);
         CatalogWireCodec.encode(result);
         return result;
     }
