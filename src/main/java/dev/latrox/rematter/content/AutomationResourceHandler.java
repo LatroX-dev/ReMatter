@@ -45,7 +45,7 @@ public final class AutomationResourceHandler<T extends Resource> implements Reso
     }
     @Override public boolean isValid(int index, T resource) {
         Objects.checkIndex(index, slots);
-        return enabled() && delegate.isValid(index, resource);
+        return input.getAsBoolean() && delegate.isValid(index, resource);
     }
     @Override public int insert(int index, T resource, int amount, TransactionContext transaction) {
         Objects.checkIndex(index, slots);
