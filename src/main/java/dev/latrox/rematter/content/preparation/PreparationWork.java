@@ -1,10 +1,22 @@
 package dev.latrox.rematter.content.preparation;
 
+import java.util.HashSet;
+import java.util.List;
+import net.minecraft.resources.Identifier;
+
 /** Shared bounds and physical batch readiness. No material or power is consumed until completion. */
 public final class PreparationWork {
     public static final int MAX_ENERGY=1_000_000, MAX_TICKS=1_000_000;
     public static final int CRANK_WORK=20, CRANK_COOLDOWN=5;
+    public static final int MAX_RECIPES=256;
     private PreparationWork() {}
+    /** A catalogue is usable only as a whole: bounded in size, with unique and bounded identifiers. */
+    public static boolean validCatalogue(List<Identifier> ids) {
+        if(ids.size()>MAX_RECIPES)return false;
+        var seen=new HashSet<Identifier>();
+        for(var id:ids)if(id.toString().length()>512||!seen.add(id))return false;
+        return true;
+    }
     public static int stage(int progress,int duration) {
         if(duration<3||progress<1||progress>duration)return -1;
         return (int)Math.min(2,((long)progress-1)*3/duration);

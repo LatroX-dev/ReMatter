@@ -163,7 +163,9 @@ final class MachineOperations {
         if (!primary.getComponentsPatch().isEmpty() || !secondary.getComponentsPatch().isEmpty() || !tertiary.getComponentsPatch().isEmpty())
             return "unsupported_components";
         if (!(machine.getLevel() instanceof ServerLevel server)) return "unsupported_input";
-        var candidates = PreparationRecipes.serverRecipes(server).stream().filter(e -> e.recipe().acceptsPrimary(primary)).toList();
+        var catalogue = PreparationRecipes.serverCatalogue(server);
+        if (!catalogue.valid()) return "preparation_catalogue_invalid";
+        var candidates = catalogue.entries().stream().filter(e -> e.recipe().acceptsPrimary(primary)).toList();
         if (candidates.isEmpty()) return "unsupported_input";
         var eligible = candidates.stream().filter(e -> PreparationTier.permits(kind, e.minimumTier(), e.process())).toList();
         if (eligible.isEmpty()) {
@@ -184,7 +186,7 @@ final class MachineOperations {
         MachineKind kind = machine.kind();
         if (PreparationTier.isPreparation(kind)) {
             if (!(machine.getLevel() instanceof ServerLevel server) || (index != 0 && index != 3 && index != 4)) return false;
-            return PreparationRecipes.serverRecipes(server).stream().filter(entry -> PreparationTier.permits(kind, entry.minimumTier(), entry.process()))
+            return PreparationRecipes.serverCatalogue(server).entries().stream().filter(entry -> PreparationTier.permits(kind, entry.minimumTier(), entry.process()))
                     .anyMatch(entry -> index == 0 ? entry.recipe().acceptsPrimary(stack)
                             : index == 3 ? entry.recipe().acceptsSecondary(stack) : entry.recipe().acceptsTertiary(stack));
         }
@@ -193,7 +195,7 @@ final class MachineOperations {
     }
 
     @Nullable RecipeHolder<PreparationRecipe> preparationRecipe() {
-        if (!(machine.getLevel() instanceof ServerLevel server)) return null;
+        if (!(machine.getLevel() instanceof ServerLevel server) || !PreparationRecipes.serverCatalogue(server).valid()) return null;
         MachineKind kind = machine.kind();
         // Preserve the server's recipe priority, skipping recipes unavailable to this machine tier.
         return server.getServer().getRecipeManager().recipeMap()

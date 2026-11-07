@@ -472,6 +472,7 @@
   "status.rematter.tertiary_input": "Insert the third ingredient",
   "status.rematter.tertiary_slot_occupied": "Clear the third input",
   "status.rematter.preparation_process": "Use the matching processing machine",
+  "status.rematter.preparation_catalogue_invalid": "Preparation recipes cannot be loaded",
   "status.rematter.pressing": "Pressing",
   "status.rematter.sintering": "Sintering",
   "status.rematter.cooling": "Cooling",
