@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -51,11 +52,12 @@ public final class MachinePortBlock extends Block implements EntityBlock {
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MachinePortBlockEntity port) {
             var controller = port.controller(hit.getDirection());
-            if (controller != null && controller.canUse(player)) {
+            if (controller != null && controller.interact(player)) {
                 if (player.isShiftKeyDown()) {
                     if (port.cycleMode(player, hit.getDirection())) player.sendSystemMessage(
                             net.minecraft.network.chat.Component.translatable("port.rematter.mode_message", port.mode().label()));
-                } else player.openMenu(controller);
+                } else player.openMenu(new SimpleMenuProvider((id, inventory, user) -> controller.canAccess(user)
+                        ? new MachineMenu(id, inventory, controller, port) : null, controller.getDisplayName()));
             }
         }
         return InteractionResult.SUCCESS;

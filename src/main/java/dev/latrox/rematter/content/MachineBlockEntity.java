@@ -23,6 +23,8 @@ import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.WorldlyContainer;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -32,6 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.fluids.FluidStack;
 import org.jspecify.annotations.Nullable;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
@@ -238,8 +241,26 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     String networkStorageStatus() { return storageStatus(); }
     int networkCellCount() { return kind().isStorage() ? bays.installed() : 0; }
     List<MatterInventory> localMatterMembers() { return kind().isStorage() && storageStatus().equals("ready") ? matterStore().members() : List.of(); }
-    public void claim(Player player) { if (owner == null) { owner = player.getUUID(); setChanged(); if (level != null) level.invalidateCapabilities(worldPosition); } }
-    public boolean canAccess(Player player) { return owner == null || owner.equals(player.getUUID()); }
+    /** Placement makes the placing player the owner, whatever owner data the placed item carried. */
+    void placedBy(@Nullable LivingEntity placer) {
+        assignOwner(MachineAccess.placedBy(placer instanceof Player player ? player.getUUID() : null, placer instanceof FakePlayer));
+    }
+    private void assignOwner(@Nullable UUID next) {
+        if (Objects.equals(owner, next)) return;
+        owner = next;
+        setChanged();
+        if (level != null) level.invalidateCapabilities(worldPosition);
+    }
+    public boolean canAccess(Player player) {
+        return MachineAccess.allows(owner, player.getUUID(),
+                player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER), player instanceof FakePlayer);
+    }
+    /** A deliberate interaction: an unowned machine becomes the player's, then the usual access check applies. */
+    public boolean interact(Player player) {
+        if (!player.level().isClientSide() && MachineAccess.claims(owner, player instanceof FakePlayer, player.isSpectator()))
+            assignOwner(player.getUUID());
+        return canUse(player);
+    }
     public @Nullable MachineSnapshot snapshotFor(Player player) { return canAccess(player) ? snapshot(-1) : null; }
     /** The full local store has stable, flat, independently persisted cell members. */
     public MatterStore matterStore() { return bays.store(); }

@@ -29,6 +29,7 @@ public final class MachineMenu extends AbstractContainerMenu {
     private final Container inventory;
     private final MachineBlockEntity machine;
     private final MachineBlockEntity terminal;
+    private final MachinePortBlockEntity port;
     private final Player player;
     private final DataSlot remoteMenu = DataSlot.standalone();
     private final DataSlot[] portModes = new DataSlot[MachinePortMode.Side.values().length];
@@ -39,16 +40,22 @@ public final class MachineMenu extends AbstractContainerMenu {
     private long nextSnapshot;
     private View view = View.MAIN;
 
-    public MachineMenu(int id, Inventory inventory) { this(id, inventory, new SimpleContainer(FIRST_PLAYER_SLOT), null, null); }
-    public MachineMenu(int id, Inventory inventory, MachineBlockEntity machine) { this(id, inventory, machine, null); }
+    public MachineMenu(int id, Inventory inventory) { this(id, inventory, new SimpleContainer(FIRST_PLAYER_SLOT), null, null, null); }
+    public MachineMenu(int id, Inventory inventory, MachineBlockEntity machine) { this(id, inventory, machine, machine, null, null); }
     MachineMenu(int id, Inventory inventory, MachineBlockEntity machine, MachineBlockEntity terminal) {
-        this(id, inventory, machine, machine, terminal);
+        this(id, inventory, machine, machine, terminal, null);
     }
-    private MachineMenu(int id, Inventory playerInventory, Container inventory, MachineBlockEntity machine, MachineBlockEntity terminal) {
+    /** A large shell's controller may be far away; such a menu stays valid at the port it was opened from. */
+    MachineMenu(int id, Inventory inventory, MachineBlockEntity machine, MachinePortBlockEntity port) {
+        this(id, inventory, machine, machine, null, port);
+    }
+    private MachineMenu(int id, Inventory playerInventory, Container inventory, MachineBlockEntity machine,
+                        MachineBlockEntity terminal, MachinePortBlockEntity port) {
         super(ModContent.MACHINE_MENU.get(), id);
         this.inventory = inventory;
         this.machine = machine;
         this.terminal = terminal;
+        this.port = port;
         this.player = playerInventory.player;
         // Shared fixed client/server layout: role changes never replace slots or alter their inventory identity.
         addSlot(new Slot(inventory, 0, INPUT_SLOT_X, SLOT_ROW_Y) {
@@ -164,7 +171,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         return true;
     }
     @Override public void broadcastChanges() {
-        if (terminal != null && !stillValid(player)) return;
+        if ((terminal != null || port != null) && !stillValid(player)) return;
         if (machine != null) for (var side : MachinePortMode.Side.values()) {
             portModes[side.ordinal()].set(machine.portMode(side).ordinal());
         }
@@ -255,6 +262,9 @@ public final class MachineMenu extends AbstractContainerMenu {
         return result;
     }
     @Override public boolean stillValid(Player player) {
-        return machine == null || (terminal == null ? machine.stillValid(player) : TerminalNetwork.canManage(terminal, machine, player));
+        if (machine == null) return true;
+        if (terminal != null) return TerminalNetwork.canManage(terminal, machine, player);
+        if (port != null) return machine.canAccess(player) && Container.stillValidBlockEntity(port, player) && port.controller(null) == machine;
+        return machine.stillValid(player);
     }
 }

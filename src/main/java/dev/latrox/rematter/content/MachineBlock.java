@@ -163,12 +163,12 @@ public final class MachineBlock extends Block implements EntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
             machine.clearIndustrialProtectionClaim();
-            if(placer instanceof Player player)machine.claim(player);
+            machine.placedBy(placer);
         }
     }
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
-            if (!level.isClientSide() && machine.canUse(player)) {
+            if (!level.isClientSide() && machine.interact(player)) {
                 if (player.isShiftKeyDown() && MachinePortMode.configurable(kind)) {
                     if (machine.cyclePort(player, hit.getDirection())) {
                         var side = MachinePortMode.Side.local(state.getValue(FACING), hit.getDirection());
@@ -182,8 +182,8 @@ public final class MachineBlock extends Block implements EntityBlock {
         return InteractionResult.PASS;
     }
     @Override protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.canUse(player)) {
-            if (!level.isClientSide() && FluidUtil.interactWithFluidHandler(player, hand, pos, machine.fluids(), null)) return InteractionResult.SUCCESS;
+        if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && !level.isClientSide() && machine.interact(player)) {
+            if (FluidUtil.interactWithFluidHandler(player, hand, pos, machine.fluids(), null)) return InteractionResult.SUCCESS;
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
@@ -198,6 +198,8 @@ public final class MachineBlock extends Block implements EntityBlock {
         // Placement loads custom BE data and item components through separate vanilla paths.
         drop.applyComponents(machine.collectComponents());
         var data=machine.saveCustomOnly(registries);
+        // A machine item is a portable container: the next placer becomes its owner.
+        data.remove("owner");
         data.remove("industrial_claim");
         var preservedCell = machine.preservedCellDrop();
         if (!preservedCell.isEmpty()) data.remove(MachineBlockEntity.PRESERVED_CELL_KEY);
