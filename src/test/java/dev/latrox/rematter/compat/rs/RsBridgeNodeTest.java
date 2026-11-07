@@ -2,7 +2,13 @@ package dev.latrox.rematter.compat.rs;
 
 import com.refinedmods.refinedstorage.api.autocrafting.*;
 import com.refinedmods.refinedstorage.api.autocrafting.calculation.*;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import com.refinedmods.refinedstorage.api.autocrafting.task.ExternalPatternSink;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskImpl;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskPlanCraftingCalculatorListener;
+import com.refinedmods.refinedstorage.api.autocrafting.task.TaskSnapshot;
 import com.refinedmods.refinedstorage.api.core.Action;
 import com.refinedmods.refinedstorage.api.resource.*;
 import com.refinedmods.refinedstorage.api.storage.Actor;
@@ -53,6 +59,29 @@ class RsBridgeNodeTest {
         port.active=false;node.refreshCatalogue();assertEquals(0,root.get(new RsMatterKey(WATER)));assertTrue(node.patterns().isEmpty());
         assertEquals(0,root.extract(new RsMatterKey(WATER),1000,Action.EXECUTE,Actor.EMPTY));
     }
+    @Test void theSixtyFifthNativeTaskIsCancelledInsteadOfThrowingAndTheQueueStaysPersistable() {
+        var port=new Port();var node=new RsBridgeNode(port);node.refreshCatalogue();
+        node.setTaskAdmission(task->node.getTasks().size()<=RsTaskPersistence.MAX_TASKS
+                &&RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).isPresent());
+        var storage=new RootStorageImpl();storage.addSource(node.getStorage());
+        var repository=new PatternRepositoryImpl();node.patterns().forEach(p->repository.add(p,0));
+        var plan=TaskPlanCraftingCalculatorListener.calculatePlan(new CraftingCalculatorImpl(repository,storage),
+                new RsMatterKey(HYDROGEN),2000,CancellationToken.NONE).orElseThrow();
+        for(int i=0;i<RsTaskPersistence.MAX_TASKS;i++)node.addTask(new TaskImpl(plan,Actor.EMPTY,false));
+        var refused=new TaskImpl(plan,Actor.EMPTY,false);
+        assertDoesNotThrow(()->node.addTask(refused));
+        assertEquals(RsTaskPersistence.MAX_TASKS+1,node.getTasks().size());
+        assertTrue(refused.createSnapshot().cancelled());assertTrue(refused.createSnapshot().internalStorage().isEmpty());
+        assertTrue(node.getTasks().stream().filter(task->task!=refused).noneMatch(task->((TaskImpl)task).createSnapshot().cancelled()));
+        var saved=RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).orElseThrow();
+        assertEquals(RsTaskPersistence.MAX_TASKS,TASKS.parse(JsonOps.INSTANCE,saved).getOrThrow().size());
+        assertEquals(16000,port.store.amount(WATER),"A refused task never extracts matter");
+        node.addTask(new TaskImpl(plan,Actor.EMPTY,false));
+        assertEquals(RsTaskPersistence.MAX_TASKS,TASKS.parse(JsonOps.INSTANCE,
+                RsTaskPersistence.encode(TASKS,JsonOps.INSTANCE,node.getTasks()).orElseThrow()).getOrThrow().size());
+    }
+    private static final Codec<List<TaskSnapshot>> TASKS=RsTaskPersistence.create(RsMatterKey.CODEC.codec().flatComapMap(key->(ResourceKey)key,
+            key->key instanceof RsMatterKey matter?DataResult.success(matter):DataResult.error(()->"Not matter")));
     private static final class Port implements AutomationPort {
         final UUID owner=UUID.randomUUID(),bridge=UUID.randomUUID();final MatterInventory store=new MatterInventory(64000);
         final OrderLedger ledger=new OrderLedger();boolean active=true;

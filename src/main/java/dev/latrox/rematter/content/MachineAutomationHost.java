@@ -130,6 +130,7 @@ public final class MachineAutomationHost implements AutomationPort {
         if(backend().isEmpty()||!AutomationBackends.available().contains(backend()))return "automation_backend_missing";
         if(!elected(network))return "automation_interface_conflict";
         if(adapter==null||!adapter.connected())return "automation_disconnected";
+        if(!adapter.status().isEmpty())return adapter.status();
         if(ledger.snapshot().orders().stream().anyMatch(OrderLedger.Order::quarantined))return "automation_quarantined";
         return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
     }

@@ -440,6 +440,7 @@
   "status.rematter.automation_quarantined": "Delivery stopped; resources retained",
   "status.rematter.automation_clear_slots": "Clear the machine slots and tank for network jobs",
   "status.rematter.automation_catalogue_invalid": "Recipe catalogue cannot be loaded",
+  "status.rematter.automation_job_refused": "A network job was refused: too many jobs or no permission",
   "item.rematter.iron_dust": "Iron Dust",
   "item.rematter.copper_dust": "Copper Dust",
   "item.rematter.gold_dust": "Gold Dust",

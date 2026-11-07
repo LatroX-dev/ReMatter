@@ -2,17 +2,17 @@ package dev.latrox.rematter.compat.rs;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.refinedmods.refinedstorage.api.autocrafting.task.*;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractNetworkNode;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
+import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.*;
 import dev.latrox.rematter.content.MachineBlockEntity;
-import java.util.List;
 import java.util.function.BooleanSupplier;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -23,14 +23,17 @@ public final class RsAdapter implements AutomationAdapter {
     private final AutomationPort port;
     private final RsBridgeNode node;
     private final NetworkNodeContainerProvider provider;
+    private static final long REFUSAL_STATUS_TICKS=200;
     private final NativeTicker ticker=new NativeTicker();
     private Dynamic<?> opaque;
+    private net.minecraft.nbt.Tag saved;
+    private long refusedUntil;
     private boolean initializationRequested;
     private boolean initialized;
     private boolean closed;
     public RsAdapter(MachineBlockEntity host,AutomationPort port) {
         this.host=host;this.port=port;node=new RsBridgeNode(port);
-        node.setTaskValidator(this::validateTask);
+        node.setTaskAdmission(this::admits);
         provider=RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider();
         var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface").build();
         provider.addContainer(whileOpen(container,()->closed));
@@ -60,28 +63,35 @@ public final class RsAdapter implements AutomationAdapter {
         if(raw.isEmpty())return;
         var state=input.read("state",RsTaskPersistence.CODEC);
         if(state.isEmpty()){opaque=raw.get();node.disable();return;}
-        for(var task:state.get())node.addTask(new TaskImpl(task));
+        saved=raw.get().convert(NbtOps.INSTANCE).getValue();
+        for(var task:state.get())node.restoreTask(new TaskImpl(task));
     }
+    /** Never throws inside a save: an encoding failure keeps the last state that was written successfully. */
     @Override public void save(ValueOutput output) {
         if(opaque!=null){output.store("state",Codec.PASSTHROUGH,opaque);return;}
-        var tasks=node.getTasks().stream().map(task->{
-            if(!(task instanceof TaskImpl impl))throw new IllegalStateException("Unserializable RS task");return impl.createSnapshot();
-        }).toList();
-        // ValueOutput reports codec errors without throwing; pre-encode before replacing saved state.
-        var encoded=RsTaskPersistence.CODEC.encodeStart(host.getLevel().registryAccess()
-                .createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE),tasks).getOrThrow();
-        output.store("state",Codec.PASSTHROUGH,new Dynamic<>(net.minecraft.nbt.NbtOps.INSTANCE,encoded));
+        var encoded=encode();
+        if(encoded.isPresent())saved=encoded.get();
+        else ReMatter.LOGGER.error("Refined Storage jobs of the ReMatter interface at {} could not be encoded; keeping their last saved state",host.getBlockPos());
+        if(saved!=null)output.store("state",Codec.PASSTHROUGH,new Dynamic<>(NbtOps.INSTANCE,saved.copy()));
     }
-    private void validateTask(Task task) {
-        if(!(task instanceof TaskImpl impl)||host.getLevel()==null)throw new IllegalArgumentException("Unsupported RS task");
-        var next=new java.util.ArrayList<TaskSnapshot>();
-        for(var existing:node.getTasks()) {
-            if(!(existing instanceof TaskImpl nativeTask))throw new IllegalStateException("Unsupported stored RS task");
-            next.add(nativeTask.createSnapshot());
-        }
-        next.add(impl.createSnapshot());
-        RsTaskPersistence.CODEC.encodeStart(host.getLevel().registryAccess()
-                .createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE),next).getOrThrow();
+    private java.util.Optional<net.minecraft.nbt.Tag> encode() {
+        if(host.getLevel()==null)return java.util.Optional.empty();
+        return RsTaskPersistence.encode(RsTaskPersistence.CODEC,host.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE),node.getTasks());
+    }
+    /** Called after RS has added the task. Every admitted task list stays persistable. */
+    private boolean admits(Task task) {
+        boolean admitted=task instanceof TaskImpl&&node.getTasks().size()<=RsTaskPersistence.MAX_TASKS&&encode().isPresent();
+        if(!admitted)refused();
+        return admitted;
+    }
+    private void refused() {
+        if(host.getLevel()==null)return;
+        long now=host.getLevel().getGameTime();
+        if(now>=refusedUntil)ReMatter.LOGGER.warn("ReMatter interface at {} refused a Refined Storage job",host.getBlockPos());
+        refusedUntil=now+REFUSAL_STATUS_TICKS;
+    }
+    @Override public String status() {
+        return host.getLevel()!=null&&host.getLevel().getGameTime()<refusedUntil?"automation_job_refused":"";
     }
     @Override public void tick() {
         if(closed||opaque!=null||!(host.getLevel() instanceof ServerLevel level))return;
