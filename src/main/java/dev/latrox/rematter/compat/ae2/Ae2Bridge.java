@@ -135,7 +135,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
             lastStock = Map.copyOf(stock);
             node.ifPresent(grid -> grid.getStorageService().invalidateCache());
         }
-        if (active) deliverCompletedOutputs();
+        if (active) deliverHeldResources();
     }
 
     /** Native cables connect only on faces that the owner leaves open for matter connections. */
@@ -198,26 +198,36 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
         } catch (IllegalArgumentException | ArithmeticException invalid) { return false; }
     }
 
-    private void deliverCompletedOutputs() {
+    private void deliverHeldResources() {
         if (delivering) return;
         delivering = true;
         try {
             var network = node.getGrid().getStorageService().getInventory();
-            for (var delivery : port.pendingOutputs()) {
-                if (!node.isActive() || !port.active()) break;
-                try {
-                    if (!port.beginDelivery(delivery.orderId(), delivery.resource(), delivery.amount())) break;
-                    long accepted = network.insert(RecipePatterns.resourceKey(delivery.resource()), delivery.amount(),
-                            Actionable.MODULATE, IActionSource.ofMachine(this));
-                    if (accepted < 0 || accepted > delivery.amount()) throw new IllegalStateException("Invalid output acknowledgement");
-                    port.ackOutput(delivery.orderId(), delivery.resource(), accepted);
-                } catch (RuntimeException uncertain) {
-                    // An external write may already have happened. Never replay or refund this uncertain delivery.
-                    port.quarantineDelivery(delivery.orderId(), uncertain.getClass().getSimpleName());
-                    break;
-                }
-            }
+            for (var delivery : port.pendingOutputs()) if (!deliver(network, delivery, false)) return;
+            for (var refund : port.pendingRefunds()) if (!deliver(network, refund, true)) return;
         } finally { delivering = false; }
+    }
+    /** Returns false when deliveries must stop for this tick. */
+    private boolean deliver(MEStorage network, AutomationPort.Delivery delivery, boolean refund) {
+        if (!node.isActive() || !port.active()) return false;
+        AEKey key;
+        // An unregistered item or fluid stays held, unquarantined, until its mod is available again.
+        try { key = RecipePatterns.resourceKey(delivery.resource()); }
+        catch (RuntimeException unavailable) { return true; }
+        boolean started = refund ? port.beginRefund(delivery.orderId(), delivery.resource(), delivery.amount())
+                : port.beginDelivery(delivery.orderId(), delivery.resource(), delivery.amount());
+        if (!started) return false;
+        try {
+            long accepted = network.insert(key, delivery.amount(), Actionable.MODULATE, IActionSource.ofMachine(this));
+            if (accepted < 0 || accepted > delivery.amount()) throw new IllegalStateException("Invalid output acknowledgement");
+            if (refund) port.ackRefund(delivery.orderId(), delivery.resource(), accepted);
+            else port.ackOutput(delivery.orderId(), delivery.resource(), accepted);
+            return true;
+        } catch (RuntimeException uncertain) {
+            // An external write may already have happened. Never replay or refund this uncertain delivery.
+            port.quarantineDelivery(delivery.orderId(), uncertain.getClass().getName());
+            return false;
+        }
     }
     private static AutomationPort.Action mode(Actionable action) {
         return action.isSimulate() ? AutomationPort.Action.SIMULATE : AutomationPort.Action.EXECUTE;

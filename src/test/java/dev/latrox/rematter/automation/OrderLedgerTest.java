@@ -52,19 +52,55 @@ class OrderLedgerTest {
     }
     @Test void partialDeliveryCancellationAndPartialRefundRetainEveryUnacceptedResource() {
         var ledger=accepted(2);var id=ledger.next().orElseThrow().id();completeOne(ledger,id);
-        ledger.ackOutput(id,GLASS,1);assertEquals(3,ledger.order(id).orElseThrow().pendingOutputs().get(GLASS));
-        var before=ledger.snapshot();assertThrows(IllegalArgumentException.class,()->ledger.ackOutput(id,GLASS,4));assertEquals(before,ledger.snapshot());
-        ledger.cancel(id);assertTrue(ledger.next().isEmpty());assertEquals(0,ledger.remainingBatches());
-        ledger.ackRefund(id,COPPER,7);assertEquals(3,ledger.order(id).orElseThrow().ownedInputs().get(COPPER));
-        ledger.ackRefund(id,COPPER,3);ledger.ackRefund(id,WATER,100);ledger.ackRefund(id,SAND,1);
+        deliver(ledger,id,GLASS,4,1);assertEquals(3,ledger.order(id).orElseThrow().pendingOutputs().get(GLASS));
+        var before=ledger.snapshot();assertFalse(ledger.beginDelivery(id,GLASS,4));assertEquals(before,ledger.snapshot());
+        assertTrue(ledger.cancel(id));assertTrue(ledger.next().isEmpty());assertEquals(0,ledger.remainingBatches());
+        assertFalse(ledger.cancel(id),"An order is cancelled once");
+        refund(ledger,id,COPPER,10,7);assertEquals(3,ledger.order(id).orElseThrow().ownedInputs().get(COPPER));
+        refund(ledger,id,COPPER,3,3);refund(ledger,id,WATER,100,100);refund(ledger,id,SAND,1,1);
         assertTrue(ledger.pendingRefunds().isEmpty());assertTrue(ledger.order(id).isPresent());
-        ledger.ackOutput(id,GLASS,3);ledger.ackOutput(id,OXYGEN,5);assertTrue(ledger.order(id).isEmpty());
+        deliver(ledger,id,GLASS,3,3);deliver(ledger,id,OXYGEN,5,5);assertTrue(ledger.order(id).isEmpty());
+    }
+    @Test void refundsUseTheDurableGuardAndNeverMixWithOutputAcknowledgements() {
+        var ledger=accepted(2);var id=ledger.next().orElseThrow().id();completeOne(ledger,id);
+        assertFalse(ledger.beginRefund(id,COPPER,10),"Only a cancelled order refunds its inputs");
+        assertTrue(ledger.cancel(id));
+        assertEquals(List.of(new Delivery(id,COPPER,10L),new Delivery(id,WATER,100L),new Delivery(id,SAND,1L)).stream().sorted(
+                Comparator.comparing(Delivery::resource)).toList(),ledger.pendingRefunds());
+        assertFalse(ledger.beginRefund(id,COPPER,11));
+        assertTrue(ledger.beginRefund(id,COPPER,10));
+        var saved=OrderLedger.restore(ledger.snapshot());
+        assertTrue(ledger.pendingRefunds().isEmpty());assertTrue(ledger.pendingOutputs().isEmpty());
+        assertFalse(ledger.beginDelivery(id,GLASS,4),"One attempt guards the whole order");
+        assertThrows(IllegalStateException.class,()->ledger.finishDelivery(id,COPPER,10));
+        ledger.finishRefund(id,COPPER,6);
+        assertEquals(4,ledger.order(id).orElseThrow().ownedInputs().get(COPPER));
+        assertTrue(saved.pendingRefunds().isEmpty(),"A copy saved during the refund stays locked");
+        assertThrows(IllegalStateException.class,()->saved.finishRefund(id,COPPER,6));
+        assertTrue(ledger.beginDelivery(id,GLASS,4));
+        assertThrows(IllegalStateException.class,()->ledger.finishRefund(id,GLASS,4));
+        ledger.finishDelivery(id,GLASS,4);
+        assertEquals(Map.of(OXYGEN,5L),ledger.order(id).orElseThrow().pendingOutputs());
+    }
+    @Test void parameterOnlyChangesRebaseUnclaimedWorkButAMaterialChangeDoesNot() {
+        var ledger=accepted(2);var order=ledger.next().orElseThrow();var worker=UUID.randomUUID();
+        var slower=new Recipe(recipe().id(),"revision2",recipe().workerKind(),recipe().inputs(),recipe().outputs(),6000,240);
+        assertTrue(ledger.claim(order.id(),worker,"revision1"));
+        assertFalse(ledger.rebase(order.id(),slower),"A claimed order keeps its revision until the worker releases it");
+        assertTrue(ledger.release(order.id(),worker));
+        var changedInputs=new TreeMap<>(recipe().inputs());changedInputs.put(COPPER,11L);
+        assertFalse(ledger.rebase(order.id(),new Recipe(recipe().id(),"revision3",recipe().workerKind(),changedInputs,recipe().outputs(),4000,120)));
+        assertFalse(ledger.rebase(order.id(),new Recipe("test:other","revision3",recipe().workerKind(),recipe().inputs(),recipe().outputs(),4000,120)));
+        assertTrue(ledger.rebase(order.id(),slower));
+        var rebased=ledger.order(order.id()).orElseThrow();
+        assertEquals(slower,rebased.recipe());assertEquals(order.ownedInputs(),rebased.ownedInputs());assertEquals(2,rebased.remainingBatches());
+        assertFalse(ledger.claim(order.id(),worker,"revision1"));assertTrue(ledger.claim(order.id(),worker,"revision2"));
     }
     @Test void quarantineSuppressesAutomaticRetriesWithoutDiscardingInputsOrOutputs() {
         var ledger=accepted(2);var id=ledger.next().orElseThrow().id();completeOne(ledger,id);
         var held=ledger.order(id).orElseThrow();ledger.quarantineDelivery(id,"delivery_outcome_unknown");
         assertTrue(ledger.next().isEmpty());assertTrue(ledger.pendingOutputs().isEmpty());assertTrue(ledger.pendingRefunds().isEmpty());
-        assertThrows(IllegalStateException.class,()->ledger.ackOutput(id,GLASS,1));
+        assertFalse(ledger.beginDelivery(id,GLASS,1));
         var decoded=OrderLedgerCodec.read(OrderLedgerCodec.write(ledger));assertTrue(decoded.readable());
         var restored=decoded.ledger().orElseThrow().order(id).orElseThrow();
         assertEquals(held.ownedInputs(),restored.ownedInputs());assertEquals(held.pendingOutputs(),restored.pendingOutputs());assertTrue(restored.quarantined());
@@ -91,7 +127,7 @@ class OrderLedgerTest {
             assertFalse(copy.beginDelivery(id,GLASS,4));
             assertFalse(copy.beginDelivery(id,OXYGEN,5));
             assertThrows(IllegalStateException.class,()->copy.finishDelivery(id,GLASS,2));
-            assertThrows(IllegalStateException.class,()->copy.ackOutput(id,OXYGEN,1));
+            assertThrows(IllegalStateException.class,()->copy.finishDelivery(id,OXYGEN,1));
             assertEquals(saved,copy.snapshot());
         }
     }
@@ -120,7 +156,7 @@ class OrderLedgerTest {
         assertThrows(IllegalArgumentException.class,()->ledger.finishDelivery(id,OXYGEN,1));
         assertThrows(IllegalArgumentException.class,()->ledger.finishDelivery(id,GLASS,3));
         assertThrows(IllegalArgumentException.class,()->ledger.finishDelivery(id,GLASS,-1));
-        assertThrows(IllegalStateException.class,()->ledger.ackOutput(id,GLASS,1));
+        assertThrows(IllegalStateException.class,()->ledger.finishRefund(id,GLASS,1));
         assertEquals(guarded,ledger.snapshot());
         ledger.finishDelivery(id,GLASS,2);
         var finished=ledger.snapshot();
@@ -180,6 +216,12 @@ class OrderLedgerTest {
         assertThrows(IllegalArgumentException.class,()->new OrderLedger.Order(order.id(),order.recipe(),1,1,0,
                 Map.of(COPPER,11L),Map.of(),true,"",null));
         assertThrows(IllegalArgumentException.class,()->OrderLedger.restore(new OrderLedger.Snapshot(1,List.of(order,order))));
+    }
+    private static void deliver(OrderLedger ledger,UUID id,Resource resource,long offered,long accepted) {
+        assertTrue(ledger.beginDelivery(id,resource,offered));ledger.finishDelivery(id,resource,accepted);
+    }
+    private static void refund(OrderLedger ledger,UUID id,Resource resource,long offered,long accepted) {
+        assertTrue(ledger.beginRefund(id,resource,offered));ledger.finishRefund(id,resource,accepted);
     }
     private static OrderLedger accepted(int batches) {
         var ledger=new OrderLedger();assertTrue(ledger.accept(recipe(),batches,ResourceAmounts.multiply(recipe().inputs(),batches),Action.EXECUTE));return ledger;

@@ -207,6 +207,9 @@ class SharedAutomationStockTest {
         public List<Delivery> pendingOutputs(){return ledger.pendingOutputs();}
         public boolean beginDelivery(UUID id,Resource resource,long offered){return ledger.beginDelivery(id,resource,offered);}
         public void ackOutput(UUID id,Resource resource,long accepted){ledger.finishDelivery(id,resource,accepted);}
+        public List<Delivery> pendingRefunds(){return ledger.pendingRefunds();}
+        public boolean beginRefund(UUID id,Resource resource,long offered){return ledger.beginRefund(id,resource,offered);}
+        public void ackRefund(UUID id,Resource resource,long accepted){ledger.finishRefund(id,resource,accepted);}
         public void quarantineDelivery(UUID id,String reason){ledger.quarantineDelivery(id,reason);}public void changed(){}
     }
 }

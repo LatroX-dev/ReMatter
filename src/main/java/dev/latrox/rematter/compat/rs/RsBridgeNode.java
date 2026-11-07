@@ -108,15 +108,25 @@ public final class RsBridgeNode extends PatternProviderNetworkNode implements St
         if(delivering)return;
         delivering=true;
         try {
-            for(var delivery:port.pendingOutputs()) {
-                if(!enabled||!port.active())break;
-                try {
-                    if(!port.beginDelivery(delivery.orderId(),delivery.resource(),delivery.amount()))break;
-                    long accepted=storage.insert(RsResourceKeys.nativeKey(delivery.resource()),delivery.amount(),Action.EXECUTE,actor);
-                    if(accepted<0||accepted>delivery.amount())throw new IllegalStateException("Invalid network acceptance");
-                    port.ackOutput(delivery.orderId(),delivery.resource(),accepted);
-                } catch(RuntimeException uncertain){port.quarantineDelivery(delivery.orderId(),uncertain.getClass().getSimpleName());break;}
-            }
+            for(var delivery:port.pendingOutputs())if(!deliver(storage,delivery,false))return;
+            for(var refund:port.pendingRefunds())if(!deliver(storage,refund,true))return;
         } finally {delivering=false;}
+    }
+    /** Returns false when deliveries must stop for this tick. */
+    private boolean deliver(InsertableStorage storage,AutomationPort.Delivery delivery,boolean refund) {
+        if(!enabled||!port.active())return false;
+        ResourceKey key;
+        // An unregistered item or fluid stays held, unquarantined, until its mod is available again.
+        try {key=RsResourceKeys.nativeKey(delivery.resource());} catch(RuntimeException unavailable){return true;}
+        boolean started=refund?port.beginRefund(delivery.orderId(),delivery.resource(),delivery.amount())
+                :port.beginDelivery(delivery.orderId(),delivery.resource(),delivery.amount());
+        if(!started)return false;
+        try {
+            long accepted=storage.insert(key,delivery.amount(),Action.EXECUTE,actor);
+            if(accepted<0||accepted>delivery.amount())throw new IllegalStateException("Invalid network acceptance");
+            if(refund)port.ackRefund(delivery.orderId(),delivery.resource(),accepted);
+            else port.ackOutput(delivery.orderId(),delivery.resource(),accepted);
+            return true;
+        } catch(RuntimeException uncertain){port.quarantineDelivery(delivery.orderId(),uncertain.getClass().getName());return false;}
     }
 }

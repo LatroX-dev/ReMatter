@@ -28,7 +28,7 @@ public final class OrderLedger {
         public Snapshot { orders=List.copyOf(orders); }
     }
     private static final String DELIVERY_IN_FLIGHT="delivery_in_flight";
-    private record Attempt(Resource resource,long offered) {}
+    private record Attempt(Resource resource,long offered,boolean refund) {}
     private final LinkedHashMap<UUID,Order> orders=new LinkedHashMap<>();
     // Never serialized: a saved/drop copy cannot prove what an external receiver accepted.
     private final Map<UUID,Attempt> deliveryAttempts=new HashMap<>();
@@ -45,9 +45,6 @@ public final class OrderLedger {
     public synchronized boolean busy() { return orders.size()>=MAX_ORDERS||remainingBatches()>=MAX_BATCHES; }
     public synchronized Optional<Order> order(UUID id) { return Optional.ofNullable(orders.get(id)); }
     public synchronized Optional<Order> next() { return orders.values().stream().filter(OrderLedger::pendingWork).filter(o->o.workerId()==null).findFirst(); }
-    public synchronized Optional<Order> next(String workerKind) {
-        return orders.values().stream().filter(OrderLedger::pendingWork).filter(o->o.workerId()==null&&o.recipe().workerKind().equals(workerKind)).findFirst();
-    }
     private static boolean pendingWork(Order order) {
         return order.remainingBatches()>0&&!order.cancelled()&&!order.quarantined();
     }
@@ -87,6 +84,17 @@ public final class OrderLedger {
         var completed=copy(order,remaining,0,ResourceAmounts.multiply(order.recipe().inputs(),remaining),outputs,false,"",remaining==0?null:workerId);
         orders.put(id,completed);return true;
     }
+    /** Process parameters may change without orphaning work: the same material vector continues under the current recipe. */
+    public synchronized boolean rebase(UUID id,Recipe current) {
+        Objects.requireNonNull(current);var order=orders.get(id);
+        if(order==null||!pendingWork(order)||order.workerId()!=null||order.recipe().equals(current)
+                ||!order.recipe().id().equals(current.id())||!order.recipe().workerKind().equals(current.workerKind())
+                ||!order.recipe().inputs().equals(current.inputs())||!order.recipe().outputs().equals(current.outputs()))return false;
+        var rebased=new Order(order.id(),current,order.batches(),order.remainingBatches(),0,order.ownedInputs(),order.pendingOutputs(),false,"",null);
+        var future=new ArrayList<>(orders.values());future.replaceAll(existing->existing.id().equals(id)?rebased:existing);
+        if(!OrderLedgerCodec.fits(new Snapshot(SCHEMA,future)))return false;
+        orders.put(id,rebased);return true;
+    }
     public synchronized boolean release(UUID id,UUID workerId) {
         var order=orders.get(id);if(order==null||workerId==null||!workerId.equals(order.workerId()))return false;
         orders.put(id,copy(order,order.remainingBatches(),0,order.ownedInputs(),order.pendingOutputs(),order.cancelled(),order.quarantineReason(),null));return true;
@@ -109,37 +117,47 @@ public final class OrderLedger {
         var guarded=copy(order,order.remainingBatches(),order.progress(),order.ownedInputs(),order.pendingOutputs(),
                 order.cancelled(),DELIVERY_IN_FLIGHT,order.workerId());
         orders.put(id,guarded);
-        deliveryAttempts.put(id,new Attempt(resource,offered));
+        deliveryAttempts.put(id,new Attempt(resource,offered,false));
+        return true;
+    }
+    /** The same durable guard protects returning the owned inputs of a cancelled order. */
+    public synchronized boolean beginRefund(UUID id,Resource resource,long offered) {
+        Objects.requireNonNull(resource);
+        var order=orders.get(id);
+        if(order==null||!order.cancelled()||order.quarantined()||offered<=0||offered>order.ownedInputs().getOrDefault(resource,0L)
+                ||deliveryAttempts.containsKey(id))return false;
+        orders.put(id,copy(order,order.remainingBatches(),0,order.ownedInputs(),order.pendingOutputs(),true,DELIVERY_IN_FLIGHT,null));
+        deliveryAttempts.put(id,new Attempt(resource,offered,true));
         return true;
     }
     /** Only the original live ledger can acknowledge an attempt, including a receiver accepting zero. */
     public synchronized void finishDelivery(UUID id,Resource resource,long accepted) {
+        var order=attempted(id,resource,accepted,false);
+        var outputs=subtract(order.pendingOutputs(),resource,accepted);
+        deliveryAttempts.remove(id);
+        putOrRemove(copy(order,order.remainingBatches(),order.progress(),order.ownedInputs(),outputs,order.cancelled(),"",order.workerId()));
+    }
+    /** Returns remain held until the external receiver confirms the exact actually accepted amounts. */
+    public synchronized void finishRefund(UUID id,Resource resource,long accepted) {
+        var order=attempted(id,resource,accepted,true);
+        var inputs=subtract(order.ownedInputs(),resource,accepted);
+        deliveryAttempts.remove(id);
+        putOrRemove(copy(order,order.remainingBatches(),0,inputs,order.pendingOutputs(),true,"",null));
+    }
+    private Order attempted(UUID id,Resource resource,long accepted,boolean refund) {
         var order=required(id);var attempt=deliveryAttempts.get(id);
-        if(attempt==null||!DELIVERY_IN_FLIGHT.equals(order.quarantineReason()))
+        if(attempt==null||attempt.refund()!=refund||!DELIVERY_IN_FLIGHT.equals(order.quarantineReason()))
             throw new IllegalStateException("No live delivery attempt");
         if(!attempt.resource().equals(resource)||accepted<0||accepted>attempt.offered())
             throw new IllegalArgumentException("Acknowledgement does not match the offered resources");
-        var outputs=subtract(order.pendingOutputs(),resource,accepted);
-        var finished=copy(order,order.remainingBatches(),order.progress(),order.ownedInputs(),outputs,
-                order.cancelled(),"",order.workerId());
-        deliveryAttempts.remove(id);
-        putOrRemove(finished);
+        return order;
     }
-    public synchronized void ackOutput(UUID id,Resource resource,long accepted) {
-        var order=required(id);if(order.quarantined())throw new IllegalStateException("Delivery is quarantined");
-        var outputs=subtract(order.pendingOutputs(),resource,accepted);
-        putOrRemove(copy(order,order.remainingBatches(),order.progress(),order.ownedInputs(),outputs,order.cancelled(),"",order.workerId()));
-    }
-    public synchronized void cancel(UUID id) {
-        var order=required(id);
-        putOrRemove(copy(order,order.remainingBatches(),0,order.ownedInputs(),order.pendingOutputs(),true,order.quarantineReason(),null));
-    }
-    /** Returns remain held until the external receiver confirms the exact actually accepted amounts. */
-    public synchronized void ackRefund(UUID id,Resource resource,long accepted) {
-        var order=required(id);
-        if(!order.cancelled()||order.quarantined())throw new IllegalStateException("Refund is unavailable");
-        var inputs=subtract(order.ownedInputs(),resource,accepted);
-        putOrRemove(copy(order,order.remainingBatches(),0,inputs,order.pendingOutputs(),true,"",null));
+    /** Stops the remaining batches. Their owned inputs become refunds; completed outputs are still delivered. */
+    public synchronized boolean cancel(UUID id) {
+        var order=orders.get(id);
+        if(order==null||order.cancelled()||order.quarantined())return false;
+        putOrRemove(copy(order,order.remainingBatches(),0,order.ownedInputs(),order.pendingOutputs(),true,"",null));
+        return true;
     }
     public synchronized List<Delivery> pendingRefunds() {
         var result=new ArrayList<Delivery>();

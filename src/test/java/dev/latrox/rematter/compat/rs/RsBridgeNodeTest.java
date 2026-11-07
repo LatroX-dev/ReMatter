@@ -101,6 +101,19 @@ class RsBridgeNodeTest {
         assertFalse(owned.createSnapshot().cancelled());
         assertFalse(RsBridgeNode.permitted(new PlayerActor(OWNER),name->false),"An unresolvable name counts as foreign");
     }
+    @Test void cancelledOrdersReturnTheirExactTransferredInputsThroughTheGuardedPath() {
+        var port=new Port();var node=node(port);node.refreshCatalogue();var pattern=node.patterns().getFirst();
+        assertEquals(2000,node.getStorage().extract(new RsMatterKey(WATER),2000,Action.EXECUTE,Actor.EMPTY));
+        assertEquals(ExternalPatternSink.Result.ACCEPTED,node.insertAll(pattern,List.of(new ResourceAmount(new RsMatterKey(WATER),2000)),Action.EXECUTE));
+        var id=port.ledger.next().orElseThrow().id();
+        assertTrue(port.ledger.cancel(id));
+        var received=new ArrayList<ResourceAmount>();
+        node.flushOutputs((resource,amount,action,actor)->{received.add(new ResourceAmount(resource,Math.min(amount,1500)));return Math.min(amount,1500);});
+        assertEquals(List.of(new ResourceAmount(new RsMatterKey(WATER),1500)),received);
+        assertEquals(List.of(new AutomationPort.Delivery(id,AutomationPort.Resource.matter(WATER),500)),port.pendingRefunds());
+        node.flushOutputs((resource,amount,action,actor)->amount);
+        assertTrue(port.ledger.snapshot().orders().isEmpty(),"Every transferred input was returned exactly once");
+    }
     private static final String OWNER="owner";
     private static RsBridgeNode node(Port port) { return new RsBridgeNode(port,actor->RsBridgeNode.permitted(actor,OWNER::equals)); }
     private static final Codec<List<TaskSnapshot>> TASKS=RsTaskPersistence.create(RsMatterKey.CODEC.codec().flatComapMap(key->(ResourceKey)key,
@@ -108,7 +121,7 @@ class RsBridgeNodeTest {
     private static final class Port implements AutomationPort {
         final UUID owner=UUID.randomUUID(),bridge=UUID.randomUUID();final MatterInventory store=new MatterInventory(64000);
         final OrderLedger ledger=new OrderLedger();boolean active=true;
-        final Recipe recipe=AutomationRecipeCatalogue.recipe("test:electrolysis","electrolyzer",Map.of(Resource.matter(WATER),1000L),
+        final Recipe recipe=AutomationRecipeCatalogue.recipe("test:electrolysis","electrolyzer",Map.of(AutomationPort.Resource.matter(WATER),1000L),
                 Map.of(Resource.matter(HYDROGEN),2000L,Resource.matter(OXYGEN),1000L),4000,20);
         Port(){store.insert(WATER,16000);}
         public UUID ownerId(){return owner;}public UUID bridgeId(){return bridge;}public boolean active(){return active;}
@@ -120,6 +133,9 @@ class RsBridgeNodeTest {
         public List<Delivery> pendingOutputs(){return ledger.pendingOutputs();}
         public boolean beginDelivery(UUID id,Resource resource,long amount){return active&&ledger.beginDelivery(id,resource,amount);}
         public void ackOutput(UUID id,Resource resource,long amount){ledger.finishDelivery(id,resource,amount);}
+        public List<Delivery> pendingRefunds(){return ledger.pendingRefunds();}
+        public boolean beginRefund(UUID id,Resource resource,long amount){return active&&ledger.beginRefund(id,resource,amount);}
+        public void ackRefund(UUID id,Resource resource,long amount){ledger.finishRefund(id,resource,amount);}
         public void quarantineDelivery(UUID id,String reason){ledger.quarantineDelivery(id,reason);}public void changed(){}
     }
 }

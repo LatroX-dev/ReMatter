@@ -7,6 +7,7 @@ import dev.latrox.rematter.automation.AutomationNetworkPolicy;
 import dev.latrox.rematter.automation.AutomationPort;
 import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.automation.OrderLedgerCodec;
+import dev.latrox.rematter.automation.StaleOrders;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -31,6 +32,8 @@ import org.jspecify.annotations.Nullable;
 
 /** The interface alone owns transferred inputs and undelivered outputs. Workers only hold temporary leases. */
 public final class MachineAutomationHost implements AutomationPort {
+    /** A recipe change must persist this long before its queued orders are cancelled and refunded. */
+    private static final long STALE_ORDER_TICKS=200;
     private final MachineBlockEntity machine;
     private UUID id = UUID.randomUUID();
     private String backend = "";
@@ -45,6 +48,7 @@ public final class MachineAutomationHost implements AutomationPort {
     private List<Recipe> eligibleRecipes = List.of();
     private final Map<UUID,MachineBlockEntity> assigned = new HashMap<>();
     private final Map<UUID,Long> completedAt = new HashMap<>();
+    private final StaleOrders staleOrders = new StaleOrders(STALE_ORDER_TICKS);
     private boolean closed, ticking, lease, revoking, catalogueInvalid;
     private long loadedAt = Long.MIN_VALUE;
 
@@ -132,6 +136,7 @@ public final class MachineAutomationHost implements AutomationPort {
         if(adapter==null||!adapter.connected())return "automation_disconnected";
         if(!adapter.status().isEmpty())return adapter.status();
         if(ledger.snapshot().orders().stream().anyMatch(OrderLedger.Order::quarantined))return "automation_quarantined";
+        if(staleOrders.waiting()||!ledger.pendingRefunds().isEmpty())return "automation_orders_stale";
         return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
     }
     public void tick() {
@@ -153,6 +158,7 @@ public final class MachineAutomationHost implements AutomationPort {
             if(!active()){revoke();return;}
             refreshCatalogue();
             validateClaims(network);
+            retireStaleOrders(level.getGameTime());
             if(adapter!=null)adapter.tick();
             if(adapter==null||!adapter.connected()) {releaseAll();return;}
             for(var worker:network.workers()) {
@@ -198,6 +204,10 @@ public final class MachineAutomationHost implements AutomationPort {
                     ||!worker.acceptsNetworkWork()||!worker.hasNetworkOrder(this,entry.getKey())
                     ||!network.workers().contains(worker)||!Objects.equals(catalogue.get(order.recipe().id()),order.recipe())) release(entry.getKey(),worker);
         }
+    }
+    private void retireStaleOrders(long now) {
+        if(catalogueInvalid){staleOrders.clear();return;}
+        if(staleOrders.retire(ledger,catalogue::get,now,orderId->{var worker=assigned.get(orderId);if(worker!=null)release(orderId,worker);}))changed();
     }
     private void releaseAll() { for(var entry:new ArrayList<>(assigned.entrySet()))release(entry.getKey(),entry.getValue()); }
     void release(UUID orderId,MachineBlockEntity worker) {
@@ -293,8 +303,23 @@ public final class MachineAutomationHost implements AutomationPort {
         if(!held||!ledger.beginDelivery(orderId,resource,offered))return false;
         // A save or block drop during the external write must retain the durable in-flight guard.
         changed();
-        // Marking dirty can invoke neighbor callbacks. Never write externally after losing this source.
-        return active();
+        // Marking dirty can invoke neighbor callbacks. Never write externally after losing this source;
+        // the live ledger then releases its unused guard, while a copy saved meanwhile stays locked.
+        if(active())return true;
+        ledger.finishDelivery(orderId,resource,0);
+        return false;
+    }
+    @Override public List<Delivery> pendingRefunds() { return active()?ledger.pendingRefunds():List.of(); }
+    @Override public boolean beginRefund(UUID orderId,Resource resource,long offered) {
+        if(!active()||offered<=0||Transaction.getCurrentOpenedTransaction()!=null||!ledger.beginRefund(orderId,resource,offered))return false;
+        changed();
+        if(active())return true;
+        ledger.finishRefund(orderId,resource,0);
+        return false;
+    }
+    @Override public void ackRefund(UUID orderId,Resource resource,long accepted) {
+        if(!live()||lockedData!=null||accepted<0)throw new IllegalStateException("Refund source unavailable");
+        ledger.finishRefund(orderId,resource,accepted);changed();
     }
     @Override public void ackOutput(UUID orderId,Resource resource,long accepted) {
         // A topology change can revoke the lease after a valid external write; the same live source
@@ -303,8 +328,9 @@ public final class MachineAutomationHost implements AutomationPort {
         ledger.finishDelivery(orderId,resource,accepted);changed();
     }
     @Override public void quarantineDelivery(UUID orderId,String reason) {
-        if(!live()||lockedData!=null)return;
-        ledger.quarantineDelivery(orderId,reason);changed();
+        if(!live()||lockedData!=null||ledger.order(orderId).isEmpty())return;
+        String bounded=reason==null||reason.isBlank()?"delivery_outcome_unknown":reason.substring(0,Math.min(256,reason.length()));
+        ledger.quarantineDelivery(orderId,bounded);changed();
     }
     @Override public void changed() { machine.setChanged(); }
     public boolean hasContents() { return lockedData!=null||!ledger.snapshot().orders().isEmpty()||!adapterData.isEmpty()||adapter!=null&&adapter.hasTasks(); }
@@ -314,7 +340,7 @@ public final class MachineAutomationHost implements AutomationPort {
         tag.putString("ledger",OrderLedgerCodec.write(ledger));tag.put("adapters",adapterData.copy());return tag;
     }
     void load(Tag raw) {
-        revoke();closed=false;loadedAt=Long.MIN_VALUE;completedAt.clear();
+        revoke();closed=false;loadedAt=Long.MIN_VALUE;completedAt.clear();staleOrders.clear();
         try {
             if (!(raw instanceof CompoundTag tag) || !tag.keySet().equals(Set.of("schema","id","backend","ledger","adapters"))
                     || !(tag.get("schema") instanceof IntTag) || !(tag.get("id") instanceof StringTag)
