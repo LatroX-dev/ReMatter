@@ -22,7 +22,7 @@ import java.util.WeakHashMap;
 
 /**
  * Loaded only when Mekanism is present. Compiled against Version Locked 26.1.2-2.11,
- * whose chemical capability uses NeoForge transactions rather than the legacy API.
+ * whose chemical capability is a transactional NeoForge resource handler.
  */
 public final class MekanismCompat {
     private MekanismCompat() {}
@@ -85,6 +85,7 @@ public final class MekanismCompat {
                 },
                 () -> allowed(reference.get()),
                 key -> ReMatter.chemistry().isKnown(key),
+                mapping -> ChemicalMappings.exportable(ReMatter.chemistry().synthesisPolicy(), mapping),
                 () -> {
                     MachineBlockEntity current = reference.get();
                     if (current != null) current.setChanged();

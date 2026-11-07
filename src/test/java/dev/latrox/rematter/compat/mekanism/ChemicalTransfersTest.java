@@ -4,6 +4,8 @@ import dev.latrox.rematter.chemistry.BuiltinChemistry;
 import dev.latrox.rematter.chemistry.MatterInventory;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.chemistry.SynthesisCategory;
+import dev.latrox.rematter.chemistry.SynthesisPolicy;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +36,7 @@ class ChemicalTransfersTest {
         var token = cells.get(4).reserve(Map.of(HYDROGEN, 40L), Map.of()).orElseThrow();
         var store = new dev.latrox.rematter.chemistry.MatterNetworkInventory(cells);
         var before = store.snapshot(); var commits = new AtomicInteger();
-        var handler = new ChemicalTransfers(() -> store, () -> true, key -> true, commits::incrementAndGet);
+        var handler = new ChemicalTransfers(() -> store, () -> true, key -> true, exported -> true, commits::incrementAndGet, ChemicalMappings.ALL);
         try (var outer = Transaction.openRoot()) {
             assertEquals(260, handler.extract(HYDROGEN_INDEX, "mekanism:hydrogen", 500, outer));
             try (var inner = Transaction.open(outer)) {
@@ -49,7 +51,7 @@ class ChemicalTransfersTest {
         var open = new MatterInventory(100, 1);
         var original = new dev.latrox.rematter.chemistry.MatterNetworkInventory(java.util.List.of(fullType, open));
         var current = new AtomicReference<dev.latrox.rematter.chemistry.MatterStore>(original);
-        var handler = new ChemicalTransfers(current::get, () -> true, key -> true, () -> {});
+        var handler = new ChemicalTransfers(current::get, () -> true, key -> true, exported -> true, () -> {}, ChemicalMappings.ALL);
         try (var tx = Transaction.openRoot()) {
             assertEquals(100, handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 1_000, tx));
             assertEquals(0, fullType.amount(HYDROGEN));
@@ -57,6 +59,35 @@ class ChemicalTransfersTest {
             assertEquals(0, handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 100, tx));
         }
         assertEquals(0, open.total()); assertEquals(1, fullType.total()); assertEquals(1, current.get().total());
+    }
+
+    @Test
+    void exportRequiresAGasPermissionOrTheChemicalsOwnFluidPermission() {
+        var policy = new SynthesisPolicy(Map.of(
+                HYDROGEN.id().toString(), SynthesisCategory.GAS,
+                "mekanism:chlorine", SynthesisCategory.FLUID,
+                OXYGEN.id().toString(), SynthesisCategory.RAW_MATERIAL,
+                "mekanism:oxygen", SynthesisCategory.RAW_MATERIAL));
+        var byId = ChemicalMappings.ALL.stream().collect(Collectors.toMap(ChemicalMappings.Mapping::chemicalId, mapping -> mapping));
+        assertTrue(ChemicalMappings.exportable(policy, byId.get("mekanism:hydrogen")));
+        assertTrue(ChemicalMappings.exportable(policy, byId.get("mekanism:chlorine")));
+        assertFalse(ChemicalMappings.exportable(policy, byId.get("mekanism:oxygen")), "Only GAS or FLUID releases count");
+        assertFalse(ChemicalMappings.exportable(policy, byId.get("mekanism:sulfur_dioxide")));
+
+        var inventory = new MatterInventory(10_000);
+        inventory.insert(HYDROGEN, 1_000);
+        var handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true,
+                mapping -> ChemicalMappings.exportable(policy, mapping), () -> {}, ChemicalMappings.ALL);
+        try (Transaction transaction = Transaction.openRoot()) {
+            assertEquals(500, handler.insert(OXYGEN_INDEX, "mekanism:oxygen", 500, transaction), "Imports need no release");
+            assertEquals(0, handler.amount(OXYGEN_INDEX));
+            assertEquals(0, handler.extract(OXYGEN_INDEX, "mekanism:oxygen", 500, transaction));
+            assertEquals(1_000, handler.amount(HYDROGEN_INDEX));
+            assertEquals(400, handler.extract(HYDROGEN_INDEX, "mekanism:hydrogen", 400, transaction));
+            transaction.commit();
+        }
+        assertEquals(500, inventory.amount(OXYGEN));
+        assertEquals(600, inventory.amount(HYDROGEN));
     }
 
     @Test
@@ -201,7 +232,7 @@ class ChemicalTransfersTest {
         AtomicBoolean known = new AtomicBoolean(true);
         AtomicInteger commits = new AtomicInteger();
         ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, enabled::get,
-                key -> known.get(), commits::incrementAndGet);
+                key -> known.get(), exported -> true, commits::incrementAndGet, ChemicalMappings.ALL);
 
         try (Transaction transaction = Transaction.openRoot()) {
             handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 1_000, transaction);
@@ -274,7 +305,7 @@ class ChemicalTransfersTest {
         MatterInventory first = new MatterInventory(1_000);
         AtomicReference<MatterInventory> current = new AtomicReference<>(first);
         ChemicalTransfers handler = new ChemicalTransfers(current::get, () -> true,
-                BuiltinChemistry.create()::isKnown, () -> {});
+                BuiltinChemistry.create()::isKnown, exported -> true, () -> {}, ChemicalMappings.ALL);
         try (Transaction transaction = Transaction.openRoot()) {
             handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 500, transaction);
             current.set(new MatterInventory(2_000));
@@ -319,7 +350,7 @@ class ChemicalTransfersTest {
         assertEquals(10, mapping.unitsPerChemical()); // 100 native units <-> 1 lithium dust (1000 internal units).
         MatterInventory inventory = new MatterInventory(24);
         inventory.insert(mapping.matter(), 9);
-        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, exported -> true, () -> {}, java.util.List.of(mapping));
         assertEquals(0, handler.amount(0));
         assertEquals(2, handler.capacity(0));
         var before = inventory.snapshot();
@@ -340,7 +371,7 @@ class ChemicalTransfersTest {
         MatterInventory inventory = new MatterInventory(2_000);
         inventory.insert(mapping.matter(), 1_003);
         inventory.reserve(Map.of(mapping.matter(), 7L), Map.of()).orElseThrow();
-        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, exported -> true, () -> {}, java.util.List.of(mapping));
         var before = inventory.snapshot();
         try (Transaction outer = Transaction.openRoot()) {
             assertEquals(199, handler.extract(0, mapping.chemicalId(), 200, outer));
@@ -357,7 +388,7 @@ class ChemicalTransfersTest {
         var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:lithium")).findFirst().orElseThrow();
         MatterInventory inventory = new MatterInventory(Long.MAX_VALUE);
         inventory.insert(mapping.matter(), Long.MAX_VALUE - 7);
-        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, exported -> true, () -> {}, java.util.List.of(mapping));
         try (Transaction tx = Transaction.openRoot()) {
             assertEquals(0, handler.insert(0, mapping.chemicalId(), Integer.MAX_VALUE, tx));
             assertEquals(Integer.MAX_VALUE, handler.extract(0, mapping.chemicalId(), Integer.MAX_VALUE, tx));
@@ -369,7 +400,7 @@ class ChemicalTransfersTest {
     @Test void hydrogenChlorideInfusingUsesTwoFormulaUnitsForItsOneNativeOutput() {
         var mapping = ChemicalMappings.ALL.stream().filter(value -> value.chemicalId().equals("mekanism:hydrogen_chloride")).findFirst().orElseThrow();
         MatterInventory inventory = new MatterInventory(100);
-        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, () -> {}, java.util.List.of(mapping));
+        ChemicalTransfers handler = new ChemicalTransfers(() -> inventory, () -> true, key -> true, exported -> true, () -> {}, java.util.List.of(mapping));
         try (Transaction tx = Transaction.openRoot()) {
             assertEquals(1, handler.insert(0, mapping.chemicalId(), 1, tx));
             tx.commit();
@@ -381,6 +412,6 @@ class ChemicalTransfersTest {
 
     private static ChemicalTransfers handler(MatterInventory inventory, AtomicInteger commits) {
         return new ChemicalTransfers(() -> inventory, () -> true,
-                BuiltinChemistry.create()::isKnown, commits::incrementAndGet);
+                BuiltinChemistry.create()::isKnown, exported -> true, commits::incrementAndGet, ChemicalMappings.ALL);
     }
 }

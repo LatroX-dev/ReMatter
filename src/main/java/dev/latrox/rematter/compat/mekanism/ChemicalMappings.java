@@ -2,6 +2,8 @@ package dev.latrox.rematter.compat.mekanism;
 
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.Phase;
+import dev.latrox.rematter.chemistry.SynthesisCategory;
+import dev.latrox.rematter.chemistry.SynthesisPolicy;
 
 import java.util.List;
 
@@ -37,6 +39,15 @@ final class ChemicalMappings {
             gas("osmium", 5));
 
     private ChemicalMappings() {}
+
+    /**
+     * Exporting a stored substance as a chemical produces it for another mod, so it needs an explicit release:
+     * a GAS permission for the substance or a FLUID permission for the chemical's own fluid form.
+     */
+    static boolean exportable(SynthesisPolicy policy, Mapping mapping) {
+        return policy.category(mapping.matter().id().toString()).orElse(null) == SynthesisCategory.GAS
+                || policy.allowsFluid(mapping.chemicalId());
+    }
 
     private static Mapping gas(String path, long units) {
         return new Mapping("mekanism:" + path, SubstanceKey.of("rematter:" + path, Phase.GAS), units);

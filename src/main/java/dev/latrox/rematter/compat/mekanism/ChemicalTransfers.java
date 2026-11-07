@@ -22,20 +22,19 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
     private final Supplier<? extends MatterStore> inventory;
     private final BooleanSupplier automationAllowed;
     private final Predicate<SubstanceKey> known;
+    private final Predicate<ChemicalMappings.Mapping> exportable;
     private final Runnable committed;
     private final List<ChemicalMappings.Mapping> mappings;
     private List<MatterInventory> transactionMembers;
 
+    /** {@code exportable} decides which stored substances may leave as chemicals; imports need only a known definition. */
     ChemicalTransfers(Supplier<? extends MatterStore> inventory, BooleanSupplier automationAllowed,
-                      Predicate<SubstanceKey> known, Runnable committed) {
-        this(inventory, automationAllowed, known, committed, ChemicalMappings.ALL);
-    }
-
-    ChemicalTransfers(Supplier<? extends MatterStore> inventory, BooleanSupplier automationAllowed,
-                      Predicate<SubstanceKey> known, Runnable committed, List<ChemicalMappings.Mapping> mappings) {
+                      Predicate<SubstanceKey> known, Predicate<ChemicalMappings.Mapping> exportable,
+                      Runnable committed, List<ChemicalMappings.Mapping> mappings) {
         this.inventory = Objects.requireNonNull(inventory);
         this.automationAllowed = Objects.requireNonNull(automationAllowed);
         this.known = Objects.requireNonNull(known);
+        this.exportable = Objects.requireNonNull(exportable);
         this.committed = Objects.requireNonNull(committed);
         this.mappings = List.copyOf(mappings);
     }
@@ -52,7 +51,8 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
     }
 
     long amount(int index) {
-        return isEnabled(index) ? inventory.get().available(mapping(index).matter()) / mapping(index).unitsPerChemical() : 0;
+        return isEnabled(index) && exportable.test(mapping(index))
+                ? inventory.get().available(mapping(index).matter()) / mapping(index).unitsPerChemical() : 0;
     }
 
     long capacity(int index) {
@@ -80,7 +80,7 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
 
     int extract(int index, String chemicalId, int amount, TransactionContext transaction) {
         checkArguments(amount, transaction);
-        if (!isValid(index, chemicalId) || amount == 0) return 0;
+        if (!isValid(index, chemicalId) || amount == 0 || !exportable.test(mapping(index))) return 0;
         MatterStore source = inventory.get();
         var mapping = mapping(index);
         int extracted = (int) Math.min(amount, source.available(mapping.matter()) / mapping.unitsPerChemical());
