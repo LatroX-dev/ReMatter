@@ -105,7 +105,7 @@ final class MachineSnapshots {
                 FluidResource fluid = machine.fluids().getResource(0);
                 var conversion = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
                 if (conversion != null && !fluid.isEmpty() && fluid.isComponentsPatchEmpty()) {
-                    return preview(machine, registry, store, "fluid:" + conversion.fluidId(), fluid.getHoverName().getString(), Map.of(),
+                    return preview(machine, registry, store, MachineChoices.fluidChoiceId(conversion.fluidId()), fluid.getHoverName().getString(), Map.of(),
                             conversion.matter(), machine.cost(conversion.decompositionEnergy()), conversion.ticks(), "matter", "", 0);
                 }
             }
@@ -120,8 +120,8 @@ final class MachineSnapshots {
         String outputId = "";
         int outputCount = 0;
         if (kind == MachineKind.SYNTHESIZER) {
-            if (choice.id().startsWith("fluid:")) {
-                var profile = registry.fluidProfile(choice.id().substring(6)).orElseThrow();
+            if (choice.id().startsWith(MachineChoices.FLUID_PREFIX)) {
+                var profile = registry.fluidProfile(choice.id().substring(MachineChoices.FLUID_PREFIX.length())).orElseThrow();
                 outputKind = "fluid"; outputId = profile.fluidId(); outputCount = profile.amount();
             } else {
                 var profile = registry.profile(choice.id()).orElseThrow();

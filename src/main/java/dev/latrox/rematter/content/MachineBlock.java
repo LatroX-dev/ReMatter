@@ -201,10 +201,8 @@ public final class MachineBlock extends Block implements EntityBlock {
         // A machine item is a portable container: the next placer becomes its owner.
         data.remove("owner");
         data.remove("industrial_claim");
-        var preservedCell = machine.preservedCellDrop();
-        if (!preservedCell.isEmpty()) data.remove(MachineBlockEntity.PRESERVED_CELL_KEY);
         drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), data));
-        return preservedCell.isEmpty() ? List.of(drop) : List.of(drop, preservedCell);
+        return List.of(drop);
     }
     @Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
         // Vanilla appends full block data after this call, so an empty result must stop foreign data picks.

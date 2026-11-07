@@ -15,7 +15,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.resource.Resource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
@@ -34,7 +33,7 @@ public final class MachinePortBlockEntity extends BlockEntity {
     boolean cycleMode(Player player, Direction side) {
         var target = controller(side);
         if (target == null || !target.canAccess(player) || !Container.stillValidBlockEntity(this, player)) return false;
-        var next = mode.next(target.kind(), true);
+        var next = mode.next(target.kind());
         if (mode == next) return false;
         mode = next;
         setChanged();
@@ -116,25 +115,16 @@ public final class MachinePortBlockEntity extends BlockEntity {
                 : new GuardedResources<>(target, side, target.industrialItems(), ItemResource.EMPTY,
                         MachinePortMode.ITEM_INPUT, MachinePortMode.ITEM_OUTPUT);
     }
-    public @Nullable ResourceHandler<FluidResource> fluids(@Nullable Direction side) {
-        if (side == null) return null;
-        var target = controller(side);
-        // Neither industrial recipe type currently accepts new fluids. Preserve a drain path for legacy contents.
-        return target == null || !target.automation() || !mode.allows(MachinePortMode.FLUID_OUTPUT)
-                || target.fluids().getAmountAsLong(0) == 0 ? null
-                : new GuardedResources<>(target, side, target.automatedFluids(), FluidResource.EMPTY,
-                        null, MachinePortMode.FLUID_OUTPUT);
-    }
     private final class GuardedResources<T extends Resource> implements ResourceHandler<T> {
         private final WeakReference<MachineBlockEntity> target;
         private final Direction side;
         private final ResourceHandler<T> delegate;
         private final T empty;
         private final int size;
-        private final @Nullable MachinePortMode input;
+        private final MachinePortMode input;
         private final MachinePortMode output;
         GuardedResources(MachineBlockEntity machine, Direction side, ResourceHandler<T> delegate, T empty,
-                         @Nullable MachinePortMode input, MachinePortMode output) {
+                         MachinePortMode input, MachinePortMode output) {
             this.target = new WeakReference<>(machine); this.side = side; this.delegate = delegate; this.empty = empty; this.size = delegate.size();
             this.input = input; this.output = output;
         }
@@ -142,16 +132,16 @@ public final class MachinePortBlockEntity extends BlockEntity {
             Objects.checkIndex(index, size);
             var expected = target.get();
             return expected != null && expected.automation() && attached(expected, side)
-                    && (mode.allows(output) || input != null && mode.allows(input));
+                    && (mode.allows(output) || mode.allows(input));
         }
         @Override public int size() { return size; }
         @Override public T getResource(int index) { return allowed(index) ? delegate.getResource(index) : empty; }
         @Override public long getAmountAsLong(int index) { return allowed(index) ? delegate.getAmountAsLong(index) : 0; }
         @Override public long getCapacityAsLong(int index, T resource) { return allowed(index) ? delegate.getCapacityAsLong(index, resource) : 0; }
-        @Override public boolean isValid(int index, T resource) { return allowed(index) && input != null && mode.allows(input) && delegate.isValid(index, resource); }
+        @Override public boolean isValid(int index, T resource) { return allowed(index) && mode.allows(input) && delegate.isValid(index, resource); }
         @Override public int insert(int index, T resource, int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
-            return allowed(index) && input != null && mode.allows(input) ? delegate.insert(index, resource, amount, transaction) : 0;
+            return allowed(index) && mode.allows(input) ? delegate.insert(index, resource, amount, transaction) : 0;
         }
         @Override public int extract(int index, T resource, int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonEmptyNonNegative(resource, amount);

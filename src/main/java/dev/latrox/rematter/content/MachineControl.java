@@ -84,8 +84,6 @@ final class MachineControl {
     /** Re-resolves the saved selection after a catalogue reload. Returns false when it no longer exists. */
     boolean restore(ChemistryRegistry registry) {
         String previous = selectedId;
-        if (machine.kind() == MachineKind.SYNTHESIZER && registry.fluidProfile(selectedId).isPresent()
-                && !registry.synthesisPolicy().allowsItem(selectedId)) selectedId = MachineChoices.fluidChoiceId(selectedId);
         var restored = RecipeSelection.restore(selectedId, choices().stream().map(MachineChoices.Choice::id).toList(),
                 !batchControl(machine.kind()) || runState.repeat());
         selection = restored.index();

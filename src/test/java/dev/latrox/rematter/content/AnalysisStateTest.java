@@ -12,7 +12,7 @@ class AnalysisStateTest {
 
     @Test void completedResultRestoresForTheSameSampleAndEquivalentReloadedProfile() {
         AnalysisState before = AnalysisState.completed(PROFILE);
-        AnalysisState restored = AnalysisState.restore(1,before.itemId(),before.profileFingerprint());
+        AnalysisState restored = AnalysisState.restore(before.itemId(),before.profileFingerprint());
         assertEquals(before,restored);
         var reloaded = new MaterialProfile("minecraft:copper_ingot",1,Map.of(COPPER,1000L),8000,16000,100);
         assertNotSame(PROFILE,reloaded);
@@ -60,13 +60,12 @@ class AnalysisStateTest {
         assertEquals(AnalysisState.completed(first),AnalysisState.completed(reordered));
     }
 
-    @Test void missingUnknownOrMalformedSavedStateCannotGrantAnAnalysis() {
+    @Test void missingOrMalformedSavedStateCannotGrantAnAnalysis() {
         var valid=AnalysisState.completed(PROFILE);
-        assertEquals(AnalysisState.EMPTY,AnalysisState.restore(0,"",""));
-        assertEquals(AnalysisState.EMPTY,AnalysisState.restore(2,valid.itemId(),valid.profileFingerprint()));
-        assertEquals(AnalysisState.EMPTY,AnalysisState.restore(1,"invalid item",valid.profileFingerprint()));
-        assertEquals(AnalysisState.EMPTY,AnalysisState.restore(1,valid.itemId(),"not-a-profile-hash"));
+        assertEquals(AnalysisState.EMPTY,AnalysisState.restore("",""));
+        assertEquals(AnalysisState.EMPTY,AnalysisState.restore("invalid item",valid.profileFingerprint()));
+        assertEquals(AnalysisState.EMPTY,AnalysisState.restore(valid.itemId(),"not-a-profile-hash"));
         assertFalse(AnalysisState.EMPTY.matches(PROFILE.itemId(),true,PROFILE));
-        assertFalse(AnalysisState.restore(1,valid.itemId(),"0".repeat(64)).matches(PROFILE.itemId(),true,PROFILE));
+        assertFalse(AnalysisState.restore(valid.itemId(),"0".repeat(64)).matches(PROFILE.itemId(),true,PROFILE));
     }
 }

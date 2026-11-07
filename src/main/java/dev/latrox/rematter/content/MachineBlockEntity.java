@@ -1,7 +1,13 @@
 package dev.latrox.rematter.content;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
+import java.util.stream.Stream;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.content.preparation.*;
@@ -13,9 +19,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -58,7 +61,22 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public static final int TANK_CAPACITY = 16_000;
     private static final Codec<Tag> RAW_TAG_CODEC = Codec.PASSTHROUGH.xmap(
             dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(), tag -> new Dynamic<>(NbtOps.INSTANCE, tag));
-    static final String PRESERVED_CELL_KEY = "preserved_cell";
+    private static final Set<String> BLOCK_ENTITY_METADATA = Set.of("id", "x", "y", "z", "components");
+    /** Every stored key except the block-entity metadata that vanilla writes itself. */
+    private static final MapCodec<CompoundTag> STORED_DATA = new MapCodec<>() {
+        @Override public <T> Stream<T> keys(DynamicOps<T> ops) { return Stream.empty(); }
+        @Override public <T> DataResult<CompoundTag> decode(DynamicOps<T> ops, MapLike<T> input) {
+            var tag = new CompoundTag();
+            input.entries().forEach(entry -> ops.getStringValue(entry.getFirst()).result()
+                    .filter(key -> !BLOCK_ENTITY_METADATA.contains(key))
+                    .ifPresent(key -> tag.put(key, ops.convertTo(NbtOps.INSTANCE, entry.getSecond()))));
+            return DataResult.success(tag);
+        }
+        @Override public <T> RecordBuilder<T> encode(CompoundTag input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
+            for (String key : input.keySet()) prefix.add(key, NbtOps.INSTANCE.convertTo(ops, input.get(key)));
+            return prefix;
+        }
+    };
     private NonNullList<ItemStack> items = NonNullList.withSize(3, ItemStack.EMPTY);
     private final MachineCellBays bays = new MachineCellBays(kind(), this::stack);
     private final MachineStorageSession storageSession = new MachineStorageSession();
@@ -69,8 +87,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private final MachineControl control = new MachineControl(this);
     private final NetworkJobWorker worker = new NetworkJobWorker(this);
     private final MachineStructureLink structure = new MachineStructureLink(this);
-    private Tag preservedMatter;
-    private ItemStack preservedCell = ItemStack.EMPTY;
+    private @Nullable CompoundTag unsupportedData;
     private UUID owner;
     private boolean automation;
     private boolean networkJobs;
@@ -124,7 +141,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public MachineKind kind() { return ((MachineBlock) getBlockState().getBlock()).kind(); }
     public SimpleEnergyHandler energy() { return energy; }
     public FluidStacksResourceHandler fluids() { return fluids; }
-    public ResourceHandler<FluidResource> automatedFluids() { return automatedFluids; }
     ItemStack stack(int slot) { return items.get(slot); }
     void putStack(int slot, ItemStack stack) { items.set(slot, stack); }
     MachineWork work() { return work; }
@@ -175,8 +191,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return new PortEnergyHandler(energy, () -> isLiveServerMachine() && allowsPort(side, MachinePortMode.POWER));
     }
     @Nullable ResourceHandler<FluidResource> sidedFluids(@Nullable Direction side) {
-        if (!automation || IndustrialStructure.isIndustrial(kind())
-                || kind() != MachineKind.DECOMPOSER && kind() != MachineKind.SYNTHESIZER && fluids.getAmountAsLong(0) == 0
+        if (!automation || kind() != MachineKind.DECOMPOSER && kind() != MachineKind.SYNTHESIZER
                 || !allowsPort(side, MachinePortMode.FLUID_INPUT) && !allowsPort(side, MachinePortMode.FLUID_OUTPUT)) return null;
         return new AutomationResourceHandler<>(automatedFluids,
                 () -> allowsPort(side, MachinePortMode.FLUID_INPUT),
@@ -226,8 +241,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         // The vanilla default scatters every Container slot. Doing that as well as our packed
         // block drop would duplicate cells on creative breaks and empty survival drop contents.
     }
+    /** False for client copies, stale entities and machines whose stored data is kept unread. */
     private boolean isLiveServerMachine() {
-        if (isRemoved() || level == null || level.isClientSide()) return false;
+        if (unsupportedData != null || isRemoved() || level == null || level.isClientSide()) return false;
         var server = level.getServer();
         return server != null && server.isSameThread() && level.hasChunkAt(worldPosition)
                 && level.getBlockEntity(worldPosition) == this;
@@ -305,9 +321,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
     }
     String storageStatus() {
-        if (!kind().isStorage()) return "ready";
-        if (preservedMatter != null) return "unknown_schema";
-        return bays.status();
+        return kind().isStorage() ? bays.status() : "ready";
     }
     @Override public void setChanged() {
         if (bays != null) bays.flush();
@@ -382,15 +396,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return allowed;
     }
     public boolean hasStoredResources() {
-        return automationHost != null && automationHost.hasContents() || preservedMatter != null || !preservedCell.isEmpty()
+        return unsupportedData != null || automationHost != null && automationHost.hasContents()
                 || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
-    }
-    ItemStack preservedCellDrop() {
-        // An oversized stack could split into multiple copies of the same portable contents on pickup.
-        int count = preservedCell.getCount();
-        return preservedCell.isEmpty() || count > preservedCell.getMaxStackSize()
-                || preservedCell.getItem() instanceof MatterCellItem && count != 1
-                ? ItemStack.EMPTY : preservedCell.copy();
     }
     public @Nullable MachineAutomationHost automationHost() {
         if (kind() != MachineKind.NETWORK_INTERFACE) return null;
@@ -762,7 +769,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override protected void saveAdditional(ValueOutput output) {
         bays.flush();
         super.saveAdditional(output);
-        output.putInt("schema", 1);
+        if (unsupportedData != null) {
+            output.store(STORED_DATA, unsupportedData);
+            return;
+        }
+        output.putInt("schema", MachineSchema.VERSION);
         if (owner != null) output.putString("owner", owner.toString());
         output.putBoolean("automation", automation);
         sides.save(output);
@@ -770,14 +781,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (automationHost != null) output.store("automation_host", RAW_TAG_CODEC, automationHost.save());
         var runState = control.runState();
         output.putBoolean("running", runState.running());
-        output.putInt("control_schema", MachineRunState.SCHEMA_VERSION);
         output.putBoolean("repeat", runState.repeat());
         output.putInt("queued_batches", runState.queuedBatches());
         output.putString("selection", control.selectedId());
         structure.save(output);
         if (!analysis.isEmpty()) {
             ValueOutput savedAnalysis = output.child("analysis");
-            savedAnalysis.putInt("schema", AnalysisState.SCHEMA_VERSION);
             savedAnalysis.putString("item", analysis.itemId());
             savedAnalysis.putString("profile", analysis.profileFingerprint());
         }
@@ -785,8 +794,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
         energy.serialize(output.child("power"));
         fluids.serialize(output.child("tank"));
-        if (!preservedCell.isEmpty()) output.store(PRESERVED_CELL_KEY, ItemStack.CODEC, preservedCell);
-        if (preservedMatter != null) output.store("matter", RAW_TAG_CODEC, preservedMatter);
     }
     @Override protected void loadAdditional(ValueInput input) {
         loadingItemVisuals = true;
@@ -803,49 +810,45 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     private void loadMachineState(ValueInput input) {
         super.loadAdditional(input);
-        try { owner = input.getString("owner").map(UUID::fromString).orElse(null); }
-        catch (IllegalArgumentException exception) { owner = new UUID(0, 0); }
         worker.release();
-        automation = input.getBooleanOr("automation", false);
-        sides.load(input, kind());
-        networkJobs = supportsNetworkJobs() && input.getBooleanOr("network_jobs", false);
-        if (kind() == MachineKind.NETWORK_INTERFACE) input.read("automation_host", RAW_TAG_CODEC).ifPresent(raw -> automationHost().load(raw));
-        control.load(MachineRunState.restore(input.getIntOr("control_schema", 0), input.getBooleanOr("running", true),
-                input.getBooleanOr("repeat", true), input.getIntOr("queued_batches", 0)), input.getStringOr("selection", ""));
-        structure.load(input);
-        ValueInput savedAnalysis = input.childOrEmpty("analysis");
-        analysis = AnalysisState.restore(savedAnalysis.getIntOr("schema", 0), savedAnalysis.getStringOr("item", ""),
-                savedAnalysis.getStringOr("profile", ""));
-        items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
-        var savedItems = input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).orElse(List.of());
-        for (int i = 0; i < Math.min(items.size(), savedItems.size()); i++) items.set(i, savedItems.get(i));
-        // Old processor bays are no longer part of the inventory. Return their stack when the machine is mined.
-        preservedCell = ItemStack.EMPTY;
-        if (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER) {
-            preservedCell = input.read(PRESERVED_CELL_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
-            if (preservedCell.isEmpty() && savedItems.size() > 3) {
-                preservedCell = savedItems.get(3);
-                if (!preservedCell.isEmpty()) control.runState(control.runState().pause());
-            }
-        }
-        energy.deserialize(input.childOrEmpty("power"));
-        fluids.deserialize(input.childOrEmpty("tank"));
-        preservedMatter = input.read("matter", RAW_TAG_CODEC)
-                .filter(raw -> kind().isStorage() || !isEmptyObsoleteMatter(raw)).orElse(null);
-        bays.mountAll();
         resetProgress();
         lastRegistry = null;
         operations.forgetPreparationRecipe();
         cachedNetwork = null;
         networkCacheUntil = 0;
-    }
-
-    /** Former processors wrote this empty default on every save. Keep any other payload opaque. */
-    private static boolean isEmptyObsoleteMatter(Tag raw) {
-        return raw instanceof CompoundTag tag && tag.keySet().equals(Set.of("schema", "capacity", "contents"))
-                && tag.get("schema") instanceof IntTag && tag.getIntOr("schema", -1) == 1
-                && tag.get("capacity") instanceof LongTag && tag.getLong("capacity").orElse(0L) == 1_000_000L
-                && tag.get("contents") instanceof ListTag contents && contents.isEmpty();
+        items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
+        var savedItems = input.read("items", RAW_TAG_CODEC).flatMap(raw -> ItemStack.OPTIONAL_CODEC.listOf()
+                .parse(input.lookup().createSerializationContext(NbtOps.INSTANCE), raw).result());
+        String rejection = MachineSchema.rejection(input.getInt("schema"), input.getString("owner"),
+                savedItems.map(List::size), items.size());
+        unsupportedData = null;
+        if (rejection != null) {
+            // Keep everything exactly as stored; the machine stays inert and its item carries the data unchanged.
+            unsupportedData = input.read(STORED_DATA).orElseGet(CompoundTag::new);
+            owner = input.getString("owner").map(MachineSchema::owner).orElse(null);
+            ReMatter.LOGGER.warn("Machine data at {} is kept unchanged and inactive: {}", worldPosition, rejection);
+            work.status = "unsupported_data";
+            bays.mountAll();
+            return;
+        }
+        owner = input.getString("owner").map(MachineSchema::owner).orElse(null);
+        automation = input.getBooleanOr("automation", false);
+        sides.load(input, kind());
+        networkJobs = supportsNetworkJobs() && input.getBooleanOr("network_jobs", false);
+        if (kind() == MachineKind.NETWORK_INTERFACE) input.read("automation_host", RAW_TAG_CODEC).ifPresent(raw -> automationHost().load(raw));
+        String savedSelection = input.getStringOr("selection", "");
+        String selection = MachineSchema.selection(savedSelection);
+        var runState = MachineRunState.restore(input.getBooleanOr("running", false), input.getBooleanOr("repeat", false),
+                input.getIntOr("queued_batches", 0));
+        control.load(selection.equals(savedSelection) ? runState : MachineRunState.manual(), selection);
+        structure.load(input);
+        ValueInput savedAnalysis = input.childOrEmpty("analysis");
+        analysis = AnalysisState.restore(savedAnalysis.getStringOr("item", ""), savedAnalysis.getStringOr("profile", ""));
+        var stacks = savedItems.orElseThrow();
+        for (int i = 0; i < items.size(); i++) items.set(i, stacks.get(i));
+        energy.deserialize(input.childOrEmpty("power"));
+        fluids.deserialize(input.childOrEmpty("tank"));
+        bays.mountAll();
     }
 
     @Override public Component getDisplayName() { return Component.translatable("block.rematter." + kind().id()); }
@@ -894,7 +897,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
-        if (networkJobs && index != 2) return false;
+        if (unsupportedData != null || networkJobs && index != 2) return false;
         if (MachineCellAccess.isCellSlot(kind(), index)) return stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell(index);
         if (index == 1) return false;
         if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));

@@ -11,7 +11,6 @@ import java.util.TreeMap;
 
 /** A completed inspection is valid only for the exact sample and material profile that was scanned. */
 public record AnalysisState(String itemId, String profileFingerprint) {
-    public static final int SCHEMA_VERSION = 1;
     public static final AnalysisState EMPTY = new AnalysisState("", "");
 
     public AnalysisState {
@@ -28,8 +27,7 @@ public record AnalysisState(String itemId, String profileFingerprint) {
     }
 
     /** Unsupported/malformed derived data is discarded; no resource or processing state is reconstructed. */
-    public static AnalysisState restore(int schema, String itemId, String fingerprint) {
-        if (schema != SCHEMA_VERSION) return EMPTY;
+    public static AnalysisState restore(String itemId, String fingerprint) {
         try { return new AnalysisState(itemId, fingerprint); }
         catch (IllegalArgumentException invalid) { return EMPTY; }
     }

@@ -3,7 +3,6 @@ package dev.latrox.rematter.content;
 /** Finite requests are consumed only after a complete authoritative resource commit. */
 public record MachineRunState(boolean repeat, boolean running, int queuedBatches) {
     public static final int MAX_QUEUED_BATCHES = 64;
-    public static final int SCHEMA_VERSION = 1;
 
     public MachineRunState {
         if (queuedBatches < 0 || queuedBatches > MAX_QUEUED_BATCHES || (repeat && queuedBatches != 0)
@@ -15,10 +14,8 @@ public record MachineRunState(boolean repeat, boolean running, int queuedBatches
     public static MachineRunState manual() { return new MachineRunState(false, false, 0); }
     public static MachineRunState automatic() { return new MachineRunState(true, true, 0); }
 
-    /** Missing control metadata is an existing machine, whose previous continuous mode is retained. */
-    public static MachineRunState restore(int schema, boolean running, boolean repeat, int queuedBatches) {
-        if (schema == 0) return new MachineRunState(true, running, 0);
-        if (schema != SCHEMA_VERSION) return manual();
+    /** An inconsistent stored combination pauses the machine instead of guessing a mode. */
+    public static MachineRunState restore(boolean running, boolean repeat, int queuedBatches) {
         try { return new MachineRunState(repeat, running, queuedBatches); }
         catch (IllegalArgumentException ignored) { return manual(); }
     }

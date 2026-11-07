@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 
-/** An automatic face keeps the old capabilities. An assigned face has one explicit role. */
+/** An automatic face offers every role the machine supports. An assigned face has one explicit role. */
 public enum MachinePortMode implements StringRepresentable {
     AUTOMATIC(0xBFCAD5),
     ITEM_INPUT(0xE4AF66),
@@ -32,21 +32,21 @@ public enum MachinePortMode implements StringRepresentable {
         for (MachinePortMode mode : values()) if (mode.getSerializedName().equals(id)) return mode;
         return DISABLED;
     }
-    MachinePortMode next(MachineKind kind, boolean industrial) {
+    MachinePortMode next(MachineKind kind) {
         var modes = values();
         for (int i = 1; i <= modes.length; i++) {
             var candidate = modes[(ordinal() + i) % modes.length];
-            if (candidate.supported(kind, industrial)) return candidate;
+            if (candidate.supported(kind)) return candidate;
         }
         return AUTOMATIC;
     }
-    private boolean supported(MachineKind kind, boolean industrial) {
+    private boolean supported(MachineKind kind) {
         return switch (this) {
             case AUTOMATIC, DISABLED, MATTER -> true;
             case ITEM_INPUT -> PreparationTier.isPreparation(kind) || kind == MachineKind.DECOMPOSER || kind == MachineKind.ANALYZER;
             case ITEM_OUTPUT -> PreparationTier.isPreparation(kind) || kind == MachineKind.SYNTHESIZER;
             case FLUID_INPUT -> kind == MachineKind.DECOMPOSER;
-            case FLUID_OUTPUT -> kind == MachineKind.DECOMPOSER || kind == MachineKind.SYNTHESIZER || industrial;
+            case FLUID_OUTPUT -> kind == MachineKind.DECOMPOSER || kind == MachineKind.SYNTHESIZER;
             case POWER -> kind.processes() && !PreparationTier.manual(kind);
             case CHEMICAL -> kind.isStorage();
         };

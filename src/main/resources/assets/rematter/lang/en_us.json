@@ -55,6 +55,7 @@
   "status.rematter.working": "Processing",
   "status.rematter.no_storage": "Connect a Matter Drive with a readable Cell",
   "status.rematter.unknown_schema": "Data protected",
+  "status.rematter.unsupported_data": "Unsupported saved data · mine the machine to keep it",
   "status.rematter.structure": "Build a complete chamber",
   "status.rematter.insert_sample": "Insert sample",
   "status.rematter.input": "Needs input",

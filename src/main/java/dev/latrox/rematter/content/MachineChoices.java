@@ -20,7 +20,8 @@ public final class MachineChoices {
                 .computeIfAbsent(kind, ignored -> build(kind, registry));
     }
 
-    public static String fluidChoiceId(String fluidId) { return "fluid:" + fluidId; }
+    public static final String FLUID_PREFIX = "fluid:";
+    public static String fluidChoiceId(String fluidId) { return FLUID_PREFIX + fluidId; }
 
     private static List<Choice> build(MachineKind kind, ChemistryRegistry registry) {
         List<Choice> choices = new ArrayList<>();

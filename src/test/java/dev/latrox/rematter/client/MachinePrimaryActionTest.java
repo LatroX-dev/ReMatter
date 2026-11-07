@@ -65,9 +65,9 @@ class MachinePrimaryActionTest {
         state = state.completed();assertEquals(MachineRunState.manual(), state);
         assertEquals(MAKE_ONCE, MachinePrimaryAction.forSnapshot(selected(MachineKind.SYNTHESIZER, state)).action());
     }
-    @Test void pausedFiniteQueueAndLegacyRepeatArePreservedInsteadOfReplacedByMakeOnce() {
+    @Test void pausedFiniteQueueAndPausedRepeatArePreservedInsteadOfReplacedByMakeOnce() {
         var finite = MachineRunState.manual().requestBatch().requestBatch().pause();
-        var repeat = MachineRunState.restore(0, false, false, 0);
+        var repeat = MachineRunState.automatic().pause();
         for (var state : List.of(finite, repeat)) {
             for (var kind : List.of(MachineKind.SYNTHESIZER, MachineKind.ELECTROLYZER, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR)) {
                 var resume = MachinePrimaryAction.forSnapshot(selected(kind, state));

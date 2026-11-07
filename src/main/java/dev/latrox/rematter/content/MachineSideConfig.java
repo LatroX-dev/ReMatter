@@ -18,7 +18,7 @@ final class MachineSideConfig {
     /** Advances one face and returns its previous mode. */
     MachinePortMode cycle(MachineKind kind, MachinePortMode.Side side) {
         MachinePortMode previous = mode(side);
-        MachinePortMode next = previous.next(kind, false);
+        MachinePortMode next = previous.next(kind);
         if (next == MachinePortMode.AUTOMATIC) ports.remove(side);
         else ports.put(side, next);
         return previous;

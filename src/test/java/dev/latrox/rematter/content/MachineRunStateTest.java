@@ -23,19 +23,15 @@ class MachineRunStateTest {
     }
     @Test void pauseAndDiskRestoreRetainFiniteWorkWithoutConsumingIt() {
         var state = MachineRunState.manual().requestBatch().requestBatch().pause();
-        var restored = MachineRunState.restore(1, state.running(), state.repeat(), state.queuedBatches());
+        var restored = MachineRunState.restore(state.running(), state.repeat(), state.queuedBatches());
         assertEquals(state, restored);
         assertFalse(restored.running());
         assertEquals(2, restored.queuedBatches());
         assertEquals(1, restored.toggleRunning().completed().queuedBatches());
     }
-    @Test void legacyRunningAndPausedMachinesRetainContinuousMode() {
-        var running = MachineRunState.restore(0, true, false, 64);
-        assertTrue(running.repeat());
-        for (int i = 0; i < 100; i++) running = running.completed();
-        assertTrue(running.running());
-        assertEquals(0, running.queuedBatches());
-        assertEquals(new MachineRunState(true, false, 0), MachineRunState.restore(0, false, false, 0));
+    @Test void storedContinuousModeIsRestoredExactly() {
+        assertEquals(MachineRunState.automatic(), MachineRunState.restore(true, true, 0));
+        assertEquals(new MachineRunState(true, false, 0), MachineRunState.restore(false, true, 0));
     }
     @Test void repeatExplicitlyReplacesQueueAndMakeOneBoundsRepeat() {
         var repeated = MachineRunState.manual().requestBatch().requestBatch().toggleRepeat();
@@ -51,11 +47,10 @@ class MachineRunStateTest {
         for (int i = 0; i < 64; i++) state = state.completed();
         assertEquals(MachineRunState.manual(), state);
     }
-    @Test void invalidOrFutureControlMetadataFailsClosed() {
-        assertEquals(MachineRunState.manual(), MachineRunState.restore(2, true, true, 0));
-        assertEquals(MachineRunState.manual(), MachineRunState.restore(1, true, false, -1));
-        assertEquals(MachineRunState.manual(), MachineRunState.restore(1, true, false, 65));
-        assertEquals(MachineRunState.manual(), MachineRunState.restore(1, true, true, 1));
-        assertEquals(MachineRunState.manual(), MachineRunState.restore(1, true, false, 0));
+    @Test void inconsistentControlMetadataFailsClosed() {
+        assertEquals(MachineRunState.manual(), MachineRunState.restore(true, false, -1));
+        assertEquals(MachineRunState.manual(), MachineRunState.restore(true, false, 65));
+        assertEquals(MachineRunState.manual(), MachineRunState.restore(true, true, 1));
+        assertEquals(MachineRunState.manual(), MachineRunState.restore(true, false, 0));
     }
 }

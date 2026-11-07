@@ -96,14 +96,15 @@ final class MachineOperations {
         FluidResource fluid = fluids.getResource(0);
         var conversion = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
         if (conversion == null || !fluid.isComponentsPatchEmpty() || fluids.getAmountAsLong(0) < conversion.amount()) return null;
-        return new Operation("fluid:" + conversion.fluidId(), Map.of(), conversion.matter(),
+        return new Operation(MachineChoices.fluidChoiceId(conversion.fluidId()), Map.of(), conversion.matter(),
                 machine.cost(conversion.decompositionEnergy()), conversion.ticks(),
                 () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= conversion.amount(),
                 () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - conversion.amount()));
     }
 
     private @Nullable Operation synthesis(ChemistryRegistry registry, MachineChoices.Choice choice) {
-        var conversion = choice.id().startsWith("fluid:") ? registry.fluidProfile(choice.id().substring(6)).orElse(null) : null;
+        var conversion = choice.id().startsWith(MachineChoices.FLUID_PREFIX)
+                ? registry.fluidProfile(choice.id().substring(MachineChoices.FLUID_PREFIX.length())).orElse(null) : null;
         if (conversion != null) {
             if (!registry.synthesisPolicy().allowsFluid(conversion.fluidId())) return null;
             var fluids = machine.fluids();

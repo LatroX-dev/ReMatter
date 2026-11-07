@@ -193,6 +193,5 @@ public final class ModContent {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedFluids);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::energy);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::items);
-        event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::fluids);
     }
 }
