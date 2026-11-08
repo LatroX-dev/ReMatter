@@ -3,7 +3,7 @@ navigation:
   title: Industrial Reactor
   icon: rematter:industrial_reactor
   parent: index.md
-  position: 8
+  position: 9
 item_ids:
   - rematter:industrial_reactor
   - rematter:field_coil
@@ -22,9 +22,17 @@ Both types can mount on either the inside floor or under the roof. Click a suppo
 
 Stabilizers use a crystal ring; Foci use one large focusing crystal. The same fitting looks mirrored at the ceiling. The field holds and transfers working material, so neither function relies on gravity. Keep the middle clear.
 
+<RecipeFor id="rematter:industrial_reactor" />
+<RecipeFor id="rematter:field_coil" />
+<RecipeFor id="rematter:reaction_chamber" />
+
 ## Complete the shell
 
 Outer width and depth are **3–9 blocks**. Height is **4–9**, including floor and roof. Build the entire floor, roof, edges and corners from Reactor Casing. Fill the remaining wall panels with Reactor Glass or Reactor Casing and place at least two Machine Ports in those panels. The front controller sits one block above the base.
+
+<RecipeFor id="rematter:reactor_casing" />
+<RecipeFor id="rematter:reactor_glass" />
+<RecipeFor id="rematter:machine_port" />
 
 This **5 wide × 3 deep × 6 high** example uses **46 Casings, 29 Glass, 2 Ports, 1 controller, 1 Stabilizer and 1 Focus**. The Stabilizer is on the floor and the Focus is on the ceiling. Either type can use either mounting plane.
 
@@ -122,4 +130,6 @@ Select a permitted reaction and request a batch. Missing stock or FE waits safel
 
 Each **Reaction Focus adds 2× ordinary reaction speed** before upgrades. A 200-tick recipe takes 100 ticks with one Focus, 50 with two. Extra **Field Stabilizers** save FE with diminishing returns: two give 6%, three give 10%.
 
-Inputs and outputs stay exact; each controller runs one batch at a time. Empty chamber space adds no throughput. Pause before moving parts.
+Inputs and outputs stay exact; each controller runs one batch at a time. Empty chamber space adds no throughput. Pause before moving parts: a broken shell restarts the unfinished batch once the chamber forms again.
+
+The formed chamber's Casing, Glass, Ports and fittings can only be broken by players who may use its controller. A chamber never takes over a Machine Port inside another owner's chamber.

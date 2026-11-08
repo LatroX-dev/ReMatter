@@ -44,7 +44,7 @@ No added water or fluid connection is needed. Grinding and sieving prepare the g
 
 Smelt each <ItemLink id="rematter:matrix_blend" /> in a normal furnace to make one <ItemLink id="rematter:matrix_crystal" />. Make nine Crystals for the starter line. The Cell uses one plain Crystal, and the four machines use eight colored variants.
 
-<RecipeFor id="rematter:matrix_crystal_from_smelting" />
+<RecipeFor id="rematter:matrix_crystal" />
 
 The Crystal stays in its device. It is not fuel and is not consumed each time you process material.
 
@@ -58,7 +58,7 @@ Combine iron and Silith for <ItemLink id="rematter:structural_bars" />. Make <It
 
 Grind gold ingots in the Hand Preparator and combine the Gold Dust with two plain Crystals to make two **Amber Matrix Crystals**. Use them to craft a **Material Preparator**, then connect it to external FE. This powered machine can grind diamond and emerald.
 
-Make the colored Crystals for the other machines by combining a plain Matrix Crystal with the corresponding dust. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator.
+Make the colored Crystals for the other machines by combining a plain Matrix Crystal with the corresponding dust. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator. [Crystals and advanced components](advanced.md) lists every crystal color and the machines that use it.
 
 Make a **Cell Housing** from Structural Bars and glass. Stack **Control Circuit → Matrix Crystal → Cell Housing**, top to bottom, to make the 64k Cell. Make **Cell Racks** from Structural Bars, Control Circuits and Silith. Each Rack has three bays, and the Drive uses two Racks.
 

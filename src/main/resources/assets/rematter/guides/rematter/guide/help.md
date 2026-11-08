@@ -3,7 +3,7 @@ navigation:
   title: When a machine waits
   icon: rematter:decomposer
   parent: index.md
-  position: 11
+  position: 12
 ---
 # When a machine waits
 
@@ -19,23 +19,25 @@ The Hand Preparator needs repeated **Crank** presses instead of FE. Rhedon, Vire
 
 Insert a readable Cell in a Matter Drive and connect the Drive to the processors. A touching row is enough. Use Matter Cables to bridge gaps. Each Drive accepts up to six Cells.
 
-## Start after changing a Cell
+## After changing a Cell
 
-Changing a Drive's Cell changes the storage source. Check the connection, then resume any paused processor. Uncommitted inputs and FE are kept.
+Changing a Drive's Cell, a Drive or the cables that connect your devices restarts an unfinished batch. The status explains the reason, for example **Storage changed · batch restarts**, and work continues by itself once the network is valid. Uncommitted inputs and FE are kept.
 
 Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or **Recipe**, choose the product, confirm with **Use recipe** and press **Start**. For continuous production, use **Configuration → Run nonstop**. **Stop repeat** stops that mode. If a pending job is paused, **Resume** continues the same order.
 
-Changing the connected storage also pauses work. Confirm the intended source under **Configuration** before resuming.
-
 ## Supply power
 
-The Material Preparator, Sinter Furnace and chemistry processors need external FE. Matter Cables forward FE to eligible power ports. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. The full batch's energy must be available before progress advances.
+The Material Preparator, Sinter Furnace and chemistry processors need external FE. Matter Cables forward FE that a generator or energy store pushes into them; nothing can pull FE out of a cable. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. The full batch's energy must be stored before progress advances. If a batch needs more FE than the 2,400,000 FE buffer holds, remove Speed Upgrades.
 
 ## Add missing material
 
 Compare needed and available quantities and phases. A partial batch waits: nine nuggets require all nine.
 
 For fluids, empty the Decomposer's item input and supply a complete fluid batch. The optional Analyzer needs a supported, unmodified sample and FE, but no storage.
+
+## Unknown substances
+
+A row named **Unknown substance** with an ID and phase belongs to a substance whose definition is missing on this server, for example after a data pack was removed. The stock stays in its Cell but cannot be processed or sent to AE2 or Refined Storage until the definition returns.
 
 ## Make room
 
@@ -45,7 +47,7 @@ Collect the Synthesizer's output, make room in its output chest, or drain its ta
 
 ## Check a network or reactor
 
-Keep all connected machines under the same owner and the route loaded. A network supports up to 64 Drives. Check the [cable tiers](automation.md) for its total node limit.
+A network includes only your own machines; keep its route loaded. It supports up to 64 Drives. Check the [cable tiers](automation.md) for its total node limit. If the network grows past its weakest cable's limit, cables of that tier are left out and the devices only they reach drop off the network.
 
 Industrial chambers have width and depth 3–9. The Industrial Preparator needs at least a **3×4 or 4×3** footprint and a height of **5–9**. Reactors need a height of **4–9**. Use Casing for the edges and corners, and across the entire Reactor floor and roof. The front controller sits one block above the base, away from the edge columns. Use at least two Ports and connect their outward faces.
 
@@ -64,6 +66,6 @@ A larger shell without additional working parts does not work faster. Pause befo
 
 ## Preserve unreadable contents
 
-Keep a Cell or machine that reports protected data. Ask the server maintainer to restore a compatible version; do not discard it or craft with it.
+A Cell or machine that reports protected or unsupported data holds saved data that ReMatter cannot verify. ReMatter keeps that data unchanged and does not process it. Mine the machine to carry its data along, keep the item, and report it to the server maintainer; do not discard it or craft with it.
 
 An Analyzer may need a new scan after its sample or material profile changes. An old result cannot supply ingredients or grant a new recipe.

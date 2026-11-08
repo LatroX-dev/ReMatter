@@ -13,6 +13,9 @@ item_ids:
   - rematter:virel
   - rematter:lumin
   - rematter:optical_circuit
+  - rematter:grinding_unit
+  - rematter:separation_unit
+  - rematter:mixing_basin
 ---
 # Five fractions, three preparation stages
 
@@ -66,6 +69,11 @@ Fit at least one **Resonance Cutter**, **Phase Filter** and **Confluence Basin**
 Click a supporting block's **top face** for a floor fitting or **underside** for a ceiling fitting. The socket turns automatically so the crystal points into the chamber. Sideways and unsupported placement are rejected. Keep the middle of the chamber empty.
 
 Each type has a different crystal core and a small symbol. Its item and mounted appearance identify the same part; ceiling fittings are mirrored floor fittings.
+
+<RecipeFor id="rematter:industrial_preparator" />
+<RecipeFor id="rematter:grinding_unit" />
+<RecipeFor id="rematter:separation_unit" />
+<RecipeFor id="rematter:mixing_basin" />
 
 ## Close the shell
 

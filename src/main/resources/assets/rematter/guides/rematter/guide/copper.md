@@ -24,7 +24,7 @@ Wait for the cutter to finish. The sand is consumed only when its full result ca
 
 Leave the Cell installed. The touching Synthesizer can use the same silica without moving an item or Cell between machines.
 
-Open the Synthesizer's **Configuration** tab to check its connected storage, then return to **Process**. If you change the Cell or network, check the new source before resuming.
+Open the Synthesizer's **Configuration** tab to check its connected storage, then return to **Process**. If the Cell or network changes during a batch, the machine restarts that batch by itself once the storage is valid again. Nothing is consumed before a batch completes.
 
 ## 3. Choose and make glass
 

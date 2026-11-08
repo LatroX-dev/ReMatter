@@ -14,6 +14,8 @@ item_ids:
   - rematter:reinforced_matter_cable
   - rematter:resonant_matter_cable
   - rematter:network_interface
+  - rematter:automation_pattern
+  - rematter:recovered_matter
 ---
 # Grow the shared material network
 
@@ -82,9 +84,13 @@ Crafting a new Cell gives you an empty Cell. Installed Cells keep their own cont
 
 ## Extend the network
 
-Matter Cables carry matter-network traffic and FE. Supply FE from an external generator or energy store. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, including machines and cables: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. All connected machines must have the same owner.
+Matter Cables carry matter-network traffic and forward FE that an external generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, including machines and cables: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. If the network grows past that limit, cables of the weakest tier and the devices only they reach are left out; the stronger part keeps working.
+
+A network includes only your own machines; other players' machines on the same cables stay separate. Cables have no owner, so anyone can break or extend them and FE pushed into a cable reaches every connected receiver. On a shared server, protect your base with a claim mod.
 
 Connect Matter Cables to eligible rear, side or bottom ports. The Matter Terminal connects at the rear. In the Terminal's network view, open connected device menus or queue a selected recipe on a compatible worker. Use separate transport for physical items and ordinary fluids.
+
+Stock views in the Terminal, Drive and Network Interface have a search field and **Solids**, **Liquids**, **Gases** and **Favorites** filters. Mark a substance as a favorite in its details; favorites are listed first. A view lists up to 512 types, matches and favorites first, and shows how many of the stored types it lists.
 
 <RecipeFor id="rematter:matter_pipe" />
 <RecipeFor id="rematter:reinforced_matter_cable" />
@@ -97,6 +103,8 @@ Item and fluid automation cannot move Cells or upgrades. Owners can use buckets 
 
 Connect a **ReMatter Network Interface** to the material network and to the chosen external system. In its **Configuration**, select the backend and turn **Automation** on. Then enable **Network jobs** on the powered workers that should accept requests. Hover each network symbol for its full label. Use a separate Interface for AE2 and Refined Storage when both share the same ReMatter installation.
 
-The connected systems can request supported recipes from available workers. They still need the complete ingredients, power and output space. The automatic alloy catalogue offers powder manufacture and ingot production; it omits reverse alloy grinding so that a request for powder does not depend on first making its own ingot. Reverse grinding remains usable in physical machines and manually encoded processing patterns.
+The connected systems can request supported recipes from available workers. They still need the complete ingredients, power and output space. Only the Interface's owner can start jobs or move substances through it. AE2 and Refined Storage cables connect only to its **Automatic** and **Matter Network** faces. The automatic alloy catalogue offers powder manufacture and ingot production; it omits reverse alloy grinding so that a request for powder does not depend on first making its own ingot. Reverse grinding remains usable in physical machines and manually encoded processing patterns.
+
+If a recipe changes, outdated jobs return their inputs to the external network. If the external network does not confirm a delivery, the Interface stops it and keeps its resources. Press **Release** in **Configuration** to receive them after a confirmation: matter arrives as <ItemLink id="rematter:recovered_matter" />, which you use on your Drive to store it again; fluids go into the Interface's tank.
 
 <RecipeFor id="rematter:network_interface" />

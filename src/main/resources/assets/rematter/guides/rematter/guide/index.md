@@ -14,6 +14,7 @@ Start by turning **sand into stored silica, then glass**. First make the crystal
 2. [Make your first glass](copper.md).
 3. [Automate and expand the network](automation.md).
 4. [Make powders, alloys and ceramic](metallurgy.md).
+5. [Color crystals and make advanced components](advanced.md).
 
 The Cell holds your ingredients. The Synthesizer's product list tells you what you can make from them; knowing a recipe does not supply its material.
 
@@ -41,6 +42,6 @@ The Cell's contents are actual quantities, not an item pattern or a research unl
 
 <OptionalSection modId="jei">
 
-JEI shows the material and process recipes available on this server.
+JEI shows the material, process and preparation recipes available on this server, with one category per process type.
 
 </OptionalSection>

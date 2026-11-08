@@ -3,7 +3,7 @@ navigation:
   title: Materials and the matrix
   icon: rematter:matrix_crystal
   parent: index.md
-  position: 7
+  position: 8
 ---
 # Materials and the matrix
 

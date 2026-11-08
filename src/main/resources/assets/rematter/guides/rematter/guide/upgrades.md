@@ -3,7 +3,7 @@ navigation:
   title: Upgrades
   icon: rematter:speed_upgrade
   parent: index.md
-  position: 10
+  position: 11
 item_ids:
   - rematter:speed_upgrade
   - rematter:efficiency_upgrade
@@ -24,6 +24,6 @@ Each <ItemLink id="rematter:efficiency_upgrade" /> reduces FE per operation by *
 
 <RecipeFor id="rematter:efficiency_upgrade" />
 
-The Industrial Reactor's base throughput is twice that of the Chemical Reactor. Upgrades scale from that base. They do not bypass its casing requirement.
+Each Reaction Focus in an [Industrial Reactor](industrial.md) adds twice the Chemical Reactor's base speed. Upgrades scale from that base. They do not bypass its casing requirement.
 
-Changing upgrade type or count restarts an unfinished process. Inputs and energy are consumed only when the entire result can be committed. Drive, Storage and Terminal do not process recipes and do not benefit from these upgrades.
+Changing upgrade type or count restarts an unfinished process. Inputs and energy are consumed only when the entire result can be committed. Drive, Terminal and Network Interface do not process recipes and do not benefit from these upgrades.

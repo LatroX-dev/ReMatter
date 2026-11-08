@@ -42,13 +42,16 @@ Hover the slot markers or recipe-viewer icons for ingredient counts and process 
 
 Put one powder in the Sinter Furnace's single input. Leave room for one complete output. The machine shows the real input on its internal tray while the press and heating cycle run.
 
-| Input | Output | Purpose |
-| --- | --- | --- |
-| <ItemLink id="rematter:rhevon_dust" /> | <ItemLink id="rematter:rhevon_ingot" /> | Rigid alloy for Cutters, Filters and Basins |
-| <ItemLink id="rematter:lumivex_dust" /> | <ItemLink id="rematter:lumivex_ingot" /> | Signal alloy for Optical Circuits |
-| <ItemLink id="rematter:virelite_blend" /> | <ItemLink id="rematter:virelite_ceramic" /> | Technical ceramic for insulated reaction machinery |
+| Input | Output | Purpose | Base cost |
+| --- | --- | --- | --- |
+| <ItemLink id="rematter:rhevon_dust" /> | <ItemLink id="rematter:rhevon_ingot" /> | Rigid alloy for Cutters, Filters and Basins | 12,000 FE, 10 seconds |
+| <ItemLink id="rematter:lumivex_dust" /> | <ItemLink id="rematter:lumivex_ingot" /> | Signal alloy for Optical Circuits | 12,000 FE, 10 seconds |
+| <ItemLink id="rematter:virelite_blend" /> | <ItemLink id="rematter:virelite_ceramic" /> | Technical ceramic for insulated reaction machinery | 12,000 FE, 10 seconds |
+| <ItemLink id="rematter:diamond_matrix_blend" /> | <ItemLink id="rematter:diamond_lattice" /> | Optical Circuits, upgrades and advanced machines | 12,000 FE, 10 seconds |
+| <ItemLink id="rematter:ender_conductor_blend" /> | <ItemLink id="rematter:ender_conductor" /> | Larger Cells, Terminals, Interfaces and Ports | 16,000 FE, 12 seconds |
+| <ItemLink id="rematter:netherite_sheath_blend" /> | <ItemLink id="rematter:netherite_sheath" /> | 1M Cell, Industrial Reactor and Resonant Cable | 24,000 FE, 14 seconds |
 
-Each base-speed cycle uses 12,000 FE over ten seconds. Sintering takes inspiration from powder metallurgy and ceramic firing: compacted grains bond under heat. ReMatter's field and signal properties are fictional. No added water or fluid connection is required.
+The last three blends are mixed in the Material Preparator; see [Crystals and advanced components](advanced.md). Sintering takes inspiration from powder metallurgy and ceramic firing: compacted grains bond under heat. ReMatter's field and signal properties are fictional. No added water or fluid connection is required.
 
 An ordinary furnace or blast furnace can also turn Rhevon and Lumivex Powder into their ingots. Virelite uses the Sinter Furnace, or its optional Oritech route.
 
