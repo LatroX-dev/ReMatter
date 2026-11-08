@@ -58,7 +58,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  * Pricing, operations, selection, cell bays, network jobs, side roles, visuals and menu views live in collaborators.
  */
 public final class MachineBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
-    public static final int ENERGY_CAPACITY = 2_000_000;
+    public static final int ENERGY_CAPACITY = 2_400_000;
     public static final int TANK_CAPACITY = 16_000;
     private static final Codec<Tag> RAW_TAG_CODEC = Codec.PASSTHROUGH.xmap(
             dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(), tag -> new Dynamic<>(NbtOps.INSTANCE, tag));

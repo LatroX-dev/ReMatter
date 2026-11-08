@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import dev.latrox.rematter.chemistry.BuiltinChemistry;
 import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.Phase;
+import dev.latrox.rematter.chemistry.ShippedChemistry;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.preparation.PreparationTier;
@@ -72,7 +73,7 @@ class MachineEnergyPolicyTest {
     }
 
     @Test void everyShippedBatchFitsTheBufferWithEverySpeedUpgrade() throws IOException {
-        assertDoesNotThrow(() -> MachineEnergyPolicy.requireFits(BuiltinChemistry.create()));
+        assertDoesNotThrow(() -> MachineEnergyPolicy.requireFits(ShippedChemistry.standalone()));
         var documents = new ArrayList<Path>();
         for (var root : List.of(Path.of("src/main/resources/data"), Path.of("integrations/reforging/datapack/data")))
             try (var files = Files.walk(root)) { files.filter(file -> file.toString().endsWith(".json")).forEach(documents::add); }
