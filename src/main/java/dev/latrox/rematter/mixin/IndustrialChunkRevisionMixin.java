@@ -1,16 +1,22 @@
 package dev.latrox.rematter.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import dev.latrox.rematter.content.ChunkRevisions;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** HEAD invalidates old observations; RETURN prevents observations made by callbacks being reused. */
+/**
+ * The revision changes before a structural mutation, so old observations become invalid, and again when it ends,
+ * so observations made by callbacks during the mutation are not reused. The bracket also closes when the mutation
+ * throws, so a caught exception can never leave the chunk marked as changing.
+ */
 @Mixin(LevelChunk.class)
 abstract class IndustrialChunkRevisionMixin implements ChunkRevisions.Tracked {
     @Unique private ChunkRevisions.State rematter$changes;
@@ -20,13 +26,21 @@ abstract class IndustrialChunkRevisionMixin implements ChunkRevisions.Tracked {
     }
     @Override public ChunkRevisions.Revision rematter$chunkRevision() { return rematter$revisionState().current(); }
     @Override public void rematter$touchChunkRevision() { rematter$revisionState().touch(); }
-    @Inject(method = "setBlockState", at = @At("HEAD"))
-    private void rematter$stateBegin(CallbackInfoReturnable<?> callback) { if (rematter$serverChunk()) rematter$revisionState().begin(); }
-    @Inject(method = "setBlockState", at = @At("RETURN"))
-    private void rematter$stateEnd(CallbackInfoReturnable<?> callback) { if (rematter$serverChunk()) rematter$revisionState().end(); }
-    @Inject(method = {"setBlockEntity", "removeBlockEntity"}, at = @At("HEAD"))
-    private void rematter$entityBegin(CallbackInfo callback) { if (rematter$serverChunk()) rematter$revisionState().begin(); }
-    @Inject(method = {"setBlockEntity", "removeBlockEntity"}, at = @At("RETURN"))
-    private void rematter$entityEnd(CallbackInfo callback) { if (rematter$serverChunk()) rematter$revisionState().end(); }
+    @WrapMethod(method = "setBlockState")
+    private @Nullable BlockState rematter$trackState(BlockPos pos, BlockState state, int flags, Operation<BlockState> original) {
+        if (!rematter$serverChunk() || !ChunkRevisions.structural(((LevelChunk)(Object)this).getBlockState(pos), state))
+            return original.call(pos, state, flags);
+        return rematter$revisionState().mutate(() -> original.call(pos, state, flags));
+    }
+    @WrapMethod(method = "setBlockEntity")
+    private void rematter$trackEntity(BlockEntity entity, Operation<Void> original) {
+        if (rematter$serverChunk()) rematter$revisionState().mutate(() -> original.call(entity));
+        else original.call(entity);
+    }
+    @WrapMethod(method = "removeBlockEntity")
+    private void rematter$trackRemoval(BlockPos pos, Operation<Void> original) {
+        if (rematter$serverChunk()) rematter$revisionState().mutate(() -> original.call(pos));
+        else original.call(pos);
+    }
     @Unique private boolean rematter$serverChunk() { return ((LevelChunk)(Object)this).getLevel() instanceof ServerLevel; }
 }

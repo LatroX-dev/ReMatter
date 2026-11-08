@@ -27,4 +27,19 @@ class ChunkRevisionsTest {
         assertThrows(IllegalStateException.class,()->new ChunkRevisions.State().end());
         assertThrows(IllegalStateException.class,()->ChunkRevisions.current(new Object()));
     }
+    @Test void aThrowingMutationStillClosesItsBracket() {
+        var chunk=new ChunkRevisions.State();var before=chunk.current();
+        assertThrows(IllegalStateException.class,()->chunk.mutate(()->{throw new IllegalStateException("callback");}));
+        var after=chunk.current();
+        assertTrue(after.stable());assertNotEquals(before,after);
+        assertEquals("placed",chunk.mutate(()->{assertFalse(chunk.current().stable());return "placed";}));
+        assertTrue(chunk.current().stable());
+    }
+    @Test void everyMutationAndTouchAdvancesTheSharedEpoch() {
+        var chunk=new ChunkRevisions.State();
+        long epoch=ChunkRevisions.epoch();
+        chunk.touch();assertNotEquals(epoch,epoch=ChunkRevisions.epoch());
+        chunk.begin();assertNotEquals(epoch,epoch=ChunkRevisions.epoch());
+        chunk.end();assertNotEquals(epoch,ChunkRevisions.epoch());
+    }
 }
