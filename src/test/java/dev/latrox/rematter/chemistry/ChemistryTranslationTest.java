@@ -15,9 +15,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Every substance needs exactly one English display name, and no name may outlive its substance. */
-class SubstanceTranslationTest {
+/** Every substance and process needs exactly one English display name, and no name may outlive its definition. */
+class ChemistryTranslationTest {
     private static final String PREFIX = "substance.rematter.";
+    private static final String PROCESS_PREFIX = "process.rematter.";
 
     @Test
     void everyBuiltinAndShippedSubstanceHasADisplayNameAndNoStaleNamesRemain() throws Exception {
@@ -36,6 +37,34 @@ class SubstanceTranslationTest {
                 .collect(Collectors.toCollection(TreeSet::new));
         named.removeAll(required);
         assertEquals(Set.of(), named, "Display names without a substance");
+    }
+
+    @Test
+    void everyBuiltinAndShippedProcessHasADisplayNameAndNoStaleNamesRemain() throws Exception {
+        Set<String> required = new TreeSet<>();
+        BuiltinChemistry.create().processes().forEach(process -> required.add(process.translationKey()));
+        assertFalse(required.isEmpty());
+        try (var namespaces = Files.list(Path.of("src/main/resources/data"))) {
+            for (Path namespace : namespaces.toList()) {
+                Path folder = namespace.resolve("rematter/process");
+                if (!Files.isDirectory(folder)) continue;
+                try (var files = Files.walk(folder)) {
+                    for (Path file : files.filter(path -> path.toString().endsWith(".json")).toList()) {
+                        String path = folder.relativize(file).toString().replace('\\', '/');
+                        required.add(ProcessRecipe.translationKey(SubstanceId.parse(
+                                namespace.getFileName() + ":" + path.substring(0, path.length() - ".json".length()))));
+                    }
+                }
+            }
+        }
+        JsonObject language = read(Path.of("src/main/resources/assets/rematter/lang/en_us.json"));
+        Set<String> missing = new TreeSet<>(required);
+        missing.removeIf(key -> language.has(key) && !language.get(key).getAsString().isBlank());
+        assertEquals(Set.of(), missing, "Processes without a display name");
+        Set<String> named = language.keySet().stream().filter(key -> key.startsWith(PROCESS_PREFIX))
+                .collect(Collectors.toCollection(TreeSet::new));
+        named.removeAll(required);
+        assertEquals(Set.of(), named, "Display names without a process");
     }
 
     @Test

@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.jade;
 
 import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.client.StatusText;
 import dev.latrox.rematter.client.SubstanceNames;
 import dev.latrox.rematter.content.MachineBlock;
 import dev.latrox.rematter.content.MachineBlockEntity;
@@ -84,7 +85,7 @@ final class JadeClient {
                 tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
                 return;
             }
-            tooltip.add(Component.translatable("status.rematter." + data.getStringOr("status", "idle")));
+            tooltip.add(StatusText.of(data.getStringOr("status", "idle"), data.getIntOr("staleOrders", 0), data.getIntOr("heldOrders", 0)));
             if (accessor.showDetails() && accessor.getBlockEntity() instanceof MachineBlockEntity machine
                     && MachinePortMode.configurable(machine.kind())) {
                 tooltip.add(Component.translatable("port.rematter.mode_message",

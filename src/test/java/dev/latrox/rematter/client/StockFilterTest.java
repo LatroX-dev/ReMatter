@@ -1,10 +1,17 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.chemistry.Composition;
+import dev.latrox.rematter.chemistry.Phase;
+import dev.latrox.rematter.chemistry.SubstanceDefinition;
+import dev.latrox.rematter.chemistry.SubstanceId;
+import dev.latrox.rematter.chemistry.SubstanceKind;
 import dev.latrox.rematter.content.MachineSnapshot.Entry;
 import dev.latrox.rematter.content.MachineSnapshot.StockKey;
+import dev.latrox.rematter.content.StockQuery;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,6 +55,25 @@ class StockFilterTest {
         assertEquals(List.of(STEAM), apply(new StockFilter("h2o", Set.of("gas"), false), Set.of()));
         assertEquals(List.of(REMOVED), apply(new StockFilter("example:", Set.of(), false), Set.of()));
         assertEquals(List.of(), apply(new StockFilter("iron", Set.of("liquid"), false), Set.of()));
+    }
+
+    @Test void theQueryNamesCatalogueSubstancesByTranslatedNameOrFormula() {
+        var iron = definition("rematter:iron", "Fe");
+        var water = definition("rematter:water", "H₂O");
+        var catalogue = List.of(iron, water);
+        Function<SubstanceDefinition, String> german = definition -> definition == iron ? "Eisen" : "Wasser";
+        var favorites = Set.of(STEAM.key());
+        var query = new StockFilter(" eis", Set.of("solid"), true).query(favorites, catalogue, german, SubstanceDefinition::symbol);
+        assertEquals(new StockQuery(" eis", Set.of("solid"), true, favorites, Set.of("rematter:iron")), query);
+        assertEquals(Set.of("rematter:water"), new StockFilter("h2o", Set.of(), false).query(Set.of(), catalogue, german, SubstanceDefinition::symbol).named());
+        assertEquals(Set.of(), new StockFilter("", Set.of(), false).query(Set.of(), catalogue, german, SubstanceDefinition::symbol).named());
+        var many = IntStream.range(0, StockQuery.MAX_NAMED + 10).mapToObj(i -> definition("test:element_" + i, "")).toList();
+        assertEquals(StockQuery.MAX_NAMED, new StockFilter("e", Set.of(), false).query(Set.of(), many, d -> "Element", d -> "").named().size());
+    }
+
+    private static SubstanceDefinition definition(String id, String symbol) {
+        var key = SubstanceId.parse(id);
+        return new SubstanceDefinition(key, "substance.test", symbol, SubstanceKind.ELEMENT, Composition.element(key), Set.of(Phase.SOLID));
     }
 
     @Test void unknownPhasesAreRejected() {

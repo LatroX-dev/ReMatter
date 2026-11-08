@@ -105,17 +105,4 @@ class ChemistryRegistryTest {
         assertEquals(registry.definition(WATER.id()).orElseThrow().composition(),
                 registry.definition(STEAM.id()).orElseThrow().composition());
     }
-
-    @Test
-    void perTickEnergyAlwaysSumsToTheSpecifiedEnergyWithoutMultiplicationOverflow() {
-        ProcessRecipe recipe = new ProcessRecipe(SubstanceId.parse("example:slow"), ProcessType.REACTION,
-                Map.of(COPPER, 1L), Map.of(COPPER, 1L), Long.MAX_VALUE, 7);
-        long sum = 0;
-        for (int tick = 0; tick < recipe.ticks(); tick++) {
-            sum = Math.addExact(sum, recipe.energyAtTick(tick));
-        }
-        assertEquals(recipe.energy(), sum);
-        assertThrows(IllegalArgumentException.class, () -> recipe.energyAtTick(-1));
-        assertThrows(IllegalArgumentException.class, () -> recipe.energyAtTick(7));
-    }
 }

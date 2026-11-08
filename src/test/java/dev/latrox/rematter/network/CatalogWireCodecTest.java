@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CatalogWireCodecTest {
     @Test
     void completeCatalogueRetainsExactChemistryAndExplicitSynthesisPermissions() throws Exception {
-        ChemistryRegistry original = BuiltinChemistry.create().toBuilder()
+        ChemistryRegistry original = ShippedChemistry.standalone().toBuilder()
                 .addProfile(new MaterialProfile("example:copper_sample", 9, Map.of(BuiltinChemistry.COPPER, 17L), 31, 59, 7))
                 .addFluidProfile(new FluidProfile("example:molten_copper", 144, Map.of(BuiltinChemistry.COPPER, 1_000L), 1, 2, 3))
                 .build();
@@ -25,6 +25,7 @@ class CatalogWireCodecTest {
         assertEquals(java.util.List.copyOf(original.profiles()), java.util.List.copyOf(received.profiles()));
         assertEquals(java.util.List.copyOf(original.fluidProfiles()), java.util.List.copyOf(received.fluidProfiles()));
         assertEquals(java.util.List.copyOf(original.processes()), java.util.List.copyOf(received.processes()));
+        assertFalse(original.synthesisPolicy().entries().isEmpty());
         assertEquals(original.synthesisPolicy().entries(), received.synthesisPolicy().entries());
         assertFalse(received.synthesisPolicy().allows("example:copper_sample"));
         ProcessRecipe electrolysis = received.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow();
@@ -76,7 +77,7 @@ class CatalogWireCodecTest {
         assertThrows(IllegalArgumentException.class, () -> CatalogWireCodec.encode(catalogue));
     }
 
-    @Test void expandedCatalogueRoundTripsAllEntriesBeyondTheOldChoiceLimit() {
+    @Test void largeCatalogueRoundTripsEveryProfileAndPermission() {
         var builder = BuiltinChemistry.create().toBuilder();
         for (int i = 0; i < 2_000; i++) {
             String id = "example:material_" + i;

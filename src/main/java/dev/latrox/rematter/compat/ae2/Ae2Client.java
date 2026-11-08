@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.ae2;
 
 import appeng.client.api.AEKeyRendering;
+import dev.latrox.rematter.compat.ChemistryViewer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -9,6 +10,9 @@ final class Ae2Client {
     private Ae2Client() {}
     static void register(IEventBus bus) { bus.addListener(Ae2Client::setup); }
     private static void setup(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> AEKeyRendering.register(MatterKey.TYPE, MatterKey.class, new MatterKeyRenderer()));
+        event.enqueueWork(() -> {
+            MatterKey.installNames(ChemistryViewer::matterName);
+            AEKeyRendering.register(MatterKey.TYPE, MatterKey.class, new MatterKeyRenderer());
+        });
     }
 }

@@ -3,9 +3,12 @@ package dev.latrox.rematter.network;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineRunState;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.content.StockQuery;
 import io.netty.buffer.Unpooled;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -89,5 +92,30 @@ class TerminalPayloadCodecTest {
             buffer.writeVarInt(9); buffer.writeBoolean(true); buffer.writeVarInt(0);
             buffer.writeVarInt(TerminalDevicesPayload.MAX_DEVICES + 1);
         });
+    }
+    @Test void stockQueriesRoundTripAndRejectOversizedLists() {
+        var favorites = Set.of(new MachineSnapshot.StockKey("rematter:iron", "solid"), new MachineSnapshot.StockKey("example:removed", "gas"));
+        var query = new StockQuery("Eisen", Set.of("solid", "gas"), true, favorites, Set.of("rematter:iron"));
+        var payload = new StockQueryPayload(9, query);
+        assertEquals(payload, roundTrip(StockQueryPayload.CODEC, payload));
+        assertRejected(StockQueryPayload.CODEC, buffer -> {
+            buffer.writeVarInt(9); buffer.writeUtf(""); buffer.writeByte(8);
+        });
+        assertRejected(StockQueryPayload.CODEC, buffer -> {
+            buffer.writeVarInt(9); buffer.writeUtf(""); buffer.writeByte(0); buffer.writeBoolean(false);
+            buffer.writeVarInt(StockQuery.MAX_FAVORITES + 1);
+        });
+        assertRejected(StockQueryPayload.CODEC, buffer -> {
+            buffer.writeVarInt(9); buffer.writeUtf(""); buffer.writeByte(0); buffer.writeBoolean(false); buffer.writeVarInt(0);
+            buffer.writeVarInt(StockQuery.MAX_NAMED + 1);
+        });
+        assertRejected(StockQueryPayload.CODEC, buffer -> {
+            buffer.writeVarInt(9); buffer.writeUtf("x".repeat(StockQuery.MAX_TEXT + 1));
+        });
+    }
+
+    @Test void releaseRequestsCarryTheExactOrder() {
+        var payload = new ReleaseHeldOrderPayload(3, UUID.randomUUID());
+        assertEquals(payload, roundTrip(ReleaseHeldOrderPayload.CODEC, payload));
     }
 }

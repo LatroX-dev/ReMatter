@@ -27,7 +27,6 @@ public final class IndustrialStructure {
             if (width < 3 || width > MAX_SIZE || height < 3 || height > MAX_SIZE || depth < 3 || depth > MAX_SIZE
                     || controllerColumn < 1 || controllerColumn >= width - 1) throw new IllegalArgumentException("Invalid industrial dimensions");
         }
-        public int innerVolume() { return (width - 2) * (height - 2) * (depth - 2); }
     }
     @FunctionalInterface public interface Materials { Material at(int x, int y, int depth); }
     public record Port(BlockPos position, Direction outward) {}

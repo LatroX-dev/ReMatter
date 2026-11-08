@@ -21,12 +21,10 @@ public record ProcessRecipe(
         }
     }
 
-    public long energyAtTick(int tick) {
-        if (tick < 0 || tick >= ticks) {
-            throw new IllegalArgumentException("Tick outside recipe duration");
-        }
-        long base = energy / ticks;
-        long remainder = energy % ticks;
-        return base + (tick < remainder ? 1 : 0);
+    public String translationKey() { return translationKey(id); }
+
+    /** Processes are named by language files under {@code process.<namespace>.<path>}. */
+    public static String translationKey(SubstanceId id) {
+        return "process." + id.namespace() + "." + id.path().replace('/', '.');
     }
 }

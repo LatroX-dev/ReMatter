@@ -1,12 +1,14 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.network.MachineProgressPayload;
 import dev.latrox.rematter.network.MachineStockPayload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -21,9 +23,9 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                               int sampleBatchSize, long used, long capacity, boolean automation, boolean running,
                               int fluidAmount, String fluidId, boolean repeat, int queuedBatches, Preview preview,
                               String storageSource, StructureView structure, NetworkView network, boolean networkJobs,
-                              String backend, List<CellView> cells) implements CustomPacketPayload {
+                              String backend, OrdersView orders, List<CellView> cells) implements CustomPacketPayload {
     /** Version of the menu view payload family: this snapshot, stock changes and progress. */
-    public static final String PROTOCOL = "14";
+    public static final String PROTOCOL = "15";
     /** Prefix of a preview ID that names the item being analyzed or decomposed. */
     public static final String ITEM_SOURCE = "item:";
     public static final int MAX_CHOICE_ID_LENGTH = 520;
@@ -32,13 +34,13 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
     public static final int MAX_PREVIEW_AMOUNTS = 64;
     public static final Type<MachineSnapshot> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "machine_snapshot"));
     public static final MachineSnapshot EMPTY = new MachineSnapshot(-1, MachineKind.ANALYZER.ordinal(), "idle", -1, "", 0, 1,
-            0, 0, false, false, 0, "", false, 0, Preview.EMPTY, "none", StructureView.EMPTY, NetworkView.EMPTY, false, "", List.of());
+            0, 0, false, false, 0, "", false, 0, Preview.EMPTY, "none", StructureView.EMPTY, NetworkView.EMPTY, false, "", OrdersView.EMPTY, List.of());
 
     public MachineSnapshot {
         if (kind < 0 || kind >= MachineKind.values().length) throw new IllegalArgumentException("Invalid machine kind");
         cells = List.copyOf(cells);
         if (cells.size() != MachineCellAccess.bayCount(MachineKind.values()[kind])) throw new IllegalArgumentException("Invalid cell bay view");
-        if (preview == null || structure == null || network == null || status.isEmpty() || status.length() > 64
+        if (preview == null || structure == null || network == null || orders == null || status.isEmpty() || status.length() > 64
                 || selectedId.length() > MAX_CHOICE_ID_LENGTH || choiceCount < 0 || choiceCount > MachineChoices.MAX_CHOICES
                 || selected < -1 || selected >= choiceCount || sampleBatchSize < 1 || sampleBatchSize > 64
                 || used < 0 || capacity < used || backend.length() > 32
@@ -75,6 +77,21 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                     || used < 0 || capacity < used || types < 0
                     || !status.equals("ready") && (used != 0 || capacity != 0 || types != 0)
                     || status.equals("ready") && (storages == 0 || capacity == 0)) throw new IllegalArgumentException("Invalid network view");
+        }
+    }
+    /**
+     * A Network Interface's outdated and stopped orders. {@code held} names the oldest stopped delivery its owner may
+     * release by hand, with what that order still holds; {@code complete} is false when the lists are cut.
+     */
+    public record OrdersView(int stale, int quarantined, String held, List<Amount> matter, List<Resource> resources, boolean complete) {
+        public static final OrdersView EMPTY = new OrdersView(0, 0, "", List.of(), List.of(), true);
+        public OrdersView {
+            matter = List.copyOf(matter); resources = List.copyOf(resources);
+            if (stale < 0 || stale > OrderLedger.MAX_ORDERS || quarantined < 0 || quarantined > OrderLedger.MAX_ORDERS
+                    || matter.size() > MAX_PREVIEW_AMOUNTS || resources.size() > MAX_PREVIEW_AMOUNTS
+                    || held.isEmpty() && (!matter.isEmpty() || !resources.isEmpty() || !complete)
+                    || !held.isEmpty() && (quarantined == 0 || !UUID.fromString(held).toString().equals(held)))
+                throw new IllegalArgumentException("Invalid order view");
         }
     }
     /** A detected but invalid shell can explain its failure without claiming production capacity. */
@@ -128,7 +145,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             if (required <= 0 || available < 0) throw new IllegalArgumentException("Invalid displayed requirement");
         }
     }
-    /** An item or fluid that a network order consumes besides matter. */
+    /** An item or fluid that a network order consumes or holds besides matter. */
     public record Resource(String kind, String id, long amount) {
         public Resource {
             if (!Set.of("item", "fluid").contains(kind) || id.isEmpty() || amount <= 0) throw new IllegalArgumentException("Invalid displayed resource");
@@ -190,11 +207,12 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                     buffer.readVarLong(), buffer.readVarLong(), buffer.readVarInt());
             boolean networkJobs = buffer.readBoolean();
             String backend = buffer.readUtf(32);
+            var orders = new OrdersView(buffer.readVarInt(), buffer.readVarInt(), buffer.readUtf(36), amounts(buffer), resources(buffer), buffer.readBoolean());
             int bayCount = count(buffer, MachineCellAccess.DRIVE_BAYS); var cells = new ArrayList<CellView>(bayCount);
             for (int i = 0; i < bayCount; i++) cells.add(new CellView(buffer.readBoolean(), buffer.readBoolean(), buffer.readUtf(MAX_SUBSTANCE_ID_LENGTH),
                     buffer.readVarLong(), buffer.readVarInt(), buffer.readVarInt()));
             return new MachineSnapshot(container, kind, status, selected, selectedId, choiceCount, sampleBatchSize, used, capacity,
-                    automation, running, fluidAmount, fluidId, repeat, queued, preview, storageSource, structure, network, networkJobs, backend, cells);
+                    automation, running, fluidAmount, fluidId, repeat, queued, preview, storageSource, structure, network, networkJobs, backend, orders, cells);
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, MachineSnapshot value) {
             buffer.writeVarInt(value.containerId); buffer.writeVarInt(value.kind); buffer.writeUtf(value.status, 64);
@@ -209,10 +227,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             amounts(buffer, preview.inputs); amounts(buffer, preview.outputs); buffer.writeBoolean(preview.complete);
             buffer.writeVarLong(preview.energy); buffer.writeVarInt(preview.ticks); buffer.writeUtf(preview.outputKind, 16);
             buffer.writeUtf(preview.outputId, MAX_SUBSTANCE_ID_LENGTH); buffer.writeVarInt(preview.outputCount);
-            buffer.writeVarInt(preview.resources.size());
-            for (var resource : preview.resources) {
-                buffer.writeUtf(resource.kind, 8); buffer.writeUtf(resource.id, MAX_SUBSTANCE_ID_LENGTH); buffer.writeVarLong(resource.amount);
-            }
+            resources(buffer, preview.resources);
             buffer.writeUtf(value.storageSource, 8);
             var structure = value.structure;
             buffer.writeVarInt(structure.width); buffer.writeVarInt(structure.depth); buffer.writeVarInt(structure.height);
@@ -224,6 +239,9 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             buffer.writeVarInt(network.cells); buffer.writeVarLong(network.used); buffer.writeVarLong(network.capacity); buffer.writeVarInt(network.types);
             buffer.writeBoolean(value.networkJobs);
             buffer.writeUtf(value.backend, 32);
+            var orders = value.orders;
+            buffer.writeVarInt(orders.stale); buffer.writeVarInt(orders.quarantined); buffer.writeUtf(orders.held, 36);
+            amounts(buffer, orders.matter); resources(buffer, orders.resources); buffer.writeBoolean(orders.complete);
             buffer.writeVarInt(value.cells.size());
             for (var bay : value.cells) {
                 buffer.writeBoolean(bay.installed); buffer.writeBoolean(bay.readable); buffer.writeUtf(bay.itemId, MAX_SUBSTANCE_ID_LENGTH);
@@ -249,6 +267,12 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             List<Resource> values = new ArrayList<>(size);
             for (int i = 0; i < size; i++) values.add(new Resource(buffer.readUtf(8), buffer.readUtf(MAX_SUBSTANCE_ID_LENGTH), buffer.readVarLong()));
             return values;
+        }
+        private void resources(RegistryFriendlyByteBuf buffer, List<Resource> values) {
+            buffer.writeVarInt(values.size());
+            for (var resource : values) {
+                buffer.writeUtf(resource.kind, 8); buffer.writeUtf(resource.id, MAX_SUBSTANCE_ID_LENGTH); buffer.writeVarLong(resource.amount);
+            }
         }
     };
 

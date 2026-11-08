@@ -34,9 +34,9 @@ class MatterInventoryCellLimitTest {
         small.extract(key("a"),1);small.restoreInPlace(original);assertEquals(1,small.maximumTypes());
         assertEquals(0,small.insert(key("b"),1));
     }
-    @Test void legacyInventoryIsNotGivenACellTypeLimit() {
-        var legacy=new MatterInventory(1_000_000);
-        for(int i=0;i<600;i++)assertEquals(1,legacy.insert(key("substance_"+i),1));
-        assertEquals(600,MatterInventory.restore(legacy.snapshot()).typeCount());
+    @Test void inventoryWithoutATypeLimitRestoresWithoutOne() {
+        var unlimited=new MatterInventory(1_000_000);
+        for(int i=0;i<600;i++)assertEquals(1,unlimited.insert(key("substance_"+i),1));
+        assertEquals(600,MatterInventory.restore(unlimited.snapshot()).typeCount());
     }
 }

@@ -5,6 +5,7 @@ import dev.latrox.rematter.automation.AutomationAdapter;
 import dev.latrox.rematter.automation.AutomationBackends;
 import dev.latrox.rematter.automation.AutomationNetworkPolicy;
 import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.DefinedMatter;
 import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.automation.OrderLedgerCodec;
 import dev.latrox.rematter.automation.StaleOrders;
@@ -142,6 +143,31 @@ public final class MachineAutomationHost implements AutomationPort {
         if(staleOrders.waiting()||!ledger.pendingRefunds().isEmpty())return "automation_orders_stale";
         return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
     }
+    /** Orders that a recipe change made outdated: those waiting out the grace period and cancelled ones still returning inputs. */
+    public int staleOrderCount() {
+        int refunding=(int)ledger.snapshot().orders().stream().filter(order->order.cancelled()&&!order.quarantined()&&!order.ownedInputs().isEmpty()).count();
+        return staleOrders.count()+refunding;
+    }
+    public int quarantinedOrderCount() {
+        return (int)ledger.snapshot().orders().stream().filter(OrderLedger.Order::quarantined).count();
+    }
+    /** The oldest stopped delivery whose held resources its owner may take by hand. */
+    public Optional<OrderLedger.Order> releasableOrder() {
+        return live()&&lockedData==null?ledger.firstReleasable():Optional.empty();
+    }
+    public Optional<Map<Resource,Long>> heldResources(UUID orderId) {
+        return live()&&lockedData==null?ledger.releasable(orderId).map(OrderLedger::held):Optional.empty();
+    }
+    /** Records what the owner received by hand. The order's worker lease ends first, so no batch resumes on released inputs. */
+    boolean releaseHeld(UUID orderId,Map<Resource,Long> taken) {
+        if(!live()||lockedData!=null||Transaction.getCurrentOpenedTransaction()!=null)return false;
+        var order=ledger.releasable(orderId).orElse(null);if(order==null)return false;
+        var worker=assigned.get(orderId);
+        if(worker!=null)release(orderId,worker);
+        else if(order.workerId()!=null)ledger.release(orderId,order.workerId());
+        if(!ledger.releaseHeld(orderId,taken))return false;
+        changed();return true;
+    }
     public void tick() {
         if(!live()||ticking||revoking||Transaction.getCurrentOpenedTransaction()!=null)return;
         ticking=true;
@@ -268,10 +294,10 @@ public final class MachineAutomationHost implements AutomationPort {
         if(accepted&&action==Action.EXECUTE)changed();return accepted;
     }
     @Override public Map<SubstanceKey,Long> availableEntries() {
-        return active()?machine.matterNetwork(false).inventory().availableContents():Map.of();
+        return active()?DefinedMatter.offered(ReMatter.chemistry(),machine.matterNetwork(false).inventory().availableContents()):Map.of();
     }
     @Override public long insert(SubstanceKey key,long maximum,Action action) {
-        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null)return 0;
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long accepted=MachineBlockEntity.insertable(network.inventory(),key,maximum);
         if(accepted==0||action==Action.SIMULATE)return accepted;
@@ -283,7 +309,7 @@ public final class MachineAutomationHost implements AutomationPort {
         return accepted;
     }
     @Override public long extract(SubstanceKey key,long maximum,Action action) {
-        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null)return 0;
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long extracted=Math.min(maximum,network.inventory().available(key));
         if(extracted==0||action==Action.SIMULATE)return extracted;

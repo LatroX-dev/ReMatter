@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.mojang.logging.LogUtils;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.content.MachineSnapshot.StockKey;
+import dev.latrox.rematter.content.StockQuery;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -22,12 +23,13 @@ import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
 /**
- * Favorite substances of each local player, kept in one client file and never sent to a server. Favorites of substances
- * that are currently undefined stay stored. An unreadable file is left untouched and favorites are then kept for the session only.
+ * Favorite substances of each local player, kept in one client file. A stock view sends the current player's favorites
+ * with its query, so the server keeps them within its row limit. Favorites of substances that are currently undefined
+ * stay stored. An unreadable file is left untouched and favorites are then kept for the session only.
  */
 final class StockFavorites {
     static final int SCHEMA_VERSION = 1;
-    static final int MAX_PER_PLAYER = 4_096;
+    static final int MAX_PER_PLAYER = StockQuery.MAX_FAVORITES;
     private static final Logger LOGGER = LogUtils.getLogger();
     private static StockFavorites instance;
 
@@ -58,6 +60,8 @@ final class StockFavorites {
     }
 
     boolean contains(UUID player, StockKey key) { return favorites.getOrDefault(player, Set.of()).contains(key); }
+
+    Set<StockKey> of(UUID player) { return Set.copyOf(favorites.getOrDefault(player, Set.of())); }
 
     /** Changes since the screen last filtered its rows. */
     int revision() { return revision; }
@@ -133,6 +137,6 @@ final class StockFavorites {
 
     private static void validate(StockKey key) {
         SubstanceId.parse(key.id());
-        if (!StockFilter.PHASES.contains(key.phase())) throw new IllegalArgumentException("Unknown favorite phase");
+        if (!StockQuery.PHASES.contains(key.phase())) throw new IllegalArgumentException("Unknown favorite phase");
     }
 }

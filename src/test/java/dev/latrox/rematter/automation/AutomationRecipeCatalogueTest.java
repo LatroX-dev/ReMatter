@@ -8,7 +8,8 @@ import static dev.latrox.rematter.automation.AutomationPort.*;
 
 class AutomationRecipeCatalogueTest {
     @Test void everyAllowedItemFluidAndProcessIsOfferedWithoutAnIronSpecialCase() {
-        var registry=BuiltinChemistry.create();
+        var registry=ShippedChemistry.standalone();
+        assertFalse(registry.profiles().isEmpty());assertFalse(registry.fluidProfiles().isEmpty());
         var recipes=AutomationRecipeCatalogue.chemistry(registry,id->true,id->true);
         for(var profile:registry.profiles()) {
             var outputs=Map.of(Resource.item(profile.itemId()),(long)profile.itemCount());
@@ -29,10 +30,32 @@ class AutomationRecipeCatalogueTest {
         assertTrue(recipes.stream().flatMap(r->r.outputs().keySet().stream()).anyMatch(r->r.phase().equals("gas")));
     }
     @Test void missingOptionalRegistrationsAreNotAdvertisedAsAirOrEmptyFluids() {
-        var recipes=AutomationRecipeCatalogue.chemistry(BuiltinChemistry.create(),id->false,id->false);
+        var recipes=AutomationRecipeCatalogue.chemistry(ShippedChemistry.standalone(),id->false,id->false);
         assertFalse(recipes.isEmpty());
         assertTrue(recipes.stream().flatMap(r->r.inputs().keySet().stream()).allMatch(r->r.kind()==Kind.MATTER));
         assertTrue(recipes.stream().flatMap(r->r.outputs().keySet().stream()).allMatch(r->r.kind()==Kind.MATTER));
+    }
+    @Test void ordersCanOnlyTakeAndMakeDefinedSubstances() {
+        var registry=ShippedChemistry.standalone();
+        var matter=AutomationRecipeCatalogue.chemistry(registry,id->true,id->true).stream()
+                .flatMap(r->java.util.stream.Stream.concat(r.inputs().keySet().stream(),r.outputs().keySet().stream()))
+                .filter(r->r.kind()==Kind.MATTER).map(Resource::matterKey).distinct().toList();
+        assertFalse(matter.isEmpty());
+        assertTrue(matter.stream().allMatch(registry::isKnown));
+        var undefined=new SubstanceKey(SubstanceId.parse("example:removed"),Phase.SOLID);
+        var removed=registry.toBuilder().addProfile(new MaterialProfile("example:sample",1,Map.of(undefined,1L),1,1,1));
+        assertThrows(IllegalArgumentException.class,removed::build);
+    }
+    @Test void networksAreOfferedOnlyDefinedStock() {
+        var registry=ShippedChemistry.standalone();
+        var undefined=new SubstanceKey(SubstanceId.parse("example:removed"),Phase.SOLID);
+        var unsupportedPhase=new SubstanceKey(BuiltinChemistry.IRON.id(),Phase.GAS);
+        assertFalse(registry.isKnown(unsupportedPhase));
+        var defined=Map.of(BuiltinChemistry.IRON,5L,BuiltinChemistry.OXYGEN,7L);
+        assertSame(defined,DefinedMatter.offered(registry,defined));
+        var mixed=new TreeMap<>(defined);mixed.put(undefined,3L);mixed.put(unsupportedPhase,2L);
+        assertEquals(defined,DefinedMatter.offered(registry,mixed));
+        assertEquals(Map.of(),DefinedMatter.offered(registry,Map.of(undefined,1L)));
     }
     @Test void revisionChangesWithCostTimingPhaseAndEveryByproduct() {
         var input=Map.of(Resource.item("test:feed"),1L);var output=Map.of(Resource.fluid("test:water"),1000L);

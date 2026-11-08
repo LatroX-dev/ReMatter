@@ -9,11 +9,13 @@ import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
 import java.util.stream.Stream;
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.automation.AutomationPort;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.content.preparation.*;
 import dev.latrox.rematter.network.MachineProgressPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,6 +25,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.MenuProvider;
@@ -414,6 +417,63 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         var host = automationHost();
         return host != null && host.cycleBackend();
     }
+    /**
+     * Hands the held resources of a stopped network delivery to the player: matter as recovery parcels, items into the
+     * inventory or at the player's feet, fluids into this interface's tank while it has room. Whatever cannot be handed
+     * out stays held by the order, which remains stopped until it holds nothing.
+     */
+    boolean releaseHeldOrder(ServerPlayer player, UUID orderId) {
+        var host = automationHost();
+        if (host == null || !isLiveServerMachine() || player.isSpectator() || !canAccess(player)) return false;
+        var held = host.heldResources(orderId).orElse(null);
+        if (held == null) return false;
+        var taken = new TreeMap<AutomationPort.Resource, Long>();
+        FluidResource tank = fluids.getResource(0);
+        long room = TANK_CAPACITY - fluids.getAmountAsLong(0);
+        for (var entry : held.entrySet()) {
+            var resource = entry.getKey();
+            Identifier id = Identifier.parse(resource.id());
+            switch (resource.kind()) {
+                case MATTER -> taken.put(resource, entry.getValue());
+                case ITEM -> {
+                    if (BuiltInRegistries.ITEM.containsKey(id) && !new ItemStack(BuiltInRegistries.ITEM.getValue(id)).isEmpty())
+                        taken.put(resource, entry.getValue());
+                }
+                case FLUID -> {
+                    if (room == 0 || !BuiltInRegistries.FLUID.containsKey(id)) continue;
+                    var fluid = FluidResource.of(BuiltInRegistries.FLUID.getValue(id));
+                    if (fluid.isEmpty() || !tank.isEmpty() && !tank.equals(fluid)) continue;
+                    long amount = Math.min(room, entry.getValue());
+                    taken.put(resource, amount);
+                    tank = fluid;
+                    room -= amount;
+                }
+            }
+        }
+        if (taken.isEmpty() || !host.releaseHeld(orderId, taken)) {
+            player.sendSystemMessage(Component.translatable("message.rematter.release_blocked"));
+            return false;
+        }
+        for (var entry : taken.entrySet()) {
+            var resource = entry.getKey();
+            long amount = entry.getValue();
+            switch (resource.kind()) {
+                case MATTER -> player.getInventory().placeItemBackInInventory(MatterRecoveryItem.create(resource.matterKey(), amount));
+                case ITEM -> {
+                    var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(resource.id()));
+                    for (long left = amount; left > 0; ) {
+                        int count = (int) Math.min(left, item.getDefaultMaxStackSize());
+                        player.getInventory().placeItemBackInInventory(new ItemStack(item, count));
+                        left -= count;
+                    }
+                }
+                case FLUID -> fluids.set(0, tank, (int) (fluids.getAmountAsLong(0) + amount));
+            }
+        }
+        player.sendSystemMessage(Component.translatable(taken.equals(held) ? "message.rematter.release_complete" : "message.rematter.release_partial"));
+        setChanged();
+        return true;
+    }
     public boolean networkJobs() { return networkJobs; }
     public boolean supportsNetworkJobs() { return kind().processes() && kind() != MachineKind.ANALYZER && !PreparationTier.manual(kind()); }
     public boolean toggleNetworkJobs() {
@@ -761,7 +821,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     public MachineSnapshot snapshot(int containerId) { return MachineSnapshots.build(this, containerId); }
-    MachineSnapshots.Stock stock() { return MachineSnapshots.stock(this, MachineSnapshot.MAX_ENTRIES); }
     MachineProgressPayload progress(int containerId) { return MachineSnapshots.progress(this, containerId); }
     /** A short read-only overlay for an owner, without previews, choices or the full stock. */
     public @Nullable Summary summaryFor(Player player, int rows) {
@@ -769,7 +828,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     public record Summary(String status, int energy, int progress, int duration, long used, long capacity, String storageSource,
                           int types, List<MachineSnapshot.Entry> entries, boolean automation, int fluidAmount, String fluidId,
-                          MachineSnapshot.StructureView structure, List<MachineSnapshot.CellView> cells) {
+                          MachineSnapshot.StructureView structure, List<MachineSnapshot.CellView> cells, int staleOrders, int heldOrders) {
         public Summary { entries = List.copyOf(entries); cells = List.copyOf(cells); }
     }
 

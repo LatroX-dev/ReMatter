@@ -23,6 +23,8 @@ public final class StaleOrders {
         this.delay=delay;
     }
     public boolean waiting() { return !since.isEmpty(); }
+    /** Orders waiting out the grace period before they are cancelled. */
+    public int count() { return since.size(); }
     public void clear() { since.clear(); }
 
     /** Returns whether the ledger changed. {@code release} runs before an order with a live worker lease is cancelled. */

@@ -7,6 +7,7 @@ import dev.latrox.rematter.network.MachineStockPayload;
 import dev.latrox.rematter.network.TerminalDeviceActionPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
 import java.util.List;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +20,7 @@ import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class MachineMenu extends AbstractContainerMenu {
     public static final int FIRST_PLAYER_SLOT = 10;
@@ -44,6 +46,10 @@ public final class MachineMenu extends AbstractContainerMenu {
     private final SyncedRows<MachineSnapshot.StockKey, MachineSnapshot.Entry> stockRows = new SyncedRows<>(MachineSnapshot.Entry::key);
     private final SyncedRows<BlockPos, TerminalDevicesPayload.Device> deviceRows = new SyncedRows<>(TerminalDevicesPayload.Device::position);
     private Stock stock = Stock.EMPTY;
+    /** Server: the viewer's stock query, its cached rows and the rows last diffed against the client. */
+    private StockQuery stockQuery = StockQuery.ALL;
+    private final MachineSnapshots.StockView stockView = new MachineSnapshots.StockView();
+    private MachineSnapshots.@Nullable Stock sentStock;
     private TerminalDevicesPayload.Listing terminalDevices = TerminalDevicesPayload.Listing.EMPTY;
     private boolean stockSent, devicesSent;
     private boolean observingTerminal;
@@ -186,6 +192,18 @@ public final class MachineMenu extends AbstractContainerMenu {
         broadcastChanges();
         return true;
     }
+    /** The next stock rows follow this query. It only decides which rows fill the limit, never whose stock the player sees. */
+    public void acceptStockQuery(ServerPlayer user, StockQuery query) {
+        if (machine != null && user.containerMenu == this) stockQuery = query;
+    }
+    /** The owner's confirmed release of a stopped delivery that this Network Interface still holds. */
+    public boolean releaseHeldOrder(ServerPlayer user, UUID orderId) {
+        if (machine == null || kind() != MachineKind.NETWORK_INTERFACE || user.containerMenu != this || !stillValid(user)
+                || !machine.releaseHeldOrder(user, orderId)) return false;
+        nextSnapshot = 0;
+        broadcastChanges();
+        return true;
+    }
     public boolean selectRecipe(Player player, String id) {
         if (machine == null || player.isSpectator() || player.containerMenu != this || !stillValid(player)
                 || id.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || !machine.selectRecipe(id)) return false;
@@ -223,13 +241,16 @@ public final class MachineMenu extends AbstractContainerMenu {
             progress = nextProgress;
             PacketDistributor.sendToPlayer(serverPlayer, nextProgress);
         }
-        var nextStock = machine.stock();
-        var stockChanges = stockRows.update(nextStock.entries());
-        if (!stockSent || !stockChanges.isEmpty() || nextStock.readable() != stock.readable() || nextStock.totalTypes() != stock.totalTypes()) {
-            PacketDistributor.sendToPlayer(serverPlayer, new MachineStockPayload(containerId, !stockSent, nextStock.readable(),
-                    nextStock.totalTypes(), stockChanges.changed(), stockChanges.removed()));
-            stock = new Stock(containerId, nextStock.readable(), nextStock.totalTypes(), List.of());
-            stockSent = true;
+        var nextStock = stockView.refresh(machine, stockQuery, MachineSnapshot.MAX_ENTRIES);
+        if (nextStock != sentStock) {
+            var stockChanges = stockRows.update(nextStock.entries());
+            if (!stockSent || !stockChanges.isEmpty() || nextStock.readable() != stock.readable() || nextStock.totalTypes() != stock.totalTypes()) {
+                PacketDistributor.sendToPlayer(serverPlayer, new MachineStockPayload(containerId, !stockSent, nextStock.readable(),
+                        nextStock.totalTypes(), stockChanges.changed(), stockChanges.removed()));
+                stock = new Stock(containerId, nextStock.readable(), nextStock.totalTypes(), List.of());
+                stockSent = true;
+            }
+            sentStock = nextStock;
         }
         if (!observingTerminal) return;
         var devices = TerminalNetwork.devices(machine, player, false);

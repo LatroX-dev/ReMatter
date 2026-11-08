@@ -5,11 +5,9 @@ import appeng.client.api.AEKeyRenderer;
 import appeng.client.api.AEKeyRendering;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.latrox.rematter.client.SubstanceIcon;
-import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.content.ModContent;
-import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
-import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -22,13 +20,9 @@ final class MatterKeyRenderer implements AEKeyRenderer<MatterKey, MatterKeyRende
         SubstanceIcon.draw(graphics, x, y, key.substance());
     }
     @Override public List<Component> getTooltip(MatterKey key) {
-        var id = key.substance().id();
-        var name = ClientChemistry.current().definition(id)
-                .map(definition -> Component.translatableWithFallback(definition.translationKey(), id.toString()))
-                .orElseGet(() -> Component.literal(id.toString()));
-        return List.of(SubstanceLabels.withSymbol(id, name),
-                Component.literal(key.substance().phase().name().toLowerCase(Locale.ROOT)),
-                Component.translatable("integration.rematter.stored_substance"));
+        var lines = ChemistryViewer.matterLines(key.substance());
+        lines.add(Component.translatable("integration.rematter.stored_substance"));
+        return lines;
     }
 
     @Override public Class<RenderState> stateClass() { return RenderState.class; }

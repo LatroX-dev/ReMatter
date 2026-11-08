@@ -2,6 +2,7 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.MatterStore;
 import dev.latrox.rematter.chemistry.SubstanceKey;
@@ -24,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 final class MachineSnapshots {
     private MachineSnapshots() {}
 
-    /** Stock rows in key order, limited to {@code entries}; {@code totalTypes} counts every stored type. */
+    /** Stock rows in key order, selected by the viewer's query within the row limit; {@code totalTypes} counts every stored type. */
     record Stock(boolean readable, int totalTypes, long used, long capacity, String source, List<MachineSnapshot.Entry> entries) {
         Stock { entries = List.copyOf(entries); }
     }
@@ -41,9 +42,36 @@ final class MachineSnapshots {
         return new Source(network, store, independent);
     }
 
-    static Stock stock(MachineBlockEntity machine, int limit) { return stock(machine, source(machine), limit); }
+    static Stock stock(MachineBlockEntity machine, int limit) { return stock(machine, source(machine), StockQuery.ALL, limit); }
 
-    private static Stock stock(MachineBlockEntity machine, Source source, int limit) {
+    /** A menu's stock rows, rebuilt only after the store, its revision, the catalogue or the viewer's query changed. */
+    static final class StockView {
+        private @Nullable MatterStore store;
+        private long revision;
+        private @Nullable ChemistryRegistry registry;
+        private StockQuery query = StockQuery.ALL;
+        private @Nullable Stock stock;
+
+        /** Returns the previous instance while nothing that shapes the rows changed. */
+        Stock refresh(MachineBlockEntity machine, StockQuery query, int limit) {
+            var source = source(machine);
+            var store = source.store();
+            long revision = store == null ? 0 : store.revision();
+            var registry = ReMatter.chemistry();
+            // An analyzer shows its inspected sample, which no store revision tracks.
+            if (stock == null || machine.kind() == MachineKind.ANALYZER || store != this.store || revision != this.revision
+                    || registry != this.registry || !query.equals(this.query)) {
+                stock = stock(machine, source, query, limit);
+                this.store = store;
+                this.revision = revision;
+                this.registry = registry;
+                this.query = query;
+            }
+            return stock;
+        }
+    }
+
+    private static Stock stock(MachineBlockEntity machine, Source source, StockQuery query, int limit) {
         ChemistryRegistry registry = ReMatter.chemistry();
         var store = source.store();
         Map<SubstanceKey, Long> displayed = store == null ? Map.of() : store.contents();
@@ -54,11 +82,10 @@ final class MachineSnapshots {
                 displayed = profile.matter();
         }
         var entries = new ArrayList<MachineSnapshot.Entry>();
-        if (limit > 0) for (var entry : new TreeMap<>(displayed).entrySet()) {
-            if (entries.size() == limit) break;
-            SubstanceKey key = entry.getKey();
-            if (key.id().toString().length() > MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH) continue;
-            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), entry.getValue(),
+        var sorted = new TreeMap<>(displayed);
+        var keys = sorted.keySet().stream().filter(key -> key.id().toString().length() <= MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH).toList();
+        for (var key : query.select(keys, limit)) {
+            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), sorted.get(key),
                     store == null ? 0 : store.available(key), registry.isKnown(key)));
         }
         String origin = store == null ? "none" : machine.kind().isStorage() ? "local" : "network";
@@ -74,9 +101,11 @@ final class MachineSnapshots {
     static MachineBlockEntity.Summary summary(MachineBlockEntity machine, int rows) {
         var work = machine.work();
         var stock = stock(machine, rows);
+        var host = machine.automationHost();
         return new MachineBlockEntity.Summary(work.status, (int) machine.energy().getAmountAsLong(), Math.min(work.progress, work.duration),
                 work.duration, stock.used(), stock.capacity(), stock.source(), stock.totalTypes(), stock.entries(), machine.automation(),
-                (int) machine.fluids().getAmountAsLong(0), fluidId(machine.fluids().getResource(0)), structure(machine), machine.cellViews());
+                (int) machine.fluids().getAmountAsLong(0), fluidId(machine.fluids().getResource(0)), structure(machine), machine.cellViews(),
+                host == null ? 0 : host.staleOrderCount(), host == null ? 0 : host.quarantinedOrderCount());
     }
 
     static MachineSnapshot build(MachineBlockEntity machine, int containerId) {
@@ -99,7 +128,30 @@ final class MachineSnapshots {
                 (int) fluids.getAmountAsLong(0), fluidId(fluids.getResource(0)), batches && runState.repeat(), batches ? runState.queuedBatches() : 0,
                 preview(machine, registry, store), store == null ? "none" : kind.isStorage() ? "local" : "network", structure(machine),
                 source.network() == null ? MachineSnapshot.NetworkView.EMPTY : source.network().view(), machine.networkJobs(),
-                kind == MachineKind.NETWORK_INTERFACE ? machine.automationHost().backend() : "", machine.cellViews());
+                kind == MachineKind.NETWORK_INTERFACE ? machine.automationHost().backend() : "", orders(machine, registry), machine.cellViews());
+    }
+
+    /** The interface's outdated and stopped orders, with the resources held by the oldest stopped delivery. */
+    private static MachineSnapshot.OrdersView orders(MachineBlockEntity machine, ChemistryRegistry registry) {
+        var host = machine.automationHost();
+        if (host == null) return MachineSnapshot.OrdersView.EMPTY;
+        var order = host.releasableOrder().orElse(null);
+        if (order == null) return new MachineSnapshot.OrdersView(host.staleOrderCount(), host.quarantinedOrderCount(), "", List.of(), List.of(), true);
+        var held = OrderLedger.held(order);
+        var matter = new ArrayList<MachineSnapshot.Amount>();
+        var resources = new ArrayList<MachineSnapshot.Resource>();
+        for (var entry : held.entrySet()) {
+            var resource = entry.getKey();
+            if (resource.kind() != AutomationPort.Kind.MATTER) {
+                if (resources.size() < MachineSnapshot.MAX_PREVIEW_AMOUNTS)
+                    resources.add(new MachineSnapshot.Resource(resource.kind().name().toLowerCase(Locale.ROOT), resource.id(), entry.getValue()));
+            } else if (matter.size() < MachineSnapshot.MAX_PREVIEW_AMOUNTS) {
+                var key = resource.matterKey();
+                matter.add(new MachineSnapshot.Amount(key.id().toString(), phase(key), entry.getValue(), 0, registry.isKnown(key)));
+            }
+        }
+        return new MachineSnapshot.OrdersView(host.staleOrderCount(), host.quarantinedOrderCount(), order.id().toString(),
+                matter, resources, matter.size() + resources.size() == held.size());
     }
 
     private static MachineSnapshot.StructureView structure(MachineBlockEntity machine) {

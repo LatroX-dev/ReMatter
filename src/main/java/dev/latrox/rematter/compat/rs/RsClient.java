@@ -7,6 +7,8 @@ import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRender
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.client.SubstanceIcon;
 import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.compat.ChemistryViewer;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -20,9 +22,8 @@ public final class RsClient {
     }
     public static void register() {
         RsMatterGrid.install(new RsMatterGrid.View() {
-            @Override public Component name(SubstanceKey substance, String sortName) {
-                return SubstanceLabels.withSymbol(substance.id(), Component.literal(sortName));
-            }
+            @Override public Component name(SubstanceKey substance) { return ChemistryViewer.matterName(substance); }
+            @Override public List<Component> lines(SubstanceKey substance) { return ChemistryViewer.matterLines(substance); }
             @Override public String symbol(SubstanceKey substance) { return SubstanceLabels.iconLabel(substance.id()); }
             @Override public void render(GuiGraphicsExtractor graphics, int x, int y, SubstanceKey substance) {
                 SubstanceIcon.draw(graphics, x, y, substance);
@@ -34,7 +35,9 @@ public final class RsClient {
                 return RsMatterGrid.displayName(((RsMatterKey) resource).substance());
             }
             @Override public List<Component> getTooltip(ResourceKey resource) {
-                return List.of(getDisplayName(resource), Component.translatable("integration.rematter.stored_substance"));
+                var lines = new ArrayList<>(RsMatterGrid.lines(((RsMatterKey) resource).substance()));
+                lines.add(Component.translatable("integration.rematter.stored_substance"));
+                return lines;
             }
             @Override public void render(ResourceKey resource, GuiGraphicsExtractor graphics, int x, int y) {
                 new RsMatterGrid((RsMatterKey) resource).render(graphics, x, y);

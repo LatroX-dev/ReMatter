@@ -14,7 +14,10 @@ import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.content.StockQuery;
 import dev.latrox.rematter.network.ClientChemistry;
+import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
+import dev.latrox.rematter.network.StockQueryPayload;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -35,6 +38,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Familiar machine slots and a separate disk/quantity browser; all actions retain server validation. */
 public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
@@ -54,7 +58,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private final List<StockButton> stockButtons = new ArrayList<>();
     private EditBox search;
     private ConsoleButton primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
-    private ConsoleButton terminalDevices, returnToTerminal;
+    private ConsoleButton terminalDevices, returnToTerminal, release;
     private TabButton processTab, upgradesTab, configurationTab;
     private ConsoleButton ports;
     private boolean sideTabs;
@@ -68,6 +72,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private StockFilter shownFilter;
     private int shownFavorites = -1;
     private List<MachineSnapshot.Entry> shownEntries = List.of();
+    private StockQuery sentQuery;
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, PANEL_WIDTH, PANEL_HEIGHT);
@@ -121,6 +126,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         automation = control("", 12, 104, 272, 18, b -> send(3), "automation_hint");
         networkJobs = control("", 150, 104, 134, 18, b -> send(8), "network_jobs_hint");
         backend = control("", 12, 126, 272, 18, b -> send(9), "backend_hint");
+        release = control("release_held", 150, 104, 134, 18, b -> openRelease(), "release_held_hint");
         repeat = control("", 12, 126, 224, 18, b -> send(5), "continuous_hint");
         addBatch = control("", 240, 126, 44, 18, b -> send(4), "add_batch_hint");
         previous = control("previous_hint", 12, STOCK_FOOTER, 20, 13, b -> turnPage(-1), "previous_hint");
@@ -185,6 +191,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static boolean working(String status) { return List.of("working", "grinding", "sieving", "collecting", "dosing", "mixing", "packing", "pressing", "sintering", "cooling").contains(status); }
     private void openRecipes() { minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)); }
     private void openPorts() { minecraft.pushGuiLayer(new MachinePortSettingsScreen(menu)); }
+    private void openRelease() {
+        var orders = menu.snapshot().orders();
+        if (!orders.held().isEmpty()) minecraft.pushGuiLayer(new ReleaseConfirmScreen(orders));
+    }
     private void openTerminalDevices() {
         menu.resetTerminalDevices();
         send(MachineMenu.OPEN_TERMINAL_DEVICES);
@@ -195,7 +205,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var s = menu.snapshot();
         if (s.status().equals("structure") && industrial()) return Component.translatable("status.rematter." + s.structure().diagnostic());
         if (working(s.status())) return tr("processing");
-        return Component.translatable("status.rematter." + s.status());
+        return StatusText.of(s.status(), s.orders().stale(), s.orders().quarantined());
     }
     private static Component name(MachineSnapshot.Entry entry) { return SubstanceNames.substance(entry.id(), entry.phase(), entry.known()); }
     private static Component name(MachineSnapshot.Amount amount) { return SubstanceNames.substance(amount.id(), amount.phase(), amount.known()); }
@@ -209,12 +219,22 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
         int favorites = StockFavorites.get().revision();
         if (stock == shownStock && catalogue == shownCatalogue && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
+        if (catalogue != shownCatalogue || !filter.equals(shownFilter) || favorites != shownFavorites) sendStockQuery(filter, catalogue);
         shownEntries = filter.apply(stock.entries(), this::favorite, e -> name(e).getString(), SubstanceLabels::iconLabel);
         shownStock = stock;
         shownCatalogue = catalogue;
         shownFilter = filter;
         shownFavorites = favorites;
         return shownEntries;
+    }
+    /** The server keeps search matches and favorites within its row limit; only a changed query is sent. */
+    private void sendStockQuery(StockFilter filter, ChemistryRegistry catalogue) {
+        UUID player = player();
+        var query = filter.query(player == null ? Set.of() : StockFavorites.get().of(player), catalogue.substances(),
+                definition -> SubstanceNames.name(definition).getString(), SubstanceLabels::iconLabel);
+        if (query.equals(sentQuery)) return;
+        sentQuery = query;
+        ClientPacketDistributor.sendToServer(new StockQueryPayload(menu.containerId, query));
     }
     private int gridColumns() { return disk() ? 2 : FULL_GRID_COLUMNS; }
     private int gridX() { return disk() ? 111 : 12; }
@@ -265,7 +285,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         backend.visible = ready && configuration() && menu.kind()==MachineKind.NETWORK_INTERFACE;
         backend.setMessage(Component.translatable("screen.rematter.backend",tr(switch(s.backend()){case "ae2","rs"->"backend_"+s.backend();default->"backend_none";})));
         backend.explain(tr("backend_hint"));
-        automation.setWidth(canNetwork ? 134 : 272);
+        release.visible = ready && configuration() && menu.kind() == MachineKind.NETWORK_INTERFACE && !s.orders().held().isEmpty();
+        release.active = minecraft.player != null && !minecraft.player.isSpectator();
+        automation.setWidth(canNetwork || release.visible ? 134 : 272);
         backend.setX(leftPos + (recoveringUpgrade ? 109 : 12));
         backend.setWidth(recoveringUpgrade ? 175 : 272);
         var values = entries();
@@ -864,5 +886,34 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             else if (!stock.complete()) text(g, Component.translatable("screen.rematter.partial_contents_hint", stock.entries().size(), stock.totalTypes()).getString(), x + 11, y + 126, 222, WARNING);
             super.extractRenderState(g, mx, my, partial);
         }
+    }
+    /**
+     * The explicit confirmation before a stopped delivery is released: the player sees what the order holds and where it
+     * goes. The server checks the order again and hands out only what it can.
+     */
+    private final class ReleaseConfirmScreen extends Screen {
+        private static final int SHOWN = 4;
+        private final MachineSnapshot.OrdersView orders;private final List<Component> lines = new ArrayList<>();private int x,y;
+        ReleaseConfirmScreen(MachineSnapshot.OrdersView orders){super(tr("release_title"));this.orders=orders;
+            orders.matter().forEach(m->lines.add(joined(Component.literal(label(m)),Quantities.matter(number(m.required())))));
+            orders.resources().forEach(r->lines.add(r.kind().equals("fluid")?joined(SubstanceNames.fluid(r.id()),Quantities.fluid(number(r.amount())))
+                    :Component.translatable("gui.rematter.choice.items",number(r.amount()),SubstanceNames.item(r.id()))));}
+        @Override protected void init(){x=(width-244)/2;y=(height-170)/2;
+            addRenderableWidget(Button.builder(tr("release_confirm"),b->confirm()).bounds(x+11,y+141,140,18).build(ConsoleButton::new));
+            addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+163,y+141,70,18).build(ConsoleButton::new));}
+        private void confirm(){
+            if(minecraft.player!=null&&minecraft.player.containerMenu==menu&&menu.snapshot().orders().held().equals(orders.held()))
+                ClientPacketDistributor.sendToServer(new ReleaseHeldOrderPayload(menu.containerId,UUID.fromString(orders.held())));
+            onClose();}
+        @Override public boolean isPauseScreen(){return false;}
+        @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu||!menu.snapshot().orders().held().equals(orders.held()))onClose();}
+        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);
+            ScreenChrome.icon(g,Icon.INFO,x+11,y+11,WARNING);text(g,getTitle().getString(),x+30,y+13,202,TEXT);
+            ScreenChrome.twoLines(g,font,tr("release_explain").getString(),x+11,y+30,222,MUTED);
+            for(int i=0;i<Math.min(SHOWN,lines.size());i++)text(g,lines.get(i).getString(),x+11,y+56+i*12,222,TEXT);
+            int hidden=lines.size()-Math.min(SHOWN,lines.size());
+            if(hidden>0||!orders.complete())text(g,tr("release_more").getString(),x+11,y+56+SHOWN*12,222,MUTED);
+            ScreenChrome.twoLines(g,font,tr("release_warning").getString(),x+11,y+118,222,WARNING);
+            super.extractRenderState(g,mx,my,partial);}
     }
 }
