@@ -107,7 +107,7 @@ Filled machines and Cells retain their contents when carried. Mechanisms animate
 - A matter network includes only one owner's machines. Other players' machines on the same cables are not part of it and never share its stock.
 - An industrial chamber never forms over any block of a chamber that another owner formed first, and a port that two owners' chambers could use stays with the chamber that already claims it. Only a formed chamber or the claim it leaves protects its parts.
 
-Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Matter Cables have no owner: anyone can break or extend them, and breaking a cable can disconnect your devices. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters; other players' machines and other mods' blocks on the same cables receive none. On a shared server, protect bases with a claim mod.
+Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Pistons cannot move Reactor Casing or Glass, and explosions destroy neither owned machines nor the parts of a formed chamber. Matter Cables have no owner: anyone can break or extend them, and breaking a cable can disconnect your devices. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters; other players' machines and other mods' blocks on the same cables receive none. On a shared server, protect bases with a claim mod.
 
 ## Optional integrations
 
