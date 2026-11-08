@@ -54,6 +54,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
     private boolean delivering;
     private boolean created;
     private boolean closed;
+    private boolean inspectingNeighbour;
     private Set<Direction> exposed = Set.of();
 
     public Ae2Bridge(MachineBlockEntity host, AutomationPort port) {
@@ -90,7 +91,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
     @Override public boolean connected() { return created && !closed && node.isActive(); }
     @Override public void load(ValueInput input) { node.deserialize(input); }
     @Override public void save(ValueOutput output) { node.serialize(output); }
-    @Override public IGridNode getGridNode(Direction side) { return node.getNode(); }
+    @Override public IGridNode getGridNode(Direction side) { return side != null && foreignNeighbour(side) ? null : node.getNode(); }
     @Override public IGridNode getActionableNode() { return node.getNode(); }
 
     /** Run after the host advances its workers; never call this from inside pushPattern. */
@@ -141,8 +142,20 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
     /** Native cables connect only on faces that the owner leaves open for matter connections. */
     private Set<Direction> openFaces() {
         var faces = EnumSet.noneOf(Direction.class);
-        for (var side : Direction.values()) if (host.allowsPort(side, MachinePortMode.MATTER)) faces.add(side);
+        for (var side : Direction.values()) if (host.allowsPort(side, MachinePortMode.MATTER) && !foreignNeighbour(side)) faces.add(side);
         return Collections.unmodifiableSet(faces);
+    }
+    /** AE2 has no security service, so a node that another player placed against the interface never joins the owner's grid. */
+    private boolean foreignNeighbour(Direction side) {
+        // Two adjacent interfaces ask each other; the inner question sees the plain node.
+        if (inspectingNeighbour || !(host.getLevel() instanceof ServerLevel level)) return false;
+        var neighbour = host.getBlockPos().relative(side);
+        if (!level.isLoaded(neighbour)) return false;
+        inspectingNeighbour = true;
+        try {
+            var other = GridHelper.getExposedNode(level, neighbour, side.getOpposite());
+            return other != null && !Objects.equals(port.ownerId(), other.getOwningPlayerProfileId());
+        } finally { inspectingNeighbour = false; }
     }
 
     private boolean allowed(IActionSource source) {
