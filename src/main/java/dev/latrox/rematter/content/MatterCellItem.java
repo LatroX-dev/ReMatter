@@ -47,7 +47,7 @@ public final class MatterCellItem extends Item {
             var phase=Component.translatable("item.rematter.matter_cell.phase."+key.phase().name().toLowerCase(Locale.ROOT));
             var definition=registry.definition(key.id()).orElse(null);
             // A missing definition keeps its stored amount and stays visibly unknown until it is resolved.
-            Component name=definition==null?Component.translatable("substance.rematter.unknown",key.id().toString(),phase)
+            Component name=definition==null?Component.translatable("gui.rematter.unknown_substance",key.id().toString(),phase)
                     :Component.translatableWithFallback(definition.translationKey(),key.id().toString());
             if (definition != null && !definition.symbol().isBlank()) name = Component.translatable("item.rematter.matter_cell.symbol",name,definition.symbol().strip());
             tooltip.accept(Component.translatable("item.rematter.matter_cell.row",name,phase,row.quantity()));

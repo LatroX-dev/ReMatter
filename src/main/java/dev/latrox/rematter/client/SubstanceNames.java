@@ -19,7 +19,7 @@ public final class SubstanceNames {
 
     /** A stock row whose definition is missing stays visible, marked as unknown with its stable ID. */
     public static Component substance(String id, String phase, boolean known) {
-        if (!known) return Component.translatable("substance.rematter.unknown", id, phase(phase));
+        if (!known) return Component.translatable("gui.rematter.unknown_substance", id, phase(phase));
         try {
             return ClientChemistry.current().definition(SubstanceId.parse(id))
                     .<Component>map(definition -> Component.translatableWithFallback(definition.translationKey(), readable(definition.id().path())))

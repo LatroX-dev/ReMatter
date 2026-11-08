@@ -46,7 +46,7 @@
   "config.jade.plugin_rematter.machine_status": "Machine status and stored matter",
   "config.jade.plugin_rematter.cable": "Matter cable details",
   "config.jade.plugin_rematter.port": "Machine port role",
-  "substance.rematter.unknown": "Unknown substance (%s, %s)",
+  "gui.rematter.unknown_substance": "Unknown substance (%s, %s)",
   "block.rematter.reactor_casing": "Reactor Casing",
   "item.rematter.speed_upgrade": "Speed Upgrade",
   "item.rematter.efficiency_upgrade": "Efficiency Upgrade",
