@@ -14,8 +14,12 @@ import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSnapshot;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -44,6 +48,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final int STOCK_FOOTER = 134;
     private static final int GRID_ROWS = 3;
     private static final int FULL_GRID_COLUMNS = 3;
+    private static final int CHIP_SIZE = 16;
     private final List<StockButton> stockButtons = new ArrayList<>();
     private EditBox search;
     private ConsoleButton primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
@@ -52,8 +57,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private ConsoleButton ports;
     private boolean sideTabs;
     private int page;
+    private ChipButton favoritesChip;
+    private final List<ChipButton> phaseChips = new ArrayList<>();
+    private final Set<String> phaseFilter = new HashSet<>();
+    private boolean favoritesOnly;
     private MachineMenu.Stock shownStock;
-    private String shownQuery;
+    private StockFilter shownFilter;
+    private int shownFavorites = -1;
     private List<MachineSnapshot.Entry> shownEntries = List.of();
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
@@ -88,6 +98,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         search.setTextColor(TEXT);
         search.setValue(query);
         search.setResponder(value -> { page = 0; updateWidgets(); });
+        favoritesChip = chip(Icon.STAR, "favorites", ACCENT_BRIGHT, () -> favoritesOnly, () -> favoritesOnly = !favoritesOnly);
+        phaseChips.clear();
+        phaseChips.add(chip(Icon.SOLID, "solid", phaseColor("solid"), () -> phaseFilter.contains("solid"), () -> togglePhase("solid")));
+        phaseChips.add(chip(Icon.LIQUID, "liquid", phaseColor("liquid"), () -> phaseFilter.contains("liquid"), () -> togglePhase("liquid")));
+        phaseChips.add(chip(Icon.GAS, "gas", phaseColor("gas"), () -> phaseFilter.contains("gas"), () -> togglePhase("gas")));
 
         processTab = tab(MachineMenu.View.MAIN, 12, 84, passive() ? "tab_contents" : "tab_process");
         upgradesTab = tab(MachineMenu.View.UPGRADES, 100, 84, "tab_upgrades");
@@ -134,6 +149,23 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 .bounds(tabX, topPos + tabY, sideTabs ? SIDE_TAB_WIDTH : width, sideTabs ? SIDE_TAB_HEIGHT : 18)
                 .tooltip(Tooltip.create(tr(key))), view));
     }
+    private ChipButton chip(Icon icon, String filter, int color, BooleanSupplier on, Runnable toggle) {
+        var chip = addRenderableWidget(new ChipButton(Button.builder(tr("filter_" + filter), b -> {
+            toggle.run();
+            page = 0;
+            updateWidgets();
+        }).bounds(leftPos, topPos, CHIP_SIZE, CHIP_SIZE), icon, color, on));
+        chip.explain(tr(filter.equals("favorites") ? "filter_favorites_hint" : "filter_phase_hint"));
+        return chip;
+    }
+    private void togglePhase(String phase) {
+        if (!phaseFilter.remove(phase)) phaseFilter.add(phase);
+    }
+    private UUID player() { return minecraft.player == null ? null : minecraft.player.getUUID(); }
+    private boolean favorite(MachineSnapshot.StockKey key) {
+        UUID player = player();
+        return player != null && StockFavorites.get().contains(player, key);
+    }
     private void turnPage(int step) {
         page = Math.max(0, page + step);
         updateWidgets();
@@ -167,17 +199,16 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static String label(MachineSnapshot.Amount amount) {
         return amount.known() ? SubstanceLabels.shortLabel(amount.id(), name(amount).getString()) : name(amount).getString();
     }
-    /** Filtered once per stock update or search change, not on every frame. */
+    /** Filtered once per stock update, filter change or favorite change, not on every frame. */
     private List<MachineSnapshot.Entry> entries() {
         var stock = menu.stock();
-        String raw = search == null ? "" : search.getValue();
-        if (stock == shownStock && raw.equals(shownQuery)) return shownEntries;
-        String query = raw.strip().toLowerCase(Locale.ROOT);
-        shownEntries = query.isEmpty() ? stock.entries() : stock.entries().stream().filter(e -> name(e).getString().toLowerCase(Locale.ROOT).contains(query)
-                || e.id().toLowerCase(Locale.ROOT).contains(query) || e.phase().contains(query)
-                || SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(e.id()), query)).toList();
+        var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
+        int favorites = StockFavorites.get().revision();
+        if (stock == shownStock && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
+        shownEntries = filter.apply(stock.entries(), this::favorite, e -> name(e).getString(), SubstanceLabels::iconLabel);
         shownStock = stock;
-        shownQuery = raw;
+        shownFilter = filter;
+        shownFavorites = favorites;
         return shownEntries;
     }
     private int gridColumns() { return disk() ? 2 : FULL_GRID_COLUMNS; }
@@ -201,7 +232,16 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         upgradesTab.explain(tr("upgrade_hint").copy().append("\n").append(tr("upgrade_limit")).append("\n").append(tr("upgrade_effect_hint")));
         search.visible = search.active = ready && main() && passive();
         search.setX(leftPos + gridX() + 5);
-        search.setWidth(CONTENT_RIGHT - gridX() - 10);
+        var chips = new ArrayList<ChipButton>(phaseChips);
+        chips.addFirst(favoritesChip);
+        int chipsLeft = CONTENT_RIGHT - 2 - chips.size() * (CHIP_SIZE + 1);
+        search.setWidth(chipsLeft - gridX() - 9);
+        for (int i = 0; i < chips.size(); i++) {
+            var chip = chips.get(i);
+            chip.visible = chip.active = search.visible;
+            chip.setX(leftPos + chipsLeft + i * (CHIP_SIZE + 1));
+            chip.setY(topPos + 51);
+        }
         primary.visible = ready && main() && decision.visible(); primary.active = ready && decision.enabled();
         primary.setMessage(tr(decision.labelKey())); primary.explain(tr(decision.hintKey()));
         choose.visible = ready && main() && !s.networkJobs() && selecting() && !decision.opensRecipeSelection(); choose.active = ready && s.choiceCount() > 0;
@@ -232,6 +272,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         for (int i = 0; i < stockButtons.size(); i++) {
             var b = stockButtons.get(i); int index = page * perPage() + i;
             b.show(i < perPage() && index < values.size() ? values.get(index) : null);
+            b.favorite = b.entry != null && favorite(b.entry.key());
             b.visible = b.active = ready && main() && passive() && b.entry != null;
             b.setX(leftPos + gridX() + i % gridColumns() * tilePitch());
             b.setY(topPos + STOCK_TOP + i / gridColumns() * STOCK_PITCH);
@@ -329,7 +370,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             ScreenChrome.raised(g, x + 150, y + 55, 134, 37, inside(mouseX - x, mouseY - y, 150, 55, 134, 37), true);
         } else if (main() && passive() && search.visible) {
             ScreenChrome.inset(g, x + gridX(), y + 49, CONTENT_RIGHT - gridX(), 20);
-            if (search.isFocused()) g.fill(x + gridX() + 1, y + 67, x + CONTENT_RIGHT - 1, y + 68, ACCENT);
+            if (search.isFocused()) g.fill(x + gridX() + 1, y + 67, search.getX() + search.getWidth(), y + 68, ACCENT);
             if (disk()) ScreenChrome.inset(g, x + 12, y + 49, 92, 95);
         } else if (main() && !passive()) {
             if (!handPreparator()) {
@@ -524,18 +565,22 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var stock = menu.stock();
         var visibleEntries = entries();
         if (visibleEntries.isEmpty()) {
-            String message = tr(!stock.readable() ? "contents_unavailable" : search.getValue().isBlank() ? "empty_storage" : "no_matches").getString();
+            String message = tr(!stock.readable() ? "contents_unavailable" : stock.entries().isEmpty() ? "empty_storage" : "no_matches").getString();
             ScreenChrome.twoLines(g, font, message, gridX() + 5, 87, CONTENT_RIGHT - gridX() - 10, MUTED);
         }
         int pageCount = pages(visibleEntries);
         var parts = new ArrayList<Component>();
+        // A shortened list leads the footer so the notice is never cut off.
+        if (stock.truncated()) parts.add(Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()));
         if (!disk()) parts.add(capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity())));
         if (pageCount > 1) parts.add(Component.translatable("screen.rematter.page", Math.min(page, pageCount - 1) + 1, pageCount));
-        if (stock.truncated()) parts.add(Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()));
         String footer = parts.stream().reduce(MachineScreen::joined).map(Component::getString).orElse("");
+        int notice = stock.truncated() ? ScreenChrome.ICON_SIZE + 2 : 0;
         int start = gridX() + (previous.visible ? 24 : 2), end = CONTENT_RIGHT - (next.visible ? 24 : 2);
-        String label = fitted(footer, end - start);
-        g.text(font, label, (start + end - font.width(label)) / 2, STOCK_FOOTER + 3, stock.complete() ? ACCENT : WARNING, false);
+        String label = fitted(footer, end - start - notice);
+        int labelX = (start + end - font.width(label) + notice) / 2;
+        if (notice > 0) ScreenChrome.icon(g, Icon.INFO, labelX - notice, STOCK_FOOTER, WARNING);
+        g.text(font, label, labelX, STOCK_FOOTER + 3, stock.complete() ? ACCENT : WARNING, false);
     }
 
     private static void capacityBar(GuiGraphicsExtractor g, MachineSnapshot s, int x, int y, int width) {
@@ -622,7 +667,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         if(s.fluidAmount()>0)lines.add(Component.translatable("screen.rematter.fluid_amount",SubstanceNames.fluid(s.fluidId()),number(s.fluidAmount())));
         var stock=menu.stock();
-        if(stock.truncated())lines.add(Component.translatable("screen.rematter.partial_contents_hint",stock.entries().size(),stock.totalTypes()));
+        if(stock.truncated()){lines.add(Component.translatable("screen.rematter.partial_contents_hint",stock.entries().size(),stock.totalTypes()));lines.add(tr("truncated_hint"));}
         else if(!stock.readable())lines.add(tr("contents_unavailable"));
         return lines;
     }
@@ -726,10 +771,32 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
     }
 
+    /** A toggle in the stock search row. Its icon takes the filter's colour while it is on. */
+    private final class ChipButton extends ConsoleButton {
+        private final Icon icon;
+        private final int color;
+        private final BooleanSupplier on;
+
+        ChipButton(Builder builder, Icon icon, int color, BooleanSupplier on) {
+            super(builder);
+            this.icon = icon;
+            this.color = color;
+            this.on = on;
+        }
+
+        @Override protected void extractContents(GuiGraphicsExtractor g, int mx, int my, float partial) {
+            boolean selected = on.getAsBoolean();
+            background(g, selected);
+            ScreenChrome.icon(g, icon, getX() + (getWidth() - ScreenChrome.ICON_SIZE) / 2, getY() + (getHeight() - ScreenChrome.ICON_SIZE) / 2,
+                    selected ? color : MUTED);
+        }
+    }
+
     private final class StockButton extends ConsoleButton {
         private MachineSnapshot.Entry entry;
         private SubstanceKey key;
         private String name = "", amount = "";
+        private boolean favorite;
 
         StockButton(Builder builder) { super(builder); }
 
@@ -755,16 +822,31 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             int available = getWidth() - 26;
             text(g, name, left, getY() + 1, available, entry.known() ? TEXT : WARNING);
             text(g, amount, left, getY() + 9, available, ACCENT);
+            if (favorite) {
+                int right = getX() + getWidth() - 4;
+                g.fill(right - 3, getY() + 2, right, getY() + 3, ACCENT_BRIGHT);
+                g.fill(right - 2, getY() + 1, right - 1, getY() + 4, ACCENT_BRIGHT);
+            }
         }
     }
     /** Quantity details are a real accessible screen, never an inventory slot or an implicit withdrawal. */
     private final class StockDetailsScreen extends Screen {
         private final String id,phase;private final SubstanceKey key;private int x,y;
+        private ConsoleButton favoriteButton;private MachineMenu.Stock seen;private MachineSnapshot.Entry entry;
         StockDetailsScreen(String id,String phase){super(tr("substance_details"));this.id=id;this.phase=phase;key=key(id,phase);}
-        @Override protected void init(){x=(width-244)/2;y=(height-170)/2;addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+87,y+141,70,18).build(ConsoleButton::new));}
+        @Override protected void init(){x=(width-244)/2;y=(height-170)/2;
+            favoriteButton=addRenderableWidget(new ConsoleButton(Button.builder(Component.empty(),b->toggleFavorite()).bounds(x+11,y+141,140,18)));
+            addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+163,y+141,70,18).build(ConsoleButton::new));
+            refreshFavorite();}
+        /** Favorites are stored on this client for the current player; the server never sees them. */
+        private void toggleFavorite(){UUID player=player();if(player!=null&&key!=null)StockFavorites.get().toggle(player,new MachineSnapshot.StockKey(id,phase));refreshFavorite();}
+        private void refreshFavorite(){boolean on=key!=null&&favorite(new MachineSnapshot.StockKey(id,phase));
+            favoriteButton.setMessage(tr(on?"favorite_remove":"favorite_add"));favoriteButton.active=key!=null&&player()!=null;}
         @Override public boolean isPauseScreen(){return false;}
         @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu)onClose();}
-        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();var entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);String name=entry==null?id:name(entry).getString();substanceIcon(g,key,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
+        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();
+            if(stock!=seen){seen=stock;entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);}
+            String name=entry==null?id:name(entry).getString();substanceIcon(g,key,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
             String symbol=SubstanceLabels.iconLabel(id);text(g,(symbol.isEmpty()?SubstanceNames.phase(phase):joined(Component.literal(symbol),SubstanceNames.phase(phase))).getString(),x+34,y+33,198,phaseColor(phase));
             String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());String available=entry==null?(stock.complete()?"0":"?"):number(entry.available());
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_stored", stored).getString(), x + 11, y + 50, 222, TEXT);
