@@ -178,7 +178,7 @@ final class MachineMatterNetwork {
 
     /**
      * The binding of an unpaid batch: owner, status and every endpoint with its mounted inventories and shell.
-     * Cable routes may change, so a cable that someone adds to or removes from a branch never restarts work.
+     * Cable routes may change: a cable added or removed anywhere that leaves every device connected never restarts work.
      */
     boolean sameTopology(MachineMatterNetwork other) {
         return other != null && Objects.equals(owner, other.owner) && status.equals(other.status)

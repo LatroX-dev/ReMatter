@@ -588,7 +588,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
         if (work.progress < work.duration) return;
         if (!industrialStructureReady()) { work.status = IndustrialStructure.inspect(this).diagnostic(); work.processedThisTick = false; return; }
-        // A fresh bounded graph must still have the same owners, routes and mounted inventories.
+        // A deep check must still find the same owner, devices and mounted inventories.
         if (needsStorage) {
             var finalNetwork = matterNetwork(true);
             if (!finalNetwork.ready() || !acceptsNetwork(finalNetwork)) {
