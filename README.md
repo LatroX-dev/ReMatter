@@ -37,7 +37,7 @@ A Matter Drive holds **six individually removable Cells**, arranged in two colum
 
 For continuous production, use hoppers and chests to feed input and collect output. Enable **Automation** under **Configuration** on both processors and press **Run nonstop** under the Synthesizer's **Configuration**.
 
-Multiple Drives can share one network and pool their capacity, up to **64 Drives**. Matter Cables carry the matter network and forward FE that a generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. Each powered machine buffers up to **2,400,000 FE** and accepts up to 16,000 FE per transfer. A batch starts only when its complete FE price is stored.
+Multiple Drives can share one network and pool their capacity, up to **64 Drives**. Matter Cables carry the matter network and forward FE that a generator or energy store pushes into them to ReMatter machines. They store no FE, and nothing can pull FE out through a cable. Each powered machine buffers up to **2,400,000 FE** and accepts up to 16,000 FE per transfer. A batch starts only when its complete FE price is stored.
 
 The lowest cable tier in a network sets its node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cable branches that reach none of your machines, including cables other players attach, do not count. A network that outgrows its weakest cable leaves that tier, and whatever only it reaches, out of the network; the stronger part keeps working. A cable system larger than 4,096 connected blocks reports that the network is too large. Work waits while part of a network is in an unloaded chunk.
 
@@ -107,7 +107,7 @@ Filled machines and Cells retain their contents when carried. Mechanisms animate
 - A matter network includes only one owner's machines. Other players' machines on the same cables are not part of it and never share its stock.
 - An industrial chamber never forms over any block of a chamber that another owner formed first, and a port that two owners' chambers could use stays with the chamber that already claims it. Only a formed chamber or the claim it leaves protects its parts.
 
-Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Matter Cables have no owner: anyone can break or extend them, and FE pushed into a cable reaches every connected FE receiver, including other players' machines. Breaking a cable can disconnect your devices. On a shared server, protect bases with a claim mod.
+Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Matter Cables have no owner: anyone can break or extend them, and breaking a cable can disconnect your devices. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters; other players' machines and other mods' blocks on the same cables receive none. On a shared server, protect bases with a claim mod.
 
 ## Optional integrations
 

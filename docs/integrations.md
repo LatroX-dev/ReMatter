@@ -78,7 +78,7 @@ Ten matching source fluids are supported through explicit profiles: hydrogen, ox
 
 ## Energy, fluids, and items
 
-Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward FE that a source pushes into them to every connected FE receiver. They store none, and nothing can pull FE out through a cable.
+Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward FE that a source pushes into them to the ReMatter machines and Machine Ports of the player whose device is nearest to the source; other mods' blocks receive none. They store none, and nothing can pull FE out through a cable.
 
 Item and fluid automation is off by default. Enable it in the processing machine's **Configuration**. For an automated glass line, put a Cell in a connected Matter Drive. One hopper feeds sand into the Decomposer and another extracts glass from the Synthesizer. Keep the Decomposer running, select Glass with **Choose recipe** or **Recipe**, confirm with **Use recipe**, and press **Configuration → Run nonstop** on the Synthesizer to keep producing. **Stop repeat** stops continuous production. **Pause** and **Resume** retain the current order. Feeding input through a pipe does not request synthesis jobs on its own.
 

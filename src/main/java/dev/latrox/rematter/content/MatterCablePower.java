@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -33,10 +34,15 @@ import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
-/** Loaded cable components forward pushed FE in the caller's transaction, without storing energy. */
+/**
+ * Loaded cable components forward pushed FE in the caller's transaction, without storing energy. Cables have no owner,
+ * so FE reaches only the ReMatter machines and ports of the player whose device is nearest to where it enters.
+ */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class MatterCablePower {
-    private static final int MAX_CACHED_CABLES = 4096;
+    // A component at the scan budget is still indexed, so an oversized one is not rescanned on every push.
+    private static final int MAX_CACHED_CABLES = 2 * MachineMatterNetwork.SCAN_BUDGET;
+    private static final int MAX_CACHED_ORIGINS = 64;
     private static final Direction[] DIRECTIONS = Direction.values();
     private static final Map<ServerLevel, NetworkCache> CACHES = new IdentityHashMap<>();
 
@@ -62,7 +68,7 @@ public final class MatterCablePower {
         }
     }
 
-    /** Applies the cable's physical side rules before consulting the endpoint's FE capability. */
+    /** Applies the cable's physical side rules before consulting the endpoint's FE capability. Any other block may push FE in. */
     static boolean allowsEndpoint(BlockState state, Direction side) {
         if (state.getBlock() instanceof MachineBlock machine) {
             return machine.kind().processes() && !PreparationTier.manual(machine.kind())
@@ -77,6 +83,36 @@ public final class MatterCablePower {
 
     private static @Nullable LevelChunk loaded(ServerLevel level, BlockPos pos) {
         return level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+    }
+
+    /** The player an FE recipient belongs to: a machine's owner, or the owner of the chamber a port serves. */
+    private static @Nullable UUID owner(ServerLevel level, BlockPos position) {
+        var entity = level.getBlockEntity(position);
+        if (entity instanceof MachineBlockEntity machine) return machine.networkOwner();
+        if (entity instanceof MachinePortBlockEntity port) {
+            var controller = port.controller(null);
+            return controller == null ? null : controller.networkOwner();
+        }
+        return null;
+    }
+
+    record Candidate<T>(T endpoint, @Nullable UUID owner, int distance, BlockPos position) {}
+
+    /**
+     * The endpoints that receive pushed FE: all of those owned by the player whose endpoint lies nearest to where the
+     * FE enters, ties broken by position. Unowned endpoints receive nothing, so a device another player attaches farther
+     * away neither taps nor blocks the supply.
+     */
+    static <T> List<T> recipients(List<Candidate<T>> candidates) {
+        Candidate<T> nearest = null;
+        for (var candidate : candidates) {
+            if (candidate.owner == null) continue;
+            if (nearest == null || candidate.distance < nearest.distance
+                    || candidate.distance == nearest.distance && candidate.position.compareTo(nearest.position) < 0) nearest = candidate;
+        }
+        if (nearest == null) return List.of();
+        var owner = nearest.owner;
+        return candidates.stream().filter(candidate -> owner.equals(candidate.owner)).map(Candidate::endpoint).toList();
     }
 
     private static final class Connection extends SnapshotJournal<Optional<Flow>> implements EnergyHandler {
@@ -127,14 +163,20 @@ public final class MatterCablePower {
 
                 var component = cache.component(level, origin);
                 if (component.endpoints == null) return 0;
-                var endpoints = component.endpoints.active();
+                var distances = component.distances(origin);
+                var candidates = new ArrayList<Candidate<Endpoint>>();
+                for (var endpoint : component.endpoints.active()) {
+                    if (endpoint.position.equals(adjacent)) continue;
+                    candidates.add(new Candidate<>(endpoint, owner(level, endpoint.position),
+                            distances.getOrDefault(endpoint.position, Integer.MAX_VALUE), endpoint.position));
+                }
+                var endpoints = recipients(candidates);
                 if (endpoints.isEmpty()) return 0;
                 int remaining = amount;
                 int count = endpoints.size();
                 int start = Math.floorMod(level.getGameTime() + origin.asLong(), count);
                 for (int i = 0; i < count && remaining > 0; i++) {
                     var endpoint = endpoints.get((start + i) % count);
-                    if (endpoint.position.equals(adjacent)) continue;
                     for (var face : endpoint.faces) {
                         var handler = face.capability.cache.getCapability();
                         if (handler == null || handler instanceof Connection) continue;
@@ -283,6 +325,12 @@ public final class MatterCablePower {
         private final Set<BlockPos> cables;
         private final @Nullable Endpoints endpoints;
         private final List<ChunkStamp> stamps;
+        // Access order, so only the cables that recently received FE keep their endpoint distances.
+        private final Map<BlockPos, Map<BlockPos, Integer>> distances = new LinkedHashMap<>(16, 0.75F, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<BlockPos, Map<BlockPos, Integer>> eldest) {
+                return size() > MAX_CACHED_ORIGINS;
+            }
+        };
         private long checkedTick = Long.MIN_VALUE, checkedEpoch;
 
         private Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkStamp> stamps) {
@@ -295,6 +343,30 @@ public final class MatterCablePower {
             if (!stamps.stream().allMatch(stamp -> stamp.matches(level))) return false;
             checkedTick = tick; checkedEpoch = epoch;
             return true;
+        }
+
+        /** The cable distance from the origin to each endpoint, through the nearest of its faces. */
+        private Map<BlockPos, Integer> distances(BlockPos origin) {
+            return distances.computeIfAbsent(origin, start -> {
+                var steps = new HashMap<BlockPos, Integer>();
+                var queue = new ArrayDeque<BlockPos>();
+                steps.put(start, 0);
+                queue.add(start);
+                while (!queue.isEmpty()) {
+                    BlockPos position = queue.removeFirst();
+                    int next = steps.get(position) + 1;
+                    for (Direction direction : DIRECTIONS) {
+                        var neighbor = position.relative(direction);
+                        if (cables.contains(neighbor) && steps.putIfAbsent(neighbor, next) == null) queue.add(neighbor);
+                    }
+                }
+                var result = new HashMap<BlockPos, Integer>();
+                if (endpoints != null) for (var endpoint : endpoints.candidates) for (var face : endpoint.faces) {
+                    Integer cable = steps.get(face.cable);
+                    if (cable != null) result.merge(endpoint.position, cable + 1, Math::min);
+                }
+                return Map.copyOf(result);
+            });
         }
 
         private List<BlockPos> path(BlockPos source, BlockPos target) {
@@ -344,8 +416,7 @@ public final class MatterCablePower {
         }
 
         private Component scan(BlockPos origin) {
-            if (!(read(origin).getBlock() instanceof MatterPipeBlock pipe)) return result(Set.of(), null);
-            int limit = pipe.tier().networkLimit();
+            if (!(read(origin).getBlock() instanceof MatterPipeBlock)) return result(Set.of(), null);
             var cables = new LinkedHashSet<BlockPos>();
             var ends = new LinkedHashMap<BlockPos, List<EndpointSide>>();
             var queue = new ArrayDeque<BlockPos>();
@@ -356,12 +427,12 @@ public final class MatterCablePower {
                 for (Direction direction : DIRECTIONS) {
                     var next = position.relative(direction);
                     var state = read(next);
-                    if (state.getBlock() instanceof MatterPipeBlock cable) {
+                    if (state.getBlock() instanceof MatterPipeBlock) {
                         if (!cables.add(next)) continue;
-                        limit = Math.min(limit, cable.tier().networkLimit());
-                        if (cables.size() > limit) return result(cables, null);
+                        if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(cables, null);
                         queue.add(next);
-                    } else if (allowsEndpoint(state, direction.getOpposite())) {
+                    } else if ((state.getBlock() instanceof MachineBlock || state.getBlock() instanceof MachinePortBlock)
+                            && allowsEndpoint(state, direction.getOpposite())) {
                         ends.computeIfAbsent(next, ignored -> new ArrayList<>()).add(new EndpointSide(position, direction.getOpposite()));
                     }
                 }

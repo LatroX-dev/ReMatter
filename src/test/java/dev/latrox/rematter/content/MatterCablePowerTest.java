@@ -1,7 +1,9 @@
 package dev.latrox.rematter.content;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,10 +38,23 @@ class MatterCablePowerTest {
         assertNull(index.get(new BlockPos(200, 0, 0)));
         assertEquals("kept", index.get(new BlockPos(19, 0, 0)));
     }
+    @Test void pushedFeReachesOnlyTheNearestOwnersDevices() {
+        var owner = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        var stranger = UUID.fromString("00000000-0000-0000-0000-000000000002");
+        var supply = List.of(candidate("decomposer", owner, 2, 0), candidate("synthesizer", owner, 9, 1),
+                candidate("tap", stranger, 5, 2), candidate("unclaimed", null, 1, 3));
+        assertEquals(List.of("decomposer", "synthesizer"), MatterCablePower.recipients(supply));
+        var tie = List.of(candidate("stranger", stranger, 2, 1), candidate("owner", owner, 2, 0));
+        assertEquals(List.of("owner"), MatterCablePower.recipients(tie));
+        assertEquals(List.of(), MatterCablePower.recipients(List.of(candidate("unclaimed", null, 1, 0))));
+    }
     @Test void onlyChunkBorderColumnsAreRepairedAfterLoading() {
         assertTrue(MatterPipeConnections.borderColumn(0)); assertTrue(MatterPipeConnections.borderColumn(15));
         assertTrue(MatterPipeConnections.borderColumn(-1)); assertTrue(MatterPipeConnections.borderColumn(-16));
         assertFalse(MatterPipeConnections.borderColumn(7)); assertFalse(MatterPipeConnections.borderColumn(-8));
+    }
+    private static MatterCablePower.Candidate<String> candidate(String name, UUID owner, int distance, int x) {
+        return new MatterCablePower.Candidate<>(name, owner, distance, new BlockPos(x, 0, 0));
     }
     private static Set<BlockPos> line(int start, int length) {
         var positions = new HashSet<BlockPos>();

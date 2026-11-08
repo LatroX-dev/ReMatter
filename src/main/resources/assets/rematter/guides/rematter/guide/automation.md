@@ -86,7 +86,7 @@ Crafting a new Cell gives you an empty Cell. Installed Cells keep their own cont
 
 Matter Cables carry matter-network traffic and forward FE that an external generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cable branches that reach none of your machines do not count. If the network grows past that limit, cables of the weakest tier and the devices only they reach are left out; the stronger part keeps working. A cable system larger than 4,096 connected blocks is too large.
 
-A network includes only your own machines; other players' machines on the same cables stay separate. Cables have no owner, so anyone can break or extend them and FE pushed into a cable reaches every connected receiver. On a shared server, protect your base with a claim mod.
+A network includes only your own machines; other players' machines on the same cables stay separate. Cables have no owner, so anyone can break or extend them. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters. On a shared server, protect your base with a claim mod.
 
 Connect Matter Cables to eligible rear, side or bottom ports. The Matter Terminal connects at the rear. In the Terminal's network view, open connected device menus or queue a selected recipe on a compatible worker. Use separate transport for physical items and ordinary fluids.
 
