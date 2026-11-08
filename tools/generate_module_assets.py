@@ -120,11 +120,11 @@ for name in NAMES:
     write(RES/f'data/rematter/loot_table/blocks/{name}.json',{'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'rematter:'+name}],'conditions':[{'condition':'minecraft:survives_explosion'}]}]})
 
 recipes={
-'grinding_unit': (['M M','R R','VFV'], {'M':'rematter:matrix_crystal','R':'rematter:rhevon_ingot','V':'rematter:virelite_ceramic','F':'rematter:machine_frame'}),
-'separation_unit': (['VMV',' O ','RFR'], {'M':'rematter:matrix_crystal','O':'rematter:optical_circuit','V':'rematter:virelite_ceramic','R':'rematter:rhevon_ingot','F':'rematter:machine_frame'}),
+'grinding_unit': (['DMD','RBR','VFV'], {'D':'rematter:diamond_lattice','M':'rematter:matrix_crystal','R':'rematter:rhevon_ingot','B':'rematter:structural_bars','V':'rematter:virelite_ceramic','F':'rematter:machine_frame'}),
+'separation_unit': (['VMV','DOD','RFR'], {'V':'rematter:virelite_ceramic','M':'rematter:matrix_crystal','D':'rematter:diamond_lattice','O':'rematter:optical_circuit','R':'rematter:rhevon_ingot','F':'rematter:machine_frame'}),
 'mixing_basin': (['M M','VMV','RFR'], {'M':'rematter:matrix_crystal','V':'rematter:virelite_ceramic','R':'rematter:rhevon_ingot','F':'rematter:machine_frame'}),
-'field_coil': (['CLC','C C','FQF'], {'C':'minecraft:copper_ingot','L':'rematter:lumivex_ingot','Q':'rematter:control_circuit','F':'rematter:machine_frame'}),
-'reaction_chamber': (['G G','VMV','FO '], {'G':'minecraft:glass','M':'rematter:matrix_cluster','F':'rematter:machine_frame','O':'rematter:optical_circuit','V':'rematter:virelite_ceramic'}),
+'field_coil': (['CLC','CMC','FQF'], {'C':'rematter:copper_dust','L':'rematter:lumivex_ingot','M':'rematter:matrix_crystal','Q':'rematter:control_circuit','F':'rematter:machine_frame'}),
+'reaction_chamber': (['GDG','VMV','FOF'], {'G':'rematter:reactor_glass','D':'rematter:diamond_lattice','V':'rematter:virelite_ceramic','M':'rematter:matrix_cluster','F':'rematter:machine_frame','O':'rematter:optical_circuit'}),
 }
 for name,(pattern,key) in recipes.items():
     write(RES/f'data/rematter/recipe/{name}.json',{'type':'minecraft:crafting_shaped','category':'misc','pattern':pattern,'key':key,'result':{'id':'rematter:'+name,'count':1}})
