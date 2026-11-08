@@ -3,6 +3,7 @@ package dev.latrox.rematter.client;
 import static dev.latrox.rematter.client.UiPalette.*;
 import dev.latrox.rematter.client.ScreenChrome.Icon;
 
+import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.Phase;
@@ -13,6 +14,7 @@ import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.network.ClientChemistry;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +64,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private final Set<String> phaseFilter = new HashSet<>();
     private boolean favoritesOnly;
     private MachineMenu.Stock shownStock;
+    private ChemistryRegistry shownCatalogue;
     private StockFilter shownFilter;
     private int shownFavorites = -1;
     private List<MachineSnapshot.Entry> shownEntries = List.of();
@@ -199,14 +202,16 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static String label(MachineSnapshot.Amount amount) {
         return amount.known() ? SubstanceLabels.shortLabel(amount.id(), name(amount).getString()) : name(amount).getString();
     }
-    /** Filtered once per stock update, filter change or favorite change, not on every frame. */
+    /** Filtered once per stock, catalogue, filter or favorite change, not on every frame. */
     private List<MachineSnapshot.Entry> entries() {
         var stock = menu.stock();
+        var catalogue = ClientChemistry.current();
         var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
         int favorites = StockFavorites.get().revision();
-        if (stock == shownStock && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
+        if (stock == shownStock && catalogue == shownCatalogue && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
         shownEntries = filter.apply(stock.entries(), this::favorite, e -> name(e).getString(), SubstanceLabels::iconLabel);
         shownStock = stock;
+        shownCatalogue = catalogue;
         shownFilter = filter;
         shownFavorites = favorites;
         return shownEntries;
@@ -449,13 +454,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         } else if (p.inputs().size() == 1) {
             var ingredient = p.inputs().getFirst();
             ScreenChrome.twoLines(g, font, label(ingredient), 38, 75, 90,
-                    ingredient.available() < ingredient.required() ? WARNING : TEXT);
+                    !ingredient.known() || ingredient.available() < ingredient.required() ? WARNING : TEXT);
             text(g, matter(ingredient.required()), 38, 99, 90, MUTED);
         } else if (!p.inputs().isEmpty()) {
             for (int i = 0; i < Math.min(2, p.inputs().size()); i++) {
                 var ingredient = p.inputs().get(i);
                 text(g, label(ingredient), 38, 72 + i * 19, 90,
-                        ingredient.available() < ingredient.required() ? WARNING : TEXT);
+                        !ingredient.known() || ingredient.available() < ingredient.required() ? WARNING : TEXT);
                 text(g, matter(ingredient.required()), 38, 81 + i * 19, 80, MUTED);
             }
             if (p.inputs().size() > 2 || !p.complete()) g.text(font, "+", 122, 100, MUTED, false);
@@ -794,16 +799,18 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     private final class StockButton extends ConsoleButton {
         private MachineSnapshot.Entry entry;
+        private ChemistryRegistry catalogue;
         private SubstanceKey key;
         private String name = "", amount = "";
         private boolean favorite;
 
         StockButton(Builder builder) { super(builder); }
 
-        /** Names, icon key and tooltip are resolved once per shown row. */
+        /** Names, icon key and tooltip are resolved once per shown row and catalogue. */
         void show(MachineSnapshot.Entry value) {
-            if (java.util.Objects.equals(value, entry)) return;
+            if (java.util.Objects.equals(value, entry) && catalogue == ClientChemistry.current()) return;
             entry = value;
+            catalogue = ClientChemistry.current();
             if (value == null) return;
             key = key(value.id(), value.phase());
             name = name(value).getString();

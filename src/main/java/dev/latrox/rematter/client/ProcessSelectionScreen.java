@@ -51,6 +51,9 @@ public final class ProcessSelectionScreen extends Screen {
     private int page, detailPage;
     private boolean narrow, showingDetails, showSummary;
     private String focusedId = "";
+    private List<ProcessPresentation.Product> focusLookupList;
+    private String focusLookupId;
+    private ProcessPresentation.Product focusedProduct;
 
     public ProcessSelectionScreen(MachineMenu menu) {
         super(Component.translatable("screen.rematter.choose_recipe"));
@@ -188,8 +191,14 @@ public final class ProcessSelectionScreen extends Screen {
         detailPage = 0;
         refreshResults();
     }
+    /** Resolved again only when the focus or the filtered list changes, since catalogues can hold thousands of products. */
     private ProcessPresentation.Product focused() {
-        return filtered.stream().filter(product -> product.id().equals(focusedId)).findFirst().orElse(null);
+        if (filtered != focusLookupList || !focusedId.equals(focusLookupId)) {
+            focusLookupList = filtered;
+            focusLookupId = focusedId;
+            focusedProduct = filtered.stream().filter(product -> product.id().equals(focusedId)).findFirst().orElse(null);
+        }
+        return focusedProduct;
     }
     private void focusResult(int row) {
         int index = page * resultButtons.size() + row;
