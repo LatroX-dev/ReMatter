@@ -13,6 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.material.FlowingFluid;
 
@@ -27,9 +28,21 @@ final class SynthesisOutputs {
             "processor", "processors", "machine", "machines", "frame", "frames",
             "sword", "swords", "pickaxe", "axe", "shovel", "hoe", "helmet", "chestplate",
             "leggings", "boots", "armor", "armour", "motor", "rotor", "turbine",
-            "bricks", "stairs", "slab", "wall", "button");
+            "rod", "rods", "sheet", "sheets", "foil", "foils", "bolt", "bolts", "screw", "screws",
+            "coil", "coils", "cable", "cables", "pipe", "pipes", "casing", "casings", "upgrade", "upgrades",
+            "chip", "chips", "spring", "springs", "lens", "lenses", "bars", "ceramic", "ceramics",
+            "bricks", "stairs", "slab", "wall", "button", "polished", "smooth", "chiseled", "cut", "pillar",
+            "tiles", "pane", "panes", "fence", "door", "trapdoor");
     private static final Set<String> PROCESSED_COMPONENTS = Set.of(
-            "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath");
+            "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath",
+            "rematter:matrix_blend", "rematter:diamond_matrix_blend", "rematter:ender_conductor_blend",
+            "rematter:netherite_sheath_blend", "rematter:matrix_cluster", "rematter:cell_housing", "rematter:reactor_glass",
+            "rematter:machine_port", "rematter:silith", "rematter:argil", "rematter:rhedon", "rematter:virel", "rematter:lumin",
+            "rematter:rhevon_ingot", "rematter:lumivex_ingot", "rematter:automation_pattern", "rematter:recovered_matter",
+            "rematter:guide");
+    private static final Set<String> SPECIAL_LOOT = Set.of(
+            "minecraft:nether_star", "minecraft:totem_of_undying", "minecraft:heart_of_the_sea", "minecraft:dragon_egg",
+            "minecraft:enchanted_golden_apple", "minecraft:echo_shard");
 
     private SynthesisOutputs() {}
 
@@ -82,17 +95,26 @@ final class SynthesisOutputs {
                     || components.has(DataComponents.PIERCING_WEAPON) || components.has(DataComponents.KINETIC_WEAPON)) {
                 reject(name, "equipment and containers cannot be synthesized");
             }
+            if (components.has(DataComponents.DEATH_PROTECTION) || components.has(DataComponents.ENCHANTMENT_GLINT_OVERRIDE)
+                    || !components.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY).isEmpty()
+                    || !components.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY).isEmpty()) {
+                reject(name, "enchanted and protective items are artifacts, not raw materials");
+            }
             if (item instanceof BlockItem blockItem && blockItem.getBlock() instanceof EntityBlock) {
                 reject(name, "machines and block entities cannot be synthesized");
             }
-            if (Arrays.stream(id.getPath().split("[_/.-]")).anyMatch(MANUFACTURED_PARTS::contains)
-                    || PROCESSED_COMPONENTS.contains(name)
-                    || (id.getNamespace().equals("rematter") && id.getPath().endsWith("_matrix_crystal"))
-                    || name.equals("minecraft:nether_star") || name.equals("rematter:matrix_cluster")
-                    || name.equals("rematter:cell_housing")) {
+            if (forbiddenName(name)) {
                 reject(name, "manufactured components and special loot are outside the synthesis catalogue");
             }
         });
+    }
+
+    /** Name rules for item outputs that hold independently of the loaded game, so shipped data can be checked offline. */
+    static boolean forbiddenName(String name) {
+        Identifier id = Identifier.parse(name);
+        return Arrays.stream(id.getPath().split("[_/.-]")).anyMatch(MANUFACTURED_PARTS::contains)
+                || PROCESSED_COMPONENTS.contains(name) || SPECIAL_LOOT.contains(name)
+                || id.getNamespace().equals("rematter") && id.getPath().endsWith("_matrix_crystal");
     }
 
     private static void reject(String id, String reason) {
