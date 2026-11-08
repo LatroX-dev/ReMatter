@@ -21,7 +21,7 @@ Place JSON files in the following directories of a Minecraft data pack:
 | `data/<namespace>/rematter/process/` | Balanced transformations between stored substances |
 | `data/<namespace>/rematter/synthesis/` | Explicit permission to synthesize a particular output |
 
-Every document requires `"schema_version": 1`; any other version rejects the reload. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two different active profile or synthesis files targeting the same item are rejected.
+Every document requires `"schema_version": 1`; any other version rejects the reload. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two profile or synthesis files at different paths that target the same item are rejected, even when one of them is disabled. Every shipped item profile has a synthesis entry, disabled for recovery-only items, at `data/rematter/rematter/synthesis/vanilla/<item path>.json` for Minecraft items or `data/rematter/rematter/synthesis/compat/<namespace>/<item path>.json` for other mods. To change such a permission, override that exact path with higher pack priority instead of adding a file in your own namespace.
 
 The whole catalogue is validated before a reload takes effect. Unknown substances, invalid phases, fractional or overflowing quantities, batches above the energy limit, unbalanced reactions, and forbidden synthesis categories reject the reload.
 
