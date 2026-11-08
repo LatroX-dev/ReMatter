@@ -9,6 +9,7 @@ import dev.latrox.rematter.network.CatalogSync;
 import dev.latrox.rematter.network.MatterCablePulsePayload;
 import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
 import dev.latrox.rematter.network.SelectProcessPayload;
+import dev.latrox.rematter.network.StockQueryPayload;
 import dev.latrox.rematter.network.TerminalDeviceActionPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
 import net.neoforged.bus.api.IEventBus;
@@ -29,6 +30,7 @@ public final class ReMatter {
         modBus.addListener(MatterCablePulsePayload::register);
         modBus.addListener(ReleaseHeldOrderPayload::register);
         modBus.addListener(SelectProcessPayload::register);
+        modBus.addListener(StockQueryPayload::register);
         modBus.addListener(TerminalDeviceActionPayload::register);
         modBus.addListener(TerminalDevicesPayload::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);

@@ -1,7 +1,11 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.chemistry.SubstanceDefinition;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.content.StockQuery;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -10,11 +14,25 @@ import java.util.function.Predicate;
 
 /** What a stock browser shows: text search, a phase filter and an optional favorites-only view, favorites always first. */
 record StockFilter(String text, Set<String> phases, boolean favoritesOnly) {
-    static final Set<String> PHASES = Set.of("solid", "liquid", "gas");
-
     StockFilter {
         phases = Set.copyOf(phases);
-        if (!PHASES.containsAll(phases)) throw new IllegalArgumentException("Unknown phase filter");
+        if (!StockQuery.PHASES.containsAll(phases)) throw new IllegalArgumentException("Unknown phase filter");
+    }
+
+    /**
+     * The query that lets the server keep matches and favorites within its row limit. Names and formulas exist only on
+     * the client, so the catalogue substances they match are sent by ID, at most {@link StockQuery#MAX_NAMED} of them.
+     */
+    StockQuery query(Set<MachineSnapshot.StockKey> favorites, Collection<SubstanceDefinition> catalogue,
+                     Function<SubstanceDefinition, String> name, Function<SubstanceDefinition, String> symbol) {
+        String query = text.strip().toLowerCase(Locale.ROOT);
+        var named = new LinkedHashSet<String>();
+        if (!query.isEmpty()) for (var definition : catalogue) {
+            if (named.size() == StockQuery.MAX_NAMED) break;
+            if (name.apply(definition).toLowerCase(Locale.ROOT).contains(query) || SubstanceLabels.matchesSymbol(symbol.apply(definition), query))
+                named.add(definition.id().toString());
+        }
+        return new StockQuery(text, phases, favoritesOnly, favorites, named);
     }
 
     /** An empty phase selection shows every phase. Rows keep the synchronized order within each group. */

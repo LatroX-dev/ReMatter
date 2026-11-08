@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 final class MachineSnapshots {
     private MachineSnapshots() {}
 
-    /** Stock rows in key order, limited to {@code entries}; {@code totalTypes} counts every stored type. */
+    /** Stock rows in key order, selected by the viewer's query within the row limit; {@code totalTypes} counts every stored type. */
     record Stock(boolean readable, int totalTypes, long used, long capacity, String source, List<MachineSnapshot.Entry> entries) {
         Stock { entries = List.copyOf(entries); }
     }
@@ -42,9 +42,36 @@ final class MachineSnapshots {
         return new Source(network, store, independent);
     }
 
-    static Stock stock(MachineBlockEntity machine, int limit) { return stock(machine, source(machine), limit); }
+    static Stock stock(MachineBlockEntity machine, int limit) { return stock(machine, source(machine), StockQuery.ALL, limit); }
 
-    private static Stock stock(MachineBlockEntity machine, Source source, int limit) {
+    /** A menu's stock rows, rebuilt only after the store, its revision, the catalogue or the viewer's query changed. */
+    static final class StockView {
+        private @Nullable MatterStore store;
+        private long revision;
+        private @Nullable ChemistryRegistry registry;
+        private StockQuery query = StockQuery.ALL;
+        private @Nullable Stock stock;
+
+        /** Returns the previous instance while nothing that shapes the rows changed. */
+        Stock refresh(MachineBlockEntity machine, StockQuery query, int limit) {
+            var source = source(machine);
+            var store = source.store();
+            long revision = store == null ? 0 : store.revision();
+            var registry = ReMatter.chemistry();
+            // An analyzer shows its inspected sample, which no store revision tracks.
+            if (stock == null || machine.kind() == MachineKind.ANALYZER || store != this.store || revision != this.revision
+                    || registry != this.registry || !query.equals(this.query)) {
+                stock = stock(machine, source, query, limit);
+                this.store = store;
+                this.revision = revision;
+                this.registry = registry;
+                this.query = query;
+            }
+            return stock;
+        }
+    }
+
+    private static Stock stock(MachineBlockEntity machine, Source source, StockQuery query, int limit) {
         ChemistryRegistry registry = ReMatter.chemistry();
         var store = source.store();
         Map<SubstanceKey, Long> displayed = store == null ? Map.of() : store.contents();
@@ -55,11 +82,10 @@ final class MachineSnapshots {
                 displayed = profile.matter();
         }
         var entries = new ArrayList<MachineSnapshot.Entry>();
-        if (limit > 0) for (var entry : new TreeMap<>(displayed).entrySet()) {
-            if (entries.size() == limit) break;
-            SubstanceKey key = entry.getKey();
-            if (key.id().toString().length() > MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH) continue;
-            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), entry.getValue(),
+        var sorted = new TreeMap<>(displayed);
+        var keys = sorted.keySet().stream().filter(key -> key.id().toString().length() <= MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH).toList();
+        for (var key : query.select(keys, limit)) {
+            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), sorted.get(key),
                     store == null ? 0 : store.available(key), registry.isKnown(key)));
         }
         String origin = store == null ? "none" : machine.kind().isStorage() ? "local" : "network";

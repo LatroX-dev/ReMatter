@@ -14,8 +14,10 @@ import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.content.StockQuery;
 import dev.latrox.rematter.network.ClientChemistry;
 import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
+import dev.latrox.rematter.network.StockQueryPayload;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +72,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private StockFilter shownFilter;
     private int shownFavorites = -1;
     private List<MachineSnapshot.Entry> shownEntries = List.of();
+    private StockQuery sentQuery;
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, PANEL_WIDTH, PANEL_HEIGHT);
@@ -216,12 +219,22 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
         int favorites = StockFavorites.get().revision();
         if (stock == shownStock && catalogue == shownCatalogue && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
+        if (catalogue != shownCatalogue || !filter.equals(shownFilter) || favorites != shownFavorites) sendStockQuery(filter, catalogue);
         shownEntries = filter.apply(stock.entries(), this::favorite, e -> name(e).getString(), SubstanceLabels::iconLabel);
         shownStock = stock;
         shownCatalogue = catalogue;
         shownFilter = filter;
         shownFavorites = favorites;
         return shownEntries;
+    }
+    /** The server keeps search matches and favorites within its row limit; only a changed query is sent. */
+    private void sendStockQuery(StockFilter filter, ChemistryRegistry catalogue) {
+        UUID player = player();
+        var query = filter.query(player == null ? Set.of() : StockFavorites.get().of(player), catalogue.substances(),
+                definition -> SubstanceNames.name(definition).getString(), SubstanceLabels::iconLabel);
+        if (query.equals(sentQuery)) return;
+        sentQuery = query;
+        ClientPacketDistributor.sendToServer(new StockQueryPayload(menu.containerId, query));
     }
     private int gridColumns() { return disk() ? 2 : FULL_GRID_COLUMNS; }
     private int gridX() { return disk() ? 111 : 12; }

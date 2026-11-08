@@ -818,7 +818,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     public MachineSnapshot snapshot(int containerId) { return MachineSnapshots.build(this, containerId); }
-    MachineSnapshots.Stock stock() { return MachineSnapshots.stock(this, MachineSnapshot.MAX_ENTRIES); }
     MachineProgressPayload progress(int containerId) { return MachineSnapshots.progress(this, containerId); }
     /** A short read-only overlay for an owner, without previews, choices or the full stock. */
     public @Nullable Summary summaryFor(Player player, int rows) {
