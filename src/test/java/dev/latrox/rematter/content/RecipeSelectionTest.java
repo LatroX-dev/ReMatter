@@ -9,11 +9,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RecipeSelectionTest {
     @Test void removedOrDisallowedSelectionNeverBecomesTheFirstDifferentProduct() {
-        var restored = RecipeSelection.restore("example:old_material", List.of("minecraft:gold_ingot", "minecraft:iron_ingot"));
+        var restored = RecipeSelection.restore("example:removed_material", List.of("minecraft:gold_ingot", "minecraft:iron_ingot"));
         assertTrue(restored.unavailable());
         assertEquals(-1, restored.index());
-        assertEquals("example:old_material", restored.id());
-        var returned = RecipeSelection.restore(restored.id(), List.of("minecraft:gold_ingot", "example:old_material"));
+        assertEquals("example:removed_material", restored.id());
+        var returned = RecipeSelection.restore(restored.id(), List.of("minecraft:gold_ingot", "example:removed_material"));
         assertEquals(1, returned.index());
         assertFalse(returned.unavailable());
     }
@@ -32,7 +32,7 @@ class RecipeSelectionTest {
         assertTrue(RecipeSelection.restore("example:unknown", List.of()).unavailable());
     }
 
-    @Test void newManualMachinesWaitForSelectionWhileLegacyAutomaticMachinesKeepTheirDefault() {
+    @Test void manualMachinesWaitForSelectionWhileAutomaticMachinesTakeTheFirstRecipe() {
         List<String> ids = List.of("example:first", "example:chosen");
         assertEquals(new RecipeSelection(-1, ""), RecipeSelection.restore("", ids, false));
         assertEquals(new RecipeSelection(0, "example:first"), RecipeSelection.restore("", ids, true));

@@ -64,8 +64,8 @@ class MatterCellDataTest {
         var withoutReservations=current.copy();withoutReservations.remove("reservations");
         var kept=new MatterCellData(withoutReservations);
         assertTrue(kept.open(64000).isEmpty());assertEquals(withoutReservations,kept.copyTag());
-        var older=current.copy();older.putInt("schema",0);
-        assertTrue(new MatterCellData(older).open(64000).isEmpty());
+        var otherSchema=current.copy();otherSchema.putInt("schema",0);
+        assertTrue(new MatterCellData(otherSchema).open(64000).isEmpty());
     }
     @Test void reservationsRemainOwnedAcrossCellPersistenceAndCanCompleteExactlyOnce() {
         var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);

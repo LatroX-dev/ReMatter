@@ -8,7 +8,8 @@ import static dev.latrox.rematter.automation.AutomationPort.*;
 
 class AutomationRecipeCatalogueTest {
     @Test void everyAllowedItemFluidAndProcessIsOfferedWithoutAnIronSpecialCase() {
-        var registry=BuiltinChemistry.create();
+        var registry=ShippedChemistry.standalone();
+        assertFalse(registry.profiles().isEmpty());assertFalse(registry.fluidProfiles().isEmpty());
         var recipes=AutomationRecipeCatalogue.chemistry(registry,id->true,id->true);
         for(var profile:registry.profiles()) {
             var outputs=Map.of(Resource.item(profile.itemId()),(long)profile.itemCount());
@@ -29,7 +30,7 @@ class AutomationRecipeCatalogueTest {
         assertTrue(recipes.stream().flatMap(r->r.outputs().keySet().stream()).anyMatch(r->r.phase().equals("gas")));
     }
     @Test void missingOptionalRegistrationsAreNotAdvertisedAsAirOrEmptyFluids() {
-        var recipes=AutomationRecipeCatalogue.chemistry(BuiltinChemistry.create(),id->false,id->false);
+        var recipes=AutomationRecipeCatalogue.chemistry(ShippedChemistry.standalone(),id->false,id->false);
         assertFalse(recipes.isEmpty());
         assertTrue(recipes.stream().flatMap(r->r.inputs().keySet().stream()).allMatch(r->r.kind()==Kind.MATTER));
         assertTrue(recipes.stream().flatMap(r->r.outputs().keySet().stream()).allMatch(r->r.kind()==Kind.MATTER));
