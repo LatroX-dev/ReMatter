@@ -2,7 +2,7 @@
 
 An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover substances from materials, carry them in a reusable Matter Cell, and assemble the materials you need.
 
-Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Then connect **a Decomposer, a Matter Storage and a Material Synthesizer**, with one **64k Matter Cell** in the storage. A Matter Drive can hold the Cell instead. An Analyzer, AE2 and Refined Storage are not prerequisites.
+Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
 
 **Development build.** Build from source for testing; no mod-platform release is available yet. Processing needs an external FE source. ReMatter does not include a generator. Other Minecraft versions and loaders are not currently supported.
 
@@ -16,28 +16,28 @@ The iron Machine Frame supports the machine, the copper Control Circuit controls
 
 ## Your first glass
 
-1. **Prepare the matrix by hand.** Craft a Hand Preparator from two flint, one iron bars item, three planks and one stick. Put sand in its primary input and press **Crank** to extract Silith; repeat with a clay ball to extract Argil. Then put Silith in the primary input and Argil in the second input and crank one mixing batch to get four Matrix Blend. No FE, added water or fluid connection is needed. Smelt each Blend in an ordinary furnace to get a Matrix Crystal.
-2. **Craft the starter kit.** Four iron ingots make a Machine Frame; copper, redstone and paper make a Control Circuit. Craft a Decomposer, Matter Storage (or Matter Drive), Material Synthesizer and **64k Matter Cell**. The Cell uses two iron ingots, two glass, one Circuit and one Crystal. The Hand Preparator needs no Circuit or Crystal, so this path has no circular ingredient requirement.
-3. **Connect the three blocks.** Place Decomposer → storage → Synthesizer next to one another, with accessible fronts. Supply external FE to both processors; the storage needs no FE.
-4. **Store sand.** Insert the Cell in the storage bay and put sand in the Decomposer's input. The Decomposer processes it automatically when running; resume it if paused. The completed batch stores silica in the Cell.
-5. **Check the stock.** Open the storage to see the silica. Leave the Cell there: both connected processors use the same stock.
+1. **Prepare the matrix by hand.** Craft a Hand Preparator from two flint, five iron ingots and two copper ingots. Crank sand to extract Silith and a clay ball to extract Argil. Put Silith in the primary input and Argil in the second input to make four Matrix Blend. Smelt the Blend in an ordinary furnace to make Matrix Crystals.
+2. **Build powered preparation.** Grind gold by hand to make Gold Dust and combine it with Matrix Crystals for the Material Preparator's two Amber Matrix Crystals. The ReMatter Guide shows the crafting grids for Structural Bars, Machine Frames and Control Circuits.
+3. **Craft the starter kit.** Use Copper, Mint and Leaf Matrix Crystals for the Decomposer, Matter Drive and Material Synthesizer, respectively. The powered Material Preparator grinds diamond and emerald for the Mint and Leaf variants. Build a Cell Housing from Structural Bars and glass, then stack a Control Circuit, a plain Matrix Crystal and the Housing to make a **64k Matter Cell**.
+4. **Connect the three blocks.** Place Decomposer → Drive → Synthesizer in a touching row. Supply external FE to both processors. The Drive needs no power.
+5. **Store sand.** Insert the Cell in any Drive bay and put sand in the Decomposer's input. Press **Start** if it is paused. Open the Drive after processing to see the stored silica.
 6. **Make glass.** Press **Choose recipe** (or **Recipe** to change an existing selection), select **Glass**, confirm with **Use recipe**, then press **Start**. Collect the glass from the output.
 
 The default batch turns one sand into enough stored silica for one glass, using 24,000 FE across both machines. It does not multiply material. The same stored feedstock can later serve other explicitly supported products.
 
-Craft the **ReMatter Guide** from a book and a copper ingot for the recipes and instructions. Optional **GuideME** adds interactive 3D views. Sneak-use opens the basic book.
+Craft the **ReMatter Guide** from a book and Silith for the recipes and instructions. Optional **GuideME** adds interactive 3D views. Sneak-use opens the basic book.
 
 ## Cells and connected storage
 
 Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **512 substance/phase pairs** per Cell. Solids, liquids and gases share capacity; water and water vapor are different types.
 
-The 64k Cell uses one Matrix Crystal. A Matrix Cluster combines four Crystals, Rhedon and Virel; one Cluster goes into a 256k Cell. A 1M Cell uses four Clusters and an Optical Circuit, made from a Control Circuit, Lumin and glass. All Cells also need their iron/glass housing. Larger Cells are crafted empty and do not consume your old Cell.
+The 64k Cell uses one Matrix Crystal and a Control Circuit. The 256k Cell uses a Matrix Cluster, a Control Circuit and two Ender Conductors. The 1M Cell uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath. All tiers use a separately crafted Cell Housing and start empty.
 
-Matter Storage and Matter Drive each hold one Cell. Processors use the connected storage network. Cells left inside Decomposers or Synthesizers by an older build can be removed through **Configuration** and placed in a storage bay; those old slots no longer accept Cells or supply processing stock.
+A Matter Drive holds **six individually removable Cells**, arranged in two columns of three. Two three-bay Cell Racks form its assembly. The front shows the inserted Cells, and connected processors use their shared contents.
 
 For continuous production, use hoppers and chests to feed input and collect output. Enable **Automation** under **Configuration** on both processors and press **Run nonstop** under the Synthesizer's **Configuration**.
 
-Multiple Matter Storages and Drives can share one network; their available contents and capacity are combined. Matter Pipes bridge gaps but do not carry FE. A Matter Terminal gives another view of the connected stock. Older Matter Storages retain their built-in contents without a Cell. To move that stock into an empty Cell, insert one with enough capacity and use **Configuration → Move to cell**.
+Multiple Drives can share one network and pool their capacity. Matter Cables carry both matter-network traffic and FE. The connected machines and energy stores provide the FE buffers. Connect a Matter Terminal at its back to inspect stock, open connected device menus and queue supported production batches.
 
 ## Expand preparation
 
@@ -47,24 +47,26 @@ The five named fractions are physical intermediate materials for the matrix tech
 | --- | --- | --- |
 | Sand | Silith | Mix with Argil to make Matrix Blend |
 | Clay ball | Argil | Mix with Silith to make Matrix Blend |
-| Redstone dust | Rhedon | Matrix Clusters |
-| Nether quartz | Virel | Matrix Clusters |
-| Glowstone dust | Lumin | Optical Circuits |
+| Redstone dust | Rhedon | Matrix Clusters and Rhevon alloy |
+| Nether quartz | Virel | Matrix Clusters and Virelite ceramic |
+| Glowstone dust | Lumin | Lumivex alloy for Optical Circuits |
 
 The Hand Preparator supports Silith, Argil and their mixture. The powered **Material Preparator** also extracts the other three fractions. Give it external FE; it performs the grinding, sieving and mixing stages automatically. The sieve sorts grains; these fictional fractions are not claims of chemically pure elements.
 
-For greater throughput, build a rectangular industrial chamber with **physical work columns inside**. Both machines accept an outer width and depth of **3–9 blocks**. The Industrial Preparator needs **5–9 blocks of height**; the Industrial Reactor needs **4–9**, including floor and roof.
+Powered preparation also grinds iron, copper and gold into Dusts and mixes **three counted inputs** into Rhevon Powder, Lumivex Powder or Virelite Powder. The **Sinter Furnace** presses and heats each powder into its finished ingot or ceramic piece. Rhevon reinforces the preparation modules, Lumivex conducts the field in Stabilizers and Optical Circuits, and Virelite insulates Reaction Foci and Resonance Cutters. Alloy powders can also use an ordinary furnace or blast furnace; grinding an ingot returns the same powder, one for one. Optional Mekanism Crusher and Oritech Pulverizer/Foundry recipes provide matching processing routes. The guide and recipe viewers show the exact inputs, quantities and FE costs.
 
-Use Casing edges and corners, Glass or Casing panels and at least two Machine Ports away from the edges. Place the controller in the front wall, one block above the base, in any non-edge column. External connections use the Ports' outward faces, including the reactor's matter-network connection.
+For greater throughput, build a rectangular industrial chamber with **floor and ceiling parts forming one working field**. Outer width and depth each range from **3 to 9 blocks**. The Industrial Preparator needs a footprint of at least **3×4 or 4×3** and a height of **5–9**. The Industrial Reactor starts at **3×3** with a height of **4–9**. Heights include the floor and roof.
 
-| Machine | Each column, bottom to top | Speed before upgrades |
+Build the edges and corners from Reactor Casing. The Industrial Reactor also uses Casing across its entire floor and roof. Use Glass or Casing on the remaining panels, with at least two Machine Ports away from the edges. Place the controller in the front wall, one block above the base, in any non-edge column. External connections use the Ports' outward faces.
+
+| Machine | Floor / ceiling | Speed before upgrades |
 | --- | --- | --- |
-| Industrial Preparator | Mixing Basin → Separation Unit → Grinding Unit | 4× per complete column |
-| Industrial Reactor | Field Coil → Reaction Chamber | 2× per complete column |
+| Industrial Preparator | Cutter, Filter and Basin on either mounting plane | 2× per Basin and Cutter |
+| Industrial Reactor | Stabilizer and Focus on either mounting plane | 2× per Focus |
 
-Every column rests directly on the inside floor; leave all other interior blocks empty. A bigger shell creates room for more columns, but **empty space adds no throughput**. Two preparation columns give 8× speed; two reactor columns give 4×. Each controller still runs one batch at a time. Recipe quantities and FE per batch do not scale with the number of columns: industrial preparation uses twice the ordinary recipe FE, and reactions retain their original FE cost. The controller shows the effective duration.
+Fit at least one of every required part directly on the inside floor or under the ceiling; all matching types work on either mounting plane. Clicking a support's top or bottom face automatically orients the fitting; sideways and unsupported placement are rejected. Keep the middle clear. **Empty space adds no throughput.** Extra Filters or Stabilizers save FE with diminishing returns: two give 6%, three give 10%. Preparation starts at twice the ordinary recipe FE, reactions at the original cost, before this saving and upgrades. Inputs and outputs stay exact; each controller runs one batch at a time and shows the effective duration.
 
-Pause before rebuilding and follow the displayed reason if a shell or module is invalid. Older empty chambers need these modules before work can continue. Preparators shorter than five blocks must also grow taller. Retrofit the existing controller; the upgrade does not require discarding it or emptying the connected storage. Back up worlds before updating a development build.
+Pause before rebuilding and follow the displayed reason if a shell or module is invalid.
 
 ## Build beyond the first batch
 
@@ -95,7 +97,7 @@ Install JDK **25**, then run:
 
 The mod JAR is written to `build/libs/`. On Windows, use `gradlew.bat build`.
 
-Material profiles and processes can be configured using [chemistry data packs](docs/data-packs.md).
+Pack authors can add material profiles, synthesis permissions and reactions for their mods using [chemistry data packs](docs/data-packs.md). Start with the [copyable example pack](examples/chemistry-datapack/).
 
 ## Feedback
 

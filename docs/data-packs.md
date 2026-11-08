@@ -1,6 +1,15 @@
 # Chemistry data packs
 
-ReMatter reads chemistry data on server startup and `/reload`. Material profiles, substance definitions, chemical processes, and synthesis permissions are separate resources. No recipe scanning or tag expansion grants synthesis permission.
+Pack authors can add ReMatter chemistry for existing items and fluids with a standard Minecraft data pack. ReMatter reads it on server startup and `/reload`. Material profiles, substance definitions, chemical processes, and synthesis permissions are separate resources.
+
+## Start from the example
+
+1. Copy the [example pack](../examples/chemistry-datapack/) into your world's `datapacks` directory. Keep `pack.mcmeta` and `data/` at the root of the copied folder. The example targets Minecraft Java 26.1.2 and uses data pack format `101.1`.
+2. Start the world or run `/reload`. Use `/datapack list` to check that the example is enabled. If it is available but disabled, run `/datapack enable "file/chemistry-datapack"`. For a pack-wide installation, use your pack's data pack loader, such as [the Paxi layout in the ReForging integration](../integrations/reforging/README.md#installation).
+3. Put four snowballs or one snow block into the Decomposer. Both profiles provide 1,000 units of solid water. The separate synthesis entry lets the Synthesizer make a snow block from that amount. This matches the vanilla four-to-one crafting ratio.
+4. Copy the profile files for your own materials and replace `rematter_example` with your pack's namespace. Use exact item IDs and match any crafting, grinding or compression ratios. Add synthesis entries only for products you want to make in ReMatter.
+
+Use your own namespace for new profiles. To replace an existing profile or permission, use its original resource path and give your pack higher priority. For an optional mod, put the same dependency fields on the profile and its synthesis entry so they are skipped together.
 
 Place JSON files in the following directories of a Minecraft data pack:
 
@@ -12,7 +21,7 @@ Place JSON files in the following directories of a Minecraft data pack:
 | `data/<namespace>/rematter/process/` | Balanced transformations between stored substances |
 | `data/<namespace>/rematter/synthesis/` | Explicit permission to synthesize a particular output |
 
-Every document requires `"schema_version": 1`. Substance and process IDs come from the namespace and filename, including any nested path. Standard data-pack priority applies to files with the same path. Two different profile or synthesis files targeting the same item are rejected.
+Every document requires `"schema_version": 1`. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two different active profile or synthesis files targeting the same item are rejected.
 
 The whole catalogue is validated before a reload takes effect. Unknown substances, invalid phases, fractional or overflowing quantities, unbalanced reactions, and forbidden synthesis categories reject the reload. Existing stored quantities retain their IDs when a definition is temporarily unavailable.
 
@@ -34,7 +43,7 @@ For example, `data/example/rematter/material_profile/copper_dust.json` could add
 }
 ```
 
-`example:copper_dust` is a placeholder: use an actual registered item ID. `required_mod` skips the file if that mod is absent; otherwise an unknown item is an error. Energy is measured in FE. All quantities, energy costs, and durations must be positive integers. Modified or data-bearing stacks are not implicitly safe to recycle.
+`example:copper_dust` is a placeholder for a registered item ID. `required_mod` skips the file if that mod is absent. For foreign targets in that mod's namespace, ReMatter also checks whether the item or fluid is registered. Use `required_item` or `required_fluid` to check a specific dependency in any namespace. Unguarded unknown targets are data errors. Energy is measured in FE. All quantities, energy costs, and durations must be positive integers. Modified or data-bearing stacks are not implicitly safe to recycle.
 
 The optional `item_count` defaults to 1. It specifies the number of items consumed or produced by one complete operation; all listed matter and energy values belong to that batch. The count must be between 1 and 64 and fit the item's actual stack limit. For example, a profile for nine copper nuggets uses `"item_count": 9` and 1000 copper units. Eight nuggets cannot start that operation, and synthesis requires room for all nine outputs. Never round a ninth of an ingot to 111 or 112 units. Existing stored quantities retain their original scale.
 
@@ -116,12 +125,14 @@ Each definition specifies a stable ID through its file path, a translation key, 
 
 Composition coefficients count atoms of each element per stored unit. Element definitions may contain only their own element ID; molecular gases can use a coefficient greater than one. Translation keys and names never replace saved substance IDs.
 
+Supply custom display names in a client resource pack under `assets/<namespace>/lang/`, using the exact `translation_key` from the definition. The server data pack provides the chemistry and symbol.
+
 An `allotrope` has its own stable substance ID and exactly one underlying element. Diamond and graphite can both contain carbon while remaining different stored resources. Equal elemental composition does not grant a conversion: every such process must be explicitly defined and balanced.
 
 ## Disabling entries
 
-Override a substance or process file with `{"schema_version": 1, "disabled": true}`. Material profiles and synthesis entries also need their `item` field to identify the target. Removing a material profile also removes its existing synthesis permission. Removing a substance still referenced by a profile or process rejects the reload; remove or update those references together.
+Override a substance or process file with `{"schema_version": 1, "disabled": true}`. Material profiles and synthesis entries also need their `item` field to identify the target. When disabling a shipped material or fluid profile, disable its separate synthesis entry at its original path as well. An active synthesis entry still requires an active profile. When removing a substance, update or disable every profile and process that uses it.
 
-Fluid profile disabling uses its `fluid` field and removes the associated fluid synthesis permission. Catalogues are bounded to 32768 item profiles, 4096 fluid profiles, 8192 substances, and 8192 processes. The complete encoded catalogue must also fit the validated network size limits; oversized data is rejected before it replaces the active registry.
+Fluid profile disabling uses its `fluid` field. Catalogues are bounded to 32768 item profiles, 4096 fluid profiles, 8192 substances, and 8192 processes. The complete encoded catalogue must also fit the validated network size limits. Oversized data is rejected before it replaces the active registry.
 
 Disabling a definition does not delete stored quantities. Keep existing substance IDs stable when updating a pack.
