@@ -172,6 +172,42 @@ public final class OrderLedger {
         deliveryAttempts.remove(id);
         orders.put(id,copy(order,order.remainingBatches(),order.progress(),order.ownedInputs(),order.pendingOutputs(),order.cancelled(),reason,order.workerId()));
     }
+    /** A stopped delivery that no live attempt still guards, so its owner may take the held resources by hand. */
+    public synchronized Optional<Order> releasable(UUID id) {
+        var order=orders.get(id);
+        return order!=null&&order.quarantined()&&!deliveryAttempts.containsKey(id)?Optional.of(order):Optional.empty();
+    }
+    public synchronized Optional<Order> firstReleasable() {
+        return orders.values().stream().filter(order->order.quarantined()&&!deliveryAttempts.containsKey(order.id())).findFirst();
+    }
+    /** Everything a stopped order still holds: its owned inputs and its undelivered outputs. */
+    public static Map<Resource,Long> held(Order order) {
+        var result=new TreeMap<>(order.ownedInputs());
+        order.pendingOutputs().forEach((resource,amount)->result.merge(resource,amount,Math::addExact));
+        return ResourceAmounts.copy(result);
+    }
+    /**
+     * Records resources the owner received by hand from a stopped delivery. The remaining batches are cancelled,
+     * inputs are taken before outputs, and the order ends once it holds nothing; anything left stays quarantined.
+     */
+    public synchronized boolean releaseHeld(UUID id,Map<Resource,Long> taken) {
+        var order=releasable(id).orElse(null);
+        if(order==null||order.workerId()!=null)return false;
+        var remaining=ResourceAmounts.copy(taken);
+        if(remaining.isEmpty()||!within(remaining,held(order)))return false;
+        var inputs=new TreeMap<>(order.ownedInputs());var outputs=new TreeMap<>(order.pendingOutputs());
+        remaining.forEach((resource,amount)->{
+            long fromInputs=Math.min(amount,inputs.getOrDefault(resource,0L));
+            take(inputs,resource,fromInputs);take(outputs,resource,amount-fromInputs);
+        });
+        putOrRemove(copy(order,order.remainingBatches(),0,inputs,outputs,true,order.quarantineReason(),null));
+        return true;
+    }
+    private static void take(Map<Resource,Long> vector,Resource resource,long amount) {
+        if(amount==0)return;
+        long left=vector.get(resource)-amount;
+        if(left==0)vector.remove(resource);else vector.put(resource,left);
+    }
     private Order required(UUID id) {return Objects.requireNonNull(orders.get(id),"Unknown order");}
     private void putOrRemove(Order order) {
         if((order.remainingBatches()==0||order.cancelled())&&order.ownedInputs().isEmpty()&&order.pendingOutputs().isEmpty())orders.remove(order.id());

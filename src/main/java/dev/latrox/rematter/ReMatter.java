@@ -7,6 +7,7 @@ import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.data.ChemistryData;
 import dev.latrox.rematter.network.CatalogSync;
 import dev.latrox.rematter.network.MatterCablePulsePayload;
+import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
 import dev.latrox.rematter.network.SelectProcessPayload;
 import dev.latrox.rematter.network.TerminalDeviceActionPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
@@ -26,6 +27,7 @@ public final class ReMatter {
         ModContent.register(modBus);
         modBus.addListener(CatalogSync::register);
         modBus.addListener(MatterCablePulsePayload::register);
+        modBus.addListener(ReleaseHeldOrderPayload::register);
         modBus.addListener(SelectProcessPayload::register);
         modBus.addListener(TerminalDeviceActionPayload::register);
         modBus.addListener(TerminalDevicesPayload::register);

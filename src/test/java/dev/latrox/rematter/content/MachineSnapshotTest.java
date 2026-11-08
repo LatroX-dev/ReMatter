@@ -9,6 +9,7 @@ import net.minecraft.network.codec.StreamCodec;
 import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineSnapshotTest {
@@ -27,7 +28,7 @@ class MachineSnapshotTest {
                                             MachineSnapshot.Preview preview, String source, MachineSnapshot.StructureView structure,
                                             MachineSnapshot.NetworkView network, List<MachineSnapshot.CellView> cells) {
         return new MachineSnapshot(3, kind.ordinal(), status, -1, "", 0, 1, used, capacity, false, running, 0, "", false, 0,
-                preview, source, structure, network, false, "", cells);
+                preview, source, structure, network, false, "", MachineSnapshot.OrdersView.EMPTY, cells);
     }
     private static MachineSnapshot industrialSnapshot(MachineKind kind, MachineSnapshot.StructureView structure) {
         return snapshot(kind, "ready", 0, 0, false, MachineSnapshot.Preview.EMPTY, "none", structure, MachineSnapshot.NetworkView.EMPTY, List.of());
@@ -165,7 +166,7 @@ class MachineSnapshotTest {
                 Long.MAX_VALUE, Integer.MAX_VALUE, "item", "minecraft:copper_ingot", 1, List.of());
         var snapshot = new MachineSnapshot(4, MachineKind.SYNTHESIZER.ordinal(), "missing_matter", 0, "minecraft:copper_ingot", 1, 1,
                 1000, 2000, true, true, 0, "", false, 2, preview, "network", MachineSnapshot.StructureView.EMPTY,
-                MachineSnapshot.NetworkView.EMPTY, false, "", List.of());
+                MachineSnapshot.NetworkView.EMPTY, false, "", MachineSnapshot.OrdersView.EMPTY, List.of());
         assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
     }
     @Test void unknownSubstancesStayMarkedAcrossTheWire() {
@@ -195,6 +196,20 @@ class MachineSnapshotTest {
             assertThrows(IllegalArgumentException.class, () -> MachineStockPayload.CODEC.decode(buffer));
         } finally { buffer.release(); }
     }
+    @Test void heldOrderViewsRoundTripAndRejectInconsistentCounts() {
+        var copper = new MachineSnapshot.Amount("rematter:copper", "solid", 10, 0, true);
+        var water = new MachineSnapshot.Resource("fluid", "minecraft:water", 100);
+        String order = UUID.randomUUID().toString();
+        var orders = new MachineSnapshot.OrdersView(2, 1, order, List.of(copper), List.of(water), true);
+        var snapshot = new MachineSnapshot(4, MachineKind.NETWORK_INTERFACE.ordinal(), "automation_quarantined", -1, "", 0, 1,
+                0, 0, true, false, 0, "", false, 0, MachineSnapshot.Preview.EMPTY, "none", MachineSnapshot.StructureView.EMPTY,
+                MachineSnapshot.NetworkView.EMPTY, false, "ae2", orders, List.of());
+        assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.OrdersView(0, 0, order, List.of(copper), List.of(), true));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.OrdersView(0, 1, "", List.of(copper), List.of(), true));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.OrdersView(0, 1, "not-an-order", List.of(), List.of(), true));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.OrdersView(65, 0, "", List.of(), List.of(), true));
+    }
     @Test void maximalBoundedViewsFitOneMegabyte() {
         String id = "test:" + "x".repeat(507);
         var entry = new MachineSnapshot.Entry(id, "solid", Long.MAX_VALUE, Long.MAX_VALUE, true);
@@ -204,7 +219,8 @@ class MachineSnapshotTest {
                 Long.MAX_VALUE, Integer.MAX_VALUE, "matter", "", 0, Collections.nCopies(64, resource));
         var snapshot = new MachineSnapshot(1, MachineKind.SYNTHESIZER.ordinal(), "ready", 0, id, 1, 64, Long.MAX_VALUE, Long.MAX_VALUE,
                 false, true, MachineBlockEntity.TANK_CAPACITY, "minecraft:water", true, 0, preview, "network",
-                MachineSnapshot.StructureView.EMPTY, MachineSnapshot.NetworkView.EMPTY, false, "", List.of());
+                MachineSnapshot.StructureView.EMPTY, MachineSnapshot.NetworkView.EMPTY, false, "", new MachineSnapshot.OrdersView(64, 64,
+                UUID.randomUUID().toString(), Collections.nCopies(64, amount), Collections.nCopies(64, resource), false), List.of());
         var stock = new MachineStockPayload(1, true, true, Integer.MAX_VALUE, Collections.nCopies(MachineSnapshot.MAX_ENTRIES, entry),
                 Collections.nCopies(MachineSnapshot.MAX_ENTRIES, entry.key()));
         assertFitsOneMegabyte(MachineSnapshot.CODEC, snapshot);

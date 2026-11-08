@@ -18,7 +18,7 @@ class MachinePrimaryActionTest {
                                         String selectedId, MachineSnapshot.Preview preview, String status) {
         return new MachineSnapshot(7, kind.ordinal(), status, selected, selectedId, choices, 1, 0, 0, false, state.running(),
                 0, "", state.repeat(), state.queuedBatches(), preview, "none", MachineSnapshot.StructureView.EMPTY,
-                MachineSnapshot.NetworkView.EMPTY, false, "", Collections.nCopies(MachineCellAccess.bayCount(kind), MachineSnapshot.CellView.EMPTY));
+                MachineSnapshot.NetworkView.EMPTY, false, "", MachineSnapshot.OrdersView.EMPTY, Collections.nCopies(MachineCellAccess.bayCount(kind), MachineSnapshot.CellView.EMPTY));
     }
     private static MachineSnapshot selected(MachineKind kind, MachineRunState state) {
         return view(kind, state, 1, 0, RECIPE, PREVIEW, state.running() ? "working" : "paused");

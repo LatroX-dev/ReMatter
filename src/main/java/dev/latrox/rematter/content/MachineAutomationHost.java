@@ -143,6 +143,31 @@ public final class MachineAutomationHost implements AutomationPort {
         if(staleOrders.waiting()||!ledger.pendingRefunds().isEmpty())return "automation_orders_stale";
         return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
     }
+    /** Orders that a recipe change made outdated: those waiting out the grace period and cancelled ones still returning inputs. */
+    public int staleOrderCount() {
+        int refunding=(int)ledger.snapshot().orders().stream().filter(order->order.cancelled()&&!order.quarantined()&&!order.ownedInputs().isEmpty()).count();
+        return staleOrders.count()+refunding;
+    }
+    public int quarantinedOrderCount() {
+        return (int)ledger.snapshot().orders().stream().filter(OrderLedger.Order::quarantined).count();
+    }
+    /** The oldest stopped delivery whose held resources its owner may take by hand. */
+    public Optional<OrderLedger.Order> releasableOrder() {
+        return live()&&lockedData==null?ledger.firstReleasable():Optional.empty();
+    }
+    public Optional<Map<Resource,Long>> heldResources(UUID orderId) {
+        return live()&&lockedData==null?ledger.releasable(orderId).map(OrderLedger::held):Optional.empty();
+    }
+    /** Records what the owner received by hand. The order's worker lease ends first, so no batch resumes on released inputs. */
+    boolean releaseHeld(UUID orderId,Map<Resource,Long> taken) {
+        if(!live()||lockedData!=null||Transaction.getCurrentOpenedTransaction()!=null)return false;
+        var order=ledger.releasable(orderId).orElse(null);if(order==null)return false;
+        var worker=assigned.get(orderId);
+        if(worker!=null)release(orderId,worker);
+        else if(order.workerId()!=null)ledger.release(orderId,order.workerId());
+        if(!ledger.releaseHeld(orderId,taken))return false;
+        changed();return true;
+    }
     public void tick() {
         if(!live()||ticking||revoking||Transaction.getCurrentOpenedTransaction()!=null)return;
         ticking=true;

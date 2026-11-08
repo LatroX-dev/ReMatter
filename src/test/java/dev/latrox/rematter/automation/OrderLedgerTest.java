@@ -217,6 +217,43 @@ class OrderLedgerTest {
                 Map.of(COPPER,11L),Map.of(),true,"",null));
         assertThrows(IllegalArgumentException.class,()->OrderLedger.restore(new OrderLedger.Snapshot(1,List.of(order,order))));
     }
+    @Test void anOwnerReleasesAStoppedDeliveryOnlyOnceAndOnlyWhatItHolds() {
+        var ledger=accepted(2);var id=ledger.next().orElseThrow().id();completeOne(ledger,id);
+        var worker=ledger.order(id).orElseThrow().workerId();
+        assertTrue(ledger.releasable(id).isEmpty(),"A running order is not releasable");
+        assertTrue(ledger.beginDelivery(id,GLASS,4));
+        assertTrue(ledger.releasable(id).isEmpty(),"A live delivery attempt still guards the order");
+        ledger.quarantineDelivery(id,"receiver_outcome_unknown");
+        var stopped=ledger.releasable(id).orElseThrow();
+        assertEquals(stopped,ledger.firstReleasable().orElseThrow());
+        var held=OrderLedger.held(stopped);
+        assertEquals(Map.of(COPPER,10L,WATER,100L,SAND,1L,GLASS,4L,OXYGEN,5L),held);
+        assertFalse(ledger.releaseHeld(id,held),"The worker lease ends first");
+        assertTrue(ledger.release(id,worker));
+        var before=ledger.snapshot();
+        assertFalse(ledger.releaseHeld(id,Map.of(GLASS,5L)));
+        assertFalse(ledger.releaseHeld(id,Map.of()));
+        assertFalse(ledger.releaseHeld(id,Map.of(Resource.item("minecraft:stone"),1L)));
+        assertEquals(before,ledger.snapshot());
+        assertTrue(ledger.releaseHeld(id,Map.of(COPPER,10L,SAND,1L,GLASS,4L,OXYGEN,5L)));
+        var rest=ledger.order(id).orElseThrow();
+        assertTrue(rest.cancelled());assertTrue(rest.quarantined());assertEquals(Map.of(WATER,100L),OrderLedger.held(rest));
+        assertTrue(ledger.pendingRefunds().isEmpty());assertTrue(ledger.pendingOutputs().isEmpty());assertTrue(ledger.next().isEmpty());
+        assertEquals(ledger.snapshot(),OrderLedgerCodec.read(OrderLedgerCodec.write(ledger)).ledger().orElseThrow().snapshot());
+        assertTrue(ledger.releaseHeld(id,Map.of(WATER,100L)));
+        assertTrue(ledger.isEmpty());assertFalse(ledger.releaseHeld(id,Map.of(WATER,100L)));
+    }
+    @Test void aResourceHeldAsInputAndOutputIsTakenFromTheInputsFirst() {
+        var recipe=new Recipe("test:catalyst","revision1","chemical_reactor",Map.of(COPPER,10L),Map.of(COPPER,3L,OXYGEN,1L),1,1);
+        var ledger=new OrderLedger();assertTrue(ledger.accept(recipe,2,Map.of(COPPER,20L),Action.EXECUTE));
+        var id=ledger.next().orElseThrow().id();var worker=UUID.randomUUID();
+        assertTrue(ledger.claim(id,worker,"revision1"));assertTrue(ledger.advance(id,worker,"revision1",1));assertTrue(ledger.complete(id,worker,"revision1"));
+        assertTrue(ledger.release(id,worker));ledger.quarantineDelivery(id,"receiver_outcome_unknown");
+        assertEquals(Map.of(COPPER,13L,OXYGEN,1L),OrderLedger.held(ledger.order(id).orElseThrow()));
+        assertTrue(ledger.releaseHeld(id,Map.of(COPPER,12L)));
+        var rest=ledger.order(id).orElseThrow();
+        assertEquals(Map.of(),rest.ownedInputs());assertEquals(Map.of(COPPER,1L,OXYGEN,1L),rest.pendingOutputs());
+    }
     private static void deliver(OrderLedger ledger,UUID id,Resource resource,long offered,long accepted) {
         assertTrue(ledger.beginDelivery(id,resource,offered));ledger.finishDelivery(id,resource,accepted);
     }

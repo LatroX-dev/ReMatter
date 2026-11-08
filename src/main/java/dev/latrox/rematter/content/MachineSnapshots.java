@@ -2,6 +2,7 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.MatterStore;
 import dev.latrox.rematter.chemistry.SubstanceKey;
@@ -74,9 +75,11 @@ final class MachineSnapshots {
     static MachineBlockEntity.Summary summary(MachineBlockEntity machine, int rows) {
         var work = machine.work();
         var stock = stock(machine, rows);
+        var host = machine.automationHost();
         return new MachineBlockEntity.Summary(work.status, (int) machine.energy().getAmountAsLong(), Math.min(work.progress, work.duration),
                 work.duration, stock.used(), stock.capacity(), stock.source(), stock.totalTypes(), stock.entries(), machine.automation(),
-                (int) machine.fluids().getAmountAsLong(0), fluidId(machine.fluids().getResource(0)), structure(machine), machine.cellViews());
+                (int) machine.fluids().getAmountAsLong(0), fluidId(machine.fluids().getResource(0)), structure(machine), machine.cellViews(),
+                host == null ? 0 : host.staleOrderCount(), host == null ? 0 : host.quarantinedOrderCount());
     }
 
     static MachineSnapshot build(MachineBlockEntity machine, int containerId) {
@@ -99,7 +102,30 @@ final class MachineSnapshots {
                 (int) fluids.getAmountAsLong(0), fluidId(fluids.getResource(0)), batches && runState.repeat(), batches ? runState.queuedBatches() : 0,
                 preview(machine, registry, store), store == null ? "none" : kind.isStorage() ? "local" : "network", structure(machine),
                 source.network() == null ? MachineSnapshot.NetworkView.EMPTY : source.network().view(), machine.networkJobs(),
-                kind == MachineKind.NETWORK_INTERFACE ? machine.automationHost().backend() : "", machine.cellViews());
+                kind == MachineKind.NETWORK_INTERFACE ? machine.automationHost().backend() : "", orders(machine, registry), machine.cellViews());
+    }
+
+    /** The interface's outdated and stopped orders, with the resources held by the oldest stopped delivery. */
+    private static MachineSnapshot.OrdersView orders(MachineBlockEntity machine, ChemistryRegistry registry) {
+        var host = machine.automationHost();
+        if (host == null) return MachineSnapshot.OrdersView.EMPTY;
+        var order = host.releasableOrder().orElse(null);
+        if (order == null) return new MachineSnapshot.OrdersView(host.staleOrderCount(), host.quarantinedOrderCount(), "", List.of(), List.of(), true);
+        var held = OrderLedger.held(order);
+        var matter = new ArrayList<MachineSnapshot.Amount>();
+        var resources = new ArrayList<MachineSnapshot.Resource>();
+        for (var entry : held.entrySet()) {
+            var resource = entry.getKey();
+            if (resource.kind() != AutomationPort.Kind.MATTER) {
+                if (resources.size() < MachineSnapshot.MAX_PREVIEW_AMOUNTS)
+                    resources.add(new MachineSnapshot.Resource(resource.kind().name().toLowerCase(Locale.ROOT), resource.id(), entry.getValue()));
+            } else if (matter.size() < MachineSnapshot.MAX_PREVIEW_AMOUNTS) {
+                var key = resource.matterKey();
+                matter.add(new MachineSnapshot.Amount(key.id().toString(), phase(key), entry.getValue(), 0, registry.isKnown(key)));
+            }
+        }
+        return new MachineSnapshot.OrdersView(host.staleOrderCount(), host.quarantinedOrderCount(), order.id().toString(),
+                matter, resources, matter.size() + resources.size() == held.size());
     }
 
     private static MachineSnapshot.StructureView structure(MachineBlockEntity machine) {

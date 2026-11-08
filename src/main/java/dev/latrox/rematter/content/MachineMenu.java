@@ -7,6 +7,7 @@ import dev.latrox.rematter.network.MachineStockPayload;
 import dev.latrox.rematter.network.TerminalDeviceActionPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
 import java.util.List;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 
 import net.minecraft.server.level.ServerPlayer;
@@ -182,6 +183,14 @@ public final class MachineMenu extends AbstractContainerMenu {
         if (device == null || device.kind() != shown.kind()) return false;
         if (request.action() == TerminalDeviceActionPayload.Action.OPEN) return TerminalNetwork.open(machine, device, user);
         if (!device.queueFromTerminal(request.recipeId())) return false;
+        nextSnapshot = 0;
+        broadcastChanges();
+        return true;
+    }
+    /** The owner's confirmed release of a stopped delivery that this Network Interface still holds. */
+    public boolean releaseHeldOrder(ServerPlayer user, UUID orderId) {
+        if (machine == null || kind() != MachineKind.NETWORK_INTERFACE || user.containerMenu != this || !stillValid(user)
+                || !machine.releaseHeldOrder(user, orderId)) return false;
         nextSnapshot = 0;
         broadcastChanges();
         return true;
