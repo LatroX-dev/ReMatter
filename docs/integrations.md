@@ -6,36 +6,44 @@ A Hand Preparator first makes the dry matrix feedstock without FE. Connect a Dec
 
 ## AE2 and Refined Storage
 
+ReMatter declares support for AE2 26.1.13-beta up to 26.2 and Refined Storage 3.2.1 up to 3.3.
+
 Connect a **Network Interface** to the native grid and the ReMatter matter network. In its **Configuration**, enable **Automation** and select **Connect: AE2** or **Connect: Refined Storage**. On the connected processing machines, clear their work slots and tanks, then enable **Configuration → Network jobs: On**; upgrades may remain. Supply FE to the processing machines. AE2 also needs a crafting CPU and output storage; RS needs output storage. Both native networks need their normal power supply.
 
 Eligible recipes from the connected machines appear in the native crafting catalogue: preparation, decomposition, permitted item/fluid synthesis and substance processes. Requests consume actual inputs, stored substances and FE. Finished outputs return to the network that requested them; synthesis permissions still apply.
 
+Stored substances appear in AE2 and Refined Storage with their translated name, formula and phase, and RS grids find them by name. A substance whose definition is missing is not offered to either network and cannot be inserted or extracted through the interface; it stays in its Cell.
+
 To use **AE2 and RS at the same time**, use two interfaces on the same ReMatter network, one selected for each. They share the connected substance stores and processing machines. Each machine handles one order at a time. Finish pending jobs before changing an interface's connection type. An interface that still holds jobs stays in charge of its connection type; a second interface of the same type waits until those jobs are done.
 
-The interface belongs to the player who placed it. Only that player can start jobs or move substances through it: AE2 checks the acting player or machine owner, and Refined Storage accepts a player only when the name belongs to the owner. AE2 and Refined Storage cables connect only on **Automatic** and **Matter Network** faces; set a face to **Disabled** to keep other networks out. Only players who may open the interface can place Refined Storage blocks directly against it.
+The interface belongs to the player who placed it. Only that player can start jobs or move substances through it: AE2 checks the acting player or machine owner, and Refined Storage accepts a player only when the name belongs to the owner. AE2 and Refined Storage cables connect only on **Automatic** and **Matter Network** faces; set a face to **Disabled** to keep other networks out. Only players who may open the interface, the owner and operators, can place Refined Storage blocks directly against it.
 
-If a data pack or update removes a recipe or changes its ingredients, queued jobs for it are cancelled after 10 seconds and their transferred inputs return to the native network. Changes that only affect FE cost or processing time continue the queued jobs with the new values.
+If a data pack removes a recipe or changes its ingredients, queued jobs for it are cancelled after 10 seconds and their transferred inputs return to the native network. Changes that only affect FE cost or processing time continue the queued jobs with the new values. The interface status counts the outdated jobs while their inputs return.
+
+If the native network does not confirm a finished delivery, the interface stops that order and keeps its resources. Its status then reads **Delivery stopped; resources retained** with the number of stopped orders. While a delivery is stopped, the configuration view offers **Release**. After a confirmation that lists the held resources, the owner or an operator receives matter as **Recovered Matter** parcels and items in their inventory, dropped at their feet when it is full; fluids go into the interface's tank. Whatever does not fit stays held, and a chat message reports the result. Use a parcel on a Drive or connected machine you own to return its substance to storage.
 
 ## Recipe viewers
 
 The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs, processing times, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
 
-- **JEI:** built against JEI 29.53.0.114 for 26.1.2. Displays decomposition, synthesis, electrolysis, and reactions.
+JEI and EMI show the same categories: decomposition, synthesis, electrolysis, reaction, separation, phase change and crystallization, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
+
+- **JEI:** built against JEI 29.53.0.114 for 26.1.2.
 - **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2**, the continuation used in ReForging. The original EMI project currently has no 26.1.2 build. When SEMI and JEI are installed together, the native EMI integration supplies the ReMatter categories.
 
-These integrations are optional. Installing an older viewer for a different Minecraft version is not supported.
+These integrations are optional. Viewer builds for other Minecraft versions are not supported.
 
 The SEMI integration is compiled against its 26.1.2 release and uses that release's reload manager to refresh recipes after server chemistry changes; the EMI API does not expose a runtime recipe replacement method. An incompatible reload implementation logs a warning instead of interrupting gameplay. Reconnecting rebuilds the viewer catalogue. This does not claim compatibility with every EMI fork or future release.
 
 ## In-game guide
 
-Craft the **ReMatter Guide** from a book and Silith. Its English tutorial covers the preparation chain, crystal variants, Matter Drives and material processing. The basic book needs no framework. With **GuideME 26.1.17-beta**, the same item opens interactive 3D scenes of preparation, hopper automation and industrial chambers with separate Machine Ports and fittings on the floor and ceiling.
+Craft the **ReMatter Guide** from a book and Silith. Its English tutorial covers the preparation chain, crystal variants, advanced components, Matter Drives and material processing. The basic book needs no framework. With **GuideME 26.1.17-beta**, the same item opens interactive 3D scenes of preparation, hopper automation and industrial chambers with separate Machine Ports and fittings on the floor and ceiling.
 
 Patchouli and Ponder are not required. ReMatter does not add duplicate books to those frameworks.
 
 ## Jade
 
-The optional Jade integration targets **Jade 26.1.12**. Its machine overlay reads server-authorized status. It respects machine ownership and does not expose another player's inventory through generic item, fluid, energy, or progress providers.
+The optional Jade integration targets **Jade 26.1.12**. Its machine overlay reads server-authorized status, including counts of outdated and stopped network orders on a Network Interface. It respects machine ownership and does not expose another player's inventory through generic item, fluid, energy, or progress providers. The Jade settings list each ReMatter provider by name.
 
 ## Mekanism chemicals
 
@@ -47,7 +55,7 @@ Enable automation on a **Matter Drive** with a readable Cell, then use chemical 
 | --- | --- | --- |
 | `mekanism:hydrogen` | Hydrogen, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:oxygen` | Oxygen, gas | 1 chemical unit = 1 matter unit |
-| `mekanism:water_vapor` | Steam, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:water_vapor` | Water, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:chlorine` | Chlorine, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:sulfur_dioxide` | Sulfur dioxide, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:sulfur_trioxide` | Sulfur trioxide, gas | 1 chemical unit = 1 matter unit |
@@ -58,19 +66,23 @@ Enable automation on a **Matter Drive** with a readable Cell, then use chemical 
 | `mekanism:lithium` | Lithium, gas | 1 chemical unit = 10 matter units |
 | `mekanism:osmium` | Osmium, gas | 1 chemical unit = 5 matter units |
 
+Mekanism moves all of these through one chemical capability, so ReMatter stores each of them in the gas phase of its substance. For sulfuric acid, lithium and osmium the gas phase is a transfer identity, not a claim about the physical state: it keeps the Mekanism chemical apart from liquid acid, lithium dust or osmium ingots, and no ReMatter process converts between those phases.
+
 Water vapor is not an alias for every mod's steam fluid. Unknown gases are not accepted automatically. ReMatter's base water electrolysis uses 1,000 water to produce 1,000 hydrogen and 500 oxygen; the reverse reaction consumes those exact quantities. Packs that change hydrogen fuel values should review their complete energy balance.
 
-The non-unit ratios preserve the targeted Mekanism recipes: one hydrogen and one chlorine produce one external hydrogen-chloride unit, 100 lithium units crystallize into one dust, and one osmium ingot produces 200 chemical units. Transfers only export whole chemical units; insufficient capacity and fractional remainders stay in storage. These mappings do not add new reactions between the stored substances. Importing a mapped chemical needs only a known substance definition. Exporting one needs an explicit release: a `gas` synthesis permission for the substance or a `fluid` permission for the chemical's own fluid ID.
+The non-unit ratios preserve the targeted Mekanism recipes: one hydrogen and one chlorine produce one external hydrogen-chloride unit, 100 lithium units crystallize into one dust, and one osmium ingot produces 200 chemical units. Transfers only export whole chemical units; insufficient capacity and fractional remainders stay in storage. These mappings do not add new reactions between the stored substances.
+
+Importing a mapped chemical needs only a known substance definition. Exporting one needs an explicit release: a `gas` synthesis permission for the substance or a `fluid` permission for the chemical's own fluid ID. All twelve mapped substances ship with a gas permission, so each can return to Mekanism.
 
 Ten matching source fluids are supported through explicit profiles: hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrofluoric acid, ethene, and lithium. Each conversion handles 1,000 mB and uses the ratios above. Their rotary recipes exchange one fluid mB for one chemical unit. Flowing variants are not separate inputs. Thermal steam, superheated sodium, radioactive chemicals, nuclear fuels, and antimatter are not mapped by these rules.
 
 ## Energy, fluids, and items
 
-Processing machines accept FE from external energy sources. Matter Cables connect devices to shared matter stock and forward FE to eligible power ports.
+Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward FE that a source pushes into them to every connected FE receiver. They store none, and nothing can pull FE out through a cable.
 
 Item and fluid automation is off by default. Enable it in the processing machine's **Configuration**. For an automated glass line, put a Cell in a connected Matter Drive. One hopper feeds sand into the Decomposer and another extracts glass from the Synthesizer. Keep the Decomposer running, select Glass with **Choose recipe** or **Recipe**, confirm with **Use recipe**, and press **Configuration → Run nonstop** on the Synthesizer to keep producing. **Stop repeat** stops continuous production. **Pause** and **Resume** retain the current order. Feeding input through a pipe does not request synthesis jobs on its own.
 
-Input and output slots are separate. Upgrades and Matter Cells cannot be moved through these automation slots. Connected machines have the same owner and only traverse loaded chunks. Multiple Matter Drives contribute to the same network stock.
+Input and output slots are separate. Upgrades and Matter Cells cannot be moved through these automation slots. A matter network contains only machines of one owner and only traverses loaded chunks. Multiple Matter Drives contribute to the same network stock.
 
 Each Matter Drive holds up to six portable Cells. A Cell can hold 64,000, 256,000 or 1,000,000 total units and up to 512 substance and phase pairs. You can carry a Cell as an item. To access its stock, install it in a Matter Drive and connect a Network Interface for AE2 or Refined Storage access.
 
@@ -80,4 +92,4 @@ The [material catalogue](material-coverage.md) lists the reviewed material famil
 
 Add or rebalance profiles with [chemistry data packs](data-packs.md). Decomposition does not grant synthesis permission. Every synthesized output needs an explicit allowed category; manufactured components, machines, and equipment remain excluded.
 
-For ReForging's current coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It preserves ReForging's existing crystalline-silica identity, requires that quartz feedstock for silicon electrolysis, corrects the quartz grinding bonus, and provides targeted exclusions for ReMatter machines. These additional pack rules are not activated by installing the standalone mod.
+For ReForging's coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It requires crystalline quartz silica for silicon electrolysis, removes Ender IO grinding-ball bonuses from quartz-gem and obsidian milling, disables native recipes that would turn a single dust or cheap ingredients into a whole block or ingot, and excludes ReMatter machines from Replication and Equivox copying. These additional pack rules are not activated by installing the standalone mod.

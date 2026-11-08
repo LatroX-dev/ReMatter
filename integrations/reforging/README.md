@@ -22,7 +22,7 @@ One obsidian block mills into four dusts. The integration disables Occultism's o
 
 The standalone catalogue recovers ambiguous alloys only as the constituents common to all interchangeable recipes, for example copper from brass, and gives decomposition and synthesis separate permissions. Netherite ingots, blocks and dusts recover the smallest share of gold and Netherium any native route uses and cannot be synthesized. The integration disables Easy Netherite's recipe, which crafts a Netherite Ingot from an iron ingot and an ender pearl and would turn both into gold and Netherium. Raw ores, enriched intermediates, fuel families and manufactured components do not gain synthesis from this integration. In particular, coal dust must not provide a cheaper route to coal, and refined-obsidian powder must not bypass the osmium used to make its ingot.
 
-The data tests retain conservative energy floors for the included water-to-hydrogen, water-to-steam and stone-to-lava routes, including the maximum 20% ReMatter efficiency saving. These floors depend on the target pack's generator configuration; changing fuel values, turbine efficiencies, chemical conversion ratios or adding new feedstock routes requires another balance review. They do not imply that every generator, resource farm or recipe combination has been exercised in gameplay. Intentional ore enrichment, crystal growth, seeds and bees are not disabled by these rules.
+The data tests retain conservative energy floors for the included water-to-hydrogen, water-to-steam and stone-to-lava routes at the maximum 20% Efficiency Upgrade saving. They do not cover the additional Field Stabilizer saving of an Industrial Reactor, which can run the steam and lava steps; that saving needs its own balance review. These floors depend on the target pack's generator configuration; changing fuel values, turbine efficiencies, chemical conversion ratios or adding new feedstock routes requires another balance review. They do not imply that every generator, resource farm or recipe combination has been exercised in gameplay. Intentional ore enrichment, crystal growth, seeds and bees are not disabled by these rules.
 
 ## Machines and Cells
 
@@ -49,13 +49,12 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 
 The exclusions cover empty and filled variants of those exact items. The `reforging:rematter/stateful_machines` tag lists them. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
 
-Replication's `skip_calculation` tag does not override an explicit matter-value recipe. Existing patterns, previously learned knowledge, and later third-party overrides must be checked after activation. Do not add these machines or Cells to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
+Replication's `skip_calculation` tag does not override an explicit matter-value recipe, so third-party matter-value overrides must be checked separately. Do not add these machines or Cells to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
 
 ## Installation
 
-1. Back up the target world and its configuration. Review the complete combination of mods and data packs before activating it in an existing world.
-2. Copy the contents of `datapack/` into a new data pack directory. With Paxi, use `config/paxi/datapacks/reforging-rematter-compat/`; otherwise use the world's `datapacks/reforging-rematter-compat/` directory. `pack.mcmeta` must be at that directory's root.
-3. Prepare the Equivox configuration in a separate file, using Python 3:
+1. Copy the contents of `datapack/` into a new data pack directory. With Paxi, use `config/paxi/datapacks/reforging-rematter-compat/`; otherwise use the world's `datapacks/reforging-rematter-compat/` directory. `pack.mcmeta` must be at that directory's root.
+2. Prepare the Equivox configuration in a separate file, using Python 3:
 
    ```sh
    python3 integrations/reforging/merge_equivox.py \
@@ -63,10 +62,8 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
      custom_emc.rematter.json
    ```
 
-4. Review the generated file, then replace `config/Equivox/custom_emc.json` after backing up the original. The helper never edits the input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
-5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and the protected machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
-
-Removing the integration restores the standalone silica electrolysis, which consumes amorphous silica; stored crystalline silica keeps its identity. No conversion of Replication patterns, Equivox knowledge, or EMC balances is provided.
+3. Review the generated file, then use it as `config/Equivox/custom_emc.json`. The helper never edits its input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
+4. Restart the game or server and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and the protected machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
 
 ## Validation
 

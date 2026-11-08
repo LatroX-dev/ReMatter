@@ -21,9 +21,11 @@ Place JSON files in the following directories of a Minecraft data pack:
 | `data/<namespace>/rematter/process/` | Balanced transformations between stored substances |
 | `data/<namespace>/rematter/synthesis/` | Explicit permission to synthesize a particular output |
 
-Every document requires `"schema_version": 1`. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two different active profile or synthesis files targeting the same item are rejected.
+Every document requires `"schema_version": 1`; any other version rejects the reload. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two different active profile or synthesis files targeting the same item are rejected.
 
-The whole catalogue is validated before a reload takes effect. Unknown substances, invalid phases, fractional or overflowing quantities, unbalanced reactions, and forbidden synthesis categories reject the reload. Existing stored quantities retain their IDs when a definition is temporarily unavailable.
+The whole catalogue is validated before a reload takes effect. Unknown substances, invalid phases, fractional or overflowing quantities, batches above the energy limit, unbalanced reactions, and forbidden synthesis categories reject the reload.
+
+Stored quantities keep their substance ID and amount when a definition disappears. Machines, Cells and tooltips show them as **Unknown substance (ID, phase)**; they cannot be processed or offered to AE2 or Refined Storage until a definition with that ID returns.
 
 ## Material profiles
 
@@ -43,9 +45,9 @@ For example, `data/example/rematter/material_profile/copper_dust.json` could add
 }
 ```
 
-`example:copper_dust` is a placeholder for a registered item ID. `required_mod` skips the file if that mod is absent. For foreign targets in that mod's namespace, ReMatter also checks whether the item or fluid is registered. Use `required_item` or `required_fluid` to check a specific dependency in any namespace. Unguarded unknown targets are data errors. Energy is measured in FE. All quantities, energy costs, and durations must be positive integers. Modified or data-bearing stacks are not implicitly safe to recycle.
+`example:copper_dust` is a placeholder for a registered item ID. `required_mod` skips the file if that mod is absent. For foreign targets in that mod's namespace, ReMatter also checks whether the item or fluid is registered. Use `required_item` or `required_fluid` to check a specific dependency in any namespace. Unguarded unknown targets are data errors. Energy is measured in FE. All quantities, energy costs, and durations must be positive integers. One batch may cost at most 1,200,000 FE, so that it still fits a machine's 2,400,000 FE buffer after four Speed Upgrades double its price. Modified or data-bearing stacks are not implicitly safe to recycle.
 
-The optional `item_count` defaults to 1. It specifies the number of items consumed or produced by one complete operation; all listed matter and energy values belong to that batch. The count must be between 1 and 64 and fit the item's actual stack limit. For example, a profile for nine copper nuggets uses `"item_count": 9` and 1000 copper units. Eight nuggets cannot start that operation, and synthesis requires room for all nine outputs. Never round a ninth of an ingot to 111 or 112 units. Existing stored quantities retain their original scale.
+The optional `item_count` defaults to 1. It specifies the number of items consumed or produced by one complete operation; all listed matter and energy values belong to that batch. The count must be between 1 and 64 and fit the item's actual stack limit. For example, a profile for nine copper nuggets uses `"item_count": 9` and 1000 copper units. Eight nuggets cannot start that operation, and synthesis requires room for all nine outputs. Never round a ninth of an ingot to 111 or 112 units. Changing a profile never rescales quantities that are already stored.
 
 The Analyzer retains a single sample and displays composition for the profile's stated batch. Analysis does not consume or manufacture the rest of the batch.
 
@@ -62,7 +64,16 @@ A profile alone permits decomposition. To permit synthesis, add a separate file 
 
 Use `raw_material` or `natural_material` for approved item outputs. Machines, equipment, plates, wires, gears, circuits, and other manufactured components are outside ReMatter's synthesis rules. Classifying an item as a raw material is a deliberate pack-author decision; do not derive it automatically from recipes.
 
-The catalogue also distinguishes `fluid` and `gas` export permissions. These require an implemented adapter; an allowlist entry by itself does not make a substance compatible with an arbitrary tank or pipe.
+The catalogue also distinguishes `fluid` and `gas` export permissions. These require an implemented adapter; an allowlist entry by itself does not make a substance compatible with an arbitrary tank or pipe. A gas permission names the stored substance in its `item` field. This entry lets osmium leave a Drive as a Mekanism chemical:
+
+```json
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "rematter:osmium",
+  "category": "gas"
+}
+```
 
 ## Fluid profiles
 
@@ -106,7 +117,9 @@ This is the built-in water electrolysis recipe, expressed as data. Saving it as 
 
 Hydrogen and oxygen quantities represent H₂ and O₂ respectively. The reaction conserves elements; the number of stored molecular units increases, so the storage needs additional free capacity. Storage capacity counts units, not mass. Water and lava adapters use one internal unit per millibucket; this is not a universal conversion for foreign gas systems.
 
-Process types are `electrolysis`, `reaction`, `separation`, `phase_change`, and `crystallization`. A process only becomes usable when a machine supports that type. Both inputs and outputs must be nonempty, and their elemental compositions must match exactly.
+Process types are `electrolysis`, `reaction`, `separation`, `phase_change`, and `crystallization`. The Electrolyzer runs electrolysis; the Chemical Reactor and Industrial Reactor run the other four types. Both inputs and outputs must be nonempty, and their elemental compositions must match exactly.
+
+Machines, recipe viewers and the Terminal name a process by the translation key `process.<namespace>.<path>`, with slashes in the path replaced by dots. Without a translation they show a readable form of the process ID.
 
 ## Substances
 
@@ -135,4 +148,4 @@ Override a substance or process file with `{"schema_version": 1, "disabled": tru
 
 Fluid profile disabling uses its `fluid` field. Catalogues are bounded to 32768 item profiles, 4096 fluid profiles, 8192 substances, and 8192 processes. The complete encoded catalogue must also fit the validated network size limits. Oversized data is rejected before it replaces the active registry.
 
-Disabling a definition does not delete stored quantities. Keep existing substance IDs stable when updating a pack.
+Disabling a definition does not delete stored quantities; they stay marked as unknown until the definition returns. Keep substance IDs stable when updating a pack.
