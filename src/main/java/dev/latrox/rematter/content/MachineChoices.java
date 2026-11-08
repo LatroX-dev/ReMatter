@@ -12,12 +12,22 @@ import java.util.*;
 public final class MachineChoices {
     public static final int MAX_CHOICES = ChemistryRegistry.MAX_MATERIAL_PROFILES + ChemistryRegistry.MAX_FLUID_PROFILES;
     private static final Map<ChemistryRegistry, EnumMap<MachineKind, List<Choice>>> CACHE = new WeakHashMap<>();
+    private static final Map<ChemistryRegistry, EnumMap<MachineKind, Map<String, Choice>>> INDEX = new WeakHashMap<>();
 
     private MachineChoices() {}
 
     public static synchronized List<Choice> forKind(MachineKind kind, ChemistryRegistry registry) {
         return CACHE.computeIfAbsent(registry, ignored -> new EnumMap<>(MachineKind.class))
                 .computeIfAbsent(kind, ignored -> build(kind, registry));
+    }
+
+    public static synchronized Optional<Choice> find(MachineKind kind, ChemistryRegistry registry, String id) {
+        return Optional.ofNullable(INDEX.computeIfAbsent(registry, ignored -> new EnumMap<>(MachineKind.class))
+                .computeIfAbsent(kind, ignored -> {
+                    var byId = new HashMap<String, Choice>();
+                    for (Choice choice : forKind(kind, registry)) byId.putIfAbsent(choice.id(), choice);
+                    return Map.copyOf(byId);
+                }).get(id));
     }
 
     public static final String FLUID_PREFIX = "fluid:";

@@ -5,6 +5,7 @@ import dev.latrox.rematter.client.ScreenChrome.Icon;
 import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
+import dev.latrox.rematter.content.MachineSnapshot;
 import dev.latrox.rematter.network.ClientChemistry;
 import dev.latrox.rematter.network.SelectProcessPayload;
 import java.util.ArrayList;
@@ -352,16 +353,16 @@ public final class ProcessSelectionScreen extends Screen {
         List<MaterialRow> rows = new ArrayList<>();
         if (effective) {
             var preview = menu.snapshot().preview();
-            for (var amount : preview.inputs()) rows.add(new MaterialRow(amount.id(), amount.name(), amount.phase(), amount.required(),
+            for (var amount : preview.inputs()) rows.add(new MaterialRow(amount.id(), name(amount), amount.phase(), amount.required(),
                     menu.snapshot().capacity() > 0 ? OptionalLong.of(amount.available()) : OptionalLong.empty(), false));
-            for (var amount : preview.outputs()) rows.add(new MaterialRow(amount.id(), amount.name(), amount.phase(), amount.required(), OptionalLong.empty(), true));
+            for (var amount : preview.outputs()) rows.add(new MaterialRow(amount.id(), name(amount), amount.phase(), amount.required(), OptionalLong.empty(), true));
         } else {
             Map<SubstanceKey, Long> available = new HashMap<>();
-            for (var entry : menu.snapshot().entries()) {
+            for (var entry : menu.stock().entries()) {
                 try { available.put(new SubstanceKey(SubstanceId.parse(entry.id()), Phase.valueOf(entry.phase().toUpperCase(Locale.ROOT))), entry.available()); }
                 catch (IllegalArgumentException ignored) { /* An unknown phase cannot become a stock estimate. */ }
             }
-            boolean complete = menu.snapshot().entriesComplete() && menu.snapshot().capacity() > 0;
+            boolean complete = menu.stock().complete() && menu.snapshot().capacity() > 0;
             product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> rows.add(row(entry,
                     ProcessPresentation.available(available, complete, entry.getKey()), false)));
             product.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> rows.add(row(entry, OptionalLong.empty(), true)));
@@ -376,6 +377,9 @@ public final class ProcessSelectionScreen extends Screen {
             return translated.equals(definition.translationKey()) ? pretty(key.id().path()) : translated;
         }).orElseGet(() -> pretty(key.id().path()));
         return new MaterialRow(key.id().toString(), name, key.phase().name().toLowerCase(Locale.ROOT), amount.getValue(), available, output);
+    }
+    private static String name(MachineSnapshot.Amount amount) {
+        return SubstanceNames.substance(amount.id(), amount.phase(), amount.known()).getString();
     }
     private record MaterialRow(String id, String name, String phase, long required, OptionalLong available, boolean output) {}
 

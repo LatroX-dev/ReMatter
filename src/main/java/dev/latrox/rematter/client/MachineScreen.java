@@ -8,11 +8,11 @@ import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.content.MachineBlockEntity;
 import dev.latrox.rematter.content.MachineCellAccess;
+import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSnapshot;
-import dev.latrox.rematter.network.TerminalDevicesPayload;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -147,7 +147,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void openRecipes() { minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)); }
     private void openPorts() { minecraft.pushGuiLayer(new MachinePortSettingsScreen(menu)); }
     private void openTerminalDevices() {
-        menu.acceptTerminalDevices(TerminalDevicesPayload.EMPTY);
+        menu.resetTerminalDevices();
         send(MachineMenu.OPEN_TERMINAL_DEVICES);
         minecraft.pushGuiLayer(new TerminalDevicesScreen(menu));
     }
@@ -158,10 +158,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (working(s.status())) return tr("processing");
         return Component.translatable("status.rematter." + s.status());
     }
+    private static Component name(MachineSnapshot.Entry entry) { return SubstanceNames.substance(entry.id(), entry.phase(), entry.known()); }
+    private static Component name(MachineSnapshot.Amount amount) { return SubstanceNames.substance(amount.id(), amount.phase(), amount.known()); }
+    private static String label(MachineSnapshot.Amount amount) {
+        return amount.known() ? SubstanceLabels.shortLabel(amount.id(), name(amount).getString()) : name(amount).getString();
+    }
     private List<MachineSnapshot.Entry> entries() {
         String query = search == null ? "" : search.getValue().strip().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) return menu.snapshot().entries();
-        return menu.snapshot().entries().stream().filter(e -> e.name().toLowerCase(Locale.ROOT).contains(query)
+        if (query.isEmpty()) return menu.stock().entries();
+        return menu.stock().entries().stream().filter(e -> name(e).getString().toLowerCase(Locale.ROOT).contains(query)
                 || e.id().toLowerCase(Locale.ROOT).contains(query) || e.phase().contains(query)
                 || SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(e.id()), query)).toList();
     }
@@ -203,8 +208,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         networkJobs.setMessage(tr(s.networkJobs()?"network_jobs_on":"network_jobs_off"));
         explain(networkJobs,tr("network_jobs_hint"));
         backend.visible = ready && configuration() && menu.kind()==MachineKind.NETWORK_INTERFACE;
-        String backendName=switch(s.selectedName()){case "ae2"->"AE2";case "rs"->"Refined Storage";default->"Unavailable";};
-        backend.setMessage(Component.translatable("screen.rematter.backend",backendName));
+        backend.setMessage(Component.translatable("screen.rematter.backend",tr(switch(s.backend()){case "ae2","rs"->"backend_"+s.backend();default->"backend_none";})));
         explain(backend,tr("backend_hint"));
         automation.setWidth(canNetwork ? 134 : 272);
         backend.setX(leftPos + (recoveringUpgrade ? 109 : 12));
@@ -223,7 +227,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             b.setY(topPos + STOCK_TOP + i / gridColumns() * STOCK_PITCH);
             b.setWidth(tilePitch() - 2);
             if (b.entry != null) {
-                String label = SubstanceLabels.shortLabel(b.entry.id(), b.entry.name());
+                String label = b.entry.known() ? SubstanceLabels.shortLabel(b.entry.id(), name(b.entry).getString()) : name(b.entry).getString();
                 b.setMessage(Component.literal(label + ", " + b.entry.phase() + ", " + number(b.entry.amount()) + " u"));
                 b.setTooltip(Tooltip.create(stockTooltip(b.entry, label)));
             }
@@ -252,7 +256,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         if (main() && !passive()) {
             if (inside(mx, my, 13, 74, 19, 38)) {
-                g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(s), mouseX, mouseY);
+                g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(), mouseX, mouseY);
             } else if (inside(mx, my, 12, 114, primary.visible ? 149 : 272, 28)) {
                 var lines = new ArrayList<Component>();
                 lines.add(statusText());
@@ -321,14 +325,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         } else if (main() && !passive()) {
             if (!handPreparator()) {
                 ScreenChrome.inset(g, x + 14, y + 74, 12, 34);
-                int fill = (int) Math.clamp(30L * s.energy() / MachineBlockEntity.ENERGY_CAPACITY, 0, 30);
+                int fill = (int) Math.clamp(30L * menu.progress().energy() / MachineBlockEntity.ENERGY_CAPACITY, 0, 30);
                 g.fill(x + 16, y + 106 - fill, x + 24, y + 106, ACCENT);
             }
             int arrowStart = processArrowStart(), arrowEnd = 200;
             g.fill(x + arrowStart, y + 88, x + arrowEnd, y + 94, HIGHLIGHT);
             g.fill(x + arrowEnd - 4, y + 84, x + arrowEnd, y + 98, HIGHLIGHT);
             g.fill(x + arrowEnd, y + 86, x + arrowEnd + 4, y + 96, HIGHLIGHT);
-            int progress = s.duration() > 0 ? (int) Math.clamp((long) (arrowEnd - arrowStart) * s.progress() / s.duration(), 0, arrowEnd - arrowStart) : 0;
+            var work = menu.progress();
+            int progress = work.duration() > 0 ? (int) Math.clamp((long) (arrowEnd - arrowStart) * work.progress() / work.duration(), 0, arrowEnd - arrowStart) : 0;
             g.fill(x + arrowStart, y + 88, x + arrowStart + progress, y + 94, ACCENT);
             g.fill(x + 12, y + 112, x + CONTENT_RIGHT, y + 113, BORDER);
         }
@@ -385,8 +390,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     private void processLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
         var p = s.preview();
-        String name = !p.name().isBlank() ? p.name() : !s.selectedName().isBlank() ? s.selectedName()
-                : tr(selecting() ? "choose_recipe" : "add_input").getString();
+        String name = previewTitle(s).getString();
         ScreenChrome.icon(g, Icon.RECIPE, 12, 52, MUTED);
         ScreenChrome.twoLines(g, font, name, 30, 50, choose.visible ? 162 : 254, TEXT);
         if (handPreparator()) ScreenChrome.icon(g, Icon.CRANK, 14, 87, ACCENT);
@@ -394,13 +398,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             for (int index : new int[]{0, 3, 4}) if (menu.slots.get(index).isActive()) drawSlotLabel(g, index, s);
         } else if (p.inputs().size() == 1) {
             var ingredient = p.inputs().getFirst();
-            ScreenChrome.twoLines(g, font, SubstanceLabels.shortLabel(ingredient.id(), ingredient.name()), 38, 75, 90,
+            ScreenChrome.twoLines(g, font, label(ingredient), 38, 75, 90,
                     ingredient.available() < ingredient.required() ? WARNING : TEXT);
             text(g, compact(ingredient.required()) + " u", 38, 99, 90, MUTED);
         } else if (!p.inputs().isEmpty()) {
             for (int i = 0; i < Math.min(2, p.inputs().size()); i++) {
                 var ingredient = p.inputs().get(i);
-                text(g, SubstanceLabels.shortLabel(ingredient.id(), ingredient.name()), 38, 72 + i * 19, 90,
+                text(g, label(ingredient), 38, 72 + i * 19, 90,
                         ingredient.available() < ingredient.required() ? WARNING : TEXT);
                 text(g, compact(ingredient.required()) + " u", 38, 81 + i * 19, 80, MUTED);
             }
@@ -420,12 +424,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 text(g, compact(p.outputCount()) + (p.outputKind().equals("fluid") ? " mB" : ""), 246, 89, 38, MUTED);
         } else if (!p.outputs().isEmpty()) {
             var output = p.outputs().getFirst();
-            ScreenChrome.twoLines(g, font, SubstanceLabels.shortLabel(output.id(), output.name()), 209, 73, 75, TEXT);
+            ScreenChrome.twoLines(g, font, label(output), 209, 73, 75, output.known() ? TEXT : WARNING);
             text(g, compact(output.required()) + " u", 209, 98, 65, ACCENT);
             if (p.outputs().size() > 1 || !p.complete()) g.text(font, "+", 278, 98, MUTED, false);
         }
-        if (s.duration() > 0) {
-            String progress = Math.clamp(100L * s.progress() / s.duration(), 0, 100) + "%";
+        var work = menu.progress();
+        if (work.duration() > 0) {
+            String progress = Math.clamp(100L * work.progress() / work.duration(), 0, 100) + "%";
             g.text(font, progress, (processArrowStart() + 200 - font.width(progress)) / 2, 100, MUTED, false);
         }
         String status = statusText().getString();
@@ -454,7 +459,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
             text(g, tr("upgrades").getString(), 68, 116, 210, TEXT);
         }
-        String cost = s.preview().id().isEmpty() ? compact(s.energy()) + " FE"
+        String cost = s.preview().id().isEmpty() ? compact(menu.progress().energy()) + " FE"
                 : compact(s.preview().energy()) + " FE · " + String.format(Locale.ROOT, "%.1f s", s.preview().ticks() / 20.0);
         text(g, cost, 68, 131, 210, MUTED);
     }
@@ -486,7 +491,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                         33, 82, 249, MUTED);
             } else {
                 ScreenChrome.icon(g, passive() ? Icon.STORAGE : Icon.POWER, 14, 80, ACCENT);
-                text(g, passive() ? compact(s.used()) + " / " + compact(s.capacity()) + " u" : compact(s.energy()) + " FE", 33, 82, 249, MUTED);
+                text(g, passive() ? compact(s.used()) + " / " + compact(s.capacity()) + " u" : compact(menu.progress().energy()) + " FE", 33, 82, 249, MUTED);
             }
         }
         if (menu.slots.get(2).isActive()) ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
@@ -507,19 +512,23 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                 g.text(font, Integer.toString(bay + 1), labelX, slot.y + 4, MUTED, false);
             }
         }
+        var stock = menu.stock();
         var visibleEntries = entries();
         if (visibleEntries.isEmpty()) {
-            String message = tr(!s.entriesComplete() ? "contents_unavailable" : search.getValue().isBlank() ? "empty_storage" : "no_matches").getString();
+            String message = tr(!stock.readable() ? "contents_unavailable" : search.getValue().isBlank() ? "empty_storage" : "no_matches").getString();
             ScreenChrome.twoLines(g, font, message, gridX() + 5, 87, CONTENT_RIGHT - gridX() - 10, MUTED);
         }
         int pageCount = pages(visibleEntries);
         String pagination = pageCount > 1 ? (page + 1) + " / " + pageCount : "";
         String capacity = disk() ? "" : compact(s.used()) + " / " + compact(s.capacity()) + " u";
         String footer = pagination.isEmpty() ? capacity : capacity.isEmpty() ? pagination : capacity + " · " + pagination;
-        if (!s.entriesComplete()) footer = footer.isEmpty() ? tr("partial_short").getString() : footer + " · " + tr("partial_short").getString();
+        if (stock.truncated()) {
+            String shown = Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()).getString();
+            footer = footer.isEmpty() ? shown : footer + " · " + shown;
+        }
         int start = gridX() + (previous.visible ? 24 : 2), end = CONTENT_RIGHT - (next.visible ? 24 : 2);
         String label = fitted(footer, end - start);
-        g.text(font, label, (start + end - font.width(label)) / 2, STOCK_FOOTER + 3, s.entriesComplete() ? ACCENT : WARNING, false);
+        g.text(font, label, (start + end - font.width(label)) / 2, STOCK_FOOTER + 3, stock.complete() ? ACCENT : WARNING, false);
     }
 
     private static void capacityBar(GuiGraphicsExtractor g, MachineSnapshot s, int x, int y, int width) {
@@ -528,12 +537,39 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (fill > 0) g.fill(x + 1, y + 1, x + 1 + fill, y + 4, s.status().equals("unknown_schema") ? WARNING : ACCENT);
     }
     private List<Component> recipeDetails(MachineSnapshot s) {
-        var p=s.preview();var lines=new ArrayList<Component>();lines.add(Component.literal(p.name().isBlank()?s.selectedName():p.name()));
+        var p=s.preview();var lines=new ArrayList<Component>();lines.add(previewTitle(s));
         if(menu.inputRole()&&!preparator()&&s.sampleBatchSize()>1)lines.add(Component.translatable("screen.rematter.composition_batch",s.sampleBatchSize()));
-        lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+19)/20):Component.literal(String.format(Locale.ROOT,"%,d FE · %.1f s",p.energy(),p.ticks()/20.0)));
-        for(var a:p.inputs())lines.add(Component.literal(SubstanceLabels.shortLabel(a.id(),a.name())+" · "+a.phase()+": "+a.required()+" needed / "+a.available()+" available"));
-        for(var a:p.outputs())lines.add(Component.literal("→ "+SubstanceLabels.shortLabel(a.id(),a.name())+" · "+a.phase()+": "+a.required()+" u"));
+        lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+19)/20)
+                :Component.translatable("screen.rematter.preview_cost",number(p.energy()),String.format(Locale.ROOT,"%.1f",p.ticks()/20.0)));
+        for(var a:p.inputs())lines.add(Component.translatable("screen.rematter.preview_input",label(a),a.phase(),number(a.required()),number(a.available())));
+        for(var a:p.outputs())lines.add(Component.translatable("screen.rematter.preview_output",label(a),a.phase(),number(a.required())));
+        if(p.inputs().stream().anyMatch(a->!a.known())||p.outputs().stream().anyMatch(a->!a.known()))lines.add(tr("unknown_substance_hint"));
         if(!p.complete())lines.add(tr("preview_partial"));return lines;
+    }
+    /** Every title is resolved from IDs in the player's own language. */
+    private Component previewTitle(MachineSnapshot s) {
+        var p = s.preview();
+        if (p.id().isEmpty()) return s.selectedId().isEmpty() ? tr(selecting() ? "choose_recipe" : "add_input") : SubstanceNames.choice(menu.kind(), s.selectedId());
+        if (s.networkJobs()) return orderTitle(p);
+        if (p.id().startsWith(MachineSnapshot.ITEM_SOURCE)) return SubstanceNames.item(p.id().substring(MachineSnapshot.ITEM_SOURCE.length()));
+        if (preparator()) return SubstanceNames.item(p.outputId());
+        if (!selecting() && p.id().startsWith(MachineChoices.FLUID_PREFIX)) return SubstanceNames.fluid(p.id().substring(MachineChoices.FLUID_PREFIX.length()));
+        return SubstanceNames.choice(menu.kind(), p.id());
+    }
+    private Component orderTitle(MachineSnapshot.Preview p) {
+        var title = Component.empty();
+        for (var resource : p.resources()) {
+            if (!title.getSiblings().isEmpty()) title.append(" + ");
+            title.append(Component.translatable("screen.rematter.order_amount", number(resource.amount()),
+                    resource.kind().equals("fluid") ? SubstanceNames.fluid(resource.id()) : SubstanceNames.item(resource.id())));
+        }
+        if (!p.resources().isEmpty()) title.append(" → ");
+        Component output = switch (p.outputKind()) {
+            case "item" -> Component.translatable("screen.rematter.order_amount", number(p.outputCount()), SubstanceNames.item(p.outputId()));
+            case "fluid" -> Component.translatable("screen.rematter.order_amount", number(p.outputCount()), SubstanceNames.fluid(p.outputId()));
+            default -> p.outputs().isEmpty() ? Component.literal(p.outputId()) : name(p.outputs().getFirst());
+        };
+        return title.append(output);
     }
     private List<Component> structureDetails(MachineSnapshot s) {
         var lines=new ArrayList<Component>();if(!industrial())return lines;var v=s.structure();
@@ -561,14 +597,14 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(handPreparator()){lines.add(tr("hand_powered"));lines.add(tr("crank_hint"));return lines;}
         if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());
         lines.add(tr("source_"+s.storageSource()));lines.add(Component.literal(number(s.used())+" / "+number(s.capacity())+" u"));
-        if(menu.kind().processes())lines.add(energyLine(s));
+        if(menu.kind().processes())lines.add(energyLine());
         if(disk()) {
             lines.add(Component.translatable("screen.rematter.drive_cells",s.cells().stream().filter(MachineSnapshot.CellView::installed).count()));
             if(s.cells().stream().anyMatch(c->c.installed()&&!c.readable()))lines.add(tr("drive_blocked"));
             for(int bay=0;bay<s.cells().size();bay++) {
                 var cell=s.cells().get(bay);if(!cell.installed())continue;
-                lines.add(Component.translatable("screen.rematter.drive_bay",bay+1).append(": ").append(cell.name())
-                        .append(cell.readable()?" · "+cell.types()+" / "+cell.maxTypes()+" types":" · "+tr("cell_unreadable").getString()));
+                lines.add(Component.translatable("screen.rematter.drive_bay",bay+1).append(": ").append(SubstanceNames.item(cell.itemId())).append(" · ")
+                        .append(cell.readable()?Component.translatable("screen.rematter.cell_types",cell.types(),cell.maxTypes()):tr("cell_unreadable")));
             }
         }
         var n=s.network();
@@ -577,11 +613,18 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             if(n.status().equals("ready") && n.storages()>1 && !s.storageSource().equals("network"))lines.add(Component.translatable("screen.rematter.network_capacity",number(n.used()),number(n.capacity()),n.types()));
             else if(!n.status().equals("ready"))lines.add(Component.translatable("status.rematter."+n.status()));
         }
-        if(s.fluidAmount()>0)lines.add(Component.literal(s.fluidName()+" · "+s.fluidAmount()+" mB"));
-        if(!s.entriesComplete())lines.add(tr("partial_contents_hint"));
+        if(s.fluidAmount()>0)lines.add(Component.translatable("screen.rematter.fluid_amount",SubstanceNames.fluid(s.fluidId()),number(s.fluidAmount())));
+        var stock=menu.stock();
+        if(stock.truncated())lines.add(Component.translatable("screen.rematter.partial_contents_hint",stock.entries().size(),stock.totalTypes()));
+        else if(!stock.readable())lines.add(tr("contents_unavailable"));
         return lines;
     }
-    private Component stockTooltip(MachineSnapshot.Entry e, String label) { return Component.literal(label+" · "+e.phase()+"\n"+number(e.amount())+" u stored"+(e.available()==e.amount()?"":"\n"+number(e.available())+" u available")+"\n"+tr("substance_details_hint").getString()); }
+    private Component stockTooltip(MachineSnapshot.Entry e, String label) {
+        var lines = Component.literal(label + " · " + e.phase()).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
+        if (e.available() != e.amount()) lines.append("\n").append(Component.translatable("screen.rematter.stock_available", number(e.available())));
+        if (!e.known()) lines.append("\n").append(tr("unknown_substance_hint"));
+        return lines.append("\n").append(tr("substance_details_hint"));
+    }
     private static void substanceIcon(GuiGraphicsExtractor g,String id,String phase,int x,int y) {
         try {
             var key = new SubstanceKey(SubstanceId.parse(id),Phase.valueOf(phase.toUpperCase(Locale.ROOT)));
@@ -598,7 +641,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void text(GuiGraphicsExtractor g,String v,int x,int y,int width,int color){g.text(font,fitted(v,width),x,y,color,false);}
     private ItemStack outputIcon(MachineSnapshot.Preview p){try{Identifier id=Identifier.parse(p.outputId());if(p.outputKind().equals("item")&&BuiltInRegistries.ITEM.containsKey(id))return new ItemStack(BuiltInRegistries.ITEM.getValue(id));if(p.outputKind().equals("fluid")&&BuiltInRegistries.FLUID.containsKey(id))return new ItemStack(BuiltInRegistries.FLUID.getValue(id).getBucket());}catch(RuntimeException ignored){}return ItemStack.EMPTY;}
     private static String number(long v){return String.format(Locale.ROOT,"%,d",v);}
-    private static Component energyLine(MachineSnapshot s){return Component.translatable("screen.rematter.energy_buffer",number(s.energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
+    private Component energyLine(){return Component.translatable("screen.rematter.energy_buffer",number(menu.progress().energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
     private static String compact(long v){if(v>=1_000_000_000_000L)return String.format(Locale.ROOT,"%.1e",(double)v);if(v>=1_000_000_000)return String.format(Locale.ROOT,"%.1fB",v/1e9);if(v>=1_000_000)return String.format(Locale.ROOT,"%.1fM",v/1e6);if(v>=10_000)return String.format(Locale.ROOT,"%.1fk",v/1000.0);return Long.toString(v);}
     private class ConsoleButton extends Button {
         ConsoleButton(Builder b){super(b);}
@@ -678,7 +721,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             substanceIcon(g, entry.id(), entry.phase(), getX() + 3, getY() + 1);
             int left = getX() + 22;
             int available = getWidth() - 26;
-            text(g, entry.name(), left, getY() + 1, available, TEXT);
+            text(g, name(entry).getString(), left, getY() + 1, available, entry.known() ? TEXT : WARNING);
             text(g, compact(entry.amount()) + " u", left, getY() + 9, available, ACCENT);
         }
     }
@@ -689,14 +732,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         @Override protected void init(){x=(width-244)/2;y=(height-170)/2;addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+87,y+141,70,18).build(ConsoleButton::new));}
         @Override public boolean isPauseScreen(){return false;}
         @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu)onClose();}
-        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var entry=menu.snapshot().entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);String name=entry==null?id:entry.name();substanceIcon(g,id,phase,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
+        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();var entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);String name=entry==null?id:name(entry).getString();substanceIcon(g,id,phase,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
             String symbol=SubstanceLabels.iconLabel(id);text(g,symbol.isEmpty()?phase:symbol+" · "+phase,x+34,y+33,198,phaseColor(phase));
-            String stored=entry==null?(menu.snapshot().entriesComplete()?"0":"?"):number(entry.amount());String available=entry==null?(menu.snapshot().entriesComplete()?"0":"?"):number(entry.available());
+            String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());String available=entry==null?(stock.complete()?"0":"?"):number(entry.available());
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_stored", stored).getString(), x + 11, y + 50, 222, TEXT);
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_available", available).getString(), x + 11, y + 71, 222, TEXT);
             ScreenChrome.twoLines(g, font, tr("quantity_not_item").getString(), x + 11, y + 93, 222, MUTED);
             text(g, id, x + 11, y + 114, 222, MUTED);
-            if (!menu.snapshot().entriesComplete()) text(g, tr("partial_contents_hint").getString(), x + 11, y + 126, 222, WARNING);
+            if (entry != null && !entry.known()) text(g, tr("unknown_substance_hint").getString(), x + 11, y + 126, 222, WARNING);
+            else if (!stock.complete()) text(g, Component.translatable("screen.rematter.partial_contents_hint", stock.entries().size(), stock.totalTypes()).getString(), x + 11, y + 126, 222, WARNING);
             super.extractRenderState(g, mx, my, partial);
         }
     }

@@ -15,6 +15,12 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 public record TerminalDeviceActionPayload(int containerId, BlockPos position, Action action, String recipeId) implements CustomPacketPayload {
     public enum Action { OPEN, QUEUE_BATCH }
 
+    public TerminalDeviceActionPayload {
+        position = position.immutable();
+        if (recipeId.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || (action == Action.QUEUE_BATCH) == recipeId.isEmpty())
+            throw new IllegalArgumentException("Invalid terminal request");
+    }
+
     public static final Type<TerminalDeviceActionPayload> TYPE = new Type<>(
             Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "terminal_device_action"));
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalDeviceActionPayload> CODEC = new StreamCodec<>() {

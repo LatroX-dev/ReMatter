@@ -1,8 +1,10 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.content.MachineCellAccess;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineRunState;
 import dev.latrox.rematter.content.MachineSnapshot;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import static dev.latrox.rematter.client.MachinePrimaryAction.Action.*;
@@ -10,12 +12,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MachinePrimaryActionTest {
     private static final String RECIPE = "rematter:test_recipe";
-    private static final MachineSnapshot.Preview PREVIEW = new MachineSnapshot.Preview(RECIPE, "Recipe", List.of(), List.of(),
-            true, 1000, 20, "matter", "", 0);
+    private static final MachineSnapshot.Preview PREVIEW = new MachineSnapshot.Preview(RECIPE, List.of(), List.of(),
+            true, 1000, 20, "matter", "", 0, List.of());
     private static MachineSnapshot view(MachineKind kind, MachineRunState state, int choices, int selected,
                                         String selectedId, MachineSnapshot.Preview preview, String status) {
-        return new MachineSnapshot(7, kind.ordinal(), 0, 0, 0, status, selected, selectedId, selectedId, choices, 1,
-                List.of(), true, 0, 0, false, state.running(), 0, "", state.repeat(), state.queuedBatches(), preview);
+        return new MachineSnapshot(7, kind.ordinal(), status, selected, selectedId, choices, 1, 0, 0, false, state.running(),
+                0, "", state.repeat(), state.queuedBatches(), preview, "none", MachineSnapshot.StructureView.EMPTY,
+                MachineSnapshot.NetworkView.EMPTY, false, "", Collections.nCopies(MachineCellAccess.bayCount(kind), MachineSnapshot.CellView.EMPTY));
     }
     private static MachineSnapshot selected(MachineKind kind, MachineRunState state) {
         return view(kind, state, 1, 0, RECIPE, PREVIEW, state.running() ? "working" : "paused");

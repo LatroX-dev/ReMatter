@@ -28,7 +28,7 @@ final class TerminalDevicesScreen extends Screen {
     private final MachineMenu menu;
     private final List<Row> rows = new ArrayList<>();
     private List<Device> filtered = List.of();
-    private TerminalDevicesPayload displayed = TerminalDevicesPayload.EMPTY;
+    private TerminalDevicesPayload.Listing displayed = TerminalDevicesPayload.Listing.EMPTY;
     private EditBox search;
     private Button previous;
     private Button next;
@@ -83,7 +83,7 @@ final class TerminalDevicesScreen extends Screen {
     private void filter() {
         String query = search.getValue().strip().toLowerCase(Locale.ROOT);
         filtered = displayed.devices().stream()
-                .filter(device -> (name(device).getString() + " " + position(device) + " " + device.recipe())
+                .filter(device -> (name(device).getString() + " " + position(device) + " " + recipe(device).getString())
                         .toLowerCase(Locale.ROOT).contains(query))
                 .toList();
         refreshRows();
@@ -99,7 +99,7 @@ final class TerminalDevicesScreen extends Screen {
             row.queue.visible = device != null && !device.recipeId().isEmpty();
             row.queue.active = device != null && device.canQueue();
             row.device.setWidth(row.queue.visible ? panelWidth - ACTION_WIDTH - 20 : panelWidth - 16);
-            if (device != null) row.queue.setTooltip(Tooltip.create(tr("queue_hint", device.recipe())));
+            if (device != null) row.queue.setTooltip(Tooltip.create(tr("queue_hint", recipe(device))));
         }
         previous.visible = next.visible = pages() > 1;
         previous.active = page > 0;
@@ -137,7 +137,8 @@ final class TerminalDevicesScreen extends Screen {
         ScreenChrome.icon(g, Icon.NETWORK, left + 9, top + 7, ACCENT);
         draw(g, title, left + 26, top + 9, panelWidth - 35, TEXT);
         ScreenChrome.inset(g, left + 8, top + 25, panelWidth - 16, 21);
-        draw(g, tr("count", filtered.size()), left + 9, top + 53, panelWidth - 18, MUTED);
+        draw(g, displayed.truncated() ? tr("count_truncated", filtered.size(), displayed.total()) : tr("count", filtered.size()),
+                left + 9, top + 53, panelWidth - 18, displayed.truncated() ? WARNING : MUTED);
         if (filtered.isEmpty()) draw(g, emptyMessage(), left + 9, top + ROW_START + 5, panelWidth - 18, MUTED);
         if (pages() > 1) draw(g, tr("page", page + 1, pages()), left + 66, top + panelHeight - 20, panelWidth - 129, MUTED);
         super.extractRenderState(g, mouseX, mouseY, partialTick);
@@ -159,6 +160,9 @@ final class TerminalDevicesScreen extends Screen {
     private static Component tr(String key, Object... args) { return Component.translatable("screen.rematter.terminal." + key, args); }
     private static Component name(Device device) { return Component.translatable("block.rematter." + device.kind().id()); }
     private static Component status(Device device) { return Component.translatable("status.rematter." + device.status()); }
+    private static Component recipe(Device device) {
+        return device.recipeId().isEmpty() ? Component.empty() : SubstanceNames.choice(device.kind(), device.recipeId());
+    }
     private static String position(Device device) {
         var pos = device.position();
         return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
@@ -188,7 +192,7 @@ final class TerminalDevicesScreen extends Screen {
             if (value == null) return;
             setMessage(name(value).copy().append(" " + position(value)));
             var details = name(value).copy().append("\n" + position(value) + "\n").append(status(value));
-            if (!value.recipe().isEmpty()) details.append("\n").append(tr("selected", value.recipe()));
+            if (!value.recipeId().isEmpty()) details.append("\n").append(tr("selected", recipe(value)));
             if (value.duration() > 0) details.append("\n").append(tr("progress", value.progress(), value.duration()));
             if (value.queuedBatches() > 0) details.append("\n").append(tr("queued", value.queuedBatches()));
             setTooltip(Tooltip.create(details.append("\n").append(tr("open_hint"))));
@@ -202,10 +206,8 @@ final class TerminalDevicesScreen extends Screen {
             int textX = getX() + 24;
             int textWidth = getWidth() - 30;
             draw(g, name(device), textX, getY() + 4, textWidth, TEXT);
-            if (!device.recipe().isEmpty()) {
-                draw(g, Component.literal(device.recipe()), textX, getY() + 14, textWidth, MUTED);
-            }
-            int statusY = getY() + (device.recipe().isEmpty() ? 16 : 24);
+            if (!device.recipeId().isEmpty()) draw(g, recipe(device), textX, getY() + 14, textWidth, MUTED);
+            int statusY = getY() + (device.recipeId().isEmpty() ? 16 : 24);
             String status = status(device).getString();
             String coordinates = position(device);
             int coordinatesWidth = font.width(coordinates);

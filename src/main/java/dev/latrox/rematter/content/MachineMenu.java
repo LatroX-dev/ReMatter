@@ -1,8 +1,13 @@
 package dev.latrox.rematter.content;
 
+import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.content.preparation.PreparationTier;
+import dev.latrox.rematter.network.MachineProgressPayload;
+import dev.latrox.rematter.network.MachineStockPayload;
 import dev.latrox.rematter.network.TerminalDeviceActionPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
+import java.util.List;
+import net.minecraft.core.BlockPos;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -33,8 +38,14 @@ public final class MachineMenu extends AbstractContainerMenu {
     private final Player player;
     private final DataSlot remoteMenu = DataSlot.standalone();
     private final DataSlot[] portModes = new DataSlot[MachinePortMode.Side.values().length];
+    /** Server: the last views sent. Client: the last views received. */
     private MachineSnapshot snapshot = MachineSnapshot.EMPTY;
-    private TerminalDevicesPayload terminalDevices = TerminalDevicesPayload.EMPTY;
+    private MachineProgressPayload progress = MachineProgressPayload.EMPTY;
+    private final SyncedRows<MachineSnapshot.StockKey, MachineSnapshot.Entry> stockRows = new SyncedRows<>(MachineSnapshot.Entry::key);
+    private final SyncedRows<BlockPos, TerminalDevicesPayload.Device> deviceRows = new SyncedRows<>(TerminalDevicesPayload.Device::position);
+    private Stock stock = Stock.EMPTY;
+    private TerminalDevicesPayload.Listing terminalDevices = TerminalDevicesPayload.Listing.EMPTY;
+    private boolean stockSent, devicesSent;
     private boolean observingTerminal;
     private long lastTerminalAction = Long.MIN_VALUE;
     private long nextSnapshot;
@@ -138,22 +149,37 @@ public final class MachineMenu extends AbstractContainerMenu {
     public void setView(View value) { view = java.util.Objects.requireNonNull(value); }
     public void setSettingsOpen(boolean value) { setView(value ? View.CONFIGURATION : View.MAIN); }
     public boolean settingsOpen() { return view != View.MAIN; }
+    /** The client's stock rows in key order. {@code totalTypes} counts every stored type, shown or not. */
+    public record Stock(int containerId, boolean readable, int totalTypes, List<MachineSnapshot.Entry> entries) {
+        public static final Stock EMPTY = new Stock(-1, false, 0, List.of());
+        public Stock { entries = List.copyOf(entries); }
+        public boolean complete() { return readable && entries.size() == totalTypes; }
+        public boolean truncated() { return entries.size() < totalTypes; }
+    }
     public MachineSnapshot snapshot() { return snapshot; }
+    public MachineProgressPayload progress() { return progress; }
+    public Stock stock() { return stock; }
     public void acceptSnapshot(MachineSnapshot value) { snapshot = value; }
+    public void acceptProgress(MachineProgressPayload value) { progress = value; }
+    public void acceptStock(MachineStockPayload value) {
+        stockRows.apply(value.reset(), value.changed(), value.removed());
+        if (stockRows.size() > MachineSnapshot.MAX_ENTRIES) stockRows.clear();
+        stock = new Stock(value.containerId(), value.readable(), value.totalTypes(), stockRows.values());
+    }
     public boolean remote() { return remoteMenu.get() != 0; }
-    public TerminalDevicesPayload terminalDevices() { return terminalDevices; }
-    public void acceptTerminalDevices(TerminalDevicesPayload value) { terminalDevices = value; }
+    public TerminalDevicesPayload.Listing terminalDevices() { return terminalDevices; }
+    public void acceptTerminalDevices(TerminalDevicesPayload value) {
+        deviceRows.apply(value.reset(), value.changed(), value.removed());
+        if (deviceRows.size() > TerminalDevicesPayload.MAX_DEVICES) deviceRows.clear();
+        terminalDevices = new TerminalDevicesPayload.Listing(value.containerId(), value.total(), deviceRows.values());
+    }
     public boolean useTerminalDevice(ServerPlayer user, TerminalDeviceActionPayload request) {
         if (!observingTerminal || machine == null || kind() != MachineKind.TERMINAL
                 || user.containerMenu != this || request.containerId() != containerId
                 || !TerminalNetwork.isValidAnchor(machine, user)) return false;
-        var shown = terminalDevices.devices().stream()
-                .filter(device -> device.position().equals(request.position())).findFirst().orElse(null);
-        if (shown == null) return false;
-        if (request.action() == TerminalDeviceActionPayload.Action.QUEUE_BATCH
-                && (!shown.canQueue() || !shown.recipeId().equals(request.recipeId()))) return false;
+        var shown = deviceRows.get(request.position());
         long tick = user.level().getGameTime();
-        if (lastTerminalAction == tick) return false;
+        if (!TerminalDeviceRequests.permits(shown, request, tick, lastTerminalAction)) return false;
         lastTerminalAction = tick;
         var device = TerminalNetwork.resolve(machine, user, request.position());
         if (device == null || device.kind() != shown.kind()) return false;
@@ -180,18 +206,42 @@ public final class MachineMenu extends AbstractContainerMenu {
         long tick = player.level().getGameTime();
         if (tick < nextSnapshot) return;
         nextSnapshot = tick + 5;
-        MachineSnapshot next = machine.snapshot(containerId);
+        try {
+            sendViews(serverPlayer);
+        } catch (IllegalArgumentException | ArithmeticException invalid) {
+            // A view that breaks its own bounds closes this menu instead of the server tick.
+            ReMatter.LOGGER.error("Closed the {} menu at {}: its view is invalid", machine.kind().id(), machine.getBlockPos(), invalid);
+            serverPlayer.closeContainer();
+        }
+    }
+    /** Sends each view only when it changed; stock rows and devices travel as keyed changes. */
+    private void sendViews(ServerPlayer serverPlayer) {
+        var next = machine.snapshot(containerId);
         if (!snapshot.equals(next)) {
             snapshot = next;
             PacketDistributor.sendToPlayer(serverPlayer, next);
         }
-        if (observingTerminal) {
-            var devices = TerminalNetwork.devices(machine, player, false).stream().map(MachineBlockEntity::terminalDevice).toList();
-            var list = new TerminalDevicesPayload(containerId, devices);
-            if (!terminalDevices.equals(list)) {
-                terminalDevices = list;
-                PacketDistributor.sendToPlayer(serverPlayer, list);
-            }
+        var nextProgress = machine.progress(containerId);
+        if (!progress.equals(nextProgress)) {
+            progress = nextProgress;
+            PacketDistributor.sendToPlayer(serverPlayer, nextProgress);
+        }
+        var nextStock = machine.stock();
+        var stockChanges = stockRows.update(nextStock.entries());
+        if (!stockSent || !stockChanges.isEmpty() || nextStock.readable() != stock.readable() || nextStock.totalTypes() != stock.totalTypes()) {
+            PacketDistributor.sendToPlayer(serverPlayer, new MachineStockPayload(containerId, !stockSent, nextStock.readable(),
+                    nextStock.totalTypes(), stockChanges.changed(), stockChanges.removed()));
+            stock = new Stock(containerId, nextStock.readable(), nextStock.totalTypes(), List.of());
+            stockSent = true;
+        }
+        if (!observingTerminal) return;
+        var devices = TerminalNetwork.devices(machine, player, false);
+        var deviceChanges = deviceRows.update(devices.stream().limit(TerminalDevicesPayload.MAX_DEVICES).map(MachineBlockEntity::terminalDevice).toList());
+        if (!devicesSent || !deviceChanges.isEmpty() || devices.size() != terminalDevices.total()) {
+            PacketDistributor.sendToPlayer(serverPlayer, new TerminalDevicesPayload(containerId, !devicesSent, devices.size(),
+                    deviceChanges.changed(), deviceChanges.removed()));
+            terminalDevices = new TerminalDevicesPayload.Listing(containerId, devices.size(), List.of());
+            devicesSent = true;
         }
     }
     @Override public boolean clickMenuButton(Player player, int id) {
@@ -215,7 +265,7 @@ public final class MachineMenu extends AbstractContainerMenu {
             case OPEN_TERMINAL_DEVICES -> {
                 if (kind() != MachineKind.TERMINAL || terminal != null) return false;
                 observingTerminal = true;
-                terminalDevices = TerminalDevicesPayload.EMPTY;
+                resetTerminalDevices();
             }
             case RETURN_TO_TERMINAL -> {
                 return terminal != null && TerminalNetwork.isValidAnchor(terminal, player)
@@ -224,13 +274,19 @@ public final class MachineMenu extends AbstractContainerMenu {
             case CLOSE_TERMINAL_DEVICES -> {
                 if (kind() != MachineKind.TERMINAL) return false;
                 observingTerminal = false;
-                terminalDevices = TerminalDevicesPayload.EMPTY;
+                resetTerminalDevices();
             }
             default -> { return false; }
         }
         nextSnapshot = 0;
         broadcastChanges();
         return true;
+    }
+    /** Forgets the device list on either side, so the next list arrives as a reset. */
+    public void resetTerminalDevices() {
+        deviceRows.clear();
+        devicesSent = false;
+        terminalDevices = TerminalDevicesPayload.Listing.EMPTY;
     }
     @Override public ItemStack quickMoveStack(Player player, int index) {
         if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;

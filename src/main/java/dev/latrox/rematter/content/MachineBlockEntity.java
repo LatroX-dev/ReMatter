@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.content.preparation.*;
+import dev.latrox.rematter.network.MachineProgressPayload;
 import dev.latrox.rematter.network.TerminalDevicesPayload;
 import net.minecraft.server.level.ServerLevel;
 import java.util.*;
@@ -277,7 +278,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             assignOwner(player.getUUID());
         return canUse(player);
     }
-    public @Nullable MachineSnapshot snapshotFor(Player player) { return canAccess(player) ? snapshot(-1) : null; }
     /** The full local store has stable, flat, independently persisted cell members. */
     public MatterStore matterStore() { return bays.store(); }
     public int cellSlot() { return MachineCellAccess.slot(kind()); }
@@ -746,8 +746,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     TerminalDevicesPayload.Device terminalDevice() {
         var choice = terminalChoice();
-        return new TerminalDevicesPayload.Device(worldPosition, kind(), work.status,
-                choice == null ? "" : choice.name(), choice == null ? "" : choice.id(), work.progress, work.duration,
+        return new TerminalDevicesPayload.Device(worldPosition, kind(), work.status, choice == null ? "" : choice.id(),
+                Math.min(work.progress, work.duration), work.duration,
                 supportsBatchControl() ? control.runState().queuedBatches() : 0, choice != null && canQueueFromTerminal());
     }
     boolean queueFromTerminal(String expectedRecipe) {
@@ -765,6 +765,17 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
 
     public MachineSnapshot snapshot(int containerId) { return MachineSnapshots.build(this, containerId); }
+    MachineSnapshots.Stock stock() { return MachineSnapshots.stock(this, MachineSnapshot.MAX_ENTRIES); }
+    MachineProgressPayload progress(int containerId) { return MachineSnapshots.progress(this, containerId); }
+    /** A short read-only overlay for an owner, without previews, choices or the full stock. */
+    public @Nullable Summary summaryFor(Player player, int rows) {
+        return canAccess(player) ? MachineSnapshots.summary(this, rows) : null;
+    }
+    public record Summary(String status, int energy, int progress, int duration, long used, long capacity, String storageSource,
+                          int types, List<MachineSnapshot.Entry> entries, boolean automation, int fluidAmount, String fluidId,
+                          MachineSnapshot.StructureView structure, List<MachineSnapshot.CellView> cells) {
+        public Summary { entries = List.copyOf(entries); cells = List.copyOf(cells); }
+    }
 
     @Override protected void saveAdditional(ValueOutput output) {
         bays.flush();

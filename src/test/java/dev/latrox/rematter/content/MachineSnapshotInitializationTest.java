@@ -9,17 +9,23 @@ class MachineSnapshotInitializationTest {
     private static final String SNAPSHOT = "dev.latrox.rematter.content.MachineSnapshot";
 
     @Test void eitherNestedEmptyMayInitializeBeforeTheOuterSnapshotInAFreshClassLoader() throws Exception {
-        for (String first : List.of(SNAPSHOT + "$Preview", SNAPSHOT + "$CellView", SNAPSHOT)) {
+        var nested = List.of("Preview", "StructureView", "NetworkView", "CellView");
+        for (String first : List.of(SNAPSHOT + "$Preview", SNAPSHOT + "$StructureView", SNAPSHOT + "$NetworkView", SNAPSHOT + "$CellView", SNAPSHOT)) {
             // Each order starts with genuinely uninitialized production classes, regardless of JUnit class order.
             var loader = new SnapshotLoader(getClass().getClassLoader());
             assertNotNull(Class.forName(first, true, loader).getField("EMPTY").get(null));
             var snapshotType = Class.forName(SNAPSHOT, true, loader);
             var snapshot = snapshotType.getField("EMPTY").get(null);
             assertNotNull(snapshot);
-            var previewType = Class.forName(SNAPSHOT + "$Preview", true, loader);
-            var cellType = Class.forName(SNAPSHOT + "$CellView", true, loader);
-            assertSame(previewType.getField("EMPTY").get(null), snapshotType.getMethod("preview").invoke(snapshot));
-            assertSame(cellType.getField("EMPTY").get(null), snapshotType.getMethod("cell").invoke(snapshot));
+            for (String name : nested) {
+                var empty = Class.forName(SNAPSHOT + "$" + name, true, loader).getField("EMPTY").get(null);
+                assertNotNull(empty);
+                if (!name.equals("CellView")) {
+                    String accessor = Character.toLowerCase(name.charAt(0)) + name.substring(1).replace("View", "");
+                    assertSame(empty, snapshotType.getMethod(accessor).invoke(snapshot));
+                }
+            }
+            assertEquals(List.of(), snapshotType.getMethod("cells").invoke(snapshot));
             assertEquals(-1, snapshotType.getMethod("containerId").invoke(snapshot));
         }
     }

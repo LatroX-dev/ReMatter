@@ -84,7 +84,7 @@ final class MachineOperations {
             boolean analyze = kind == MachineKind.ANALYZER;
             int requiredItems = analyze ? 1 : profile.itemCount();
             if (input.getCount() < requiredItems) return null;
-            return new Operation("item:" + itemId(input) + ":" + requiredItems, Map.of(), analyze ? Map.of() : profile.matter(),
+            return new Operation(MachineSnapshot.ITEM_SOURCE + itemId(input) + ":" + requiredItems, Map.of(), analyze ? Map.of() : profile.matter(),
                     machine.cost(analyze ? ANALYSIS_ENERGY : profile.decompositionEnergy()), analyze ? ANALYSIS_TICKS : profile.ticks(),
                     () -> machine.stack(0).getCount() >= requiredItems && machine.stack(0).getItem() == input.getItem()
                             && machine.stack(0).getComponentsPatch().isEmpty(),

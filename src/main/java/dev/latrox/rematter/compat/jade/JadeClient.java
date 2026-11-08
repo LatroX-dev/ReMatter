@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.jade;
 
 import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.client.SubstanceNames;
 import dev.latrox.rematter.content.MachineBlock;
 import dev.latrox.rematter.content.MachineBlockEntity;
 import dev.latrox.rematter.content.MachinePortBlock;
@@ -111,7 +112,7 @@ final class JadeClient {
                     && !structureDiagnostic.equals(data.getStringOr("status", "idle")))
                 tooltip.add(Component.translatable("status.rematter." + structureDiagnostic).withStyle(ChatFormatting.GOLD));
             if (data.getBooleanOr("processes", false))
-                tooltip.add(Component.literal(data.getIntOr("energy", 0) + " / " + data.getIntOr("energyCapacity", 0) + " FE"));
+                tooltip.add(Component.translatable("jade.rematter.energy", data.getIntOr("energy", 0), data.getIntOr("energyCapacity", 0)));
             if(data.getIntOr("cellBays",0)==6) {
                 tooltip.add(Component.translatable("screen.rematter.drive_cells",data.getIntOr("cellsInstalled",0)).withStyle(ChatFormatting.AQUA));
                 if(data.getBooleanOr("cellUnreadable",false))tooltip.add(Component.translatable("screen.rematter.drive_blocked").withStyle(ChatFormatting.GOLD));
@@ -119,27 +120,30 @@ final class JadeClient {
             long capacity = data.getLongOr("capacity", 0);
             if (!data.getStringOr("storageSource", "none").equals("none"))
                 tooltip.add(Component.translatable("screen.rematter.source_" + data.getStringOr("storageSource", "none")).withStyle(ChatFormatting.AQUA));
-            if (capacity > 0) tooltip.add(Component.literal("Matter: " + data.getLongOr("matter", 0) + " / " + capacity + " u"));
+            if (capacity > 0) tooltip.add(Component.translatable("jade.rematter.matter", data.getLongOr("matter", 0), capacity));
             int duration = data.getIntOr("duration", 0);
-            if (duration > 0) tooltip.add(Component.literal("Progress: " + data.getIntOr("progress", 0) + " / " + duration + " ticks"));
+            if (duration > 0) tooltip.add(Component.translatable("jade.rematter.progress", data.getIntOr("progress", 0), duration));
             if (data.getIntOr("fluidAmount", 0) > 0) {
-                tooltip.add(Component.literal(data.getStringOr("fluidName", "Fluid") + ": " + data.getIntOr("fluidAmount", 0) + " mB"));
+                tooltip.add(Component.translatable("jade.rematter.fluid", SubstanceNames.fluid(data.getStringOr("fluidId", "")),
+                        data.getIntOr("fluidAmount", 0)));
             }
             tooltip.add(Component.translatable(data.getBooleanOr("automation", false)
                     ? "screen.rematter.automation_on" : "screen.rematter.automation_off").withStyle(ChatFormatting.GRAY));
-            int shown = Math.clamp(data.getIntOr("shown", 0), 0, 6);
+            int shown = Math.clamp(data.getIntOr("shown", 0), 0, MachineDataProvider.DETAIL_ROWS);
             for (int i = 0; i < shown; i++) {
                 CompoundTag entry = data.getCompoundOrEmpty("entry" + i);
-                tooltip.add(matterName(entry).copy().append(" (" + entry.getStringOr("phase", "")
-                        + "): " + entry.getLongOr("amount", 0) + " u").withStyle(ChatFormatting.AQUA));
+                boolean known = entry.getBooleanOr("known", false);
+                tooltip.add(Component.translatable("jade.rematter.substance", matterName(entry, known), entry.getStringOr("phase", ""),
+                        entry.getLongOr("amount", 0)).withStyle(known ? ChatFormatting.AQUA : ChatFormatting.GOLD));
             }
             int remaining = data.getIntOr("substances", 0) - shown;
-            if (shown > 0 && remaining > 0) tooltip.add(Component.literal("+" + remaining + " more substances").withStyle(ChatFormatting.GRAY));
+            if (shown > 0 && remaining > 0) tooltip.add(Component.translatable("jade.rematter.more_substances", remaining).withStyle(ChatFormatting.GRAY));
         }
 
-        private static Component matterName(CompoundTag entry) {
-            Component name = Component.literal(entry.getStringOr("name", ""));
-            return SubstanceLabels.withSymbol(entry.getStringOr("id", ""), name);
+        private static Component matterName(CompoundTag entry, boolean known) {
+            String id = entry.getStringOr("id", "");
+            Component name = SubstanceNames.substance(id, entry.getStringOr("phase", ""), known);
+            return known ? SubstanceLabels.withSymbol(id, name) : name;
         }
     }
 }
