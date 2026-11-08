@@ -2,6 +2,7 @@
 from pathlib import Path
 import math
 
+from check_assets import strip_ancillary_chunks
 from machine_palette import CHASSIS, COPPER_CONTACT, MATTE_TRIM, RECESS, hex_color
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -138,4 +139,5 @@ class Drawing:
         source.parent.mkdir(parents=True,exist_ok=True)
         source.write_text(self.svg())
         cairosvg.svg2png(bytestring=source.read_bytes(),write_to=str(target),output_width=128,output_height=128)
+        strip_ancillary_chunks(target)
 
