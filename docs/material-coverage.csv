@@ -917,8 +917,8 @@ rematter:lumivex_ingot,item,lumivex,ingot,1,rematter:copper[solid]=750 + rematte
 rematter:netherite_powder,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 rematter:rhevon_dust,item,rhevon_powder,dust,1,rematter:arcane_essence[solid]=250 + rematter:copper[solid]=250 + rematter:iron[solid]=750 + rematter:silica[solid]=250,true,8000,16000,100
 rematter:rhevon_ingot,item,rhevon,ingot,1,rematter:arcane_essence[solid]=250 + rematter:copper[solid]=250 + rematter:iron[solid]=750 + rematter:silica[solid]=250,false,8000,16000,100
-rematter:virelite_blend,item,virelite_blend,material,1,rematter:aluminum[solid]=500 + rematter:hydrogen[gas]=500 + rematter:oxygen[gas]=1625 + rematter:silicon[solid]=1000,true,8000,16000,100
-rematter:virelite_ceramic,item,virelite,material,1,rematter:aluminum[solid]=500 + rematter:hydrogen[gas]=500 + rematter:oxygen[gas]=1625 + rematter:silicon[solid]=1000,false,8000,16000,100
+rematter:virelite_blend,item,virelite_blend,material,1,rematter:clay[solid]=250 + rematter:crystalline_silica[solid]=250 + rematter:silica[solid]=250,true,8000,16000,100
+rematter:virelite_ceramic,item,virelite,material,1,rematter:clay[solid]=250 + rematter:crystalline_silica[solid]=250 + rematter:silica[solid]=250,false,8000,16000,100
 replication:deepslate_replica_ore,item,replica,ore,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
 replication:raw_replica,item,replica,raw,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
 replication:raw_replica_block,item,replica,material_block,1,rematter:quantum_essence[solid]=3600 + rematter:silicon[solid]=5400,false,288000,576000,900
