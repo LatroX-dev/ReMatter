@@ -435,11 +435,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             Identifier id = Identifier.parse(resource.id());
             switch (resource.kind()) {
                 case MATTER -> taken.put(resource, entry.getValue());
-                case ITEM -> { if (BuiltInRegistries.ITEM.containsKey(id)) taken.put(resource, entry.getValue()); }
+                case ITEM -> {
+                    if (BuiltInRegistries.ITEM.containsKey(id) && !new ItemStack(BuiltInRegistries.ITEM.getValue(id)).isEmpty())
+                        taken.put(resource, entry.getValue());
+                }
                 case FLUID -> {
                     if (room == 0 || !BuiltInRegistries.FLUID.containsKey(id)) continue;
                     var fluid = FluidResource.of(BuiltInRegistries.FLUID.getValue(id));
-                    if (!tank.isEmpty() && !tank.equals(fluid)) continue;
+                    if (fluid.isEmpty() || !tank.isEmpty() && !tank.equals(fluid)) continue;
                     long amount = Math.min(room, entry.getValue());
                     taken.put(resource, amount);
                     tank = fluid;

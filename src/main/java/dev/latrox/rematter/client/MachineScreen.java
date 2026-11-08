@@ -892,7 +892,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
      * goes. The server checks the order again and hands out only what it can.
      */
     private final class ReleaseConfirmScreen extends Screen {
-        private static final int SHOWN = 5;
+        private static final int SHOWN = 4;
         private final MachineSnapshot.OrdersView orders;private final List<Component> lines = new ArrayList<>();private int x,y;
         ReleaseConfirmScreen(MachineSnapshot.OrdersView orders){super(tr("release_title"));this.orders=orders;
             orders.matter().forEach(m->lines.add(joined(Component.literal(label(m)),Quantities.matter(number(m.required())))));
