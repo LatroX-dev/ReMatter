@@ -6,7 +6,7 @@ A Hand Preparator first makes the dry matrix feedstock without FE. Connect a Dec
 
 ## AE2 and Refined Storage
 
-ReMatter declares support for AE2 26.1.13-beta up to 26.2 and Refined Storage 3.2.1 up to 3.3.
+The mod metadata accepts AE2 from 26.1.13-beta up to, but not including, 26.2 and Refined Storage from 3.2.1 up to, but not including, 3.3.
 
 Connect a **Network Interface** to the native grid and the ReMatter matter network. In its **Configuration**, enable **Automation** and select **Connect: AE2** or **Connect: Refined Storage**. On the connected processing machines, clear their work slots and tanks, then enable **Configuration → Network jobs: On**; upgrades may remain. Supply FE to the processing machines. AE2 also needs a crafting CPU and output storage; RS needs output storage. Both native networks need their normal power supply.
 
