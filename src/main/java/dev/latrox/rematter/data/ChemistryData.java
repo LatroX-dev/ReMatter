@@ -1,7 +1,5 @@
 package dev.latrox.rematter.data;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.ReMatter;
@@ -29,6 +27,9 @@ import java.io.Reader;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
+
+import static dev.latrox.rematter.data.ChemistryDocuments.disabled;
+import static dev.latrox.rematter.data.ChemistryDocuments.string;
 
 /** Builds and validates a complete immutable catalogue before publishing a reload. */
 public final class ChemistryData extends SimplePreparableReloadListener<ChemistryRegistry> {
@@ -80,16 +81,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
                 substances.remove(key);
                 return;
             }
-            Map<SubstanceId, Long> composition = new TreeMap<>();
-            object(json, "composition").entrySet().forEach(e ->
-                    composition.put(SubstanceId.parse(e.getKey()), positiveLong(e.getValue(), "composition")));
-            EnumSet<Phase> phases = EnumSet.noneOf(Phase.class);
-            for (JsonElement phase : array(json, "phases")) {
-                phases.add(enumValue(Phase.class, phase.getAsString()));
-            }
-            substances.put(key, new SubstanceDefinition(key, string(json, "translation_key"),
-                    json.has("symbol") ? string(json, "symbol") : "", enumValue(SubstanceKind.class, string(json, "kind")),
-                    new Composition(composition), phases));
+            substances.put(key, ChemistryDocuments.substance(key, json));
         });
 
         readDirectory(manager, "rematter/material_profile", (id, json) -> {
@@ -103,10 +95,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             if (!BuiltInRegistries.ITEM.containsKey(itemId) || item.equals("minecraft:air")) {
                 throw new IllegalArgumentException("Unknown item " + item + "; optional profiles need required_mod");
             }
-            profiles.put(item, new MaterialProfile(item,
-                    json.has("item_count") ? Math.toIntExact(positiveLong(json, "item_count")) : 1, amounts(json, "matter"),
-                    positiveLong(json, "decomposition_energy"), positiveLong(json, "synthesis_energy"),
-                    Math.toIntExact(positiveLong(json, "ticks"))));
+            profiles.put(item, ChemistryDocuments.materialProfile(json));
         });
 
         readDirectory(manager, "rematter/fluid_profile", (id, json) -> {
@@ -116,9 +105,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
                 fluids.remove(fluid);
                 return;
             }
-            fluids.put(fluid, new FluidProfile(fluid, Math.toIntExact(positiveLong(json, "amount")),
-                    amounts(json, "matter"), positiveLong(json, "decomposition_energy"),
-                    positiveLong(json, "synthesis_energy"), Math.toIntExact(positiveLong(json, "ticks"))));
+            fluids.put(fluid, ChemistryDocuments.fluidProfile(json));
         });
 
         readDirectory(manager, "rematter/process", (id, json) -> {
@@ -127,9 +114,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
                 processes.remove(key);
                 return;
             }
-            processes.put(key, new ProcessRecipe(key, enumValue(ProcessType.class, string(json, "type")),
-                    amounts(json, "inputs"), amounts(json, "outputs"), positiveLong(json, "energy"),
-                    Math.toIntExact(positiveLong(json, "ticks"))));
+            processes.put(key, ChemistryDocuments.process(key, json));
         });
 
         readDirectory(manager, "rematter/synthesis", (id, json) -> {
@@ -139,7 +124,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
                 synthesis.remove(item);
                 return;
             }
-            synthesis.put(item, enumValue(SynthesisCategory.class, string(json, "category")));
+            synthesis.put(item, ChemistryDocuments.synthesisCategory(json));
         });
 
         ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
@@ -191,9 +176,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
                     if (!prerequisitesMet(directory, json, ModList.get()::isLoaded,
                             item -> BuiltInRegistries.ITEM.containsKey(Identifier.parse(item)),
                             fluid -> BuiltInRegistries.FLUID.containsKey(Identifier.parse(fluid)))) continue;
-                    if (positiveLong(json, "schema_version") != 1) {
-                        throw new IllegalArgumentException("Unsupported chemistry schema version");
-                    }
+                    ChemistryDocuments.requireSchema(json);
                     consume.accept(id, json);
                     break;
                 } catch (RuntimeException | IOException error) {
@@ -214,7 +197,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         return switch (directory) {
             case "rematter/material_profile" -> targetAvailable(requiredMod, string(json, "item"), itemRegistered);
             case "rematter/fluid_profile" -> targetAvailable(requiredMod, string(json, "fluid"), fluidRegistered);
-            case "rematter/synthesis" -> switch (enumValue(SynthesisCategory.class, string(json, "category"))) {
+            case "rematter/synthesis" -> switch (ChemistryDocuments.synthesisCategory(json)) {
                 case RAW_MATERIAL, NATURAL_MATERIAL -> targetAvailable(requiredMod, string(json, "item"), itemRegistered);
                 case FLUID -> targetAvailable(requiredMod, string(json, "item"), fluidRegistered);
                 default -> true;
@@ -240,75 +223,10 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         return text.toString();
     }
 
-    private static Map<SubstanceKey, Long> amounts(JsonObject json, String field) {
-        TreeMap<SubstanceKey, Long> result = new TreeMap<>();
-        for (JsonElement element : array(json, field)) {
-            JsonObject entry = element.getAsJsonObject();
-            SubstanceKey key = SubstanceKey.of(string(entry, "substance"), enumValue(Phase.class, string(entry, "phase")));
-            long amount = positiveLong(entry, "amount");
-            if (result.putIfAbsent(key, amount) != null) {
-                throw new IllegalArgumentException("Duplicate substance/phase in " + field + ": " + key);
-            }
-        }
-        return result;
-    }
-
-    private static boolean disabled(JsonObject json) {
-        if (!json.has("disabled")) {
-            return false;
-        }
-        JsonElement value = json.get("disabled");
-        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isBoolean()) {
-            throw new IllegalArgumentException("Expected boolean: disabled");
-        }
-        return value.getAsBoolean();
-    }
-
     private static void requireUniqueTarget(Map<String, Identifier> sources, String target, Identifier id) {
         Identifier previous = sources.putIfAbsent(target, id);
         if (previous != null) {
             throw new IllegalArgumentException("Conflicting definitions for " + target + " in " + previous + " and " + id);
         }
-    }
-
-    private static String string(JsonObject json, String field) {
-        JsonElement value = json.get(field);
-        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
-            throw new IllegalArgumentException("Expected string: " + field);
-        }
-        return value.getAsString();
-    }
-
-    private static JsonObject object(JsonObject json, String field) {
-        if (!json.has(field) || !json.get(field).isJsonObject()) {
-            throw new IllegalArgumentException("Expected object: " + field);
-        }
-        return json.getAsJsonObject(field);
-    }
-
-    private static JsonArray array(JsonObject json, String field) {
-        if (!json.has(field) || !json.get(field).isJsonArray()) {
-            throw new IllegalArgumentException("Expected array: " + field);
-        }
-        return json.getAsJsonArray(field);
-    }
-
-    private static long positiveLong(JsonObject json, String field) {
-        return positiveLong(json.get(field), field);
-    }
-
-    private static long positiveLong(JsonElement value, String field) {
-        if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isNumber()) {
-            throw new IllegalArgumentException("Expected integer: " + field);
-        }
-        long result = value.getAsBigDecimal().longValueExact();
-        if (result <= 0) {
-            throw new IllegalArgumentException("Expected positive integer: " + field);
-        }
-        return result;
-    }
-
-    private static <E extends Enum<E>> E enumValue(Class<E> type, String value) {
-        return Enum.valueOf(type, value.toUpperCase(Locale.ROOT));
     }
 }
