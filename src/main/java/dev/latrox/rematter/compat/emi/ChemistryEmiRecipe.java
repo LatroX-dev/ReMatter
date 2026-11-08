@@ -38,8 +38,8 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         });
         Component input = Component.translatable("gui.rematter.viewer.input");
         Component output = Component.translatable("gui.rematter.viewer.output");
-        icon(widgets,Icon.INPUT,0,0,List.of(input));
-        icon(widgets,Icon.OUTPUT,108,0,List.of(output));
+        EmiWidgets.icon(widgets,Icon.INPUT,0,0,List.of(input));
+        EmiWidgets.icon(widgets,Icon.OUTPUT,108,0,List.of(output));
         widgets.addText(input,16,2,UiPalette.TEXT,false);
         widgets.addText(output,124,2,UiPalette.TEXT,false);
         for (int index = 0; index < inputs.size(); index++) {
@@ -55,23 +55,11 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
             addAmount(widgets, product, 129, 17 + index * 20);
         }
         widgets.addFillingArrow(78, 12, (int) Math.min(Integer.MAX_VALUE, Math.max(1L, ticks) * 50L));
-        icon(widgets,Icon.POWER,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
-        value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
-        icon(widgets,Icon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
-        value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
-        icon(widgets,Icon.INFO,164,footer+10,notes);
-    }
-
-    private static void icon(WidgetHolder widgets,Icon icon,int x,int y,List<Component> tooltip) {
-        widgets.addDrawable(x,y,12,12,(graphics,mouseX,mouseY,delta) ->
-                ScreenChrome.icon(graphics,icon,0,0,UiPalette.ACCENT));
-        widgets.addTooltipText(tooltip,x,y,12,12);
-    }
-    private static void value(WidgetHolder widgets,String text,int x,int y,int width,int color) {
-        var font=Minecraft.getInstance().font;
-        String visible=font.plainSubstrByWidth(text,width);
-        widgets.addText(Component.literal(visible),x,y,color,false);
-        if (!visible.equals(text)) widgets.addTooltipText(List.of(Component.literal(text)),x,y,font.width(visible),9);
+        EmiWidgets.icon(widgets,Icon.POWER,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
+        EmiWidgets.value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
+        EmiWidgets.icon(widgets,Icon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
+        EmiWidgets.value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
+        EmiWidgets.icon(widgets,Icon.INFO,164,footer+10,notes);
     }
 
     private static Component amount(EmiIngredient ingredient) {
