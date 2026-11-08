@@ -2,14 +2,15 @@
   "schema_version": 1,
   "required_mod": "colossal_reactors",
   "item": "colossal_reactors:stainless_steel_block",
+  "item_count": 7,
   "matter": [
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 2538
+      "amount": 18000
     }
   ],
-  "decomposition_energy": 72000,
-  "synthesis_energy": 144000,
-  "ticks": 900
+  "decomposition_energy": 504000,
+  "synthesis_energy": 1008000,
+  "ticks": 6300
 }

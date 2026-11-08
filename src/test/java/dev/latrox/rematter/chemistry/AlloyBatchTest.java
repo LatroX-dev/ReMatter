@@ -1,0 +1,67 @@
+package dev.latrox.rematter.chemistry;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/** Alloy profiles recover whole native batches without rounding and never undercut a native route through synthesis. */
+class AlloyBatchTest {
+    private static final SubstanceKey TIN = SubstanceKey.of("rematter:tin", Phase.SOLID);
+    private static final SubstanceKey NICKEL = SubstanceKey.of("rematter:nickel", Phase.SOLID);
+    private static final SubstanceKey NETHERIUM = SubstanceKey.of("rematter:netherite_scrap", Phase.SOLID);
+    private static final ChemistryRegistry REGISTRY = ShippedChemistry.standalone();
+
+    @Test
+    void fourBronzeRecoverTheCheaperNativeBatchExactlyAndSinglePiecesAreNotRounded() {
+        MaterialProfile ingot = profile("alltheores:bronze_ingot");
+        assertEquals(Map.of(BuiltinChemistry.COPPER, 3_000L, TIN, 125L), ingot.matterFor(4));
+        assertThrows(IllegalArgumentException.class, () -> ingot.matterFor(1));
+        assertEquals(ingot.matterFor(36), profile("alltheores:bronze_block").matterFor(4));
+        assertEquals(ingot.matterFor(4), profile("alltheores:bronze_nugget").matterFor(36));
+        assertTrue(REGISTRY.synthesisPolicy().allowsItem(ingot.itemId()));
+    }
+
+    @Test
+    void invarAndNetheriteKeepTheSmallerShareOfEachElementAndCannotBeSynthesized() {
+        MaterialProfile invar = profile("alltheores:invar_ingot");
+        assertEquals(Map.of(BuiltinChemistry.IRON, 1_500L, NICKEL, 1_000L), invar.matterFor(3));
+        assertEquals(invar.matterFor(9), profile("alltheores:invar_block").matter());
+        // Oritech alloys one iron and one nickel into two invar.
+        assertTrue(invar.matterFor(6).get(BuiltinChemistry.IRON) <= 3_000L);
+        // Two iron and one nickel yield three invar elsewhere.
+        assertTrue(invar.matterFor(3).get(NICKEL) <= 1_000L);
+        MaterialProfile netherite = profile("minecraft:netherite_ingot");
+        assertEquals(Map.of(BuiltinChemistry.GOLD, 500L, NETHERIUM, 1_000L), netherite.matter());
+        assertEquals(netherite.matterFor(9), profile("minecraft:netherite_block").matter());
+        for (String item : List.of("alltheores:invar_ingot", "ftbic:invar_dust", "alltheores:invar_block",
+                "minecraft:netherite_ingot", "minecraft:netherite_block", "mekanism:dust_netherite", "occultism:netherite_dust")) {
+            assertFalse(REGISTRY.synthesisPolicy().allows(item), item);
+        }
+    }
+
+    @Test
+    void oneGoldAndOneScrapAlwaysCoverARecoveredNetheriteIngot() {
+        Map<SubstanceKey, Long> oritechInputs = new TreeMap<>(profile("minecraft:gold_ingot").matter());
+        profile("minecraft:netherite_scrap").matter().forEach((key, amount) -> oritechInputs.merge(key, amount, Math::addExact));
+        profile("minecraft:netherite_ingot").matter().forEach((key, amount) ->
+                assertTrue(amount <= oritechInputs.getOrDefault(key, 0L), "Netherite recovery creates " + key));
+    }
+
+    @Test
+    void gooAlloysRecoverAtMostOneTwentiethOfTheirInputBlockPerIngot() {
+        assertEquals(profile("minecraft:gold_block").matter(), profile("justdirethings:blazegold_ingot").matterFor(20));
+        assertEquals(profile("minecraft:iron_block").matter(), profile("justdirethings:ferricore_ingot").matterFor(20));
+        assertEquals(profile("minecraft:netherite_block").matter(), profile("justdirethings:eclipsealloy_ingot").matterFor(20));
+        for (String alloy : List.of("blazegold", "ferricore", "eclipsealloy")) {
+            assertEquals(profile("justdirethings:" + alloy + "_ingot").matterFor(5), profile("justdirethings:raw_" + alloy).matter());
+        }
+    }
+
+    private static MaterialProfile profile(String item) {
+        return REGISTRY.profile(item).orElseThrow(() -> new AssertionError("Missing profile " + item));
+    }
+}

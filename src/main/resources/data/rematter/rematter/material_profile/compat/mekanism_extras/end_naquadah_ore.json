@@ -6,12 +6,12 @@
     {
       "substance": "rematter:stellar_essence",
       "phase": "solid",
-      "amount": 333
+      "amount": 400
     },
     {
       "substance": "rematter:uranium",
       "phase": "solid",
-      "amount": 667
+      "amount": 600
     }
   ],
   "decomposition_energy": 32000,

@@ -14,14 +14,14 @@ alltheores:aluminum_dust,item,aluminum,dust,1,rematter:aluminum[solid]=1000,true
 alltheores:aluminum_ingot,item,aluminum,ingot,1,rematter:aluminum[solid]=1000,true,8000,16000,100
 alltheores:aluminum_nugget,item,aluminum,nugget,9,rematter:aluminum[solid]=1000,true,8000,16000,100
 alltheores:aluminum_ore,item,aluminum,ore,1,rematter:aluminum[solid]=1000,false,8000,16000,100
-alltheores:brass_block,item,brass,material_block,1,rematter:copper[solid]=2997,false,72000,144000,900
-alltheores:brass_dust,item,brass,dust,1,rematter:copper[solid]=333,false,8000,16000,100
-alltheores:brass_ingot,item,brass,ingot,1,rematter:copper[solid]=333,false,8000,16000,100
-alltheores:brass_nugget,item,brass,nugget,9,rematter:copper[solid]=333,false,8000,16000,100
-alltheores:bronze_block,item,bronze,material_block,1,rematter:copper[solid]=6750 + rematter:tin[solid]=279,true,72000,144000,900
-alltheores:bronze_dust,item,bronze,dust,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
-alltheores:bronze_ingot,item,bronze,ingot,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
-alltheores:bronze_nugget,item,bronze,nugget,9,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+alltheores:brass_block,item,brass,material_block,1,rematter:copper[solid]=3000,false,72000,144000,900
+alltheores:brass_dust,item,brass,dust,3,rematter:copper[solid]=1000,false,24000,48000,300
+alltheores:brass_ingot,item,brass,ingot,3,rematter:copper[solid]=1000,false,24000,48000,300
+alltheores:brass_nugget,item,brass,nugget,27,rematter:copper[solid]=1000,false,24000,48000,300
+alltheores:bronze_block,item,bronze,material_block,4,rematter:copper[solid]=27000 + rematter:tin[solid]=1125,true,288000,576000,3600
+alltheores:bronze_dust,item,bronze,dust,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
+alltheores:bronze_ingot,item,bronze,ingot,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
+alltheores:bronze_nugget,item,bronze,nugget,36,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 alltheores:cinnabar,item,cinnabar,gem,1,rematter:cinnabar[solid]=1000,true,32000,64000,100
 alltheores:cinnabar_block,item,cinnabar,material_block,1,rematter:cinnabar[solid]=9000,true,288000,576000,900
 alltheores:cinnabar_dust,item,cinnabar,dust,1,rematter:cinnabar[solid]=1000,true,32000,64000,100
@@ -79,10 +79,10 @@ alltheores:fluorite_block,item,fluorite,material_block,1,rematter:fluorite[solid
 alltheores:fluorite_dust,item,fluorite,dust,1,rematter:fluorite[solid]=1000,true,32000,64000,100
 alltheores:fluorite_ore,item,fluorite,ore,1,rematter:fluorite[solid]=1000,false,32000,64000,100
 alltheores:gold_dust,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
-alltheores:invar_block,item,invar,material_block,1,rematter:iron[solid]=5994 + rematter:nickel[solid]=2997,true,72000,144000,900
-alltheores:invar_dust,item,invar,dust,1,rematter:iron[solid]=666 + rematter:nickel[solid]=333,true,8000,16000,100
-alltheores:invar_ingot,item,invar,ingot,1,rematter:iron[solid]=666 + rematter:nickel[solid]=333,true,8000,16000,100
-alltheores:invar_nugget,item,invar,nugget,9,rematter:iron[solid]=666 + rematter:nickel[solid]=333,true,8000,16000,100
+alltheores:invar_block,item,invar,material_block,1,rematter:iron[solid]=4500 + rematter:nickel[solid]=3000,false,72000,144000,900
+alltheores:invar_dust,item,invar,dust,3,rematter:iron[solid]=1500 + rematter:nickel[solid]=1000,false,24000,48000,300
+alltheores:invar_ingot,item,invar,ingot,3,rematter:iron[solid]=1500 + rematter:nickel[solid]=1000,false,24000,48000,300
+alltheores:invar_nugget,item,invar,nugget,27,rematter:iron[solid]=1500 + rematter:nickel[solid]=1000,false,24000,48000,300
 alltheores:iridium_block,item,iridium,material_block,1,rematter:iridium[solid]=9000,true,72000,144000,900
 alltheores:iridium_dust,item,iridium,dust,1,rematter:iridium[solid]=1000,true,8000,16000,100
 alltheores:iridium_ingot,item,iridium,ingot,1,rematter:iridium[solid]=1000,true,8000,16000,100
@@ -115,7 +115,7 @@ alltheores:nether_sulfur_ore,item,sulfur,ore,1,rematter:sulfur[solid]=1000,false
 alltheores:nether_tin_ore,item,tin,ore,1,rematter:tin[solid]=1000,false,8000,16000,100
 alltheores:nether_uranium_ore,item,uranium,ore,1,rematter:uranium[solid]=1000,false,8000,16000,100
 alltheores:nether_zinc_ore,item,zinc,ore,1,rematter:zinc[solid]=1000,false,8000,16000,100
-alltheores:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
+alltheores:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 alltheores:nickel_block,item,nickel,material_block,1,rematter:nickel[solid]=9000,true,72000,144000,900
 alltheores:nickel_dust,item,nickel,dust,1,rematter:nickel[solid]=1000,true,8000,16000,100
 alltheores:nickel_ingot,item,nickel,ingot,1,rematter:nickel[solid]=1000,true,8000,16000,100
@@ -192,10 +192,10 @@ alltheores:silver_dust,item,silver,dust,1,rematter:silver[solid]=1000,true,8000,
 alltheores:silver_ingot,item,silver,ingot,1,rematter:silver[solid]=1000,true,8000,16000,100
 alltheores:silver_nugget,item,silver,nugget,9,rematter:silver[solid]=1000,true,8000,16000,100
 alltheores:silver_ore,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
-alltheores:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
-alltheores:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-alltheores:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-alltheores:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+alltheores:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
+alltheores:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+alltheores:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+alltheores:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 alltheores:sulfur_block,item,sulfur,material_block,1,rematter:sulfur[solid]=9000,true,72000,144000,900
 alltheores:sulfur_dust,item,sulfur,dust,1,rematter:sulfur[solid]=1000,true,8000,16000,100
 alltheores:sulfur_ore,item,sulfur,ore,1,rematter:sulfur[solid]=1000,false,8000,16000,100
@@ -223,10 +223,10 @@ appgen:ember_block,item,ember,material_block,1,rematter:ember[solid]=4000,false,
 appgen:ember_crystal,item,ember,gem,1,rematter:ember[solid]=1000,false,32000,64000,100
 appgen:ember_dust,item,ember,dust,1,rematter:ember[solid]=1000,false,32000,64000,100
 appgen:gold_dust,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
-appgen:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
-aquaculture:neptunium_block,item,neptunium,material_block,1,rematter:gold[solid]=1494 + rematter:iron[solid]=6003 + rematter:vital_essence[solid]=1503,false,288000,576000,900
-aquaculture:neptunium_ingot,item,neptunium,ingot,1,rematter:gold[solid]=166 + rematter:iron[solid]=667 + rematter:vital_essence[solid]=167,false,32000,64000,100
-aquaculture:neptunium_nugget,item,neptunium,nugget,9,rematter:gold[solid]=166 + rematter:iron[solid]=667 + rematter:vital_essence[solid]=167,false,32000,64000,100
+appgen:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
+aquaculture:neptunium_block,item,neptunium,material_block,1,rematter:gold[solid]=1350 + rematter:iron[solid]=5850 + rematter:vital_essence[solid]=1800,false,288000,576000,900
+aquaculture:neptunium_ingot,item,neptunium,ingot,1,rematter:gold[solid]=150 + rematter:iron[solid]=650 + rematter:vital_essence[solid]=200,false,32000,64000,100
+aquaculture:neptunium_nugget,item,neptunium,nugget,9,rematter:gold[solid]=150 + rematter:iron[solid]=650 + rematter:vital_essence[solid]=200,false,32000,64000,100
 colossal_reactors:azurite_block,item,azurite,material_block,1,rematter:lapis[solid]=9000,false,288000,576000,900
 colossal_reactors:azurite_ingot,item,azurite,ingot,1,rematter:lapis[solid]=1000,false,32000,64000,100
 colossal_reactors:boron_block,item,boron,material_block,1,rematter:boron[solid]=9000,true,72000,144000,900
@@ -254,10 +254,10 @@ colossal_reactors:lead_raw,item,lead,raw,1,rematter:lead[solid]=1000,false,8000,
 colossal_reactors:raw_boron_block,item,boron,material_block,1,rematter:boron[solid]=9000,false,72000,144000,900
 colossal_reactors:raw_lead_block,item,lead,material_block,1,rematter:lead[solid]=9000,false,72000,144000,900
 colossal_reactors:raw_uranium,item,uranium,raw,1,rematter:uranium[solid]=1000,false,8000,16000,100
-colossal_reactors:stainless_steel_block,item,stainless_steel,material_block,1,rematter:iron[solid]=2538,false,72000,144000,900
-colossal_reactors:stainless_steel_ingot,item,stainless_steel,ingot,1,rematter:iron[solid]=282,false,8000,16000,100
-colossal_reactors:tough_alloy_block,item,tough_alloy,material_block,1,rematter:iron[solid]=2223 + rematter:lead[solid]=2250,false,72000,144000,900
-colossal_reactors:tough_alloy_ingot,item,tough_alloy,ingot,1,rematter:iron[solid]=247 + rematter:lead[solid]=250,false,8000,16000,100
+colossal_reactors:stainless_steel_block,item,stainless_steel,material_block,7,rematter:iron[solid]=18000,false,504000,1008000,6300
+colossal_reactors:stainless_steel_ingot,item,stainless_steel,ingot,7,rematter:iron[solid]=2000,false,56000,112000,700
+colossal_reactors:tough_alloy_block,item,tough_alloy,material_block,1,rematter:iron[solid]=2250 + rematter:lead[solid]=2250,false,72000,144000,900
+colossal_reactors:tough_alloy_ingot,item,tough_alloy,ingot,1,rematter:iron[solid]=250 + rematter:lead[solid]=250,false,8000,16000,100
 colossal_reactors:uranium_block,item,uranium,material_block,1,rematter:uranium[solid]=9000,true,72000,144000,900
 colossal_reactors:uranium_dust,item,uranium,dust,1,rematter:uranium[solid]=1000,true,8000,16000,100
 colossal_reactors:uranium_ingot,item,uranium,ingot,1,rematter:uranium[solid]=1000,true,8000,16000,100
@@ -279,7 +279,7 @@ enderio:energetic_alloy_ingot,item,energetic_alloy,ingot,1,rematter:arcane_essen
 enderio:energetic_alloy_nugget,item,energetic_alloy,nugget,9,rematter:arcane_essence[solid]=500 + rematter:copper[solid]=250 + rematter:gold[solid]=500 + rematter:iron[solid]=250 + rematter:silica[solid]=500,true,8000,16000,100
 enderio:powdered_coal,item,coal,dust,1,rematter:coal[solid]=1000,false,8000,16000,100
 enderio:powdered_copper,item,copper,dust,1,rematter:copper[solid]=1000,true,8000,16000,100
-enderio:powdered_ender_pearl,item,ender_pearl,dust,9,rematter:ender_essence[solid]=1000 + rematter:silica[solid]=1000,true,32000,64000,100
+enderio:powdered_ender_pearl,item,ender_pearl,dust,9,rematter:ender_essence[solid]=1000 + rematter:silica[solid]=1000,false,32000,64000,100
 enderio:powdered_gold,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
 enderio:powdered_iron,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,100
 enderio:powdered_lapis_lazuli,item,lapis,dust,1,rematter:lapis[solid]=1000,true,8000,16000,100
@@ -310,9 +310,9 @@ energizedpower:raw_tin_block,item,tin,material_block,1,rematter:tin[solid]=9000,
 energizedpower:redstone_alloy_ingot,item,redstone_alloy,ingot,1,rematter:arcane_essence[solid]=1000 + rematter:silica[solid]=1000,false,8000,16000,100
 energizedpower:silicon,item,silicon,dust,1,rematter:silicon[solid]=250,true,8000,16000,100
 energizedpower:silicon_block,item,silicon,material_block,1,rematter:silicon[solid]=2250,true,72000,144000,900
-energizedpower:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
-energizedpower:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-energizedpower:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+energizedpower:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
+energizedpower:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+energizedpower:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 energizedpower:tin_block,item,tin,material_block,1,rematter:tin[solid]=9000,true,72000,144000,900
 energizedpower:tin_dust,item,tin,dust,1,rematter:tin[solid]=1000,true,8000,16000,100
 energizedpower:tin_ingot,item,tin,ingot,1,rematter:tin[solid]=1000,true,8000,16000,100
@@ -328,7 +328,7 @@ forbidden_arcanus:arcane_crystal_dust,item,arcane_crystal,dust,1,rematter:arcane
 forbidden_arcanus:arcane_crystal_ore,item,arcane_crystal,ore,1,rematter:arcane_crystal[solid]=1000,false,32000,64000,100
 forbidden_arcanus:corrupted_arcane_crystal,item,corrupted_arcane_crystal,gem,1,rematter:corrupted_arcane_crystal[solid]=1000,true,32000,64000,100
 forbidden_arcanus:corrupted_arcane_crystal_block,item,corrupted_arcane_crystal,material_block,1,rematter:corrupted_arcane_crystal[solid]=9000,true,288000,576000,900
-forbidden_arcanus:corrupti_dust,item,corrupti,dust,1,rematter:arcane_crystal[solid]=250 + rematter:copper[solid]=1000 + rematter:ender_essence[solid]=62 + rematter:gold[solid]=500 + rematter:iron[solid]=500 + rematter:silica[solid]=62,false,32000,64000,100
+forbidden_arcanus:corrupti_dust,item,corrupti,dust,2,rematter:arcane_crystal[solid]=500 + rematter:copper[solid]=2000 + rematter:ender_essence[solid]=125 + rematter:gold[solid]=1000 + rematter:iron[solid]=1000 + rematter:silica[solid]=125,false,64000,128000,200
 forbidden_arcanus:deepslate_arcane_crystal_ore,item,arcane_crystal,ore,1,rematter:arcane_crystal[solid]=1000,false,32000,64000,100
 forbidden_arcanus:deorum_block,item,deorum,material_block,1,rematter:arcane_crystal[solid]=36000 + rematter:gold[solid]=18000,true,288000,576000,900
 forbidden_arcanus:deorum_ingot,item,deorum,ingot,1,rematter:arcane_crystal[solid]=4000 + rematter:gold[solid]=2000,true,32000,64000,100
@@ -346,9 +346,9 @@ ftbic:aluminum_ingot,item,aluminum,ingot,1,rematter:aluminum[solid]=1000,true,80
 ftbic:aluminum_raw_block,item,aluminum,material_block,1,rematter:aluminum[solid]=9000,false,72000,144000,900
 ftbic:aluminum_raw_ore,item,aluminum,raw,1,rematter:aluminum[solid]=1000,false,8000,16000,100
 ftbic:aluminum_stone_ore,item,aluminum,ore,1,rematter:aluminum[solid]=1000,false,8000,16000,100
-ftbic:bronze_block,item,bronze,material_block,1,rematter:copper[solid]=6750 + rematter:tin[solid]=279,true,72000,144000,900
-ftbic:bronze_dust,item,bronze,dust,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
-ftbic:bronze_ingot,item,bronze,ingot,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+ftbic:bronze_block,item,bronze,material_block,4,rematter:copper[solid]=27000 + rematter:tin[solid]=1125,true,288000,576000,3600
+ftbic:bronze_dust,item,bronze,dust,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
+ftbic:bronze_ingot,item,bronze,ingot,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 ftbic:charcoal_dust,item,charcoal,dust,1,rematter:charcoal[solid]=1000,false,8000,16000,100
 ftbic:coal_dust,item,coal,dust,1,rematter:coal[solid]=1000,false,8000,16000,100
 ftbic:constantan_block,item,constantan,material_block,1,rematter:copper[solid]=4500 + rematter:nickel[solid]=4500,true,72000,144000,900
@@ -365,9 +365,9 @@ ftbic:enderium_dust,item,enderium,dust,1,rematter:ender_essence[solid]=500 + rem
 ftbic:enderium_ingot,item,enderium,ingot,1,rematter:ender_essence[solid]=500 + rematter:lead[solid]=750 + rematter:silica[solid]=500,false,8000,16000,100
 ftbic:enderium_nugget,item,enderium,nugget,9,rematter:ender_essence[solid]=500 + rematter:lead[solid]=750 + rematter:silica[solid]=500,false,8000,16000,100
 ftbic:gold_dust,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
-ftbic:invar_block,item,invar,material_block,1,rematter:iron[solid]=5994 + rematter:nickel[solid]=2997,true,72000,144000,900
-ftbic:invar_dust,item,invar,dust,1,rematter:iron[solid]=666 + rematter:nickel[solid]=333,true,8000,16000,100
-ftbic:invar_ingot,item,invar,ingot,1,rematter:iron[solid]=666 + rematter:nickel[solid]=333,true,8000,16000,100
+ftbic:invar_block,item,invar,material_block,1,rematter:iron[solid]=4500 + rematter:nickel[solid]=3000,false,72000,144000,900
+ftbic:invar_dust,item,invar,dust,3,rematter:iron[solid]=1500 + rematter:nickel[solid]=1000,false,24000,48000,300
+ftbic:invar_ingot,item,invar,ingot,3,rematter:iron[solid]=1500 + rematter:nickel[solid]=1000,false,24000,48000,300
 ftbic:iridium_block,item,iridium,material_block,1,rematter:iridium[solid]=9000,true,72000,144000,900
 ftbic:iridium_deepslate_ore,item,iridium,ore,1,rematter:iridium[solid]=1000,false,8000,16000,100
 ftbic:iridium_dust,item,iridium,dust,1,rematter:iridium[solid]=1000,true,8000,16000,100
@@ -384,7 +384,7 @@ ftbic:lead_ingot,item,lead,ingot,1,rematter:lead[solid]=1000,true,8000,16000,100
 ftbic:lead_raw_block,item,lead,material_block,1,rematter:lead[solid]=9000,false,72000,144000,900
 ftbic:lead_raw_ore,item,lead,raw,1,rematter:lead[solid]=1000,false,8000,16000,100
 ftbic:lead_stone_ore,item,lead,ore,1,rematter:lead[solid]=1000,false,8000,16000,100
-ftbic:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
+ftbic:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 ftbic:nickel_block,item,nickel,material_block,1,rematter:nickel[solid]=9000,true,72000,144000,900
 ftbic:nickel_deepslate_ore,item,nickel,ore,1,rematter:nickel[solid]=1000,false,8000,16000,100
 ftbic:nickel_dust,item,nickel,dust,1,rematter:nickel[solid]=1000,true,8000,16000,100
@@ -405,9 +405,9 @@ ftbic:silver_ingot,item,silver,ingot,1,rematter:silver[solid]=1000,true,8000,160
 ftbic:silver_raw_block,item,silver,material_block,1,rematter:silver[solid]=9000,false,72000,144000,900
 ftbic:silver_raw_ore,item,silver,raw,1,rematter:silver[solid]=1000,false,8000,16000,100
 ftbic:silver_stone_ore,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
-ftbic:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
-ftbic:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-ftbic:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+ftbic:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
+ftbic:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+ftbic:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 ftbic:tin_block,item,tin,material_block,1,rematter:tin[solid]=9000,true,72000,144000,900
 ftbic:tin_deepslate_ore,item,tin,ore,1,rematter:tin[solid]=1000,false,8000,16000,100
 ftbic:tin_dust,item,tin,dust,1,rematter:tin[solid]=1000,true,8000,16000,100
@@ -423,9 +423,9 @@ ftbic:uranium_ingot,item,uranium,ingot,1,rematter:uranium[solid]=1000,true,8000,
 ftbic:uranium_raw_block,item,uranium,material_block,1,rematter:uranium[solid]=9000,false,72000,144000,900
 ftbic:uranium_raw_ore,item,uranium,raw,1,rematter:uranium[solid]=1000,false,8000,16000,100
 ftbic:uranium_stone_ore,item,uranium,ore,1,rematter:uranium[solid]=1000,false,8000,16000,100
-hextale:brass_block,item,brass,material_block,1,rematter:copper[solid]=2997,false,72000,144000,900
-hextale:brass_ingot,item,brass,ingot,1,rematter:copper[solid]=333,false,8000,16000,100
-hextale:brass_nugget,item,brass,nugget,9,rematter:copper[solid]=333,false,8000,16000,100
+hextale:brass_block,item,brass,material_block,1,rematter:copper[solid]=3000,false,72000,144000,900
+hextale:brass_ingot,item,brass,ingot,3,rematter:copper[solid]=1000,false,24000,48000,300
+hextale:brass_nugget,item,brass,nugget,27,rematter:copper[solid]=1000,false,24000,48000,300
 hextale:deepslate_sphalerite_ore,item,zinc,ore,1,rematter:zinc[solid]=1000,false,8000,16000,100
 hextale:hexsteel_block,item,hexsteel,material_block,1,rematter:hextech[solid]=18000 + rematter:iron[solid]=9000,false,288000,576000,900
 hextale:hexsteel_ingot,item,hexsteel,ingot,1,rematter:hextech[solid]=2000 + rematter:iron[solid]=1000,false,32000,64000,100
@@ -446,14 +446,14 @@ infinity_nexus_mod:aluminum_dust,item,aluminum,dust,1,rematter:aluminum[solid]=1
 infinity_nexus_mod:aluminum_ingot,item,aluminum,ingot,1,rematter:aluminum[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:aluminum_nugget,item,aluminum,nugget,9,rematter:aluminum[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:aluminum_ore,item,aluminum,ore,1,rematter:aluminum[solid]=1000,false,8000,16000,100
-infinity_nexus_mod:brass_block,item,brass,material_block,1,rematter:copper[solid]=2997,false,72000,144000,900
-infinity_nexus_mod:brass_dust,item,brass,dust,1,rematter:copper[solid]=333,false,8000,16000,100
-infinity_nexus_mod:brass_ingot,item,brass,ingot,1,rematter:copper[solid]=333,false,8000,16000,100
-infinity_nexus_mod:brass_nugget,item,brass,nugget,9,rematter:copper[solid]=333,false,8000,16000,100
-infinity_nexus_mod:bronze_block,item,bronze,material_block,1,rematter:copper[solid]=6750 + rematter:tin[solid]=279,true,72000,144000,900
-infinity_nexus_mod:bronze_dust,item,bronze,dust,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
-infinity_nexus_mod:bronze_ingot,item,bronze,ingot,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
-infinity_nexus_mod:bronze_nugget,item,bronze,nugget,9,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+infinity_nexus_mod:brass_block,item,brass,material_block,1,rematter:copper[solid]=3000,false,72000,144000,900
+infinity_nexus_mod:brass_dust,item,brass,dust,3,rematter:copper[solid]=1000,false,24000,48000,300
+infinity_nexus_mod:brass_ingot,item,brass,ingot,3,rematter:copper[solid]=1000,false,24000,48000,300
+infinity_nexus_mod:brass_nugget,item,brass,nugget,27,rematter:copper[solid]=1000,false,24000,48000,300
+infinity_nexus_mod:bronze_block,item,bronze,material_block,4,rematter:copper[solid]=27000 + rematter:tin[solid]=1125,true,288000,576000,3600
+infinity_nexus_mod:bronze_dust,item,bronze,dust,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
+infinity_nexus_mod:bronze_ingot,item,bronze,ingot,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
+infinity_nexus_mod:bronze_nugget,item,bronze,nugget,36,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 infinity_nexus_mod:copper_dust,item,copper,dust,1,rematter:copper[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:deepslate_aluminum_ore,item,aluminum,ore,1,rematter:aluminum[solid]=1000,false,8000,16000,100
 infinity_nexus_mod:deepslate_infinity_ore,item,infinity,ore,1,rematter:iridium[solid]=500 + rematter:quantum_essence[solid]=250 + rematter:stellar_essence[solid]=250,false,32000,64000,100
@@ -500,10 +500,10 @@ infinity_nexus_mod:silver_dust,item,silver,dust,1,rematter:silver[solid]=1000,tr
 infinity_nexus_mod:silver_ingot,item,silver,ingot,1,rematter:silver[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:silver_nugget,item,silver,nugget,9,rematter:silver[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:silver_ore,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
-infinity_nexus_mod:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
-infinity_nexus_mod:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-infinity_nexus_mod:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-infinity_nexus_mod:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+infinity_nexus_mod:steel_block,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
+infinity_nexus_mod:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+infinity_nexus_mod:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+infinity_nexus_mod:steel_nugget,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:tin_block,item,tin,material_block,1,rematter:tin[solid]=9000,true,72000,144000,900
 infinity_nexus_mod:tin_dust,item,tin,dust,1,rematter:tin[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:tin_ingot,item,tin,ingot,1,rematter:tin[solid]=1000,true,8000,16000,100
@@ -520,23 +520,23 @@ infinity_nexus_mod:zinc_ingot,item,zinc,ingot,1,rematter:zinc[solid]=1000,true,8
 infinity_nexus_mod:zinc_nugget,item,zinc,nugget,9,rematter:zinc[solid]=1000,true,8000,16000,100
 infinity_nexus_mod:zinc_ore,item,zinc,ore,1,rematter:zinc[solid]=1000,false,8000,16000,100
 jaopca:dusts.amber,item,amber,dust,1,rematter:amber[solid]=1000,true,32000,64000,100
-jaopca:dusts.desh,item,desh,dust,1,rematter:iron[solid]=571 + rematter:stellar_essence[solid]=143 + rematter:titanium[solid]=286,false,32000,64000,100
+jaopca:dusts.desh,item,desh,dust,1,rematter:iron[solid]=550 + rematter:stellar_essence[solid]=200 + rematter:titanium[solid]=250,false,32000,64000,100
 jaopca:dusts.novite,item,novite,dust,1,rematter:stellar_essence[solid]=500 + rematter:titanium[solid]=500,false,32000,64000,100
-jaopca:dusts.replica,item,replica,dust,1,rematter:quantum_essence[solid]=333 + rematter:silicon[solid]=667,false,32000,64000,100
+jaopca:dusts.replica,item,replica,dust,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
 jaopca:dusts.titanium,item,titanium,dust,1,rematter:titanium[solid]=1000,true,8000,16000,100
 jaopca:raw_storage_blocks.infinity,item,infinity,material_block,1,rematter:iridium[solid]=4500 + rematter:quantum_essence[solid]=2250 + rematter:stellar_essence[solid]=2250,false,288000,576000,900
 jaopca:storage_blocks.blackstone,item,blackstone,material_block,1,rematter:silica[solid]=6750 + rematter:alumina[solid]=10350 + rematter:calcium_oxide[solid]=9900,true,72000,144000,900
-jaopca:storage_blocks.blazegold,item,blazegold,material_block,1,rematter:gold[solid]=20250,false,288000,576000,900
+jaopca:storage_blocks.blazegold,item,blazegold,material_block,1,rematter:gold[solid]=4050,false,288000,576000,900
 jaopca:storage_blocks.blue_ice,item,blue_ice,material_block,1,rematter:water[solid]=9000,false,144000,288000,900
 jaopca:storage_blocks.calcite,item,calcite,material_block,1,rematter:calcium_oxide[solid]=9000 + rematter:carbon_dioxide[gas]=9000,true,72000,144000,900
 jaopca:storage_blocks.carbon,item,graphite,material_block,1,rematter:graphite[solid]=9000,false,288000,576000,900
-jaopca:storage_blocks.corrupti,item,corrupti,material_block,1,rematter:arcane_crystal[solid]=2250 + rematter:copper[solid]=9000 + rematter:ender_essence[solid]=558 + rematter:gold[solid]=4500 + rematter:iron[solid]=4500 + rematter:silica[solid]=558,false,288000,576000,900
+jaopca:storage_blocks.corrupti,item,corrupti,material_block,2,rematter:arcane_crystal[solid]=4500 + rematter:copper[solid]=18000 + rematter:ender_essence[solid]=1125 + rematter:gold[solid]=9000 + rematter:iron[solid]=9000 + rematter:silica[solid]=1125,false,576000,1152000,1800
 jaopca:storage_blocks.dragonyst,item,dragonyst,material_block,1,rematter:amethyst[solid]=18000 + rematter:calcium_oxide[solid]=1800 + rematter:ender_essence[solid]=900 + rematter:silica[solid]=6300,false,288000,576000,900
 jaopca:storage_blocks.echo,item,echo,material_block,1,rematter:echo[solid]=9000,true,288000,576000,900
-jaopca:storage_blocks.eclipsealloy,item,eclipsealloy,material_block,1,rematter:gold[solid]=81000 + rematter:netherite_scrap[solid]=81000,false,288000,576000,900
+jaopca:storage_blocks.eclipsealloy,item,eclipsealloy,material_block,1,rematter:gold[solid]=2025 + rematter:netherite_scrap[solid]=4050,false,288000,576000,900
 jaopca:storage_blocks.end_stone,item,end_stone,material_block,1,rematter:calcium_oxide[solid]=1800 + rematter:ender_essence[solid]=900 + rematter:silica[solid]=6300,true,72000,144000,900
 jaopca:storage_blocks.ender_pearl,item,ender_pearl,material_block,1,rematter:ender_essence[solid]=1000 + rematter:silica[solid]=1000,false,288000,576000,900
-jaopca:storage_blocks.ferricore,item,ferricore,material_block,1,rematter:iron[solid]=20250,false,288000,576000,900
+jaopca:storage_blocks.ferricore,item,ferricore,material_block,1,rematter:iron[solid]=4050,false,288000,576000,900
 jaopca:storage_blocks.fluix,item,fluix,material_block,1,rematter:certus_quartz[solid]=2250,false,288000,576000,900
 jaopca:storage_blocks.glowstone,item,glowstone,material_block,1,rematter:nether_essence[solid]=9000 + rematter:silica[solid]=9000,true,72000,144000,900
 jaopca:storage_blocks.hextech,item,hextech,material_block,1,rematter:hextech[solid]=9000,false,288000,576000,900
@@ -556,15 +556,15 @@ jaopca:storage_blocks.quicksilver,item,quicksilver,material_block,1,rematter:mer
 jaopca:storage_blocks.salt,item,salt,material_block,1,rematter:salt[solid]=9000,true,288000,576000,900
 jaopca:storage_blocks.sky_stone,item,sky_stone,material_block,1,rematter:sky_stone[solid]=9000,true,72000,144000,900
 jaopca:storage_blocks.sulfur,item,sulfur,material_block,1,rematter:sulfur[solid]=9000,true,72000,144000,900
-jaopca:storage_blocks.witherite,item,occultism_witherite,material_block,1,rematter:alumina[solid]=3447 + rematter:calcium_oxide[solid]=3294 + rematter:gold[solid]=11997 + rematter:netherite_scrap[solid]=11997 + rematter:silica[solid]=2250,false,288000,576000,900
-justdirethings:blazegold_ingot,item,blazegold,ingot,1,rematter:gold[solid]=2250,false,32000,64000,100
+jaopca:storage_blocks.witherite,item,occultism_witherite,material_block,1,rematter:alumina[solid]=3450 + rematter:calcium_oxide[solid]=3300 + rematter:gold[solid]=1500 + rematter:netherite_scrap[solid]=3000 + rematter:silica[solid]=2250,false,288000,576000,900
+justdirethings:blazegold_ingot,item,blazegold,ingot,1,rematter:gold[solid]=450,false,32000,64000,100
 justdirethings:charcoal,item,charcoal,material_block,1,rematter:charcoal[solid]=9000,false,72000,144000,900
-justdirethings:eclipsealloy_ingot,item,eclipsealloy,ingot,1,rematter:gold[solid]=9000 + rematter:netherite_scrap[solid]=9000,false,32000,64000,100
-justdirethings:ferricore_ingot,item,ferricore,ingot,1,rematter:iron[solid]=2250,false,32000,64000,100
+justdirethings:eclipsealloy_ingot,item,eclipsealloy,ingot,1,rematter:gold[solid]=225 + rematter:netherite_scrap[solid]=450,false,32000,64000,100
+justdirethings:ferricore_ingot,item,ferricore,ingot,1,rematter:iron[solid]=450,false,32000,64000,100
 justdirethings:raw_blazegold,item,blazegold,raw,1,rematter:gold[solid]=2250,false,32000,64000,100
-justdirethings:raw_eclipsealloy,item,eclipsealloy,raw,1,rematter:gold[solid]=9000 + rematter:netherite_scrap[solid]=9000,false,32000,64000,100
+justdirethings:raw_eclipsealloy,item,eclipsealloy,raw,1,rematter:gold[solid]=1125 + rematter:netherite_scrap[solid]=2250,false,32000,64000,100
 justdirethings:raw_ferricore,item,ferricore,raw,1,rematter:iron[solid]=2250,false,32000,64000,100
-mekanism:block_bronze,item,bronze,material_block,1,rematter:copper[solid]=6750 + rematter:tin[solid]=279,true,72000,144000,900
+mekanism:block_bronze,item,bronze,material_block,4,rematter:copper[solid]=27000 + rematter:tin[solid]=1125,true,288000,576000,3600
 mekanism:block_charcoal,item,charcoal,material_block,1,rematter:charcoal[solid]=9000,false,72000,144000,900
 mekanism:block_fluorite,item,fluorite,material_block,1,rematter:fluorite[solid]=9000,true,288000,576000,900
 mekanism:block_lead,item,lead,material_block,1,rematter:lead[solid]=9000,true,72000,144000,900
@@ -575,7 +575,7 @@ mekanism:block_raw_tin,item,tin,material_block,1,rematter:tin[solid]=9000,false,
 mekanism:block_raw_uranium,item,uranium,material_block,1,rematter:uranium[solid]=9000,false,72000,144000,900
 mekanism:block_refined_glowstone,item,refined_glowstone,material_block,1,rematter:nether_essence[solid]=9000 + rematter:silica[solid]=9000,false,72000,144000,900
 mekanism:block_refined_obsidian,item,refined_obsidian,material_block,1,rematter:alumina[solid]=576 + rematter:diamond[solid]=1125 + rematter:silica[solid]=2250,false,72000,144000,900
-mekanism:block_steel,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
+mekanism:block_steel,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
 mekanism:block_tin,item,tin,material_block,1,rematter:tin[solid]=9000,true,72000,144000,900
 mekanism:block_uranium,item,uranium,material_block,1,rematter:uranium[solid]=9000,true,72000,144000,900
 mekanism:deepslate_fluorite_ore,item,fluorite,ore,1,rematter:fluorite[solid]=1000,false,32000,64000,100
@@ -583,7 +583,7 @@ mekanism:deepslate_lead_ore,item,lead,ore,1,rematter:lead[solid]=1000,false,8000
 mekanism:deepslate_osmium_ore,item,osmium,ore,1,rematter:osmium[solid]=1000,false,8000,16000,100
 mekanism:deepslate_tin_ore,item,tin,ore,1,rematter:tin[solid]=1000,false,8000,16000,100
 mekanism:deepslate_uranium_ore,item,uranium,ore,1,rematter:uranium[solid]=1000,false,8000,16000,100
-mekanism:dust_bronze,item,bronze,dust,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+mekanism:dust_bronze,item,bronze,dust,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 mekanism:dust_charcoal,item,charcoal,dust,1,rematter:charcoal[solid]=1000,false,8000,16000,100
 mekanism:dust_coal,item,coal,dust,1,rematter:coal[solid]=1000,false,8000,16000,100
 mekanism:dust_copper,item,copper,dust,1,rematter:copper[solid]=1000,true,8000,16000,100
@@ -595,32 +595,32 @@ mekanism:dust_iron,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,10
 mekanism:dust_lapis_lazuli,item,lapis,dust,1,rematter:lapis[solid]=1000,true,8000,16000,100
 mekanism:dust_lead,item,lead,dust,1,rematter:lead[solid]=1000,true,8000,16000,100
 mekanism:dust_lithium,item,lithium,dust,1,rematter:lithium[solid]=1000,true,8000,16000,100
-mekanism:dust_netherite,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
+mekanism:dust_netherite,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 mekanism:dust_obsidian,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
 mekanism:dust_osmium,item,osmium,dust,1,rematter:osmium[solid]=1000,true,8000,16000,100
 mekanism:dust_quartz,item,quartz,dust,1,rematter:crystalline_silica[solid]=1000,true,32000,64000,100
 mekanism:dust_refined_obsidian,item,refined_obsidian_precursor,dust,1,rematter:alumina[solid]=64 + rematter:diamond[solid]=125 + rematter:silica[solid]=250,true,8000,16000,100
-mekanism:dust_steel,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+mekanism:dust_steel,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 mekanism:dust_sulfur,item,sulfur,dust,1,rematter:sulfur[solid]=1000,true,8000,16000,100
 mekanism:dust_tin,item,tin,dust,1,rematter:tin[solid]=1000,true,8000,16000,100
 mekanism:dust_uranium,item,uranium,dust,1,rematter:uranium[solid]=1000,true,8000,16000,100
 mekanism:fluorite_gem,item,fluorite,gem,1,rematter:fluorite[solid]=1000,true,32000,64000,100
 mekanism:fluorite_ore,item,fluorite,ore,1,rematter:fluorite[solid]=1000,false,32000,64000,100
-mekanism:ingot_bronze,item,bronze,ingot,1,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+mekanism:ingot_bronze,item,bronze,ingot,4,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 mekanism:ingot_lead,item,lead,ingot,1,rematter:lead[solid]=1000,true,8000,16000,100
 mekanism:ingot_osmium,item,osmium,ingot,1,rematter:osmium[solid]=1000,true,8000,16000,100
 mekanism:ingot_refined_glowstone,item,refined_glowstone,ingot,1,rematter:nether_essence[solid]=1000 + rematter:silica[solid]=1000,false,8000,16000,100
 mekanism:ingot_refined_obsidian,item,refined_obsidian,ingot,1,rematter:alumina[solid]=64 + rematter:diamond[solid]=125 + rematter:silica[solid]=250,false,8000,16000,100
-mekanism:ingot_steel,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+mekanism:ingot_steel,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 mekanism:ingot_tin,item,tin,ingot,1,rematter:tin[solid]=1000,true,8000,16000,100
 mekanism:ingot_uranium,item,uranium,ingot,1,rematter:uranium[solid]=1000,true,8000,16000,100
 mekanism:lead_ore,item,lead,ore,1,rematter:lead[solid]=1000,false,8000,16000,100
-mekanism:nugget_bronze,item,bronze,nugget,9,rematter:copper[solid]=750 + rematter:tin[solid]=31,true,8000,16000,100
+mekanism:nugget_bronze,item,bronze,nugget,36,rematter:copper[solid]=3000 + rematter:tin[solid]=125,true,32000,64000,400
 mekanism:nugget_lead,item,lead,nugget,9,rematter:lead[solid]=1000,true,8000,16000,100
 mekanism:nugget_osmium,item,osmium,nugget,9,rematter:osmium[solid]=1000,true,8000,16000,100
 mekanism:nugget_refined_glowstone,item,refined_glowstone,nugget,9,rematter:nether_essence[solid]=1000 + rematter:silica[solid]=1000,false,8000,16000,100
 mekanism:nugget_refined_obsidian,item,refined_obsidian,nugget,9,rematter:alumina[solid]=64 + rematter:diamond[solid]=125 + rematter:silica[solid]=250,false,8000,16000,100
-mekanism:nugget_steel,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+mekanism:nugget_steel,item,steel,nugget,9,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 mekanism:nugget_tin,item,tin,nugget,9,rematter:tin[solid]=1000,true,8000,16000,100
 mekanism:nugget_uranium,item,uranium,nugget,9,rematter:uranium[solid]=1000,true,8000,16000,100
 mekanism:osmium_ore,item,osmium,ore,1,rematter:osmium[solid]=1000,false,8000,16000,100
@@ -631,14 +631,14 @@ mekanism:raw_uranium,item,uranium,raw,1,rematter:uranium[solid]=1000,false,8000,
 mekanism:salt,item,salt,dust,1,rematter:salt[solid]=1000,true,32000,64000,100
 mekanism:tin_ore,item,tin,ore,1,rematter:tin[solid]=1000,false,8000,16000,100
 mekanism:uranium_ore,item,uranium,ore,1,rematter:uranium[solid]=1000,false,8000,16000,100
-mekanism_extras:block_naquadah,item,naquadah,material_block,1,rematter:stellar_essence[solid]=2997 + rematter:uranium[solid]=6003,false,288000,576000,900
-mekanism_extras:block_raw_naquadah,item,naquadah,material_block,1,rematter:stellar_essence[solid]=2997 + rematter:uranium[solid]=6003,false,288000,576000,900
-mekanism_extras:dust_naquadah,item,naquadah,dust,1,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
-mekanism_extras:end_naquadah_ore,item,naquadah,ore,1,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
-mekanism_extras:ingot_naquadah,item,naquadah,ingot,1,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
-mekanism_extras:naquadah_ore,item,naquadah,ore,1,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
-mekanism_extras:nugget_naquadah,item,naquadah,nugget,9,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
-mekanism_extras:raw_naquadah,item,naquadah,raw,1,rematter:stellar_essence[solid]=333 + rematter:uranium[solid]=667,false,32000,64000,100
+mekanism_extras:block_naquadah,item,naquadah,material_block,1,rematter:stellar_essence[solid]=3600 + rematter:uranium[solid]=5400,false,288000,576000,900
+mekanism_extras:block_raw_naquadah,item,naquadah,material_block,1,rematter:stellar_essence[solid]=3600 + rematter:uranium[solid]=5400,false,288000,576000,900
+mekanism_extras:dust_naquadah,item,naquadah,dust,1,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
+mekanism_extras:end_naquadah_ore,item,naquadah,ore,1,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
+mekanism_extras:ingot_naquadah,item,naquadah,ingot,1,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
+mekanism_extras:naquadah_ore,item,naquadah,ore,1,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
+mekanism_extras:nugget_naquadah,item,naquadah,nugget,9,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
+mekanism_extras:raw_naquadah,item,naquadah,raw,1,rematter:stellar_essence[solid]=400 + rematter:uranium[solid]=600,false,32000,64000,100
 mekmm:block_raw_silver,item,silver,material_block,1,rematter:silver[solid]=9000,false,72000,144000,900
 mekmm:block_silver,item,silver,material_block,1,rematter:silver[solid]=9000,true,72000,144000,900
 mekmm:deepslate_silver_ore,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
@@ -704,8 +704,8 @@ minecraft:lapis_lazuli,item,lapis,gem,1,rematter:lapis[solid]=1000,true,8000,160
 minecraft:lapis_ore,item,lapis,ore,1,rematter:lapis[solid]=1000,false,8000,16000,100
 minecraft:nether_gold_ore,item,gold,ore,1,rematter:gold[solid]=1000,false,8000,16000,100
 minecraft:nether_quartz_ore,item,quartz,ore,1,rematter:crystalline_silica[solid]=1000,false,32000,64000,100
-minecraft:netherite_block,item,netherite,material_block,1,rematter:gold[solid]=36000 + rematter:netherite_scrap[solid]=36000,true,288000,576000,900
-minecraft:netherite_ingot,item,netherite,ingot,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
+minecraft:netherite_block,item,netherite,material_block,1,rematter:gold[solid]=4500 + rematter:netherite_scrap[solid]=9000,false,324000,648000,900
+minecraft:netherite_ingot,item,netherite,ingot,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 minecraft:netherite_scrap,item,netherite_scrap,material,1,rematter:netherite_scrap[solid]=1000,true,32000,64000,100
 minecraft:netherrack,item,netherrack,natural,1,rematter:alumina[solid]=180 + rematter:nether_essence[solid]=20 + rematter:silica[solid]=800,true,8000,16000,100
 minecraft:obsidian,item,obsidian,natural,1,rematter:alumina[solid]=256 + rematter:silica[solid]=1000,true,8000,16000,100
@@ -825,7 +825,7 @@ occultism:iesnium_nugget,item,iesnium,nugget,9,rematter:arcane_essence[solid]=40
 occultism:iesnium_ore,item,iesnium,ore,1,rematter:arcane_essence[solid]=400 + rematter:iron[solid]=400 + rematter:nether_essence[solid]=200,false,32000,64000,100
 occultism:iron_dust,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,100
 occultism:lapis_dust,item,lapis,dust,1,rematter:lapis[solid]=1000,true,8000,16000,100
-occultism:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,true,32000,64000,100
+occultism:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 occultism:netherite_scrap_dust,item,netherite_scrap,dust,1,rematter:netherite_scrap[solid]=1000,true,32000,64000,100
 occultism:obsidian_dust,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
 occultism:otherworld_ashes,item,otherworld_ashes,dust,1,rematter:otherworld_ashes[solid]=1000,true,32000,64000,100
@@ -839,7 +839,7 @@ occultism:silver_ingot,item,silver,ingot,1,rematter:silver[solid]=1000,true,8000
 occultism:silver_nugget,item,silver,nugget,9,rematter:silver[solid]=1000,true,8000,16000,100
 occultism:silver_ore,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
 occultism:silver_ore_deepslate,item,silver,ore,1,rematter:silver[solid]=1000,false,8000,16000,100
-occultism:witherite_dust,item,occultism_witherite,dust,1,rematter:alumina[solid]=383 + rematter:calcium_oxide[solid]=366 + rematter:gold[solid]=1333 + rematter:netherite_scrap[solid]=1333 + rematter:silica[solid]=250,false,32000,64000,100
+occultism:witherite_dust,item,occultism_witherite,dust,3,rematter:alumina[solid]=1150 + rematter:calcium_oxide[solid]=1100 + rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000 + rematter:silica[solid]=750,false,96000,192000,300
 oritech:adamant,item,adamant,material_block,1,rematter:diamond[solid]=9000 + rematter:nickel[solid]=9000,true,288000,576000,900
 oritech:adamant_dust,item,adamant,dust,1,rematter:diamond[solid]=1000 + rematter:nickel[solid]=1000,true,32000,64000,100
 oritech:adamant_ingot,item,adamant,ingot,1,rematter:diamond[solid]=1000 + rematter:nickel[solid]=1000,true,32000,64000,100
@@ -888,9 +888,9 @@ oritech:raw_uranium,item,uranium,raw,1,rematter:uranium[solid]=1000,false,8000,1
 oritech:raw_uranium_block,item,uranium,material_block,1,rematter:uranium[solid]=9000,false,72000,144000,900
 oritech:silicon,item,silicon,dust,1,rematter:silicon[solid]=250,true,8000,16000,100
 oritech:silicon_block,item,silicon,material_block,1,rematter:silicon[solid]=2250,true,72000,144000,900
-oritech:steel,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=8910,true,72000,144000,900
-oritech:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
-oritech:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=990,true,8000,16000,100
+oritech:steel,item,steel,material_block,1,rematter:carbon[solid]=90 + rematter:iron[solid]=9000,true,72000,144000,900
+oritech:steel_dust,item,steel,dust,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
+oritech:steel_ingot,item,steel,ingot,1,rematter:carbon[solid]=10 + rematter:iron[solid]=1000,true,8000,16000,100
 oritech:uranium,item,uranium,material_block,1,rematter:uranium[solid]=9000,true,288000,576000,900
 oritech:uranium_dust,item,uranium,dust,1,rematter:uranium[solid]=1000,true,8000,16000,100
 powah:deepslate_uraninite_ore,item,uraninite,ore,1,rematter:uraninite[solid]=1000,false,8000,16000,100
@@ -914,31 +914,31 @@ rematter:iron_dust,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,10
 rematter:lapis_dust,item,lapis,dust,1,rematter:lapis[solid]=1000,false,8000,16000,100
 rematter:lumivex_dust,item,lumivex_powder,dust,1,rematter:copper[solid]=750 + rematter:gold[solid]=250 + rematter:nether_essence[solid]=250 + rematter:silica[solid]=250,true,8000,16000,100
 rematter:lumivex_ingot,item,lumivex,ingot,1,rematter:copper[solid]=750 + rematter:gold[solid]=250 + rematter:nether_essence[solid]=250 + rematter:silica[solid]=250,false,8000,16000,100
-rematter:netherite_powder,item,netherite,dust,1,rematter:gold[solid]=4000 + rematter:netherite_scrap[solid]=4000,false,32000,64000,100
+rematter:netherite_powder,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 rematter:rhevon_dust,item,rhevon_powder,dust,1,rematter:arcane_essence[solid]=250 + rematter:copper[solid]=250 + rematter:iron[solid]=750 + rematter:silica[solid]=250,true,8000,16000,100
 rematter:rhevon_ingot,item,rhevon,ingot,1,rematter:arcane_essence[solid]=250 + rematter:copper[solid]=250 + rematter:iron[solid]=750 + rematter:silica[solid]=250,false,8000,16000,100
 rematter:virelite_blend,item,virelite_blend,material,1,rematter:aluminum[solid]=500 + rematter:hydrogen[gas]=500 + rematter:oxygen[gas]=1625 + rematter:silicon[solid]=1000,true,8000,16000,100
 rematter:virelite_ceramic,item,virelite,material,1,rematter:aluminum[solid]=500 + rematter:hydrogen[gas]=500 + rematter:oxygen[gas]=1625 + rematter:silicon[solid]=1000,false,8000,16000,100
-replication:deepslate_replica_ore,item,replica,ore,1,rematter:quantum_essence[solid]=333 + rematter:silicon[solid]=667,false,32000,64000,100
-replication:raw_replica,item,replica,raw,1,rematter:quantum_essence[solid]=333 + rematter:silicon[solid]=667,false,32000,64000,100
-replication:raw_replica_block,item,replica,material_block,1,rematter:quantum_essence[solid]=2997 + rematter:silicon[solid]=6003,false,288000,576000,900
-replication:replica_block,item,replica,material_block,1,rematter:quantum_essence[solid]=2997 + rematter:silicon[solid]=6003,false,288000,576000,900
-replication:replica_ingot,item,replica,ingot,1,rematter:quantum_essence[solid]=333 + rematter:silicon[solid]=667,false,32000,64000,100
+replication:deepslate_replica_ore,item,replica,ore,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
+replication:raw_replica,item,replica,raw,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
+replication:raw_replica_block,item,replica,material_block,1,rematter:quantum_essence[solid]=3600 + rematter:silicon[solid]=5400,false,288000,576000,900
+replication:replica_block,item,replica,material_block,1,rematter:quantum_essence[solid]=3600 + rematter:silicon[solid]=5400,false,288000,576000,900
+replication:replica_ingot,item,replica,ingot,1,rematter:quantum_essence[solid]=400 + rematter:silicon[solid]=600,false,32000,64000,100
 rftoolsbase:dimensionalshard,item,dimensional_shard,gem,1,rematter:dimensional_shard[solid]=1000,true,32000,64000,100
 rftoolsbase:dimensionalshard_end,item,dimensional_shard,ore,1,rematter:dimensional_shard[solid]=4000,false,128000,256000,400
 rftoolsbase:dimensionalshard_nether,item,dimensional_shard,ore,1,rematter:dimensional_shard[solid]=4000,false,128000,256000,400
 rftoolsbase:dimensionalshard_overworld,item,dimensional_shard,ore,1,rematter:dimensional_shard[solid]=4000,false,128000,256000,400
 stellaris:deepslate_titanium_ore,item,titanium,ore,1,rematter:titanium[solid]=1000,false,8000,16000,100
-stellaris:desh_block,item,desh,material_block,1,rematter:iron[solid]=5139 + rematter:stellar_essence[solid]=1287 + rematter:titanium[solid]=2574,false,288000,576000,900
-stellaris:desh_ingot,item,desh,ingot,1,rematter:iron[solid]=571 + rematter:stellar_essence[solid]=143 + rematter:titanium[solid]=286,false,32000,64000,100
-stellaris:moon_desh_ore,item,desh,ore,1,rematter:iron[solid]=571 + rematter:stellar_essence[solid]=143 + rematter:titanium[solid]=286,false,32000,64000,100
+stellaris:desh_block,item,desh,material_block,1,rematter:iron[solid]=4950 + rematter:stellar_essence[solid]=1800 + rematter:titanium[solid]=2250,false,288000,576000,900
+stellaris:desh_ingot,item,desh,ingot,1,rematter:iron[solid]=550 + rematter:stellar_essence[solid]=200 + rematter:titanium[solid]=250,false,32000,64000,100
+stellaris:moon_desh_ore,item,desh,ore,1,rematter:iron[solid]=550 + rematter:stellar_essence[solid]=200 + rematter:titanium[solid]=250,false,32000,64000,100
 stellaris:moon_stone_iron_ore,item,iron,ore,1,rematter:iron[solid]=1000,false,8000,16000,100
 stellaris:moon_titanium_ore,item,titanium,ore,1,rematter:titanium[solid]=1000,false,8000,16000,100
 stellaris:novite_block,item,novite,material_block,1,rematter:stellar_essence[solid]=4500 + rematter:titanium[solid]=4500,false,288000,576000,900
 stellaris:novite_ingot,item,novite,ingot,1,rematter:stellar_essence[solid]=500 + rematter:titanium[solid]=500,false,32000,64000,100
 stellaris:novite_ore,item,novite,ore,1,rematter:stellar_essence[solid]=500 + rematter:titanium[solid]=500,false,32000,64000,100
-stellaris:raw_desh,item,desh,raw,1,rematter:iron[solid]=571 + rematter:stellar_essence[solid]=143 + rematter:titanium[solid]=286,false,32000,64000,100
-stellaris:raw_desh_block,item,desh,material_block,1,rematter:iron[solid]=5139 + rematter:stellar_essence[solid]=1287 + rematter:titanium[solid]=2574,false,288000,576000,900
+stellaris:raw_desh,item,desh,raw,1,rematter:iron[solid]=550 + rematter:stellar_essence[solid]=200 + rematter:titanium[solid]=250,false,32000,64000,100
+stellaris:raw_desh_block,item,desh,material_block,1,rematter:iron[solid]=4950 + rematter:stellar_essence[solid]=1800 + rematter:titanium[solid]=2250,false,288000,576000,900
 stellaris:raw_novite,item,novite,raw,1,rematter:stellar_essence[solid]=500 + rematter:titanium[solid]=500,false,32000,64000,100
 stellaris:raw_novite_block,item,novite,material_block,1,rematter:stellar_essence[solid]=4500 + rematter:titanium[solid]=4500,false,288000,576000,900
 stellaris:raw_titanium,item,titanium,raw,1,rematter:titanium[solid]=1000,false,8000,16000,100
@@ -952,11 +952,11 @@ thaumaturge:amber_block,item,amber,material_block,1,rematter:amber[solid]=4000,t
 thaumaturge:deepslate_ore_amber,item,amber,ore,1,rematter:amber[solid]=1000,false,32000,64000,100
 thaumaturge:deepslate_ore_cinnabar,item,cinnabar,ore,1,rematter:cinnabar[solid]=1000,false,32000,64000,100
 thaumaturge:deepslate_ore_quartz,item,quartz,ore,1,rematter:crystalline_silica[solid]=1000,false,32000,64000,100
-thaumaturge:ingot_brass,item,brass,ingot,1,rematter:copper[solid]=333,false,8000,16000,100
+thaumaturge:ingot_brass,item,brass,ingot,3,rematter:copper[solid]=1000,false,24000,48000,300
 thaumaturge:ingot_thaumium,item,thaumium,ingot,1,rematter:iron[solid]=1000,false,32000,64000,100
-thaumaturge:metal_brass,item,brass,material_block,1,rematter:copper[solid]=2997,false,72000,144000,900
+thaumaturge:metal_brass,item,brass,material_block,1,rematter:copper[solid]=3000,false,72000,144000,900
 thaumaturge:metal_thaumium,item,thaumium,material_block,1,rematter:iron[solid]=9000,false,288000,576000,900
-thaumaturge:nugget_brass,item,brass,nugget,9,rematter:copper[solid]=333,false,8000,16000,100
+thaumaturge:nugget_brass,item,brass,nugget,27,rematter:copper[solid]=1000,false,24000,48000,300
 thaumaturge:nugget_quartz,item,quartz,nugget,9,rematter:crystalline_silica[solid]=1000,true,32000,64000,100
 thaumaturge:nugget_quicksilver,item,quicksilver,nugget,9,rematter:mercury[liquid]=1000,true,8000,16000,100
 thaumaturge:nugget_thaumium,item,thaumium,nugget,9,rematter:iron[solid]=1000,false,32000,64000,100

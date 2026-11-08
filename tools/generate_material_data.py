@@ -66,6 +66,27 @@ def substances(catalogue, check, written, names):
         names[key] = row["name"]
 
 
+def batches(row, family_name, family):
+    """Return how many exact family batches a row holds; fractional per-item shares are rejected."""
+    item = row["item"]
+    batch = family.get("batch")
+    if not batch or not isinstance(batch.get("items"), int) or batch["items"] < 1 or not batch.get("matter"):
+        raise ValueError(f"Family {family_name} needs an exact batch")
+    expected = {(entry["substance"], entry["phase"]): entry["amount"] for entry in batch["matter"]}
+    actual = {(entry["substance"], entry["phase"]): entry["amount"] for entry in row["matter"]}
+    if len(actual) != len(row["matter"]) or set(actual) != set(expected):
+        raise ValueError(f"Matter of {item} does not match the constituents of family {family_name}")
+    multiples = {amount // expected[key] for key, amount in actual.items() if amount % expected[key] == 0}
+    if len(multiples) != 1 or len(actual) != sum(amount % expected[key] == 0 for key, amount in actual.items()) or 0 in multiples:
+        raise ValueError(f"Fractional per-item ratio for {item}: use item_count for a whole multiple of the {family_name} batch")
+    count = multiples.pop()
+    pieces = row.get("item_count", 1)
+    per_base = {"ingot": 1, "nugget": 9}.get(row["form"])
+    if per_base and pieces != count * batch["items"] * per_base:
+        raise ValueError(f"Item count of {item} does not match its share of the {family_name} batch")
+    return count
+
+
 def items(catalogue, check, written):
     families = catalogue["families"]
     seen = set()
@@ -84,6 +105,7 @@ def items(catalogue, check, written):
             raise ValueError(f"Ore enrichment products cannot be synthesized: {item}")
         if row["synthesis"] and not families[row["family"]]["synthesis"]:
             raise ValueError(f"Synthesis is disabled for the family of {item}")
+        batches(row, row["family"], families[row["family"]])
         count = row.get("item_count", 1)
         if not isinstance(count, int) or not 1 <= count <= 64:
             raise ValueError(f"Invalid item count: {item}")

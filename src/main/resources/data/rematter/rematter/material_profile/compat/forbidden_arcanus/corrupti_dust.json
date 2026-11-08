@@ -2,39 +2,40 @@
   "schema_version": 1,
   "required_mod": "forbidden_arcanus",
   "item": "forbidden_arcanus:corrupti_dust",
+  "item_count": 2,
   "matter": [
     {
       "substance": "rematter:arcane_crystal",
       "phase": "solid",
-      "amount": 250
+      "amount": 500
     },
     {
       "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 2000
     },
     {
       "substance": "rematter:ender_essence",
       "phase": "solid",
-      "amount": 62
+      "amount": 125
     },
     {
       "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 500
+      "amount": 1000
     },
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 500
+      "amount": 1000
     },
     {
       "substance": "rematter:silica",
       "phase": "solid",
-      "amount": 62
+      "amount": 125
     }
   ],
-  "decomposition_energy": 32000,
-  "synthesis_energy": 64000,
-  "ticks": 100
+  "decomposition_energy": 64000,
+  "synthesis_energy": 128000,
+  "ticks": 200
 }

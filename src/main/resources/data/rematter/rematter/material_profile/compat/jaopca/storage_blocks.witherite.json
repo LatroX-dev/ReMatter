@@ -7,22 +7,22 @@
     {
       "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 3447
+      "amount": 3450
     },
     {
       "substance": "rematter:calcium_oxide",
       "phase": "solid",
-      "amount": 3294
+      "amount": 3300
     },
     {
       "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 11997
+      "amount": 1500
     },
     {
       "substance": "rematter:netherite_scrap",
       "phase": "solid",
-      "amount": 11997
+      "amount": 3000
     },
     {
       "substance": "rematter:silica",

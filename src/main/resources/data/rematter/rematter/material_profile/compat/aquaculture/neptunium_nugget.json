@@ -7,17 +7,17 @@
     {
       "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 166
+      "amount": 150
     },
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 667
+      "amount": 650
     },
     {
       "substance": "rematter:vital_essence",
       "phase": "solid",
-      "amount": 167
+      "amount": 200
     }
   ],
   "decomposition_energy": 32000,

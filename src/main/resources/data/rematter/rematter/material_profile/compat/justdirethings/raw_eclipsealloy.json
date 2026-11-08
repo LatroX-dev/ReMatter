@@ -6,12 +6,12 @@
     {
       "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 1125
     },
     {
       "substance": "rematter:netherite_scrap",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2250
     }
   ],
   "decomposition_energy": 32000,

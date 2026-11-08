@@ -2,11 +2,11 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **966 item profiles** across **34 namespaces**, with **479 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **464 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
 
 ## Quantities and material states
 
-- One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units.
+- One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units. Every material family declares one exact batch, and each profile must hold a whole multiple of it. Where a recipe divides a constituent unevenly, the profile covers several items instead of rounding.
 - Nine Ender IO Ender Pearl Powder fragments contain the same constituents as one pearl. ReMatter's full powder and AE2 Ender Dust each contain a whole pearl's constituents. A JAOPCA pearl powder block can be made from nine tag ingredients of either size. ReMatter recovers one pearl equivalent and leaves its synthesis disabled.
 - Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts.
 - Compressed blocks use their reviewed recipe quantities. Quartz, Certus Quartz and uncharged Ember blocks use four crystals; ordinary metal storage blocks use nine ingots. JAOPCA powder blocks use their verified nine-powder recipe, not a ratio inferred from their name.
@@ -19,14 +19,14 @@ The data catalogue contains **966 item profiles** across **34 namespaces**, with
 - AppFlux insulating resin recovers the Glowstone constituents common to the uncured and hardened forms. ReMatter models Oritech's finished plastic as polyethylene, `(C₂H₄)ₙ`. Each sheet recovers carbon and molecular hydrogen. The block recovers nine sheets' worth. Resin recovers the plastic fraction of its native one-sheet furnace route. These profiles are for decomposition.
 - Natural ice, packed ice and blue ice recover solid water. Each block equals one corresponding crushed item, and JAOPCA powder storage blocks contain nine. FTBIC and Refurbished Furniture compress both grades at 1:1, so recovery follows that lower bound. Native recipes produce packed ice and blue ice.
 - ReMatter's diamond, emerald, lapis, amethyst and netherite powders recover the same amounts as their one-to-one grinding inputs.
-- Netherite scrap and scrap dust both contain Netherium (`Nt`), a fictional constituent. A Netherite Ingot contains four Gold Ingot batches and four scrap batches. Scrap storage blocks contain nine scrap batches. Ancient Debris provides one scrap batch through decomposition.
+- Netherite scrap and scrap dust both contain Netherium (`Nt`), a fictional constituent. Native routes make a Netherite Ingot from as little as one gold ingot and one scrap or one eighth of a gold dust and four scrap, so an ingot or dust recovers the smallest share of each, 500 gold and 1,000 Netherium, and none of them can be synthesized. Scrap storage blocks contain nine scrap batches. Ancient Debris provides one scrap batch through decomposition.
 - Prismarine shards and crystals retain separate identities. Natural Prismarine contains four shards; the JAOPCA crystal block contains nine crystals. Ecologics Seashell Blocks contain nine shells; decorative shell tiles are outside this catalogue.
 - Coal, charcoal, graphite, uraninite and combustible candidates remain decomposition-only until their complete energy cycles have been reviewed. Nuclear fuel rods and isotope mixtures are outside these generic material profiles.
 - Nondefault item components are rejected. Profiles do not authorize consuming stored energy, inventories, patterns, enchantments or custom item data. Machines and manufactured components are not synthesis outputs.
 
 ## Alloys, compounds and mixtures
 
-Reviewed alloys use the ingredients and output counts of the reference mod recipes. Where shared tags allow brands to be exchanged, recovery uses the smallest verified common quantities. One Bronze Ingot recovers 750 copper and 31 tin units. Oritech's lowest-cost Adamant recipe uses one nickel ingot and one diamond. Recovery-only profiles keep native production required when routes consume different ingredients or when the full composition cannot be verified. The catalogue records the recipe basis or identifies a native mineral's composition as a ReMatter model.
+Reviewed alloys use the ingredients and output counts of the reference mod recipes. Where shared tags allow brands to be exchanged, recovery uses the smallest verified common quantities. Four Bronze Ingots recover exactly 3,000 copper and 125 tin, and three Invar recover 1,500 iron and 1,000 nickel; such alloys decompose in whole batches. Where routes disagree element by element, as for Invar and Netherite, recovery keeps the smaller amount of each element and synthesis stays disabled. Oritech's lowest-cost Adamant recipe uses one nickel ingot and one diamond. Recovery-only profiles keep native production required when routes consume different ingredients or when the full composition cannot be verified. The catalogue records the recipe basis or identifies a native mineral's composition as a ReMatter model.
 
 The explicit synthesis list accounts for progression and equivalent constituent recipes. Finished Rhevon, Lumivex and Virelite require firing. Mystical Agriculture alloys and gemstones recover their actual base and same-tier ingredients. Their distinct essence grades preserve native upgrading. Thaumaturge Void Metal stays outside material recovery until its seed and aspect chemistry has a supported model.
 
@@ -48,29 +48,29 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | --- | ---: | ---: |
 | `ae2` | 9 | 6 |
 | `ae2omnicells` | 1 | 1 |
-| `alltheores` | 205 | 88 |
+| `alltheores` | 205 | 83 |
 | `appflux` | 4 | 2 |
-| `appgen` | 6 | 3 |
+| `appgen` | 6 | 2 |
 | `aquaculture` | 3 | 0 |
 | `colossal_reactors` | 36 | 12 |
 | `ecologics` | 2 | 2 |
-| `enderio` | 33 | 26 |
+| `enderio` | 33 | 25 |
 | `energizedpower` | 20 | 12 |
 | `extendedae` | 4 | 1 |
 | `forbidden_arcanus` | 17 | 10 |
-| `ftbic` | 84 | 45 |
+| `ftbic` | 84 | 41 |
 | `hextale` | 18 | 3 |
 | `infinity_nexus_mod` | 78 | 41 |
 | `jaopca` | 38 | 19 |
 | `justdirethings` | 7 | 0 |
-| `mekanism` | 67 | 40 |
+| `mekanism` | 67 | 39 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 81 | 51 |
+| `minecraft` | 81 | 49 |
 | `mysticalagradditions` | 11 | 2 |
 | `mysticalagriculture` | 61 | 46 |
 | `nautec` | 4 | 1 |
-| `occultism` | 36 | 21 |
+| `occultism` | 36 | 20 |
 | `oritech` | 53 | 26 |
 | `powah` | 9 | 0 |
 | `refinedstorage` | 1 | 1 |

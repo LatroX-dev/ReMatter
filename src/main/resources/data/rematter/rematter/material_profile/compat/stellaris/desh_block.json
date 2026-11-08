@@ -6,17 +6,17 @@
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 5139
+      "amount": 4950
     },
     {
       "substance": "rematter:stellar_essence",
       "phase": "solid",
-      "amount": 1287
+      "amount": 1800
     },
     {
       "substance": "rematter:titanium",
       "phase": "solid",
-      "amount": 2574
+      "amount": 2250
     }
   ],
   "decomposition_energy": 288000,
