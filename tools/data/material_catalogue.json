@@ -1163,7 +1163,7 @@
       "substance": "awakened_supremium_essence",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -1173,7 +1173,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Awakening requires Cognizant Dust from the Wither or the Ender Dragon and the Awakening Altar."
     },
     "awakened_supremium_gemstone": {
       "category": "composed_material",
@@ -1596,7 +1597,7 @@
       "substance": "corrupted_arcane_crystal",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -1606,7 +1607,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Corrupted Arcane Crystal is Forbidden Arcanus progression material; its native corruption stays required."
     },
     "corrupti": {
       "category": "composed_material",
@@ -1705,8 +1707,8 @@
     },
     "deorum": {
       "category": "composed_material",
-      "synthesis": true,
-      "basis": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals.",
+      "synthesis": false,
+      "basis": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals. Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required.",
       "batch": {
         "items": 1,
         "matter": [
@@ -1854,7 +1856,7 @@
       "substance": "echo",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -1864,7 +1866,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Echo shards are Ancient City loot, and Occultism converts echo dust and shards one to one, so synthesis would release special loot."
     },
     "eclipsealloy": {
       "category": "composed_material",
@@ -2480,7 +2483,7 @@
       "substance": "insanium_essence",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -2490,7 +2493,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Insanium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
     },
     "insanium_gemstone": {
       "category": "composed_material",
@@ -2813,7 +2817,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Netherite Scrap is an ore-derived base material like diamond, not loot or a boss item. Its Netherium only enters storage by decomposing debris-derived items, so synthesis is a one-to-one round trip."
     },
     "netherrack": {
       "category": "composed_material",
@@ -2879,7 +2884,7 @@
     "obsidian": {
       "category": "composed_material",
       "synthesis": true,
-      "basis": "Shared mineral and essence constituents. Supported blocks and powders use exact processing ratios.",
+      "basis": "Shared mineral constituents. Four dusts contain one block. Only the natural block can be synthesized, because Occultism gray_paste/obsidian and crystallize/obsidian turn one dust into a whole block.",
       "batch": {
         "items": 1,
         "matter": [
@@ -3739,7 +3744,7 @@
       "substance": "stellarite",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -3749,7 +3754,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Stellarite is Forbidden Arcanus progression material; its native Stella Arcanum mining and Hephaestus Forge progression stays required."
     },
     "stellarum": {
       "category": "composed_material",
@@ -3821,7 +3827,7 @@
       "substance": "supremium_essence",
       "phase": "solid",
       "category": "fantasy_material",
-      "synthesis": true,
+      "synthesis": false,
       "batch": {
         "items": 1,
         "matter": [
@@ -3831,12 +3837,13 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
     },
     "supremium_gemstone": {
       "category": "composed_material",
-      "synthesis": true,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers.",
+      "synthesis": false,
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required.",
       "batch": {
         "items": 1,
         "matter": [
@@ -3860,8 +3867,8 @@
     },
     "supremium_metal": {
       "category": "composed_material",
-      "synthesis": true,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers.",
+      "synthesis": false,
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required.",
       "batch": {
         "items": 1,
         "matter": [
@@ -12380,13 +12387,14 @@
       "decomposition_energy": 8000,
       "synthesis_energy": 16000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "Four obsidian dusts per natural obsidian block, verified in Mekanism crushing and Ender IO/Oritech milling; 250 units per dust.",
         "tags": [
           "c:dusts/obsidian"
-        ]
+        ],
+        "synthesis": "Recovery only. Occultism crafts or crystallizes one obsidian block from a single obsidian dust, so synthesizable dust would quadruple the block."
       }
     },
     {
@@ -13691,14 +13699,15 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One separately retained base material unit.",
         "tags": [
           "c:gems",
           "c:gems/corrupted_arcane_crystal"
-        ]
+        ],
+        "synthesis": "Recovery only. Corrupted Arcane Crystal is Forbidden Arcanus progression material; its native corruption stays required."
       }
     },
     {
@@ -13718,14 +13727,15 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "forbidden_arcanus:corrupted_arcane_crystal_block_from_corrupted_arcane_crystal: one block contains exactly 9 base material units.",
         "tags": [
           "c:storage_blocks",
           "c:storage_blocks/corrupted_arcane_crystal"
-        ]
+        ],
+        "synthesis": "Recovery only. Corrupted Arcane Crystal is Forbidden Arcanus progression material; its native corruption stays required."
       }
     },
     {
@@ -13830,14 +13840,15 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals.",
+        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals. Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required.",
         "tags": [
           "c:storage_blocks/deorum"
         ],
-        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}"
+        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}",
+        "synthesis": "Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required."
       }
     },
     {
@@ -13862,14 +13873,15 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals.",
+        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals. Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required.",
         "tags": [
           "c:ingots/deorum"
         ],
-        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}"
+        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}",
+        "synthesis": "Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required."
       }
     },
     {
@@ -13894,14 +13906,15 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals.",
+        "quantity": "One Deorum uses eighteen molten gold and thirty-six molten Arcane Crystal. The Clibano yields nine units per source item, so the ingot requires two gold and four Arcane Crystals. Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required.",
         "tags": [
           "c:nuggets/deorum"
         ],
-        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}"
+        "recipe_basis": "forbidden_arcanus:clibano/alloying/deorum_ingot and clibano/melting/{gold,arcane_crystal}",
+        "synthesis": "Recovery only. Deorum is Forbidden Arcanus progression material; its native Clibano alloying stays required."
       }
     },
     {
@@ -13991,7 +14004,7 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "forbidden_arcanus:stellarite_block_from_stellarite_piece: one block contains exactly 9 base material units.",
@@ -14000,7 +14013,8 @@
           "c:storage_blocks",
           "c:storage_blocks/stellarite",
           "forbidden_arcanus:black_hole_unaffected"
-        ]
+        ],
+        "synthesis": "Recovery only. Stellarite is Forbidden Arcanus progression material; its native Stella Arcanum mining and Hephaestus Forge progression stays required."
       }
     },
     {
@@ -14020,14 +14034,15 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One separately retained base material unit.",
         "tags": [
           "c:explosion_resistant",
           "forbidden_arcanus:black_hole_unaffected"
-        ]
+        ],
+        "synthesis": "Recovery only. Stellarite is Forbidden Arcanus progression material; its native Stella Arcanum mining and Hephaestus Forge progression stays required."
       }
     },
     {
@@ -15619,13 +15634,14 @@
       "decomposition_energy": 8000,
       "synthesis_energy": 16000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "Four obsidian dusts per natural obsidian block, verified in Mekanism crushing and Ender IO/Oritech milling; 250 units per dust.",
         "tags": [
           "c:dusts/obsidian"
-        ]
+        ],
+        "synthesis": "Recovery only. Occultism crafts or crystallizes one obsidian block from a single obsidian dust, so synthesizable dust would quadruple the block."
       }
     },
     {
@@ -19581,14 +19597,15 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "jaopca:storage_blocks.to_material.echo: one block contains exactly 9 base material units.",
         "tags": [
           "c:storage_blocks",
           "c:storage_blocks/echo"
-        ]
+        ],
+        "synthesis": "Recovery only. Echo shards are Ancient City loot, and Occultism converts echo dust and shards one to one, so synthesis would release special loot."
       },
       "required_item": "jaopca:storage_blocks.echo"
     },
@@ -19991,13 +20008,14 @@
       "decomposition_energy": 72000,
       "synthesis_energy": 144000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "jaopca:storage_blocks.to_material.obsidian yields nine obsidian dusts; 9 × 250 units.",
         "tags": [
           "c:storage_blocks/obsidian"
-        ]
+        ],
+        "synthesis": "Recovery only. Occultism crafts or crystallizes one obsidian block from a single obsidian dust, so synthesizable dust would quadruple the block."
       },
       "required_item": "jaopca:storage_blocks.obsidian"
     },
@@ -21430,13 +21448,14 @@
       "decomposition_energy": 8000,
       "synthesis_energy": 16000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "Four obsidian dusts per natural obsidian block, verified in Mekanism crushing and Ender IO/Oritech milling; 250 units per dust.",
         "tags": [
           "c:dusts/obsidian"
-        ]
+        ],
+        "synthesis": "Recovery only. Occultism crafts or crystallizes one obsidian block from a single obsidian dust, so synthesizable dust would quadruple the block."
       }
     },
     {
@@ -23933,7 +23952,8 @@
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
-        "tags": []
+        "tags": [],
+        "synthesis": "Synthesis stays permitted: pearls are a renewable mob drop, and the ReForging integration pins the Enderion supplied by ten End Stone blocks to one pearl."
       }
     },
     {
@@ -25195,11 +25215,12 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "mysticalagradditions:insanium_block",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Insanium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -25219,11 +25240,12 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Insanium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -25516,11 +25538,12 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "mysticalagriculture:awakened_supremium_block",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Awakening requires Cognizant Dust from the Wither or the Ender Dragon and the Awakening Altar."
       }
     },
     {
@@ -25540,11 +25563,12 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Awakening requires Cognizant Dust from the Wither or the Ender Dragon and the Awakening Altar."
       }
     },
     {
@@ -27088,11 +27112,12 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "mysticalagriculture:supremium_block",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27112,11 +27137,12 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27146,16 +27172,17 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_gemstone.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_gemstone.json"
-        ]
+        ],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27185,7 +27212,7 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "mysticalagriculture:supremium_gemstone_block",
@@ -27195,7 +27222,8 @@
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_gemstone.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_gemstone.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_gemstone_block.json"
-        ]
+        ],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27225,16 +27253,17 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_ingot.json"
-        ]
+        ],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27264,7 +27293,7 @@
       "decomposition_energy": 288000,
       "synthesis_energy": 576000,
       "ticks": 900,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "mysticalagriculture:supremium_ingot_block",
@@ -27274,7 +27303,8 @@
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_ingot_block.json"
-        ]
+        ],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -27304,7 +27334,7 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
@@ -27314,7 +27344,8 @@
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/supremium_ingot_uncraft.json"
-        ]
+        ],
+        "synthesis": "Recovery only. Supremium is a top Mystical Agriculture tier; its native upgrade, awakening or seed progression stays required."
       }
     },
     {
@@ -28028,14 +28059,15 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One separately retained base material unit.",
         "tags": [
           "c:dusts",
           "c:dusts/echo"
-        ]
+        ],
+        "synthesis": "Recovery only. Echo shards are Ancient City loot, and Occultism converts echo dust and shards one to one, so synthesis would release special loot."
       }
     },
     {
@@ -28407,13 +28439,14 @@
       "decomposition_energy": 8000,
       "synthesis_energy": 16000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "Four obsidian dusts per natural obsidian block, verified in Mekanism crushing and Ender IO/Oritech milling; 250 units per dust.",
         "tags": [
           "c:dusts/obsidian"
-        ]
+        ],
+        "synthesis": "Recovery only. Occultism crafts or crystallizes one obsidian block from a single obsidian dust, so synthesizable dust would quadruple the block."
       }
     },
     {

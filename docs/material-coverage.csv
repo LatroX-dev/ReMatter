@@ -283,7 +283,7 @@ enderio:powdered_ender_pearl,item,ender_pearl,dust,9,rematter:ender_essence[soli
 enderio:powdered_gold,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
 enderio:powdered_iron,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,100
 enderio:powdered_lapis_lazuli,item,lapis,dust,1,rematter:lapis[solid]=1000,true,8000,16000,100
-enderio:powdered_obsidian,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
+enderio:powdered_obsidian,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,false,8000,16000,100
 enderio:powdered_quartz,item,quartz,dust,1,rematter:crystalline_silica[solid]=1000,true,32000,64000,100
 enderio:powdered_tin,item,tin,dust,1,rematter:tin[solid]=1000,true,8000,16000,100
 enderio:pulsating_alloy_block,item,pulsating_alloy,material_block,1,rematter:ender_essence[solid]=4500 + rematter:iron[solid]=4500 + rematter:silica[solid]=4500,true,72000,144000,900
@@ -326,17 +326,17 @@ forbidden_arcanus:arcane_crystal,item,arcane_crystal,gem,1,rematter:arcane_cryst
 forbidden_arcanus:arcane_crystal_block,item,arcane_crystal,material_block,1,rematter:arcane_crystal[solid]=9000,true,288000,576000,900
 forbidden_arcanus:arcane_crystal_dust,item,arcane_crystal,dust,1,rematter:arcane_crystal[solid]=1000,true,32000,64000,100
 forbidden_arcanus:arcane_crystal_ore,item,arcane_crystal,ore,1,rematter:arcane_crystal[solid]=1000,false,32000,64000,100
-forbidden_arcanus:corrupted_arcane_crystal,item,corrupted_arcane_crystal,gem,1,rematter:corrupted_arcane_crystal[solid]=1000,true,32000,64000,100
-forbidden_arcanus:corrupted_arcane_crystal_block,item,corrupted_arcane_crystal,material_block,1,rematter:corrupted_arcane_crystal[solid]=9000,true,288000,576000,900
+forbidden_arcanus:corrupted_arcane_crystal,item,corrupted_arcane_crystal,gem,1,rematter:corrupted_arcane_crystal[solid]=1000,false,32000,64000,100
+forbidden_arcanus:corrupted_arcane_crystal_block,item,corrupted_arcane_crystal,material_block,1,rematter:corrupted_arcane_crystal[solid]=9000,false,288000,576000,900
 forbidden_arcanus:corrupti_dust,item,corrupti,dust,2,rematter:arcane_crystal[solid]=500 + rematter:copper[solid]=2000 + rematter:ender_essence[solid]=125 + rematter:gold[solid]=1000 + rematter:iron[solid]=1000 + rematter:silica[solid]=125,false,64000,128000,200
 forbidden_arcanus:deepslate_arcane_crystal_ore,item,arcane_crystal,ore,1,rematter:arcane_crystal[solid]=1000,false,32000,64000,100
-forbidden_arcanus:deorum_block,item,deorum,material_block,1,rematter:arcane_crystal[solid]=36000 + rematter:gold[solid]=18000,true,288000,576000,900
-forbidden_arcanus:deorum_ingot,item,deorum,ingot,1,rematter:arcane_crystal[solid]=4000 + rematter:gold[solid]=2000,true,32000,64000,100
-forbidden_arcanus:deorum_nugget,item,deorum,nugget,9,rematter:arcane_crystal[solid]=4000 + rematter:gold[solid]=2000,true,32000,64000,100
+forbidden_arcanus:deorum_block,item,deorum,material_block,1,rematter:arcane_crystal[solid]=36000 + rematter:gold[solid]=18000,false,288000,576000,900
+forbidden_arcanus:deorum_ingot,item,deorum,ingot,1,rematter:arcane_crystal[solid]=4000 + rematter:gold[solid]=2000,false,32000,64000,100
+forbidden_arcanus:deorum_nugget,item,deorum,nugget,9,rematter:arcane_crystal[solid]=4000 + rematter:gold[solid]=2000,false,32000,64000,100
 forbidden_arcanus:mundabitur_dust,item,mundabitur,dust,1,rematter:arcane_crystal[solid]=250 + rematter:arcane_essence[solid]=250 + rematter:silica[solid]=250,false,32000,64000,100
 forbidden_arcanus:stella_arcanum,item,stellarite,ore,1,rematter:stellarite[solid]=1000,false,32000,64000,100
-forbidden_arcanus:stellarite_block,item,stellarite,material_block,1,rematter:stellarite[solid]=9000,true,288000,576000,900
-forbidden_arcanus:stellarite_piece,item,stellarite,gem,1,rematter:stellarite[solid]=1000,true,32000,64000,100
+forbidden_arcanus:stellarite_block,item,stellarite,material_block,1,rematter:stellarite[solid]=9000,false,288000,576000,900
+forbidden_arcanus:stellarite_piece,item,stellarite,gem,1,rematter:stellarite[solid]=1000,false,32000,64000,100
 forbidden_arcanus:stygian_steel_block,item,stygian_steel,material_block,1,rematter:copper[solid]=36000 + rematter:gold[solid]=18000 + rematter:iron[solid]=18000,false,288000,576000,900
 forbidden_arcanus:stygian_steel_ingot,item,stygian_steel,ingot,1,rematter:copper[solid]=4000 + rematter:gold[solid]=2000 + rematter:iron[solid]=2000,false,32000,64000,100
 ftbic:aluminum_block,item,aluminum,material_block,1,rematter:aluminum[solid]=9000,true,72000,144000,900
@@ -392,7 +392,7 @@ ftbic:nickel_ingot,item,nickel,ingot,1,rematter:nickel[solid]=1000,true,8000,160
 ftbic:nickel_raw_block,item,nickel,material_block,1,rematter:nickel[solid]=9000,false,72000,144000,900
 ftbic:nickel_raw_ore,item,nickel,raw,1,rematter:nickel[solid]=1000,false,8000,16000,100
 ftbic:nickel_stone_ore,item,nickel,ore,1,rematter:nickel[solid]=1000,false,8000,16000,100
-ftbic:obsidian_dust,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
+ftbic:obsidian_dust,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,false,8000,16000,100
 ftbic:plutonium_dust,item,plutonium,dust,1,rematter:plutonium[solid]=1000,true,8000,16000,100
 ftbic:plutonium_ingot,item,plutonium,ingot,1,rematter:plutonium[solid]=1000,true,8000,16000,100
 ftbic:plutonium_raw_ore,item,plutonium,raw,1,rematter:plutonium[solid]=1000,false,8000,16000,100
@@ -532,7 +532,7 @@ jaopca:storage_blocks.calcite,item,calcite,material_block,1,rematter:calcium_oxi
 jaopca:storage_blocks.carbon,item,graphite,material_block,1,rematter:graphite[solid]=9000,false,288000,576000,900
 jaopca:storage_blocks.corrupti,item,corrupti,material_block,2,rematter:arcane_crystal[solid]=4500 + rematter:copper[solid]=18000 + rematter:ender_essence[solid]=1125 + rematter:gold[solid]=9000 + rematter:iron[solid]=9000 + rematter:silica[solid]=1125,false,576000,1152000,1800
 jaopca:storage_blocks.dragonyst,item,dragonyst,material_block,1,rematter:amethyst[solid]=18000 + rematter:calcium_oxide[solid]=1800 + rematter:ender_essence[solid]=900 + rematter:silica[solid]=6300,false,288000,576000,900
-jaopca:storage_blocks.echo,item,echo,material_block,1,rematter:echo[solid]=9000,true,288000,576000,900
+jaopca:storage_blocks.echo,item,echo,material_block,1,rematter:echo[solid]=9000,false,288000,576000,900
 jaopca:storage_blocks.eclipsealloy,item,eclipsealloy,material_block,1,rematter:gold[solid]=2025 + rematter:netherite_scrap[solid]=4050,false,288000,576000,900
 jaopca:storage_blocks.end_stone,item,end_stone,material_block,1,rematter:calcium_oxide[solid]=1800 + rematter:ender_essence[solid]=900 + rematter:silica[solid]=6300,true,72000,144000,900
 jaopca:storage_blocks.ender_pearl,item,ender_pearl,material_block,1,rematter:ender_essence[solid]=1000 + rematter:silica[solid]=1000,false,288000,576000,900
@@ -545,7 +545,7 @@ jaopca:storage_blocks.insulating_resin,item,insulating_resin,material_block,1,re
 jaopca:storage_blocks.lithium,item,lithium,material_block,1,rematter:lithium[solid]=9000,true,72000,144000,900
 jaopca:storage_blocks.mundabitur,item,mundabitur,material_block,1,rematter:arcane_crystal[solid]=2250 + rematter:arcane_essence[solid]=2250 + rematter:silica[solid]=2250,false,288000,576000,900
 jaopca:storage_blocks.netherite_scrap,item,netherite_scrap,material_block,1,rematter:netherite_scrap[solid]=9000,true,288000,576000,900
-jaopca:storage_blocks.obsidian,item,obsidian,material_block,1,rematter:alumina[solid]=576 + rematter:silica[solid]=2250,true,72000,144000,900
+jaopca:storage_blocks.obsidian,item,obsidian,material_block,1,rematter:alumina[solid]=576 + rematter:silica[solid]=2250,false,72000,144000,900
 jaopca:storage_blocks.otherrock,item,burnt_otherrock,material_block,1,rematter:burnt_otherrock[solid]=9000,true,288000,576000,900
 jaopca:storage_blocks.otherstone,item,burnt_otherstone,material_block,1,rematter:burnt_otherstone[solid]=9000,true,288000,576000,900
 jaopca:storage_blocks.otherworld_wood,item,otherworld_ashes,material_block,1,rematter:otherworld_ashes[solid]=9000,true,288000,576000,900
@@ -596,7 +596,7 @@ mekanism:dust_lapis_lazuli,item,lapis,dust,1,rematter:lapis[solid]=1000,true,800
 mekanism:dust_lead,item,lead,dust,1,rematter:lead[solid]=1000,true,8000,16000,100
 mekanism:dust_lithium,item,lithium,dust,1,rematter:lithium[solid]=1000,true,8000,16000,100
 mekanism:dust_netherite,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
-mekanism:dust_obsidian,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
+mekanism:dust_obsidian,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,false,8000,16000,100
 mekanism:dust_osmium,item,osmium,dust,1,rematter:osmium[solid]=1000,true,8000,16000,100
 mekanism:dust_quartz,item,quartz,dust,1,rematter:crystalline_silica[solid]=1000,true,32000,64000,100
 mekanism:dust_refined_obsidian,item,refined_obsidian_precursor,dust,1,rematter:alumina[solid]=64 + rematter:diamond[solid]=125 + rematter:silica[solid]=250,true,8000,16000,100
@@ -730,8 +730,8 @@ minecraft:stone,item,stone,natural,1,rematter:silica[solid]=1000 + rematter:alum
 minecraft:tuff,item,tuff,natural,1,rematter:silica[solid]=1350 + rematter:alumina[solid]=1050 + rematter:calcium_oxide[solid]=600,true,8000,16000,100
 mysticalagradditions:end_inferium_ore,item,inferium_essence,ore,1,rematter:inferium_essence[solid]=1000,false,96000,192000,300
 mysticalagradditions:end_prosperity_ore,item,prosperity_essence,ore,1,rematter:prosperity_essence[solid]=1000,false,64000,128000,200
-mysticalagradditions:insanium_block,item,insanium_essence,material_block,1,rematter:insanium_essence[solid]=9000,true,288000,576000,900
-mysticalagradditions:insanium_essence,item,insanium_essence,dust,1,rematter:insanium_essence[solid]=1000,true,32000,64000,100
+mysticalagradditions:insanium_block,item,insanium_essence,material_block,1,rematter:insanium_essence[solid]=9000,false,288000,576000,900
+mysticalagradditions:insanium_essence,item,insanium_essence,dust,1,rematter:insanium_essence[solid]=1000,false,32000,64000,100
 mysticalagradditions:insanium_gemstone,item,insanium_gemstone,gem,1,rematter:diamond[solid]=1000 + rematter:insanium_essence[solid]=2000 + rematter:prosperity_essence[solid]=4000,false,32000,64000,100
 mysticalagradditions:insanium_gemstone_block,item,insanium_gemstone,material_block,1,rematter:diamond[solid]=9000 + rematter:insanium_essence[solid]=18000 + rematter:prosperity_essence[solid]=36000,false,288000,576000,900
 mysticalagradditions:insanium_ingot,item,insanium_metal,ingot,1,rematter:insanium_essence[solid]=2000 + rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000,false,32000,64000,100
@@ -739,8 +739,8 @@ mysticalagradditions:insanium_ingot_block,item,insanium_metal,material_block,1,r
 mysticalagradditions:insanium_nugget,item,insanium_metal,nugget,9,rematter:insanium_essence[solid]=2000 + rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000,false,32000,64000,100
 mysticalagradditions:nether_inferium_ore,item,inferium_essence,ore,1,rematter:inferium_essence[solid]=1000,false,96000,192000,300
 mysticalagradditions:nether_prosperity_ore,item,prosperity_essence,ore,1,rematter:prosperity_essence[solid]=1000,false,64000,128000,200
-mysticalagriculture:awakened_supremium_block,item,awakened_supremium_essence,material_block,1,rematter:awakened_supremium_essence[solid]=9000,true,288000,576000,900
-mysticalagriculture:awakened_supremium_essence,item,awakened_supremium_essence,dust,1,rematter:awakened_supremium_essence[solid]=1000,true,32000,64000,100
+mysticalagriculture:awakened_supremium_block,item,awakened_supremium_essence,material_block,1,rematter:awakened_supremium_essence[solid]=9000,false,288000,576000,900
+mysticalagriculture:awakened_supremium_essence,item,awakened_supremium_essence,dust,1,rematter:awakened_supremium_essence[solid]=1000,false,32000,64000,100
 mysticalagriculture:awakened_supremium_gemstone,item,awakened_supremium_gemstone,gem,1,rematter:awakened_supremium_essence[solid]=2000 + rematter:diamond[solid]=1000 + rematter:prosperity_essence[solid]=4000,false,32000,64000,100
 mysticalagriculture:awakened_supremium_gemstone_block,item,awakened_supremium_gemstone,material_block,1,rematter:awakened_supremium_essence[solid]=18000 + rematter:diamond[solid]=9000 + rematter:prosperity_essence[solid]=36000,false,288000,576000,900
 mysticalagriculture:awakened_supremium_ingot,item,awakened_supremium_metal,ingot,1,rematter:awakened_supremium_essence[solid]=2000 + rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000,false,32000,64000,100
@@ -786,13 +786,13 @@ mysticalagriculture:soulium_ingot,item,soulium_metal,ingot,1,rematter:iron[solid
 mysticalagriculture:soulium_ingot_block,item,soulium_metal,material_block,1,rematter:iron[solid]=9000 + rematter:prosperity_essence[solid]=36000 + rematter:soulium_essence[solid]=18000,false,288000,576000,900
 mysticalagriculture:soulium_nugget,item,soulium_metal,nugget,9,rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:soulium_essence[solid]=2000,false,32000,64000,100
 mysticalagriculture:soulium_ore,item,soulium_essence,ore,1,rematter:soulium_essence[solid]=1000,false,32000,64000,100
-mysticalagriculture:supremium_block,item,supremium_essence,material_block,1,rematter:supremium_essence[solid]=9000,true,288000,576000,900
-mysticalagriculture:supremium_essence,item,supremium_essence,dust,1,rematter:supremium_essence[solid]=1000,true,32000,64000,100
-mysticalagriculture:supremium_gemstone,item,supremium_gemstone,gem,1,rematter:diamond[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,true,32000,64000,100
-mysticalagriculture:supremium_gemstone_block,item,supremium_gemstone,material_block,1,rematter:diamond[solid]=9000 + rematter:prosperity_essence[solid]=36000 + rematter:supremium_essence[solid]=18000,true,288000,576000,900
-mysticalagriculture:supremium_ingot,item,supremium_metal,ingot,1,rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,true,32000,64000,100
-mysticalagriculture:supremium_ingot_block,item,supremium_metal,material_block,1,rematter:iron[solid]=9000 + rematter:prosperity_essence[solid]=36000 + rematter:supremium_essence[solid]=18000,true,288000,576000,900
-mysticalagriculture:supremium_nugget,item,supremium_metal,nugget,9,rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,true,32000,64000,100
+mysticalagriculture:supremium_block,item,supremium_essence,material_block,1,rematter:supremium_essence[solid]=9000,false,288000,576000,900
+mysticalagriculture:supremium_essence,item,supremium_essence,dust,1,rematter:supremium_essence[solid]=1000,false,32000,64000,100
+mysticalagriculture:supremium_gemstone,item,supremium_gemstone,gem,1,rematter:diamond[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,false,32000,64000,100
+mysticalagriculture:supremium_gemstone_block,item,supremium_gemstone,material_block,1,rematter:diamond[solid]=9000 + rematter:prosperity_essence[solid]=36000 + rematter:supremium_essence[solid]=18000,false,288000,576000,900
+mysticalagriculture:supremium_ingot,item,supremium_metal,ingot,1,rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,false,32000,64000,100
+mysticalagriculture:supremium_ingot_block,item,supremium_metal,material_block,1,rematter:iron[solid]=9000 + rematter:prosperity_essence[solid]=36000 + rematter:supremium_essence[solid]=18000,false,288000,576000,900
+mysticalagriculture:supremium_nugget,item,supremium_metal,nugget,9,rematter:iron[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:supremium_essence[solid]=2000,false,32000,64000,100
 mysticalagriculture:tertium_block,item,tertium_essence,material_block,1,rematter:tertium_essence[solid]=9000,true,288000,576000,900
 mysticalagriculture:tertium_essence,item,tertium_essence,dust,1,rematter:tertium_essence[solid]=1000,true,32000,64000,100
 mysticalagriculture:tertium_gemstone,item,tertium_gemstone,gem,1,rematter:diamond[solid]=1000 + rematter:prosperity_essence[solid]=4000 + rematter:tertium_essence[solid]=2000,true,32000,64000,100
@@ -815,7 +815,7 @@ occultism:crushed_end_stone,item,end_stone,dust,1,rematter:calcium_oxide[solid]=
 occultism:crushed_ice,item,natural_ice,dust,1,rematter:water[solid]=1000,true,16000,32000,100
 occultism:crushed_packed_ice,item,packed_ice,dust,1,rematter:water[solid]=1000,false,16000,32000,100
 occultism:dragonyst_dust,item,dragonyst,dust,1,rematter:amethyst[solid]=2000 + rematter:calcium_oxide[solid]=200 + rematter:ender_essence[solid]=100 + rematter:silica[solid]=700,false,32000,64000,100
-occultism:echo_dust,item,echo,dust,1,rematter:echo[solid]=1000,true,32000,64000,100
+occultism:echo_dust,item,echo,dust,1,rematter:echo[solid]=1000,false,32000,64000,100
 occultism:emerald_dust,item,emerald,dust,1,rematter:emerald[solid]=1000,true,32000,64000,100
 occultism:gold_dust,item,gold,dust,1,rematter:gold[solid]=1000,true,8000,16000,100
 occultism:iesnium_block,item,iesnium,material_block,1,rematter:arcane_essence[solid]=3600 + rematter:iron[solid]=3600 + rematter:nether_essence[solid]=1800,false,288000,576000,900
@@ -827,7 +827,7 @@ occultism:iron_dust,item,iron,dust,1,rematter:iron[solid]=1000,true,8000,16000,1
 occultism:lapis_dust,item,lapis,dust,1,rematter:lapis[solid]=1000,true,8000,16000,100
 occultism:netherite_dust,item,netherite,dust,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 occultism:netherite_scrap_dust,item,netherite_scrap,dust,1,rematter:netherite_scrap[solid]=1000,true,32000,64000,100
-occultism:obsidian_dust,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,true,8000,16000,100
+occultism:obsidian_dust,item,obsidian,dust,1,rematter:alumina[solid]=64 + rematter:silica[solid]=250,false,8000,16000,100
 occultism:otherworld_ashes,item,otherworld_ashes,dust,1,rematter:otherworld_ashes[solid]=1000,true,32000,64000,100
 occultism:raw_iesnium,item,iesnium,raw,1,rematter:arcane_essence[solid]=400 + rematter:iron[solid]=400 + rematter:nether_essence[solid]=200,false,32000,64000,100
 occultism:raw_iesnium_block,item,iesnium,material_block,1,rematter:arcane_essence[solid]=3600 + rematter:iron[solid]=3600 + rematter:nether_essence[solid]=1800,false,288000,576000,900
