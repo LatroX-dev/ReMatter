@@ -9,10 +9,9 @@ import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.client.SubstanceIcon;
-import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
-import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.component.DataComponentPatch;
@@ -39,16 +38,8 @@ public final class MatterEmiStack extends EmiStack {
     @Override public DataComponentPatch getComponentChanges() { return DataComponentPatch.EMPTY; }
     @Override public Object getKey() { return substance; }
     @Override public Identifier getId() { return Identifier.parse(substance.id().toString()); }
-    @Override public Component getName() {
-        var name = ClientChemistry.current().definition(substance.id())
-                .map(definition -> Component.translatableWithFallback(definition.translationKey(), substance.id().path().replace('_', ' ')))
-                .orElseGet(() -> Component.literal(substance.id().toString()));
-        return SubstanceLabels.withSymbol(substance.id(), name);
-    }
-    @Override public List<Component> getTooltipText() {
-        return List.of(getName(), Component.literal(substance.phase().name().toLowerCase(Locale.ROOT)),
-                Component.literal(amount + " matter units"), Component.literal("Stored substance; not an item"));
-    }
+    @Override public Component getName() { return ChemistryViewer.matterName(substance); }
+    @Override public List<Component> getTooltipText() { return ChemistryViewer.matterTooltip(substance, amount); }
     @Override public List<ClientTooltipComponent> getTooltip() {
         return getTooltipText().stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).toList();
     }

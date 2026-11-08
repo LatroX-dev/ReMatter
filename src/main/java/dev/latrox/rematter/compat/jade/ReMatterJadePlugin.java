@@ -44,7 +44,7 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
     }
 
     private static Identifier id(String path) {
-        return Identifier.fromNamespaceAndPath("rematter", "jade/" + path);
+        return Identifier.fromNamespaceAndPath("rematter", path);
     }
 
     private record PrivateStorage<T>(Identifier uid) implements IServerExtensionProvider<T> {

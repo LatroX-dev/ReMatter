@@ -38,6 +38,11 @@ public final class ProcessSelectionScreen extends Screen {
     private List<ProcessPresentation.Product> products = List.of(), filtered = List.of();
     private final List<ProductButton> resultButtons = new ArrayList<>();
     private final Map<String, ItemStack> icons = new HashMap<>();
+    private List<MaterialRow> rows = List.of();
+    private ProcessPresentation.Product rowsProduct;
+    private boolean rowsEffective;
+    private MachineSnapshot rowsSnapshot;
+    private MachineMenu.Stock rowsStock;
     private EditBox search;
     private Button previous, next, detailPrevious, detailNext, confirm, backToResults, closeDetails, closeResults;
     private int left, top, panelWidth, panelHeight;
@@ -46,9 +51,12 @@ public final class ProcessSelectionScreen extends Screen {
     private int page, detailPage;
     private boolean narrow, showingDetails, showSummary;
     private String focusedId = "";
+    private List<ProcessPresentation.Product> focusLookupList;
+    private String focusLookupId;
+    private ProcessPresentation.Product focusedProduct;
 
     public ProcessSelectionScreen(MachineMenu menu) {
-        super(Component.literal("Choose a recipe"));
+        super(Component.translatable("screen.rematter.choose_recipe"));
         this.menu = menu;
     }
 
@@ -71,12 +79,11 @@ public final class ProcessSelectionScreen extends Screen {
         detailRows = Math.max(0, (footerY - ingredientTop - 3) / MATERIAL_PITCH);
 
         String query = search == null ? "" : search.getValue();
-        search = addRenderableWidget(new EditBox(font, resultsX + 6, top + 29, resultsWidth - 12, 18,
-                Component.literal("Search products or processes")));
+        search = addRenderableWidget(new EditBox(font, resultsX + 6, top + 29, resultsWidth - 12, 18, tr("search")));
         search.setMaxLength(128);
         search.setBordered(false);
         search.setTextColor(PAPER);
-        search.setHint(Component.literal("Search recipes").withStyle(style -> style.withColor(MUTED & 0xffffff)));
+        search.setHint(tr("search").copy().withStyle(style -> style.withColor(MUTED & 0xffffff)));
         search.setValue(query);
         search.setResponder(value -> {
             page = 0;
@@ -91,29 +98,32 @@ public final class ProcessSelectionScreen extends Screen {
             resultButtons.add(addRenderableWidget(new ProductButton(Button.builder(Component.empty(), button -> focusResult(index))
                     .bounds(resultsX, resultsTop + i * RESULT_PITCH, resultsWidth, RESULT_HEIGHT))));
         }
-        previous = button("<", resultsX, footerY, PAGE_BUTTON_WIDTH, "Previous recipes", b -> changePage(-1));
-        next = button(">", resultsX + resultsPagerWidth - PAGE_BUTTON_WIDTH, footerY, PAGE_BUTTON_WIDTH,
-                "Next recipes", b -> changePage(1));
-        detailPrevious = button("<", detailX + detailWidth - MATERIAL_PAGER_WIDTH - 6, detailPagerY, PAGE_BUTTON_WIDTH,
-                "Previous recipe ingredients", b -> detailPage--);
-        detailNext = button(">", detailX + detailWidth - PAGE_BUTTON_WIDTH - 6, detailPagerY, PAGE_BUTTON_WIDTH,
-                "Next recipe ingredients", b -> detailPage++);
-        confirm = button("Use recipe", detailX, footerY, detailWidth - CLOSE_WIDTH - 6,
-                "Select this recipe. Start production from the machine controls.", b -> selectFocused());
-        closeDetails = button("Close", detailX + detailWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH,
-                "Close without changing the recipe", b -> onClose());
-        backToResults = button("Results", left + panelWidth - 66, top + 4, 56,
-                "Return to recipe results", b -> showResults());
-        closeResults = button("Close", resultsX + resultsWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH,
-                "Close without changing the recipe", b -> onClose());
+        previous = iconButton(Icon.PREVIOUS, resultsX, footerY, "previous", b -> changePage(-1));
+        next = iconButton(Icon.NEXT, resultsX + resultsPagerWidth - PAGE_BUTTON_WIDTH, footerY, "next", b -> changePage(1));
+        detailPrevious = iconButton(Icon.PREVIOUS, detailX + detailWidth - MATERIAL_PAGER_WIDTH - 6, detailPagerY,
+                "previous_materials", b -> detailPage--);
+        detailNext = iconButton(Icon.NEXT, detailX + detailWidth - PAGE_BUTTON_WIDTH - 6, detailPagerY,
+                "next_materials", b -> detailPage++);
+        confirm = button(Icon.CHECK, "use", detailX, footerY, detailWidth - CLOSE_WIDTH - 6, b -> selectFocused());
+        closeDetails = button(Icon.BACK, "close", detailX + detailWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH, b -> onClose());
+        backToResults = button(null, "results", left + panelWidth - 66, top + 4, 56, b -> showResults());
+        closeResults = button(Icon.BACK, "close", resultsX + resultsWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH, b -> onClose());
         loadChoices();
         setInitialFocus(showingDetails && narrow ? backToResults : search);
     }
 
-    private Button button(String text, int x, int y, int width, String hint, Button.OnPress action) {
-        String accessibleName = text.equals("<") || text.equals(">") ? hint : text;
-        return addRenderableWidget(Button.builder(Component.literal(accessibleName), action).bounds(x, y, width, 18)
-                .tooltip(Tooltip.create(Component.literal(hint))).build(builder -> new PanelButton(builder, text)));
+    private static Component tr(String key, Object... args) { return Component.translatable("screen.rematter.recipes." + key, args); }
+
+    /** A labelled control; its hint is the tooltip. */
+    private Button button(Icon icon, String key, int x, int y, int width, Button.OnPress action) {
+        return addRenderableWidget(Button.builder(tr(key), action).bounds(x, y, width, 18)
+                .tooltip(Tooltip.create(tr(key + "_hint"))).build(builder -> new PanelButton(builder, icon, false)));
+    }
+
+    /** An icon-only control; its accessible name is its tooltip. */
+    private Button iconButton(Icon icon, int x, int y, String key, Button.OnPress action) {
+        return addRenderableWidget(Button.builder(tr(key), action).bounds(x, y, PAGE_BUTTON_WIDTH, 18)
+                .tooltip(Tooltip.create(tr(key))).build(builder -> new PanelButton(builder, icon, true)));
     }
 
     private void loadChoices() {
@@ -152,13 +162,8 @@ public final class ProcessSelectionScreen extends Screen {
         for (int i = 0; i < resultButtons.size(); i++) {
             ProductButton tile = resultButtons.get(i);
             int index = page * resultButtons.size() + i;
-            tile.product = index < filtered.size() ? filtered.get(index) : null;
+            tile.setProduct(index < filtered.size() ? filtered.get(index) : null);
             tile.visible = tile.active = results && tile.product != null;
-            if (tile.product != null) {
-                String label = productLabel(tile.product);
-                tile.setMessage(Component.literal(label));
-                tile.setTooltip(Tooltip.create(Component.literal(label + "\n" + tile.product.id() + "\nView recipe details")));
-            }
         }
         previous.visible = next.visible = results && pages() > 1;
         previous.active = page > 0;
@@ -186,8 +191,14 @@ public final class ProcessSelectionScreen extends Screen {
         detailPage = 0;
         refreshResults();
     }
+    /** Resolved again only when the focus or the filtered list changes, since catalogues can hold thousands of products. */
     private ProcessPresentation.Product focused() {
-        return filtered.stream().filter(product -> product.id().equals(focusedId)).findFirst().orElse(null);
+        if (filtered != focusLookupList || !focusedId.equals(focusLookupId)) {
+            focusLookupList = filtered;
+            focusLookupId = focusedId;
+            focusedProduct = filtered.stream().filter(product -> product.id().equals(focusedId)).findFirst().orElse(null);
+        }
+        return focusedProduct;
     }
     private void focusResult(int row) {
         int index = page * resultButtons.size() + row;
@@ -217,7 +228,7 @@ public final class ProcessSelectionScreen extends Screen {
         graphics.fill(left + 4, top + 24, left + panelWidth - 4, top + panelHeight - 4, INK);
         graphics.fill(left + 10, top + 22, left + 40, top + 24, UiPalette.machineAccent(menu.kind()));
         ScreenChrome.icon(graphics, Icon.RECIPE, left + 10, top + 7, CYAN);
-        String heading = narrow && showingDetails ? "Recipe details" : title.getString();
+        String heading = (narrow && showingDetails ? tr("details") : title).getString();
         int headingWidth = panelWidth - (narrow && showingDetails ? 98 : 37);
         graphics.text(font, ScreenChrome.fit(font, heading, headingWidth), left + 27, top + 9, PAPER, false);
 
@@ -229,11 +240,11 @@ public final class ProcessSelectionScreen extends Screen {
     private void drawResults(GuiGraphicsExtractor graphics) {
         ScreenChrome.inset(graphics, resultsX, top + 28, resultsWidth, 20);
         if (resultsTop - top >= 64) {
-            String count = filtered.size() + (filtered.size() == 1 ? " recipe" : " recipes");
+            String count = (filtered.size() == 1 ? tr("count_one") : tr("count", filtered.size())).getString();
             graphics.text(font, ScreenChrome.fit(font, count, resultsWidth), resultsX + 2, top + 53, MUTED, false);
         }
         if (filtered.isEmpty()) {
-            graphics.text(font, ScreenChrome.fit(font, "No recipes match", resultsWidth - 4),
+            graphics.text(font, ScreenChrome.fit(font, tr("no_matches").getString(), resultsWidth - 4),
                     resultsX + 2, resultsTop + 5, MUTED, false);
         }
         if (pages() > 1) drawPage(graphics, page + 1, pages(), resultsX, footerY, resultsPagerWidth);
@@ -250,7 +261,7 @@ public final class ProcessSelectionScreen extends Screen {
         ProcessPresentation.Product product = focused();
         detailPrevious.visible = detailNext.visible = false;
         if (product == null) {
-            graphics.text(font, ScreenChrome.fit(font, "Select a recipe to see its materials", detailWidth - 16),
+            graphics.text(font, ScreenChrome.fit(font, tr("select_hint").getString(), detailWidth - 16),
                     detailX + 8, detailTop + 8, MUTED, false);
             return;
         }
@@ -263,18 +274,17 @@ public final class ProcessSelectionScreen extends Screen {
         drawProductIcon(graphics, product, detailX + 8, detailTop + 7);
         ScreenChrome.twoLines(graphics, font, productLabel(product), detailX + 30, detailTop + 6, detailWidth - 38, PAPER);
         if (inside(mouseX, mouseY, detailX + 7, detailTop + 5, detailWidth - 14, 23)) {
-            graphics.setTooltipForNextFrame(Component.literal(productLabel(product) + "\n" + product.id()
-                    + "\n" + batchValue(product) + " / batch\n" + number(energy) + " FE · " + ticks + " ticks"
-                    + (effective ? "\nIncludes the current machine upgrades" : "\nBase recipe values")
-                    + (selected ? "\nCurrently selected" : "\nPreview only")), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, List.of(Component.literal(productLabel(product)), Component.literal(product.id()),
+                    perBatch(product), tr("cost", Quantities.energy(Quantities.number(energy)), Quantities.ticks(Quantities.number(ticks))),
+                    tr(effective ? "upgraded" : "base_values"), tr(selected ? "selected_now" : "preview_only")), mouseX, mouseY);
         }
         if (showSummary) {
             ScreenChrome.icon(graphics, Icon.OUTPUT, detailX + 8, detailTop + 32, CYAN);
-            graphics.text(font, ScreenChrome.fit(font, batchValue(product) + " / batch", detailWidth - 32),
+            graphics.text(font, ScreenChrome.fit(font, perBatch(product).getString(), detailWidth - 32),
                     detailX + 25, detailTop + 34, CYAN, false);
             ScreenChrome.icon(graphics, Icon.POWER, detailX + 8, detailTop + 44, CYAN);
-            graphics.text(font, ScreenChrome.fit(font, compact(energy) + " FE  ·  " + seconds(ticks) + " s", detailWidth - 32),
-                    detailX + 25, detailTop + 46, PAPER, false);
+            graphics.text(font, ScreenChrome.fit(font, tr("summary", Quantities.energy(Quantities.compact(energy)),
+                    Quantities.duration(ticks)).getString(), detailWidth - 32), detailX + 25, detailTop + 46, PAPER, false);
         }
 
         // An incomplete preview must not hide further recipe ingredients.
@@ -287,12 +297,11 @@ public final class ProcessSelectionScreen extends Screen {
         int headingWidth = detailWidth - 16 - (pages > 1 ? MATERIAL_PAGER_WIDTH + 4 : 0);
         int headingY = detailPagerY + 5;
         graphics.fill(detailX + 7, detailPagerY - 2, detailX + detailWidth - 7, detailPagerY - 1, EDGE);
-        String materialHeading = "Materials  ·  Needed / Available";
-        if (font.width(materialHeading) > headingWidth) materialHeading = "Materials";
+        String materialHeading = tr("materials_heading").getString();
+        if (font.width(materialHeading) > headingWidth) materialHeading = tr("materials").getString();
         graphics.text(font, ScreenChrome.fit(font, materialHeading, headingWidth), detailX + 8, headingY, MUTED, false);
         if (inside(mouseX, mouseY, detailX + 7, headingY - 1, headingWidth, 11)) {
-            graphics.setTooltipForNextFrame(Component.literal("Materials needed / available on the matter network\n"
-                    + "+ marks a material produced by this recipe"), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, List.of(tr("materials_hint"), tr("produced_hint")), mouseX, mouseY);
         }
         int firstRow = detailPage * detailRows;
         for (int row = 0; row < detailRows && firstRow + row < rows.size(); row++) {
@@ -307,81 +316,94 @@ public final class ProcessSelectionScreen extends Screen {
     private void drawMaterial(GuiGraphicsExtractor graphics, MaterialRow material, int y, int mouseX, int mouseY) {
         int color = phaseColor(material.phase());
         graphics.fill(detailX + 5, y, detailX + detailWidth - 5, y + MATERIAL_PITCH - 2, INK);
-        try {
-            SubstanceIcon.draw(graphics, detailX + 8, y + 3, new SubstanceKey(SubstanceId.parse(material.id()),
-                    Phase.valueOf(material.phase().toUpperCase(Locale.ROOT))));
-        } catch (IllegalArgumentException ignored) {
-            ScreenChrome.icon(graphics, Icon.INFO, detailX + 10, y + 5, color);
-        }
-        String label = SubstanceLabels.shortLabel(material.id(), material.name());
-        String visibleLabel = ScreenChrome.fit(font, (material.output() ? "+ " : "") + label, detailWidth - 36);
-        graphics.text(font, visibleLabel, detailX + 28, y + 2, PAPER, false);
+        if (material.key() != null) SubstanceIcon.draw(graphics, detailX + 8, y + 3, material.key());
+        else ScreenChrome.icon(graphics, Icon.INFO, detailX + 10, y + 5, color);
+        String visibleLabel = ScreenChrome.fit(font, (material.output() ? "+ " : "") + material.label(), detailWidth - 36);
+        graphics.text(font, visibleLabel, detailX + 28, y + 2, material.known() ? PAPER : UiPalette.WARNING, false);
 
-        String available = material.available().isPresent() ? compact(material.available().getAsLong()) : "?";
-        String quantities = material.output() ? "+" + compact(material.required()) + " u"
-                : compact(material.required()) + " / " + available + " u";
+        String available = material.available().isPresent() ? Quantities.compact(material.available().getAsLong()) : "?";
+        Component quantities = material.output() ? tr("yield", Quantities.compact(material.required()))
+                : tr("needed_available", Quantities.compact(material.required()), available);
         int quantityColor = material.output() ? color : material.available().isEmpty() ? MUTED
                 : material.available().getAsLong() >= material.required() ? CYAN : UiPalette.WARNING;
-        graphics.text(font, ScreenChrome.fit(font, quantities, detailWidth - 36),
+        graphics.text(font, ScreenChrome.fit(font, quantities.getString(), detailWidth - 36),
                 detailX + 28, y + 13, quantityColor, false);
         if (inside(mouseX, mouseY, detailX + 5, y, detailWidth - 10, MATERIAL_PITCH - 2)) {
-            String tooltip = label + " · " + material.phase() + "\n" + material.id() + "\n"
-                    + (material.output() ? "Produces " : "Needs ") + number(material.required()) + " units";
-            if (!material.output()) {
-                tooltip += "\nAvailable: " + (material.available().isPresent() ? number(material.available().getAsLong())
-                        : "Unknown; inventory view is incomplete");
-            }
-            graphics.setTooltipForNextFrame(Component.literal(tooltip), mouseX, mouseY);
+            var tooltip = new ArrayList<Component>();
+            tooltip.add(Component.translatable("gui.rematter.viewer.substance_phase", material.label(), SubstanceNames.phase(material.phase())));
+            tooltip.add(Component.literal(material.id()));
+            tooltip.add(tr(material.output() ? "produces" : "needs", Quantities.matter(Quantities.number(material.required()))));
+            if (!material.output()) tooltip.add(material.available().isPresent()
+                    ? tr("available", Quantities.matter(Quantities.number(material.available().getAsLong()))) : tr("available_unknown"));
+            if (!material.known()) tooltip.add(Component.translatable("screen.rematter.unknown_substance_hint"));
+            graphics.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
         }
     }
 
-    private static String batchValue(ProcessPresentation.Product product) {
+    private static Component perBatch(ProcessPresentation.Product product) {
         long count = product.outputCount();
-        String unit = switch (product.outputKind()) {
-            case "fluid" -> " mB";
-            case "item" -> count == 1 ? " item" : " items";
-            default -> count == 1 ? " substance" : " substances";
+        Component value = switch (product.outputKind()) {
+            case "fluid" -> Quantities.fluid(Long.toString(count));
+            case "item" -> count == 1 ? tr("one_item") : tr("items", count);
+            default -> count == 1 ? tr("one_substance") : tr("substances", count);
         };
-        return count + unit;
+        return tr("per_batch", value);
     }
 
     private static boolean inside(int mouseX,int mouseY,int x,int y,int width,int height) {
         return mouseX>=x && mouseX<x+width && mouseY>=y && mouseY<y+height;
     }
 
+    /** Rebuilt only when the product, the preview or the synchronized stock changes. */
     private List<MaterialRow> materialRows(ProcessPresentation.Product product, boolean effective) {
-        List<MaterialRow> rows = new ArrayList<>();
+        var snapshot = menu.snapshot();
+        var stock = menu.stock();
+        if (product == rowsProduct && effective == rowsEffective && snapshot == rowsSnapshot && stock == rowsStock) return rows;
+        List<MaterialRow> result = new ArrayList<>();
         if (effective) {
-            var preview = menu.snapshot().preview();
-            for (var amount : preview.inputs()) rows.add(new MaterialRow(amount.id(), name(amount), amount.phase(), amount.required(),
-                    menu.snapshot().capacity() > 0 ? OptionalLong.of(amount.available()) : OptionalLong.empty(), false));
-            for (var amount : preview.outputs()) rows.add(new MaterialRow(amount.id(), name(amount), amount.phase(), amount.required(), OptionalLong.empty(), true));
+            var preview = snapshot.preview();
+            for (var amount : preview.inputs()) result.add(row(amount, snapshot.capacity() > 0 ? OptionalLong.of(amount.available()) : OptionalLong.empty(), false));
+            for (var amount : preview.outputs()) result.add(row(amount, OptionalLong.empty(), true));
         } else {
             Map<SubstanceKey, Long> available = new HashMap<>();
-            for (var entry : menu.stock().entries()) {
-                try { available.put(new SubstanceKey(SubstanceId.parse(entry.id()), Phase.valueOf(entry.phase().toUpperCase(Locale.ROOT))), entry.available()); }
-                catch (IllegalArgumentException ignored) { /* An unknown phase cannot become a stock estimate. */ }
+            for (var entry : stock.entries()) {
+                var key = key(entry.id(), entry.phase());
+                if (key != null) available.put(key, entry.available());
             }
-            boolean complete = menu.stock().complete() && menu.snapshot().capacity() > 0;
-            product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> rows.add(row(entry,
+            boolean complete = stock.complete() && snapshot.capacity() > 0;
+            product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> result.add(row(entry,
                     ProcessPresentation.available(available, complete, entry.getKey()), false)));
-            product.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> rows.add(row(entry, OptionalLong.empty(), true)));
+            product.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> result.add(row(entry, OptionalLong.empty(), true)));
         }
+        rowsProduct = product;
+        rowsEffective = effective;
+        rowsSnapshot = snapshot;
+        rowsStock = stock;
+        rows = List.copyOf(result);
         return rows;
     }
 
-    private MaterialRow row(Map.Entry<SubstanceKey, Long> amount, OptionalLong available, boolean output) {
+    private static MaterialRow row(MachineSnapshot.Amount amount, OptionalLong available, boolean output) {
+        String name = SubstanceNames.substance(amount.id(), amount.phase(), amount.known()).getString();
+        return new MaterialRow(key(amount.id(), amount.phase()), amount.id(), amount.known() ? SubstanceLabels.shortLabel(amount.id(), name) : name,
+                amount.phase(), amount.known(), amount.required(), available, output);
+    }
+
+    private static MaterialRow row(Map.Entry<SubstanceKey, Long> amount, OptionalLong available, boolean output) {
         SubstanceKey key = amount.getKey();
-        String name = registry.definition(key.id()).map(definition -> {
-            String translated = Component.translatable(definition.translationKey()).getString();
-            return translated.equals(definition.translationKey()) ? pretty(key.id().path()) : translated;
-        }).orElseGet(() -> pretty(key.id().path()));
-        return new MaterialRow(key.id().toString(), name, key.phase().name().toLowerCase(Locale.ROOT), amount.getValue(), available, output);
+        String name = SubstanceNames.substance(key).getString();
+        boolean known = SubstanceNames.known(key);
+        return new MaterialRow(key, key.id().toString(), known ? SubstanceLabels.shortLabel(key.id().toString(), name) : name,
+                SubstanceNames.phaseId(key.phase()), known, amount.getValue(), available, output);
     }
-    private static String name(MachineSnapshot.Amount amount) {
-        return SubstanceNames.substance(amount.id(), amount.phase(), amount.known()).getString();
+
+    private static SubstanceKey key(String id, String phase) {
+        try { return new SubstanceKey(SubstanceId.parse(id), Phase.valueOf(phase.toUpperCase(Locale.ROOT))); }
+        catch (IllegalArgumentException invalid) { return null; }
     }
-    private record MaterialRow(String id, String name, String phase, long required, OptionalLong available, boolean output) {}
+
+    private record MaterialRow(SubstanceKey key, String id, String label, String phase, boolean known, long required,
+                               OptionalLong available, boolean output) {}
 
     private static String productSymbol(ProcessPresentation.Product product) {
         return product.outputs().size() == 1
@@ -416,27 +438,15 @@ public final class ProcessSelectionScreen extends Screen {
         }
     }
 
-    private static String number(long value) { return String.format(Locale.ROOT, "%,d", value); }
-    private static String compact(long value) {
-        if (value >= 1_000_000_000_000L) return String.format(Locale.ROOT, "%.1e", (double) value);
-        if (value >= 1_000_000_000L) return String.format(Locale.ROOT, "%.1fB", value / 1_000_000_000.0);
-        if (value >= 1_000_000L) return String.format(Locale.ROOT, "%.1fM", value / 1_000_000.0);
-        if (value >= 10_000L) return String.format(Locale.ROOT, "%.1fk", value / 1000.0);
-        return number(value);
-    }
-    private static String seconds(int ticks) { return String.format(Locale.ROOT, "%.1f", ticks / 20.0); }
-    private static String pretty(String id) {
-        String value = id.replace('_', ' ');
-        return value.isEmpty() ? value : Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
     private static int phaseColor(String phase) {
         return switch (phase) { case "gas" -> UiPalette.GAS; case "liquid" -> UiPalette.LIQUID; default -> UiPalette.WARNING; };
     }
 
     private class PanelButton extends Button {
-        private final String visualText;
-        PanelButton(Builder builder) { this(builder, null); }
-        PanelButton(Builder builder, String visualText) { super(builder); this.visualText = visualText; }
+        private final Icon icon;
+        private final boolean iconOnly;
+        PanelButton(Builder builder) { this(builder, null, false); }
+        PanelButton(Builder builder, Icon icon, boolean iconOnly) { super(builder); this.icon = icon; this.iconOnly = iconOnly; }
         void background(GuiGraphicsExtractor graphics, boolean selected) {
             ScreenChrome.raised(graphics,getX(),getY(),getWidth(),getHeight(),selected || isHoveredOrFocused(),active);
         }
@@ -444,15 +454,7 @@ public final class ProcessSelectionScreen extends Screen {
 
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             background(graphics,false);
-            Icon icon=switch (visualText==null?"":visualText) {
-                case "<" -> Icon.PREVIOUS;
-                case ">" -> Icon.NEXT;
-                case "Use recipe" -> Icon.CHECK;
-                case "Close" -> Icon.BACK;
-                default -> null;
-            };
-            boolean iconOnly="<".equals(visualText) || ">".equals(visualText);
-            String label=iconOnly?"":visualText==null?getMessage().getString():visualText;
+            String label=iconOnly?"":getMessage().getString();
             int iconWidth=icon==null?0:label.isEmpty()?12:16;
             label=ScreenChrome.fit(font,label,getWidth()-iconWidth-6);
             int textWidth=font.width(label);
@@ -464,7 +466,19 @@ public final class ProcessSelectionScreen extends Screen {
 
     private final class ProductButton extends PanelButton {
         private ProcessPresentation.Product product;
+        private String label = "", batch = "";
         ProductButton(Builder builder) { super(builder); }
+
+        void setProduct(ProcessPresentation.Product value) {
+            if (value == product) return;
+            product = value;
+            if (value == null) return;
+            label = productLabel(value);
+            batch = perBatch(value).getString();
+            setMessage(Component.literal(label));
+            setTooltip(Tooltip.create(Component.literal(label + "\n" + value.id() + "\n").append(tr("view_hint"))));
+        }
+
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             if (product == null) return;
             background(graphics, product.id().equals(focusedId));
@@ -472,9 +486,9 @@ public final class ProcessSelectionScreen extends Screen {
             boolean selected = product.id().equals(menu.snapshot().selectedId());
             if (selected) graphics.fill(getX() + 2, getY() + 4, getX() + 4, getY() + getHeight() - 4, CYAN);
             int textWidth = getWidth() - 34;
-            graphics.text(font, ScreenChrome.fit(font, productLabel(product), textWidth),
+            graphics.text(font, ScreenChrome.fit(font, label, textWidth),
                     getX() + 28, getY() + 5, PAPER, false);
-            String caption = selected ? "Selected" : batchValue(product) + " / batch";
+            String caption = selected ? tr("selected").getString() : batch;
             graphics.text(font, ScreenChrome.fit(font, caption, textWidth),
                     getX() + 28, getY() + 16, selected ? CYAN : MUTED, false);
         }

@@ -103,7 +103,7 @@ final class JadeClient {
                             {"coils","field_coil"},{"chambers","reaction_chamber"}};
                     for (var module : modules) {
                         int count=data.getIntOr(module[0],0);
-                        if(count>0)tooltip.add(Component.literal(count+" × ").append(Component.translatable("block.rematter."+module[1])));
+                        if(count>0)tooltip.add(Component.translatable("jade.rematter.module_count",count,Component.translatable("block.rematter."+module[1])));
                     }
                 }
             }
@@ -133,7 +133,7 @@ final class JadeClient {
             for (int i = 0; i < shown; i++) {
                 CompoundTag entry = data.getCompoundOrEmpty("entry" + i);
                 boolean known = entry.getBooleanOr("known", false);
-                tooltip.add(Component.translatable("jade.rematter.substance", matterName(entry, known), entry.getStringOr("phase", ""),
+                tooltip.add(Component.translatable("jade.rematter.substance", matterName(entry, known), SubstanceNames.phase(entry.getStringOr("phase", "")),
                         entry.getLongOr("amount", 0)).withStyle(known ? ChatFormatting.AQUA : ChatFormatting.GOLD));
             }
             int remaining = data.getIntOr("substances", 0) - shown;

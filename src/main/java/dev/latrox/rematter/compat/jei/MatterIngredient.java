@@ -7,10 +7,9 @@ import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.client.SubstanceIcon;
-import dev.latrox.rematter.client.SubstanceLabels;
+import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
-import java.util.Locale;
 import mezz.jei.api.ingredients.IIngredientHelper;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredientType;
@@ -42,20 +41,9 @@ public record MatterIngredient(SubstanceKey key, long amount) {
         if (key == null || amount <= 0) throw new IllegalArgumentException("Matter ingredient requires a key and positive amount");
     }
 
-    Component name() {
-        var name = ClientChemistry.current().definition(key.id())
-                .map(definition -> Component.translatableWithFallback(definition.translationKey(), pretty(key.id().path())))
-                .orElseGet(() -> Component.literal(key.id().toString()));
-        return SubstanceLabels.withSymbol(key.id(), name);
-    }
-
-    String phaseName() { return key.phase().name().toLowerCase(Locale.ROOT); }
-    Component description() { return Component.literal(amount + " u ").append(name()).append(" (" + phaseName() + ")"); }
-    private static String pretty(String value) { return value.replace('_', ' '); }
-
     static final class Helper implements IIngredientHelper<MatterIngredient> {
         @Override public IIngredientType<MatterIngredient> getIngredientType() { return TYPE; }
-        @Override public String getDisplayName(MatterIngredient ingredient) { return ingredient.name().getString() + " (" + ingredient.phaseName() + ")"; }
+        @Override public String getDisplayName(MatterIngredient ingredient) { return ChemistryViewer.matterName(ingredient.key).getString(); }
         @Override public Object getUid(MatterIngredient ingredient, UidContext context) { return ingredient.key; }
         @Override public Identifier getIdentifier(MatterIngredient ingredient) { return Identifier.parse(ingredient.key.id().toString()); }
         @Override public long getAmount(MatterIngredient ingredient) { return ingredient.amount; }
@@ -74,8 +62,7 @@ public record MatterIngredient(SubstanceKey key, long amount) {
 
         @SuppressWarnings("removal")
         @Override public List<Component> getTooltip(MatterIngredient ingredient, TooltipFlag flag) {
-            return List.of(ingredient.name(), Component.literal(ingredient.phaseName()),
-                    Component.literal(ingredient.amount + " matter units"), Component.literal("Stored substance; not an item"));
+            return ChemistryViewer.matterTooltip(ingredient.key, ingredient.amount);
         }
     }
 }
