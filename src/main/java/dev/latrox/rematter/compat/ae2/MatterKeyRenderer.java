@@ -4,6 +4,8 @@ import appeng.api.stacks.AEItemKey;
 import appeng.client.api.AEKeyRenderer;
 import appeng.client.api.AEKeyRendering;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.latrox.rematter.client.SubstanceIcon;
+import dev.latrox.rematter.client.SubstanceLabels;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
@@ -17,24 +19,15 @@ import net.minecraft.world.level.Level;
 /** A native terminal symbol; no physical item is created when displaying a substance. */
 final class MatterKeyRenderer implements AEKeyRenderer<MatterKey, MatterKeyRenderer.RenderState> {
     @Override public void drawInGui(Minecraft minecraft, GuiGraphicsExtractor graphics, int x, int y, MatterKey key) {
-        int color = switch (key.substance().phase()) {
-            case SOLID -> 0xFF83D9CF;
-            case LIQUID -> 0xFF6FAFE7;
-            case GAS -> 0xFFDBB3EF;
-        };
-        graphics.fill(x, y, x + 16, y + 16, 0xFF19343C);
-        graphics.fill(x, y + 14, x + 16, y + 16, color);
-        var definition = ClientChemistry.current().definition(key.substance().id()).orElse(null);
-        String symbol = definition == null ? "?" : definition.symbol();
-        if (symbol.isBlank()) symbol = key.substance().id().path().substring(0, 1);
-        String label = minecraft.font.plainSubstrByWidth(symbol, 15);
-        graphics.text(minecraft.font, label, x + (16 - minecraft.font.width(label)) / 2, y + 3, color, false);
+        SubstanceIcon.draw(graphics, x, y, key.substance());
     }
     @Override public List<Component> getTooltip(MatterKey key) {
-        var name = ClientChemistry.current().definition(key.substance().id())
-                .map(definition -> Component.translatableWithFallback(definition.translationKey(), key.substance().id().toString()))
-                .orElseGet(() -> Component.literal(key.substance().id().toString()));
-        return List.of(name, Component.literal(key.substance().phase().name().toLowerCase(Locale.ROOT)),
+        var id = key.substance().id();
+        var name = ClientChemistry.current().definition(id)
+                .map(definition -> Component.translatableWithFallback(definition.translationKey(), id.toString()))
+                .orElseGet(() -> Component.literal(id.toString()));
+        return List.of(SubstanceLabels.withSymbol(id, name),
+                Component.literal(key.substance().phase().name().toLowerCase(Locale.ROOT)),
                 Component.translatableWithFallback("integration.rematter.stored_substance", "Stored substance; not an item"));
     }
 

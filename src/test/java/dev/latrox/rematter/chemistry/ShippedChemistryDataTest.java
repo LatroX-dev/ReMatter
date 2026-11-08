@@ -156,8 +156,9 @@ class ShippedChemistryDataTest {
             SubstanceDefinition substance = registry.definition(entry.getKey().id()).orElseThrow();
             if (substance.kind() != SubstanceKind.ELEMENT || entry.getKey().phase() != Phase.SOLID) continue;
             String path = SubstanceId.parse(profile.itemId()).path();
-            if (!(path.endsWith("_ingot") || path.endsWith("_dust") || path.startsWith("ingot_") || path.startsWith("dust_"))
-                    || path.contains("tiny") || path.contains("small") || path.contains("raw") || profile.itemCount() != 1) continue;
+            String element = substance.id().path();
+            if (!Set.of(element + "_ingot", element + "_dust", "ingot_" + element, "dust_" + element).contains(path)
+                    || profile.itemCount() != 1) continue;
             assertEquals(Composition.element(substance.id()), substance.composition(), profile.itemId());
             Long previous = amountPerForm.putIfAbsent(entry.getKey(), entry.getValue());
             if (previous != null) {

@@ -1,6 +1,12 @@
 package dev.latrox.rematter.compat.jade;
 
+import dev.latrox.rematter.client.SubstanceLabels;
 import dev.latrox.rematter.content.MachineBlock;
+import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.MachinePortBlock;
+import dev.latrox.rematter.content.MachinePortMode;
+import dev.latrox.rematter.content.MatterPipeBlock;
+import dev.latrox.rematter.content.IndustrialStructure;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -27,10 +33,39 @@ final class JadeClient {
 
     static void register(IWailaClientRegistration registration) {
         registration.registerBlockComponent(new StatusTooltip(), MachineBlock.class);
+        registration.registerBlockComponent(new CableTooltip(), MatterPipeBlock.class);
+        registration.registerBlockComponent(new PortTooltip(), MachinePortBlock.class);
         registration.registerItemStorageClient(new EmptyView<ItemStack, ItemView>(ReMatterJadePlugin.ITEMS));
         registration.registerFluidStorageClient(new EmptyView<FluidView.Data, FluidView>(ReMatterJadePlugin.FLUIDS));
         registration.registerEnergyStorageClient(new EmptyView<EnergyView.Data, EnergyView>(ReMatterJadePlugin.ENERGY));
         registration.registerProgressClient(new EmptyView<ProgressView.Data, ProgressView>(ReMatterJadePlugin.PROGRESS));
+    }
+
+    private static final class CableTooltip implements IBlockComponentProvider {
+        @Override public Identifier getUid() { return ReMatterJadePlugin.CABLE; }
+        @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            if (!(accessor.getBlockState().getBlock() instanceof MatterPipeBlock cable)) return;
+            tooltip.add(Component.translatable("jade.rematter.cable_channels").withStyle(ChatFormatting.AQUA));
+            tooltip.add(Component.translatable("jade.rematter.cable_limit", cable.tier().networkLimit()).withStyle(ChatFormatting.AQUA));
+            if (accessor.showDetails()) {
+                tooltip.add(Component.translatable("jade.rematter.cable_connections", MatterPipeBlock.connections(accessor.getBlockState())));
+                tooltip.add(Component.translatable("jade.rematter.cable_limit_hint").withStyle(ChatFormatting.GRAY));
+                tooltip.add(Component.translatable("jade.rematter.cable_activity_hint").withStyle(ChatFormatting.GRAY));
+            }
+        }
+    }
+
+    private static final class PortTooltip implements IBlockComponentProvider {
+        @Override public Identifier getUid() { return ReMatterJadePlugin.PORT; }
+        @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            var state = accessor.getBlockState();
+            if (!state.getValue(MachinePortBlock.FORMED)) {
+                tooltip.add(Component.translatable("jade.rematter.port_unformed").withStyle(ChatFormatting.GRAY));
+                return;
+            }
+            tooltip.add(Component.translatable("port.rematter.mode_message", state.getValue(MachinePortBlock.MODE).label()));
+            if (accessor.showDetails()) tooltip.add(Component.translatable("jade.rematter.port_change_hint").withStyle(ChatFormatting.GRAY));
+        }
     }
 
     private record EmptyView<T, V>(Identifier uid) implements IClientExtensionProvider<T, V> {
@@ -49,19 +84,38 @@ final class JadeClient {
                 return;
             }
             tooltip.add(Component.translatable("status.rematter." + data.getStringOr("status", "idle")));
-            if (data.getIntOr("structureWidth", 0) > 0) {
+            if (accessor.showDetails() && accessor.getBlockEntity() instanceof MachineBlockEntity machine
+                    && MachinePortMode.configurable(machine.kind())) {
+                tooltip.add(Component.translatable("port.rematter.mode_message",
+                        machine.portMode(accessor.getHitResult().getDirection()).label()));
+            }
+            boolean industrial = accessor.getBlockState().getBlock() instanceof MachineBlock block
+                    && IndustrialStructure.isIndustrial(block.kind());
+            if (industrial && data.getIntOr("structureWidth", 0) > 0) {
                 tooltip.add(Component.translatable("screen.rematter.structure_size", data.getIntOr("structureWidth", 0),
                         data.getIntOr("structureDepth", 0), data.getIntOr("structureHeight", 0)).withStyle(ChatFormatting.AQUA));
                 if (accessor.showDetails() && data.getIntOr("structureColumns", 0) > 0) {
                     tooltip.add(Component.translatable("screen.rematter.structure_columns", data.getIntOr("structureColumns", 0)));
                     tooltip.add(Component.translatable("screen.rematter.structure_speed", data.getIntOr("structureRate", 0)));
+                    tooltip.add(Component.translatable("screen.rematter.structure_efficiency", data.getIntOr("structureSaving", 0)));
+                    String[][] modules={{"grinding","grinding_unit"},{"mixing","mixing_basin"},{"separation","separation_unit"},
+                            {"coils","field_coil"},{"chambers","reaction_chamber"}};
+                    for (var module : modules) {
+                        int count=data.getIntOr(module[0],0);
+                        if(count>0)tooltip.add(Component.literal(count+" × ").append(Component.translatable("block.rematter."+module[1])));
+                    }
                 }
             }
             String structureDiagnostic = data.getStringOr("structureDiagnostic", "none");
-            if (!structureDiagnostic.equals("none") && !structureDiagnostic.equals("ready"))
+            if (industrial && !structureDiagnostic.equals("none") && !structureDiagnostic.equals("ready")
+                    && !structureDiagnostic.equals(data.getStringOr("status", "idle")))
                 tooltip.add(Component.translatable("status.rematter." + structureDiagnostic).withStyle(ChatFormatting.GOLD));
             if (data.getBooleanOr("processes", false))
                 tooltip.add(Component.literal(data.getIntOr("energy", 0) + " / " + data.getIntOr("energyCapacity", 0) + " FE"));
+            if(data.getIntOr("cellBays",0)==6) {
+                tooltip.add(Component.translatable("screen.rematter.drive_cells",data.getIntOr("cellsInstalled",0)).withStyle(ChatFormatting.AQUA));
+                if(data.getBooleanOr("cellUnreadable",false))tooltip.add(Component.translatable("screen.rematter.drive_blocked").withStyle(ChatFormatting.GOLD));
+            }
             long capacity = data.getLongOr("capacity", 0);
             if (!data.getStringOr("storageSource", "none").equals("none"))
                 tooltip.add(Component.translatable("screen.rematter.source_" + data.getStringOr("storageSource", "none")).withStyle(ChatFormatting.AQUA));
@@ -76,11 +130,16 @@ final class JadeClient {
             int shown = Math.clamp(data.getIntOr("shown", 0), 0, 6);
             for (int i = 0; i < shown; i++) {
                 CompoundTag entry = data.getCompoundOrEmpty("entry" + i);
-                tooltip.add(Component.literal(entry.getStringOr("name", "") + " (" + entry.getStringOr("phase", "")
+                tooltip.add(matterName(entry).copy().append(" (" + entry.getStringOr("phase", "")
                         + "): " + entry.getLongOr("amount", 0) + " u").withStyle(ChatFormatting.AQUA));
             }
             int remaining = data.getIntOr("substances", 0) - shown;
             if (shown > 0 && remaining > 0) tooltip.add(Component.literal("+" + remaining + " more substances").withStyle(ChatFormatting.GRAY));
+        }
+
+        private static Component matterName(CompoundTag entry) {
+            Component name = Component.literal(entry.getStringOr("name", ""));
+            return SubstanceLabels.withSymbol(entry.getStringOr("id", ""), name);
         }
     }
 }

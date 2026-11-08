@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.jade;
 
 import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.IndustrialStructure;
 import dev.latrox.rematter.content.MachineSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
@@ -31,14 +32,26 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
             view.putLong("matter", snapshot.used());
             view.putLong("capacity", snapshot.capacity());
             view.putString("storageSource", snapshot.storageSource());
-            if (snapshot.structure().width() > 0) {
+            if(machine.kind()==dev.latrox.rematter.content.MachineKind.DRIVE) {
+                view.putInt("cellBays",6);
+                view.putInt("cellsInstalled",(int)snapshot.cells().stream().filter(MachineSnapshot.CellView::installed).count());
+                view.putBoolean("cellUnreadable",snapshot.cells().stream().anyMatch(cell->cell.installed()&&!cell.readable()));
+            }
+            boolean industrial = IndustrialStructure.isIndustrial(machine.kind());
+            if (industrial && snapshot.structure().width() > 0) {
                 view.putInt("structureWidth", snapshot.structure().width());
                 view.putInt("structureDepth", snapshot.structure().depth());
                 view.putInt("structureHeight", snapshot.structure().height());
                 view.putInt("structureRate", snapshot.structure().workRate());
                 view.putInt("structureColumns", snapshot.structure().moduleCount());
+                view.putInt("structureSaving", snapshot.structure().energySavingPercent());
+                view.putInt("grinding", snapshot.structure().grinding());
+                view.putInt("mixing", snapshot.structure().mixing());
+                view.putInt("separation", snapshot.structure().separation());
+                view.putInt("coils", snapshot.structure().coils());
+                view.putInt("chambers", snapshot.structure().chambers());
             }
-            view.putString("structureDiagnostic", snapshot.structure().diagnostic());
+            if (industrial) view.putString("structureDiagnostic", snapshot.structure().diagnostic());
             view.putBoolean("automation", snapshot.automation());
             view.putInt("fluidAmount", snapshot.fluidAmount());
             view.putString("fluidName", snapshot.fluidName());
@@ -48,6 +61,7 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
             for (int i = 0; i < shown; i++) {
                 MachineSnapshot.Entry entry = snapshot.entries().get(i);
                 CompoundTag line = new CompoundTag();
+                line.putString("id", entry.id());
                 line.putString("name", entry.name());
                 line.putString("phase", entry.phase());
                 line.putLong("amount", entry.amount());

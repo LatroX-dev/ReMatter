@@ -8,10 +8,11 @@ import dev.emi.emi.api.stack.serializer.EmiIngredientSerializer;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.client.SubstanceIcon;
+import dev.latrox.rematter.client.SubstanceLabels;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
 import java.util.Locale;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.core.component.DataComponentPatch;
@@ -39,9 +40,10 @@ public final class MatterEmiStack extends EmiStack {
     @Override public Object getKey() { return substance; }
     @Override public Identifier getId() { return Identifier.parse(substance.id().toString()); }
     @Override public Component getName() {
-        return ClientChemistry.current().definition(substance.id())
+        var name = ClientChemistry.current().definition(substance.id())
                 .map(definition -> Component.translatableWithFallback(definition.translationKey(), substance.id().path().replace('_', ' ')))
                 .orElseGet(() -> Component.literal(substance.id().toString()));
+        return SubstanceLabels.withSymbol(substance.id(), name);
     }
     @Override public List<Component> getTooltipText() {
         return List.of(getName(), Component.literal(substance.phase().name().toLowerCase(Locale.ROOT)),
@@ -52,18 +54,7 @@ public final class MatterEmiStack extends EmiStack {
     }
     @Override public void render(GuiGraphicsExtractor graphics, int x, int y, float delta, int flags) {
         if ((flags & EmiIngredient.RENDER_ICON) == 0) return;
-        int color = switch (substance.phase()) {
-            case SOLID -> 0xFF83D9CF;
-            case LIQUID -> 0xFF6FAFE7;
-            case GAS -> 0xFFDBB3EF;
-        };
-        graphics.fill(x, y, x + 16, y + 16, 0xFF19343C);
-        graphics.fill(x, y + 14, x + 16, y + 16, color);
-        String symbol = ClientChemistry.current().definition(substance.id())
-                .map(definition -> definition.symbol().isBlank() ? definition.id().path().substring(0, 1) : definition.symbol()).orElse("?");
-        var font = Minecraft.getInstance().font;
-        String label = font.plainSubstrByWidth(symbol, 15);
-        graphics.text(font, label, x + (16 - font.width(label)) / 2, y + 3, color, false);
+        SubstanceIcon.draw(graphics, x, y, substance);
     }
 
     static final class Serializer implements EmiIngredientSerializer<MatterEmiStack> {

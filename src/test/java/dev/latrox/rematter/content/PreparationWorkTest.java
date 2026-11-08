@@ -38,8 +38,8 @@ class PreparationWorkTest {
     }
     @Test void secondaryFeedIsNeverTreatedAsALocalMatterCell() {
         for(var kind:new MachineKind[]{MachineKind.PREPARATOR,MachineKind.HAND_PREPARATOR,MachineKind.INDUSTRIAL_PREPARATOR}){
-            assertEquals(4,MachineCellAccess.inventorySize(kind));assertEquals(-1,MachineCellAccess.slot(kind));
-            assertFalse(MachineCellAccess.usesOwnStorage(kind,true));
+            assertEquals(5,MachineCellAccess.inventorySize(kind));assertEquals(-1,MachineCellAccess.slot(kind));
+            assertEquals(0,MachineCellAccess.bayCount(kind));
         }
     }
     @Test void singleIngredientExtractionRejectsStraySecondaryInsteadOfIgnoringOrConsumingIt() {

@@ -10,6 +10,38 @@ import static dev.latrox.rematter.chemistry.BuiltinChemistry.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MatterNetworkInventoryTest {
+    @Test void sixtyFourSixBayDrivesRemainFlatAndCommitAtTheBoundWithoutDuplicatingOwners() {
+        var cells = new ArrayList<MatterInventory>();
+        for (int index = 0; index < 384; index++) cells.add(cell(100, 2, COPPER, 100));
+        var network = new MatterNetworkInventory(cells);
+        assertEquals(384, network.members().size()); assertEquals(38_400, network.total());
+        var checkpoint = network.snapshot();
+        assertTrue(network.apply(Map.of(COPPER, 38_400L), Map.of(WATER, 38_400L)));
+        assertEquals(38_400, network.amount(WATER)); assertEquals(0, network.amount(COPPER));
+        assertTrue(cells.stream().allMatch(cell -> cell.amount(WATER) == 100));
+        network.restoreInPlace(checkpoint); assertEquals(checkpoint, network.snapshot());
+        cells.add(new MatterInventory(100, 2));
+        assertThrows(IllegalArgumentException.class, () -> new MatterNetworkInventory(cells));
+    }
+    @Test void sixBayPortableCellsRoundTripSeparatelyWithUnknownSubstancesAndReservations() {
+        var unknown = SubstanceKey.of("missing:retained", Phase.GAS);
+        var cells = new ArrayList<MatterInventory>();
+        for (int index = 0; index < 6; index++) {
+            var member = cell(64_000, 512, COPPER, 100 + index);
+            member.insert(unknown, index + 1); cells.add(member);
+        }
+        var reserved = cells.get(5).reserve(Map.of(COPPER, 40L), Map.of()).orElseThrow();
+        var network = new MatterNetworkInventory(cells);
+        assertEquals(575, network.available(COPPER));
+        assertTrue(network.apply(Map.of(COPPER, 570L), Map.of(WATER, 570L)));
+        assertTrue(cells.get(5).reservation(reserved).isPresent());
+        var restored = cells.stream().map(member -> dev.latrox.rematter.content.MatterCellData.from(member)
+                .open(member.capacity()).orElseThrow()).toList();
+        var reloaded = new MatterNetworkInventory(restored);
+        assertEquals(network.contents(), reloaded.contents()); assertEquals(network.availableContents(), reloaded.availableContents());
+        assertEquals(21, reloaded.amount(unknown)); assertEquals(384_000, reloaded.capacity());
+        assertTrue(restored.get(5).reservation(reserved).isPresent());
+    }
     @Test void alternativeInputOwnerReleasesTheOnlyCellLargeEnoughForOutput() {
         var x=SubstanceKey.of("test:x",Phase.SOLID);var y=SubstanceKey.of("test:y",Phase.SOLID);var z=SubstanceKey.of("test:z",Phase.SOLID);
         var a=cell(10,1,x,10);var b=cell(30,2,x,10);b.insert(y,10);

@@ -2,6 +2,7 @@ package dev.latrox.rematter.compat.jei;
 
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.client.MachineScreen;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.compat.PreparationDisplay;
@@ -15,12 +16,15 @@ import java.util.Map;
 import java.util.function.Consumer;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.recipe.types.IRecipeType;
+import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.ModList;
@@ -56,6 +60,16 @@ public final class ReMatterJeiPlugin implements IModPlugin {
             case ELECTROLYSIS -> MachineKind.ELECTROLYZER;
             case REACTION -> MachineKind.REACTOR;
         }).get();
+    }
+
+    @Override
+    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
+        if (!enabled()) return;
+        registration.addGuiContainerHandler(MachineScreen.class, new IGuiContainerHandler<MachineScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(MachineScreen screen) {
+                return screen.viewerExclusionAreas();
+            }
+        });
     }
 
     @Override

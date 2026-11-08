@@ -2,6 +2,7 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
@@ -34,8 +35,10 @@ public final class ModContent {
     public static final Map<IndustrialModuleKind, DeferredBlock<IndustrialModuleBlock>> INDUSTRIAL_MODULES = new EnumMap<>(IndustrialModuleKind.class);
     static {
         for (MachineKind kind : MachineKind.values()) {
-            var block = BLOCKS.registerBlock(kind.id(), p -> new MachineBlock(kind, p),
-                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
+            var block = BLOCKS.registerBlock(kind.id(), p -> new MachineBlock(kind, p), p -> {
+                p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL);
+                return IndustrialStructure.isIndustrial(kind) ? p : p.noOcclusion();
+            });
             MACHINES.put(kind, block);
             ITEMS.registerSimpleBlockItem(block, p -> p.stacksTo(1));
         }
@@ -43,14 +46,22 @@ public final class ModContent {
             var block = BLOCKS.registerBlock(kind.id(), p -> new IndustrialModuleBlock(kind, p),
                     p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
             INDUSTRIAL_MODULES.put(kind, block);
-            ITEMS.registerSimpleBlockItem(block);
+            ITEMS.registerItem(kind.id(), properties -> new IndustrialModuleItem(block.get(),properties.useBlockDescriptionPrefix()));
         }
     }
     public static final DeferredBlock<MatterPipeBlock> MATTER_PIPE = BLOCKS.registerBlock("matter_pipe", MatterPipeBlock::new,
-            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.0F).sound(SoundType.METAL).noOcclusion());
+            p -> p.mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<MatterPipeBlock> REINFORCED_MATTER_CABLE = BLOCKS.registerBlock("reinforced_matter_cable",
+            p -> new MatterPipeBlock(MatterPipeBlock.Tier.REINFORCED, p),
+            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.5F).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<MatterPipeBlock> RESONANT_MATTER_CABLE = BLOCKS.registerBlock("resonant_matter_cable",
+            p -> new MatterPipeBlock(MatterPipeBlock.Tier.RESONANT, p),
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(3.0F).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<Block> REACTOR_CASING = BLOCKS.registerSimpleBlock("reactor_casing",
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL));
     public static final DeferredItem<BlockItem> MATTER_PIPE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_PIPE);
+    public static final DeferredItem<BlockItem> REINFORCED_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(REINFORCED_MATTER_CABLE);
+    public static final DeferredItem<BlockItem> RESONANT_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(RESONANT_MATTER_CABLE);
     public static final DeferredItem<BlockItem> REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_CASING);
     public static final DeferredBlock<HalfTransparentBlock> REACTOR_GLASS = BLOCKS.registerBlock("reactor_glass", HalfTransparentBlock::new,
             p -> p.mapColor(MapColor.NONE).strength(3.0F, 12.0F).sound(SoundType.GLASS).noOcclusion());
@@ -70,11 +81,36 @@ public final class ModContent {
     public static final DeferredItem<Item> LUMIN = ITEMS.registerSimpleItem("lumin");
     public static final DeferredItem<Item> OPTICAL_CIRCUIT = ITEMS.registerSimpleItem("optical_circuit");
     public static final DeferredItem<Item> MACHINE_FRAME = ITEMS.registerSimpleItem("machine_frame");
+    public static final DeferredItem<Item> STRUCTURAL_BARS = ITEMS.registerSimpleItem("structural_bars");
     public static final DeferredItem<Item> CONTROL_CIRCUIT = ITEMS.registerSimpleItem("control_circuit");
+    public static final DeferredItem<Item> CELL_HOUSING = ITEMS.registerSimpleItem("cell_housing");
+    public static final DeferredItem<Item> IRON_DUST = ITEMS.registerSimpleItem("iron_dust");
+    public static final DeferredItem<Item> COPPER_DUST = ITEMS.registerSimpleItem("copper_dust");
+    public static final DeferredItem<Item> GOLD_DUST = ITEMS.registerSimpleItem("gold_dust");
+    public static final DeferredItem<Item> LAPIS_DUST = ITEMS.registerSimpleItem("lapis_dust");
+    public static final DeferredItem<Item> AMETHYST_DUST = ITEMS.registerSimpleItem("amethyst_dust");
+    public static final DeferredItem<Item> EMERALD_DUST = ITEMS.registerSimpleItem("emerald_dust");
+    public static final DeferredItem<Item> RHEVON_INGOT = ITEMS.registerSimpleItem("rhevon_ingot");
+    public static final DeferredItem<Item> RHEVON_DUST = ITEMS.registerSimpleItem("rhevon_dust");
+    public static final DeferredItem<Item> LUMIVEX_INGOT = ITEMS.registerSimpleItem("lumivex_ingot");
+    public static final DeferredItem<Item> LUMIVEX_DUST = ITEMS.registerSimpleItem("lumivex_dust");
+    public static final DeferredItem<Item> VIRELITE_BLEND = ITEMS.registerSimpleItem("virelite_blend");
+    public static final DeferredItem<Item> VIRELITE_CERAMIC = ITEMS.registerSimpleItem("virelite_ceramic");
+    public static final DeferredItem<Item> DIAMOND_LATTICE = ITEMS.registerSimpleItem("diamond_lattice");
+    public static final DeferredItem<Item> ENDER_CONDUCTOR = ITEMS.registerSimpleItem("ender_conductor");
+    public static final DeferredItem<Item> NETHERITE_SHEATH = ITEMS.registerSimpleItem("netherite_sheath");
+    private static final List<DeferredItem<Item>> ADVANCED_POWDERS = List.of(
+            ITEMS.registerSimpleItem("diamond_powder"), ITEMS.registerSimpleItem("diamond_matrix_blend"),
+            ITEMS.registerSimpleItem("ender_pearl_powder"), ITEMS.registerSimpleItem("ender_conductor_blend"),
+            ITEMS.registerSimpleItem("netherite_powder"), ITEMS.registerSimpleItem("netherite_sheath_blend"));
+    private static final List<DeferredItem<Item>> COLORED_MATRIX_CRYSTALS =
+            List.of("ice", "copper", "leaf", "blue", "violet", "amber", "ember", "mint").stream()
+                    .map(family -> ITEMS.registerSimpleItem(family + "_matrix_crystal")).toList();
     public static final DeferredItem<MatterCellItem> MATTER_CELL_64K = ITEMS.registerItem("matter_cell_64k", p -> new MatterCellItem(p, 64_000L));
     public static final DeferredItem<MatterCellItem> MATTER_CELL_256K = ITEMS.registerItem("matter_cell_256k", p -> new MatterCellItem(p, 256_000L));
     public static final DeferredItem<MatterCellItem> MATTER_CELL_1M = ITEMS.registerItem("matter_cell_1m", p -> new MatterCellItem(p, 1_000_000L));
     public static final DeferredItem<Item> AUTOMATION_PATTERN = ITEMS.registerSimpleItem("automation_pattern", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> CELL_RACK = ITEMS.registerSimpleItem("cell_rack");
     public static final DeferredItem<MatterRecoveryItem> RECOVERED_MATTER = ITEMS.registerItem("recovered_matter", MatterRecoveryItem::new);
     public static final DeferredItem<TutorialBookItem> GUIDE = ITEMS.registerItem("guide", TutorialBookItem::new);
     public static final Supplier<BlockEntityType<MachineBlockEntity>> MACHINE_ENTITY = BLOCK_ENTITIES.register("machine",
@@ -91,6 +127,9 @@ public final class ModContent {
                     .displayItems((parameters, output) -> {
                         MACHINES.values().forEach(block -> output.accept(block.get()));
                         output.accept(MATTER_PIPE_ITEM.get());
+                        output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
+                        output.accept(RESONANT_MATTER_CABLE_ITEM.get());
+                        output.accept(CELL_RACK.get());
                         output.accept(REACTOR_CASING_ITEM.get());
                         output.accept(REACTOR_GLASS_ITEM.get());
                         output.accept(MACHINE_PORT_ITEM.get());
@@ -99,6 +138,7 @@ public final class ModContent {
                         output.accept(EFFICIENCY_UPGRADE.get());
                         output.accept(MATRIX_BLEND.get());
                         output.accept(MATRIX_CRYSTAL.get());
+                        COLORED_MATRIX_CRYSTALS.forEach(item -> output.accept(item.get()));
                         output.accept(MATRIX_CLUSTER.get());
                         output.accept(SILITH.get());
                         output.accept(ARGIL.get());
@@ -107,7 +147,25 @@ public final class ModContent {
                         output.accept(LUMIN.get());
                         output.accept(OPTICAL_CIRCUIT.get());
                         output.accept(MACHINE_FRAME.get());
+                        output.accept(STRUCTURAL_BARS.get());
                         output.accept(CONTROL_CIRCUIT.get());
+                        output.accept(CELL_HOUSING.get());
+                        output.accept(IRON_DUST.get());
+                        output.accept(COPPER_DUST.get());
+                        output.accept(GOLD_DUST.get());
+                        output.accept(LAPIS_DUST.get());
+                        output.accept(AMETHYST_DUST.get());
+                        output.accept(EMERALD_DUST.get());
+                        output.accept(RHEVON_INGOT.get());
+                        output.accept(RHEVON_DUST.get());
+                        output.accept(LUMIVEX_INGOT.get());
+                        output.accept(LUMIVEX_DUST.get());
+                        output.accept(VIRELITE_BLEND.get());
+                        output.accept(VIRELITE_CERAMIC.get());
+                        ADVANCED_POWDERS.forEach(item -> output.accept(item.get()));
+                        output.accept(DIAMOND_LATTICE.get());
+                        output.accept(ENDER_CONDUCTOR.get());
+                        output.accept(NETHERITE_SHEATH.get());
                         output.accept(MATTER_CELL_64K.get());
                         output.accept(MATTER_CELL_256K.get());
                         output.accept(MATTER_CELL_1M.get());
@@ -127,14 +185,12 @@ public final class ModContent {
         bus.addListener(MachineSnapshot::register);
     }
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.kind().processes()
-                && !IndustrialStructure.isIndustrial(machine.kind()) && !dev.latrox.rematter.content.preparation.PreparationTier.manual(machine.kind()) ? machine.energy() : null);
-        event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> !IndustrialStructure.isIndustrial(machine.kind())
-                && !machine.kind().isStorage() && machine.automation() && side != null ? machine.automatedItems(side) : null);
-        event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), (machine, side) -> machine.automation()
-                && !IndustrialStructure.isIndustrial(machine.kind())
-                && (machine.kind() == MachineKind.DECOMPOSER || machine.kind() == MachineKind.SYNTHESIZER || machine.fluids().getAmountAsLong(0) > 0)
-                ? machine.automatedFluids() : null);
+        event.registerBlock(Capabilities.Energy.BLOCK,
+                (level, pos, state, blockEntity, side) -> MatterCablePower.capability(level, pos, side),
+                MATTER_PIPE.get(), REINFORCED_MATTER_CABLE.get(), RESONANT_MATTER_CABLE.get());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedEnergy);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedItems);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedFluids);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::energy);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::items);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::fluids);

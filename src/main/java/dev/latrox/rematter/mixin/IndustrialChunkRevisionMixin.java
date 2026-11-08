@@ -19,6 +19,7 @@ abstract class IndustrialChunkRevisionMixin implements ChunkRevisions.Tracked {
         return rematter$changes;
     }
     @Override public ChunkRevisions.Revision rematter$chunkRevision() { return rematter$revisionState().current(); }
+    @Override public void rematter$touchChunkRevision() { rematter$revisionState().touch(); }
     @Inject(method = "setBlockState", at = @At("HEAD"))
     private void rematter$stateBegin(CallbackInfoReturnable<?> callback) { if (rematter$serverChunk()) rematter$revisionState().begin(); }
     @Inject(method = "setBlockState", at = @At("RETURN"))

@@ -6,7 +6,10 @@ import dev.latrox.rematter.compat.mekanism.MekanismCompat;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.data.ChemistryData;
 import dev.latrox.rematter.network.CatalogSync;
+import dev.latrox.rematter.network.MatterCablePulsePayload;
 import dev.latrox.rematter.network.SelectProcessPayload;
+import dev.latrox.rematter.network.TerminalDeviceActionPayload;
+import dev.latrox.rematter.network.TerminalDevicesPayload;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
@@ -22,7 +25,10 @@ public final class ReMatter {
     public ReMatter(IEventBus modBus, ModContainer container) {
         ModContent.register(modBus);
         modBus.addListener(CatalogSync::register);
+        modBus.addListener(MatterCablePulsePayload::register);
         modBus.addListener(SelectProcessPayload::register);
+        modBus.addListener(TerminalDeviceActionPayload::register);
+        modBus.addListener(TerminalDevicesPayload::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);
         NeoForge.EVENT_BUS.addListener(CatalogSync::sync);
         if (ModList.get().isLoaded("ae2")) dev.latrox.rematter.compat.ae2.Ae2Compat.register(modBus);

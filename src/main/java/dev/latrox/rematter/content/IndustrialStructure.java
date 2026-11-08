@@ -19,7 +19,7 @@ public final class IndustrialStructure {
         boolean interior() { return this == AIR || module(); }
     }
     public static final Set<String> DIAGNOSTICS = Set.of("ready", "structure", "structure_too_short", "structure_unloaded",
-            "structure_frame", "structure_wall", "structure_ports", "structure_modules_missing", "structure_module_incomplete",
+            "structure_frame", "structure_wall", "structure_endcaps", "structure_ports", "structure_modules_missing", "structure_module_incomplete",
             "structure_module_position", "structure_module_type", "structure_interior", "structure_ambiguous");
     public record Cell(int x, int y, int depth, Role role, Direction outward) {}
     public record Shape(int width, int height, int depth, int controllerColumn) {
@@ -61,7 +61,8 @@ public final class IndustrialStructure {
     public record Inspection(String diagnostic, List<LocalModule> modules) {
         public Inspection { modules=List.copyOf(modules); if(!DIAGNOSTICS.contains(diagnostic))throw new IllegalArgumentException("Invalid diagnostic"); }
         public boolean formed() { return diagnostic.equals("ready"); }
-        public int moduleCount() { return formed() ? (int)modules.stream().filter(m->m.y==0).count() : 0; }
+        public int moduleCount() { return formed() ? coreCount(modules) : 0; }
+        public IndustrialPerformance performance() { return formed() ? performanceOf(modules) : IndustrialPerformance.EMPTY; }
     }
     public record Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, String diagnostic) {
         public static final Formation EMPTY = invalid(null,"structure");
@@ -71,8 +72,12 @@ public final class IndustrialStructure {
                     || formed && (shape == null || modules.isEmpty()) || !formed && (!ports.isEmpty() || !modules.isEmpty()))
                 throw new IllegalArgumentException("Invalid formation");
         }
-        public int moduleCount() { return formed ? (int)modules.stream().filter(m->m.y==0).count() : 0; }
-        public int baseWorkRate(MachineKind kind) { return workRate(kind,moduleCount()); }
+        public int moduleCount() { return formed ? (int) modules.stream().filter(m -> m.kind == IndustrialModuleKind.GRINDING_UNIT || m.kind == IndustrialModuleKind.REACTION_CHAMBER).count() : 0; }
+        public IndustrialPerformance performance() {
+            return formed ? performanceOf(modules.stream().map(m -> new LocalModule(m.x, m.y, m.depth, Material.valueOf(m.kind.name()))).toList()) : IndustrialPerformance.EMPTY;
+        }
+        public int baseWorkRate(MachineKind kind) { return performance().workRate(kind); }
+        public int energySavingPercent(MachineKind kind) { return performance().energySavingPercent(kind); }
         public String layoutFingerprint() {
             return moduleFingerprint(modules.stream().map(m->new LocalModule(m.x,m.y,m.depth,Material.valueOf(m.kind.name()))).toList());
         }
@@ -98,12 +103,11 @@ public final class IndustrialStructure {
     private static final Map<MachinePortBlockEntity, PortCache> PORT_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
     private IndustrialStructure() {}
     public static boolean isIndustrial(MachineKind kind) { return kind == MachineKind.INDUSTRIAL_PREPARATOR || kind == MachineKind.INDUSTRIAL_REACTOR; }
-    /** Minimum height, retained for minimum-size recipes and existing structures. */
+    /** Minimum outer height of each chamber type. */
     public static int height(MachineKind kind) {
         return switch (kind) { case INDUSTRIAL_PREPARATOR -> 5; case INDUSTRIAL_REACTOR -> 4;
             default -> throw new IllegalArgumentException("Not an industrial controller"); };
     }
-    public static List<Cell> layout(MachineKind kind) { return layout(new Shape(3, height(kind), 3, 1)); }
     public static List<Cell> layout(Shape shape) {
         var cells = new ArrayList<Cell>(shape.width * shape.height * shape.depth);
         int left = -shape.controllerColumn, right = left + shape.width - 1;
@@ -139,7 +143,7 @@ public final class IndustrialStructure {
     public static boolean validates(MachineKind kind, Shape shape, Materials blocks) {
         return inspectLayout(kind,shape,blocks).formed();
     }
-    /** Exactly one full floor-anchored work column per occupied interior X/Z; no hidden contents. */
+    /** Validate the complete shell and the modules mounted on its inner floor and ceiling. */
     public static Inspection inspectLayout(MachineKind kind, Shape shape, Materials blocks) {
         if (!isIndustrial(kind) || shape.height < height(kind)) return invalidLayout("structure_too_short");
         int ports = 0;
@@ -154,7 +158,12 @@ public final class IndustrialStructure {
                     else if(material!=Material.AIR)return invalidLayout("structure_interior");
                 }
                 case FRAME -> { if (material != Material.CASING) return invalidLayout("structure_frame"); }
-                case WALL -> { if (material == Material.PORT) ports++; else if (material != Material.CASING && material != Material.GLASS) return invalidLayout("structure_wall"); }
+                case WALL -> {
+                    if (kind == MachineKind.INDUSTRIAL_REACTOR && cell.outward.getAxis().isVertical()) {
+                        if (material != Material.CASING) return invalidLayout("structure_endcaps");
+                    } else if (material == Material.PORT) ports++;
+                    else if (material != Material.CASING && material != Material.GLASS) return invalidLayout("structure_wall");
+                }
             }
         }
         if(ports<2)return invalidLayout("structure_ports");
@@ -162,21 +171,33 @@ public final class IndustrialStructure {
         var required = kind == MachineKind.INDUSTRIAL_PREPARATOR
                 ? List.of(Material.MIXING_BASIN,Material.SEPARATION_UNIT,Material.GRINDING_UNIT)
                 : List.of(Material.FIELD_COIL,Material.REACTION_CHAMBER);
-        var columns = new HashMap<Long,Integer>();
-        for(var module:modules){
-            if(!required.contains(module.material))return invalidLayout("structure_module_type");
-            if(module.y>=required.size() || module.material!=required.get(module.y))return invalidLayout("structure_module_position");
-            long key=((long)module.x<<32)|(module.depth&0xffffffffL);
-            columns.merge(key,1,Integer::sum);
+        for (var module : modules)
+            if (!required.contains(module.material)) return invalidLayout("structure_module_type");
+        int crown = shape.height - 3;
+        for (var module : modules) {
+            if (IndustrialModuleMount.atInteriorHeight(module.y, crown).isEmpty())
+                return invalidLayout("structure_module_position");
         }
-        if(columns.values().stream().anyMatch(count->count!=required.size()))return invalidLayout("structure_module_incomplete");
+        if (required.stream().anyMatch(material -> modules.stream().noneMatch(module -> module.material == material)))
+            return invalidLayout("structure_module_incomplete");
         return new Inspection("ready",modules);
     }
-    private static Inspection invalidLayout(String diagnostic) { return new Inspection(diagnostic,List.of()); }
-    public static int workRate(MachineKind kind,int columns) {
-        if(!isIndustrial(kind)||columns<0||columns>49)throw new IllegalArgumentException("Invalid module count");
-        return (kind==MachineKind.INDUSTRIAL_PREPARATOR?4:2)*columns;
+    private static int coreCount(List<LocalModule> modules) {
+        return (int) modules.stream().filter(m -> m.material == Material.GRINDING_UNIT || m.material == Material.REACTION_CHAMBER).count();
     }
+    private static IndustrialPerformance performanceOf(List<LocalModule> modules) {
+        int grinding = 0, mixing = 0, separation = 0, coils = 0, chambers = 0;
+        for (var module : modules) switch (module.material) {
+            case GRINDING_UNIT -> grinding++;
+            case MIXING_BASIN -> mixing++;
+            case SEPARATION_UNIT -> separation++;
+            case FIELD_COIL -> coils++;
+            case REACTION_CHAMBER -> chambers++;
+            default -> { }
+        }
+        return new IndustrialPerformance(grinding, mixing, separation, coils, chambers);
+    }
+    private static Inspection invalidLayout(String diagnostic) { return new Inspection(diagnostic,List.of()); }
     /** An exact canonical description, not a collision-prone hash or a count-only job identity. */
     public static String moduleFingerprint(List<LocalModule> modules) {
         var ordered = new ArrayList<>(modules);

@@ -29,7 +29,7 @@ public record SelectProcessPayload(int containerId, String choiceId) implements 
     }
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("6").playToServer(TYPE, CODEC, (payload, context) -> {
+        event.registrar("7").playToServer(TYPE, CODEC, (payload, context) -> {
             var player = context.player();
             if (player.containerMenu instanceof MachineMenu menu && menu.containerId == payload.containerId()) {
                 menu.selectRecipe(player, payload.choiceId());

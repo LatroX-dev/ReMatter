@@ -1,18 +1,19 @@
 package dev.latrox.rematter.client;
 
 import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.client.ScreenChrome.Icon;
 import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.network.ClientChemistry;
 import dev.latrox.rematter.network.SelectProcessPayload;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.OptionalLong;
+import java.util.stream.Stream;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -27,20 +28,22 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Accessible product buttons focus a preview; confirmation only changes the selected recipe. */
 public final class ProcessSelectionScreen extends Screen {
-    private static final int INK = 0xffd6d4ca, PANEL = 0xffeee9dd, EDGE = 0xff8b9590;
-    private static final int PAPER = 0xff243639, MUTED = 0xff586b6c, CYAN = 0xff247c78;
-    private static final int COPPER = 0xffa15d38, MISSING = 0xffa54731, CELL = 32;
-    private static final int CERAMIC = 0xffe7e1d3, CERAMIC_EDGE = 0xff8b9590, LABEL = 0xff243639;
+    private static final int INK = UiPalette.PANEL, EDGE = UiPalette.BORDER;
+    private static final int PAPER = UiPalette.TEXT, MUTED = UiPalette.MUTED, CYAN = UiPalette.ACCENT;
+    private static final int RESULT_PITCH = 33, RESULT_HEIGHT = 29, MATERIAL_PITCH = 25;
+    private static final int PAGE_BUTTON_WIDTH = 20, MATERIAL_PAGER_WIDTH = 82, CLOSE_WIDTH = 50;
     private final MachineMenu menu;
     private ChemistryRegistry registry;
     private List<ProcessPresentation.Product> products = List.of(), filtered = List.of();
-    private final List<ProductButton> tiles = new ArrayList<>();
+    private final List<ProductButton> resultButtons = new ArrayList<>();
     private final Map<String, ItemStack> icons = new HashMap<>();
-    private final Map<SubstanceKey, ItemStack> substanceIcons = new HashMap<>();
     private EditBox search;
-    private Button previous, next, detailPrevious, detailNext, confirm;
-    private int left, top, panelWidth, panelHeight, columns, gridRows, page, detailPage, detailRows;
-    private int detailX, detailWidth, detailPagerY;
+    private Button previous, next, detailPrevious, detailNext, confirm, backToResults, closeDetails, closeResults;
+    private int left, top, panelWidth, panelHeight;
+    private int resultsX, resultsWidth, resultsTop, resultsPagerWidth, footerY;
+    private int detailX, detailWidth, detailPagerY, ingredientTop, detailRows;
+    private int page, detailPage;
+    private boolean narrow, showingDetails, showSummary;
     private String focusedId = "";
 
     public ProcessSelectionScreen(MachineMenu menu) {
@@ -49,41 +52,61 @@ public final class ProcessSelectionScreen extends Screen {
     }
 
     @Override protected void init() {
-        panelWidth = Math.min(420, width - 12);
-        panelHeight = Math.min(300, height - 12);
+        panelWidth = Math.min(480, width - 12);
+        panelHeight = Math.min(324, height - 12);
         left = (width - panelWidth) / 2;
         top = (height - panelHeight) / 2;
-        columns = Math.clamp((panelWidth - 180) / CELL, 2, 6);
-        gridRows = Math.max(1, (panelHeight - 108) / CELL);
-        detailX = left + 20 + columns * CELL;
+        narrow = panelWidth < 296;
+        showSummary = panelHeight >= 172;
+        resultsX = left + 10;
+        resultsWidth = narrow ? panelWidth - 20 : Math.clamp((panelWidth - 28) * 2 / 5, 106, 176);
+        detailX = narrow ? resultsX : resultsX + resultsWidth + 8;
         detailWidth = left + panelWidth - 10 - detailX;
-        detailPagerY = top + panelHeight - 47;
-        detailRows = Math.max(1, (detailPagerY - (top + 143)) / 18);
+        footerY = top + panelHeight - 26;
+        resultsTop = top + (panelHeight >= 126 ? 64 : 51);
+        resultsPagerWidth = narrow ? resultsWidth - CLOSE_WIDTH - 6 : resultsWidth;
+        ingredientTop = top + (showSummary ? 107 : 77);
+        detailPagerY = ingredientTop - 21;
+        detailRows = Math.max(0, (footerY - ingredientTop - 3) / MATERIAL_PITCH);
+
         String query = search == null ? "" : search.getValue();
-        search = addRenderableWidget(new EditBox(font, left + 10, top + 28, panelWidth - 20, 18,
+        search = addRenderableWidget(new EditBox(font, resultsX + 6, top + 29, resultsWidth - 12, 18,
                 Component.literal("Search products or processes")));
         search.setMaxLength(128);
         search.setBordered(false);
         search.setTextColor(PAPER);
-        search.setHint(Component.literal("Search by name or mod:item"));
+        search.setHint(Component.literal("Search recipes").withStyle(style -> style.withColor(MUTED & 0xffffff)));
         search.setValue(query);
-        search.setResponder(value -> { page = 0; filter(); });
-        tiles.clear();
-        for (int i = 0; i < columns * gridRows; i++) {
+        search.setResponder(value -> {
+            page = 0;
+            focusedId = "";
+            filter();
+        });
+
+        resultButtons.clear();
+        int visibleResults = Math.max(1, (footerY - resultsTop - 4) / RESULT_PITCH);
+        for (int i = 0; i < visibleResults; i++) {
             int index = i;
-            tiles.add(addRenderableWidget(new ProductButton(Button.builder(Component.empty(), button -> focus(index))
-                    .bounds(left + 10 + i % columns * CELL, top + 66 + i / columns * CELL, 29, 29))));
+            resultButtons.add(addRenderableWidget(new ProductButton(Button.builder(Component.empty(), button -> focusResult(index))
+                    .bounds(resultsX, resultsTop + i * RESULT_PITCH, resultsWidth, RESULT_HEIGHT))));
         }
-        int footer = top + panelHeight - 27;
-        previous = button("<", left + 10, footer, 22, "Previous products", b -> changePage(-1));
-        next = button(">", left + 10 + columns * CELL - 25, footer, 22, "Next products", b -> changePage(1));
-        detailPrevious = button("<", detailX + 6, detailPagerY, 20, "Previous recipe ingredients", b -> detailPage--);
-        detailNext = button(">", detailX + detailWidth - 26, detailPagerY, 20, "Next recipe ingredients", b -> detailPage++);
-        confirm = button("Use recipe", detailX, footer, detailWidth - 55,
+        previous = button("<", resultsX, footerY, PAGE_BUTTON_WIDTH, "Previous recipes", b -> changePage(-1));
+        next = button(">", resultsX + resultsPagerWidth - PAGE_BUTTON_WIDTH, footerY, PAGE_BUTTON_WIDTH,
+                "Next recipes", b -> changePage(1));
+        detailPrevious = button("<", detailX + detailWidth - MATERIAL_PAGER_WIDTH - 6, detailPagerY, PAGE_BUTTON_WIDTH,
+                "Previous recipe ingredients", b -> detailPage--);
+        detailNext = button(">", detailX + detailWidth - PAGE_BUTTON_WIDTH - 6, detailPagerY, PAGE_BUTTON_WIDTH,
+                "Next recipe ingredients", b -> detailPage++);
+        confirm = button("Use recipe", detailX, footerY, detailWidth - CLOSE_WIDTH - 6,
                 "Select this recipe. Start production from the machine controls.", b -> selectFocused());
-        button("Close", detailX + detailWidth - 51, footer, 51, "Close without changing the recipe", b -> onClose());
+        closeDetails = button("Close", detailX + detailWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH,
+                "Close without changing the recipe", b -> onClose());
+        backToResults = button("Results", left + panelWidth - 66, top + 4, 56,
+                "Return to recipe results", b -> showResults());
+        closeResults = button("Close", resultsX + resultsWidth - CLOSE_WIDTH, footerY, CLOSE_WIDTH,
+                "Close without changing the recipe", b -> onClose());
         loadChoices();
-        setInitialFocus(search);
+        setInitialFocus(showingDetails && narrow ? backToResults : search);
     }
 
     private Button button(String text, int x, int y, int width, String hint, Button.OnPress action) {
@@ -99,68 +122,82 @@ public final class ProcessSelectionScreen extends Screen {
                 .map(choice -> ProcessPresentation.resolve(registry, kind, choice.id(), choice.name()))
                 .flatMap(java.util.Optional::stream).toList();
         icons.clear();
-        substanceIcons.clear();
-        // Illustration only: using a profile's icon never grants an output or synthesis permission.
-        registry.profiles().stream().filter(profile -> profile.matter().size() == 1)
-                .sorted(Comparator.comparingInt((MaterialProfile profile) -> profile.itemId().startsWith("minecraft:") ? 0 : 1)
-                        .thenComparing(MaterialProfile::itemId))
-                .forEach(profile -> {
-                    var icon = item(profile.itemId());
-                    if (!icon.isEmpty()) substanceIcons.putIfAbsent(profile.matter().keySet().iterator().next(), icon);
-                });
-        registry.fluidProfiles().stream().filter(profile -> profile.matter().size() == 1).forEach(profile -> {
-            var icon = fluidIcon(profile.fluidId());
-            if (!icon.isEmpty()) substanceIcons.putIfAbsent(profile.matter().keySet().iterator().next(), icon);
-        });
         if (focusedId.isEmpty()) focusedId = menu.snapshot().selectedId();
         filter();
         for (int i = 0; i < filtered.size(); i++) {
-            if (filtered.get(i).id().equals(focusedId)) { page = i / tiles.size(); break; }
+            if (filtered.get(i).id().equals(focusedId)) { page = i / resultButtons.size(); break; }
         }
-        refreshTiles();
+        refreshResults();
     }
 
     private void filter() {
         String query = search.getValue().strip().toLowerCase(Locale.ROOT);
         filtered = products.stream().filter(product -> product.name().toLowerCase(Locale.ROOT).contains(query)
-                || product.id().toLowerCase(Locale.ROOT).contains(query)).toList();
+                || product.id().toLowerCase(Locale.ROOT).contains(query)
+                || Stream.concat(product.inputs().keySet().stream(), product.outputs().keySet().stream())
+                        .anyMatch(key -> SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(key.id()), query))).toList();
         if (filtered.stream().noneMatch(product -> product.id().equals(focusedId))) {
             focusedId = filtered.isEmpty() ? "" : filtered.getFirst().id();
             detailPage = 0;
         }
-        refreshTiles();
+        refreshResults();
     }
 
-    private void refreshTiles() {
+    private void refreshResults() {
         page = Math.clamp(page, 0, pages() - 1);
-        for (int i = 0; i < tiles.size(); i++) {
-            ProductButton tile = tiles.get(i);
-            int index = page * tiles.size() + i;
+        boolean results = resultsVisible();
+        boolean details = detailsVisible();
+        search.visible = results;
+        for (int i = 0; i < resultButtons.size(); i++) {
+            ProductButton tile = resultButtons.get(i);
+            int index = page * resultButtons.size() + i;
             tile.product = index < filtered.size() ? filtered.get(index) : null;
-            tile.visible = tile.active = tile.product != null;
+            tile.visible = tile.active = results && tile.product != null;
             if (tile.product != null) {
-                tile.setMessage(Component.literal(tile.product.name()));
-                tile.setTooltip(Tooltip.create(Component.literal(tile.product.name() + "\n" + tile.product.id() + "\nView recipe details")));
+                String label = productLabel(tile.product);
+                tile.setMessage(Component.literal(label));
+                tile.setTooltip(Tooltip.create(Component.literal(label + "\n" + tile.product.id() + "\nView recipe details")));
             }
         }
+        previous.visible = next.visible = results && pages() > 1;
         previous.active = page > 0;
         next.active = page + 1 < pages();
+        confirm.visible = closeDetails.visible = details;
         confirm.active = focused() != null;
+        backToResults.visible = narrow && details;
+        closeResults.visible = narrow && results;
+        if (!details) detailPrevious.visible = detailNext.visible = false;
     }
 
-    private int pages() { return Math.max(1, (filtered.size() + tiles.size() - 1) / tiles.size()); }
+    private boolean resultsVisible() { return !narrow || !showingDetails; }
+    private boolean detailsVisible() { return !narrow || showingDetails; }
+
+    private void showResults() {
+        showingDetails = false;
+        refreshResults();
+        setFocused(search);
+    }
+
+    private int pages() { return Math.max(1, (filtered.size() + resultButtons.size() - 1) / resultButtons.size()); }
     private void changePage(int step) {
         page = Math.clamp(page + step, 0, pages() - 1);
-        if (!filtered.isEmpty()) focusedId = filtered.get(page * tiles.size()).id();
+        if (!filtered.isEmpty()) focusedId = filtered.get(page * resultButtons.size()).id();
         detailPage = 0;
-        refreshTiles();
+        refreshResults();
     }
     private ProcessPresentation.Product focused() {
         return filtered.stream().filter(product -> product.id().equals(focusedId)).findFirst().orElse(null);
     }
-    private void focus(int tile) {
-        int index = page * tiles.size() + tile;
-        if (index < filtered.size()) { focusedId = filtered.get(index).id(); detailPage = 0; }
+    private void focusResult(int row) {
+        int index = page * resultButtons.size() + row;
+        if (index >= filtered.size()) return;
+        focusedId = filtered.get(index).id();
+        detailPage = 0;
+        if (narrow) {
+            showingDetails = true;
+            refreshResults();
+            setFocused(backToResults);
+        }
     }
     private void selectFocused() {
         if (focused() != null && minecraft.player != null && minecraft.player.containerMenu == menu) {
@@ -175,89 +212,140 @@ public final class ProcessSelectionScreen extends Screen {
     @Override public boolean isPauseScreen() { return false; }
 
     @Override public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.fill(left, top, left + panelWidth, top + panelHeight, CERAMIC_EDGE);
-        graphics.fill(left + 1, top + 1, left + panelWidth - 1, top + panelHeight - 1, CERAMIC);
+        ScreenChrome.panel(graphics, left, top, panelWidth, panelHeight);
         graphics.fill(left + 4, top + 24, left + panelWidth - 4, top + panelHeight - 4, INK);
-        graphics.fill(left + 10, top + 20, left + 30, top + 22, COPPER);
-        graphics.text(font, title, left + 10, top + 9, LABEL, false);
-        graphics.fill(left + 8, top + 26, left + panelWidth - 8, top + 47, EDGE);
-        graphics.fill(left + 9, top + 27, left + panelWidth - 9, top + 46, 0xfff7f2e6);
-        graphics.text(font, filtered.size() + " results", left + 10, top + 53, MUTED, false);
-        String pageLabel = (page + 1) + " / " + pages();
-        graphics.text(font, pageLabel, left + 10 + (columns * CELL - font.width(pageLabel)) / 2,
-                top + panelHeight - 22, MUTED, false);
-        if (filtered.isEmpty()) {
-            graphics.text(font, "No matches", left + 12, top + 83, MUTED, false);
-            graphics.text(font, "Try another search", left + 12, top + 96, MUTED, false);
-        }
-        drawDetails(graphics, mouseX, mouseY);
+        graphics.fill(left + 10, top + 22, left + 40, top + 24, UiPalette.machineAccent(menu.kind()));
+        ScreenChrome.icon(graphics, Icon.RECIPE, left + 10, top + 7, CYAN);
+        String heading = narrow && showingDetails ? "Recipe details" : title.getString();
+        int headingWidth = panelWidth - (narrow && showingDetails ? 98 : 37);
+        graphics.text(font, ScreenChrome.fit(font, heading, headingWidth), left + 27, top + 9, PAPER, false);
+
+        if (resultsVisible()) drawResults(graphics);
+        if (detailsVisible()) drawDetails(graphics, mouseX, mouseY);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
+    private void drawResults(GuiGraphicsExtractor graphics) {
+        ScreenChrome.inset(graphics, resultsX, top + 28, resultsWidth, 20);
+        if (resultsTop - top >= 64) {
+            String count = filtered.size() + (filtered.size() == 1 ? " recipe" : " recipes");
+            graphics.text(font, ScreenChrome.fit(font, count, resultsWidth), resultsX + 2, top + 53, MUTED, false);
+        }
+        if (filtered.isEmpty()) {
+            graphics.text(font, ScreenChrome.fit(font, "No recipes match", resultsWidth - 4),
+                    resultsX + 2, resultsTop + 5, MUTED, false);
+        }
+        if (pages() > 1) drawPage(graphics, page + 1, pages(), resultsX, footerY, resultsPagerWidth);
+    }
+
+    private void drawPage(GuiGraphicsExtractor graphics, int current, int pages, int x, int y, int width) {
+        String label = ScreenChrome.fit(font, current + " / " + pages, width - 2 * PAGE_BUTTON_WIDTH - 4);
+        graphics.text(font, label, x + (width - font.width(label)) / 2, y + 5, MUTED, false);
+    }
+
     private void drawDetails(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        graphics.fill(detailX, top + 56, detailX + detailWidth, top + panelHeight - 32, EDGE);
-        graphics.fill(detailX + 1, top + 57, detailX + detailWidth - 1, top + panelHeight - 33, PANEL);
+        int detailTop = top + 28;
+        ScreenChrome.inset(graphics, detailX, detailTop, detailWidth, footerY - detailTop - 5);
         ProcessPresentation.Product product = focused();
-        detailPrevious.visible = detailNext.visible = product != null;
-        if (product == null) { confirm.active = false; return; }
-        confirm.active = true;
+        detailPrevious.visible = detailNext.visible = false;
+        if (product == null) {
+            graphics.text(font, ScreenChrome.fit(font, "Select a recipe to see its materials", detailWidth - 16),
+                    detailX + 8, detailTop + 8, MUTED, false);
+            return;
+        }
+
         boolean selected = product.id().equals(menu.snapshot().selectedId());
         var preview = menu.snapshot().preview();
         boolean effective = selected && preview.id().equals(product.id());
         long energy = effective ? preview.energy() : product.energy();
         int ticks = effective ? preview.ticks() : product.ticks();
-        drawProductIcon(graphics, product, detailX + 7, top + 65);
-        String name = product.name();
-        int nameWidth = detailWidth - 37;
-        String first = font.plainSubstrByWidth(name, nameWidth);
-        graphics.text(font, first, detailX + 29, top + 64, PAPER, false);
-        if (first.length() < name.length()) graphics.text(font,
-                font.plainSubstrByWidth(name.substring(first.length()).strip(), nameWidth), detailX + 29, top + 75, PAPER, false);
-        String batch = product.outputCount() + (product.outputKind().equals("fluid") ? " mB / batch"
-                : product.outputKind().equals("item") ? " item" + (product.outputCount() == 1 ? "" : "s") + " / batch"
-                : " substance" + (product.outputCount() == 1 ? "" : "s") + " produced");
-        graphics.text(font, batch, detailX + 7, top + 90, CYAN, false);
-        graphics.text(font, (effective ? "Cost: " : "Base: ") + compact(energy) + " FE", detailX + 7, top + 103, PAPER, false);
-        graphics.text(font, (effective ? "Time: " : "Base time: ") + seconds(ticks) + " s", detailX + 7, top + 114, MUTED, false);
-        graphics.fill(detailX + 6, top + 127, detailX + detailWidth - 6, top + 128, EDGE);
-        graphics.text(font, "Materials · need / have", detailX + 7, top + 131, MUTED, false);
-        // A bounded server preview must not silently hide further recipe ingredients.
-        // In that case use the full synchronized catalogue and the independently bounded stock view.
+        drawProductIcon(graphics, product, detailX + 8, detailTop + 7);
+        ScreenChrome.twoLines(graphics, font, productLabel(product), detailX + 30, detailTop + 6, detailWidth - 38, PAPER);
+        if (inside(mouseX, mouseY, detailX + 7, detailTop + 5, detailWidth - 14, 23)) {
+            graphics.setTooltipForNextFrame(Component.literal(productLabel(product) + "\n" + product.id()
+                    + "\n" + batchValue(product) + " / batch\n" + number(energy) + " FE · " + ticks + " ticks"
+                    + (effective ? "\nIncludes the current machine upgrades" : "\nBase recipe values")
+                    + (selected ? "\nCurrently selected" : "\nPreview only")), mouseX, mouseY);
+        }
+        if (showSummary) {
+            ScreenChrome.icon(graphics, Icon.OUTPUT, detailX + 8, detailTop + 32, CYAN);
+            graphics.text(font, ScreenChrome.fit(font, batchValue(product) + " / batch", detailWidth - 32),
+                    detailX + 25, detailTop + 34, CYAN, false);
+            ScreenChrome.icon(graphics, Icon.POWER, detailX + 8, detailTop + 44, CYAN);
+            graphics.text(font, ScreenChrome.fit(font, compact(energy) + " FE  ·  " + seconds(ticks) + " s", detailWidth - 32),
+                    detailX + 25, detailTop + 46, PAPER, false);
+        }
+
+        // An incomplete preview must not hide further recipe ingredients.
         List<MaterialRow> rows = materialRows(product, effective && preview.complete());
-        int pages = Math.max(1, (rows.size() + detailRows - 1) / detailRows);
+        int pages = detailRows == 0 ? 1 : Math.max(1, (rows.size() + detailRows - 1) / detailRows);
         detailPage = Math.clamp(detailPage, 0, pages - 1);
+        detailPrevious.visible = detailNext.visible = pages > 1;
         detailPrevious.active = detailPage > 0;
         detailNext.active = detailPage + 1 < pages;
-        for (int row = 0; row < detailRows && detailPage * detailRows + row < rows.size(); row++) {
-            MaterialRow material = rows.get(detailPage * detailRows + row);
-            int y = top + 143 + row * 18;
-            int color = phaseColor(material.phase());
-            graphics.fill(detailX + 7, y, detailX + 9, y + 14, color);
-            String label = (material.output() ? "+ " : "") + material.name();
-            graphics.text(font, font.plainSubstrByWidth(label, detailWidth - 22), detailX + 13, y, PAPER, false);
-            String quantities = material.output() ? "+" + compact(material.required()) + " u"
-                    : compact(material.required()) + " / " + (material.available().isPresent() ? compact(material.available().getAsLong()) : "?") + " u";
-            int quantityColor = material.output() ? color : material.available().isEmpty() ? MUTED
-                    : material.available().getAsLong() >= material.required() ? CYAN : MISSING;
-            graphics.text(font, quantities, detailX + 13, y + 9, quantityColor, false);
-            if (mouseX >= detailX + 5 && mouseX < detailX + detailWidth - 5 && mouseY >= y && mouseY < y + 18) {
-                String tooltip = material.name() + " · " + material.phase() + "\n" + material.id() + "\n"
-                        + (material.output() ? "Produces " : "Needs ") + number(material.required()) + " units"
-                        + (material.output() ? "" : "\nAvailable: " + (material.available().isPresent() ? number(material.available().getAsLong()) : "Unknown; inventory view is incomplete"));
-                graphics.setTooltipForNextFrame(Component.literal(tooltip), mouseX, mouseY);
+        int headingWidth = detailWidth - 16 - (pages > 1 ? MATERIAL_PAGER_WIDTH + 4 : 0);
+        int headingY = detailPagerY + 5;
+        graphics.fill(detailX + 7, detailPagerY - 2, detailX + detailWidth - 7, detailPagerY - 1, EDGE);
+        String materialHeading = "Materials  ·  Needed / Available";
+        if (font.width(materialHeading) > headingWidth) materialHeading = "Materials";
+        graphics.text(font, ScreenChrome.fit(font, materialHeading, headingWidth), detailX + 8, headingY, MUTED, false);
+        if (inside(mouseX, mouseY, detailX + 7, headingY - 1, headingWidth, 11)) {
+            graphics.setTooltipForNextFrame(Component.literal("Materials needed / available on the matter network\n"
+                    + "+ marks a material produced by this recipe"), mouseX, mouseY);
+        }
+        int firstRow = detailPage * detailRows;
+        for (int row = 0; row < detailRows && firstRow + row < rows.size(); row++) {
+            drawMaterial(graphics, rows.get(firstRow + row), ingredientTop + row * MATERIAL_PITCH, mouseX, mouseY);
+        }
+        if (pages > 1) {
+            drawPage(graphics, detailPage + 1, pages, detailX + detailWidth - MATERIAL_PAGER_WIDTH - 6,
+                    detailPagerY, MATERIAL_PAGER_WIDTH);
+        }
+    }
+
+    private void drawMaterial(GuiGraphicsExtractor graphics, MaterialRow material, int y, int mouseX, int mouseY) {
+        int color = phaseColor(material.phase());
+        graphics.fill(detailX + 5, y, detailX + detailWidth - 5, y + MATERIAL_PITCH - 2, INK);
+        try {
+            SubstanceIcon.draw(graphics, detailX + 8, y + 3, new SubstanceKey(SubstanceId.parse(material.id()),
+                    Phase.valueOf(material.phase().toUpperCase(Locale.ROOT))));
+        } catch (IllegalArgumentException ignored) {
+            ScreenChrome.icon(graphics, Icon.INFO, detailX + 10, y + 5, color);
+        }
+        String label = SubstanceLabels.shortLabel(material.id(), material.name());
+        String visibleLabel = ScreenChrome.fit(font, (material.output() ? "+ " : "") + label, detailWidth - 36);
+        graphics.text(font, visibleLabel, detailX + 28, y + 2, PAPER, false);
+
+        String available = material.available().isPresent() ? compact(material.available().getAsLong()) : "?";
+        String quantities = material.output() ? "+" + compact(material.required()) + " u"
+                : compact(material.required()) + " / " + available + " u";
+        int quantityColor = material.output() ? color : material.available().isEmpty() ? MUTED
+                : material.available().getAsLong() >= material.required() ? CYAN : UiPalette.WARNING;
+        graphics.text(font, ScreenChrome.fit(font, quantities, detailWidth - 36),
+                detailX + 28, y + 13, quantityColor, false);
+        if (inside(mouseX, mouseY, detailX + 5, y, detailWidth - 10, MATERIAL_PITCH - 2)) {
+            String tooltip = label + " · " + material.phase() + "\n" + material.id() + "\n"
+                    + (material.output() ? "Produces " : "Needs ") + number(material.required()) + " units";
+            if (!material.output()) {
+                tooltip += "\nAvailable: " + (material.available().isPresent() ? number(material.available().getAsLong())
+                        : "Unknown; inventory view is incomplete");
             }
+            graphics.setTooltipForNextFrame(Component.literal(tooltip), mouseX, mouseY);
         }
-        String detailPageLabel = (detailPage + 1) + " / " + pages;
-        graphics.text(font, detailPageLabel, detailX + (detailWidth - font.width(detailPageLabel)) / 2, detailPagerY + 5, MUTED, false);
-        if (mouseX >= detailX && mouseX < detailX + detailWidth && mouseY >= top + 59 && mouseY < top + 100) {
-            graphics.setTooltipForNextFrame(Component.literal(product.name() + "\n" + product.id() + "\n" + batch
-                    + (product.outputKind().equals("matter") ? "\nOutputs enter Matter Storage; icons illustrate substances" : "")
-                    + (selected ? "\nCurrently selected" : "\nPreview only; use recipe to select")), mouseX, mouseY);
-        } else if (mouseX >= detailX && mouseX < detailX + detailWidth && mouseY >= top + 100 && mouseY < top + 126) {
-            graphics.setTooltipForNextFrame(Component.literal(number(energy) + " FE · " + ticks + " ticks\n"
-                    + (effective ? "Includes the current machine upgrades" : "Base recipe values; machine upgrades may change cost and duration")
-                    + "\nSelecting a recipe does not start production"), mouseX, mouseY);
-        }
+    }
+
+    private static String batchValue(ProcessPresentation.Product product) {
+        long count = product.outputCount();
+        String unit = switch (product.outputKind()) {
+            case "fluid" -> " mB";
+            case "item" -> count == 1 ? " item" : " items";
+            default -> count == 1 ? " substance" : " substances";
+        };
+        return count + unit;
+    }
+
+    private static boolean inside(int mouseX,int mouseY,int x,int y,int width,int height) {
+        return mouseX>=x && mouseX<x+width && mouseY>=y && mouseY<y+height;
     }
 
     private List<MaterialRow> materialRows(ProcessPresentation.Product product, boolean effective) {
@@ -291,6 +379,15 @@ public final class ProcessSelectionScreen extends Screen {
     }
     private record MaterialRow(String id, String name, String phase, long required, OptionalLong available, boolean output) {}
 
+    private static String productSymbol(ProcessPresentation.Product product) {
+        return product.outputs().size() == 1
+                ? SubstanceLabels.iconLabel(product.outputs().keySet().iterator().next().id()) : "";
+    }
+
+    private static String productLabel(ProcessPresentation.Product product) {
+        return SubstanceLabels.prefixed(productSymbol(product), product.name());
+    }
+
     private static ItemStack item(String id) {
         Identifier key = Identifier.parse(id);
         return BuiltInRegistries.ITEM.containsKey(key) ? new ItemStack(BuiltInRegistries.ITEM.getValue(key)) : ItemStack.EMPTY;
@@ -305,18 +402,13 @@ public final class ProcessSelectionScreen extends Screen {
         ItemStack icon = icons.computeIfAbsent(product.id(), ignored -> {
             if (product.outputKind().equals("item")) return item(product.outputId());
             if (product.outputKind().equals("fluid")) return fluidIcon(product.outputId());
-            return product.outputs().keySet().stream().sorted().map(substanceIcons::get)
-                    .filter(java.util.Objects::nonNull).findFirst().orElse(ItemStack.EMPTY);
+            return ItemStack.EMPTY;
         });
         if (!icon.isEmpty()) graphics.item(icon, x, y);
         else {
             var key = product.outputs().keySet().stream().sorted().findFirst().orElse(null);
-            String symbol = key == null ? "?" : registry.definition(key.id()).map(SubstanceDefinition::symbol).orElse("?");
-            int color = key == null ? CYAN : phaseColor(key.phase().name().toLowerCase(Locale.ROOT));
-            graphics.fill(x + 1, y + 1, x + 15, y + 15, EDGE);
-            graphics.fill(x + 2, y + 2, x + 14, y + 14, INK);
-            symbol = font.plainSubstrByWidth(symbol, 18);
-            graphics.text(font, symbol, x + 8 - font.width(symbol) / 2, y + 4, color, false);
+            if(key!=null) SubstanceIcon.draw(graphics,x,y,key);
+            else ScreenChrome.icon(graphics,Icon.INFO,x+2,y+2,CYAN);
         }
     }
 
@@ -334,7 +426,7 @@ public final class ProcessSelectionScreen extends Screen {
         return value.isEmpty() ? value : Character.toUpperCase(value.charAt(0)) + value.substring(1);
     }
     private static int phaseColor(String phase) {
-        return switch (phase) { case "gas" -> 0xff806599; case "liquid" -> 0xff367ba0; default -> COPPER; };
+        return switch (phase) { case "gas" -> UiPalette.GAS; case "liquid" -> UiPalette.LIQUID; default -> UiPalette.WARNING; };
     }
 
     private class PanelButton extends Button {
@@ -342,29 +434,45 @@ public final class ProcessSelectionScreen extends Screen {
         PanelButton(Builder builder) { this(builder, null); }
         PanelButton(Builder builder, String visualText) { super(builder); this.visualText = visualText; }
         void background(GuiGraphicsExtractor graphics, boolean selected) {
-            int edge = selected || active && isHoveredOrFocused() ? CYAN : active ? EDGE : 0xffaaa99d;
-            graphics.fill(getX(), getY(), getX() + getWidth(), getY() + getHeight(), edge);
-            graphics.fill(getX() + 1, getY() + 1, getX() + getWidth() - 1, getY() + getHeight() - 1,
-                    selected || active && isHoveredOrFocused() ? 0xffd5e6de : PANEL);
+            ScreenChrome.raised(graphics,getX(),getY(),getWidth(),getHeight(),selected || isHoveredOrFocused(),active);
         }
+        @Override public boolean shouldTakeFocusAfterInteraction() { return visible; }
+
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-            background(graphics, false);
-            Component label = visualText == null ? getMessage() : Component.literal(visualText);
-            graphics.text(font, label, getX() + (getWidth() - font.width(label)) / 2,
-                    getY() + (getHeight() - 8) / 2, active ? PAPER : MUTED, false);
+            background(graphics,false);
+            Icon icon=switch (visualText==null?"":visualText) {
+                case "<" -> Icon.PREVIOUS;
+                case ">" -> Icon.NEXT;
+                case "Use recipe" -> Icon.CHECK;
+                case "Close" -> Icon.BACK;
+                default -> null;
+            };
+            boolean iconOnly="<".equals(visualText) || ">".equals(visualText);
+            String label=iconOnly?"":visualText==null?getMessage().getString():visualText;
+            int iconWidth=icon==null?0:label.isEmpty()?12:16;
+            label=ScreenChrome.fit(font,label,getWidth()-iconWidth-6);
+            int textWidth=font.width(label);
+            int x=getX()+(getWidth()-textWidth-iconWidth)/2;
+            if (icon!=null) ScreenChrome.icon(graphics,icon,x,getY()+(getHeight()-12)/2,active?CYAN:MUTED);
+            if (!label.isEmpty()) graphics.text(font,label,x+iconWidth,getY()+(getHeight()-8)/2,active?PAPER:MUTED,false);
         }
     }
+
     private final class ProductButton extends PanelButton {
         private ProcessPresentation.Product product;
         ProductButton(Builder builder) { super(builder); }
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
             if (product == null) return;
             background(graphics, product.id().equals(focusedId));
-            drawProductIcon(graphics, product, getX() + 6, getY() + 4);
-            if (product.id().equals(menu.snapshot().selectedId())) graphics.fill(getX() + 2, getY() + 2, getX() + 5, getY() + 5, COPPER);
-            String quantity = product.outputKind().equals("item") ? product.outputCount() > 1 ? Long.toString(product.outputCount()) : ""
-                    : product.outputKind().equals("fluid") ? "mB" : product.outputCount() > 1 ? "+" + (product.outputCount() - 1) : "";
-            if (!quantity.isEmpty()) graphics.text(font, quantity, getX() + getWidth() - 3 - font.width(quantity), getY() + 19, PAPER, false);
+            drawProductIcon(graphics, product, getX() + 7, getY() + 6);
+            boolean selected = product.id().equals(menu.snapshot().selectedId());
+            if (selected) graphics.fill(getX() + 2, getY() + 4, getX() + 4, getY() + getHeight() - 4, CYAN);
+            int textWidth = getWidth() - 34;
+            graphics.text(font, ScreenChrome.fit(font, productLabel(product), textWidth),
+                    getX() + 28, getY() + 5, PAPER, false);
+            String caption = selected ? "Selected" : batchValue(product) + " / batch";
+            graphics.text(font, ScreenChrome.fit(font, caption, textWidth),
+                    getX() + 28, getY() + 16, selected ? CYAN : MUTED, false);
         }
     }
 }

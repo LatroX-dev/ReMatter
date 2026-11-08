@@ -9,6 +9,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -20,37 +21,61 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jspecify.annotations.Nullable;
 
-/** Open machinery: placement, collision and rendering belong to the module, resources to its controller. */
+/** Connected crystal sockets; resource ownership remains exclusively with the controller. */
 public final class IndustrialModuleBlock extends Block implements EntityBlock {
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+    public static final BooleanProperty SUSPENDED = BooleanProperty.create("suspended");
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     private final IndustrialModuleKind kind;
     private final MapCodec<IndustrialModuleBlock> codec;
     private final Map<Direction, VoxelShape> shapes;
+    private final Map<Direction, VoxelShape> suspendedShapes;
 
     public IndustrialModuleBlock(IndustrialModuleKind kind, Properties properties) {
         super(properties);
         this.kind = kind;
         codec = simpleCodec(p -> new IndustrialModuleBlock(kind, p));
-        shapes = Shapes.rotateHorizontal(outline(kind));
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
+        shapes = Shapes.rotateHorizontal(outline(kind, false));
+        suspendedShapes = Shapes.rotateHorizontal(outline(kind, true));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false).setValue(SUSPENDED, false));
     }
     public IndustrialModuleKind kind() { return kind; }
     @Override protected MapCodec<? extends Block> codec() { return codec; }
-    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, ACTIVE); }
-    @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
-    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) { return shapes.get(state.getValue(FACING)); }
-    private static VoxelShape outline(IndustrialModuleKind kind) {
-        VoxelShape feet = Shapes.or(box(1, 0, 1, 3, 16, 3), box(13, 0, 1, 15, 16, 3),
-                box(1, 0, 13, 3, 16, 15), box(13, 0, 13, 15, 16, 15));
-        return switch (kind) {
-            case GRINDING_UNIT -> Shapes.or(feet, box(2, 8, 2, 14, 14, 14));
-            case SEPARATION_UNIT -> Shapes.or(feet, box(2, 6, 2, 14, 9, 14));
-            case MIXING_BASIN -> Shapes.or(feet, box(2, 1, 2, 14, 8, 14));
-            case FIELD_COIL -> Shapes.or(feet, box(3, 1, 3, 13, 14, 13));
-            case REACTION_CHAMBER -> Shapes.or(feet, box(4, 1, 4, 12, 15, 12));
-        };
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) { builder.add(FACING, ACTIVE, SUSPENDED); }
+    @Override public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        Direction face = context.getClickedFace();
+        if (face.getAxis() != Direction.Axis.Y) return null;
+        BlockPos anchor = context.getClickedPos().relative(face.getOpposite());
+        var level = context.getLevel();
+        if (!level.hasChunkAt(anchor)) return null;
+        var support = level.getBlockState(anchor);
+        boolean supported = support.is(ModContent.REACTOR_CASING.get()) || support.is(ModContent.REACTOR_GLASS.get())
+                || support.is(ModContent.MACHINE_PORT.get()) || support.isFaceSturdy(level, anchor, face, SupportType.FULL);
+        return IndustrialModuleMount.forPlacement(face, supported)
+                .map(mount -> defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite())
+                        .setValue(SUSPENDED, mount.suspended())).orElse(null);
+    }
+    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return (state.getValue(SUSPENDED) ? suspendedShapes : shapes).get(state.getValue(FACING));
+    }
+    private static VoxelShape outline(IndustrialModuleKind kind, boolean suspended) {
+        VoxelShape socket = mountedBox(suspended, 0, 0, 0, 16, 2.5, 16);
+        // All functions share the same fitting; the ceiling is its exact vertical mirror.
+        VoxelShape body = Shapes.or(
+                mountedBox(suspended, 2.7, 2.5, 2.7, 13.3, 4.8, 13.3),
+                mountedBox(suspended, 4.2, 3.6, 6.7, 5.5, 7, 9.3),
+                mountedBox(suspended, 10.5, 3.6, 6.7, 11.8, 7, 9.3),
+                mountedBox(suspended, 6.7, 3.6, 4.2, 9.3, 7, 5.5),
+                mountedBox(suspended, 6.7, 3.6, 10.5, 9.3, 7, 11.8),
+                mountedBox(suspended, 2.7, 4, 2.7, 13.3, 13.4, 13.3),
+                mountedBox(suspended, 6.2, 2.35, 1.8, 9.8, 5.15, 2.2),
+                mountedBox(suspended, 6.2, 2.35, 13.8, 9.8, 5.15, 14.2));
+        return Shapes.or(socket, body);
+    }
+    private static VoxelShape mountedBox(boolean suspended, double x1, double y1, double z1, double x2, double y2, double z2) {
+        return box(x1, suspended ? 16-y2 : y1, z1, x2, suspended ? 16-y1 : y2, z2);
     }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new IndustrialModuleBlockEntity(pos, state); }
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {

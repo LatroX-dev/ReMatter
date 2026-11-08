@@ -1,0 +1,313 @@
+package dev.latrox.rematter.content;
+
+import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.content.ChunkRevisions.Revision;
+import dev.latrox.rematter.content.preparation.PreparationTier;
+import java.lang.ref.WeakReference;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
+
+/** Loaded cable components forward FE in the caller's transaction, without storing energy. */
+@EventBusSubscriber(modid = ReMatter.MOD_ID)
+public final class MatterCablePower {
+    private static final int MAX_CACHED_CABLES = 4096;
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private static final Map<ServerLevel, NetworkCache> CACHES = new IdentityHashMap<>();
+
+    private MatterCablePower() {}
+
+    static @Nullable EnergyHandler capability(Level level, BlockPos pos, @Nullable Direction side) {
+        if (!(level instanceof ServerLevel server) || side == null) return null;
+        return new Connection(server, pos.immutable(), side);
+    }
+
+    @SubscribeEvent
+    public static void onLevelUnload(LevelEvent.Unload event) {
+        if (event.getLevel() instanceof ServerLevel server) {
+            synchronized (CACHES) {
+                CACHES.remove(server);
+            }
+        }
+    }
+
+    private static NetworkCache cache(ServerLevel level) {
+        synchronized (CACHES) {
+            return CACHES.computeIfAbsent(level, ignored -> new NetworkCache());
+        }
+    }
+
+    /** Applies the cable's physical side rules before consulting the endpoint's FE capability. */
+    static boolean allowsEndpoint(BlockState state, Direction side) {
+        if (state.getBlock() instanceof MachineBlock machine) {
+            return machine.kind().processes() && !PreparationTier.manual(machine.kind())
+                    && MatterPipeConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side, true);
+        }
+        if (state.getBlock() instanceof MachinePortBlock) {
+            return MatterPipeConnectionPolicy.acceptsPort(state.getValue(MachinePortBlock.FORMED),
+                    state.getValue(MachinePortBlock.FACING), side.getOpposite());
+        }
+        return !state.isAir();
+    }
+
+    private static @Nullable LevelChunk loaded(ServerLevel level, BlockPos pos) {
+        return level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
+    }
+
+    private static final class Connection extends SnapshotJournal<Optional<Flow>> implements EnergyHandler {
+        private final ServerLevel level;
+        private final BlockPos origin;
+        private final Direction side;
+        private Optional<Flow> flow = Optional.empty();
+
+        private Connection(ServerLevel level, BlockPos origin, Direction side) {
+            this.level = level;
+            this.origin = origin;
+            this.side = side;
+        }
+
+        @Override public long getAmountAsLong() { return 0; }
+
+        @Override public long getCapacityAsLong() {
+            // A positive insertion hint keeps senders from treating the cable as full.
+            // Actual accepted FE is bounded by the destination, and the cable stores none.
+            var chunk = loaded(level, origin);
+            return chunk != null && chunk.getBlockState(origin).getBlock() instanceof MatterPipeBlock
+                    ? Integer.MAX_VALUE : 0;
+        }
+
+        @Override public int insert(int amount, TransactionContext transaction) {
+            return forward(amount, transaction, false);
+        }
+
+        @Override public int extract(int amount, TransactionContext transaction) {
+            return forward(amount, transaction, true);
+        }
+
+        private int forward(int amount, TransactionContext transaction, boolean extract) {
+            TransferPreconditions.checkNonNegative(amount);
+            if (amount == 0 || !level.getServer().isSameThread()) return 0;
+            var cache = cache(level);
+            // An adjacent foreign energy proxy may forward straight back into this network.
+            if (cache.routing) return 0;
+            cache.routing = true;
+            try {
+                var adjacent = origin.relative(side);
+                var incomingChunk = loaded(level, adjacent);
+                if (incomingChunk == null) return 0;
+                var incoming = incomingChunk.getBlockState(adjacent);
+                if (incoming.getBlock() instanceof MatterPipeBlock
+                        || !incoming.isAir() && !allowsEndpoint(incoming, side.getOpposite())) return 0;
+
+                var component = cache.component(level, origin);
+                if (component.endpoints == null) return 0;
+                var endpoints = component.endpoints.active();
+                if (endpoints.isEmpty()) return 0;
+                int remaining = amount;
+                int count = endpoints.size();
+                int start = Math.floorMod(level.getGameTime() + origin.asLong(), count);
+                for (int i = 0; i < count && remaining > 0; i++) {
+                    var endpoint = endpoints.get((start + i) % count);
+                    if (endpoint.position.equals(adjacent) || extract && endpoint.rematterMachine) continue;
+                    for (var face : endpoint.faces) {
+                        var handler = face.capability.getCapability();
+                        if (handler == null || handler instanceof Connection) continue;
+                        int moved = extract ? handler.extract(remaining, transaction) : handler.insert(remaining, transaction);
+                        if (moved == 0) continue;
+                        remaining -= moved;
+                        if (flow.isEmpty() && MatterCableActivity.canTrackEnergy(level)) {
+                            updateSnapshots(transaction);
+                            flow = Optional.of(new Flow(component, face.cable, extract));
+                        }
+                        break;
+                    }
+                }
+                return amount - remaining;
+            } finally {
+                cache.routing = false;
+            }
+        }
+
+        @Override protected Optional<Flow> createSnapshot() { return flow; }
+        @Override protected void revertToSnapshot(Optional<Flow> snapshot) { flow = snapshot; }
+
+        @Override protected void onRootCommit(Optional<Flow> originalState) {
+            var committed = flow;
+            flow = Optional.empty();
+            if (committed.isEmpty() || !MatterCableActivity.canTrackEnergy(level)) return;
+            var activity = committed.get();
+            if (!activity.component.current(level)) return;
+            var path = activity.component.path(origin, activity.otherCable);
+            if (activity.extract) Collections.reverse(path);
+            MatterCableActivity.energy(level, path);
+        }
+    }
+
+    private record Flow(Component component, BlockPos otherCable, boolean extract) {}
+    private record Endpoint(BlockPos position, boolean rematterMachine, List<Face> faces) {}
+    private record Face(BlockPos cable, BlockCapabilityCache<EnergyHandler, @Nullable Direction> capability) {}
+
+    private static final class Endpoints {
+        private final List<Endpoint> candidates = new ArrayList<>();
+        private @Nullable List<Endpoint> active;
+
+        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides, boolean rematterMachine) {
+            List<Face> faces = sides.stream().map(side -> new Face(side.cable,
+                    BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, position, side.outward,
+                            () -> true, this::invalidate))).toList();
+            candidates.add(new Endpoint(position, rematterMachine, faces));
+        }
+
+        private void invalidate() { active = null; }
+
+        private List<Endpoint> active() {
+            if (active != null) return active;
+            var found = new ArrayList<Endpoint>();
+            for (var candidate : candidates) {
+                var faces = candidate.faces.stream().filter(face -> face.capability.getCapability() != null).toList();
+                if (!faces.isEmpty()) found.add(new Endpoint(candidate.position, candidate.rematterMachine, faces));
+            }
+            active = List.copyOf(found);
+            return active;
+        }
+    }
+
+    private static final class NetworkCache {
+        private final Map<BlockPos, Component> indexed = new HashMap<>();
+        private boolean routing;
+
+        private Component component(ServerLevel level, BlockPos origin) {
+            var cached = indexed.get(origin);
+            if (cached != null && cached.current(level)) return cached;
+            var component = new Discovery(level).scan(origin);
+            if (indexed.size() + component.cables.size() > MAX_CACHED_CABLES) indexed.clear();
+            component.cables.forEach(position -> indexed.put(position, component));
+            return component;
+        }
+    }
+
+    private record Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkStamp> stamps) {
+        private boolean current(ServerLevel level) {
+            return stamps.stream().allMatch(stamp -> stamp.matches(level));
+        }
+
+        private List<BlockPos> path(BlockPos source, BlockPos target) {
+            var previous = new HashMap<BlockPos, BlockPos>();
+            var queue = new ArrayDeque<BlockPos>();
+            previous.put(source, source);
+            queue.add(source);
+            while (!queue.isEmpty() && !previous.containsKey(target)) {
+                BlockPos position = queue.removeFirst();
+                for (Direction direction : DIRECTIONS) {
+                    var next = position.relative(direction);
+                    if (cables.contains(next) && previous.putIfAbsent(next, position) == null) queue.add(next);
+                }
+            }
+            var result = new ArrayList<BlockPos>();
+            if (!previous.containsKey(target)) return result;
+            for (BlockPos position = target; !position.equals(source); position = previous.get(position)) {
+                result.add(position);
+            }
+            result.add(source);
+            Collections.reverse(result);
+            return result;
+        }
+    }
+
+    private record ChunkStamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, @Nullable Revision revision) {
+        private boolean matches(ServerLevel level) {
+            var current = level.getChunkSource().getChunkNow(x, z);
+            if (chunk == null) return current == null;
+            return current != null && current == chunk.get() && revision != null && revision.stable()
+                    && revision.equals(ChunkRevisions.current(current));
+        }
+    }
+
+    private record EndpointSide(BlockPos cable, Direction outward) {}
+
+    private static final class Discovery {
+        private final ServerLevel level;
+        private final Map<Long, ChunkStamp> stamps = new HashMap<>();
+        private final Map<Long, LevelChunk> loadedChunks = new HashMap<>();
+        private final Map<BlockPos, BlockState> observed = new HashMap<>();
+
+        private Discovery(ServerLevel level) { this.level = level; }
+
+        private Component scan(BlockPos origin) {
+            if (!(read(origin).getBlock() instanceof MatterPipeBlock pipe)) return result(Set.of(), null);
+            int limit = pipe.tier().networkLimit();
+            var cables = new LinkedHashSet<BlockPos>();
+            var ends = new LinkedHashMap<BlockPos, List<EndpointSide>>();
+            var queue = new ArrayDeque<BlockPos>();
+            cables.add(origin);
+            queue.add(origin);
+            while (!queue.isEmpty()) {
+                var position = queue.removeFirst();
+                for (Direction direction : DIRECTIONS) {
+                    var next = position.relative(direction);
+                    var state = read(next);
+                    if (state.getBlock() instanceof MatterPipeBlock cable) {
+                        if (!cables.add(next)) continue;
+                        limit = Math.min(limit, cable.tier().networkLimit());
+                        if (cables.size() > limit) return result(cables, null);
+                        queue.add(next);
+                    } else if (allowsEndpoint(state, direction.getOpposite())) {
+                        ends.computeIfAbsent(next, ignored -> new ArrayList<>()).add(new EndpointSide(position, direction.getOpposite()));
+                    }
+                }
+            }
+            var endpoints = new Endpoints();
+            ends.forEach((position, sides) -> {
+                var block = observed.get(position).getBlock();
+                endpoints.add(level, position, sides, block instanceof MachineBlock || block instanceof MachinePortBlock);
+            });
+            return result(cables, endpoints);
+        }
+
+        private Component result(Set<BlockPos> cables, @Nullable Endpoints endpoints) {
+            var component = new Component(Set.copyOf(cables), endpoints, List.copyOf(stamps.values()));
+            return component.current(level) ? component : new Component(Set.of(), null, List.of());
+        }
+
+        private BlockState read(BlockPos pos) {
+            return observed.computeIfAbsent(pos, position -> {
+                int x = position.getX() >> 4;
+                int z = position.getZ() >> 4;
+                long key = (long) x << 32 | (z & 0xffffffffL);
+                stamps.computeIfAbsent(key, ignored -> {
+                    var chunk = level.getChunkSource().getChunkNow(x, z);
+                    if (chunk == null) return new ChunkStamp(x, z, null, null);
+                    loadedChunks.put(key, chunk);
+                    return new ChunkStamp(x, z, new WeakReference<>(chunk), ChunkRevisions.current(chunk));
+                });
+                var chunk = loadedChunks.get(key);
+                return chunk == null ? Blocks.AIR.defaultBlockState() : chunk.getBlockState(position);
+            });
+        }
+    }
+}

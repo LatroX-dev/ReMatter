@@ -1,5 +1,8 @@
 package dev.latrox.rematter.compat.jei;
 
+import dev.latrox.rematter.client.UiPalette;
+import dev.latrox.rematter.client.ScreenChrome;
+import dev.latrox.rematter.client.ScreenChrome.Icon;
 import java.util.List;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
@@ -59,33 +62,52 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryDisplay> {
 
     @Override
     public void draw(ChemistryDisplay recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
-        var font = Minecraft.getInstance().font;
-        graphics.text(font, "Input", 6, 4, 0xFF404040, false);
-        graphics.text(font, "Output", 103, 4, 0xFF404040, false);
-        graphics.text(font, "→", 85, 30, 0xFF178C8B, false);
-        graphics.text(font, recipe.energy() + " FE · " + recipe.ticks() + " ticks", 6, 104, 0xFF404040, false);
-        String permission = recipe.kind() == ChemistryDisplay.Kind.DECOMPOSITION
-                ? (recipe.synthesisAllowed() ? "Synthesis allowed" : "Decomposition only")
-                : recipe.kind() == ChemistryDisplay.Kind.SYNTHESIS ? "Approved material output" : "Conserves constituent elements";
-        graphics.text(font, permission, 6, 117, 0xFF267D73, false);
-        graphics.text(font, "Hover matter for exact amounts", 6, 130, 0xFF666666, false);
+        ScreenChrome.panel(graphics,0,0,getWidth(),getHeight());
+        ScreenChrome.inset(graphics,4,99,getWidth()-8,37);
+        var font=Minecraft.getInstance().font;
+        ScreenChrome.icon(graphics,Icon.INPUT,6,3,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,Icon.OUTPUT,103,3,UiPalette.ACCENT);
+        graphics.text(font,"Input",22,5,UiPalette.TEXT,false);
+        graphics.text(font,"Output",119,5,UiPalette.TEXT,false);
+        ScreenChrome.icon(graphics,Icon.NEXT,83,29,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,Icon.POWER,6,101,UiPalette.ACCENT);
+        graphics.text(font,font.plainSubstrByWidth(recipe.energy()+" FE",148),22,103,UiPalette.TEXT,false);
+        ScreenChrome.icon(graphics,Icon.TIME,6,119,UiPalette.ACCENT);
+        graphics.text(font,font.plainSubstrByWidth(recipe.ticks()+" ticks",132),22,121,UiPalette.MUTED,false);
+        ScreenChrome.icon(graphics,Icon.INFO,160,119,UiPalette.ACCENT);
     }
 
     @Override
     public void getTooltip(ITooltipBuilder tooltip, ChemistryDisplay recipe, IRecipeSlotsView slots, double mouseX, double mouseY) {
-        if (mouseY < 103) return;
-        tooltip.add(Component.literal(recipe.energy() + " FE per operation; " + recipe.ticks() + " ticks before upgrades"));
-        if (recipe.itemCount() > 1) tooltip.add(Component.literal("Exact batch: " + recipe.itemCount() + " items per operation"));
-        if (recipe.fluidInput() != null) tooltip.add(Component.literal("Fluid consumed: " + recipe.fluidInput().amount() + " mB " + recipe.fluidInput().fluidId()));
-        if (recipe.fluidOutput() != null) tooltip.add(Component.literal("Fluid produced: " + recipe.fluidOutput().amount() + " mB " + recipe.fluidOutput().fluidId()));
-        if (!recipe.inputs().isEmpty()) {
-            tooltip.add(Component.literal("Matter consumed:"));
-            recipe.inputs().forEach(value -> tooltip.add(value.description()));
+        if (inside(mouseX,mouseY,6,101)) {
+            tooltip.add(Component.literal(recipe.energy()+" FE per operation, before upgrades"));
+        } else if (inside(mouseX,mouseY,6,119)) {
+            tooltip.add(Component.literal(recipe.ticks()+" ticks before upgrades"));
+        } else if (inside(mouseX,mouseY,6,3)) {
+            tooltip.add(Component.literal("Input"));
+            if (recipe.fluidInput()!=null) tooltip.add(Component.literal("Fluid consumed: "+recipe.fluidInput().amount()+" mB "+recipe.fluidInput().fluidId()));
+            if (!recipe.inputs().isEmpty()) {
+                tooltip.add(Component.literal("Matter consumed:"));
+                recipe.inputs().forEach(value -> tooltip.add(value.description()));
+            }
+        } else if (inside(mouseX,mouseY,103,3)) {
+            tooltip.add(Component.literal("Output"));
+            if (recipe.fluidOutput()!=null) tooltip.add(Component.literal("Fluid produced: "+recipe.fluidOutput().amount()+" mB "+recipe.fluidOutput().fluidId()));
+            if (!recipe.outputs().isEmpty()) {
+                tooltip.add(Component.literal("Matter produced:"));
+                recipe.outputs().forEach(value -> tooltip.add(value.description()));
+            }
+        } else if (inside(mouseX,mouseY,160,119)) {
+            String permission=recipe.kind()==ChemistryDisplay.Kind.DECOMPOSITION
+                    ? (recipe.synthesisAllowed()?"Synthesis allowed":"Decomposition only")
+                    : recipe.kind()==ChemistryDisplay.Kind.SYNTHESIS?"Approved material output":"Conserves constituent elements";
+            tooltip.add(Component.literal(permission));
+            if (recipe.itemCount()>1) tooltip.add(Component.literal("Exact batch: "+recipe.itemCount()+" items per operation"));
+            tooltip.add(Component.literal("Hover an ingredient for its exact amount"));
         }
-        if (!recipe.outputs().isEmpty()) {
-            tooltip.add(Component.literal("Matter produced:"));
-            recipe.outputs().forEach(value -> tooltip.add(value.description()));
-        }
+    }
+    private static boolean inside(double mouseX,double mouseY,int x,int y) {
+        return mouseX>=x && mouseX<x+12 && mouseY>=y && mouseY<y+12;
     }
 
     @Override public Identifier getIdentifier(ChemistryDisplay recipe) {

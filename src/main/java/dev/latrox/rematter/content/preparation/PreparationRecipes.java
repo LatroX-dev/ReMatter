@@ -54,6 +54,9 @@ public final class PreparationRecipes {
         public Entry{Objects.requireNonNull(id);Objects.requireNonNull(recipe);}
         public Ingredient primary(){return recipe.primary();} public Optional<Ingredient> secondary(){return recipe.secondary();}
         public ItemStack result(){return recipe.result();} public int energy(){return recipe.energy();} public int ticks(){return recipe.ticks();}
-        public int minimumTier(){return recipe.minimumTier();}
+        public int minimumTier(){return recipe.minimumTier();} public String process(){return recipe.process();}
+        public boolean networkRecipe(){return recipe.networkRecipe();}
+        public Optional<Ingredient> tertiary(){return recipe.tertiary();}
+        public int primaryCount(){return recipe.primaryCount();} public int secondaryCount(){return recipe.secondaryCount();} public int tertiaryCount(){return recipe.tertiaryCount();}
     }
 }

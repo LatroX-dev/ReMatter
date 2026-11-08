@@ -41,6 +41,7 @@ public final class MatterCellItem extends Item {
             var definition=registry.definition(entry.getKey().id()).orElse(null);
             Component name=definition==null?Component.literal(entry.getKey().id().toString())
                     :Component.translatableWithFallback(definition.translationKey(),entry.getKey().id().toString());
+            if (definition != null && !definition.symbol().isBlank()) name = name.copy().append(" (" + definition.symbol().strip() + ")");
             tooltip.accept(name.copy().append(" · "+entry.getKey().phase().name().toLowerCase(java.util.Locale.ROOT)+" · "+entry.getValue()+" u"));
         });
         if(matter.typeCount()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",matter.typeCount()-3));

@@ -28,6 +28,37 @@ class ChemicalTransfersTest {
     private static final int OXYGEN_INDEX = 1;
     private static final int VAPOR_INDEX = 2;
 
+    @Test void sixCellChemicalTransactionsRollbackEveryBayAndKeepUnrelatedReservations() {
+        var cells = new java.util.ArrayList<MatterInventory>();
+        for (int bay = 0; bay < 6; bay++) { var cell = new MatterInventory(100, 2); cell.insert(HYDROGEN, 50); cells.add(cell); }
+        var token = cells.get(4).reserve(Map.of(HYDROGEN, 40L), Map.of()).orElseThrow();
+        var store = new dev.latrox.rematter.chemistry.MatterNetworkInventory(cells);
+        var before = store.snapshot(); var commits = new AtomicInteger();
+        var handler = new ChemicalTransfers(() -> store, () -> true, key -> true, commits::incrementAndGet);
+        try (var outer = Transaction.openRoot()) {
+            assertEquals(260, handler.extract(HYDROGEN_INDEX, "mekanism:hydrogen", 500, outer));
+            try (var inner = Transaction.open(outer)) {
+                assertEquals(560, handler.insert(OXYGEN_INDEX, "mekanism:oxygen", 1_000, inner)); inner.commit();
+            }
+        }
+        assertEquals(before, store.snapshot()); assertEquals(0, commits.get());
+        assertTrue(cells.get(4).reservation(token).isPresent());
+    }
+    @Test void driveChemicalInsertionSkipsTypeFullBaysAndMemberReplacementCannotJoinAnOpenTransaction() {
+        var fullType = new MatterInventory(1_000, 1); fullType.insert(COPPER, 1);
+        var open = new MatterInventory(100, 1);
+        var original = new dev.latrox.rematter.chemistry.MatterNetworkInventory(java.util.List.of(fullType, open));
+        var current = new AtomicReference<dev.latrox.rematter.chemistry.MatterStore>(original);
+        var handler = new ChemicalTransfers(current::get, () -> true, key -> true, () -> {});
+        try (var tx = Transaction.openRoot()) {
+            assertEquals(100, handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 1_000, tx));
+            assertEquals(0, fullType.amount(HYDROGEN));
+            current.set(new dev.latrox.rematter.chemistry.MatterNetworkInventory(java.util.List.of(fullType, new MatterInventory(100, 1))));
+            assertEquals(0, handler.insert(HYDROGEN_INDEX, "mekanism:hydrogen", 100, tx));
+        }
+        assertEquals(0, open.total()); assertEquals(1, fullType.total()); assertEquals(1, current.get().total());
+    }
+
     @Test
     void mappingUsesOnlyExactRegisteredIdsWithoutSteamOrNitrogenAliases() {
         assertEquals(Set.of("mekanism:hydrogen", "mekanism:oxygen", "mekanism:water_vapor", "mekanism:chlorine",

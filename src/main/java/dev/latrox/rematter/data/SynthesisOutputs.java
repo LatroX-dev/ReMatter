@@ -5,16 +5,20 @@ import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SynthesisCategory;
 import dev.latrox.rematter.content.MatterCellItem;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.material.FlowingFluid;
 
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Function;
 
 /** Additional checks against real item types, beyond the explicit chemistry allowlist. */
 final class SynthesisOutputs {
@@ -24,16 +28,20 @@ final class SynthesisOutputs {
             "sword", "swords", "pickaxe", "axe", "shovel", "hoe", "helmet", "chestplate",
             "leggings", "boots", "armor", "armour", "motor", "rotor", "turbine",
             "bricks", "stairs", "slab", "wall", "button");
+    private static final Set<String> PROCESSED_COMPONENTS = Set.of(
+            "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath");
 
     private SynthesisOutputs() {}
 
-    static void validate(ChemistryRegistry registry) {
+    static void validate(ChemistryRegistry registry, Function<Item, DataComponentMap> itemDefaults) {
         registry.profiles().forEach(profile -> {
             Identifier id = Identifier.parse(profile.itemId());
             if (!BuiltInRegistries.ITEM.containsKey(id) || profile.itemId().equals("minecraft:air")) {
                 reject(profile.itemId(), "material profile needs a registered item");
             }
-            if (profile.itemCount() > BuiltInRegistries.ITEM.getValue(id).getDefaultInstance().getMaxStackSize()) {
+            Item item = BuiltInRegistries.ITEM.getValue(id);
+            var stack = new ItemStack(Holder.direct(item, itemDefaults.apply(item)), 1);
+            if (profile.itemCount() > stack.getMaxStackSize()) {
                 reject(profile.itemId(), "material batch exceeds the actual item stack limit");
             }
         });
@@ -66,7 +74,7 @@ final class SynthesisOutputs {
             }
             Item item = BuiltInRegistries.ITEM.getValue(id);
             if (item instanceof MatterCellItem) reject(name, "storage cells are manufactured containers, not raw materials");
-            var components = item.components();
+            var components = itemDefaults.apply(item);
             if (components.has(DataComponents.TOOL) || components.has(DataComponents.WEAPON)
                     || components.has(DataComponents.MAX_DAMAGE) || components.has(DataComponents.EQUIPPABLE)
                     || components.has(DataComponents.CONTAINER) || components.has(DataComponents.BUNDLE_CONTENTS)
@@ -78,7 +86,10 @@ final class SynthesisOutputs {
                 reject(name, "machines and block entities cannot be synthesized");
             }
             if (Arrays.stream(id.getPath().split("[_/.-]")).anyMatch(MANUFACTURED_PARTS::contains)
-                    || name.equals("minecraft:nether_star") || name.equals("rematter:matrix_cluster")) {
+                    || PROCESSED_COMPONENTS.contains(name)
+                    || (id.getNamespace().equals("rematter") && id.getPath().endsWith("_matrix_crystal"))
+                    || name.equals("minecraft:nether_star") || name.equals("rematter:matrix_cluster")
+                    || name.equals("rematter:cell_housing")) {
                 reject(name, "manufactured components and special loot are outside the synthesis catalogue");
             }
         });

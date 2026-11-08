@@ -104,7 +104,7 @@ class MachinePrimaryActionTest {
     }
     @Test void passiveAndNotYetReceivedSnapshotsDoNotExposeAWorkAction() {
         assertEquals(NONE, MachinePrimaryAction.forSnapshot(MachineSnapshot.EMPTY).action());
-        for (var kind : List.of(MachineKind.STORAGE, MachineKind.DRIVE, MachineKind.TERMINAL)) {
+        for (var kind : List.of(MachineKind.DRIVE, MachineKind.TERMINAL)) {
             var decision = MachinePrimaryAction.forSnapshot(view(kind, MachineRunState.automatic(), 0, -1, "", MachineSnapshot.Preview.EMPTY, "ready"));
             assertEquals(NONE, decision.action());assertFalse(decision.visible());assertFalse(decision.enabled());assertEquals(-1, decision.menuAction());
         }

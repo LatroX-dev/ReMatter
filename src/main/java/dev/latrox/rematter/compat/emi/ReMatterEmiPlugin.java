@@ -8,10 +8,12 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.Bounds;
 import dev.emi.emi.runtime.EmiReloadManager;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.ProcessType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.client.MachineScreen;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.compat.PreparationDisplay;
@@ -60,6 +62,10 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     }
 
     @Override public void register(EmiRegistry registry) {
+        registry.addExclusionArea(MachineScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
         ChemistryRegistry catalogue = ClientChemistry.current();
         displayed = catalogue;
         displayedPreparation = PreparationRecipes.clientRecipes();

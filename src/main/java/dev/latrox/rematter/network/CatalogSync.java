@@ -16,7 +16,8 @@ public final class CatalogSync {
     private CatalogSync() {}
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("6").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
+        // Reject older peers before vanilla recipe sync decodes the expanded preparation serializer.
+        event.registrar("7").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
                 ClientChemistry.accept(CatalogWireCodec.decode(payload.bytes)));
     }
 

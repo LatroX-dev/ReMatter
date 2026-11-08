@@ -1,6 +1,7 @@
 package dev.latrox.rematter.compat.jade;
 
 import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.MatterPipeBlock;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import snownee.jade.api.Accessor;
@@ -8,6 +9,7 @@ import snownee.jade.api.IWailaClientRegistration;
 import snownee.jade.api.IWailaCommonRegistration;
 import snownee.jade.api.IWailaPlugin;
 import snownee.jade.api.WailaPlugin;
+import snownee.jade.api.view.EnergyView;
 import snownee.jade.api.view.IServerExtensionProvider;
 import snownee.jade.api.view.ViewGroup;
 
@@ -15,6 +17,8 @@ import snownee.jade.api.view.ViewGroup;
 @WailaPlugin
 public final class ReMatterJadePlugin implements IWailaPlugin {
     static final Identifier STATUS = id("machine_status");
+    static final Identifier CABLE = id("cable");
+    static final Identifier PORT = id("port");
     static final Identifier ITEMS = id("private_items");
     static final Identifier FLUIDS = id("private_fluids");
     static final Identifier ENERGY = id("private_energy");
@@ -27,7 +31,10 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
         // An empty (not null) result also prevents fallback readers from leaking a locked machine's contents.
         registration.registerItemStorage(new PrivateStorage<>(ITEMS), MachineBlockEntity.class);
         registration.registerFluidStorage(new PrivateStorage<>(FLUIDS), MachineBlockEntity.class);
-        registration.registerEnergyStorage(new PrivateStorage<>(ENERGY), MachineBlockEntity.class);
+        var energy = new PrivateStorage<EnergyView.Data>(ENERGY);
+        registration.registerEnergyStorage(energy, MachineBlockEntity.class);
+        // The cable forwards FE; its API capacity hint must not look like a battery in Jade.
+        registration.registerEnergyStorage(energy, MatterPipeBlock.class);
         registration.registerProgress(new PrivateStorage<>(PROGRESS), MachineBlockEntity.class);
     }
 

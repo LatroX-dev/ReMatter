@@ -6,32 +6,57 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.content.preparation.PreparationRecipe;
+import dev.latrox.rematter.mixin.ReloadableServerResourcesAccessor;
 import dev.latrox.rematter.network.CatalogWireCodec;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
+import net.neoforged.neoforge.resource.VanillaServerListeners;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 /** Builds and validates a complete immutable catalogue before publishing a reload. */
 public final class ChemistryData extends SimplePreparableReloadListener<ChemistryRegistry> {
     private static final int MAX_DOCUMENT_CHARS = 262_144;
+    private static final Identifier RELOAD_ID = Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "chemistry");
     private static volatile ChemistryRegistry current = BuiltinChemistry.create();
+    private final Map<Item, DataComponentMap> itemDefaults;
+    private final RecipeManager recipes;
+
+    private ChemistryData(Map<Item, DataComponentMap> itemDefaults, RecipeManager recipes) {
+        this.itemDefaults = Map.copyOf(itemDefaults);
+        this.recipes = recipes;
+    }
 
     public static ChemistryRegistry current() {
         return current;
     }
 
     public static void register(AddServerReloadListenersEvent event) {
-        event.addListener(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "chemistry"), new ChemistryData());
+        var resources = (ReloadableServerResourcesAccessor) event.getServerResources();
+        var itemDefaults = new HashMap<Item, DataComponentMap>();
+        for (var pending : resources.rematter$getPendingComponents()) {
+            if (pending.key().equals(Registries.ITEM)) {
+                pending.forEach((holder, components) -> itemDefaults.put((Item) holder.value(), components));
+                break;
+            }
+        }
+        event.addListener(RELOAD_ID, new ChemistryData(itemDefaults, event.getServerResources().getRecipeManager()));
+        event.addDependency(VanillaServerListeners.RECIPES, RELOAD_ID);
     }
 
     @Override
@@ -129,20 +154,33 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         processes.values().forEach(builder::addProcess);
         synthesis.forEach(builder::allowSynthesis);
         ChemistryRegistry result = builder.build();
-        SynthesisOutputs.validate(result);
+        SynthesisOutputs.validate(result, this::defaultsFor);
         CatalogWireCodec.encode(result);
         return result;
     }
 
     @Override
     protected void apply(ChemistryRegistry validated, ResourceManager manager, ProfilerFiller profiler) {
+        for (var holder : recipes.getRecipes()) {
+            if (holder.value() instanceof PreparationRecipe preparation) {
+                try {
+                    preparation.validateOutput(defaultsFor(preparation.outputItem()));
+                } catch (IllegalArgumentException error) {
+                    throw new IllegalArgumentException("Invalid preparation result in " + holder.id().identifier(), error);
+                }
+            }
+        }
         current = validated;
         ReMatter.LOGGER.info("Loaded {} substances, {} material profiles, and {} chemical processes",
                 validated.substances().size(), validated.profiles().size(), validated.processes().size());
     }
 
+    private DataComponentMap defaultsFor(Item item) {
+        return Objects.requireNonNull(itemDefaults.get(item), () -> "Missing reload item components for " + item);
+    }
+
     private static void readDirectory(ResourceManager manager, String directory, BiConsumer<Identifier, JsonObject> consume) {
-        Map<Identifier, Resource> resources = new TreeMap<>(manager.listResources(directory, id -> id.getPath().endsWith(".json")));
+        Map<Identifier, List<Resource>> resources = new TreeMap<>(manager.listResourceStacks(directory, id -> id.getPath().endsWith(".json")));
         if (resources.size() > ChemistryRegistry.MAX_SYNTHESIS_ENTRIES) {
             throw new IllegalArgumentException("Too many chemistry documents in " + directory);
         }
@@ -150,22 +188,47 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             Identifier source = entry.getKey();
             String path = source.getPath().substring(directory.length() + 1, source.getPath().length() - 5);
             Identifier id = Identifier.fromNamespaceAndPath(source.getNamespace(), path);
-            try (Reader reader = entry.getValue().openAsReader()) {
-                JsonObject json = JsonParser.parseString(readBounded(reader)).getAsJsonObject();
-                if (json.has("required_mod") && !ModList.get().isLoaded(string(json, "required_mod"))) {
-                    continue;
+            // A conditional pack override falls through to the next applicable definition.
+            for (Resource resource : entry.getValue().reversed()) {
+                try (Reader reader = resource.openAsReader()) {
+                    JsonObject json = JsonParser.parseString(readBounded(reader)).getAsJsonObject();
+                    if (!prerequisitesMet(directory, json, ModList.get()::isLoaded,
+                            item -> BuiltInRegistries.ITEM.containsKey(Identifier.parse(item)),
+                            fluid -> BuiltInRegistries.FLUID.containsKey(Identifier.parse(fluid)))) continue;
+                    if (positiveLong(json, "schema_version") != 1) {
+                        throw new IllegalArgumentException("Unsupported chemistry schema version");
+                    }
+                    consume.accept(id, json);
+                    break;
+                } catch (RuntimeException | IOException error) {
+                    throw new IllegalArgumentException("Invalid ReMatter data in " + source + ": " + error.getMessage(), error);
                 }
-                if (json.has("required_item") && !BuiltInRegistries.ITEM.containsKey(Identifier.parse(string(json, "required_item")))) {
-                    continue;
-                }
-                if (positiveLong(json, "schema_version") != 1) {
-                    throw new IllegalArgumentException("Unsupported chemistry schema version");
-                }
-                consume.accept(id, json);
-            } catch (RuntimeException | IOException error) {
-                throw new IllegalArgumentException("Invalid ReMatter data in " + source + ": " + error.getMessage(), error);
             }
         }
+    }
+
+    static boolean prerequisitesMet(String directory, JsonObject json, Predicate<String> modLoaded,
+                                    Predicate<String> itemRegistered, Predicate<String> fluidRegistered) {
+        String requiredMod = json.has("required_mod") ? string(json, "required_mod") : null;
+        if (requiredMod != null && !modLoaded.test(requiredMod)) return false;
+        if (json.has("required_item") && !itemRegistered.test(string(json, "required_item"))) return false;
+        if (json.has("required_fluid") && !fluidRegistered.test(string(json, "required_fluid"))) return false;
+        if (requiredMod == null || requiredMod.equals(ReMatter.MOD_ID) || requiredMod.equals("minecraft") || disabled(json)) return true;
+
+        return switch (directory) {
+            case "rematter/material_profile" -> targetAvailable(requiredMod, string(json, "item"), itemRegistered);
+            case "rematter/fluid_profile" -> targetAvailable(requiredMod, string(json, "fluid"), fluidRegistered);
+            case "rematter/synthesis" -> switch (enumValue(SynthesisCategory.class, string(json, "category"))) {
+                case RAW_MATERIAL, NATURAL_MATERIAL -> targetAvailable(requiredMod, string(json, "item"), itemRegistered);
+                case FLUID -> targetAvailable(requiredMod, string(json, "item"), fluidRegistered);
+                default -> true;
+            };
+            default -> true;
+        };
+    }
+
+    private static boolean targetAvailable(String requiredMod, String target, Predicate<String> registered) {
+        return !Identifier.parse(target).getNamespace().equals(requiredMod) || registered.test(target);
     }
 
     private static String readBounded(Reader reader) throws IOException {

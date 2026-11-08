@@ -1,7 +1,9 @@
 package dev.latrox.rematter.compat.mekanism;
 
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.content.AutomationResourceHandler;
 import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.ModContent;
 import mekanism.api.MekanismAPI;
 import mekanism.api.chemical.ChemicalResource;
@@ -58,8 +60,14 @@ public final class MekanismCompat {
             // unloaded worlds through the capability provider's cache.
             Map<MachineBlockEntity, MekanismChemicalHandler> handlers = new WeakHashMap<>();
             event.registerBlockEntity(capability, ModContent.MACHINE_ENTITY.get(), (machine, side) -> {
-                if (side == null || !allowed(machine)) return null;
-                return handlers.computeIfAbsent(machine, owner -> handler(owner, registeredResources, registeredMappings));
+                if (side == null || !allowed(machine) || !machine.allowsPort(side, MachinePortMode.CHEMICAL)) return null;
+                var delegate = handlers.computeIfAbsent(machine, owner -> handler(owner, registeredResources, registeredMappings));
+                var reference = new WeakReference<>(machine);
+                var permitted = (java.util.function.BooleanSupplier) () -> {
+                    var owner = reference.get();
+                    return owner != null && owner.allowsPort(side, MachinePortMode.CHEMICAL);
+                };
+                return new AutomationResourceHandler<>(delegate, permitted, permitted, delegate.size(), ChemicalResource.EMPTY);
             });
             ReMatter.LOGGER.info("Mekanism chemical integration registered {} exact mappings; each requires its chemistry definition (Version Locked 26.1.2-2.11 API)", registeredMappings.size());
         } catch (LinkageError incompatibleApi) {
@@ -73,7 +81,7 @@ public final class MekanismCompat {
         ChemicalTransfers transfers = new ChemicalTransfers(
                 () -> {
                     MachineBlockEntity current = reference.get();
-                    return current == null ? null : current.matterInventory();
+                    return current == null ? null : current.matterStore();
                 },
                 () -> allowed(reference.get()),
                 key -> ReMatter.chemistry().isKnown(key),

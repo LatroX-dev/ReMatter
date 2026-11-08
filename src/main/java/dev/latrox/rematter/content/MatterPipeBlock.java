@@ -6,6 +6,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
@@ -14,34 +16,87 @@ import net.minecraft.world.level.block.PipeBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
-/** Six-way visual connections follow the same block kinds as the matter network. */
+/** Six-way visual connections respect compact endpoints and the exterior of formed ports. */
 public final class MatterPipeBlock extends PipeBlock {
     public static final MapCodec<MatterPipeBlock> CODEC = simpleCodec(MatterPipeBlock::new);
+    private static final VoxelShape JUNCTION = Block.cube(6);
+    public enum Tier {
+        BASIC(256), REINFORCED(384), RESONANT(512);
+
+        private final int networkLimit;
+        Tier(int networkLimit) { this.networkLimit = networkLimit; }
+        public int networkLimit() { return networkLimit; }
+    }
+    private final Tier tier;
 
     public MatterPipeBlock(Properties properties) {
-        super(6, properties);
+        this(Tier.BASIC, properties);
+    }
+    public MatterPipeBlock(Tier tier, Properties properties) {
+        super(4, properties);
+        this.tier = tier;
         BlockState state = stateDefinition.any();
         for (var property : PROPERTY_BY_DIRECTION.values()) state = state.setValue(property, false);
         registerDefaultState(state);
     }
-    @Override protected MapCodec<MatterPipeBlock> codec() { return CODEC; }
+    public Tier tier() { return tier; }
+    @Override protected MapCodec<MatterPipeBlock> codec() {
+        return tier == Tier.BASIC ? CODEC : simpleCodec(properties -> new MatterPipeBlock(tier, properties));
+    }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
     }
-    private static boolean connects(BlockState neighbor) {
-        return neighbor.getBlock() instanceof MatterPipeBlock || neighbor.getBlock() instanceof MachineBlock || neighbor.getBlock() instanceof MachinePortBlock;
+    public static int connections(BlockState state) {
+        int count = 0;
+        for (var property : PROPERTY_BY_DIRECTION.values()) if (state.getValue(property)) count++;
+        return count;
+    }
+    @Override protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        VoxelShape cable = super.getShape(state, level, pos, context);
+        return connections(state) < 3 ? cable : Shapes.or(cable, JUNCTION);
+    }
+    private static boolean connects(LevelReader level, BlockPos position, BlockState neighbor, Direction towardsNeighbor) {
+        if (neighbor.getBlock() instanceof MatterPipeBlock) return true;
+        Direction outward = towardsNeighbor.getOpposite();
+        if (neighbor.getBlock() instanceof MachineBlock machine) {
+            if (!MatterPipeConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward, true))
+                return false;
+            return !(level.getBlockEntity(position) instanceof MachineBlockEntity entity) || entity.acceptsMatter(outward, true)
+                    || MatterCablePower.allowsEndpoint(neighbor, outward) && entity.allowsPort(outward, MachinePortMode.POWER);
+        }
+        if (neighbor.getBlock() instanceof MachinePortBlock) {
+            var mode = neighbor.getValue(MachinePortBlock.MODE);
+            return MatterCablePower.allowsEndpoint(neighbor, outward)
+                    && (mode.allows(MachinePortMode.MATTER) || mode.allows(MachinePortMode.POWER));
+        }
+        return !neighbor.isAir() && level instanceof ServerLevel server
+                && server.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4) != null
+                && server.getCapability(Capabilities.Energy.BLOCK, position, neighbor, null, outward) != null;
+    }
+    @Override protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
+        if (state.getBlock() != oldState.getBlock()) level.invalidateCapabilities(pos);
+    }
+    @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+        super.affectNeighborsAfterRemoval(state, level, pos, moved);
+        level.invalidateCapabilities(pos);
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = defaultBlockState();
         for (Direction side : Direction.values()) {
-            state = state.setValue(PROPERTY_BY_DIRECTION.get(side), connects(context.getLevel().getBlockState(context.getClickedPos().relative(side))));
+            BlockPos neighbor = context.getClickedPos().relative(side);
+            state = state.setValue(PROPERTY_BY_DIRECTION.get(side),
+                    connects(context.getLevel(), neighbor, context.getLevel().getBlockState(neighbor), side));
         }
         return state;
     }
     @Override protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks,
             BlockPos pos, Direction side, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
-        return state.setValue(PROPERTY_BY_DIRECTION.get(side), connects(neighbor));
+        return state.setValue(PROPERTY_BY_DIRECTION.get(side), connects(level, neighborPos, neighbor, side));
     }
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         refreshLoadedAround(level, pos);
@@ -61,7 +116,15 @@ public final class MatterPipeBlock extends PipeBlock {
             BlockPos neighborPos = pos.relative(side);
             var neighborChunk = level.getChunkSource().getChunkNow(neighborPos.getX() >> 4, neighborPos.getZ() >> 4);
             // Keep the saved connection until that neighboring chunk is available.
-            if (neighborChunk != null) updated = updated.setValue(PROPERTY_BY_DIRECTION.get(side), connects(neighborChunk.getBlockState(neighborPos)));
+            if (neighborChunk == null) continue;
+            BlockState neighbor = neighborChunk.getBlockState(neighborPos);
+            boolean connected = connects(level, neighborPos, neighbor, side);
+            updated = updated.setValue(PROPERTY_BY_DIRECTION.get(side), connected);
+            // This refresh bypasses neighbor shape updates, so update the matching socket here.
+            if (neighbor.getBlock() instanceof MachineBlock machine) {
+                BlockState withPort = machine.withCablePort(neighbor, side.getOpposite(), connected);
+                if (withPort != neighbor) level.setBlock(neighborPos, withPort, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
+            }
         }
         if (updated != state) level.setBlock(pos, updated, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
     }

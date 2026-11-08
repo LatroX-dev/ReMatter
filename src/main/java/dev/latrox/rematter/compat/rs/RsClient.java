@@ -5,7 +5,6 @@ import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
 import java.util.List;
-import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.network.chat.Component;
@@ -20,8 +19,7 @@ public final class RsClient {
         RefinedStorageClientApi.INSTANCE.registerResourceRendering(RsMatterKey.class, new ResourceRendering() {
             @Override public String formatAmount(long amount, boolean units) { return amount + (units ? " u" : ""); }
             @Override public Component getDisplayName(ResourceKey resource) {
-                var substance = ((RsMatterKey) resource).substance();
-                return Component.literal(substance.id() + " [" + substance.phase().name().toLowerCase(Locale.ROOT) + "]");
+                return RsMatterGrid.displayName(((RsMatterKey) resource).substance());
             }
             @Override public List<Component> getTooltip(ResourceKey resource) {
                 return List.of(getDisplayName(resource), Component.literal("Exact ReMatter substance quantity"));

@@ -261,14 +261,24 @@ public final class MachineAutomationHost implements AutomationPort {
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long accepted=MachineBlockEntity.insertable(network.inventory(),key,maximum);
         if(accepted==0||action==Action.SIMULATE)return accepted;
-        if(!network.inventory().apply(Map.of(),Map.of(key,accepted)))return 0;network.markChanged();changed();return accepted;
+        var activity = machine.commitNetworkMatter(network, Map.of(), Map.of(key, accepted));
+        if (activity == null) return 0;
+        network.markChanged();
+        changed();
+        machine.publishNetworkActivity(network, activity);
+        return accepted;
     }
     @Override public long extract(SubstanceKey key,long maximum,Action action) {
         if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null)return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long extracted=Math.min(maximum,network.inventory().available(key));
         if(extracted==0||action==Action.SIMULATE)return extracted;
-        if(!network.inventory().apply(Map.of(key,extracted),Map.of()))return 0;network.markChanged();changed();return extracted;
+        var activity = machine.commitNetworkMatter(network, Map.of(key, extracted), Map.of());
+        if (activity == null) return 0;
+        network.markChanged();
+        changed();
+        machine.publishNetworkActivity(network, activity);
+        return extracted;
     }
     @Override public List<Delivery> pendingOutputs() {
         if(!active()||machine.getLevel().getGameTime()<=loadedAt)return List.of();

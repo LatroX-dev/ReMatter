@@ -29,6 +29,9 @@ public final class BuiltinChemistry {
     public static final SubstanceKey SOIL = key("soil", Phase.SOLID);
     public static final SubstanceKey CARBON_DIOXIDE = key("carbon_dioxide", Phase.GAS);
 
+    private static final Map<SubstanceKey, Long> STONE_MATTER =
+            Map.of(SILICA, 1_000L, ALUMINA, 1_000L, LIME, 1_000L);
+
     private BuiltinChemistry() {}
 
     public static ChemistryRegistry create() {
@@ -73,8 +76,10 @@ public final class BuiltinChemistry {
         material(builder, "minecraft:gold_block", GOLD, 9_000, SynthesisCategory.RAW_MATERIAL);
         decompositionOnly(builder, "minecraft:raw_gold", GOLD, 1_000);
         decompositionOnly(builder, "minecraft:raw_gold_block", GOLD, 9_000);
-        material(builder, "minecraft:stone", ROCK, 1_000, SynthesisCategory.NATURAL_MATERIAL);
-        material(builder, "minecraft:cobblestone", ROCK, 1_000, SynthesisCategory.NATURAL_MATERIAL);
+        for (String item : Set.of("minecraft:stone", "minecraft:cobblestone")) {
+            builder.addProfile(new MaterialProfile(item, STONE_MATTER, 8_000, 16_000, 100));
+            builder.allowSynthesis(item, SynthesisCategory.NATURAL_MATERIAL);
+        }
         material(builder, "minecraft:dirt", SOIL, 1_000, SynthesisCategory.NATURAL_MATERIAL);
         material(builder, "minecraft:sand", SILICA, 1_000, SynthesisCategory.NATURAL_MATERIAL);
         material(builder, "minecraft:quartz", SILICA, 1_000, SynthesisCategory.RAW_MATERIAL);
@@ -103,9 +108,9 @@ public final class BuiltinChemistry {
         process(builder, "lava_cooling", ProcessType.PHASE_CHANGE,
                 Map.of(LAVA, 1_000L), Map.of(ROCK, 1_000L), 16_000, 400);
         process(builder, "mineral_separation", ProcessType.SEPARATION,
-                Map.of(ROCK, 1_000L), Map.of(SILICA, 1_000L, ALUMINA, 1_000L, LIME, 1_000L), 48_000, 300);
+                Map.of(ROCK, 1_000L), STONE_MATTER, 48_000, 300);
         process(builder, "mineral_blending", ProcessType.REACTION,
-                Map.of(SILICA, 1_000L, ALUMINA, 1_000L, LIME, 1_000L), Map.of(ROCK, 1_000L), 32_000, 300);
+                STONE_MATTER, Map.of(ROCK, 1_000L), 32_000, 300);
         process(builder, "soil_separation", ProcessType.SEPARATION,
                 Map.of(SOIL, 1_000L), Map.of(SILICA, 1_000L, CARBON, 1_000L, WATER, 1_000L), 24_000, 200);
         process(builder, "soil_blending", ProcessType.REACTION,

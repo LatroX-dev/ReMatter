@@ -11,6 +11,7 @@ import java.util.TreeMap;
 import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.function.ToLongFunction;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An immutable membership view over existing inventories. Reads and network splits never move matter.
@@ -18,7 +19,7 @@ import java.util.function.ToLongFunction;
  * The caller owns connectivity/permission checks and must mark the member owners dirty after a commit.
  */
 public final class MatterNetworkInventory implements MatterStore {
-    public static final int MAX_MEMBERS = 64;
+    public static final int MAX_MEMBERS = 384;
     private final List<MatterInventory> members;
 
     public MatterNetworkInventory(List<MatterInventory> members) {
@@ -67,14 +68,27 @@ public final class MatterNetworkInventory implements MatterStore {
     }
 
     @Override public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
-        synchronized (MatterInventory.MUTATION_LOCK) { return plan(inputs, outputs, true) != null; }
+        synchronized (MatterInventory.MUTATION_LOCK) { return plan(inputs, outputs, true, null) != null; }
     }
     @Override public boolean canApply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
-        synchronized (MatterInventory.MUTATION_LOCK) { return plan(inputs, outputs, false) != null; }
+        synchronized (MatterInventory.MUTATION_LOCK) { return plan(inputs, outputs, false, null) != null; }
     }
     @Override public boolean apply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        return commit(inputs, outputs, null);
+    }
+
+    /** Identifies the physical cells that exchanged matter in a committed batch. */
+    public record MemberActivity(MatterInventory inventory, boolean withdrew, boolean deposited) {}
+
+    public @Nullable List<MemberActivity> applyTracked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        var activity = new ArrayList<MemberActivity>();
+        return commit(inputs, outputs, activity) ? List.copyOf(activity) : null;
+    }
+
+    private boolean commit(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
+                           @Nullable List<MemberActivity> activity) {
         synchronized (MatterInventory.MUTATION_LOCK) {
-            var plan = plan(inputs, outputs, false);
+            var plan = plan(inputs, outputs, false, activity);
             if (plan == null) return false;
             // Every replacement is already validated. No callback or fallible partial allocation occurs here.
             for (int i=0;i<members.size();i++) members.get(i).replaceWithValidated(plan.get(i));
@@ -82,7 +96,8 @@ public final class MatterNetworkInventory implements MatterStore {
         }
     }
 
-    private List<MatterInventory> plan(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs, boolean typesOnly) {
+    private @Nullable List<MatterInventory> plan(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
+                                                 boolean typesOnly, @Nullable List<MemberActivity> activity) {
         try {
             validateTotals();
             var checkedInputs = MatterAmounts.copy(inputs);
@@ -94,6 +109,7 @@ public final class MatterNetworkInventory implements MatterStore {
                 var selected=pending.removeLast(); if(!visited.add(selected))continue;
                 var copies=new ArrayList<MatterInventory>(members.size());
                 for(var member:members)copies.add(MatterInventory.restore(member.snapshot(),member.maximumTypes()));
+                var withdrawn = activity == null ? null : new boolean[members.size()];
                 var decisions=new ArrayList<Integer>(); var alternatives=new ArrayList<Integer>();
                 for(var input:checkedInputs.entrySet()) {
                     long remaining=input.getValue();
@@ -106,13 +122,22 @@ public final class MatterNetworkInventory implements MatterStore {
                         int step=decisions.size();int choice=step<selected.size()?selected.get(step):0;
                         if(choice>=candidates.size())throw new IllegalStateException("Invalid input allocation alternative");
                         decisions.add(choice);alternatives.add(candidates.size());
-                        remaining-=copies.get(candidates.get(choice)).extract(input.getKey(),remaining);
+                        int member = candidates.get(choice);
+                        long extracted = copies.get(member).extract(input.getKey(),remaining);
+                        remaining -= extracted;
+                        if (withdrawn != null && extracted > 0) withdrawn[member] = true;
                     }
                 }
                 var allocation=MatterOutputAllocator.allocate(copies,checkedOutputs,typesOnly,budget);
                 if(allocation!=null) {
                     if(!typesOnly)for(int i=0;i<copies.size();i++)
                         if(!copies.get(i).apply(Map.of(),allocation.get(i)))throw new IllegalStateException("Invalid output allocation");
+                    if (activity != null && withdrawn != null) {
+                        for (int i = 0; i < members.size(); i++) {
+                            boolean deposited = !allocation.get(i).isEmpty();
+                            if (withdrawn[i] || deposited) activity.add(new MemberActivity(members.get(i), withdrawn[i], deposited));
+                        }
+                    }
                     return copies;
                 }
                 // A different input owner can release the only sufficiently large cell or a required type slot.

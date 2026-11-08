@@ -9,20 +9,31 @@ import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineStorageSessionTest {
-    @Test void oldProcessorCellSlotsRemainRecoverableButNeverOverrideNetworkStorage() {
+    @Test void sixDriveBaysHaveDistinctStableIndices() {
+        assertEquals(6, MachineCellAccess.bayCount(MachineKind.DRIVE));
+        var slots = new java.util.HashSet<Integer>();
+        for (int bay = 0; bay < 6; bay++) {
+            int slot = MachineCellAccess.slotForBay(MachineKind.DRIVE, bay);
+            assertTrue(slots.add(slot));
+            assertEquals(bay, MachineCellAccess.bayForSlot(MachineKind.DRIVE, slot));
+            assertTrue(slot < MachineCellAccess.inventorySize(MachineKind.DRIVE));
+        }
+        assertEquals(0, MachineCellAccess.slotForBay(MachineKind.DRIVE, 0));
+        assertEquals(java.util.Set.of(0,5,6,7,8,9), slots);
+        for (int reserved = 1; reserved <= 4; reserved++) assertFalse(MachineCellAccess.isCellSlot(MachineKind.DRIVE, reserved));
+        assertThrows(IndexOutOfBoundsException.class, () -> MachineCellAccess.slotForBay(MachineKind.DRIVE, 6));
+    }
+    @Test void onlyTheDriveExposesCellBays() {
+        for (var kind : MachineKind.values()) {
+            if (kind.isStorage()) continue;
+            assertEquals(-1, MachineCellAccess.slot(kind));
+            assertEquals(0, MachineCellAccess.bayCount(kind));
+        }
         for (var kind : new MachineKind[]{MachineKind.DECOMPOSER,MachineKind.SYNTHESIZER}) {
-            assertEquals(3,MachineCellAccess.slot(kind));
-            assertEquals(4,MachineCellAccess.inventorySize(kind));
-            // A saved full or unknown cell is recovery-only, never another active resource owner.
-            assertFalse(MachineCellAccess.usesOwnStorage(kind,true));
-            assertFalse(MachineCellAccess.usesOwnStorage(kind,false));
+            assertEquals(3,MachineCellAccess.inventorySize(kind));
         }
         assertEquals(0,MachineCellAccess.slot(MachineKind.DRIVE));
-        assertEquals(0,MachineCellAccess.slot(MachineKind.STORAGE));
-        assertEquals(3,MachineCellAccess.inventorySize(MachineKind.DRIVE));
-        assertTrue(MachineCellAccess.usesOwnStorage(MachineKind.DRIVE,false));
-        assertTrue(MachineCellAccess.usesOwnStorage(MachineKind.STORAGE,false));
-        assertEquals(-1,MachineCellAccess.slot(MachineKind.ANALYZER));
+        assertEquals(10,MachineCellAccess.inventorySize(MachineKind.DRIVE));
     }
     @Test void sameContentsInAnotherCellCannotTakeOverAnInProgressBatch() {
         var original=new MatterInventory(64000,512);original.insert(COPPER,1000);

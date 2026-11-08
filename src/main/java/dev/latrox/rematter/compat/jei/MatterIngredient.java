@@ -6,6 +6,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.client.SubstanceIcon;
+import dev.latrox.rematter.client.SubstanceLabels;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.List;
 import java.util.Locale;
@@ -13,7 +15,6 @@ import mezz.jei.api.ingredients.IIngredientHelper;
 import mezz.jei.api.ingredients.IIngredientRenderer;
 import mezz.jei.api.ingredients.IIngredientType;
 import mezz.jei.api.ingredients.subtypes.UidContext;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -42,9 +43,10 @@ public record MatterIngredient(SubstanceKey key, long amount) {
     }
 
     Component name() {
-        return ClientChemistry.current().definition(key.id())
+        var name = ClientChemistry.current().definition(key.id())
                 .map(definition -> Component.translatableWithFallback(definition.translationKey(), pretty(key.id().path())))
                 .orElseGet(() -> Component.literal(key.id().toString()));
+        return SubstanceLabels.withSymbol(key.id(), name);
     }
 
     String phaseName() { return key.phase().name().toLowerCase(Locale.ROOT); }
@@ -67,18 +69,7 @@ public record MatterIngredient(SubstanceKey key, long amount) {
     static final class Renderer implements IIngredientRenderer<MatterIngredient> {
         @Override
         public void render(GuiGraphicsExtractor graphics, MatterIngredient ingredient) {
-            int color = switch (ingredient.key.phase()) {
-                case SOLID -> 0xFF83D9CF;
-                case LIQUID -> 0xFF6FAFE7;
-                case GAS -> 0xFFDBB3EF;
-            };
-            graphics.fill(0, 0, 16, 16, 0xFF19343C);
-            graphics.fill(0, 14, 16, 16, color);
-            String symbol = ClientChemistry.current().definition(ingredient.key.id())
-                    .map(definition -> definition.symbol().isBlank() ? definition.id().path().substring(0, 1) : definition.symbol()).orElse("?");
-            var font = Minecraft.getInstance().font;
-            String label = font.plainSubstrByWidth(symbol, 15);
-            graphics.text(font, label, (16 - font.width(label)) / 2, 3, color, false);
+            SubstanceIcon.draw(graphics, 0, 0, ingredient.key);
         }
 
         @SuppressWarnings("removal")
