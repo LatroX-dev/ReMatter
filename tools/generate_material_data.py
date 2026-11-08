@@ -4,7 +4,8 @@
 This tool does not read installed mods, discover recipes, infer chemistry from
 tags, or grant synthesis to new IDs. Edit the catalogue deliberately first.
 Every file below the generated chemistry directories comes from the catalogue;
-stray files fail the check and are removed by generation.
+stray files fail the check and are removed by generation. Batch energies must
+fit the machine limit, which is read from the Java machine sources.
 """
 from __future__ import annotations
 
@@ -25,6 +26,7 @@ FORMS = {"ingot", "dust", "nugget", "material_block", "material", "gem", "natura
 TEMPLATE = ROOT / "tools/data/material_coverage_template.md"
 COVERAGE = ROOT / "docs/material-coverage.md"
 COVERAGE_LIST = ROOT / "docs/material-coverage.csv"
+MACHINE_SOURCES = ROOT / "src/main/java/dev/latrox/rematter/content"
 
 
 def output(path, value, check, written):
@@ -36,6 +38,30 @@ def output(path, value, check, written):
     else:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
+
+
+def java_constant(source, name):
+    match = re.search(rf"static final (?:int|long) {name} = ([0-9_]+);", (MACHINE_SOURCES / source).read_text())
+    if not match:
+        raise ValueError(f"Cannot read {name} from {source}")
+    return int(match.group(1).replace("_", ""))
+
+
+def batch_energy_limit():
+    """Return MachineEnergyPolicy.MAX_BATCH_ENERGY: the FE buffer divided by the full speed-upgrade factor.
+
+    The machines reject a catalogue at load time when any batch exceeds it, whether or not synthesis is permitted.
+    """
+    policy = (MACHINE_SOURCES / "MachineEnergyPolicy.java").read_text()
+    if "MAX_BATCH_ENERGY = MachineBlockEntity.ENERGY_CAPACITY / MAX_SPEED_FACTOR;" not in policy:
+        raise ValueError("MachineEnergyPolicy.MAX_BATCH_ENERGY changed; update batch_energy_limit")
+    return java_constant("MachineBlockEntity.java", "ENERGY_CAPACITY") // java_constant("MachineEnergyPolicy.java", "MAX_SPEED_FACTOR")
+
+
+def require_energy(target, row, limit):
+    for field in ("decomposition_energy", "synthesis_energy"):
+        if not isinstance(row[field], int) or not 0 <= row[field] <= limit:
+            raise ValueError(f"{field} of {target} must be between 0 and the {limit} FE batch limit")
 
 
 def resource_path(target):
@@ -88,7 +114,7 @@ def batches(row, family_name, family):
     return count
 
 
-def items(catalogue, check, written):
+def items(catalogue, check, written, limit):
     families = catalogue["families"]
     seen = set()
     costs = {}
@@ -110,6 +136,7 @@ def items(catalogue, check, written):
         pieces = row.get("item_count", 1)
         if not isinstance(pieces, int) or not 1 <= pieces <= 64:
             raise ValueError(f"Invalid item count: {item}")
+        require_energy(item, row, limit)
         count = batches(row, row["family"], families[row["family"]])
         cost = tuple(Fraction(row[field], count) for field in ("decomposition_energy", "synthesis_energy", "ticks"))
         if costs.setdefault(row["family"], cost) != cost:
@@ -134,13 +161,14 @@ def items(catalogue, check, written):
     return len(seen)
 
 
-def fluids(catalogue, check, written):
+def fluids(catalogue, check, written, limit):
     seen = set()
     for row in catalogue["fluids"]:
         fluid = row["fluid"]
         if fluid in seen or not ID.fullmatch(fluid):
             raise ValueError(f"Duplicate or invalid fluid ID: {fluid}")
         seen.add(fluid)
+        require_energy(fluid, row, limit)
         namespace, fluid_path = resource_path(fluid)
         relative = Path("fluids") / namespace / (fluid_path + ".json")
         profile = guarded(fluid, row)
@@ -266,8 +294,9 @@ def generate(catalogue, check=False):
     written = set()
     names = {}
     substances(catalogue, check, written, names)
-    profile_count = items(catalogue, check, written)
-    fluid_count = fluids(catalogue, check, written)
+    limit = batch_energy_limit()
+    profile_count = items(catalogue, check, written, limit)
+    fluid_count = fluids(catalogue, check, written, limit)
     gas_count = gases(catalogue, check, written)
     stray_files(written, check)
     language(names, check)
