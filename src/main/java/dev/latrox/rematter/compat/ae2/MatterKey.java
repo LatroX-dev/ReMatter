@@ -39,7 +39,7 @@ public final class MatterKey extends AEKey {
             PHASE_CODEC.fieldOf("phase").forGetter(key -> key.substance.phase()))
             .apply(instance, (id, phase) -> of(new SubstanceKey(id, phase))));
     public static final AEKeyType TYPE = new AEKeyType(Identifier.fromNamespaceAndPath("rematter", "matter"),
-            MatterKey.class, Component.translatableWithFallback("integration.rematter.matter", "ReMatter substances")) {
+            MatterKey.class, Component.translatable("integration.rematter.matter")) {
         @Override public MapCodec<MatterKey> codec() { return MatterKey.CODEC; }
         @Override public MatterKey readFromPacket(RegistryFriendlyByteBuf buffer) {
             return of(new SubstanceKey(SubstanceId.parse(buffer.readUtf(512)), buffer.readEnum(Phase.class)));

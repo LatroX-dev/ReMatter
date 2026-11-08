@@ -28,7 +28,7 @@ final class MatterKeyRenderer implements AEKeyRenderer<MatterKey, MatterKeyRende
                 .orElseGet(() -> Component.literal(id.toString()));
         return List.of(SubstanceLabels.withSymbol(id, name),
                 Component.literal(key.substance().phase().name().toLowerCase(Locale.ROOT)),
-                Component.translatableWithFallback("integration.rematter.stored_substance", "Stored substance; not an item"));
+                Component.translatable("integration.rematter.stored_substance"));
     }
 
     @Override public Class<RenderState> stateClass() { return RenderState.class; }

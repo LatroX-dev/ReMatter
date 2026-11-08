@@ -62,6 +62,36 @@ class RsAdapterLifecycleTest {
         wrapper.addOutgoingConnections(null);assertEquals(1,nativeContainer.outgoingCalls);
     }
 
+    @Test void nativeCablesConnectOnlyOnFacesOpenForMatter() {
+        var open=java.util.EnumSet.of(Direction.NORTH,Direction.UP);
+        var strategy=RsAdapter.faces(BlockPos.ZERO,open::contains);
+        var targets=new java.util.ArrayList<String>();
+        strategy.addOutgoingConnections(new ConnectionSink() {
+            public void tryConnect(GlobalPos position,Class<? extends net.minecraft.world.level.block.Block> type){fail("Cross-dimension link");}
+            public void tryConnectInSameDimension(BlockPos position,Direction incoming,Class<? extends net.minecraft.world.level.block.Block> type){
+                targets.add(position.toShortString()+"/"+incoming);
+            }
+        });
+        assertEquals(java.util.List.of("0, 1, 0/down","0, 0, -1/south"),targets);
+        assertTrue(strategy.canAcceptIncomingConnection(Direction.NORTH,null));
+        assertFalse(strategy.canAcceptIncomingConnection(Direction.SOUTH,null));
+        open.remove(Direction.NORTH);
+        assertFalse(strategy.canAcceptIncomingConnection(Direction.NORTH,null),"A face closed later stops accepting cables");
+    }
+
+    @Test void onlyPlayersWhoMayUseTheInterfaceCanBuildNextToIt() {
+        var asked=new AtomicBoolean();
+        var nativeProvider=new com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider() {
+            public Set<InWorldNetworkNodeContainer> getContainers(){return Set.of();}
+            public void addContainer(InWorldNetworkNodeContainer container){}
+            public boolean canBuild(net.minecraft.server.level.ServerPlayer player){asked.set(true);return true;}
+        };
+        assertFalse(RsAdapter.ownerBuilt(nativeProvider,player->false).canBuild(null));
+        assertFalse(asked.get(),"A foreign player is refused before RS security is consulted");
+        assertTrue(RsAdapter.ownerBuilt(nativeProvider,player->true).canBuild(null));
+        assertTrue(asked.get());
+    }
+
     private static final class Container implements InWorldNetworkNodeContainer {
         final AtomicBoolean removed;final Object key=new Object();int outgoingCalls;
         final NetworkNode node=new NetworkNode(){

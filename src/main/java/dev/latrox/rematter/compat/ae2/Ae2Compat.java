@@ -1,10 +1,10 @@
 package dev.latrox.rematter.compat.ae2;
 
 import appeng.api.crafting.PatternDetailsHelper;
-import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import appeng.api.AECapabilities;
+import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.AutomationBackends;
 import dev.latrox.rematter.content.ModContent;
 import net.neoforged.api.distmarker.Dist;
@@ -19,8 +19,12 @@ public final class Ae2Compat {
     private Ae2Compat() {}
 
     public static void register(IEventBus bus) {
-        if (AEFluidKey.AMOUNT_BUCKET != 1_000)
-            throw new IllegalStateException("Unsupported AE2 fluid unit scale");
+        // Read through the key type at runtime; AE2's bucket constant would be folded in at compile time.
+        int fluidScale = AEKeyType.fluids().getAmountPerUnit();
+        if (fluidScale != 1_000) {
+            ReMatter.LOGGER.warn("AE2 automation disabled: expected 1000 fluid units per bucket, found {}", fluidScale);
+            return;
+        }
         bus.addListener(Ae2Compat::registerKey);
         bus.addListener(Ae2Compat::commonSetup);
         bus.addListener(Ae2Compat::registerCapabilities);

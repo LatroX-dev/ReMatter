@@ -31,9 +31,7 @@ public final class MachineAutomationRecipes {
                 if(!c.isEmpty())inputs.merge(Resource.item(c),(long)entry.tertiaryCount(),Math::addExact);
                 var base=AutomationRecipeCatalogue.id("prepare",entry.id().toString());
                 // IDs remain stable under tag reordering or insertion of another variant.
-                String identity=a+'\n'+b;
-                if(!c.isEmpty()||entry.primaryCount()!=1||entry.secondaryCount()!=1||entry.tertiaryCount()!=1||!entry.process().equals("preparation"))
-                    identity+='\n'+c+'\n'+entry.primaryCount()+":"+entry.secondaryCount()+":"+entry.tertiaryCount()+":"+entry.process();
+                String identity=a+'\n'+b+'\n'+c+'\n'+entry.primaryCount()+":"+entry.secondaryCount()+":"+entry.tertiaryCount()+":"+entry.process();
                 var fingerprint=UUID.nameUUIDFromBytes(identity.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                 String worker=entry.process().equals("sintering")?MachineKind.SINTER_FURNACE.id():MachineKind.PREPARATOR.id();
                 result.add(AutomationRecipeCatalogue.recipe(base+"/"+fingerprint,worker,inputs,outputs,entry.energy(),entry.ticks()));

@@ -66,6 +66,10 @@ public interface AutomationPort {
     boolean beginDelivery(UUID orderId,Resource resource,long offered);
     /** Finish the current live attempt; zero acceptance also releases its guard. Detached copies must stay locked. */
     void ackOutput(UUID orderId,Resource resource,long accepted);
+    /** Transferred inputs of cancelled orders. They return to the native network through the same guard as outputs. */
+    List<Delivery> pendingRefunds();
+    boolean beginRefund(UUID orderId,Resource resource,long offered);
+    void ackRefund(UUID orderId,Resource resource,long accepted);
     void quarantineDelivery(UUID orderId,String reason);
     void changed();
 }

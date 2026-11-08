@@ -23,11 +23,15 @@ import dev.latrox.rematter.automation.AutomationAdapter;
 import dev.latrox.rematter.automation.AutomationRecipeCatalogue;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MachineBlockEntity;
+import dev.latrox.rematter.content.MachinePortMode;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -50,6 +54,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
     private boolean delivering;
     private boolean created;
     private boolean closed;
+    private Set<Direction> exposed = Set.of();
 
     public Ae2Bridge(MachineBlockEntity host, AutomationPort port) {
         this.host = Objects.requireNonNull(host);
@@ -66,6 +71,8 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
         if (created || closed) throw new IllegalStateException("AE2 node lifecycle already started");
         Objects.requireNonNull(port.ownerId(), "An automation bridge must have an owner");
         node.setOwningPlayerId(IPlayerRegistry.getMapping(level).getPlayerId(port.ownerId()));
+        exposed = openFaces();
+        node.setExposedOnSides(exposed);
         node.create(level, position);
         created = true;
         refreshRequested = true;
@@ -93,6 +100,11 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
         if (!created) {
             if (port.ownerId() == null) return;
             create(level, host.getBlockPos());
+        }
+        var faces = openFaces();
+        if (!faces.equals(exposed)) {
+            exposed = faces;
+            node.setExposedOnSides(faces);
         }
         boolean active = node.isActive() && port.active();
         var recipes = active ? port.recipes() : List.<AutomationPort.Recipe>of();
@@ -123,7 +135,14 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
             lastStock = Map.copyOf(stock);
             node.ifPresent(grid -> grid.getStorageService().invalidateCache());
         }
-        if (active) deliverCompletedOutputs();
+        if (active) deliverHeldResources();
+    }
+
+    /** Native cables connect only on faces that the owner leaves open for matter connections. */
+    private Set<Direction> openFaces() {
+        var faces = EnumSet.noneOf(Direction.class);
+        for (var side : Direction.values()) if (host.allowsPort(side, MachinePortMode.MATTER)) faces.add(side);
+        return Collections.unmodifiableSet(faces);
     }
 
     private boolean allowed(IActionSource source) {
@@ -138,7 +157,7 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
 
     private final MEStorage stock = new MEStorage() {
         @Override public Component getDescription() {
-            return Component.translatableWithFallback("integration.rematter.storage", "ReMatter substance storage");
+            return Component.translatable("integration.rematter.storage");
         }
         @Override public long insert(AEKey key, long amount, Actionable action, IActionSource source) {
             MEStorage.checkPreconditions(key, amount, action, source);
@@ -179,26 +198,36 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
         } catch (IllegalArgumentException | ArithmeticException invalid) { return false; }
     }
 
-    private void deliverCompletedOutputs() {
+    private void deliverHeldResources() {
         if (delivering) return;
         delivering = true;
         try {
             var network = node.getGrid().getStorageService().getInventory();
-            for (var delivery : port.pendingOutputs()) {
-                if (!node.isActive() || !port.active()) break;
-                try {
-                    if (!port.beginDelivery(delivery.orderId(), delivery.resource(), delivery.amount())) break;
-                    long accepted = network.insert(RecipePatterns.resourceKey(delivery.resource()), delivery.amount(),
-                            Actionable.MODULATE, IActionSource.ofMachine(this));
-                    if (accepted < 0 || accepted > delivery.amount()) throw new IllegalStateException("Invalid output acknowledgement");
-                    port.ackOutput(delivery.orderId(), delivery.resource(), accepted);
-                } catch (RuntimeException uncertain) {
-                    // An external write may already have happened. Never replay or refund this uncertain delivery.
-                    port.quarantineDelivery(delivery.orderId(), uncertain.getClass().getSimpleName());
-                    break;
-                }
-            }
+            for (var delivery : port.pendingOutputs()) if (!deliver(network, delivery, false)) return;
+            for (var refund : port.pendingRefunds()) if (!deliver(network, refund, true)) return;
         } finally { delivering = false; }
+    }
+    /** Returns false when deliveries must stop for this tick. */
+    private boolean deliver(MEStorage network, AutomationPort.Delivery delivery, boolean refund) {
+        if (!node.isActive() || !port.active()) return false;
+        AEKey key;
+        // An unregistered item or fluid stays held, unquarantined, until its mod is available again.
+        try { key = RecipePatterns.resourceKey(delivery.resource()); }
+        catch (RuntimeException unavailable) { return true; }
+        boolean started = refund ? port.beginRefund(delivery.orderId(), delivery.resource(), delivery.amount())
+                : port.beginDelivery(delivery.orderId(), delivery.resource(), delivery.amount());
+        if (!started) return false;
+        try {
+            long accepted = network.insert(key, delivery.amount(), Actionable.MODULATE, IActionSource.ofMachine(this));
+            if (accepted < 0 || accepted > delivery.amount()) throw new IllegalStateException("Invalid output acknowledgement");
+            if (refund) port.ackRefund(delivery.orderId(), delivery.resource(), accepted);
+            else port.ackOutput(delivery.orderId(), delivery.resource(), accepted);
+            return true;
+        } catch (RuntimeException uncertain) {
+            // An external write may already have happened. Never replay or refund this uncertain delivery.
+            port.quarantineDelivery(delivery.orderId(), uncertain.getClass().getName());
+            return false;
+        }
     }
     private static AutomationPort.Action mode(Actionable action) {
         return action.isSimulate() ? AutomationPort.Action.SIMULATE : AutomationPort.Action.EXECUTE;

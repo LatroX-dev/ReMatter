@@ -2,38 +2,86 @@ package dev.latrox.rematter.compat.rs;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.refinedmods.refinedstorage.api.autocrafting.task.*;
 import com.refinedmods.refinedstorage.api.network.energy.EnergyNetworkComponent;
 import com.refinedmods.refinedstorage.api.network.impl.node.AbstractNetworkNode;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
+import com.refinedmods.refinedstorage.common.api.support.network.ConnectionSink;
+import com.refinedmods.refinedstorage.common.api.support.network.ConnectionStrategy;
 import com.refinedmods.refinedstorage.common.api.support.network.InWorldNetworkNodeContainer;
 import com.refinedmods.refinedstorage.common.api.support.network.NetworkNodeContainerProvider;
+import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.automation.*;
 import dev.latrox.rematter.content.MachineBlockEntity;
-import java.util.List;
+import dev.latrox.rematter.content.MachinePortMode;
 import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 /** Native container lifecycle and durable RS tasks are separate from the machine's transferred-input ledger. */
 public final class RsAdapter implements AutomationAdapter {
+    private static final long REFUSAL_STATUS_TICKS=200;
     private final MachineBlockEntity host;
     private final AutomationPort port;
     private final RsBridgeNode node;
     private final NetworkNodeContainerProvider provider;
     private final NativeTicker ticker=new NativeTicker();
     private Dynamic<?> opaque;
+    private net.minecraft.nbt.Tag saved;
+    private long refusedUntil;
     private boolean initializationRequested;
     private boolean initialized;
     private boolean closed;
+    private int openFaces;
     public RsAdapter(MachineBlockEntity host,AutomationPort port) {
-        this.host=host;this.port=port;node=new RsBridgeNode(port);
-        node.setTaskValidator(this::validateTask);
-        provider=RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider();
-        var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface").build();
+        this.host=host;this.port=port;node=new RsBridgeNode(port,actor->RsBridgeNode.permitted(actor,this::ownerNamed));
+        node.setTaskAdmission(this::persistable,this::refused);
+        provider=ownerBuilt(RefinedStorageApi.INSTANCE.createNetworkNodeContainerProvider(),host::canAccess);
+        var container=RefinedStorageApi.INSTANCE.createNetworkNodeContainer(host,node).name("ReMatter Interface")
+                .connectionStrategy(faces(host.getBlockPos(),this::open)).build();
         provider.addContainer(whileOpen(container,()->closed));
+        openFaces=openFaces();
+    }
+    /** Native cables connect only on faces that the owner leaves open for matter connections. */
+    static ConnectionStrategy faces(BlockPos origin,Predicate<Direction> open) {
+        return new ConnectionStrategy() {
+            @Override public void addOutgoingConnections(ConnectionSink sink) {
+                for(var side:Direction.values())if(open.test(side))sink.tryConnectInSameDimension(origin.relative(side),side.getOpposite());
+            }
+            @Override public boolean canAcceptIncomingConnection(Direction side,BlockState state){return open.test(side);}
+        };
+    }
+    /** Only players who may use the interface can extend its native network by building next to it. */
+    static NetworkNodeContainerProvider ownerBuilt(NetworkNodeContainerProvider delegate,Predicate<? super ServerPlayer> mayUse) {
+        return new NetworkNodeContainerProvider() {
+            @Override public java.util.Set<InWorldNetworkNodeContainer> getContainers(){return delegate.getContainers();}
+            @Override public void addContainer(InWorldNetworkNodeContainer container){delegate.addContainer(container);}
+            @Override public boolean canBuild(ServerPlayer player){return mayUse.test(player)&&delegate.canBuild(player);}
+            @Override public void update(Level level){delegate.update(level);}
+            @Override public void initialize(Level level,Runnable callback){delegate.initialize(level,callback);}
+            @Override public void remove(Level level){delegate.remove(level);}
+        };
+    }
+    private boolean open(Direction side){return host.allowsPort(side,MachinePortMode.MATTER);}
+    private int openFaces() {
+        int mask=0;for(var side:Direction.values())if(open(side))mask|=1<<side.ordinal();return mask;
+    }
+    /** RS names players only by name: an online player must be the owner, otherwise the owner's cached name must match. */
+    private boolean ownerNamed(String name) {
+        var owner=port.ownerId();
+        var server=host.getLevel()==null?null:host.getLevel().getServer();
+        if(owner==null||server==null)return false;
+        var online=server.getPlayerList().getPlayerByName(name);
+        if(online!=null)return owner.equals(online.getUUID());
+        return server.services().nameToIdCache().get(owner).map(profile->profile.name().equalsIgnoreCase(name)).orElse(false);
     }
     /** Native queued initialization checks this before it can attach an already revoked adapter. */
     static InWorldNetworkNodeContainer whileOpen(InWorldNetworkNodeContainer delegate,BooleanSupplier closed) {
@@ -60,28 +108,33 @@ public final class RsAdapter implements AutomationAdapter {
         if(raw.isEmpty())return;
         var state=input.read("state",RsTaskPersistence.CODEC);
         if(state.isEmpty()){opaque=raw.get();node.disable();return;}
-        for(var task:state.get())node.addTask(new TaskImpl(task));
+        saved=raw.get().convert(NbtOps.INSTANCE).getValue();
+        for(var task:state.get())node.restoreTask(new TaskImpl(task));
     }
+    /** Never throws inside a save: an encoding failure keeps the last state that was written successfully. */
     @Override public void save(ValueOutput output) {
         if(opaque!=null){output.store("state",Codec.PASSTHROUGH,opaque);return;}
-        var tasks=node.getTasks().stream().map(task->{
-            if(!(task instanceof TaskImpl impl))throw new IllegalStateException("Unserializable RS task");return impl.createSnapshot();
-        }).toList();
-        // ValueOutput reports codec errors without throwing; pre-encode before replacing saved state.
-        var encoded=RsTaskPersistence.CODEC.encodeStart(host.getLevel().registryAccess()
-                .createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE),tasks).getOrThrow();
-        output.store("state",Codec.PASSTHROUGH,new Dynamic<>(net.minecraft.nbt.NbtOps.INSTANCE,encoded));
+        var encoded=encode();
+        if(encoded.isPresent())saved=encoded.get();
+        else ReMatter.LOGGER.error("Refined Storage jobs of the ReMatter interface at {} could not be encoded; keeping their last saved state",host.getBlockPos());
+        if(saved!=null)output.store("state",Codec.PASSTHROUGH,new Dynamic<>(NbtOps.INSTANCE,saved.copy()));
     }
-    private void validateTask(Task task) {
-        if(!(task instanceof TaskImpl impl)||host.getLevel()==null)throw new IllegalArgumentException("Unsupported RS task");
-        var next=new java.util.ArrayList<TaskSnapshot>();
-        for(var existing:node.getTasks()) {
-            if(!(existing instanceof TaskImpl nativeTask))throw new IllegalStateException("Unsupported stored RS task");
-            next.add(nativeTask.createSnapshot());
-        }
-        next.add(impl.createSnapshot());
-        RsTaskPersistence.CODEC.encodeStart(host.getLevel().registryAccess()
-                .createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE),next).getOrThrow();
+    private java.util.Optional<net.minecraft.nbt.Tag> encode() {
+        if(host.getLevel()==null)return java.util.Optional.empty();
+        return RsTaskPersistence.encode(RsTaskPersistence.CODEC,host.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE),node.getTasks());
+    }
+    /** Called after RS has added the task. Every admitted task list stays persistable. */
+    private boolean persistable(Task task) {
+        return task instanceof TaskImpl&&node.getTasks().size()<=RsTaskPersistence.MAX_TASKS&&encode().isPresent();
+    }
+    private void refused() {
+        if(host.getLevel()==null)return;
+        long now=host.getLevel().getGameTime();
+        if(now>=refusedUntil)ReMatter.LOGGER.warn("ReMatter interface at {} refused a Refined Storage job",host.getBlockPos());
+        refusedUntil=now+REFUSAL_STATUS_TICKS;
+    }
+    @Override public String status() {
+        return host.getLevel()!=null&&host.getLevel().getGameTime()<refusedUntil?"automation_job_refused":"";
     }
     @Override public void tick() {
         if(closed||opaque!=null||!(host.getLevel() instanceof ServerLevel level))return;
@@ -91,6 +144,8 @@ public final class RsAdapter implements AutomationAdapter {
             provider.initialize(level,()->initialized(level));
         }
         if(!initialized)return;
+        int faces=openFaces();
+        if(faces!=openFaces){openFaces=faces;provider.update(level);}
         // Native RS block entities own both activeness and node ticks; this host must do the same.
         ticker.tick(level.getGameTime(),node,liveHost(level)&&port.active(),RefinedStorageApi.INSTANCE.isEnergyRequired());
     }

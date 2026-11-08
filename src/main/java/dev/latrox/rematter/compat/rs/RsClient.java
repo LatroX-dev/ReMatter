@@ -4,6 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.refinedmods.refinedstorage.api.resource.ResourceKey;
 import com.refinedmods.refinedstorage.common.api.RefinedStorageClientApi;
 import com.refinedmods.refinedstorage.common.api.support.resource.ResourceRendering;
+import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.client.SubstanceIcon;
+import dev.latrox.rematter.client.SubstanceLabels;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -16,13 +19,22 @@ public final class RsClient {
         if (net.neoforged.fml.ModList.get().isLoaded("refinedstorage")) event.enqueueWork(RsClient::register);
     }
     public static void register() {
+        RsMatterGrid.install(new RsMatterGrid.View() {
+            @Override public Component name(SubstanceKey substance, String sortName) {
+                return SubstanceLabels.withSymbol(substance.id(), Component.literal(sortName));
+            }
+            @Override public String symbol(SubstanceKey substance) { return SubstanceLabels.iconLabel(substance.id()); }
+            @Override public void render(GuiGraphicsExtractor graphics, int x, int y, SubstanceKey substance) {
+                SubstanceIcon.draw(graphics, x, y, substance);
+            }
+        });
         RefinedStorageClientApi.INSTANCE.registerResourceRendering(RsMatterKey.class, new ResourceRendering() {
             @Override public String formatAmount(long amount, boolean units) { return amount + (units ? " u" : ""); }
             @Override public Component getDisplayName(ResourceKey resource) {
                 return RsMatterGrid.displayName(((RsMatterKey) resource).substance());
             }
             @Override public List<Component> getTooltip(ResourceKey resource) {
-                return List.of(getDisplayName(resource), Component.literal("Exact ReMatter substance quantity"));
+                return List.of(getDisplayName(resource), Component.translatable("integration.rematter.stored_substance"));
             }
             @Override public void render(ResourceKey resource, GuiGraphicsExtractor graphics, int x, int y) {
                 new RsMatterGrid((RsMatterKey) resource).render(graphics, x, y);

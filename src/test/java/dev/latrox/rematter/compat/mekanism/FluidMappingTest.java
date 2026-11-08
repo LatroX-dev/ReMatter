@@ -41,7 +41,7 @@ class FluidMappingTest {
                 var inventory = new MatterInventory(units + 11);
                 inventory.insert(BuiltinChemistry.WATER, 11);
                 assertTrue(inventory.apply(Map.of(), Map.of(key, units)));
-                var ports = new ChemicalTransfers(() -> inventory, () -> true, ignored -> true, () -> {});
+                var ports = new ChemicalTransfers(() -> inventory, () -> true, ignored -> true, exported -> true, () -> {}, ChemicalMappings.ALL);
                 try (var transaction = Transaction.openRoot()) {
                     assertEquals(millibuckets, ports.extract(index, fluid, Integer.MAX_VALUE, transaction), fluid);
                     transaction.commit();

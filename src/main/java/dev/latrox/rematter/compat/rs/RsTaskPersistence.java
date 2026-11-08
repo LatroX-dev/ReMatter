@@ -44,6 +44,16 @@ public final class RsTaskPersistence {
             }
         };
     }
+    /** Encodes every task that can still own resources. A refused task is cancelled before its first step and owns nothing. */
+    static <T> Optional<T> encode(Codec<List<TaskSnapshot>> codec,DynamicOps<T> ops,Collection<? extends Task> tasks) {
+        var snapshots=new ArrayList<TaskSnapshot>();
+        for(var task:tasks) {
+            if(!(task instanceof TaskImpl nativeTask))continue;
+            var snapshot=nativeTask.createSnapshot();
+            if(!snapshot.cancelled()||!snapshot.internalStorage().isEmpty())snapshots.add(snapshot);
+        }
+        return codec.encodeStart(ops,snapshots).result();
+    }
     private record NamedActor(String name) implements Actor { @Override public String getName(){return name;} }
 
     private static final class Writer<T> {
@@ -89,10 +99,9 @@ public final class RsTaskPersistence {
             fields.put("remaining",number(snapshot.iterationsToSendToSink()));fields.put("received",number(snapshot.iterationsReceived()));
             fields.put("intercepted",ops.createBoolean(snapshot.interceptedAnythingSinceLastStep()));
             if(snapshot.lastSinkResult()!=null)fields.put("result",string(snapshot.lastSinkResult().name()));
-            if(snapshot.lastSinkDetails()!=null) {
-                if(!(snapshot.lastSinkDetails() instanceof AutocrafterExternalPatternSinkDetails details))throw new IllegalArgumentException("Unknown native sink details");
+            // RS reads sink details only for its status display; details of other providers' sinks are not persisted.
+            if(snapshot.lastSinkDetails() instanceof AutocrafterExternalPatternSinkDetails details)
                 fields.put("details",object(Map.of("name",string(details.name()),"stack",ItemStack.OPTIONAL_CODEC.encodeStart(ops,details.stack()).getOrThrow())));
-            }
             if(snapshot.pendingSinkIds().size()>MAX_RESOURCES)throw new IllegalArgumentException("Too many sink receipts");
             fields.put("sinks",list(snapshot.pendingSinkIds(),id->string(id.id().toString())));return object(fields);
         }

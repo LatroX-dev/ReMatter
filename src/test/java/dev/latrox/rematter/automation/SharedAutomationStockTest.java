@@ -114,12 +114,27 @@ class SharedAutomationStockTest {
         var aeLater=new Candidate("fourth","ae2",true);
         var rsLater=new Candidate("fifth","rs",true);
         var ordered=List.of(disabled,rs,ae,aeLater,rsLater);
-        assertSame(ae,AutomationNetworkPolicy.elected(ordered,"ae2",Candidate::backend,Candidate::eligible).orElseThrow());
-        assertSame(rs,AutomationNetworkPolicy.elected(ordered,"rs",Candidate::backend,Candidate::eligible).orElseThrow());
+        assertSame(ae,AutomationNetworkPolicy.elected(ordered,"ae2",Candidate::backend,Candidate::eligible,candidate->0).orElseThrow());
+        assertSame(rs,AutomationNetworkPolicy.elected(ordered,"rs",Candidate::backend,Candidate::eligible,candidate->0).orElseThrow());
         assertSame(aeLater,AutomationNetworkPolicy.elected(List.of(disabled,rs,aeLater,rsLater),"ae2",
-                Candidate::backend,Candidate::eligible).orElseThrow());
-        assertTrue(AutomationNetworkPolicy.elected(ordered,"missing",Candidate::backend,Candidate::eligible).isEmpty());
-        assertTrue(AutomationNetworkPolicy.elected(List.of(disabled),"ae2",Candidate::backend,Candidate::eligible).isEmpty());
+                Candidate::backend,Candidate::eligible,candidate->0).orElseThrow());
+        assertTrue(AutomationNetworkPolicy.elected(ordered,"missing",Candidate::backend,Candidate::eligible,candidate->0).isEmpty());
+        assertTrue(AutomationNetworkPolicy.elected(List.of(disabled),"ae2",Candidate::backend,Candidate::eligible,candidate->0).isEmpty());
+    }
+
+    @Test void anIncumbentWithWorkOrALeaseIsNotDisplacedByANewcomer() {
+        var newcomer=new Incumbent(true,0);var leased=new Incumbent(true,1);
+        var holding=new Incumbent(true,2);var holdingLater=new Incumbent(true,2);var disabledHolder=new Incumbent(false,2);
+        assertSame(leased,elect(newcomer,leased),"A freshly enabled interface at a lower position waits");
+        assertSame(holding,elect(newcomer,leased,holding),"Queued orders drain before a lease holder continues");
+        assertSame(holding,elect(disabledHolder,holding,holdingLater),"Equal incumbents keep the stable physical order");
+        assertSame(newcomer,elect(newcomer,disabledHolder));
+        var laterNewcomer=new Incumbent(true,0);
+        assertSame(newcomer,elect(newcomer,laterNewcomer));
+    }
+    private record Incumbent(boolean eligible,int rank) {}
+    private static Incumbent elect(Incumbent... ordered) {
+        return AutomationNetworkPolicy.elected(List.of(ordered),"ae2",candidate->"ae2",Incumbent::eligible,Incumbent::rank).orElseThrow();
     }
 
     @Test void aWorkerCannotBeStolenByAnEqualButDifferentHostOrAnotherOrder() {
@@ -207,6 +222,9 @@ class SharedAutomationStockTest {
         public List<Delivery> pendingOutputs(){return ledger.pendingOutputs();}
         public boolean beginDelivery(UUID id,Resource resource,long offered){return ledger.beginDelivery(id,resource,offered);}
         public void ackOutput(UUID id,Resource resource,long accepted){ledger.finishDelivery(id,resource,accepted);}
+        public List<Delivery> pendingRefunds(){return ledger.pendingRefunds();}
+        public boolean beginRefund(UUID id,Resource resource,long offered){return ledger.beginRefund(id,resource,offered);}
+        public void ackRefund(UUID id,Resource resource,long accepted){ledger.finishRefund(id,resource,accepted);}
         public void quarantineDelivery(UUID id,String reason){ledger.quarantineDelivery(id,reason);}public void changed(){}
     }
 }

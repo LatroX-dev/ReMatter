@@ -1,5 +1,5 @@
 {
-  "required": true,
+  "required": false,
   "minVersion": "0.8",
   "package": "dev.latrox.rematter.compat.rs.mixin",
   "plugin": "dev.latrox.rematter.compat.rs.mixin.RsMixinPlugin",

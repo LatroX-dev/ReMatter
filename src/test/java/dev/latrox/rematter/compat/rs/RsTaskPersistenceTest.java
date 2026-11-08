@@ -99,7 +99,7 @@ class RsTaskPersistenceTest {
                 .getAsJsonArray("possibilities").get(0).getAsJsonObject().addProperty("amount",-1);
         assertTrue(CODEC.parse(JsonOps.INSTANCE,negative).result().isEmpty());
     }
-    @Test void unsupportedSinkDetailsAreNotSilentlyDiscardedDuringSave() {
+    @Test void foreignSinkDisplayDetailsAreOmittedWithoutLosingTaskState() {
         var task=sample();var entries=new LinkedHashMap<>(task.patterns());
         var selected=entries.entrySet().stream().filter(e->e.getValue().externalPattern()!=null).findFirst().orElseThrow();
         var old=selected.getValue();var external=old.externalPattern();
@@ -108,7 +108,13 @@ class RsTaskPersistenceTest {
         entries.put(selected.getKey(),new TaskSnapshot.PatternSnapshot(old.root(),old.pattern(),old.ingredients(),null,unknown));
         var changed=new TaskSnapshot(task.id(),task.resource(),task.amount(),Actor.EMPTY,false,task.startTime(),entries,task.completedPatterns(),
                 task.initialRequirements(),task.internalStorage(),task.state(),task.cancelled());
-        assertTrue(CODEC.encodeStart(JsonOps.INSTANCE,List.of(changed)).result().isEmpty());
+        var encoded=CODEC.encodeStart(JsonOps.INSTANCE,List.of(changed)).getOrThrow();
+        var restored=CODEC.parse(JsonOps.INSTANCE,encoded).getOrThrow().getFirst();
+        var restoredExternal=restored.patterns().get(selected.getKey()).externalPattern();
+        assertNull(restoredExternal.lastSinkDetails());
+        assertEquals(unknown.pendingSinkIds().size(),restoredExternal.pendingSinkIds().size());
+        assertEquals(unknown.iterationsToSendToSink(),restoredExternal.iterationsToSendToSink());
+        assertEquals(List.copyOf(changed.internalStorage().copyState()),List.copyOf(restored.internalStorage().copyState()));
     }
     private static TaskSnapshot sample() {
         ResourceKey a=new Key("othermod:sample","{custom_name:A,damage:3}"),b=new Key("othermod:sample","{custom_name:B,damage:9}");

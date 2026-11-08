@@ -13,4 +13,6 @@ public interface AutomationAdapter {
     boolean connected();
     /** Native tasks must be retained before a backend can be replaced. */
     default boolean hasTasks() { return false; }
+    /** A backend-specific status key, or empty when the adapter has nothing to report. */
+    default String status() { return ""; }
 }
