@@ -12,11 +12,14 @@ final class MachineSchema {
     private MachineSchema() {}
 
     /** Null when stored machine data can be read; otherwise the reason it must stay opaque. */
-    static @Nullable String rejection(Optional<Integer> schema, Optional<String> owner, Optional<Integer> storedItems, int inventorySize) {
+    static @Nullable String rejection(Optional<Integer> schema, Optional<String> owner, Optional<Integer> storedItems, int inventorySize,
+                                      Optional<Integer> storedTanks, int tankCount) {
         if (schema.isEmpty() || schema.get() != VERSION) return "unsupported schema " + schema.map(String::valueOf).orElse("(missing)");
         if (owner.isPresent() && owner(owner.get()) == null) return "malformed owner";
         if (storedItems.isEmpty()) return "unreadable items";
         if (storedItems.get() != inventorySize) return storedItems.get() + " item slots instead of " + inventorySize;
+        if (storedTanks.isEmpty()) return "unreadable tank";
+        if (storedTanks.get() != tankCount) return storedTanks.get() + " tanks instead of " + tankCount;
         return null;
     }
 

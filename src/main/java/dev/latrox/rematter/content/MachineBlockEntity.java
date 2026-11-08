@@ -47,6 +47,7 @@ import org.jspecify.annotations.Nullable;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.StacksResourceHandler;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
@@ -120,7 +121,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     };
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
         @Override public boolean isValid(int index, FluidResource resource) {
-            return !networkJobs && (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER)
+            return isLiveServerMachine() && !networkJobs && (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER)
                     && !resource.isEmpty() && resource.isComponentsPatchEmpty()
                     && ReMatter.chemistry().fluidProfile(BuiltInRegistries.FLUID.getKey(resource.getFluid()).toString()).isPresent();
         }
@@ -884,10 +885,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         operations.forgetPreparationRecipe();
         cachedNetwork = null;
         items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
-        var savedItems = input.read("items", RAW_TAG_CODEC).flatMap(raw -> ItemStack.OPTIONAL_CODEC.listOf()
-                .parse(input.lookup().createSerializationContext(NbtOps.INSTANCE), raw).result());
+        var context = input.lookup().createSerializationContext(NbtOps.INSTANCE);
+        var savedItems = input.read("items", RAW_TAG_CODEC).flatMap(raw -> ItemStack.OPTIONAL_CODEC.listOf().parse(context, raw).result());
+        var savedTank = input.childOrEmpty("tank").read(StacksResourceHandler.VALUE_IO_KEY, RAW_TAG_CODEC)
+                .flatMap(raw -> FluidStack.OPTIONAL_CODEC.listOf().parse(context, raw).result());
         String rejection = MachineSchema.rejection(input.getInt("schema"), input.getString("owner"),
-                savedItems.map(List::size), items.size());
+                savedItems.map(List::size), items.size(), savedTank.map(List::size), fluids.size());
         unsupportedData = null;
         if (rejection != null) {
             // Keep everything exactly as stored; the machine stays inert and its item carries the data unchanged.

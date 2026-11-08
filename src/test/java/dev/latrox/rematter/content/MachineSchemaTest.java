@@ -9,21 +9,27 @@ class MachineSchemaTest {
     private static final String OWNER = "00000000-0000-0000-0000-000000000001";
 
     @Test void onlyTheCurrentSchemaWithACompleteInventoryIsRead() {
-        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.of(OWNER), Optional.of(3), 3));
-        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(10), 10));
-        assertNotNull(MachineSchema.rejection(Optional.empty(), Optional.empty(), Optional.of(3), 3));
-        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION + 1), Optional.empty(), Optional.of(3), 3));
-        assertNotNull(MachineSchema.rejection(Optional.of(0), Optional.empty(), Optional.of(3), 3));
+        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.of(OWNER), Optional.of(3), 3, Optional.of(1), 1));
+        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(10), 10, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.empty(), Optional.empty(), Optional.of(3), 3, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION + 1), Optional.empty(), Optional.of(3), 3, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(0), Optional.empty(), Optional.of(3), 3, Optional.of(1), 1));
     }
 
     @Test void surplusMissingOrUnreadableSlotsAreNeverTruncated() {
-        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(10), 3));
-        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(2), 3));
-        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.empty(), 3));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(10), 3, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(2), 3, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.empty(), 3, Optional.of(1), 1));
+    }
+
+    @Test void anUnreadableOrResizedTankKeepsTheDataOpaqueInsteadOfEmptyingIt() {
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(3), 3, Optional.empty(), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(3), 3, Optional.of(0), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(3), 3, Optional.of(2), 1));
     }
 
     @Test void aMalformedOwnerKeepsTheDataOpaqueInsteadOfLockingEveryone() {
-        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.of("not-a-uuid"), Optional.of(3), 3));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.of("not-a-uuid"), Optional.of(3), 3, Optional.of(1), 1));
         assertEquals(UUID.fromString(OWNER), MachineSchema.owner(OWNER));
         assertNull(MachineSchema.owner("1-1-1-1-1"));
         assertNull(MachineSchema.owner(""));
