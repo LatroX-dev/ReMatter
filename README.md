@@ -103,7 +103,7 @@ Filled machines and Cells retain their contents when carried. Mechanisms animate
 
 - The player who places a machine owns it. A mined machine keeps its contents but no owner; whoever places it next owns it.
 - Operators (permission level 2 or higher) can open and break any machine.
-- Automated fake players act on a machine only when they carry its owner's UUID. A machine placed without a player, for example by a fake player or a command, belongs to the first real player who uses it.
+- Automated fake players act on a machine only when they carry its owner's UUID. A machine that a fake player places belongs to the UUID it carries. A machine placed without any player, for example by a command, belongs to the first real player who uses it.
 - A matter network includes only one owner's machines. Other players' machines on the same cables are not part of it and never share its stock.
 - An industrial chamber never forms over a Machine Port inside another owner's chamber, and a port that two owners' chambers could use stays with the chamber that already claims it.
 

@@ -268,9 +268,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     String networkStorageStatus() { return storageStatus(); }
     int networkCellCount() { return kind().isStorage() ? bays.installed() : 0; }
     List<MatterInventory> localMatterMembers() { return kind().isStorage() && storageStatus().equals("ready") ? matterStore().members() : List.of(); }
-    /** Placement makes the placing player the owner, whatever owner data the placed item carried. */
+    /**
+     * Placement makes the placing player the owner, whatever owner data the placed item carried. A fake player places
+     * for the owner whose UUID it carries; a placement without any player leaves the machine unowned.
+     */
     void placedBy(@Nullable LivingEntity placer) {
-        assignOwner(MachineAccess.placedBy(placer instanceof Player player ? player.getUUID() : null, placer instanceof FakePlayer));
+        assignOwner(placer instanceof Player player ? player.getUUID() : null);
     }
     private void assignOwner(@Nullable UUID next) {
         if (Objects.equals(owner, next)) return;

@@ -28,10 +28,4 @@ class MachineAccessTest {
         assertFalse(MachineAccess.claims(null, false, true));
         assertFalse(MachineAccess.claims(OWNER, false, false));
     }
-
-    @Test void placementAssignsThePlacingPlayerAndNeverAFakePlayer() {
-        assertEquals(STRANGER, MachineAccess.placedBy(STRANGER, false));
-        assertNull(MachineAccess.placedBy(STRANGER, true));
-        assertNull(MachineAccess.placedBy(null, false));
-    }
 }
