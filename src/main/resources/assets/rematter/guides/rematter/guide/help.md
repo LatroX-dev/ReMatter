@@ -60,7 +60,8 @@ Check the reason shown by the controller:
 - **Missing or incomplete modules:** fit at least one of every required module type.
 - **Wrong module or position:** each matching type can mount on the inside floor or directly under the roof. Click a support's top or bottom face. Keep the middle clear.
 - **Blocked interior:** remove unrelated blocks; space between the installed floor and ceiling parts must be air.
-- **Unloaded or ambiguous structure:** keep the chamber loaded and give it a single unambiguous controller.
+- **Unloaded structure:** keep the chamber loaded.
+- **Chambers share a port:** give each chamber its own Machine Ports. A port inside another player's chamber cannot be used.
 - **Overlaps another player's chamber:** build outside the space that another player's chamber already claims.
 
 A larger shell without additional working parts does not work faster. Pause before rebuilding.
