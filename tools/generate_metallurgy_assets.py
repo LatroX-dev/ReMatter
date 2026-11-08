@@ -65,11 +65,6 @@ def outputs():
     energy_trim = box((6.4,11.5,14.6),(9.6,13.7,14.66),'graphite',faces={'south':'energy'})
     for path, asset in machine_state_assets('sinter_furnace', 'machine_ember', rear_trim=[energy_trim]):
         yield ASSETS / path, asset
-    # MachineBlock.getDrops retains inventory and cells. This fallback table never
-    # replaces that custom path and is useful to resource consumers inspecting drops.
-    yield RES/'data/rematter/loot_table/blocks/sinter_furnace.json',{
-        'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'rematter:sinter_furnace'}],
-        'conditions':[{'condition':'minecraft:survives_explosion'}]}]}
 
 
 def main():
