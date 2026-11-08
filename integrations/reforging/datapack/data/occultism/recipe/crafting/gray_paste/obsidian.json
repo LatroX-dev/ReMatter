@@ -3,14 +3,5 @@
     {
       "type": "neoforge:never"
     }
-  ],
-  "type": "minecraft:crafting_shapeless",
-  "category": "building",
-  "ingredients": [
-    "occultism:gray_paste",
-    "#c:dusts/obsidian"
-  ],
-  "result": {
-    "id": "minecraft:obsidian"
-  }
+  ]
 }

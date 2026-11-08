@@ -3,13 +3,5 @@
     {
       "type": "neoforge:never"
     }
-  ],
-  "type": "occultism:crystallize",
-  "ingredient": "#c:dusts/obsidian",
-  "result": {
-    "type": "occultism:item",
-    "id": "minecraft:obsidian"
-  },
-  "min_tier": 3,
-  "ignore_crystallize_multiplier": true
+  ]
 }
