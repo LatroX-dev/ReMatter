@@ -132,7 +132,7 @@ class StarterProgressionTest {
             var amounts = ingredientCounts(cellRecipe);
             assertEquals(1, amounts.get("rematter:cell_housing"));
             assertEquals(1, amounts.get(i == 2 ? "rematter:optical_circuit" : "rematter:control_circuit"));
-            if (i >= 1) assertEquals(1, amounts.get("rematter:ender_conductor"));
+            if (i >= 1) assertEquals(i == 1 ? 2 : 1, amounts.get("rematter:ender_conductor"));
             if (i == 2) {
                 assertEquals(1, amounts.get("rematter:diamond_lattice"));
                 assertEquals(1, amounts.get("rematter:netherite_sheath"));
