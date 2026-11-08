@@ -11,17 +11,16 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.Bounds;
 import dev.emi.emi.runtime.EmiReloadManager;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
-import dev.latrox.rematter.chemistry.ProcessType;
-import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.client.MachineScreen;
+import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.compat.PreparationDisplay;
 import dev.latrox.rematter.content.preparation.PreparationRecipes;
 import dev.latrox.rematter.network.ClientChemistry;
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -81,60 +80,33 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         }
         for (var recipe : PreparationDisplay.from(displayedPreparation))
             registry.addRecipe(new PreparationEmiRecipe(preparationCategories.get(recipe.machine()), recipe));
-        EmiRecipeCategory decomposition = category("decomposition", "Decomposition", MachineKind.DECOMPOSER);
-        EmiRecipeCategory synthesis = category("synthesis", "Synthesis", MachineKind.SYNTHESIZER);
-        EmiRecipeCategory electrolysis = category("electrolysis", "Electrolysis", MachineKind.ELECTROLYZER);
-        EmiRecipeCategory reaction = category("reaction", "Chemical reactions", MachineKind.REACTOR);
-        for (var category : List.of(decomposition, synthesis, electrolysis, reaction)) {
+        var categories = new EnumMap<ChemistryViewer.Category, EmiRecipeCategory>(ChemistryViewer.Category.class);
+        for (var value : ChemistryViewer.Category.values()) {
+            var machines = value.machines();
+            var category = new EmiRecipeCategory(Identifier.fromNamespaceAndPath("rematter", value.id()),
+                    EmiStack.of(ModContent.MACHINES.get(machines.getFirst()).get())) {
+                @Override public Component getName() { return value.title(); }
+            };
+            categories.put(value, category);
             registry.addCategory(category);
-            registry.addWorkstation(category, (EmiStack) category.icon);
+            for (var machine : machines) registry.addWorkstation(category, EmiStack.of(ModContent.MACHINES.get(machine).get()));
         }
-        registry.addWorkstation(reaction, EmiStack.of(ModContent.MACHINES.get(MachineKind.INDUSTRIAL_REACTOR).get()));
-        catalogue.substances().forEach(definition -> definition.phases().forEach(phase ->
-                registry.addEmiStack(new MatterEmiStack(new SubstanceKey(definition.id(), phase), 1))));
-
-        for (var profile : catalogue.profiles()) {
-            Identifier itemId = Identifier.parse(profile.itemId());
-            if (!BuiltInRegistries.ITEM.containsKey(itemId) || itemId.toString().equals("minecraft:air")) continue;
-            EmiStack item = EmiStack.of(new ItemStack(BuiltInRegistries.ITEM.getValue(itemId), profile.itemCount()));
-            List<EmiStack> matter = matter(profile.matter());
-            boolean allowed = catalogue.synthesisPolicy().allowsItem(profile.itemId());
-            registry.addRecipe(new ChemistryEmiRecipe(decomposition, recipeId("decomposition", itemId), List.of(item), matter,
-                    profile.decompositionEnergy(), profile.ticks(), allowed ? "Synthesis allowed" : "Synthesis not allowed"));
-            if (allowed) registry.addRecipe(new ChemistryEmiRecipe(synthesis, recipeId("synthesis", itemId),
-                    asIngredients(matter), List.of(item), profile.synthesisEnergy(), profile.ticks(), "Synthesis allowed"));
-        }
-        for (var conversion : catalogue.fluidProfiles()) {
-            Identifier fluidId = Identifier.parse(conversion.fluidId());
-            EmiStack fluid = EmiStack.of(BuiltInRegistries.FLUID.getValue(fluidId), conversion.amount());
-            List<EmiStack> matter = matter(conversion.matter());
-            boolean allowed = catalogue.synthesisPolicy().allowsFluid(conversion.fluidId());
-            registry.addRecipe(new ChemistryEmiRecipe(decomposition, recipeId("fluid_decomposition", fluidId),
-                    List.of(fluid), matter, conversion.decompositionEnergy(), conversion.ticks(),
-                    allowed ? "Synthesis allowed" : "Synthesis not allowed"));
-            if (allowed) registry.addRecipe(new ChemistryEmiRecipe(synthesis, recipeId("fluid_synthesis", fluidId),
-                    asIngredients(matter), List.of(fluid), conversion.synthesisEnergy(), conversion.ticks(), "Synthesis allowed"));
-        }
-        for (var process : catalogue.processes()) {
-            var category = process.type() == ProcessType.ELECTROLYSIS ? electrolysis : reaction;
-            registry.addRecipe(new ChemistryEmiRecipe(category, recipeId("process", Identifier.parse(process.id().toString())),
-                    asIngredients(matter(process.inputs())), matter(process.outputs()), process.energy(), process.ticks(), "Stored substances"));
+        var entries = ChemistryViewer.entries(catalogue);
+        ChemistryViewer.substances(entries).forEach(key -> registry.addEmiStack(new MatterEmiStack(key, 1)));
+        for (var entry : entries) {
+            var inputs = new ArrayList<EmiIngredient>();
+            entry.consumed().ifPresent(resource -> inputs.add(stack(resource)));
+            entry.inputs().forEach(matter -> inputs.add(new MatterEmiStack(matter.key(), matter.amount())));
+            var outputs = new ArrayList<EmiStack>();
+            entry.produced().ifPresent(resource -> outputs.add(stack(resource)));
+            entry.outputs().forEach(matter -> outputs.add(new MatterEmiStack(matter.key(), matter.amount())));
+            registry.addRecipe(new ChemistryEmiRecipe(categories.get(entry.category()), entry.id(), inputs, outputs,
+                    entry.energy(), entry.ticks(), entry.notes()));
         }
     }
 
-    private static EmiRecipeCategory category(String id, String title, MachineKind machine) {
-        return new EmiRecipeCategory(Identifier.fromNamespaceAndPath("rematter", id), EmiStack.of(ModContent.MACHINES.get(machine).get())) {
-            @Override public Component getName() { return Component.literal(title); }
-        };
-    }
-    private static Identifier recipeId(String type, Identifier source) {
-        return Identifier.fromNamespaceAndPath("rematter", type + "/" + source.getNamespace() + "/" + source.getPath());
-    }
-    private static List<EmiStack> matter(Map<SubstanceKey, Long> amounts) {
-        return amounts.entrySet().stream().sorted(Map.Entry.comparingByKey())
-                .map(entry -> (EmiStack) new MatterEmiStack(entry.getKey(), entry.getValue())).toList();
-    }
-    private static List<EmiIngredient> asIngredients(List<EmiStack> matter) {
-        return matter.stream().map(value -> (EmiIngredient) value).toList();
+    private static EmiStack stack(ChemistryViewer.Resource resource) {
+        return resource.fluid() ? EmiStack.of(BuiltInRegistries.FLUID.getValue(resource.id()), resource.amount())
+                : EmiStack.of(new ItemStack(BuiltInRegistries.ITEM.getValue(resource.id()), resource.amount()));
     }
 }

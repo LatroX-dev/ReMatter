@@ -1,9 +1,12 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
+import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.network.ClientChemistry;
+import java.util.Locale;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -16,13 +19,43 @@ public final class SubstanceNames {
 
     /** A stock row whose definition is missing stays visible, marked as unknown with its stable ID. */
     public static Component substance(String id, String phase, boolean known) {
-        if (!known) return Component.translatable("substance.rematter.unknown", id, phase);
+        if (!known) return Component.translatable("substance.rematter.unknown", id, phase(phase));
         try {
             return ClientChemistry.current().definition(SubstanceId.parse(id))
-                    .<Component>map(definition -> Component.translatable(definition.translationKey()))
+                    .<Component>map(definition -> Component.translatableWithFallback(definition.translationKey(), readable(definition.id().path())))
                     .orElseGet(() -> Component.literal(id));
         } catch (IllegalArgumentException invalid) { return Component.literal(id); }
     }
+
+    /** A data-pack substance without a translation is named from the last part of its stable ID. */
+    static String readable(String path) {
+        String name = path.substring(path.lastIndexOf('/') + 1).replace('_', ' ');
+        return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
+    }
+
+    /** Recipe viewers and terminals use the client's catalogue to decide whether a key is still defined. */
+    public static Component substance(SubstanceKey key) {
+        return substance(key.id().toString(), phaseId(key.phase()), ClientChemistry.current().isKnown(key));
+    }
+
+    public static boolean known(SubstanceKey key) { return ClientChemistry.current().isKnown(key); }
+
+    /** The name with its formula; an undefined key shows its ID and the unknown marker instead. */
+    public static Component labelled(SubstanceKey key) {
+        var name = substance(key);
+        return known(key) ? SubstanceLabels.withSymbol(key.id(), name) : name;
+    }
+
+    public static Component phase(String phase) {
+        return switch (phase) {
+            case "solid", "liquid", "gas" -> Component.translatable("phase.rematter." + phase);
+            default -> Component.literal(phase);
+        };
+    }
+
+    public static Component phase(Phase phase) { return phase(phaseId(phase)); }
+
+    static String phaseId(Phase phase) { return phase.name().toLowerCase(Locale.ROOT); }
 
     public static Component item(String id) {
         Identifier key = Identifier.tryParse(id);

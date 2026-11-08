@@ -5,6 +5,7 @@ import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
 import dev.emi.emi.api.widget.WidgetHolder;
+import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
 import dev.latrox.rematter.client.ScreenChrome.Icon;
@@ -15,10 +16,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIngredient> inputs,
-                          List<EmiStack> outputs, long energy, int ticks, String permission) implements EmiRecipe {
+                          List<EmiStack> outputs, long energy, int ticks, List<Component> notes) implements EmiRecipe {
     ChemistryEmiRecipe {
         inputs = List.copyOf(inputs);
         outputs = List.copyOf(outputs);
+        notes = List.copyOf(notes);
     }
     @Override public EmiRecipeCategory getCategory() { return category; }
     @Override public Identifier getId() { return id; }
@@ -34,34 +36,36 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
             ScreenChrome.panel(graphics,0,0,getDisplayWidth(),getDisplayHeight());
             ScreenChrome.inset(graphics,0,footer-5,getDisplayWidth(),31);
         });
-        icon(widgets,Icon.INPUT,0,0,Component.literal("Input"));
-        icon(widgets,Icon.OUTPUT,108,0,Component.literal("Output"));
-        widgets.addText(Component.literal("Input"),16,2,UiPalette.TEXT,false);
-        widgets.addText(Component.literal("Output"),124,2,UiPalette.TEXT,false);
+        Component input = Component.translatable("gui.rematter.viewer.input");
+        Component output = Component.translatable("gui.rematter.viewer.output");
+        icon(widgets,Icon.INPUT,0,0,List.of(input));
+        icon(widgets,Icon.OUTPUT,108,0,List.of(output));
+        widgets.addText(input,16,2,UiPalette.TEXT,false);
+        widgets.addText(output,124,2,UiPalette.TEXT,false);
         for (int index = 0; index < inputs.size(); index++) {
-            var input = inputs.get(index);
-            widgets.addSlot(input, 0, 12 + index * 20)
-                    .appendTooltip(Component.literal("Required: " + input.getAmount()));
-            addAmount(widgets, input, 21, 17 + index * 20);
+            var ingredient = inputs.get(index);
+            widgets.addSlot(ingredient, 0, 12 + index * 20)
+                    .appendTooltip(Component.translatable("gui.rematter.viewer.required", amount(ingredient)));
+            addAmount(widgets, ingredient, 21, 17 + index * 20);
         }
         for (int index = 0; index < outputs.size(); index++) {
-            var output = outputs.get(index);
-            widgets.addSlot(output, 108, 12 + index * 20).recipeContext(this)
-                    .appendTooltip(Component.literal("Produced: " + output.getAmount()));
-            addAmount(widgets, output, 129, 17 + index * 20);
+            var product = outputs.get(index);
+            widgets.addSlot(product, 108, 12 + index * 20).recipeContext(this)
+                    .appendTooltip(Component.translatable("gui.rematter.viewer.produced", amount(product)));
+            addAmount(widgets, product, 129, 17 + index * 20);
         }
         widgets.addFillingArrow(78, 12, (int) Math.min(Integer.MAX_VALUE, Math.max(1L, ticks) * 50L));
-        icon(widgets,Icon.POWER,2,footer-2,Component.literal(energy+" FE per operation, before upgrades"));
-        value(widgets,energy+" FE",18,footer,156,UiPalette.TEXT);
-        icon(widgets,Icon.TIME,2,footer+10,Component.literal(ticks+" ticks before upgrades"));
-        value(widgets,ticks+" ticks",18,footer+12,144,UiPalette.MUTED);
-        icon(widgets,Icon.INFO,164,footer+10,Component.literal(permission));
+        icon(widgets,Icon.POWER,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
+        value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
+        icon(widgets,Icon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
+        value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
+        icon(widgets,Icon.INFO,164,footer+10,notes);
     }
 
-    private static void icon(WidgetHolder widgets,Icon icon,int x,int y,Component tooltip) {
+    private static void icon(WidgetHolder widgets,Icon icon,int x,int y,List<Component> tooltip) {
         widgets.addDrawable(x,y,12,12,(graphics,mouseX,mouseY,delta) ->
                 ScreenChrome.icon(graphics,icon,0,0,UiPalette.ACCENT));
-        widgets.addTooltipText(List.of(tooltip),x,y,12,12);
+        widgets.addTooltipText(tooltip,x,y,12,12);
     }
     private static void value(WidgetHolder widgets,String text,int x,int y,int width,int color) {
         var font=Minecraft.getInstance().font;
@@ -70,11 +74,16 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         if (!visible.equals(text)) widgets.addTooltipText(List.of(Component.literal(text)),x,y,font.width(visible),9);
     }
 
+    private static Component amount(EmiIngredient ingredient) {
+        String value = Quantities.number(ingredient.getAmount());
+        if (ingredient instanceof MatterEmiStack) return Quantities.matter(value);
+        return ingredient instanceof EmiStack stack && stack.getKey() instanceof Fluid ? Quantities.fluid(value) : Component.literal(value);
+    }
+
     private static void addAmount(WidgetHolder widgets, EmiIngredient ingredient, int x, int y) {
-        boolean fluid = ingredient instanceof EmiStack stack && stack.getKey() instanceof Fluid;
-        String amount = ingredient.getAmount() + (ingredient instanceof MatterEmiStack ? " u" : fluid ? " mB" : "");
-        String trimmed = Minecraft.getInstance().font.plainSubstrByWidth(amount, 51);
+        Component amount = amount(ingredient);
+        String trimmed = Minecraft.getInstance().font.plainSubstrByWidth(amount.getString(), 51);
         widgets.addText(Component.literal(trimmed), x, y, UiPalette.ACCENT_BRIGHT, false);
-        widgets.addTooltipText(List.of(Component.literal(amount)),x,y,Minecraft.getInstance().font.width(trimmed),9);
+        widgets.addTooltipText(List.of(amount),x,y,Minecraft.getInstance().font.width(trimmed),9);
     }
 }

@@ -50,10 +50,10 @@ final class PreparationCategory implements IRecipeCategory<PreparationDisplay> {
         ScreenChrome.icon(graphics,Icon.OUTPUT,143,3,UiPalette.ACCENT);
         ScreenChrome.icon(graphics,Icon.NEXT,105,25,UiPalette.ACCENT);
         ScreenChrome.icon(graphics,recipe.manual()?Icon.CRANK:Icon.POWER,8,52,UiPalette.ACCENT);
-        value(graphics,recipe.manual()?recipe.cranks()+" turns":recipe.energy()+" FE",24,54,154,UiPalette.TEXT);
+        value(graphics,recipe.costValue().getString(),24,54,154,UiPalette.TEXT);
         if (!recipe.manual()) {
             ScreenChrome.icon(graphics,Icon.TIME,8,70,UiPalette.ACCENT);
-            value(graphics,recipe.ticks()+" ticks",24,72,154,UiPalette.MUTED);
+            value(graphics,recipe.timeValue().getString(),24,72,154,UiPalette.MUTED);
         }
         ScreenChrome.icon(graphics,Icon.RECIPE,8,88,UiPalette.ACCENT);
         value(graphics,recipe.output().getHoverName().getString(),24,90,138,UiPalette.ACCENT);
@@ -65,7 +65,7 @@ final class PreparationCategory implements IRecipeCategory<PreparationDisplay> {
     }
     @Override public void getTooltip(ITooltipBuilder tooltip, PreparationDisplay recipe, IRecipeSlotsView slots, double mouseX, double mouseY) {
         if (inside(mouseX,mouseY,6,3)) tooltip.add(Component.translatable("gui.rematter.preparation_inputs"));
-        else if (inside(mouseX,mouseY,143,3)) tooltip.add(Component.literal("Output"));
+        else if (inside(mouseX,mouseY,143,3)) tooltip.add(Component.translatable("gui.rematter.viewer.output"));
         else if (inside(mouseX,mouseY,8,52) || !recipe.manual() && inside(mouseX,mouseY,8,70)) tooltip.add(recipe.cost());
         else if (inside(mouseX,mouseY,8,88)) tooltip.add(recipe.output().getHoverName());
         else if (inside(mouseX,mouseY,168,88)) {

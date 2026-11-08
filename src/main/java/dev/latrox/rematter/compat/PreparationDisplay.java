@@ -1,5 +1,6 @@
 package dev.latrox.rematter.compat;
 
+import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.preparation.PreparationRecipes;
 import dev.latrox.rematter.content.preparation.PreparationTier;
@@ -50,8 +51,15 @@ public record PreparationDisplay(Identifier sourceId, MachineKind machine, Ingre
     public Component inputsNote() {
         return Component.translatable("gui.rematter.preparation_counted_inputs");
     }
-    public Identifier recipeId() {
-        return Identifier.fromNamespaceAndPath("rematter", "preparation/" + machine.id() + "/"
-                + sourceId.getNamespace() + "/" + sourceId.getPath() + "/" + Integer.toUnsignedString(hashCode(), 16));
+    public Identifier recipeId() { return recipeId(machine, sourceId); }
+
+    /** One display per source recipe and machine, so the source and machine alone make a stable synthetic ID. */
+    static Identifier recipeId(MachineKind machine, Identifier source) {
+        return Identifier.fromNamespaceAndPath("rematter", "/preparation/" + machine.id() + "/" + source.getNamespace() + "/" + source.getPath());
     }
+    /** The visible cost value: cranks for manual work, otherwise FE. */
+    public Component costValue() {
+        return manual() ? Component.translatable("gui.rematter.viewer.cranks", cranks()) : Quantities.energy(Quantities.number(energy()));
+    }
+    public Component timeValue() { return Quantities.ticks(Quantities.number(ticks())); }
 }

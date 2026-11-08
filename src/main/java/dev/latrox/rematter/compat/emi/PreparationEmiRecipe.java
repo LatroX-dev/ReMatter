@@ -40,17 +40,17 @@ record PreparationEmiRecipe(EmiRecipeCategory category, PreparationDisplay displ
         });
         icon(widgets,Icon.INPUT,6,3,List.of(Component.translatable("gui.rematter.preparation_inputs")));
         widgets.addText(Component.translatable("gui.rematter.preparation_inputs"),22,5,UiPalette.TEXT,false);
-        icon(widgets,Icon.OUTPUT,143,3,List.of(Component.literal("Output")));
+        icon(widgets,Icon.OUTPUT,143,3,List.of(Component.translatable("gui.rematter.viewer.output")));
         for (int i = 0; i < inputs.size(); i++) widgets.addSlot(inputs.get(i),6+i*34,21);
         widgets.addSlot(outputs.getFirst(),143,21).recipeContext(this);
         // Manual work has no elapsed-time promise or automatically filling arrow.
         if (display.manual()) icon(widgets,Icon.NEXT,105,25,List.of(display.note()));
         else widgets.addFillingArrow(98,21,Math.toIntExact(Math.max(1L,display.ticks())*50));
         icon(widgets,display.manual()?Icon.CRANK:Icon.POWER,8,52,List.of(display.cost()));
-        value(widgets,display.manual()?display.cranks()+" turns":display.energy()+" FE",24,54,154,UiPalette.TEXT);
+        value(widgets,display.costValue().getString(),24,54,154,UiPalette.TEXT);
         if (!display.manual()) {
             icon(widgets,Icon.TIME,8,70,List.of(display.cost()));
-            value(widgets,display.ticks()+" ticks",24,72,154,UiPalette.MUTED);
+            value(widgets,display.timeValue().getString(),24,72,154,UiPalette.MUTED);
         }
         icon(widgets,Icon.RECIPE,8,88,List.of(display.output().getHoverName()));
         value(widgets,display.output().getHoverName().getString(),24,90,138,UiPalette.ACCENT);
