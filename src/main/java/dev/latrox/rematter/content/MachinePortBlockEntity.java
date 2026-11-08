@@ -94,7 +94,7 @@ public final class MachinePortBlockEntity extends BlockEntity {
         }
         if (associationChanged || visible != state) {
             level.invalidateCapabilities(worldPosition);
-            MatterPipeBlock.refreshLoadedAround((ServerLevel)level,worldPosition);
+            MatterCableBlock.refreshLoadedAround((ServerLevel)level,worldPosition);
         }
     }
     public @Nullable EnergyHandler energy(@Nullable Direction side) {

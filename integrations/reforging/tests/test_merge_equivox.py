@@ -36,7 +36,7 @@ class EquivoxMergeTest(unittest.TestCase):
         self.assertTrue(all(entry["emc"] == 0 for entry in result["entries"]))
         self.assertTrue({"rematter:sinter_furnace", "rematter:hand_preparator", "rematter:industrial_preparator", "rematter:material_preparator", "rematter:matter_drive", "rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:network_interface", "rematter:recovered_matter", "rematter:automation_pattern"}.issubset(MERGER.protected_items()))
         self.assertNotIn("rematter:matrix_crystal", MERGER.protected_items())
-        self.assertNotIn("rematter:matter_pipe", MERGER.protected_items())
+        self.assertNotIn("rematter:matter_cable", MERGER.protected_items())
         self.assertNotIn("rematter:guide", MERGER.protected_items())
 
     def test_repeated_merge_is_idempotent_and_conflicting_duplicate_machine_values_are_zeroed(self):

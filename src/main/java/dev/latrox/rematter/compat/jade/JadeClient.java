@@ -7,7 +7,7 @@ import dev.latrox.rematter.content.MachineBlock;
 import dev.latrox.rematter.content.MachineBlockEntity;
 import dev.latrox.rematter.content.MachinePortBlock;
 import dev.latrox.rematter.content.MachinePortMode;
-import dev.latrox.rematter.content.MatterPipeBlock;
+import dev.latrox.rematter.content.MatterCableBlock;
 import dev.latrox.rematter.content.IndustrialStructure;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -35,7 +35,7 @@ final class JadeClient {
 
     static void register(IWailaClientRegistration registration) {
         registration.registerBlockComponent(new StatusTooltip(), MachineBlock.class);
-        registration.registerBlockComponent(new CableTooltip(), MatterPipeBlock.class);
+        registration.registerBlockComponent(new CableTooltip(), MatterCableBlock.class);
         registration.registerBlockComponent(new PortTooltip(), MachinePortBlock.class);
         registration.registerItemStorageClient(new EmptyView<ItemStack, ItemView>(ReMatterJadePlugin.ITEMS));
         registration.registerFluidStorageClient(new EmptyView<FluidView.Data, FluidView>(ReMatterJadePlugin.FLUIDS));
@@ -46,11 +46,11 @@ final class JadeClient {
     private static final class CableTooltip implements IBlockComponentProvider {
         @Override public Identifier getUid() { return ReMatterJadePlugin.CABLE; }
         @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
-            if (!(accessor.getBlockState().getBlock() instanceof MatterPipeBlock cable)) return;
+            if (!(accessor.getBlockState().getBlock() instanceof MatterCableBlock cable)) return;
             tooltip.add(Component.translatable("jade.rematter.cable_channels").withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.translatable("jade.rematter.cable_limit", cable.tier().networkLimit()).withStyle(ChatFormatting.AQUA));
             if (accessor.showDetails()) {
-                tooltip.add(Component.translatable("jade.rematter.cable_connections", MatterPipeBlock.connections(accessor.getBlockState())));
+                tooltip.add(Component.translatable("jade.rematter.cable_connections", MatterCableBlock.connections(accessor.getBlockState())));
                 tooltip.add(Component.translatable("jade.rematter.cable_limit_hint").withStyle(ChatFormatting.GRAY));
                 tooltip.add(Component.translatable("jade.rematter.cable_activity_hint").withStyle(ChatFormatting.GRAY));
             }

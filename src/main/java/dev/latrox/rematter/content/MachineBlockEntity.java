@@ -166,7 +166,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return portMode(side).allows(role);
     }
     public boolean acceptsMatter(Direction side, boolean cable) {
-        return MatterPipeConnectionPolicy.acceptsMachine(kind(), getBlockState().getValue(MachineBlock.FACING), side, cable)
+        return MatterCableConnectionPolicy.acceptsMachine(kind(), getBlockState().getValue(MachineBlock.FACING), side, cable)
                 && allowsPort(side, MachinePortMode.MATTER);
     }
     boolean cyclePort(MachinePortMode.Side side) {
@@ -178,7 +178,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (previous.allows(MachinePortMode.MATTER) != next.allows(MachinePortMode.MATTER)
                 || previous.allows(MachinePortMode.POWER) != next.allows(MachinePortMode.POWER)) {
             touchObservations();
-            MatterPipeBlock.refreshLoadedAround(server, worldPosition);
+            MatterCableBlock.refreshLoadedAround(server, worldPosition);
         }
         level.invalidateCapabilities(worldPosition);
         sendClientUpdate();

@@ -131,17 +131,17 @@ public final class MachineBlock extends Block implements EntityBlock {
         return withCablePort(state, side, hasCableArm(neighbor, side));
     }
     private static boolean hasCableArm(BlockState neighbor, Direction towardCable) {
-        return neighbor.getBlock() instanceof MatterPipeBlock
+        return neighbor.getBlock() instanceof MatterCableBlock
                 && neighbor.getValue(PipeBlock.PROPERTY_BY_DIRECTION.get(towardCable.getOpposite()));
     }
     BlockState withCablePort(BlockState state, Direction towardCable, boolean connected) {
         Direction front = state.getValue(FACING);
         var property = CABLE_PORTS.get(MachinePortMode.Side.local(front, towardCable));
         if (property == null) return state;
-        return state.setValue(property, connected && MatterPipeConnectionPolicy.acceptsMachine(kind, front, towardCable, true));
+        return state.setValue(property, connected && MatterCableConnectionPolicy.acceptsMachine(kind, front, towardCable, true));
     }
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        MatterPipeBlock.refreshLoadedAround(level, pos);
+        MatterCableBlock.refreshLoadedAround(level, pos);
         if (IndustrialStructure.isIndustrial(kind)) return;
         BlockState current = level.getBlockState(pos);
         BlockState updated = current;

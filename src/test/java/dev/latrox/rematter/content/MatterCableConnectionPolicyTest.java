@@ -7,24 +7,24 @@ import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-class MatterPipeConnectionPolicyTest {
+class MatterCableConnectionPolicyTest {
     @Test void rotatedMachinesRejectFrontAndTopCablesAndTerminalOnlyUsesBack() {
         for (var front : Direction.Plane.HORIZONTAL) for (var face : Direction.values()) {
             assertEquals(face != front && face != Direction.UP,
-                    MatterPipeConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, true));
-            assertTrue(MatterPipeConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, false));
+                    MatterCableConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, true));
+            assertTrue(MatterCableConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, false));
             for (boolean cable : new boolean[]{true, false}) {
                 assertEquals(face == front.getOpposite(),
-                        MatterPipeConnectionPolicy.acceptsMachine(MachineKind.TERMINAL, front, face, cable));
-                assertFalse(MatterPipeConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_PREPARATOR, front, face, cable));
-                assertFalse(MatterPipeConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_REACTOR, front, face, cable));
+                        MatterCableConnectionPolicy.acceptsMachine(MachineKind.TERMINAL, front, face, cable));
+                assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_PREPARATOR, front, face, cable));
+                assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_REACTOR, front, face, cable));
             }
         }
     }
 
     @Test void unformedPortsNeverClaimAConnectionEvenWhenTheyRetainAnOldFacing() {
         for (var outward : Direction.values()) for (var towardsPort : Direction.values())
-            assertFalse(MatterPipeConnectionPolicy.acceptsPort(false,outward,towardsPort));
+            assertFalse(MatterCableConnectionPolicy.acceptsPort(false,outward,towardsPort));
     }
 
     @Test void rotatedScalableShellsOnlyConnectThroughTheirActualExterior() {
@@ -40,9 +40,9 @@ class MatterPipeConnectionPolicyTest {
                     var outward=IndustrialStructure.worldDirection(facing,cell.outward());
                     int connected=0;
                     for (var towardsPort : Direction.values()) {
-                        boolean accepted=MatterPipeConnectionPolicy.acceptsPort(true,outward,towardsPort);
-                        var pipe=port.relative(towardsPort.getOpposite());
-                        assertEquals(!volume.contains(pipe),accepted,"Only the exterior neighbor may attach");
+                        boolean accepted=MatterCableConnectionPolicy.acceptsPort(true,outward,towardsPort);
+                        var cable=port.relative(towardsPort.getOpposite());
+                        assertEquals(!volume.contains(cable),accepted,"Only the exterior neighbor may attach");
                         if (accepted) connected++;
                     }
                     assertEquals(1,connected,"Each valid wall port has exactly one exterior face");

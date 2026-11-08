@@ -75,7 +75,7 @@ class MachineSnapshotTest {
                 MachineSnapshot.StructureView.EMPTY, network, EMPTY_BAYS);
         var result = roundTrip(MachineSnapshot.CODEC, snapshot);
         assertEquals(snapshot, result); assertEquals(1000, result.used()); assertEquals(90000, result.network().used());
-        int largest = MatterPipeBlock.Tier.RESONANT.networkLimit();
+        int largest = MatterCableBlock.Tier.RESONANT.networkLimit();
         assertEquals(largest, new MachineSnapshot.NetworkView("ready",largest,3,2,1,100,1).nodes());
         assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("network_unloaded",12,3,2,1,100,1));
         assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("ready",largest + 1,3,2,1,100,1));

@@ -1,7 +1,7 @@
 package dev.latrox.rematter.compat.jade;
 
 import dev.latrox.rematter.content.MachineBlockEntity;
-import dev.latrox.rematter.content.MatterPipeBlock;
+import dev.latrox.rematter.content.MatterCableBlock;
 import java.util.List;
 import net.minecraft.resources.Identifier;
 import snownee.jade.api.Accessor;
@@ -34,7 +34,7 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
         var energy = new PrivateStorage<EnergyView.Data>(ENERGY);
         registration.registerEnergyStorage(energy, MachineBlockEntity.class);
         // The cable forwards FE; its API capacity hint must not look like a battery in Jade.
-        registration.registerEnergyStorage(energy, MatterPipeBlock.class);
+        registration.registerEnergyStorage(energy, MatterCableBlock.class);
         registration.registerProgress(new PrivateStorage<>(PROGRESS), MachineBlockEntity.class);
     }
 

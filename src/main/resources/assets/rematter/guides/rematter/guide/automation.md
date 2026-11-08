@@ -10,7 +10,7 @@ item_ids:
   - rematter:matter_cell_256k
   - rematter:matter_cell_1m
   - rematter:matter_terminal
-  - rematter:matter_pipe
+  - rematter:matter_cable
   - rematter:reinforced_matter_cable
   - rematter:resonant_matter_cable
   - rematter:network_interface
@@ -92,7 +92,7 @@ Connect Matter Cables to eligible rear, side or bottom ports. The Matter Termina
 
 Stock views in the Terminal, Drive and Network Interface have a search field and **Solids**, **Liquids**, **Gases** and **Favorites** filters. Mark a substance as a favorite in its details; favorites are listed first. A view lists up to 512 types, matches and favorites first, and shows how many of the stored types it lists.
 
-<RecipeFor id="rematter:matter_pipe" />
+<RecipeFor id="rematter:matter_cable" />
 <RecipeFor id="rematter:reinforced_matter_cable" />
 <RecipeFor id="rematter:resonant_matter_cable" />
 <RecipeFor id="rematter:matter_terminal" />

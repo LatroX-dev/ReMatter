@@ -9,7 +9,7 @@
   "key": {
     "B": "rematter:structural_bars",
     "E": "rematter:ender_conductor",
-    "P": "rematter:matter_pipe",
+    "P": "rematter:matter_cable",
     "C": "rematter:control_circuit",
     "F": "rematter:machine_frame"
   },

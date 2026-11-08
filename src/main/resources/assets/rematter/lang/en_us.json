@@ -6,7 +6,7 @@
   "block.rematter.chemical_reactor": "Chemical Reactor",
   "block.rematter.matter_terminal": "Matter Terminal",
   "block.rematter.industrial_reactor": "Industrial Reactor Controller",
-  "block.rematter.matter_pipe": "Matter Cable",
+  "block.rematter.matter_cable": "Matter Cable",
   "block.rematter.reinforced_matter_cable": "Reinforced Matter Cable",
   "block.rematter.resonant_matter_cable": "Resonant Matter Cable",
   "port.rematter.mode.automatic": "Automatic",

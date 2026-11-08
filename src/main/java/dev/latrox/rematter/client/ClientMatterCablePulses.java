@@ -1,7 +1,7 @@
 package dev.latrox.rematter.client;
 
 import dev.latrox.rematter.ReMatter;
-import dev.latrox.rematter.content.MatterPipeBlock;
+import dev.latrox.rematter.content.MatterCableBlock;
 import dev.latrox.rematter.network.MatterCablePulsePayload;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,8 +70,8 @@ public final class ClientMatterCablePulses {
     }
 
     private static void glint(Minecraft minecraft, ClientLevel level, Vec3 start, Vec3 target,
-            MatterPipeBlock pipe, int ticks, boolean energy) {
-        int color = energy ? 0xfff4d6 : switch (pipe.tier()) {
+            MatterCableBlock cable, int ticks, boolean energy) {
+        int color = energy ? 0xfff4d6 : switch (cable.tier()) {
             case BASIC -> 0x83fff0;
             case REINFORCED -> 0xffcb70;
             case RESONANT -> 0xdeb4ff;
@@ -81,7 +81,7 @@ public final class ClientMatterCablePulses {
     }
 
     private static Vec3 surface(Vec3 center, Direction face, BlockState state) {
-        double offset = MatterPipeBlock.connections(state) >= 3 ? .193 : .131;
+        double offset = MatterCableBlock.connections(state) >= 3 ? .193 : .131;
         return center.add(face.getUnitVec3().scale(offset));
     }
 
@@ -124,12 +124,12 @@ public final class ClientMatterCablePulses {
                 BlockState source = level.getBlockState(from);
                 BlockState target = level.getBlockState(to);
                 Vec3 center = Vec3.atCenterOf(from);
-                if (source.getBlock() instanceof MatterPipeBlock pipe && target.getBlock() instanceof MatterPipeBlock
+                if (source.getBlock() instanceof MatterCableBlock cable && target.getBlock() instanceof MatterCableBlock
                         && viewer.distanceToSqr(center) < 40 * 40) {
                     Direction direction = Direction.getNearest(to.subtract(from), Direction.NORTH);
                     Direction face = visibleFace(viewer, center, direction.getAxis());
                     glint(minecraft, level, surface(center, face, source),
-                            surface(Vec3.atCenterOf(to), face, target), pipe, stepTicks, energy);
+                            surface(Vec3.atCenterOf(to), face, target), cable, stepTicks, energy);
                 }
             }
             step++;

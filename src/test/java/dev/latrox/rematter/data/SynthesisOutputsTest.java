@@ -26,7 +26,7 @@ class SynthesisOutputsTest {
                 "minecraft:cut_copper", "minecraft:totem_of_undying", "minecraft:nether_star", "minecraft:echo_shard",
                 "rematter:speed_upgrade", "rematter:reactor_casing", "rematter:reactor_glass", "rematter:structural_bars",
                 "rematter:virelite_ceramic", "rematter:silith", "rematter:copper_matrix_crystal", "rematter:matrix_blend",
-                "rematter:matter_pipe", "rematter:reinforced_matter_cable")) {
+                "rematter:matter_cable", "rematter:reinforced_matter_cable")) {
             assertTrue(SynthesisOutputs.forbiddenName(name), name);
         }
         for (String name : List.of("minecraft:iron_ingot", "minecraft:sand", "alltheores:bronze_dust", "rematter:virelite_blend",

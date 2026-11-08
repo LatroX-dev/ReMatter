@@ -49,9 +49,9 @@ class MatterCablePowerTest {
         assertEquals(List.of(), MatterCablePower.recipients(List.of(candidate("unclaimed", null, 1, 0))));
     }
     @Test void onlyChunkBorderColumnsAreRepairedAfterLoading() {
-        assertTrue(MatterPipeConnections.borderColumn(0)); assertTrue(MatterPipeConnections.borderColumn(15));
-        assertTrue(MatterPipeConnections.borderColumn(-1)); assertTrue(MatterPipeConnections.borderColumn(-16));
-        assertFalse(MatterPipeConnections.borderColumn(7)); assertFalse(MatterPipeConnections.borderColumn(-8));
+        assertTrue(MatterCableConnections.borderColumn(0)); assertTrue(MatterCableConnections.borderColumn(15));
+        assertTrue(MatterCableConnections.borderColumn(-1)); assertTrue(MatterCableConnections.borderColumn(-16));
+        assertFalse(MatterCableConnections.borderColumn(7)); assertFalse(MatterCableConnections.borderColumn(-8));
     }
     private static MatterCablePower.Candidate<String> candidate(String name, UUID owner, int distance, int x) {
         return new MatterCablePower.Candidate<>(name, owner, distance, new BlockPos(x, 0, 0));

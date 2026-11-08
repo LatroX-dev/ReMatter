@@ -28,12 +28,12 @@ import org.jspecify.annotations.Nullable;
  * every unit remains in exactly one installed cell.
  */
 final class MachineMatterNetwork {
-    static final int MAX_NODES = MatterPipeBlock.Tier.RESONANT.networkLimit();
+    static final int MAX_NODES = MatterCableBlock.Tier.RESONANT.networkLimit();
     /** Blocks one exploration may read, so ownerless cable branches only raise the cost of a scan. */
     static final int SCAN_BUDGET = 8 * MAX_NODES;
     static final int MAX_STORAGES = 64;
     static final int FITS = -1;
-    static final int TOO_LARGE = MatterPipeBlock.Tier.values().length;
+    static final int TOO_LARGE = MatterCableBlock.Tier.values().length;
     private static final int MAX_ACTIVITY_SEGMENTS = 4;
     private static final int MAX_ACTIVITY_SEGMENT_LENGTH = 64;
     private static final int WITHDRAWAL = 1;
@@ -227,8 +227,8 @@ final class MachineMatterNetwork {
      */
     static int nextStage(int stage, int nodes, boolean truncated, int weakestCable) {
         if (truncated) return TOO_LARGE;
-        if (weakestCable < 0) return nodes <= MatterPipeBlock.Tier.BASIC.networkLimit() ? FITS : TOO_LARGE;
-        if (nodes <= MatterPipeBlock.Tier.values()[weakestCable].networkLimit()) return FITS;
+        if (weakestCable < 0) return nodes <= MatterCableBlock.Tier.BASIC.networkLimit() ? FITS : TOO_LARGE;
+        if (nodes <= MatterCableBlock.Tier.values()[weakestCable].networkLimit()) return FITS;
         return weakestCable + 1;
     }
 
@@ -361,8 +361,8 @@ final class MachineMatterNetwork {
             var state = level.getBlockState(position);
             BlockEntity entity = level.getBlockEntity(position);
             Node result = null;
-            if (state.getBlock() instanceof MatterPipeBlock pipe)
-                result = new Node(position, pipe, pipe.tier().ordinal(), entity, null, null, "", "", List.of());
+            if (state.getBlock() instanceof MatterCableBlock cable)
+                result = new Node(position, cable, cable.tier().ordinal(), entity, null, null, "", "", List.of());
             else if (entity instanceof MachineBlockEntity machine && machine.networkLive() && Objects.equals(owner, machine.networkOwner())) {
                 String structure = "";
                 if (IndustrialStructure.isIndustrial(machine.kind())) {

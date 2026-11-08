@@ -22,8 +22,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
 
 /** Six-way visual connections respect compact endpoints and the exterior of formed ports. */
-public final class MatterPipeBlock extends PipeBlock {
-    public static final MapCodec<MatterPipeBlock> CODEC = simpleCodec(MatterPipeBlock::new);
+public final class MatterCableBlock extends PipeBlock {
+    public static final MapCodec<MatterCableBlock> CODEC = simpleCodec(MatterCableBlock::new);
     private static final VoxelShape JUNCTION = Block.cube(6);
     public enum Tier {
         BASIC(256), REINFORCED(384), RESONANT(512);
@@ -34,10 +34,10 @@ public final class MatterPipeBlock extends PipeBlock {
     }
     private final Tier tier;
 
-    public MatterPipeBlock(Properties properties) {
+    public MatterCableBlock(Properties properties) {
         this(Tier.BASIC, properties);
     }
-    public MatterPipeBlock(Tier tier, Properties properties) {
+    public MatterCableBlock(Tier tier, Properties properties) {
         super(4, properties);
         this.tier = tier;
         BlockState state = stateDefinition.any();
@@ -45,8 +45,8 @@ public final class MatterPipeBlock extends PipeBlock {
         registerDefaultState(state);
     }
     public Tier tier() { return tier; }
-    @Override protected MapCodec<MatterPipeBlock> codec() {
-        return tier == Tier.BASIC ? CODEC : simpleCodec(properties -> new MatterPipeBlock(tier, properties));
+    @Override protected MapCodec<MatterCableBlock> codec() {
+        return tier == Tier.BASIC ? CODEC : simpleCodec(properties -> new MatterCableBlock(tier, properties));
     }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
@@ -61,10 +61,10 @@ public final class MatterPipeBlock extends PipeBlock {
         return connections(state) < 3 ? cable : Shapes.or(cable, JUNCTION);
     }
     private static boolean connects(LevelReader level, BlockPos position, BlockState neighbor, Direction towardsNeighbor) {
-        if (neighbor.getBlock() instanceof MatterPipeBlock) return true;
+        if (neighbor.getBlock() instanceof MatterCableBlock) return true;
         Direction outward = towardsNeighbor.getOpposite();
         if (neighbor.getBlock() instanceof MachineBlock machine) {
-            if (!MatterPipeConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward, true))
+            if (!MatterCableConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward, true))
                 return false;
             return !(level.getBlockEntity(position) instanceof MachineBlockEntity entity) || entity.acceptsMatter(outward, true)
                     || MatterCablePower.allowsEndpoint(neighbor, outward) && entity.allowsPort(outward, MachinePortMode.POWER);
@@ -110,7 +110,7 @@ public final class MatterPipeBlock extends PipeBlock {
         var chunk = level.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4);
         if (chunk == null) return;
         BlockState state = chunk.getBlockState(pos);
-        if (!(state.getBlock() instanceof MatterPipeBlock)) return;
+        if (!(state.getBlock() instanceof MatterCableBlock)) return;
         BlockState updated = state;
         for (Direction side : Direction.values()) {
             BlockPos neighborPos = pos.relative(side);

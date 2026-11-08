@@ -50,17 +50,17 @@ public final class ModContent {
             ITEMS.registerItem(kind.id(), properties -> new IndustrialModuleItem(block.get(),properties.useBlockDescriptionPrefix()));
         }
     }
-    public static final DeferredBlock<MatterPipeBlock> MATTER_PIPE = BLOCKS.registerBlock("matter_pipe", MatterPipeBlock::new,
+    public static final DeferredBlock<MatterCableBlock> MATTER_CABLE = BLOCKS.registerBlock("matter_cable", MatterCableBlock::new,
             p -> p.mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.METAL).noOcclusion());
-    public static final DeferredBlock<MatterPipeBlock> REINFORCED_MATTER_CABLE = BLOCKS.registerBlock("reinforced_matter_cable",
-            p -> new MatterPipeBlock(MatterPipeBlock.Tier.REINFORCED, p),
+    public static final DeferredBlock<MatterCableBlock> REINFORCED_MATTER_CABLE = BLOCKS.registerBlock("reinforced_matter_cable",
+            p -> new MatterCableBlock(MatterCableBlock.Tier.REINFORCED, p),
             p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.5F).sound(SoundType.METAL).noOcclusion());
-    public static final DeferredBlock<MatterPipeBlock> RESONANT_MATTER_CABLE = BLOCKS.registerBlock("resonant_matter_cable",
-            p -> new MatterPipeBlock(MatterPipeBlock.Tier.RESONANT, p),
+    public static final DeferredBlock<MatterCableBlock> RESONANT_MATTER_CABLE = BLOCKS.registerBlock("resonant_matter_cable",
+            p -> new MatterCableBlock(MatterCableBlock.Tier.RESONANT, p),
             p -> p.mapColor(MapColor.COLOR_PURPLE).strength(3.0F).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<Block> REACTOR_CASING = BLOCKS.registerSimpleBlock("reactor_casing",
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
-    public static final DeferredItem<BlockItem> MATTER_PIPE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_PIPE);
+    public static final DeferredItem<BlockItem> MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_CABLE);
     public static final DeferredItem<BlockItem> REINFORCED_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(REINFORCED_MATTER_CABLE);
     public static final DeferredItem<BlockItem> RESONANT_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(RESONANT_MATTER_CABLE);
     public static final DeferredItem<BlockItem> REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_CASING);
@@ -127,7 +127,7 @@ public final class ModContent {
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
                     .displayItems((parameters, output) -> {
                         MACHINES.values().forEach(block -> output.accept(block.get()));
-                        output.accept(MATTER_PIPE_ITEM.get());
+                        output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
                         output.accept(RESONANT_MATTER_CABLE_ITEM.get());
                         output.accept(CELL_RACK.get());
@@ -188,7 +188,7 @@ public final class ModContent {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlock(Capabilities.Energy.BLOCK,
                 (level, pos, state, blockEntity, side) -> MatterCablePower.capability(level, pos, side),
-                MATTER_PIPE.get(), REINFORCED_MATTER_CABLE.get(), RESONANT_MATTER_CABLE.get());
+                MATTER_CABLE.get(), REINFORCED_MATTER_CABLE.get(), RESONANT_MATTER_CABLE.get());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedEnergy);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedItems);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedFluids);

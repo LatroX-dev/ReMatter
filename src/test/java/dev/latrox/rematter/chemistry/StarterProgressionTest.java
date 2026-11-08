@@ -210,7 +210,7 @@ class StarterProgressionTest {
                 "hand_preparator", "material_preparator", "industrial_preparator", "sinter_furnace", "electrolyzer",
                 "chemical_reactor", "industrial_reactor", "network_interface", "grinding_unit", "separation_unit",
                 "mixing_basin", "field_coil", "reaction_chamber", "reactor_casing", "reactor_glass", "machine_port",
-                "matter_pipe", "reinforced_matter_cable", "resonant_matter_cable", "speed_upgrade", "efficiency_upgrade")));
+                "matter_cable", "reinforced_matter_cable", "resonant_matter_cable", "speed_upgrade", "efficiency_upgrade")));
         names.add("matrix_crystal_from_smelting");
         for (String name : names) {
             var advancement = json("data/rematter/advancement/recipes/" + name + ".json");

@@ -13,9 +13,9 @@ import static dev.latrox.rematter.content.MachineMatterNetwork.TOO_LARGE;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineMatterNetworkTest {
-    private static final int BASIC = MatterPipeBlock.Tier.BASIC.ordinal();
-    private static final int REINFORCED = MatterPipeBlock.Tier.REINFORCED.ordinal();
-    private static final int RESONANT = MatterPipeBlock.Tier.RESONANT.ordinal();
+    private static final int BASIC = MatterCableBlock.Tier.BASIC.ordinal();
+    private static final int REINFORCED = MatterCableBlock.Tier.REINFORCED.ordinal();
+    private static final int RESONANT = MatterCableBlock.Tier.RESONANT.ordinal();
     private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-00000000000a");
 
     @Test void oneWeakerForeignCableCannotCapAStrongerNetwork() {

@@ -158,7 +158,7 @@
         ]
       },
       "apply": {
-        "model": "rematter:block/matter_pipe"
+        "model": "rematter:block/matter_cable"
       }
     },
     {
@@ -267,7 +267,7 @@
         ]
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_junction"
+        "model": "rematter:block/matter_cable_junction"
       }
     },
     {
@@ -280,7 +280,7 @@
         "down": "false"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_straight"
+        "model": "rematter:block/matter_cable_straight"
       }
     },
     {
@@ -293,7 +293,7 @@
         "down": "false"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_straight",
+        "model": "rematter:block/matter_cable_straight",
         "y": 90
       }
     },
@@ -307,7 +307,7 @@
         "down": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_straight",
+        "model": "rematter:block/matter_cable_straight",
         "x": 270
       }
     },
@@ -316,7 +316,7 @@
         "north": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm"
+        "model": "rematter:block/matter_cable_arm"
       }
     },
     {
@@ -324,7 +324,7 @@
         "east": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm",
+        "model": "rematter:block/matter_cable_arm",
         "y": 90
       }
     },
@@ -333,7 +333,7 @@
         "south": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm",
+        "model": "rematter:block/matter_cable_arm",
         "y": 180
       }
     },
@@ -342,7 +342,7 @@
         "west": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm",
+        "model": "rematter:block/matter_cable_arm",
         "y": 270
       }
     },
@@ -351,7 +351,7 @@
         "up": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm",
+        "model": "rematter:block/matter_cable_arm",
         "x": 270
       }
     },
@@ -360,7 +360,7 @@
         "down": "true"
       },
       "apply": {
-        "model": "rematter:block/matter_pipe_arm",
+        "model": "rematter:block/matter_cable_arm",
         "x": 90
       }
     }

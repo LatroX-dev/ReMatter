@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "rematter:matter_pipe"
+          "name": "rematter:matter_cable"
         }
       ],
       "conditions": [

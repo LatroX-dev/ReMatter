@@ -72,7 +72,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
         public static final NetworkView EMPTY = new NetworkView("none", 0, 0, 0, 0, 0, 0);
         public NetworkView {
             if (!Set.of("none", "ready", "no_storage", "missing_cell", "unknown_schema", "network_too_large", "network_unloaded", "network_invalid").contains(status)
-                    || nodes < 0 || nodes > MatterPipeBlock.Tier.RESONANT.networkLimit() || storages < 0 || storages > MAX_STORAGES || storages > nodes
+                    || nodes < 0 || nodes > MatterCableBlock.Tier.RESONANT.networkLimit() || storages < 0 || storages > MAX_STORAGES || storages > nodes
                     || cells < 0 || cells > storages * MachineCellAccess.DRIVE_BAYS
                     || used < 0 || capacity < used || types < 0
                     || !status.equals("ready") && (used != 0 || capacity != 0 || types != 0)

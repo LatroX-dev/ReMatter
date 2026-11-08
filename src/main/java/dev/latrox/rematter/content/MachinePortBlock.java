@@ -44,7 +44,7 @@ public final class MachinePortBlock extends Block implements EntityBlock {
     @Override protected BlockState mirror(BlockState state,Mirror mirror) { return state.setValue(FACING,mirror.mirror(state.getValue(FACING))); }
     @Override protected MapCodec<? extends Block> codec() { return CODEC; }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new MachinePortBlockEntity(pos, state); }
-    @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) { MatterPipeBlock.refreshLoadedAround(level, pos); }
+    @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) { MatterCableBlock.refreshLoadedAround(level, pos); }
     @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide() || type != ModContent.MACHINE_PORT_ENTITY.get()) return null;
         return (world, pos, blockState, entity) -> ((MachinePortBlockEntity) entity).serverTick();

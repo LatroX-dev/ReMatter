@@ -70,10 +70,10 @@ public final class MatterCablePower {
     static boolean allowsEndpoint(BlockState state, Direction side) {
         if (state.getBlock() instanceof MachineBlock machine) {
             return machine.kind().processes() && !PreparationTier.manual(machine.kind())
-                    && MatterPipeConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side, true);
+                    && MatterCableConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side, true);
         }
         if (state.getBlock() instanceof MachinePortBlock) {
-            return MatterPipeConnectionPolicy.acceptsPort(state.getValue(MachinePortBlock.FORMED),
+            return MatterCableConnectionPolicy.acceptsPort(state.getValue(MachinePortBlock.FORMED),
                     state.getValue(MachinePortBlock.FACING), side.getOpposite());
         }
         return !state.isAir();
@@ -131,7 +131,7 @@ public final class MatterCablePower {
             // A positive insertion hint keeps senders from treating the cable as full.
             // Actual accepted FE is bounded by the destination, and the cable stores none.
             var chunk = loaded(level, origin);
-            return chunk != null && chunk.getBlockState(origin).getBlock() instanceof MatterPipeBlock
+            return chunk != null && chunk.getBlockState(origin).getBlock() instanceof MatterCableBlock
                     ? Integer.MAX_VALUE : 0;
         }
 
@@ -156,7 +156,7 @@ public final class MatterCablePower {
                 var incomingChunk = loaded(level, adjacent);
                 if (incomingChunk == null) return 0;
                 var incoming = incomingChunk.getBlockState(adjacent);
-                if (incoming.getBlock() instanceof MatterPipeBlock
+                if (incoming.getBlock() instanceof MatterCableBlock
                         || !incoming.isAir() && !allowsEndpoint(incoming, side.getOpposite())) return 0;
 
                 var component = cache.component(level, origin);
@@ -405,7 +405,7 @@ public final class MatterCablePower {
         }
 
         private Component scan(BlockPos origin) {
-            if (!(read(origin).getBlock() instanceof MatterPipeBlock)) return result(Set.of(), null);
+            if (!(read(origin).getBlock() instanceof MatterCableBlock)) return result(Set.of(), null);
             var cables = new LinkedHashSet<BlockPos>();
             var ends = new LinkedHashMap<BlockPos, List<EndpointSide>>();
             var queue = new ArrayDeque<BlockPos>();
@@ -416,7 +416,7 @@ public final class MatterCablePower {
                 for (Direction direction : DIRECTIONS) {
                     var next = position.relative(direction);
                     var state = read(next);
-                    if (state.getBlock() instanceof MatterPipeBlock) {
+                    if (state.getBlock() instanceof MatterCableBlock) {
                         if (!cables.add(next)) continue;
                         if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(cables, null);
                         queue.add(next);

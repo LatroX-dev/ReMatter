@@ -1,10 +1,10 @@
 {
-  "parent": "rematter:block/matter_cable_geometry_core",
+  "parent": "rematter:block/matter_cable_geometry_arm",
   "textures": {
     "particle": "rematter:block/graphite",
     "conductor": "rematter:block/copper_trim",
     "shield": "rematter:block/cable_sleeve_silith",
-    "trace": "rematter:block/matter_pipe_traces",
-    "junction": "rematter:block/matter_pipe_contacts"
+    "trace": "rematter:block/matter_cable_traces",
+    "junction": "rematter:block/matter_cable_contacts"
   }
 }

@@ -112,7 +112,7 @@ def machine_state_assets(name, accent=None, *, rear_only=False, rear_trim=None):
 
 
 CABLE_TIERS = (
-    ('matter_pipe', 'copper_trim', 'cable_sleeve_silith', (220, 137, 79)),
+    ('matter_cable', 'copper_trim', 'cable_sleeve_silith', (220, 137, 79)),
     ('reinforced_matter_cable', 'reaction_chamber_crystal', 'cable_sleeve_rhevon', (84, 191, 172)),
     ('resonant_matter_cable', 'machine_amber', 'cable_sleeve_lumivex', (190, 143, 187)),
 )
