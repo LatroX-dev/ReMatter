@@ -118,14 +118,16 @@ public final class MachineAutomationHost implements AutomationPort {
     public void close() { revoke(); closed = true; }
     public boolean cycleBackend() {
         if (revoking || !live() || lockedData != null || !ledger.snapshot().orders().isEmpty()) return false;
-        var choices=AutomationBackends.available(); if(choices.size()<2)return false;
-        // A revoked or freshly loaded adapter can still own native tasks in its saved data.
-        // Read that state before permitting a switch; absence of a live delegate is not an empty queue.
-        ensureAdapter();
-        if (!live() || lockedData != null || adapter != null && adapter.hasTasks()
-                || adapter == null && adapterData.contains(backend())) return false;
-        int current=choices.indexOf(backend());
-        revoke(); backend=choices.get((current+1)%choices.size());
+        var next=AutomationBackends.after(AutomationBackends.available(),backend()).orElse(null); if(next==null)return false;
+        // A backend whose mod is gone keeps its native state stored under its own key and runs no tasks.
+        if(AutomationBackends.available().contains(backend())) {
+            // A revoked or freshly loaded adapter can still own native tasks in its saved data.
+            // Read that state before permitting a switch; absence of a live delegate is not an empty queue.
+            ensureAdapter();
+            if (!live() || lockedData != null || adapter != null && adapter.hasTasks()
+                    || adapter == null && adapterData.contains(backend())) return false;
+        }
+        revoke(); backend=next;
         if(machine.getLevel()!=null)machine.getLevel().invalidateCapabilities(machine.getBlockPos());
         changed(); return true;
     }
