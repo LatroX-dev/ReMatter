@@ -33,7 +33,7 @@ import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
-/** Loaded cable components forward FE in the caller's transaction, without storing energy. */
+/** Loaded cable components forward pushed FE in the caller's transaction, without storing energy. */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class MatterCablePower {
     private static final int MAX_CACHED_CABLES = 4096;
@@ -101,15 +101,16 @@ public final class MatterCablePower {
                     ? Integer.MAX_VALUE : 0;
         }
 
-        @Override public int insert(int amount, TransactionContext transaction) {
-            return forward(amount, transaction, false);
-        }
-
+        /**
+         * Cables only carry FE that a source pushes in. Nothing can pull FE out through a cable, because cables have
+         * no owner and a pull would let anyone attached to the cable drain the energy stores connected to it.
+         */
         @Override public int extract(int amount, TransactionContext transaction) {
-            return forward(amount, transaction, true);
+            TransferPreconditions.checkNonNegative(amount);
+            return 0;
         }
 
-        private int forward(int amount, TransactionContext transaction, boolean extract) {
+        @Override public int insert(int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonNegative(amount);
             if (amount == 0 || !level.getServer().isSameThread()) return 0;
             var cache = cache(level);
@@ -133,16 +134,16 @@ public final class MatterCablePower {
                 int start = Math.floorMod(level.getGameTime() + origin.asLong(), count);
                 for (int i = 0; i < count && remaining > 0; i++) {
                     var endpoint = endpoints.get((start + i) % count);
-                    if (endpoint.position.equals(adjacent) || extract && endpoint.rematterMachine) continue;
+                    if (endpoint.position.equals(adjacent)) continue;
                     for (var face : endpoint.faces) {
                         var handler = face.capability.getCapability();
                         if (handler == null || handler instanceof Connection) continue;
-                        int moved = extract ? handler.extract(remaining, transaction) : handler.insert(remaining, transaction);
+                        int moved = handler.insert(remaining, transaction);
                         if (moved == 0) continue;
                         remaining -= moved;
                         if (flow.isEmpty() && MatterCableActivity.canTrackEnergy(level)) {
                             updateSnapshots(transaction);
-                            flow = Optional.of(new Flow(component, face.cable, extract));
+                            flow = Optional.of(new Flow(component, face.cable));
                         }
                         break;
                     }
@@ -162,25 +163,23 @@ public final class MatterCablePower {
             if (committed.isEmpty() || !MatterCableActivity.canTrackEnergy(level)) return;
             var activity = committed.get();
             if (!activity.component.current(level)) return;
-            var path = activity.component.path(origin, activity.otherCable);
-            if (activity.extract) Collections.reverse(path);
-            MatterCableActivity.energy(level, path);
+            MatterCableActivity.energy(level, activity.component.path(origin, activity.otherCable));
         }
     }
 
-    private record Flow(Component component, BlockPos otherCable, boolean extract) {}
-    private record Endpoint(BlockPos position, boolean rematterMachine, List<Face> faces) {}
+    private record Flow(Component component, BlockPos otherCable) {}
+    private record Endpoint(BlockPos position, List<Face> faces) {}
     private record Face(BlockPos cable, BlockCapabilityCache<EnergyHandler, @Nullable Direction> capability) {}
 
     private static final class Endpoints {
         private final List<Endpoint> candidates = new ArrayList<>();
         private @Nullable List<Endpoint> active;
 
-        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides, boolean rematterMachine) {
+        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides) {
             List<Face> faces = sides.stream().map(side -> new Face(side.cable,
                     BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, position, side.outward,
                             () -> true, this::invalidate))).toList();
-            candidates.add(new Endpoint(position, rematterMachine, faces));
+            candidates.add(new Endpoint(position, faces));
         }
 
         private void invalidate() { active = null; }
@@ -190,30 +189,83 @@ public final class MatterCablePower {
             var found = new ArrayList<Endpoint>();
             for (var candidate : candidates) {
                 var faces = candidate.faces.stream().filter(face -> face.capability.getCapability() != null).toList();
-                if (!faces.isEmpty()) found.add(new Endpoint(candidate.position, candidate.rematterMachine, faces));
+                if (!faces.isEmpty()) found.add(new Endpoint(candidate.position, faces));
             }
             active = List.copyOf(found);
             return active;
         }
     }
 
+    /**
+     * Indexes every cable of the recently used components. A stale or displaced component is dropped as a whole,
+     * and above the cable budget the least recently used components go first, so one large network never
+     * evicts every other one.
+     */
+    static final class ComponentIndex<C> {
+        private final int budget;
+        private final Map<BlockPos, C> byCable = new HashMap<>();
+        // Access order: the first entry is the least recently used component.
+        private final Map<C, Set<BlockPos>> recent = new LinkedHashMap<>(16, 0.75F, true);
+        private int cables;
+
+        ComponentIndex(int budget) { this.budget = budget; }
+
+        @Nullable C get(BlockPos cable) {
+            var component = byCable.get(cable);
+            if (component != null) recent.get(component);
+            return component;
+        }
+        void put(C component, Set<BlockPos> positions) {
+            remove(component);
+            if (positions.size() > budget) return;
+            for (var position : positions) {
+                var displaced = byCable.get(position);
+                if (displaced != null) remove(displaced);
+            }
+            while (cables + positions.size() > budget) remove(recent.keySet().iterator().next());
+            positions.forEach(position -> byCable.put(position, component));
+            recent.put(component, positions);
+            cables += positions.size();
+        }
+        void remove(C component) {
+            var positions = recent.remove(component);
+            if (positions == null) return;
+            for (var position : positions) byCable.remove(position, component);
+            cables -= positions.size();
+        }
+    }
+
     private static final class NetworkCache {
-        private final Map<BlockPos, Component> indexed = new HashMap<>();
+        private final ComponentIndex<Component> indexed = new ComponentIndex<>(MAX_CACHED_CABLES);
         private boolean routing;
 
         private Component component(ServerLevel level, BlockPos origin) {
             var cached = indexed.get(origin);
             if (cached != null && cached.current(level)) return cached;
+            if (cached != null) indexed.remove(cached);
             var component = new Discovery(level).scan(origin);
-            if (indexed.size() + component.cables.size() > MAX_CACHED_CABLES) indexed.clear();
-            component.cables.forEach(position -> indexed.put(position, component));
+            if (!component.cables.isEmpty()) indexed.put(component, component.cables);
             return component;
         }
     }
 
-    private record Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkStamp> stamps) {
+    /** One loaded cable component. Within one game tick an unchanged epoch confirms it without reading any chunk. */
+    private static final class Component {
+        private final Set<BlockPos> cables;
+        private final @Nullable Endpoints endpoints;
+        private final List<ChunkStamp> stamps;
+        private long checkedTick = Long.MIN_VALUE, checkedEpoch;
+
+        private Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkStamp> stamps) {
+            this.cables = cables; this.endpoints = endpoints; this.stamps = stamps;
+        }
+
         private boolean current(ServerLevel level) {
-            return stamps.stream().allMatch(stamp -> stamp.matches(level));
+            long tick = level.getGameTime(), epoch = ChunkRevisions.epoch();
+            if (checkedTick == tick && checkedEpoch == epoch) return true;
+            if (!stamps.stream().allMatch(stamp -> stamp.matches(level))) return false;
+            checkedTick = tick; checkedEpoch = epoch;
+            return true;
         }
 
         private List<BlockPos> path(BlockPos source, BlockPos target) {
@@ -282,10 +334,7 @@ public final class MatterCablePower {
                 }
             }
             var endpoints = new Endpoints();
-            ends.forEach((position, sides) -> {
-                var block = observed.get(position).getBlock();
-                endpoints.add(level, position, sides, block instanceof MachineBlock || block instanceof MachinePortBlock);
-            });
+            ends.forEach((position, sides) -> endpoints.add(level, position, sides));
             return result(cables, endpoints);
         }
 

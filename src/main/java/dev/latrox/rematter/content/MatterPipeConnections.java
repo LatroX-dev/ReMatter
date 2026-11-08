@@ -8,7 +8,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
-/** Updates legacy pipe shapes once after loading, including newly available chunk borders. */
+/**
+ * Repairs connection shapes along chunk borders after a chunk loads. A neighbour across the border may have changed
+ * while this chunk was unloaded; inside the chunk, ordinary shape updates already kept every connection current.
+ */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class MatterPipeConnections {
     private MatterPipeConnections() {}
@@ -20,7 +23,14 @@ public final class MatterPipeConnections {
         // The chunk is not FULL during this event. Inspect its own palette and enqueue
         // ordinary block ticks directly; defer all world/neighbor access until ticking.
         chunk.findBlocks(state -> state.getBlock() instanceof MatterPipeBlock || state.getBlock() instanceof MachineBlock || state.getBlock() instanceof MachinePortBlock,
-                (pos, state) -> chunk.getBlockTicks().schedule(new ScheduledTick<>(
-                        state.getBlock(), pos.immutable(), nextTick, TickPriority.NORMAL, 0)));
+                (pos, state) -> {
+                    if (borderColumn(pos.getX()) || borderColumn(pos.getZ())) chunk.getBlockTicks().schedule(new ScheduledTick<>(
+                            state.getBlock(), pos.immutable(), nextTick, TickPriority.NORMAL, 0));
+                });
+    }
+
+    static boolean borderColumn(int coordinate) {
+        int local = coordinate & 15;
+        return local == 0 || local == 15;
     }
 }
