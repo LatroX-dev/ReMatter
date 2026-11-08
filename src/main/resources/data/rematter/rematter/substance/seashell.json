@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "translation_key": "substance.rematter.seashell",
-  "symbol": "",
+  "symbol": "CaCO₃",
   "kind": "compound",
   "composition": {
     "rematter:calcium": 1,

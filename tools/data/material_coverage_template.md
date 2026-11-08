@@ -34,7 +34,11 @@ Certus Quartz uses silica chemistry and retains its crystal structure. Fluix rec
 
 Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
 
-End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence. Calcite yields calcium oxide and carbon dioxide.
+End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence (`Arc`). Calcite yields calcium oxide and carbon dioxide.
+
+Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
+
+{{fictional}}
 
 Lapis Lazuli uses a simplified lazurite model with sodium, calcium, aluminum, silicon, oxygen and sulfur. Real lapis lazuli contains several minerals with variable proportions.
 

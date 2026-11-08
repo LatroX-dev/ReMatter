@@ -34,7 +34,17 @@ Certus Quartz uses silica chemistry and retains its crystal structure. Fluix rec
 
 Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
 
-End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence. Calcite yields calcium oxide and carbon dioxide.
+End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence (`Arc`). Calcite yields calcium oxide and carbon dioxide.
+
+Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
+
+- **Arcane Essence** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Supremium Essence, Tertium Essence; held directly by 30 item profiles.
+- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 26 item profiles.
+- **Enderion** (`Edr`): Dimensional Shard Material; held directly by 29 item profiles.
+- **Netherium** (`Nt`): held directly by 18 item profiles.
+- **Quantum Essence** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
+- **Stellar Essence** (`Stl`): Sky Stone, Stellarite; held directly by 30 item profiles.
+- **Vital Essence** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
 
 Lapis Lazuli uses a simplified lazurite model with sodium, calcium, aluminum, silicon, oxygen and sulfur. Real lapis lazuli contains several minerals with variable proportions.
 

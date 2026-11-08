@@ -14,9 +14,8 @@ public final class SubstanceLabels {
     private static final Pattern ID_WORD = Pattern.compile("[a-z0-9]+");
     private static final Map<String, String> BADGE_CODES = Map.of(
             "burnt_otherrock", "BOR", "burnt_otherstone", "BOS",
-            "prosperity_essence", "PSE", "prosperity_gemstone", "PSG",
-            "insanium_essence", "ISE", "insanium_gemstone", "ISG",
-            "fluxite", "FLX");
+            "prosperity_essence", "PSE", "insanium_essence", "ISE",
+            "arcane_crystal", "ACR", "fluxite", "FLX");
 
     private SubstanceLabels() {}
 

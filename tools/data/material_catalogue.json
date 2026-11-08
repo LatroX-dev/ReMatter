@@ -5,7 +5,7 @@
     "amber": {
       "name": "Amber Resin",
       "symbol": "",
-      "kind": "compound",
+      "kind": "mixture",
       "composition": {
         "rematter:carbon": 10,
         "rematter:hydrogen": 16,
@@ -14,7 +14,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Named material retained separately from amorphous ingredients and other crystal forms. Mineral formulas are simplified end members; fantasy crystals include conserved fictional constituents."
+      "basis": "Fossil resin modeled with the approximate empirical formula C₁₀H₁₆O; an amorphous polymer mixture, not a defined compound or crystal."
     },
     "amethyst": {
       "name": "Amethyst",
@@ -32,7 +32,7 @@
     "arcane_crystal": {
       "name": "Arcane Crystal",
       "symbol": "",
-      "kind": "compound",
+      "kind": "mixture",
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
@@ -41,7 +41,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Named material retained separately from amorphous ingredients and other crystal forms. Mineral formulas are simplified end members; fantasy crystals include conserved fictional constituents."
+      "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. Crystalline silica carries one conserved fictional constituent per formula unit."
     },
     "arcane_essence": {
       "name": "Arcane Essence",
@@ -61,12 +61,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 4096,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 1024
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Awakening adds Cognizant Dust and elemental essences to Supremium; the awakened tier matches Insanium. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "beryllium": {
       "name": "Beryllium",
@@ -98,6 +98,7 @@
       "kind": "mixture",
       "composition": {
         "rematter:calcium": 1,
+        "rematter:magnesium": 1,
         "rematter:silicon": 2,
         "rematter:oxygen": 6,
         "rematter:arcane_essence": 1
@@ -105,7 +106,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. The burnt powder state is separate from unburnt stone and decorative building blocks."
+      "basis": "Designed nominal composition for a retained material state, not a measured formula: the contact-metamorphic diopside end member CaMgSi₂O₆ with one conserved Arcane Essence. No elemental separation, conversion to a precursor, or quality upgrade is provided. The burnt powder state is separate from unburnt stone and decorative building blocks."
     },
     "burnt_otherstone": {
       "name": "Burnt Otherstone",
@@ -199,7 +200,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Curated retained material; no implicit elemental separation."
+      "basis": "Simplified kaolinite end member Al₂Si₂O₅(OH)₄; natural clay is a variable mixture of clay minerals. No implicit elemental separation."
     },
     "coal": {
       "name": "Coal",
@@ -331,7 +332,7 @@
     "entro": {
       "name": "Entro Crystal",
       "symbol": "",
-      "kind": "compound",
+      "kind": "mixture",
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
@@ -340,7 +341,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Named material retained separately from amorphous ingredients and other crystal forms. Mineral formulas are simplified end members; fantasy crystals include conserved fictional constituents."
+      "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. Crystalline silica carries one conserved fictional constituent per formula unit."
     },
     "ethene": {
       "name": "Ethene",
@@ -383,7 +384,7 @@
     "fluxite": {
       "name": "Fluxite",
       "symbol": "",
-      "kind": "compound",
+      "kind": "mixture",
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
@@ -392,7 +393,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Named material retained separately from amorphous ingredients and other crystal forms. Mineral formulas are simplified end members; fantasy crystals include conserved fictional constituents."
+      "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. Crystalline silica carries one conserved fictional constituent per formula unit."
     },
     "graphite": {
       "name": "Graphite",
@@ -408,8 +409,8 @@
     },
     "hextech": {
       "name": "Hextech",
-      "symbol": "",
-      "kind": "mixture",
+      "symbol": "SiO₂",
+      "kind": "compound",
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2
@@ -451,12 +452,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 256,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 64
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "inferium_essence": {
       "name": "Inferium Essence",
@@ -469,7 +470,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "insanium_essence": {
       "name": "Insanium Essence",
@@ -477,12 +478,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 4096,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 1024
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "iridium": {
       "name": "Iridium",
@@ -536,7 +537,7 @@
         "solid",
         "gas"
       ],
-      "basis": "Element identity; formula quantities are game units, not kilograms."
+      "basis": "Element identity. The gas phase only represents the Mekanism lithium chemical and its rotary fluid (one chemical unit is ten units; 100 chemical units are one dust), not lithium vapor."
     },
     "magnesium": {
       "name": "Magnesium",
@@ -609,7 +610,7 @@
         "solid",
         "gas"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity. The gas phase only represents the Mekanism osmium chemical (one chemical unit is five units; one ingot is 200 chemical units), not osmium vapor."
     },
     "otherworld_ashes": {
       "name": "Otherworld Ashes",
@@ -693,7 +694,7 @@
       "basis": "Designed nominal aquatic-mineral model. Shards and crystals retain distinct substance IDs; common tags and conflicting external refining yields do not grant a free quality conversion."
     },
     "prosperity_essence": {
-      "name": "Prosperity Essence",
+      "name": "Prosperity Shard Material",
       "symbol": "",
       "kind": "mixture",
       "composition": {
@@ -711,12 +712,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 16,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 4
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "quantum_essence": {
       "name": "Quantum Essence",
@@ -771,7 +772,7 @@
     },
     "seashell": {
       "name": "Seashell Mineral",
-      "symbol": "",
+      "symbol": "CaCO₃",
       "kind": "compound",
       "composition": {
         "rematter:calcium": 1,
@@ -824,17 +825,17 @@
       "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "soulium_essence": {
-      "name": "Soulium Essence",
+      "name": "Soulium Dust Material",
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 4096,
-        "rematter:arcane_essence": 1
+        "rematter:vital_essence": 1,
+        "rematter:nether_essence": 1
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Soulium Dust drops from Nether Soulstone ores at the Prosperity scale, so it pairs one Vital Essence with one Cinderium. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "stellar_essence": {
       "name": "Stellar Essence",
@@ -912,7 +913,7 @@
       "phases": [
         "gas"
       ],
-      "basis": "Exact formula and gas identity used by the explicit Mekanism transfer adapter."
+      "basis": "Exact formula. The gas phase is the Mekanism chemical-transfer identity used by the explicit adapter and its fluid, not a claim that sulfuric acid boils under process conditions."
     },
     "supremium_essence": {
       "name": "Supremium Essence",
@@ -920,12 +921,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 1024,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 256
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "tertium_essence": {
       "name": "Tertium Essence",
@@ -933,12 +934,12 @@
       "kind": "mixture",
       "composition": {
         "rematter:vital_essence": 64,
-        "rematter:arcane_essence": 1
+        "rematter:arcane_essence": 16
       },
       "phases": [
         "solid"
       ],
-      "basis": "Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
+      "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
     },
     "tin": {
       "name": "Tin",
@@ -1074,7 +1075,7 @@
     "amber": {
       "substance": "amber",
       "phase": "solid",
-      "category": "retained_crystal",
+      "category": "retained_mixture",
       "synthesis": true,
       "batch": {
         "items": 1,
@@ -1146,7 +1147,7 @@
     "arcane_crystal": {
       "substance": "arcane_crystal",
       "phase": "solid",
-      "category": "retained_crystal",
+      "category": "fantasy_material",
       "synthesis": true,
       "batch": {
         "items": 1,
@@ -1179,7 +1180,7 @@
     "awakened_supremium_gemstone": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -1204,7 +1205,7 @@
     "awakened_supremium_metal": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -2105,7 +2106,7 @@
     "entro": {
       "substance": "entro",
       "phase": "solid",
-      "category": "retained_crystal",
+      "category": "fantasy_material",
       "synthesis": false,
       "basis": "ExtendedAE grows Entro crystals and repairs Entro dust using Fluix. The stored crystal state is a ReMatter model and the native growth or repair route is required.",
       "batch": {
@@ -2168,7 +2169,7 @@
     "fluxite": {
       "substance": "fluxite",
       "phase": "solid",
-      "category": "retained_crystal",
+      "category": "fantasy_material",
       "synthesis": false,
       "basis": "Oritech recipes can produce fluxite by charging amethyst, lasing an amethyst cluster, processing platinum, or colliding electrum dust and redstone. They share no verified recoverable ingredient. The charged material remains intact.",
       "batch": {
@@ -2282,7 +2283,7 @@
     "hextech": {
       "substance": "hextech",
       "phase": "solid",
-      "category": "fantasy_material",
+      "category": "retained_crystal",
       "synthesis": false,
       "basis": "Hextale provides separate crystal and dust items. Hextale 1.9.0 has no data recipe establishing free reversibility, so both forms retain the Hextech material without a ReMatter output.",
       "batch": {
@@ -2499,7 +2500,7 @@
     "insanium_gemstone": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -2524,7 +2525,7 @@
     "insanium_metal": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -2669,7 +2670,7 @@
     "lumium": {
       "category": "composed_material",
       "synthesis": true,
-      "basis": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Nether Essence.",
+      "basis": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Cinderium.",
       "batch": {
         "items": 1,
         "matter": [
@@ -3658,7 +3659,7 @@
     "soulium_gemstone": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two Soulium Dust. The finished Soulium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -3683,7 +3684,7 @@
     "soulium_metal": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+      "basis": "One Prosperity base and two Soulium Dust. The finished Soulium material remains native manufacture only.",
       "batch": {
         "items": 1,
         "matter": [
@@ -7021,7 +7022,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Nether Essence.",
+        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Cinderium.",
         "tags": [
           "c:storage_blocks/lumium"
         ],
@@ -7063,7 +7064,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Nether Essence.",
+        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Cinderium.",
         "tags": [
           "c:dusts/lumium"
         ],
@@ -7105,7 +7106,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Nether Essence.",
+        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Cinderium.",
         "tags": [
           "c:ingots/lumium"
         ],
@@ -7147,7 +7148,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Nether Essence.",
+        "quantity": "Three tin, one silver and four glowstone dust yield four Lumium. The glowstone contributes silica and Cinderium.",
         "tags": [
           "c:nuggets/lumium"
         ],
@@ -25280,7 +25281,7 @@
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_gemstone.json",
           "MysticalAgradditions-26.1.2-9.0.4.jar!/data/mysticalagradditions/recipe/insanium_gemstone.json"
@@ -25360,7 +25361,7 @@
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
         "synthesis": "An unrelated material has the same simplified component amounts. Direct synthesis would let one substitute for the other.",
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgradditions-26.1.2-9.0.4.jar!/data/mysticalagradditions/recipe/insanium_ingot.json"
@@ -25603,7 +25604,7 @@
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_gemstone.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/awakened_supremium_gemstone.json"
@@ -25683,7 +25684,7 @@
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
         "synthesis": "An unrelated material has the same simplified component amounts. Direct synthesis would let one substitute for the other.",
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened or Insanium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/awakened_supremium_ingot.json"
@@ -26902,7 +26903,7 @@
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two Soulium Dust. The finished Soulium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_gemstone.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/soulium_gemstone.json"
@@ -26982,7 +26983,7 @@
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
         "synthesis": "An unrelated material has the same simplified component amounts. Direct synthesis would let one substitute for the other.",
-        "basis": "One Prosperity base and two exact-tier native ingredients. Higher tier essence is distinct from the lower tiers. The finished Awakened, Insanium, or Soulium material remains native manufacture only.",
+        "basis": "One Prosperity base and two Soulium Dust. The finished Soulium material remains native manufacture only.",
         "sources": [
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/prosperity_ingot.json",
           "MysticalAgriculture-26.1.2-9.0.11.jar!/data/mysticalagriculture/recipe/soulium_ingot.json"

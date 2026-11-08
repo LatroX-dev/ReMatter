@@ -218,8 +218,18 @@ def coverage_page(catalogue):
                     for row in catalogue["fluids"]]
     gas_lines = [f"- `{row['substance']}`" + (f" (with `{row['required_mod']}`)" if "required_mod" in row else "")
                  for row in catalogue["gases"]]
+    fictional = []
+    for element, row in sorted(catalogue["substances"].items(), key=lambda entry: entry[1]["name"]):
+        if row["kind"] != "element" or not row["basis"].startswith("Fictional"):
+            continue
+        key = "rematter:" + element
+        carriers = sorted(other["name"] for name, other in catalogue["substances"].items()
+                          if name != element and key in other["composition"])
+        direct = sum(any(entry["substance"] == key for entry in item["matter"]) for item in rows)
+        fictional.append(f"- **{row['name']}** (`{row['symbol']}`): " + (", ".join(carriers) + "; " if carriers else "")
+                         + f"held directly by {direct} item profiles.")
     page = TEMPLATE.read_text()
-    for name, value in {"summary": summary, "namespace_table": "\n".join(table),
+    for name, value in {"summary": summary, "namespace_table": "\n".join(table), "fictional": "\n".join(fictional),
                         "fluids": "\n".join(fluid_table) + "\n\nGases that may leave storage as gas:\n\n" + "\n".join(gas_lines)}.items():
         token = "{{" + name + "}}"
         if page.count(token) != 1:

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "translation_key": "substance.rematter.hextech",
-  "symbol": "",
-  "kind": "mixture",
+  "symbol": "SiO₂",
+  "kind": "compound",
   "composition": {
     "rematter:silicon": 1,
     "rematter:oxygen": 2
