@@ -2,16 +2,17 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **966 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **437 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **12 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
 
 ## Quantities and material states
 
 - One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units. Every material family declares one exact batch, and each profile must hold a whole multiple of it. Where a recipe divides a constituent unevenly, the profile covers several items instead of rounding. Energy and duration scale with the same share, so a block costs as much as the ingots it contains.
 - Nine Ender IO Ender Pearl Powder fragments contain the same constituents as one pearl. ReMatter's full powder and AE2 Ender Dust each contain a whole pearl's constituents. A JAOPCA pearl powder block can be made from nine tag ingredients of either size. ReMatter recovers one pearl equivalent and leaves its synthesis disabled.
-- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts. Only the natural block can be synthesized, because Occultism turns a single dust into a whole block.
+- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts. Obsidian is recovery-only: Occultism turns a single dust into a whole block, and Ender IO grinding balls mill one block into up to eight dusts.
 - Compressed blocks use their reviewed recipe quantities. Quartz, Certus Quartz and uncharged Ember blocks use four crystals; ordinary metal storage blocks use nine ingots. JAOPCA powder blocks use their verified nine-powder recipe, not a ratio inferred from their name.
 - Ores and raw metals are decomposition inputs only. Conservative recovery does not promise the yield of an external ore-processing chain.
 - Crystalline silica remains distinct from sand and amorphous silica. Diamond and graphite are distinct carbon allotropes. No automatic conversion between these states is added.
+- The Nether Quartz gem is recovery-only because Ender IO grinding balls raise the bonus powder of its milling recipe. Quartz dusts, nuggets and blocks remain synthesizable; a block mills into at most four gems.
 - FTB Industrial Contraptions separates one Nether Quartz into three Silicon Gems. Its gems share the silicon ingredient tag with other mods. Oritech yields four silicon per sand with Silicon Wash, and ExtendedAE makes 24 from a blend batch containing six sand and additional quartz. Recovery uses 250 elemental silicon per interchangeable piece and 2,250 per nine-piece block. FTBIC's gem still requires its native Separator.
 - Refined Obsidian dust retains the obsidian and diamond constituents of its infusion recipe. Refined Glowstone and Refined Obsidian ingots still require Mekanism compression. Decomposition recovers the constituents of the corresponding dust without recovering the machine's osmium reagent. Mystical essences and gemstones retain their tier identities.
 - Uncharged Ember Crystal, corrupted Arcane Crystal, Stellarite and Dimensional Shard retain separate identities. Occultism's Gambler can produce Spirit-Attuned Gems from ordinary gems, so attuned gems and blocks are excluded from diamond recovery.
@@ -32,7 +33,7 @@ The explicit synthesis list accounts for progression and equivalent constituent 
 
 Certus Quartz uses silica chemistry and retains its crystal structure. Fluix recovery yields 250 units of Certus per crystal or dust. AdvancedAE and Applied Generators produce batches of 64 from 16 charged Certus, and their duplication routes omit redstone and Nether Quartz.
 
-Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions with 3,000 oxide units per block. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
+Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions with 3,000 oxide units per block. Basalt and blackstone use the same proportions because Hextale transmutes either block into the other. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
 
 End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence (`Arc`). Calcite yields calcium oxide and carbon dioxide.
 
@@ -76,7 +77,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `mekanism` | 67 | 38 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 81 | 49 |
+| `minecraft` | 81 | 47 |
 | `mysticalagradditions` | 11 | 0 |
 | `mysticalagriculture` | 61 | 37 |
 | `nautec` | 4 | 1 |
@@ -120,6 +121,7 @@ Gases that may leave storage as gas:
 - `rematter:hydrogen`
 - `rematter:hydrogen_chloride` (with `mekanism`)
 - `rematter:lithium` (with `mekanism`)
+- `rematter:osmium` (with `mekanism`)
 - `rematter:oxygen`
 - `rematter:sulfur_dioxide` (with `mekanism`)
 - `rematter:sulfur_trioxide` (with `mekanism`)

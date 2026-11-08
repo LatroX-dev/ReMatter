@@ -651,7 +651,7 @@ minecraft:amethyst_block,item,amethyst,material_block,1,rematter:amethyst[solid]
 minecraft:amethyst_shard,item,amethyst,gem,1,rematter:amethyst[solid]=1000,true,32000,64000,100
 minecraft:ancient_debris,item,netherite_scrap,ore,1,rematter:netherite_scrap[solid]=1000,false,32000,64000,100
 minecraft:andesite,item,andesite,natural,1,rematter:silica[solid]=1200 + rematter:alumina[solid]=950 + rematter:calcium_oxide[solid]=850,true,8000,16000,100
-minecraft:basalt,item,basalt,natural,1,rematter:silica[solid]=750 + rematter:alumina[solid]=1062 + rematter:calcium_oxide[solid]=1188,true,8000,16000,100
+minecraft:basalt,item,basalt,natural,1,rematter:silica[solid]=750 + rematter:alumina[solid]=1150 + rematter:calcium_oxide[solid]=1100,true,8000,16000,100
 minecraft:blackstone,item,blackstone,natural,1,rematter:silica[solid]=750 + rematter:alumina[solid]=1150 + rematter:calcium_oxide[solid]=1100,true,8000,16000,100
 minecraft:blue_ice,item,blue_ice,natural,1,rematter:water[solid]=1000,false,16000,32000,100
 minecraft:calcite,item,calcite,natural,1,rematter:calcium_oxide[solid]=1000 + rematter:carbon_dioxide[gas]=1000,true,8000,16000,100
@@ -708,12 +708,12 @@ minecraft:netherite_block,item,netherite,material_block,1,rematter:gold[solid]=4
 minecraft:netherite_ingot,item,netherite,ingot,1,rematter:gold[solid]=500 + rematter:netherite_scrap[solid]=1000,false,36000,72000,100
 minecraft:netherite_scrap,item,netherite_scrap,material,1,rematter:netherite_scrap[solid]=1000,true,32000,64000,100
 minecraft:netherrack,item,netherrack,natural,1,rematter:alumina[solid]=180 + rematter:nether_essence[solid]=20 + rematter:silica[solid]=800,true,8000,16000,100
-minecraft:obsidian,item,obsidian,natural,1,rematter:alumina[solid]=256 + rematter:silica[solid]=1000,true,32000,64000,400
+minecraft:obsidian,item,obsidian,natural,1,rematter:alumina[solid]=256 + rematter:silica[solid]=1000,false,32000,64000,400
 minecraft:packed_ice,item,packed_ice,natural,1,rematter:water[solid]=1000,false,16000,32000,100
 minecraft:prismarine,item,prismarine_shard,natural,1,rematter:prismarine_shard[solid]=4000,true,64000,128000,400
 minecraft:prismarine_crystals,item,prismarine_crystal,gem,1,rematter:prismarine_crystal[solid]=1000,true,16000,32000,100
 minecraft:prismarine_shard,item,prismarine_shard,natural,1,rematter:prismarine_shard[solid]=1000,true,16000,32000,100
-minecraft:quartz,item,quartz,gem,1,rematter:crystalline_silica[solid]=1000,true,32000,64000,100
+minecraft:quartz,item,quartz,gem,1,rematter:crystalline_silica[solid]=1000,false,32000,64000,100
 minecraft:quartz_block,item,quartz,material_block,1,rematter:crystalline_silica[solid]=4000,true,128000,256000,400
 minecraft:raw_copper,item,copper,raw,1,rematter:copper[solid]=1000,false,8000,16000,100
 minecraft:raw_copper_block,item,copper,material_block,1,rematter:copper[solid]=9000,false,72000,144000,900
@@ -983,6 +983,7 @@ rematter:hydrofluoric_acid,gas,,gas,,,true,,,
 rematter:hydrogen,gas,,gas,,,true,,,
 rematter:hydrogen_chloride,gas,,gas,,,true,,,
 rematter:lithium,gas,,gas,,,true,,,
+rematter:osmium,gas,,gas,,,true,,,
 rematter:oxygen,gas,,gas,,,true,,,
 rematter:sulfur_dioxide,gas,,gas,,,true,,,
 rematter:sulfur_trioxide,gas,,gas,,,true,,,
