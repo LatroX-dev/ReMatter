@@ -738,7 +738,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 || worker == null || !worker.isLiveServerMachine() || worker.getLevel() != level
                 || !Objects.equals(worker.owner, requester)) return false;
         var network = matterNetwork(true);
-        return network.ready() && network.workers().stream().anyMatch(member -> member == worker);
+        return network.ready() && network.hasWorker(worker);
     }
     TerminalDevicesPayload.Device terminalDevice() {
         var choice = terminalChoice();

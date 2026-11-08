@@ -42,6 +42,9 @@ final class MachineMatterNetwork {
     private final List<Node> endpoints;
     private final List<Node> associated;
     private final Set<BlockEntity> members;
+    private final List<MachineBlockEntity> machines;
+    private final List<MachineBlockEntity> workers;
+    private final List<MachineBlockEntity> interfaces;
     private final Set<Edge> edges;
     private final Set<BlockPos> cablePositions;
     private final List<ChunkStamp> chunks;
@@ -63,6 +66,10 @@ final class MachineMatterNetwork {
         var entities = Collections.newSetFromMap(new IdentityHashMap<BlockEntity, Boolean>());
         this.nodes.stream().map(Node::entity).filter(Objects::nonNull).forEach(entities::add);
         this.members = Collections.unmodifiableSet(entities);
+        this.machines = endpoints.stream().map(Node::entity).filter(MachineBlockEntity.class::isInstance)
+                .map(MachineBlockEntity.class::cast).toList();
+        this.workers = machines.stream().filter(machine -> machine.kind().processes()).toList();
+        this.interfaces = machines.stream().filter(machine -> machine.kind() == MachineKind.NETWORK_INTERFACE).toList();
         this.edges = Set.copyOf(edges);
         this.cablePositions = this.nodes.stream().filter(Node::cable).map(Node::position).collect(Collectors.toUnmodifiableSet());
         this.chunks = List.copyOf(chunks);
@@ -145,18 +152,12 @@ final class MachineMatterNetwork {
     }
 
     /** Every machine this observation describes, so one discovery can serve all of them. */
-    List<MachineBlockEntity> machines() {
-        return endpoints.stream().map(Node::entity).filter(MachineBlockEntity.class::isInstance)
-                .map(MachineBlockEntity.class::cast).toList();
-    }
-    List<MachineBlockEntity> workers() {
-        return nodes.stream().map(Node::entity).filter(MachineBlockEntity.class::isInstance)
-                .map(MachineBlockEntity.class::cast).filter(machine -> machine.kind().processes()).toList();
-    }
+    List<MachineBlockEntity> machines() { return machines; }
+    List<MachineBlockEntity> workers() { return workers; }
+    boolean hasWorker(MachineBlockEntity machine) { return members.contains(machine) && machine.kind().processes(); }
     List<MachineBlockEntity> manageableMachines() {
         if (!managementAvailable()) return List.of();
-        return nodes.stream().map(Node::entity).filter(MachineBlockEntity.class::isInstance)
-                .map(MachineBlockEntity.class::cast).filter(machine -> machine.kind() != MachineKind.TERMINAL).toList();
+        return machines.stream().filter(machine -> machine.kind() != MachineKind.TERMINAL).toList();
     }
     boolean canManage(MachineBlockEntity device) {
         return managementAvailable() && device.kind() != MachineKind.TERMINAL && members.contains(device);
@@ -168,10 +169,7 @@ final class MachineMatterNetwork {
             default -> false;
         };
     }
-    List<MachineBlockEntity> interfaces() {
-        return nodes.stream().map(Node::entity).filter(MachineBlockEntity.class::isInstance)
-                .map(MachineBlockEntity.class::cast).filter(machine -> machine.kind() == MachineKind.NETWORK_INTERFACE).toList();
-    }
+    List<MachineBlockEntity> interfaces() { return interfaces; }
     MachineSnapshot.NetworkView view() {
         return new MachineSnapshot.NetworkView(status, nodes.size(), storageCount, cellCount,
                 ready() ? inventory.total() : 0, ready() ? inventory.capacity() : 0,
