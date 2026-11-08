@@ -10,7 +10,7 @@
       "amount": 9000
     }
   ],
-  "decomposition_energy": 288000,
-  "synthesis_energy": 576000,
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
   "ticks": 900
 }

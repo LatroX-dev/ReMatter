@@ -6,12 +6,12 @@
     {
       "substance": "rematter:carbon",
       "phase": "solid",
-      "amount": 18000
+      "amount": 4500
     },
     {
       "substance": "rematter:hydrogen",
       "phase": "gas",
-      "amount": 18000
+      "amount": 4500
     }
   ],
   "decomposition_energy": 288000,

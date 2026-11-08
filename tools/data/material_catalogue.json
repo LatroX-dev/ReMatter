@@ -1245,24 +1245,24 @@
     "basalt": {
       "category": "composed_material",
       "synthesis": true,
-      "basis": "Simplified oxide composition on the common stone scale. Variants and reviewed mod forms share this ratio.",
+      "basis": "Simplified mafic oxide composition on the common stone scale of 3,000 units per block. Variants and reviewed mod forms share this ratio.",
       "batch": {
         "items": 1,
         "matter": [
           {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 750
+          },
+          {
             "substance": "rematter:alumina",
             "phase": "solid",
-            "amount": 850
+            "amount": 1062
           },
           {
             "substance": "rematter:calcium_oxide",
             "phase": "solid",
-            "amount": 950
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 600
+            "amount": 1188
           }
         ]
       }
@@ -2550,19 +2550,14 @@
     "insulating_resin": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Applied Flux uses one Glowstone Dust with organic ingredients, silicon, bone meal and water. Firing changes the resin state. Only the verified Glowstone constituents are recovered.",
+      "basis": "Applied Flux makes resin from Glowstone Dust, organic ingredients and #c:silicon. Applied Generators synthesizer/insulating_resin uses ae2:silicon without glowstone, and synthesizer/insulating_resin_duplicate turns 32 resin, 32 silicon and 32 sky dust into 64. Every route shares only one silicon item per resin, so each resin recovers 250 silicon. Firing changes the resin state.",
       "batch": {
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:silicon",
             "phase": "solid",
-            "amount": 1000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 1000
+            "amount": 250
           }
         ]
       }
@@ -3005,19 +3000,19 @@
     "plastic": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. A block packs exactly nine sheets.",
+      "basis": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. Oritech centrifuge/fluid/plasticbiobetter turns one polymer resin into four sheets, so a sheet recovers one quarter of a resin. A block packs exactly nine sheets.",
       "batch": {
         "items": 1,
         "matter": [
           {
             "substance": "rematter:carbon",
             "phase": "solid",
-            "amount": 2000
+            "amount": 500
           },
           {
             "substance": "rematter:hydrogen",
             "phase": "gas",
-            "amount": 2000
+            "amount": 500
           }
         ]
       }
@@ -3057,7 +3052,7 @@
     "polymer_resin": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Recover the modelled plastic fraction guaranteed by the native one-resin to one-sheet furnace route. Different precursors and higher fluid-assisted yields stay in Oritech.",
+      "basis": "One resin equals four plastic sheets, the best native yield of Oritech centrifuge/fluid/plasticbiobetter; the furnace and water centrifuge routes yield fewer sheets and lose material. The resin itself stands for its unprofiled naphtha, biodiesel or biomass feedstock, a renewable organic source.",
       "batch": {
         "items": 1,
         "matter": [
@@ -4052,19 +4047,14 @@
     "uncured_insulating_resin": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Applied Flux uses one Glowstone Dust with organic ingredients, silicon, bone meal and water. Firing changes the resin state. Only the verified Glowstone constituents are recovered.",
+      "basis": "Applied Flux makes resin from Glowstone Dust, organic ingredients and #c:silicon. Applied Generators synthesizer/insulating_resin uses ae2:silicon without glowstone, and synthesizer/insulating_resin_duplicate turns 32 resin, 32 silicon and 32 sky dust into 64. Every route shares only one silicon item per resin, so each resin recovers 250 silicon.",
       "batch": {
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:silicon",
             "phase": "solid",
-            "amount": 1000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 1000
+            "amount": 250
           }
         ]
       }
@@ -10325,18 +10315,13 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:silicon",
           "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 1000
+          "amount": 250
         }
       ],
-      "decomposition_energy": 32000,
-      "synthesis_energy": 64000,
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
       "ticks": 100,
       "synthesis": false,
       "evidence": {
@@ -10346,7 +10331,7 @@
           "c:ingots",
           "c:ingots/insulating_resin"
         ],
-        "composition": "Applied Flux uses one Glowstone Dust with organic ingredients, silicon, bone meal and water. Firing changes the resin state. Only the verified Glowstone constituents are recovered."
+        "composition": "Applied Flux makes resin from Glowstone Dust, organic ingredients and #c:silicon. Applied Generators synthesizer/insulating_resin uses ae2:silicon without glowstone, and synthesizer/insulating_resin_duplicate turns 32 resin, 32 silicon and 32 sky dust into 64. Every route shares only one silicon item per resin, so each resin recovers 250 silicon. Firing changes the resin state."
       }
     },
     {
@@ -10358,25 +10343,20 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:silicon",
           "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 1000
+          "amount": 250
         }
       ],
-      "decomposition_energy": 32000,
-      "synthesis_energy": 64000,
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
       "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One separately retained base material unit.",
         "tags": [],
-        "composition": "Applied Flux uses one Glowstone Dust with organic ingredients, silicon, bone meal and water. Firing changes the resin state. Only the verified Glowstone constituents are recovered."
+        "composition": "Applied Flux makes resin from Glowstone Dust, organic ingredients and #c:silicon. Applied Generators synthesizer/insulating_resin uses ae2:silicon without glowstone, and synthesizer/insulating_resin_duplicate turns 32 resin, 32 silicon and 32 sky dust into 64. Every route shares only one silicon item per resin, so each resin recovers 250 silicon."
       }
     },
     {
@@ -19469,8 +19449,8 @@
           "amount": 9000
         }
       ],
-      "decomposition_energy": 288000,
-      "synthesis_energy": 576000,
+      "decomposition_energy": 72000,
+      "synthesis_energy": 144000,
       "ticks": 900,
       "synthesis": false,
       "evidence": {
@@ -19699,9 +19679,9 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 288000,
-      "synthesis_energy": 576000,
-      "ticks": 900,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
@@ -19868,18 +19848,13 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:silicon",
           "phase": "solid",
-          "amount": 9000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 9000
+          "amount": 2250
         }
       ],
-      "decomposition_energy": 288000,
-      "synthesis_energy": 576000,
+      "decomposition_energy": 72000,
+      "synthesis_energy": 144000,
       "ticks": 900,
       "synthesis": false,
       "evidence": {
@@ -19889,7 +19864,7 @@
           "c:storage_blocks",
           "c:storage_blocks/insulating_resin"
         ],
-        "composition": "Applied Flux uses one Glowstone Dust with organic ingredients, silicon, bone meal and water. Firing changes the resin state. Only the verified Glowstone constituents are recovered."
+        "composition": "Applied Flux makes resin from Glowstone Dust, organic ingredients and #c:silicon. Applied Generators synthesizer/insulating_resin uses ae2:silicon without glowstone, and synthesizer/insulating_resin_duplicate turns 32 resin, 32 silicon and 32 sky dust into 64. Every route shares only one silicon item per resin, so each resin recovers 250 silicon. Firing changes the resin state."
       },
       "required_item": "jaopca:storage_blocks.insulating_resin"
     },
@@ -20482,9 +20457,9 @@
           "amount": 2250
         }
       ],
-      "decomposition_energy": 32000,
-      "synthesis_energy": 64000,
-      "ticks": 100,
+      "decomposition_energy": 160000,
+      "synthesis_energy": 320000,
+      "ticks": 500,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
@@ -20515,9 +20490,9 @@
           "amount": 2250
         }
       ],
-      "decomposition_energy": 32000,
-      "synthesis_energy": 64000,
-      "ticks": 100,
+      "decomposition_energy": 160000,
+      "synthesis_energy": 320000,
+      "ticks": 500,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
@@ -20543,9 +20518,9 @@
           "amount": 2250
         }
       ],
-      "decomposition_energy": 32000,
-      "synthesis_energy": 64000,
-      "ticks": 100,
+      "decomposition_energy": 160000,
+      "synthesis_energy": 320000,
+      "ticks": 500,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
@@ -23001,17 +22976,17 @@
         {
           "substance": "rematter:silica",
           "phase": "solid",
-          "amount": 600
+          "amount": 750
         },
         {
           "substance": "rematter:alumina",
           "phase": "solid",
-          "amount": 850
+          "amount": 1062
         },
         {
           "substance": "rematter:calcium_oxide",
           "phase": "solid",
-          "amount": 950
+          "amount": 1188
         }
       ],
       "decomposition_energy": 8000,
@@ -24581,13 +24556,13 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 8000,
-      "synthesis_energy": 16000,
-      "ticks": 100,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 400,
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
+        "quantity": "One natural block contains four obsidian dusts.",
         "tags": []
       }
     },
@@ -25050,7 +25025,7 @@
       ],
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
-      "ticks": 100,
+      "ticks": 400,
       "synthesis": true,
       "evidence": {
         "registry": "Exact vanilla item ID in the Minecraft 26.1.2 recipe data.",
@@ -25141,13 +25116,13 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 96000,
-      "synthesis_energy": 192000,
-      "ticks": 300,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "mysticalagradditions:blocks/end_inferium_ore loot: conservative 3-item minimum before Fortune; no ore synthesis.",
+        "quantity": "The common-tag furnace route yields one; no ore synthesis.",
         "tags": [
           "alexsmobs:underminer_ores",
           "c:ore_rates/singular",
@@ -25177,13 +25152,13 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 64000,
-      "synthesis_energy": 128000,
-      "ticks": 200,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "mysticalagradditions:blocks/end_prosperity_ore loot: conservative 2-item minimum before Fortune; no ore synthesis.",
+        "quantity": "The common-tag furnace route yields one; no ore synthesis.",
         "tags": [
           "alexsmobs:underminer_ores",
           "c:ore_rates/singular",
@@ -25464,13 +25439,13 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 96000,
-      "synthesis_energy": 192000,
-      "ticks": 300,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "mysticalagradditions:blocks/nether_inferium_ore loot: conservative 3-item minimum before Fortune; no ore synthesis.",
+        "quantity": "The common-tag furnace route yields one; no ore synthesis.",
         "tags": [
           "alexsmobs:underminer_ores",
           "c:ore_rates/singular",
@@ -25500,13 +25475,13 @@
           "amount": 1000
         }
       ],
-      "decomposition_energy": 64000,
-      "synthesis_energy": 128000,
-      "ticks": 200,
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 100,
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "mysticalagradditions:blocks/nether_prosperity_ore loot: conservative 2-item minimum before Fortune; no ore synthesis.",
+        "quantity": "The common-tag furnace route yields one; no ore synthesis.",
         "tags": [
           "alexsmobs:underminer_ores",
           "c:ore_rates/singular",
@@ -29655,12 +29630,12 @@
         {
           "substance": "rematter:carbon",
           "phase": "solid",
-          "amount": 18000
+          "amount": 4500
         },
         {
           "substance": "rematter:hydrogen",
           "phase": "gas",
-          "amount": 18000
+          "amount": 4500
         }
       ],
       "decomposition_energy": 288000,
@@ -29674,7 +29649,7 @@
           "c:storage_blocks",
           "c:storage_blocks/plastic"
         ],
-        "composition": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. A block packs exactly nine sheets."
+        "composition": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. Oritech centrifuge/fluid/plasticbiobetter turns one polymer resin into four sheets, so a sheet recovers one quarter of a resin. A block packs exactly nine sheets."
       }
     },
     {
@@ -29688,12 +29663,12 @@
         {
           "substance": "rematter:carbon",
           "phase": "solid",
-          "amount": 2000
+          "amount": 500
         },
         {
           "substance": "rematter:hydrogen",
           "phase": "gas",
-          "amount": 2000
+          "amount": 500
         }
       ],
       "decomposition_energy": 32000,
@@ -29702,8 +29677,8 @@
       "synthesis": false,
       "evidence": {
         "registry": "Exact item ID and recipes checked against Oritech 2.0.0-exp12 for Minecraft 26.1.2.",
-        "quantity": "One ninth of a plastic block.",
-        "composition": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. A block packs exactly nine sheets.",
+        "quantity": "One quarter of a polymer resin; one ninth of a plastic block.",
+        "composition": "Oritech does not specify a polymer. ReMatter models finished plastic as polyethylene (C2H4)n and recovers carbon and molecular hydrogen. Oritech centrifuge/fluid/plasticbiobetter turns one polymer resin into four sheets, so a sheet recovers one quarter of a resin. A block packs exactly nine sheets.",
         "synthesis": "Manufactured sheets require native Oritech production."
       }
     },
@@ -29862,9 +29837,9 @@
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One resin yields one plastic sheet in the native furnace recipe.",
+        "quantity": "One resin equals four plastic sheets through the best native centrifuge route.",
         "tags": [],
-        "composition": "Recover the modelled plastic fraction guaranteed by the native one-resin to one-sheet furnace route. Different precursors and higher fluid-assisted yields stay in Oritech.",
+        "composition": "One resin equals four plastic sheets, the best native yield of Oritech centrifuge/fluid/plasticbiobetter; the furnace and water centrifuge routes yield fewer sheets and lose material. The resin itself stands for its unprofiled naphtha, biodiesel or biomass feedstock, a renewable organic source.",
         "synthesis": "Native resin production requires naphtha or biodiesel."
       }
     },
@@ -30245,8 +30220,8 @@
           "amount": 9000
         }
       ],
-      "decomposition_energy": 288000,
-      "synthesis_energy": 576000,
+      "decomposition_energy": 72000,
+      "synthesis_energy": 144000,
       "ticks": 900,
       "synthesis": true,
       "evidence": {

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import csv
+from fractions import Fraction
 import io
 import json
 from pathlib import Path
@@ -90,6 +91,7 @@ def batches(row, family_name, family):
 def items(catalogue, check, written):
     families = catalogue["families"]
     seen = set()
+    costs = {}
     for row in catalogue["items"]:
         item = row["item"]
         if item in seen or not ID.fullmatch(item):
@@ -105,16 +107,19 @@ def items(catalogue, check, written):
             raise ValueError(f"Ore enrichment products cannot be synthesized: {item}")
         if row["synthesis"] and not families[row["family"]]["synthesis"]:
             raise ValueError(f"Synthesis is disabled for the family of {item}")
-        batches(row, row["family"], families[row["family"]])
-        count = row.get("item_count", 1)
-        if not isinstance(count, int) or not 1 <= count <= 64:
+        pieces = row.get("item_count", 1)
+        if not isinstance(pieces, int) or not 1 <= pieces <= 64:
             raise ValueError(f"Invalid item count: {item}")
+        count = batches(row, row["family"], families[row["family"]])
+        cost = tuple(Fraction(row[field], count) for field in ("decomposition_energy", "synthesis_energy", "ticks"))
+        if costs.setdefault(row["family"], cost) != cost:
+            raise ValueError(f"Energy and duration of {item} do not scale with its share of the {row['family']} batch")
         namespace, item_path = resource_path(item)
         relative = ("vanilla/" + item_path if namespace == "minecraft" else "compat/" + namespace + "/" + item_path) + ".json"
         profile = guarded(item, row)
         profile["item"] = item
-        if count != 1:
-            profile["item_count"] = count
+        if pieces != 1:
+            profile["item_count"] = pieces
         profile.update({"matter": row["matter"],
                         "decomposition_energy": row["decomposition_energy"],
                         "synthesis_energy": row["synthesis_energy"], "ticks": row["ticks"]})
