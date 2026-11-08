@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "fluid": "minecraft:lava",
+  "amount": 1000,
+  "matter": [
+    {
+      "substance": "rematter:mineral_mix",
+      "phase": "liquid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 24000,
+  "ticks": 80
+}

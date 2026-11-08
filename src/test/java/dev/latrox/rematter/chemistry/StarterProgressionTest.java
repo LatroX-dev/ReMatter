@@ -30,7 +30,7 @@ class StarterProgressionTest {
             assertFalse(leaves.isEmpty());
             assertTrue(leaves.stream().allMatch(id -> id.startsWith("minecraft:") || id.startsWith("#minecraft:")));
             assertEquals("rematter:" + name, recipe(name).getAsJsonObject("result").get("id").getAsString());
-            assertTrue(BuiltinChemistry.create().profile("rematter:" + name).isEmpty(), "An internal module is manufactured equipment");
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty(), "An internal module is manufactured equipment");
             assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + name + ".json"));
             assertEquals("rematter:" + name, json("data/rematter/advancement/recipes/" + name + ".json")
                     .getAsJsonObject("rewards").getAsJsonArray("recipes").get(0).getAsString());
@@ -93,7 +93,7 @@ class StarterProgressionTest {
         assertEquals(4, cluster.get("rematter:matrix_crystal"));
         assertTrue(cluster.keySet().containsAll(Set.of("rematter:rhedon", "rematter:virel")));
         for (String name : List.of("matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin")) {
-            assertTrue(BuiltinChemistry.create().profile("rematter:" + name).isEmpty());
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty());
             assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + name + ".json"));
         }
     }
@@ -147,7 +147,7 @@ class StarterProgressionTest {
 
     @Test void componentsStorageAndUnprofiledMatrixMaterialsCannotBeSynthesized() throws Exception {
         for (String component : List.of("hand_preparator", "material_preparator", "industrial_preparator", "sinter_furnace", "machine_frame", "structural_bars", "control_circuit", "optical_circuit", "cell_housing", "matter_drive", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m", "matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin", "diamond_lattice", "ender_conductor", "netherite_sheath")) {
-            assertFalse(BuiltinChemistry.create().synthesisPolicy().allowsItem("rematter:" + component));
+            assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + component));
             assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + component + ".json"));
             assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/synthesis/materials/" + component + ".json"));
         }
@@ -188,7 +188,7 @@ class StarterProgressionTest {
     @Test void racksDoNotConsumeLiveCells() throws Exception {
         assertTrue(ingredients(recipe("cell_rack")).contains("rematter:structural_bars"));
         assertFalse(ingredients(recipe("cell_rack")).contains("minecraft:iron_bars"));
-        assertFalse(BuiltinChemistry.create().synthesisPolicy().allowsItem("rematter:cell_rack"));
+        assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:cell_rack"));
         Set<String> leaves=new HashSet<>();expand("rematter:cell_rack",new HashSet<>(),leaves);
         assertTrue(leaves.stream().allMatch(id->id.startsWith("minecraft:")||id.startsWith("#minecraft:")));
     }

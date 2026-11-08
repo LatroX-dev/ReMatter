@@ -1913,6 +1913,18 @@
       "category": "composed_material",
       "synthesis": true,
       "basis": "Exact recovery of one quarter of the four-piece workshop preparation batch. Gas units preserve the elemental formula."
+    },
+    "stone": {
+      "category": "composed_material",
+      "synthesis": true,
+      "basis": "Simplified oxide composition on the common stone scale: equal silica, alumina and calcium oxide. Cobblestone shares the ratio, and lava melts from the same mineral mix."
+    },
+    "soil": {
+      "substance": "soil",
+      "phase": "solid",
+      "category": "retained_mixture",
+      "synthesis": true,
+      "basis": "Simplified soil of silica, organic carbon and bound water. The soil separation process releases these constituents."
     }
   },
   "items": [
@@ -20828,6 +20840,42 @@
       }
     },
     {
+      "item": "minecraft:cobblestone",
+      "family": "stone",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "minecraft",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:calcium_oxide",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact vanilla item ID in the Minecraft 26.1.2 registry.",
+        "quantity": "One block of the simplified shared mineral composition.",
+        "tags": [
+          "c:cobblestones"
+        ]
+      }
+    },
+    {
       "item": "minecraft:copper_block",
       "family": "copper",
       "form": "material_block",
@@ -21283,6 +21331,30 @@
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One block of the simplified shared mineral composition.",
+        "tags": []
+      }
+    },
+    {
+      "item": "minecraft:dirt",
+      "family": "soil",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "minecraft",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:soil",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact vanilla item ID in the Minecraft 26.1.2 registry.",
+        "quantity": "One block of the simplified soil mixture.",
         "tags": []
       }
     },
@@ -22476,6 +22548,32 @@
       }
     },
     {
+      "item": "minecraft:sand",
+      "family": "silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "minecraft",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact vanilla item ID in the Minecraft 26.1.2 registry.",
+        "quantity": "One block of amorphous silica; four form one sandstone.",
+        "tags": [
+          "c:sands"
+        ]
+      }
+    },
+    {
       "item": "minecraft:sandstone",
       "family": "silica",
       "form": "natural",
@@ -22495,6 +22593,42 @@
       "evidence": {
         "registry": "Exact vanilla item ID in the Minecraft 26.1.2 recipe data.",
         "quantity": "minecraft:sandstone uses four sand items per block."
+      }
+    },
+    {
+      "item": "minecraft:stone",
+      "family": "stone",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "minecraft",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:calcium_oxide",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact vanilla item ID in the Minecraft 26.1.2 registry.",
+        "quantity": "One block of the simplified shared mineral composition.",
+        "tags": [
+          "c:stones"
+        ]
       }
     },
     {
@@ -29794,6 +29928,288 @@
           "c:raw_materials/cinnabar"
         ]
       }
+    }
+  ],
+  "fluids": [
+    {
+      "fluid": "mekanism:chlorine",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:chlorine",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:ethene",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:ethene",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:hydrofluoric_acid",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:hydrofluoric_acid",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:hydrogen",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:hydrogen",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:hydrogen_chloride",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:hydrogen_chloride",
+          "phase": "gas",
+          "amount": 2000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:lithium",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:lithium",
+          "phase": "gas",
+          "amount": 10000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:oxygen",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:oxygen",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:sulfur_dioxide",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:sulfur_dioxide",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:sulfur_trioxide",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:sulfur_trioxide",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "mekanism:sulfuric_acid",
+      "required_mod": "mekanism",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:sulfuric_acid",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One source bucket of the Mekanism 2.11 fluid, using the same unit ratio as the explicit chemical-tube adapter."
+      }
+    },
+    {
+      "fluid": "minecraft:lava",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:mineral_mix",
+          "phase": "liquid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 2000,
+      "synthesis_energy": 24000,
+      "ticks": 80,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One millibucket of lava is one unit of molten mineral mix."
+      }
+    },
+    {
+      "fluid": "minecraft:water",
+      "amount": 1000,
+      "matter": [
+        {
+          "substance": "rematter:water",
+          "phase": "liquid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 2000,
+      "synthesis_energy": 2000,
+      "ticks": 80,
+      "synthesis": true,
+      "evidence": {
+        "quantity": "One millibucket of water is one unit of liquid water."
+      }
+    }
+  ],
+  "gases": [
+    {
+      "substance": "rematter:chlorine",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:ethene",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:hydrofluoric_acid",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "basis": "Water electrolysis releases hydrogen; it is a permitted gas output."
+    },
+    {
+      "substance": "rematter:hydrogen_chloride",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:lithium",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:oxygen",
+      "basis": "Water and silica electrolysis release oxygen; it is a permitted gas output."
+    },
+    {
+      "substance": "rematter:sulfur_dioxide",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:sulfur_trioxide",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:sulfuric_acid",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
+    },
+    {
+      "substance": "rematter:water",
+      "basis": "Water evaporation produces steam; Mekanism water vapor maps to the same gas."
     }
   ]
 }

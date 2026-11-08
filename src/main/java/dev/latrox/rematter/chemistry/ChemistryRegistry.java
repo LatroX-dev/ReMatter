@@ -189,10 +189,6 @@ public final class ChemistryRegistry {
             return this;
         }
 
-        public Builder addRecipe(ProcessRecipe recipe) {
-            return addProcess(recipe);
-        }
-
         public Builder allowSynthesis(String exactId, SynthesisCategory category) {
             SubstanceId.parse(exactId);
             Objects.requireNonNull(category, "category");

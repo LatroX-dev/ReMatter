@@ -24,7 +24,7 @@ class FluidProfileTest {
     }
 
     @Test void canonicalFluidAndGasDefinitionsKeepVanillaAndMekanismWaterBalance() {
-        var registry = BuiltinChemistry.create();
+        var registry = ShippedChemistry.standalone();
         var water = registry.fluidProfile("minecraft:water").orElseThrow();
         var electrolysis = registry.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow();
         var synthesis = registry.recipe(SubstanceId.parse("rematter:water_synthesis")).orElseThrow();
@@ -55,7 +55,8 @@ class FluidProfileTest {
         var huge = new FluidProfile("example:huge", 1, Map.of(COPPER, Long.MAX_VALUE), 1, 1, 1);
         assertThrows(ArithmeticException.class, () -> huge.matterFor(2));
         assertThrows(IllegalArgumentException.class, () -> new FluidProfile("example:oversized", 16_001, Map.of(WATER, 1L), 1, 1, 1));
-        assertThrows(IllegalArgumentException.class, () -> BuiltinChemistry.create().toBuilder()
-                .addFluidProfile(BuiltinChemistry.create().fluidProfile("minecraft:water").orElseThrow()));
+        var shipped = ShippedChemistry.standalone();
+        assertThrows(IllegalArgumentException.class, () -> shipped.toBuilder()
+                .addFluidProfile(shipped.fluidProfile("minecraft:water").orElseThrow()));
     }
 }

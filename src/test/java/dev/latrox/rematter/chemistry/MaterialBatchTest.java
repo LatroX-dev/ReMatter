@@ -15,7 +15,7 @@ class MaterialBatchTest {
 
     @Test void nuggetsIngotsAndBlocksHaveTheSameExactMaterialAcrossRepeatedCraftingCycles() {
         var nuggets = nuggets();
-        var registry = BuiltinChemistry.create();
+        var registry = ShippedChemistry.standalone();
         var ingot = registry.profile("minecraft:copper_ingot").orElseThrow();
         var block = registry.profile("minecraft:copper_block").orElseThrow();
         assertEquals(ingot.matter(), nuggets.matterFor(9));

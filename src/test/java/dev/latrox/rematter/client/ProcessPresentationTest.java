@@ -3,6 +3,7 @@ package dev.latrox.rematter.client;
 import dev.latrox.rematter.chemistry.BuiltinChemistry;
 import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.Phase;
+import dev.latrox.rematter.chemistry.ShippedChemistry;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.SynthesisCategory;
 import dev.latrox.rematter.content.MachineKind;
@@ -29,7 +30,7 @@ class ProcessPresentationTest {
     }
 
     @Test void decompositionProfileAndGasPermissionDoNotInventItemOutputs() {
-        var registry = BuiltinChemistry.create();
+        var registry = ShippedChemistry.standalone();
         assertTrue(registry.profile("minecraft:raw_copper").isPresent());
         assertTrue(ProcessPresentation.resolve(registry, MachineKind.SYNTHESIZER, "minecraft:raw_copper", "Raw copper").isEmpty());
         assertTrue(ProcessPresentation.resolve(registry, MachineKind.SYNTHESIZER, HYDROGEN.id().toString(), "Hydrogen").isEmpty());
@@ -37,7 +38,7 @@ class ProcessPresentationTest {
     }
 
     @Test void fluidPreviewKeepsMillibucketsAndCannotMasqueradeAsAnItem() {
-        var registry = BuiltinChemistry.create();
+        var registry = ShippedChemistry.standalone();
         var fluid = ProcessPresentation.resolve(registry, MachineKind.SYNTHESIZER, "fluid:minecraft:water", "Water").orElseThrow();
         assertEquals("fluid", fluid.outputKind());
         assertEquals("minecraft:water", fluid.outputId());

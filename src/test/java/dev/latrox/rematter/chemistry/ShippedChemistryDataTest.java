@@ -119,8 +119,13 @@ class ShippedChemistryDataTest {
             assertTrue(permission.category().permitted(), permission.item());
             if (permission.category() == SynthesisCategory.RAW_MATERIAL || permission.category() == SynthesisCategory.NATURAL_MATERIAL) {
                 OptionalProfile profile = profiles.get(permission.item());
-                if (profile == null) assertTrue(BuiltinChemistry.create().profile(permission.item()).isPresent(), "Permission without a profile");
-                else assertEquals(profile.requiredMod(), permission.requiredMod(), permission.item());
+                assertNotNull(profile, "Permission without a profile: " + permission.item());
+                assertEquals(profile.requiredMod(), permission.requiredMod(), permission.item());
+            }
+            if (permission.category() == SynthesisCategory.FLUID) {
+                OptionalFluid fluid = shipped.fluids().stream().filter(value -> value.profile().fluidId().equals(permission.item()))
+                        .findFirst().orElseThrow(() -> new AssertionError("Permission without a fluid profile: " + permission.item()));
+                assertEquals(fluid.requiredMod(), permission.requiredMod(), permission.item());
             }
         }
         // Decomposition-only components and ores deliberately need no synthesis entry.
@@ -133,15 +138,12 @@ class ShippedChemistryDataTest {
     }
 
     @Test
-    void absentOptionalModsDoNotGrantTheirProfilesOrPermissions() throws Exception {
-        ShippedData shipped = readShippedData();
-        ChemistryRegistry defaults = BuiltinChemistry.create();
-        for (OptionalProfile profile : shipped.profiles()) {
-            String namespace = SubstanceId.parse(profile.profile().itemId()).namespace();
-            if (namespace.equals("minecraft") || namespace.equals("rematter")) continue;
-            assertTrue(defaults.profile(profile.profile().itemId()).isEmpty(), profile.profile().itemId());
-            assertFalse(defaults.synthesisPolicy().allows(profile.profile().itemId()), profile.profile().itemId());
-        }
+    void builtInCoreLeavesEveryProfileAndPermissionToTheGuardedCatalogueData() {
+        ChemistryRegistry core = BuiltinChemistry.create();
+        assertTrue(core.profiles().isEmpty(), "Item profiles belong to the material catalogue");
+        assertTrue(core.fluidProfiles().isEmpty(), "Fluid profiles belong to the material catalogue");
+        assertTrue(core.synthesisPolicy().entries().isEmpty(), "Synthesis permissions belong to the material catalogue");
+        assertFalse(core.processes().isEmpty());
     }
 
     @Test

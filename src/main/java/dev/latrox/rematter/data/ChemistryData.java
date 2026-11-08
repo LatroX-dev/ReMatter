@@ -61,19 +61,17 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
 
     @Override
     protected ChemistryRegistry prepare(ResourceManager manager, ProfilerFiller profiler) {
-        ChemistryRegistry defaults = BuiltinChemistry.create();
+        ChemistryRegistry core = BuiltinChemistry.create();
         Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
         Map<String, MaterialProfile> profiles = new TreeMap<>();
         Map<String, FluidProfile> fluids = new TreeMap<>();
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
-        Map<String, SynthesisCategory> synthesis = new TreeMap<>(defaults.synthesisPolicy().entries());
+        Map<String, SynthesisCategory> synthesis = new TreeMap<>();
         Map<String, Identifier> profileSources = new HashMap<>();
         Map<String, Identifier> fluidSources = new HashMap<>();
         Map<String, Identifier> synthesisSources = new HashMap<>();
-        defaults.substances().forEach(s -> substances.put(s.id(), s));
-        defaults.profiles().forEach(p -> profiles.put(p.itemId(), p));
-        defaults.fluidProfiles().forEach(p -> fluids.put(p.fluidId(), p));
-        defaults.processes().forEach(p -> processes.put(p.id(), p));
+        core.substances().forEach(s -> substances.put(s.id(), s));
+        core.processes().forEach(p -> processes.put(p.id(), p));
 
         readDirectory(manager, "rematter/substance", (id, json) -> {
             SubstanceId key = SubstanceId.parse(id.toString());
@@ -98,9 +96,6 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             requireUniqueTarget(profileSources, item, id);
             if (disabled(json)) {
                 profiles.remove(item);
-                if (synthesis.get(item) == SynthesisCategory.RAW_MATERIAL || synthesis.get(item) == SynthesisCategory.NATURAL_MATERIAL) {
-                    synthesis.remove(item);
-                }
                 return;
             }
             Identifier itemId = Identifier.parse(item);
@@ -118,7 +113,6 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             requireUniqueTarget(fluidSources, fluid, id);
             if (disabled(json)) {
                 fluids.remove(fluid);
-                if (synthesis.get(fluid) == SynthesisCategory.FLUID) synthesis.remove(fluid);
                 return;
             }
             fluids.put(fluid, new FluidProfile(fluid, Math.toIntExact(positiveLong(json, "amount")),

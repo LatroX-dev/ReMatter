@@ -12,8 +12,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.HashMap;
-import java.util.Locale;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -136,9 +134,9 @@ class ReForgingDataTest {
 
     @Test
     void standaloneCatalogueRemainsUnmodified() throws Exception {
-        ChemistryRegistry before = catalogue(false);
+        ChemistryRegistry before = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
         ChemistryRegistry pack = integration();
-        ChemistryRegistry after = catalogue(false);
+        ChemistryRegistry after = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
         assertFalse(after.isKnown(CRYSTAL));
         assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(after.profiles()));
         assertEquals(before.synthesisPolicy().entries(), after.synthesisPolicy().entries());
@@ -318,94 +316,10 @@ class ReForgingDataTest {
 
     private static long minimumCost(long energy) { return Math.multiplyExact(energy, 4) / 5; }
 
-    private static ChemistryRegistry integration() throws Exception { return catalogue(true); }
-
-    /** Reproduce ResourceManager priority first, then reject duplicate item targets as the runtime loader does. */
-    private static ChemistryRegistry catalogue(boolean withPack) throws Exception {
-        ChemistryRegistry defaults = BuiltinChemistry.create();
-        Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
-        Map<String, MaterialProfile> profiles = new TreeMap<>();
-        Map<String, FluidProfile> fluids = new TreeMap<>();
-        Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
-        Map<String, SynthesisCategory> permissions = new TreeMap<>(defaults.synthesisPolicy().entries());
-        defaults.substances().forEach(value -> substances.put(value.id(), value));
-        defaults.profiles().forEach(value -> profiles.put(value.itemId(), value));
-        defaults.fluidProfiles().forEach(value -> fluids.put(value.fluidId(), value));
-        defaults.processes().forEach(value -> processes.put(value.id(), value));
-        Map<String, Path> documents = new TreeMap<>();
-        overlay(documents, Path.of("src/main/resources"));
-        if (withPack) overlay(documents, Path.of("integrations/reforging/datapack"));
-        Map<String, String> targets = new HashMap<>();
-        for (var document : documents.entrySet()) {
-            String[] parts = document.getKey().split("/", 5);
-            String directory = parts[3];
-            String relative = parts[4];
-            SubstanceId id = SubstanceId.parse(parts[1] + ":" + relative.substring(0, relative.length() - 5));
-            JsonObject json = readFile(document.getValue());
-            assertEquals(1, integer(json, "schema_version"));
-            boolean disabled = json.has("disabled") && json.get("disabled").getAsBoolean();
-            if (directory.equals("substance")) {
-                if (disabled) { substances.remove(id); continue; }
-                Map<SubstanceId, Long> composition = new TreeMap<>();
-                json.getAsJsonObject("composition").entrySet().forEach(entry -> composition.put(SubstanceId.parse(entry.getKey()), entry.getValue().getAsBigDecimal().longValueExact()));
-                Set<Phase> phases = new HashSet<>();
-                json.getAsJsonArray("phases").forEach(value -> phases.add(Phase.valueOf(value.getAsString().toUpperCase(Locale.ROOT))));
-                substances.put(id, new SubstanceDefinition(id, json.get("translation_key").getAsString(), json.has("symbol") ? json.get("symbol").getAsString() : "",
-                        SubstanceKind.valueOf(json.get("kind").getAsString().toUpperCase(Locale.ROOT)), new Composition(composition), phases));
-            } else if (directory.equals("material_profile")) {
-                String item = json.get("item").getAsString();
-                assertNull(targets.put(directory + ":" + item, document.getKey()), "Duplicate item target: " + item);
-                if (disabled) { profiles.remove(item); permissions.remove(item); continue; }
-                profiles.put(item, new MaterialProfile(item, json.has("item_count") ? integer(json, "item_count") : 1,
-                        amounts(json, "matter"), number(json, "decomposition_energy"), number(json, "synthesis_energy"), integer(json, "ticks")));
-            } else if (directory.equals("fluid_profile")) {
-                String fluid = json.get("fluid").getAsString();
-                assertNull(targets.put(directory + ":" + fluid, document.getKey()), "Duplicate fluid target: " + fluid);
-                if (disabled) { fluids.remove(fluid); permissions.remove(fluid); continue; }
-                fluids.put(fluid, new FluidProfile(fluid, integer(json, "amount"), amounts(json, "matter"),
-                        number(json, "decomposition_energy"), number(json, "synthesis_energy"), integer(json, "ticks")));
-            } else if (directory.equals("process")) {
-                if (disabled) { processes.remove(id); continue; }
-                processes.put(id, new ProcessRecipe(id, ProcessType.valueOf(json.get("type").getAsString().toUpperCase(Locale.ROOT)),
-                        amounts(json, "inputs"), amounts(json, "outputs"), number(json, "energy"), integer(json, "ticks")));
-            } else if (directory.equals("synthesis")) {
-                String item = json.get("item").getAsString();
-                assertNull(targets.put(directory + ":" + item, document.getKey()), "Duplicate synthesis target: " + item);
-                if (disabled) permissions.remove(item);
-                else permissions.put(item, SynthesisCategory.valueOf(json.get("category").getAsString().toUpperCase(Locale.ROOT)));
-            } else fail("Unexpected chemistry directory: " + directory);
-        }
-        var builder = ChemistryRegistry.builder();
-        substances.values().forEach(builder::addSubstance);
-        profiles.values().forEach(builder::addProfile);
-        fluids.values().forEach(builder::addFluidProfile);
-        processes.values().forEach(builder::addProcess);
-        permissions.forEach(builder::allowSynthesis);
-        return builder.build();
+    private static ChemistryRegistry integration() {
+        return ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES, Path.of("integrations/reforging/datapack"));
     }
 
-    private static void overlay(Map<String, Path> documents, Path root) throws Exception {
-        try (var files = Files.walk(root.resolve("data"))) {
-            for (Path file : files.filter(path -> path.toString().endsWith(".json")).toList()) {
-                String relative = root.relativize(file).toString().replace(java.io.File.separatorChar, '/');
-                String[] parts = relative.split("/", 5);
-                if (parts.length == 5 && parts[2].equals("rematter")) documents.put(relative, file);
-            }
-        }
-    }
-
-    private static Map<SubstanceKey, Long> amounts(JsonObject json, String field) {
-        Map<SubstanceKey, Long> result = new TreeMap<>();
-        json.getAsJsonArray(field).forEach(value -> {
-            JsonObject entry = value.getAsJsonObject();
-            SubstanceKey key = SubstanceKey.of(entry.get("substance").getAsString(), Phase.valueOf(entry.get("phase").getAsString().toUpperCase(Locale.ROOT)));
-            assertNull(result.put(key, number(entry, "amount")));
-        });
-        return result;
-    }
-
-    private static long number(JsonObject json, String key) { return json.get(key).getAsBigDecimal().longValueExact(); }
-    private static int integer(JsonObject json, String key) { return Math.toIntExact(number(json, key)); }
     private static JsonObject readFile(Path path) throws Exception {
         try (var reader = Files.newBufferedReader(path)) { return JsonParser.parseReader(reader).getAsJsonObject(); }
     }

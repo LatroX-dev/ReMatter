@@ -3,10 +3,9 @@ package dev.latrox.rematter.chemistry;
 import java.util.Map;
 import java.util.Set;
 
-/** Conservative starter definitions; pack-specific materials are supplied separately. */
+/** Core substances and balanced processes. Item, fluid and gas permissions come from the generated catalogue data. */
 public final class BuiltinChemistry {
     public static final long MATERIAL_UNIT = 1_000;
-    public static final long UNITS_PER_MILLIBUCKET = 1;
 
     public static final SubstanceKey COPPER = key("copper", Phase.SOLID);
     public static final SubstanceKey IRON = key("iron", Phase.SOLID);
@@ -62,32 +61,6 @@ public final class BuiltinChemistry {
         substance(builder, CARBON_DIOXIDE.id(), "CO₂", SubstanceKind.COMPOUND,
                 Map.of(CARBON.id(), 1L, OXYGEN.id(), 2L), Set.of(Phase.GAS));
 
-        material(builder, "minecraft:copper_ingot", COPPER, 1_000, SynthesisCategory.RAW_MATERIAL);
-        material(builder, "minecraft:copper_block", COPPER, 9_000, SynthesisCategory.RAW_MATERIAL);
-        decompositionOnly(builder, "minecraft:raw_copper", COPPER, 1_000);
-        decompositionOnly(builder, "minecraft:raw_copper_block", COPPER, 9_000);
-        material(builder, "minecraft:iron_ingot", IRON, 1_000, SynthesisCategory.RAW_MATERIAL);
-        material(builder, "minecraft:iron_block", IRON, 9_000, SynthesisCategory.RAW_MATERIAL);
-        decompositionOnly(builder, "minecraft:raw_iron", IRON, 1_000);
-        decompositionOnly(builder, "minecraft:raw_iron_block", IRON, 9_000);
-        material(builder, "minecraft:gold_ingot", GOLD, 1_000, SynthesisCategory.RAW_MATERIAL);
-        material(builder, "minecraft:gold_block", GOLD, 9_000, SynthesisCategory.RAW_MATERIAL);
-        decompositionOnly(builder, "minecraft:raw_gold", GOLD, 1_000);
-        decompositionOnly(builder, "minecraft:raw_gold_block", GOLD, 9_000);
-        for (String item : Set.of("minecraft:stone", "minecraft:cobblestone")) {
-            builder.addProfile(new MaterialProfile(item, STONE_MATTER, 8_000, 16_000, 100));
-            builder.allowSynthesis(item, SynthesisCategory.NATURAL_MATERIAL);
-        }
-        material(builder, "minecraft:dirt", SOIL, 1_000, SynthesisCategory.NATURAL_MATERIAL);
-        material(builder, "minecraft:sand", SILICA, 1_000, SynthesisCategory.NATURAL_MATERIAL);
-        material(builder, "minecraft:quartz", SILICA, 1_000, SynthesisCategory.RAW_MATERIAL);
-        builder.addFluidProfile(new FluidProfile("minecraft:water", 1_000, Map.of(WATER, 1_000L), 2_000, 2_000, 80));
-        builder.addFluidProfile(new FluidProfile("minecraft:lava", 1_000, Map.of(LAVA, 1_000L), 2_000, 24_000, 80));
-        builder.allowSynthesis("minecraft:water", SynthesisCategory.FLUID);
-        builder.allowSynthesis("minecraft:lava", SynthesisCategory.FLUID);
-        builder.allowSynthesis(HYDROGEN.id().toString(), SynthesisCategory.GAS);
-        builder.allowSynthesis(OXYGEN.id().toString(), SynthesisCategory.GAS);
-
         process(builder, "water_electrolysis", ProcessType.ELECTROLYSIS,
                 Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), 32_000, 200);
         process(builder, "water_synthesis", ProcessType.REACTION,
@@ -119,18 +92,6 @@ public final class BuiltinChemistry {
         process(builder, "carbon_oxidation", ProcessType.REACTION,
                 Map.of(CARBON, 1_000L, OXYGEN, 1_000L), Map.of(CARBON_DIOXIDE, 1_000L), 16_000, 200);
         return builder.build();
-    }
-
-    private static void material(ChemistryRegistry.Builder builder, String itemId,
-                                 SubstanceKey key, long amount, SynthesisCategory category) {
-        decompositionOnly(builder, itemId, key, amount);
-        builder.allowSynthesis(itemId, category);
-    }
-
-    private static void decompositionOnly(ChemistryRegistry.Builder builder, String itemId,
-                                          SubstanceKey key, long amount) {
-        builder.addProfile(new MaterialProfile(itemId, Map.of(key, amount),
-                Math.multiplyExact(amount, 8L), Math.multiplyExact(amount, 16L), 100));
     }
 
     private static void element(ChemistryRegistry.Builder builder, SubstanceKey key,
