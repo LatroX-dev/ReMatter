@@ -1,0 +1,24 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:pulverizer"
+    }
+  ],
+  "type": "oritech:pulverizer",
+  "itemInputs": [
+    "#c:ingots/lumivex"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:lumivex_dust",
+      "count": 1
+    }
+  ],
+  "time": 100
+}

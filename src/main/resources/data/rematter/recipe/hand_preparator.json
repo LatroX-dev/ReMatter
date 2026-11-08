@@ -3,14 +3,13 @@
   "category": "misc",
   "pattern": [
     "FIF",
-    "PSP",
-    " P "
+    "CIC",
+    "III"
   ],
   "key": {
     "F": "minecraft:flint",
-    "I": "minecraft:iron_bars",
-    "P": "#minecraft:planks",
-    "S": "minecraft:stick"
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:copper_ingot"
   },
   "result": {
     "id": "rematter:hand_preparator",

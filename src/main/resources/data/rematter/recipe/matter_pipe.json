@@ -2,14 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI"
+    "BBB",
+    "CSC",
+    "BBB"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "B": "rematter:structural_bars",
+    "C": "minecraft:copper_ingot",
+    "S": "rematter:silith"
   },
   "result": {
     "id": "rematter:matter_pipe",
-    "count": 4
+    "count": 12
   }
 }

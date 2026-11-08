@@ -1,14 +1,18 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    "rematter:matrix_crystal",
-    "rematter:matrix_crystal",
-    "rematter:matrix_crystal",
-    "rematter:matrix_crystal",
-    "rematter:rhedon",
-    "rematter:virel"
+  "pattern": [
+    "CRC",
+    "FBF",
+    "CVC"
   ],
+  "key": {
+    "C": "rematter:matrix_crystal",
+    "R": "rematter:rhedon",
+    "F": "rematter:structural_bars",
+    "B": "rematter:matrix_blend",
+    "V": "rematter:virel"
+  },
   "result": {
     "id": "rematter:matrix_cluster",
     "count": 1

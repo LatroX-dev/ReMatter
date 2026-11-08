@@ -2,14 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " R ",
-    "GPG",
-    " R "
+    "BRB",
+    "LDL",
+    "BCB"
   ],
   "key": {
-    "R": "minecraft:redstone",
-    "G": "minecraft:gold_ingot",
-    "P": "minecraft:paper"
+    "B": "rematter:structural_bars",
+    "R": "rematter:rhedon",
+    "L": "rematter:lumivex_ingot",
+    "D": "rematter:diamond_lattice",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:speed_upgrade",

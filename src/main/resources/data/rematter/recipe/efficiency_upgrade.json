@@ -2,14 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " C ",
-    "GPG",
-    " C "
+    "BVB",
+    "LDL",
+    "BCB"
   ],
   "key": {
-    "C": "minecraft:copper_ingot",
-    "G": "minecraft:gold_ingot",
-    "P": "minecraft:paper"
+    "B": "rematter:structural_bars",
+    "V": "rematter:virelite_ceramic",
+    "L": "rematter:lumivex_ingot",
+    "D": "rematter:diamond_lattice",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:efficiency_upgrade",

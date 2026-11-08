@@ -2,15 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "IPI",
-    "CMC",
-    "IPI"
+    "DCD",
+    "BMB",
+    "FXF"
   ],
   "key": {
-    "I": "minecraft:iron_block",
-    "P": "minecraft:piston",
+    "D": "rematter:diamond_lattice",
     "C": "rematter:control_circuit",
-    "M": "rematter:matrix_cluster"
+    "B": "rematter:rhevon_ingot",
+    "M": "rematter:matrix_cluster",
+    "F": "rematter:machine_frame",
+    "X": "rematter:amber_matrix_crystal"
   },
   "result": {
     "id": "rematter:industrial_preparator",

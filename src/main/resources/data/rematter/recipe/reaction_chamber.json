@@ -1,13 +1,19 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    "rematter:machine_frame",
-    "minecraft:glass",
-    "minecraft:glass",
-    "rematter:matrix_cluster",
-    "rematter:optical_circuit"
+  "pattern": [
+    "GDG",
+    "VMV",
+    "FOF"
   ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "D": "rematter:diamond_lattice",
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:matrix_cluster",
+    "F": "rematter:machine_frame",
+    "O": "rematter:optical_circuit"
+  },
   "result": {
     "id": "rematter:reaction_chamber",
     "count": 1

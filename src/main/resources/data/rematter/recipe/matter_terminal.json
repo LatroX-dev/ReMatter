@@ -2,15 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "GGG",
+    "PCP",
+    "FMF"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:glass"
+    "G": "minecraft:glass",
+    "P": "rematter:ender_conductor",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame",
+    "M": "rematter:mint_matrix_crystal"
   },
   "result": {
     "id": "rematter:matter_terminal",

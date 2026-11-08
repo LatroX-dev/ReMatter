@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:matrix_crystal",
+    "#c:dusts/copper"
+  ],
+  "result": {
+    "id": "rematter:copper_matrix_crystal",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:ingots/lumivex",
+  "result": {
+    "id": "rematter:lumivex_dust",
+    "count": 1
+  },
+  "energy": 4000,
+  "ticks": 100,
+  "minimum_tier": 1,
+  "network_recipe": false
+}

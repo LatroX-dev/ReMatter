@@ -2,15 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "GMG",
+    "BDB",
+    "FCF"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:brewing_stand"
+    "G": "minecraft:glass",
+    "M": "rematter:violet_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:chemical_reactor",

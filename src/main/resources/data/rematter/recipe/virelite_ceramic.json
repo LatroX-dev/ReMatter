@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:virelite_blend",
+  "result": {
+    "id": "rematter:virelite_ceramic",
+    "count": 1
+  },
+  "energy": 12000,
+  "ticks": 200,
+  "minimum_tier": 1,
+  "process": "sintering"
+}

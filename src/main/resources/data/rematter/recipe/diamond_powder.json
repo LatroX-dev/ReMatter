@@ -1,0 +1,11 @@
+{
+  "type": "rematter:preparation",
+  "primary": "minecraft:diamond",
+  "result": {
+    "id": "rematter:diamond_powder",
+    "count": 1
+  },
+  "energy": 6000,
+  "ticks": 120,
+  "minimum_tier": 1
+}

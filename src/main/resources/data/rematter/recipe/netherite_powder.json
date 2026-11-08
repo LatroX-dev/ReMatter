@@ -1,0 +1,11 @@
+{
+  "type": "rematter:preparation",
+  "primary": "minecraft:netherite_ingot",
+  "result": {
+    "id": "rematter:netherite_powder",
+    "count": 1
+  },
+  "energy": 12000,
+  "ticks": 180,
+  "minimum_tier": 1
+}

@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "III",
-    "ICI",
-    "III"
+    "BBB",
+    "BFB",
+    "BBB"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot"
+    "B": "rematter:structural_bars",
+    "F": "rematter:machine_frame"
   },
   "result": {
     "id": "rematter:reactor_casing",

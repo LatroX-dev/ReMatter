@@ -2,14 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "PI",
-    "FC"
+    "MBM",
+    "BCB",
+    "FBF"
   ],
   "key": {
-    "P": "minecraft:piston",
-    "I": "minecraft:iron_ingot",
-    "F": "rematter:machine_frame",
-    "C": "rematter:control_circuit"
+    "M": "rematter:copper_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
   },
   "result": {
     "id": "rematter:decomposer",

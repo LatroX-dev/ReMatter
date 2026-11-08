@@ -1,0 +1,14 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#rematter:full_ender_pearl_powders",
+  "secondary": "rematter:lumivex_dust",
+  "secondary_count": 2,
+  "tertiary": "rematter:copper_dust",
+  "result": {
+    "id": "rematter:ender_conductor_blend",
+    "count": 1
+  },
+  "energy": 10000,
+  "ticks": 180,
+  "minimum_tier": 1
+}

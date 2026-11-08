@@ -1,0 +1,14 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:dusts/netherite",
+  "secondary": "rematter:rhevon_dust",
+  "secondary_count": 2,
+  "tertiary": "rematter:virelite_blend",
+  "result": {
+    "id": "rematter:netherite_sheath_blend",
+    "count": 1
+  },
+  "energy": 14000,
+  "ticks": 220,
+  "minimum_tier": 1
+}

@@ -1,0 +1,14 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:dusts/diamond",
+  "secondary": "rematter:matrix_blend",
+  "secondary_count": 2,
+  "tertiary": "rematter:gold_dust",
+  "result": {
+    "id": "rematter:diamond_matrix_blend",
+    "count": 1
+  },
+  "energy": 8000,
+  "ticks": 160,
+  "minimum_tier": 1
+}

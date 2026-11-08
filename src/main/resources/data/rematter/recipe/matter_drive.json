@@ -2,24 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " H",
-    "FC"
+    "FBF",
+    "RCR",
+    "FXF"
   ],
   "key": {
-    "H": {
-      "neoforge:ingredient_type": "neoforge:components",
-      "items": [
-        "minecraft:chest"
-      ],
-      "components": {
-        "!minecraft:block_entity_data": {},
-        "minecraft:container": [],
-        "!minecraft:container_loot": {},
-        "!minecraft:custom_data": {}
-      }
-    },
     "F": "rematter:machine_frame",
-    "C": "rematter:control_circuit"
+    "R": "rematter:cell_rack",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "X": "rematter:mint_matrix_crystal"
   },
   "result": {
     "id": "rematter:matter_drive",

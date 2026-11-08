@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:matrix_crystal",
+    "#c:dusts/gold"
+  ],
+  "result": {
+    "id": "rematter:amber_matrix_crystal",
+    "count": 1
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "type": "rematter:preparation",
+  "primary": "minecraft:amethyst_shard",
+  "result": {
+    "id": "rematter:amethyst_dust",
+    "count": 1
+  },
+  "energy": 4000,
+  "ticks": 100,
+  "minimum_tier": 1
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:matrix_crystal",
+    "#c:dusts/emerald"
+  ],
+  "result": {
+    "id": "rematter:leaf_matrix_crystal",
+    "count": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:matrix_crystal",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "rematter:ember_matrix_crystal",
+    "count": 1
+  }
+}

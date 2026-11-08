@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:ender_pearl_powder",
+    {
+      "id": "ae2:ender_dust",
+      "required": false
+    }
+  ]
+}

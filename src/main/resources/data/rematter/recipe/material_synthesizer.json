@@ -1,13 +1,18 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    "minecraft:piston",
-    "minecraft:glass",
-    "rematter:matrix_crystal",
-    "rematter:machine_frame",
-    "rematter:control_circuit"
+  "pattern": [
+    "BMB",
+    "MGM",
+    "FCF"
   ],
+  "key": {
+    "M": "rematter:leaf_matrix_crystal",
+    "G": "minecraft:glass",
+    "B": "rematter:structural_bars",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
+  },
   "result": {
     "id": "rematter:material_synthesizer",
     "count": 1

@@ -1,15 +1,19 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    "rematter:machine_frame",
-    "minecraft:piston",
-    "minecraft:piston",
-    "minecraft:flint",
-    "minecraft:flint",
-    "minecraft:iron_ingot",
-    "minecraft:iron_ingot"
+  "pattern": [
+    "DMD",
+    "RBR",
+    "VFV"
   ],
+  "key": {
+    "D": "rematter:diamond_lattice",
+    "M": "rematter:matrix_crystal",
+    "R": "rematter:rhevon_ingot",
+    "B": "rematter:structural_bars",
+    "V": "rematter:virelite_ceramic",
+    "F": "rematter:machine_frame"
+  },
   "result": {
     "id": "rematter:grinding_unit",
     "count": 1

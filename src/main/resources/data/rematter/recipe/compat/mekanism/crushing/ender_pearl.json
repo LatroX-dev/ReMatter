@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "mekanism:crushing"
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:registered",
+        "registry": "minecraft:item",
+        "value": "ae2:ender_dust"
+      }
+    }
+  ],
+  "type": "mekanism:crushing",
+  "input": {
+    "count": 1,
+    "ingredient": "minecraft:ender_pearl"
+  },
+  "output": {
+    "id": "rematter:ender_pearl_powder",
+    "count": 1
+  }
+}

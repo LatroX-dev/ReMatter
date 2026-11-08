@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:foundry"
+    }
+  ],
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "rematter:ender_conductor_blend",
+    "rematter:ender_conductor_blend"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:ender_conductor",
+      "count": 2
+    }
+  ],
+  "time": 240
+}

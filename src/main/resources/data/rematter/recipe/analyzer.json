@@ -2,14 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "SG",
-    "FC"
+    "GDG",
+    "BCB",
+    "FMF"
   ],
   "key": {
-    "S": "minecraft:spyglass",
     "G": "minecraft:glass",
+    "D": "rematter:diamond_lattice",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
     "F": "rematter:machine_frame",
-    "C": "rematter:control_circuit"
+    "M": "rematter:ice_matrix_crystal"
   },
   "result": {
     "id": "rematter:analyzer",

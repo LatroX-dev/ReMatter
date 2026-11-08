@@ -2,15 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "PMP",
+    "DGD",
+    "FCF"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:water_bucket"
+    "P": "rematter:copper_dust",
+    "M": "rematter:blue_matrix_crystal",
+    "D": "rematter:diamond_lattice",
+    "G": "minecraft:glass",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
   },
   "result": {
     "id": "rematter:electrolyzer",

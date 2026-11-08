@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:dusts/lumivex",
+  "result": {
+    "id": "rematter:lumivex_ingot",
+    "count": 1
+  },
+  "energy": 12000,
+  "ticks": 200,
+  "minimum_tier": 1,
+  "process": "sintering"
+}

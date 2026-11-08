@@ -1,0 +1,14 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:dusts/iron",
+  "primary_count": 3,
+  "secondary": "#c:dusts/copper",
+  "tertiary": "rematter:rhedon",
+  "result": {
+    "id": "rematter:rhevon_dust",
+    "count": 4
+  },
+  "energy": 8000,
+  "ticks": 160,
+  "minimum_tier": 1
+}

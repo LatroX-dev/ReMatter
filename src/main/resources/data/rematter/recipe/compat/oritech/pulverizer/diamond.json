@@ -1,0 +1,40 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:pulverizer"
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:registered",
+        "registry": "minecraft:item",
+        "value": "alltheores:diamond_dust"
+      }
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:registered",
+        "registry": "minecraft:item",
+        "value": "ftbmaterials:diamond_dust"
+      }
+    }
+  ],
+  "type": "oritech:pulverizer",
+  "itemInputs": [
+    "minecraft:diamond"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:diamond_powder",
+      "count": 1
+    }
+  ],
+  "time": 100
+}

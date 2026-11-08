@@ -2,15 +2,17 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "ICI",
-    "RMR",
-    "ICI"
+    "GVG",
+    "OMO",
+    "NXN"
   ],
   "key": {
-    "I": "minecraft:iron_ingot",
-    "C": "minecraft:copper_ingot",
-    "R": "minecraft:redstone",
-    "M": "minecraft:diamond_block"
+    "G": "rematter:reactor_glass",
+    "O": "rematter:optical_circuit",
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:matrix_cluster",
+    "N": "rematter:netherite_sheath",
+    "X": "rematter:violet_matrix_crystal"
   },
   "result": {
     "id": "rematter:industrial_reactor",

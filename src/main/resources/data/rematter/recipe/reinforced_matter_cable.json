@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "VEV",
+    "CRC"
+  ],
+  "key": {
+    "C": "rematter:matter_pipe",
+    "R": "rematter:rhevon_ingot",
+    "V": "rematter:virelite_ceramic",
+    "E": "rematter:ender_conductor"
+  },
+  "result": {
+    "id": "rematter:reinforced_matter_cable",
+    "count": 4
+  }
+}

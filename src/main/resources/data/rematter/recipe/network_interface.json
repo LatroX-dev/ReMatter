@@ -2,15 +2,18 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " C ",
-    "PFP",
-    " O "
+    "DPD",
+    "EOE",
+    "FCX"
   ],
   "key": {
-    "C": "rematter:control_circuit",
-    "P": "rematter:matter_pipe",
+    "D": "rematter:diamond_lattice",
+    "P": "rematter:reinforced_matter_cable",
+    "E": "rematter:ender_conductor",
+    "O": "rematter:optical_circuit",
     "F": "rematter:machine_frame",
-    "O": "rematter:optical_circuit"
+    "C": "rematter:control_circuit",
+    "X": "rematter:blue_matrix_crystal"
   },
   "result": {
     "id": "rematter:network_interface",

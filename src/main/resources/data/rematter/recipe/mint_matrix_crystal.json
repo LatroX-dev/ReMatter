@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "rematter:matrix_crystal",
+    "#c:dusts/diamond"
+  ],
+  "result": {
+    "id": "rematter:mint_matrix_crystal",
+    "count": 1
+  }
+}

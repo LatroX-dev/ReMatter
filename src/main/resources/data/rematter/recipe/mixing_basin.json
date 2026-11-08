@@ -1,12 +1,17 @@
 {
-  "type": "minecraft:crafting_shapeless",
+  "type": "minecraft:crafting_shaped",
   "category": "misc",
-  "ingredients": [
-    "rematter:machine_frame",
-    "minecraft:cauldron",
-    "minecraft:piston",
-    "minecraft:copper_ingot"
+  "pattern": [
+    "M M",
+    "VMV",
+    "RFR"
   ],
+  "key": {
+    "M": "rematter:matrix_crystal",
+    "V": "rematter:virelite_ceramic",
+    "R": "rematter:rhevon_ingot",
+    "F": "rematter:machine_frame"
+  },
   "result": {
     "id": "rematter:mixing_basin",
     "count": 1

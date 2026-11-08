@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:foundry"
+    }
+  ],
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "rematter:rhevon_dust",
+    "rematter:rhevon_dust"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:rhevon_ingot",
+      "count": 2
+    }
+  ],
+  "time": 200
+}
