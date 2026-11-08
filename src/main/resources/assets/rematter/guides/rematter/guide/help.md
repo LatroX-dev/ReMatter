@@ -27,7 +27,7 @@ Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or
 
 ## Supply power
 
-The Material Preparator, Sinter Furnace and chemistry processors need external FE. Matter Cables forward FE that a generator or energy store pushes into them; nothing can pull FE out of a cable. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. The full batch's energy must be stored before progress advances. If a batch needs more FE than the 2,400,000 FE buffer holds, remove Speed Upgrades.
+The Material Preparator, Sinter Furnace and chemistry processors need external FE. Matter Cables forward FE that a generator or energy store pushes into them; nothing can pull FE out of a cable. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. The full batch's energy must be stored before progress advances; every batch fits the 2,400,000 FE buffer, even with four Speed Upgrades.
 
 ## Add missing material
 

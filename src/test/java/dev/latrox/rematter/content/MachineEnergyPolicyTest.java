@@ -56,11 +56,9 @@ class MachineEnergyPolicyTest {
     @Test void theLargestCatalogueBatchFitsTheBufferWithEverySpeedUpgrade() {
         long full = MachineEnergyPolicy.cost(MachineEnergyPolicy.MAX_BATCH_ENERGY, MachineEnergyPolicy.Upgrade.SPEED, 4, MachineKind.SYNTHESIZER, null);
         assertEquals(MachineBlockEntity.ENERGY_CAPACITY, full);
-        assertTrue(MachineEnergyPolicy.fitsBuffer(full));
-        assertFalse(MachineEnergyPolicy.fitsBuffer(full + 1));
         long industrialPreparation = MachineEnergyPolicy.cost(MachineEnergyPolicy.scaled(PreparationWork.MAX_ENERGY,
                 PreparationTier.energyMultiplier(MachineKind.INDUSTRIAL_PREPARATOR)), MachineEnergyPolicy.Upgrade.SPEED, 4, MachineKind.INDUSTRIAL_PREPARATOR, null);
-        assertTrue(MachineEnergyPolicy.fitsBuffer(industrialPreparation));
+        assertTrue(industrialPreparation <= MachineBlockEntity.ENERGY_CAPACITY);
     }
 
     @Test void aCatalogueWithAnUnaffordableBatchIsRejectedAtLoad() {

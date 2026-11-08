@@ -932,14 +932,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public ItemStack removeItem(int index, int amount) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.removeItem(items, index, amount);
-        if (index == 2) worker.forgetRefusal();
         if (!result.isEmpty()) { if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index); else setChanged(); }
         return result;
     }
     @Override public ItemStack removeItemNoUpdate(int index) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.takeItem(items, index);
-        if (index == 2) worker.forgetRefusal();
         if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index);
         return result;
     }
@@ -952,7 +950,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             items.set(index, stack); mountCell(index); return;
         }
         items.set(index, stack);
-        if (index == 2) worker.forgetRefusal();
         if (index == 0 && kind() == MachineKind.ANALYZER) { analysis = AnalysisState.EMPTY; control.runState(MachineRunState.automatic()); }
         stack.limitSize(getMaxStackSize(stack)); setChanged();
     }

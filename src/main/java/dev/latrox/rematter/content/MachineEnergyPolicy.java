@@ -38,9 +38,6 @@ public final class MachineEnergyPolicy {
         return performance == null ? price : performance.energyCost(kind, price);
     }
 
-    /** A batch whose price exceeds the buffer can never start; it is reported, never discounted. */
-    static boolean fitsBuffer(long price) { return price <= MachineBlockEntity.ENERGY_CAPACITY; }
-
     /** Load-time check: rejects a catalogue containing a batch that could not fit the buffer at full speed. */
     public static void requireFits(ChemistryRegistry registry) {
         for (var profile : registry.profiles())

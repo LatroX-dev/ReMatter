@@ -14,7 +14,6 @@ final class NetworkJobWorker {
     private final AutomationWorkerLease<MachineAutomationHost> lease = new AutomationWorkerLease<>();
     private @Nullable MachineMatterNetwork assignedTopology;
     private String signature = "";
-    private @Nullable UUID refusedOrder;
 
     NetworkJobWorker(MachineBlockEntity machine) { this.machine = machine; }
 
@@ -25,7 +24,7 @@ final class NetworkJobWorker {
 
     boolean tryBind(MachineAutomationHost host, UUID order) {
         if (lease.matches(host, order)) return true;
-        if (order.equals(refusedOrder) || lease.current().isPresent() || !machine.acceptsNetworkWork() || !host.active()) return false;
+        if (lease.current().isPresent() || !machine.acceptsNetworkWork() || !host.active()) return false;
         var topology = machine.matterNetwork(true);
         if (!topology.ready() || !topology.interfaces().contains(host.machine()) || !lease.tryAcquire(host, order)) return false;
         machine.resetProgress(); assignedTopology = topology; signature = "";
@@ -37,9 +36,6 @@ final class NetworkJobWorker {
         assignedTopology = null; signature = "";
         machine.resetProgress(); machine.work().processedThisTick = false;
     }
-
-    /** Upgrades changed, so an order refused for its price may fit again. */
-    void forgetRefusal() { refusedOrder = null; }
 
     void release() {
         var claim = lease.current().orElse(null);
@@ -80,10 +76,6 @@ final class NetworkJobWorker {
         }
         var recipe = order.recipe();
         long required = machine.cost(baseEnergy(recipe.energy()));
-        if (!MachineEnergyPolicy.fitsBuffer(required)) {
-            // Let a machine with fewer speed upgrades take this order instead of holding it forever.
-            refusedOrder = orderId; release(claim); work.status = "energy_exceeds_buffer"; return;
-        }
         int speed = machine.speed();
         String current = recipe.revision() + ":" + required + ":" + speed;
         if (IndustrialStructure.isIndustrial(machine.kind())) current += ":" + IndustrialStructure.inspect(machine).layoutFingerprint();
