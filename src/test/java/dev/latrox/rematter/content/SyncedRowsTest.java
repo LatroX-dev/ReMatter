@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SyncedRowsTest {
-    private static MachineSnapshot.Entry entry(String id, long amount) { return new MachineSnapshot.Entry(id, "solid", amount, amount, true); }
+    private static MachineSnapshot.Entry entry(String id, long amount) { return new MachineSnapshot.Entry(id, "solid", amount, true); }
 
     @Test void firstUpdateSendsEveryRowAndAnUnchangedListSendsNothing() {
         var server = new SyncedRows<MachineSnapshot.StockKey, MachineSnapshot.Entry>(MachineSnapshot.Entry::key);

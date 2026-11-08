@@ -17,10 +17,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StockFilterTest {
-    private static final Entry IRON = new Entry("rematter:iron", "solid", 10, 10, true);
-    private static final Entry WATER = new Entry("rematter:water", "liquid", 20, 20, true);
-    private static final Entry STEAM = new Entry("rematter:water", "gas", 5, 5, true);
-    private static final Entry REMOVED = new Entry("example:removed", "solid", 7, 7, false);
+    private static final Entry IRON = new Entry("rematter:iron", "solid", 10, true);
+    private static final Entry WATER = new Entry("rematter:water", "liquid", 20, true);
+    private static final Entry STEAM = new Entry("rematter:water", "gas", 5, true);
+    private static final Entry REMOVED = new Entry("example:removed", "solid", 7, false);
     private static final List<Entry> STOCK = List.of(IRON, WATER, STEAM, REMOVED);
     private static final Function<Entry, String> NAME = entry -> switch (entry.id()) {
         case "rematter:iron" -> "Iron";

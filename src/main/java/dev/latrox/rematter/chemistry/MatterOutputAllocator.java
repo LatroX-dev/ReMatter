@@ -15,7 +15,7 @@ final class MatterOutputAllocator {
         for(int i=0;i<count;i++) {
             var cell=cells.get(i); var types=new BitSet(keys.size());
             for(int k=0;k<keys.size();k++) if(cell.occupiesType(keys.get(k))) types.set(k);
-            existing.add(types); freeTypes[i]=cell.maximumTypes()-cell.occupiedTypes();
+            existing.add(types); freeTypes[i]=cell.maximumTypes()-cell.typeCount();
             freeSpace[i]=typesOnly?required:cell.freeSpace();
         }
         var pending=new ArrayDeque<BitSet>(); var visited=new HashSet<BitSet>(); pending.add(new BitSet());

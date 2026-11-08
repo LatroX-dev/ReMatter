@@ -48,22 +48,17 @@ class SharedAutomationStockTest {
         assertEquals(0,second.extract(IRON,1000,Action.EXECUTE));
     }
 
-    @Test void phasesAndReservationsStayExactAcrossBothPortsAndLaterRefills() {
+    @Test void phasesStayExactAcrossBothPortsAndLaterRefills() {
         var a=cell(600);var b=cell(400);assertEquals(1000,b.insert(LIQUID_IRON,1000));
-        var reservation=a.reserve(Map.of(IRON,1L),Map.of()).orElseThrow();
         var first=new Port(new MatterNetworkInventory(List.of(a,b)));
         var second=new Port(new MatterNetworkInventory(List.of(b,a)));
-        assertEquals(999,first.extract(IRON,1000,Action.SIMULATE));
-        var before=first.inventory.snapshot();
-        assertFalse(first.inventory.apply(Map.of(IRON,1000L),Map.of()));
-        assertEquals(before,first.inventory.snapshot());
+        assertEquals(1000,first.extract(IRON,1000,Action.SIMULATE));
         assertEquals(1000,second.extract(LIQUID_IRON,1000,Action.EXECUTE));
         assertFalse(second.acceptTransferred(RECIPE.id(),RECIPE.revision(),1,
                 Map.of(Resource.matter(LIQUID_IRON),1000L),Action.EXECUTE));
         assertTrue(second.ledger.snapshot().orders().isEmpty());
         // A rejected external order still owns its extracted inputs and can return that exact phase.
         assertEquals(1000,second.insert(LIQUID_IRON,1000,Action.EXECUTE));
-        assertTrue(a.cancel(reservation));
         assertEquals(1000,order(first));
         assertEquals(0,order(second));
         assertEquals(1000,second.insert(IRON,1000,Action.EXECUTE));
@@ -203,7 +198,7 @@ class SharedAutomationStockTest {
         private final OrderLedger ledger=new OrderLedger();
         Port(MatterNetworkInventory inventory) { this.inventory=inventory; }
         public UUID ownerId(){return owner;}public UUID bridgeId(){return bridge;}public boolean active(){return true;}
-        public Map<SubstanceKey,Long> availableEntries(){return inventory.availableContents();}
+        public Map<SubstanceKey,Long> availableEntries(){return inventory.contents();}
         public long insert(SubstanceKey key,long maximum,Action action) {
             if(maximum<=0)return 0;
             var outputs=Map.of(key,maximum);
@@ -211,7 +206,7 @@ class SharedAutomationStockTest {
         }
         public long extract(SubstanceKey key,long maximum,Action action) {
             if(maximum<=0)return 0;
-            long amount=Math.min(maximum,inventory.available(key));
+            long amount=Math.min(maximum,inventory.amount(key));
             if(amount==0||action==Action.SIMULATE)return amount;
             return inventory.apply(Map.of(key,amount),Map.of())?amount:0;
         }

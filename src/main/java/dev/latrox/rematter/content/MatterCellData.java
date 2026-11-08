@@ -44,12 +44,6 @@ public final class MatterCellData {
             row.putString("phase", stack.key().phase().name()); row.putLong("amount", stack.quantity()); contents.add(row);
         }
         raw.put("contents", contents);
-        var reservations = new ListTag();
-        for (var reservation : snapshot.reservations()) {
-            var row=new CompoundTag();row.putString("token",reservation.token().toString());
-            row.put("inputs",amounts(reservation.inputs()));row.put("outputs",amounts(reservation.outputs()));reservations.add(row);
-        }
-        raw.put("reservations",reservations);
         return new MatterCellData(raw);
     }
 
@@ -57,7 +51,7 @@ public final class MatterCellData {
     public Optional<MatterInventory> open(long capacity) {
         try {
             if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != SCHEMA
-                    || !raw.keySet().equals(Set.of("schema", "contents", "reservations"))) return Optional.empty();
+                    || !raw.keySet().equals(Set.of("schema", "contents"))) return Optional.empty();
             var rows = raw.getList("contents").orElseThrow();
             if (rows.size() > MAX_TYPES) return Optional.empty();
             var contents = new ArrayList<SubstanceStack>();
@@ -67,32 +61,8 @@ public final class MatterCellData {
                 contents.add(new SubstanceStack(new SubstanceKey(SubstanceId.parse(row.getString("substance").orElseThrow()),
                         Phase.valueOf(row.getString("phase").orElseThrow())), exactAmount(row)));
             }
-            var reservations=new ArrayList<MatterInventory.Reservation>();
-            var savedReservations=raw.getList("reservations").orElseThrow();
-            if(savedReservations.size()>MAX_TYPES)return Optional.empty();
-            for(int i=0;i<savedReservations.size();i++) {
-                var row=savedReservations.getCompound(i).orElseThrow();
-                if(!row.keySet().equals(Set.of("token","inputs","outputs")))return Optional.empty();
-                reservations.add(new MatterInventory.Reservation(UUID.fromString(row.getString("token").orElseThrow()),
-                        readAmounts(row.getList("inputs").orElseThrow()),readAmounts(row.getList("outputs").orElseThrow())));
-            }
-            return Optional.of(MatterInventory.restore(new MatterInventory.Snapshot(MatterInventory.SCHEMA_VERSION,capacity,contents,reservations), MAX_TYPES));
+            return Optional.of(MatterInventory.restore(new MatterInventory.Snapshot(capacity, contents), MAX_TYPES));
         } catch (RuntimeException invalid) { return Optional.empty(); }
-    }
-    private static ListTag amounts(Map<SubstanceKey,Long> values) {
-        var rows=new ListTag();
-        values.forEach((key,amount) -> {var row=new CompoundTag();row.putString("substance",key.id().toString());
-            row.putString("phase",key.phase().name());row.putLong("amount",amount);rows.add(row);});return rows;
-    }
-    private static Map<SubstanceKey,Long> readAmounts(ListTag rows) {
-        if(rows.size()>MAX_TYPES)throw new IllegalArgumentException("Too many reserved types");
-        var values=new TreeMap<SubstanceKey,Long>();
-        for(int i=0;i<rows.size();i++) {
-            var row=rows.getCompound(i).orElseThrow();
-            if(!row.keySet().equals(Set.of("substance","phase","amount")))throw new IllegalArgumentException("Unknown reserved data");
-            var key=new SubstanceKey(SubstanceId.parse(row.getString("substance").orElseThrow()),Phase.valueOf(row.getString("phase").orElseThrow()));
-            if(values.putIfAbsent(key,exactAmount(row))!=null)throw new IllegalArgumentException("Duplicate reserved type");
-        }return MatterAmounts.copy(values);
     }
     private static long exactAmount(CompoundTag row) {
         if (!(row.get("amount") instanceof LongTag)) throw new IllegalArgumentException("Expected exact long quantity");

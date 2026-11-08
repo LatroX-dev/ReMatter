@@ -10,10 +10,7 @@ public interface MatterStore {
     long freeSpace();
     int typeCount();
     long amount(SubstanceKey key);
-    long available(SubstanceKey key);
-    long reserved(SubstanceKey key);
     Map<SubstanceKey, Long> contents();
-    Map<SubstanceKey, Long> availableContents();
     boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);
     boolean canApply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);
     boolean apply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);

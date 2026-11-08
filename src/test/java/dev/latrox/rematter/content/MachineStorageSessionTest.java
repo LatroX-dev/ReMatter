@@ -42,7 +42,6 @@ class MachineStorageSessionTest {
         assertFalse(session.accepts(replacement));
         assertThrows(IllegalStateException.class,()->session.bind(replacement));
         assertEquals(1000,original.amount(COPPER));assertEquals(1000,replacement.amount(COPPER));
-        assertTrue(original.snapshot().reservations().isEmpty());
         session.clear();session.bind(replacement);assertTrue(session.accepts(replacement));
     }
     @Test void rollbackRetainsTheBoundIdentityAndExactStock() {

@@ -25,7 +25,6 @@ public final class MatterNetworkInventory implements MatterStore {
     private final List<MatterInventory> members;
     private long aggregatedRevision = -1;
     private @Nullable Map<SubstanceKey, Long> aggregatedContents;
-    private @Nullable Map<SubstanceKey, Long> aggregatedAvailable;
 
     public MatterNetworkInventory(List<MatterInventory> members) {
         this.members = List.copyOf(members);
@@ -41,10 +40,19 @@ public final class MatterNetworkInventory implements MatterStore {
     @Override public long freeSpace() { return sum(MatterInventory::freeSpace); }
     @Override public int typeCount() { return contents().size(); }
     @Override public long amount(SubstanceKey key) { Objects.requireNonNull(key); return sum(member -> member.amount(key)); }
-    @Override public long available(SubstanceKey key) { Objects.requireNonNull(key); return sum(member -> member.available(key)); }
-    @Override public long reserved(SubstanceKey key) { Objects.requireNonNull(key); return sum(member -> member.reserved(key)); }
-    @Override public Map<SubstanceKey, Long> contents() { return amounts(false); }
-    @Override public Map<SubstanceKey, Long> availableContents() { return amounts(true); }
+    @Override public Map<SubstanceKey, Long> contents() {
+        synchronized (MatterInventory.MUTATION_LOCK) {
+            // Aggregates are rebuilt only after a member changed; repeated reads of unchanged stock share one map.
+            validateTotals();
+            long revision = revision();
+            if (revision == aggregatedRevision && aggregatedContents != null) return aggregatedContents;
+            var result = new TreeMap<SubstanceKey, Long>();
+            for (var member : members) member.contents().forEach((key, amount) -> result.merge(key, amount, Math::addExact));
+            aggregatedContents = Collections.unmodifiableMap(result);
+            aggregatedRevision = revision;
+            return aggregatedContents;
+        }
+    }
     @Override public long revision() {
         synchronized (MatterInventory.MUTATION_LOCK) {
             // Every member counter only grows, so the sum changes whenever any member changes.
@@ -60,26 +68,6 @@ public final class MatterNetworkInventory implements MatterStore {
             long total = 0;
             for (var member : members) total = Math.addExact(total, value.applyAsLong(member));
             return total;
-        }
-    }
-    /** Aggregates are rebuilt only after a member changed; repeated reads of unchanged stock share one map. */
-    private Map<SubstanceKey, Long> amounts(boolean onlyAvailable) {
-        synchronized (MatterInventory.MUTATION_LOCK) {
-            validateTotals();
-            long revision = revision();
-            if (revision != aggregatedRevision) {
-                aggregatedContents = null;
-                aggregatedAvailable = null;
-                aggregatedRevision = revision;
-            }
-            var cached = onlyAvailable ? aggregatedAvailable : aggregatedContents;
-            if (cached != null) return cached;
-            var result = new TreeMap<SubstanceKey, Long>();
-            for (var member : members) (onlyAvailable ? member.availableContents() : member.contents())
-                    .forEach((key, amount) -> result.merge(key, amount, Math::addExact));
-            var aggregate = Collections.unmodifiableMap(result);
-            if (onlyAvailable) aggregatedAvailable = aggregate; else aggregatedContents = aggregate;
-            return aggregate;
         }
     }
     private void validateTotals() {
@@ -132,11 +120,11 @@ public final class MatterNetworkInventory implements MatterStore {
         }
     }
 
-    /** Necessary conditions that need no allocation: enough unreserved input and enough total room for the net output. */
+    /** Necessary conditions that need no allocation: enough input and enough total room for the net output. */
     private boolean aggregateFits(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs, boolean typesOnly) {
         for (var input : inputs.entrySet()) {
             long available = 0;
-            for (var member : members) available = Math.addExact(available, member.available(input.getKey()));
+            for (var member : members) available = Math.addExact(available, member.amount(input.getKey()));
             if (available < input.getValue()) return false;
         }
         if (typesOnly) return true;
@@ -164,10 +152,9 @@ public final class MatterNetworkInventory implements MatterStore {
                     long remaining=input.getValue();
                     while(remaining>0) {
                         var candidates=new ArrayList<Integer>();
-                        for(int i=0;i<copies.size();i++)if(copies.get(i).available(input.getKey())>0)candidates.add(i);
+                        for(int i=0;i<copies.size();i++)if(copies.get(i).amount(input.getKey())>0)candidates.add(i);
                         if(candidates.isEmpty())return null; // Total input availability does not depend on allocation.
-                        candidates.sort(Comparator.<Integer>comparingInt(i -> copies.get(i).available(input.getKey())==copies.get(i).amount(input.getKey())?0:1)
-                                .thenComparingLong(i -> copies.get(i).available(input.getKey())).thenComparingInt(i -> i));
+                        candidates.sort(Comparator.<Integer>comparingLong(i -> copies.get(i).amount(input.getKey())).thenComparingInt(i -> i));
                         int step=decisions.size();int choice=step<selected.size()?selected.get(step):0;
                         if(choice>=candidates.size())throw new IllegalStateException("Invalid input allocation alternative");
                         decisions.add(choice);alternatives.add(candidates.size());

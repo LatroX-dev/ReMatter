@@ -426,7 +426,6 @@
   "screen.rematter.substance_details": "Substance details",
   "screen.rematter.substance_details_hint": "Open quantity details and favorites",
   "screen.rematter.stock_stored": "Stored: %s u",
-  "screen.rematter.stock_available": "Available: %s u",
   "screen.rematter.quantity_not_item": "Matter quantity",
   "screen.rematter.partial_contents_hint": "%s of %s stored types are shown here.",
   "screen.rematter.stock_truncated": "%s of %s types",

@@ -22,9 +22,7 @@ final class MatterCellMount {
     }
     boolean readable(ItemStack current) { return current == stack && !stack.isEmpty() && stack.getCount() == 1 && inventory != null; }
     MatterInventory inventory() { return inventory; }
-    boolean canRemove() {
-        return Transaction.getCurrentOpenedTransaction() == null && (inventory == null || inventory.snapshot().reservations().isEmpty());
-    }
+    boolean canRemove() { return Transaction.getCurrentOpenedTransaction() == null; }
     void flush() {
         if (inventory == null || stack.isEmpty() || Transaction.getCurrentOpenedTransaction() != null) return;
         // Unchanged contents are not serialised again, unless something replaced the item's component meanwhile.

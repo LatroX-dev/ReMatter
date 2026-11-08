@@ -32,7 +32,7 @@ public record MachineStockPayload(int containerId, boolean reset, boolean readab
             int changedCount = MachineSnapshot.count(buffer, MachineSnapshot.MAX_ENTRIES);
             var changed = new ArrayList<MachineSnapshot.Entry>(changedCount);
             for (int i = 0; i < changedCount; i++) changed.add(new MachineSnapshot.Entry(buffer.readUtf(MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH),
-                    buffer.readUtf(16), buffer.readVarLong(), buffer.readVarLong(), buffer.readBoolean()));
+                    buffer.readUtf(16), buffer.readVarLong(), buffer.readBoolean()));
             int removedCount = MachineSnapshot.count(buffer, MachineSnapshot.MAX_ENTRIES);
             var removed = new ArrayList<MachineSnapshot.StockKey>(removedCount);
             for (int i = 0; i < removedCount; i++) removed.add(new MachineSnapshot.StockKey(
@@ -46,7 +46,7 @@ public record MachineStockPayload(int containerId, boolean reset, boolean readab
             buffer.writeVarInt(value.changed.size());
             for (var entry : value.changed) {
                 buffer.writeUtf(entry.id(), MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH); buffer.writeUtf(entry.phase(), 16);
-                buffer.writeVarLong(entry.amount()); buffer.writeVarLong(entry.available()); buffer.writeBoolean(entry.known());
+                buffer.writeVarLong(entry.amount()); buffer.writeBoolean(entry.known());
             }
             buffer.writeVarInt(value.removed.size());
             for (var key : value.removed) {

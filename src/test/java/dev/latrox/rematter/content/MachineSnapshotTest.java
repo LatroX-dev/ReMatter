@@ -184,8 +184,8 @@ class MachineSnapshotTest {
         assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
     }
     @Test void unknownSubstancesStayMarkedAcrossTheWire() {
-        var unknown = new MachineSnapshot.Entry("rematter:removed_alloy", "solid", 9000, 9000, false);
-        var stock = new MachineStockPayload(4, true, true, 2, List.of(unknown, new MachineSnapshot.Entry("rematter:copper", "solid", 5, 5, true)), List.of());
+        var unknown = new MachineSnapshot.Entry("rematter:removed_alloy", "solid", 9000, false);
+        var stock = new MachineStockPayload(4, true, true, 2, List.of(unknown, new MachineSnapshot.Entry("rematter:copper", "solid", 5, true)), List.of());
         var decoded = roundTrip(MachineStockPayload.CODEC, stock);
         assertEquals(stock, decoded);
         assertFalse(decoded.changed().getFirst().known());
@@ -196,10 +196,10 @@ class MachineSnapshotTest {
     }
     @Test void stockChangesReportTheTotalInsteadOfSilentlyTruncating() {
         var removed = new MachineSnapshot.StockKey("rematter:copper", "liquid");
-        var change = new MachineStockPayload(2, false, true, 900, List.of(new MachineSnapshot.Entry("rematter:iron", "solid", 1, 0, true)), List.of(removed));
+        var change = new MachineStockPayload(2, false, true, 900, List.of(new MachineSnapshot.Entry("rematter:iron", "solid", 1, true)), List.of(removed));
         var decoded = roundTrip(MachineStockPayload.CODEC, change);
         assertEquals(change, decoded); assertEquals(900, decoded.totalTypes());
-        var entry = new MachineSnapshot.Entry("rematter:iron", "solid", 1, 0, true);
+        var entry = new MachineSnapshot.Entry("rematter:iron", "solid", 1, true);
         assertThrows(IllegalArgumentException.class, () -> new MachineStockPayload(2, true, true, 0,
                 Collections.nCopies(MachineSnapshot.MAX_ENTRIES + 1, entry), List.of()));
         assertThrows(IllegalArgumentException.class, () -> new MachineStockPayload(2, true, true, -1, List.of(), List.of()));
@@ -226,7 +226,7 @@ class MachineSnapshotTest {
     }
     @Test void maximalBoundedViewsFitOneMegabyte() {
         String id = "test:" + "x".repeat(507);
-        var entry = new MachineSnapshot.Entry(id, "solid", Long.MAX_VALUE, Long.MAX_VALUE, true);
+        var entry = new MachineSnapshot.Entry(id, "solid", Long.MAX_VALUE, true);
         var amount = new MachineSnapshot.Amount(id, "solid", Long.MAX_VALUE, Long.MAX_VALUE, true);
         var resource = new MachineSnapshot.Resource("fluid", id, Long.MAX_VALUE);
         var preview = new MachineSnapshot.Preview(id, Collections.nCopies(64, amount), Collections.nCopies(64, amount), false,
@@ -249,7 +249,7 @@ class MachineSnapshotTest {
         } finally { buffer.release(); }
     }
     @Test void malformedAmountsAndOversizedPreviewAreRejected() {
-        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.Entry("test:water", "liquid", 10, 11, true));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.Entry("test:water", "liquid", -1, true));
         assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.Amount("test:water", "liquid", -1, 0, true));
         assertThrows(IllegalArgumentException.class, () -> new MachineSnapshot.Amount("test:water", "unknown", 1, 0, true));
         var amount = new MachineSnapshot.Amount("test:water", "liquid", 1, 0, true);

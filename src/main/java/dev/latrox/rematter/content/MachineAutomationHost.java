@@ -299,7 +299,7 @@ public final class MachineAutomationHost implements AutomationPort {
         if(accepted&&action==Action.EXECUTE)changed();return accepted;
     }
     @Override public Map<SubstanceKey,Long> availableEntries() {
-        return active()?DefinedMatter.offered(ReMatter.chemistry(),machine.matterNetwork(false).inventory().availableContents()):Map.of();
+        return active()?DefinedMatter.offered(ReMatter.chemistry(),machine.matterNetwork(false).inventory().contents()):Map.of();
     }
     @Override public long insert(SubstanceKey key,long maximum,Action action) {
         if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
@@ -316,7 +316,7 @@ public final class MachineAutomationHost implements AutomationPort {
     @Override public long extract(SubstanceKey key,long maximum,Action action) {
         if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
-        long extracted=Math.min(maximum,network.inventory().available(key));
+        long extracted=Math.min(maximum,network.inventory().amount(key));
         if(extracted==0||action==Action.SIMULATE)return extracted;
         var activity = machine.commitNetworkMatter(network, Map.of(key, extracted), Map.of());
         if (activity == null) return 0;

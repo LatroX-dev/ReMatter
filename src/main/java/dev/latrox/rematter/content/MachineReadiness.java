@@ -42,7 +42,7 @@ public final class MachineReadiness {
     private static String storage(@Nullable MatterStore store, Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
         if (store == null) return "no_storage";
         for (var input : inputs.entrySet()) {
-            if (store.available(input.getKey()) < input.getValue()) return "missing_matter";
+            if (store.amount(input.getKey()) < input.getValue()) return "missing_matter";
         }
         if (!store.canApply(inputs, outputs)) return store.hasTypeSpace(inputs, outputs) ? "storage_full" : "storage_types_full";
         return "ready";

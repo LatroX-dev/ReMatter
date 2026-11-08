@@ -85,8 +85,7 @@ final class MachineSnapshots {
         var sorted = new TreeMap<>(displayed);
         var keys = sorted.keySet().stream().filter(key -> key.id().toString().length() <= MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH).toList();
         for (var key : query.select(keys, limit)) {
-            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), sorted.get(key),
-                    store == null ? 0 : store.available(key), registry.isKnown(key)));
+            entries.add(new MachineSnapshot.Entry(key.id().toString(), phase(key), sorted.get(key), registry.isKnown(key)));
         }
         String origin = store == null ? "none" : machine.kind().isStorage() ? "local" : "network";
         return new Stock(source.independent() || store != null, displayed.size(), store == null ? 0 : store.total(),
@@ -274,7 +273,7 @@ final class MachineSnapshots {
             SubstanceKey key = entry.getKey();
             if (key.id().toString().length() > MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH) continue;
             rows.add(new MachineSnapshot.Amount(key.id().toString(), phase(key), entry.getValue(),
-                    store == null ? 0 : store.available(key), registry.isKnown(key)));
+                    store == null ? 0 : store.amount(key), registry.isKnown(key)));
         }
         return List.copyOf(rows);
     }

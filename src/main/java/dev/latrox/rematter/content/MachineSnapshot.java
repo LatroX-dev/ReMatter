@@ -25,7 +25,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                               String storageSource, StructureView structure, NetworkView network, boolean networkJobs,
                               String backend, OrdersView orders, List<CellView> cells) implements CustomPacketPayload {
     /** Version of the menu view payload family: this snapshot, stock changes and progress. */
-    public static final String PROTOCOL = "15";
+    public static final String PROTOCOL = "16";
     /** Prefix of a preview ID that names the item being analyzed or decomposed. */
     public static final String ITEM_SOURCE = "item:";
     public static final int MAX_CHOICE_ID_LENGTH = 520;
@@ -132,10 +132,10 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
         }
     }
     /** A stored substance. Unknown rows keep a removed definition's stock visible and are never processable. */
-    public record Entry(String id, String phase, long amount, long available, boolean known) {
+    public record Entry(String id, String phase, long amount, boolean known) {
         public Entry {
             Fields.validateSubstance(id, phase);
-            if (amount < 0 || available < 0 || available > amount) throw new IllegalArgumentException("Invalid displayed stock");
+            if (amount < 0) throw new IllegalArgumentException("Invalid displayed stock");
         }
         public StockKey key() { return new StockKey(id, phase); }
     }

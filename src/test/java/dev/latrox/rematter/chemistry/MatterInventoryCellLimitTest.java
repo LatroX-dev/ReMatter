@@ -14,18 +14,11 @@ class MatterInventoryCellLimitTest {
         assertTrue(store.apply(Map.of(a,100L),Map.of(c,100L)));
         assertEquals(Map.of(b,100L,c,100L),store.contents());assertEquals(2,store.typeCount());
     }
-    @Test void reservationOwnsBothVolumeAndItsFutureTypeSlot() {
-        var store=new MatterInventory(1000,2);var a=key("a");var b=key("b");var c=key("c");store.insert(a,1);
-        var token=store.reserve(Map.of(),Map.of(b,1L)).orElseThrow();
-        assertEquals(0,store.insert(c,1));assertTrue(store.reserve(Map.of(),Map.of(c,1L)).isEmpty());
-        assertTrue(store.commit(token));assertEquals(Map.of(a,1L,b,1L),store.contents());
-        assertFalse(store.commit(token));assertEquals(2,store.typeCount());
-    }
-    @Test void cancelledReservationAndFailedTransferDoNotLoseSourceMatter() {
+    @Test void aFailedTransferIntoATypeFullStoreDoesNotLoseSourceMatter() {
         var source=new MatterInventory(1000);var target=new MatterInventory(1000,1);var a=key("a");var b=key("b");source.insert(a,10);
-        var token=target.reserve(Map.of(),Map.of(b,1L)).orElseThrow();
+        target.insert(b,1);
         assertEquals(0,source.transferTo(target,a,10));assertEquals(10,source.amount(a));
-        assertTrue(target.cancel(token));assertEquals(10,source.transferTo(target,a,10));assertEquals(0,source.total());
+        assertEquals(1,target.extract(b,1));assertEquals(10,source.transferTo(target,a,10));assertEquals(0,source.total());
     }
     @Test void restoreAndRollbackRetainTheMountedCellLimit() {
         var small=new MatterInventory(1000,1);small.insert(key("a"),1);var original=small.snapshot();

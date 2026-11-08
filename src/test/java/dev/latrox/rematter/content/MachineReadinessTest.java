@@ -32,19 +32,11 @@ class MachineReadinessTest {
         assertEquals("missing_matter", MachineReadiness.check(true, store, INPUT, OUTPUT, false, 0, 100));
         assertEquals(before, store.snapshot());
     }
-    @Test void reservationIsUnavailableRatherThanMisreportedAsFullStorage() {
-        var store = new MatterInventory(3000);
-        store.insert(WATER, 1000);
-        store.reserve(INPUT, OUTPUT).orElseThrow();
-        var before = store.snapshot();
-        assertEquals("missing_matter", MachineReadiness.check(true, store, INPUT, OUTPUT, true, 100, 100));
-        assertEquals(before, store.snapshot());
-    }
-    @Test void capacityUsesNetExpansionAndIncludesReservedSpace() {
+    @Test void capacityUsesNetExpansionAndIncludesOtherStock() {
         var store = new MatterInventory(1500);
         store.insert(WATER, 1000);
         assertEquals("ready", MachineReadiness.check(true, store, INPUT, OUTPUT, true, 100, 100));
-        store.reserve(Map.of(), Map.of(GAS, 1L)).orElseThrow();
+        store.insert(GAS, 1);
         assertEquals("storage_full", MachineReadiness.check(true, store, INPUT, OUTPUT, true, 100, 100));
     }
     @Test void fullOutputPrecedesEnergyAndEachFixRevealsTheNextReason() {
@@ -95,10 +87,7 @@ class MachineReadinessTest {
         @Override public long freeSpace() { return store.freeSpace(); }
         @Override public int typeCount() { return store.typeCount(); }
         @Override public long amount(SubstanceKey key) { return store.amount(key); }
-        @Override public long available(SubstanceKey key) { return store.available(key); }
-        @Override public long reserved(SubstanceKey key) { return store.reserved(key); }
         @Override public Map<SubstanceKey, Long> contents() { return store.contents(); }
-        @Override public Map<SubstanceKey, Long> availableContents() { return store.availableContents(); }
         @Override public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { return store.hasTypeSpace(inputs, outputs); }
         @Override public boolean canApply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { plans++; return store.canApply(inputs, outputs); }
         @Override public boolean apply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { return store.apply(inputs, outputs); }

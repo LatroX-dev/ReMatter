@@ -368,7 +368,7 @@ public final class ProcessSelectionScreen extends Screen {
             Map<SubstanceKey, Long> available = new HashMap<>();
             for (var entry : stock.entries()) {
                 var key = key(entry.id(), entry.phase());
-                if (key != null) available.put(key, entry.available());
+                if (key != null) available.put(key, entry.amount());
             }
             boolean complete = stock.complete() && snapshot.capacity() > 0;
             product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> result.add(row(entry,

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.HYDROGEN;
@@ -37,59 +36,11 @@ class MatterInventoryTest {
     }
 
     @Test
-    void reservationProtectsInputsAndOutputCapacityFromOtherMachines() {
-        MatterInventory inventory = new MatterInventory(2_000);
-        inventory.insert(WATER, 1_000);
-        UUID token = inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
-
-        assertEquals(0, inventory.available(WATER));
-        assertEquals(1_000, inventory.reserved(WATER));
-        assertEquals(0, inventory.extract(WATER, 1_000));
-        assertEquals(500, inventory.insert(COPPER, 10_000));
-        assertEquals(0, inventory.freeSpace());
-        assertFalse(inventory.apply(Map.of(), Map.of(COPPER, 1L)));
-        assertFalse(inventory.setCapacity(1_999));
-        assertTrue(inventory.commit(token));
-        assertEquals(2_000, inventory.total());
-        assertEquals(0, inventory.amount(WATER));
-        assertEquals(1_000, inventory.amount(HYDROGEN));
-        assertEquals(500, inventory.amount(OXYGEN));
-        assertFalse(inventory.commit(token));
-    }
-
-    @Test
-    void cancellingDoesNotConsumeOrCreateMatter() {
-        MatterInventory inventory = new MatterInventory(2_000);
-        inventory.insert(WATER, 1_000);
-        UUID token = inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
-        assertTrue(inventory.cancel(token));
-        assertFalse(inventory.cancel(token));
-        assertEquals(Map.of(WATER, 1_000L), inventory.contents());
-        assertEquals(1_000, inventory.available(WATER));
-        assertEquals(1_000, inventory.freeSpace());
-    }
-
-    @Test
-    void reservationSurvivesRestartAndCompletionRemainsSingleUse() {
-        MatterInventory original = new MatterInventory(2_000);
-        original.insert(WATER, 1_000);
-        UUID token = original.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
-
-        MatterInventory restored = MatterInventory.restore(original.snapshot());
-        assertEquals(0, restored.extract(WATER, 1_000));
-        assertTrue(restored.commit(token));
-        MatterInventory afterSecondRestart = MatterInventory.restore(restored.snapshot());
-        assertFalse(afterSecondRestart.commit(token));
-        assertEquals(Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), afterSecondRestart.contents());
-    }
-
-    @Test
-    void transferRetainsRemainderAndRespectsBothStoresReservations() {
+    void transferRetainsRemainderAndRespectsDestinationCapacity() {
         MatterInventory source = new MatterInventory(2_000);
         MatterInventory destination = new MatterInventory(1_000);
         source.insert(COPPER, 1_500);
-        source.reserve(Map.of(COPPER, 1_000L), Map.of()).orElseThrow();
-        destination.reserve(Map.of(), Map.of(WATER, 800L)).orElseThrow();
+        destination.insert(WATER, 800);
 
         assertEquals(200, source.transferTo(destination, COPPER, 5_000));
         assertEquals(1_300, source.amount(COPPER));
@@ -137,43 +88,33 @@ class MatterInventoryTest {
     }
 
     @Test
-    void corruptAndFutureSnapshotsAreRejectedInsteadOfEmptied() {
+    void corruptSnapshotsAreRejectedInsteadOfEmptied() {
         SubstanceStack stack = new SubstanceStack(COPPER, 600);
         assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(2, 1_000, List.of(stack), List.of())));
+                () -> MatterInventory.restore(new MatterInventory.Snapshot(1_000, List.of(stack, stack))));
         assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(1, 1_000, List.of(stack, stack), List.of())));
-        assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(1, 500, List.of(stack), List.of())));
-        MatterInventory.Reservation reservation = new MatterInventory.Reservation(UUID.randomUUID(),
-                Map.of(COPPER, 601L), Map.of());
-        assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(1, 1_000, List.of(stack), List.of(reservation))));
+                () -> MatterInventory.restore(new MatterInventory.Snapshot(500, List.of(stack))));
     }
 
     @Test
-    void overlappingInputAndOutputKeepsOtherReservationsIntact() {
+    void overlappingInputAndOutputApplyAsOneNetChange() {
         MatterInventory inventory = new MatterInventory(1_000);
         inventory.insert(COPPER, 1_000);
-        UUID first = inventory.reserve(Map.of(COPPER, 600L), Map.of(COPPER, 500L)).orElseThrow();
-        UUID second = inventory.reserve(Map.of(COPPER, 400L), Map.of(COPPER, 300L)).orElseThrow();
-        assertTrue(inventory.commit(first));
-        assertEquals(500, inventory.available(COPPER));
-        assertTrue(inventory.commit(second));
+        assertTrue(inventory.apply(Map.of(COPPER, 600L), Map.of(COPPER, 500L)));
+        assertTrue(inventory.apply(Map.of(COPPER, 400L), Map.of(COPPER, 300L)));
         assertEquals(800, inventory.amount(COPPER));
     }
 
     @Test
-    void inPlaceRollbackPreservesIdentityUnknownMatterAndReservations() {
+    void inPlaceRollbackPreservesIdentityAndUnknownMatter() {
         SubstanceKey unknown = SubstanceKey.of("missing_mod:gas", Phase.GAS);
         MatterInventory inventory = new MatterInventory(2_000);
         MatterInventory retainedReference = inventory;
         inventory.insert(WATER, 1_000);
         inventory.insert(unknown, 100);
-        UUID token = inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
         MatterInventory.Snapshot before = inventory.snapshot();
 
-        assertTrue(inventory.commit(token));
+        assertTrue(inventory.apply(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 600L, OXYGEN, 300L)));
         inventory.extract(unknown, 100);
         assertTrue(inventory.setCapacity(4_000));
         inventory.restoreInPlace(before);
@@ -181,19 +122,17 @@ class MatterInventoryTest {
         assertSame(retainedReference, inventory);
         assertEquals(before, retainedReference.snapshot());
         assertEquals(100, retainedReference.amount(unknown));
-        assertEquals(0, retainedReference.available(WATER));
-        assertTrue(retainedReference.commit(token));
+        assertEquals(1_000, retainedReference.amount(WATER));
+        assertEquals(2_000, retainedReference.capacity());
     }
 
     @Test
     void invalidInPlaceRestoreLeavesEveryExistingFieldUnchanged() {
         MatterInventory inventory = new MatterInventory(2_000);
         inventory.insert(WATER, 1_000);
-        inventory.reserve(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L)).orElseThrow();
         MatterInventory.Snapshot before = inventory.snapshot();
-        MatterInventory.Snapshot invalid = new MatterInventory.Snapshot(1, 3_000,
-                List.of(new SubstanceStack(COPPER, 50)),
-                List.of(new MatterInventory.Reservation(UUID.randomUUID(), Map.of(COPPER, 51L), Map.of())));
+        MatterInventory.Snapshot invalid = new MatterInventory.Snapshot(3_000,
+                List.of(new SubstanceStack(COPPER, 50), new SubstanceStack(COPPER, 51)));
 
         assertThrows(IllegalArgumentException.class, () -> inventory.restoreInPlace(invalid));
         assertEquals(before, inventory.snapshot());
@@ -206,7 +145,6 @@ class MatterInventoryTest {
         assertEquals(0, inventory.extract(WATER, 10));
         assertFalse(inventory.apply(Map.of(WATER, 1L), Map.of()));
         assertEquals(0, inventory.insert(WATER, 0));
-        assertFalse(inventory.cancel(UUID.randomUUID()));
         assertEquals(revision, inventory.revision());
         List<Runnable> changes = List.of(
                 () -> inventory.insert(WATER, 100),
@@ -214,7 +152,6 @@ class MatterInventoryTest {
                 () -> inventory.apply(Map.of(WATER, 10L), Map.of(HYDROGEN, 10L)),
                 () -> inventory.setCapacity(2_000),
                 () -> inventory.transferTo(other, WATER, 5),
-                () -> inventory.cancel(inventory.reserve(Map.of(WATER, 1L), Map.of()).orElseThrow()),
                 () -> inventory.restoreInPlace(inventory.snapshot()));
         for (Runnable change : changes) {
             long before = inventory.revision();

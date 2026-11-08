@@ -51,7 +51,7 @@ class MatterCellDataTest {
         var rows=raw.getListOrEmpty("contents");rows.add(rows.getCompoundOrEmpty(0).copy());
         var duplicate=new MatterCellData(raw);assertTrue(duplicate.open(64000).isEmpty());assertEquals(2,duplicate.copyTag().getListOrEmpty("contents").size());
         var bad=new CompoundTag();bad.putInt("schema",1);var badRows=new ListTag();
-        var row=new CompoundTag();row.putString("substance","rematter:copper");row.putString("phase","SOLID");row.putLong("amount",-1);badRows.add(row);bad.put("contents",badRows);bad.put("reservations",new ListTag());
+        var row=new CompoundTag();row.putString("substance","rematter:copper");row.putString("phase","SOLID");row.putLong("amount",-1);badRows.add(row);bad.put("contents",badRows);
         assertTrue(new MatterCellData(bad).open(64000).isEmpty());
         var tooMany=new MatterInventory(64000);for(int i=0;i<513;i++)tooMany.insert(new SubstanceKey(SubstanceId.parse("test:key_"+i),Phase.SOLID),1);
         assertThrows(IllegalArgumentException.class,()->MatterCellData.from(tooMany));
@@ -59,24 +59,17 @@ class MatterCellDataTest {
     @Test void onlyTheCurrentLayoutOpensAndAnyOtherLayoutStaysUnchanged() {
         var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);
         var current=MatterCellData.from(store).copyTag();
-        assertEquals(Set.of("schema","contents","reservations"),current.keySet());
+        assertEquals(Set.of("schema","contents"),current.keySet());
         assertEquals(1000,new MatterCellData(current).open(64000).orElseThrow().total());
-        var withoutReservations=current.copy();withoutReservations.remove("reservations");
-        var kept=new MatterCellData(withoutReservations);
-        assertTrue(kept.open(64000).isEmpty());assertEquals(withoutReservations,kept.copyTag());
+        var extraField=current.copy();extraField.put("reservations",new ListTag());
+        var kept=new MatterCellData(extraField);
+        assertTrue(kept.open(64000).isEmpty());assertEquals(extraField,kept.copyTag());
         var otherSchema=current.copy();otherSchema.putInt("schema",0);
         assertTrue(new MatterCellData(otherSchema).open(64000).isEmpty());
     }
-    @Test void reservationsRemainOwnedAcrossCellPersistenceAndCanCompleteExactlyOnce() {
+    @Test void malformedContentsAndFractionalQuantityNeverBecomeUsableContents() {
         var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);
-        var token=store.reserve(Map.of(BuiltinChemistry.COPPER,1000L),Map.of()).orElseThrow();
-        var restored=MatterCellData.from(store).open(64000).orElseThrow();
-        assertEquals(1000,restored.total());assertEquals(0,restored.available(BuiltinChemistry.COPPER));
-        assertTrue(restored.commit(token));assertFalse(restored.commit(token));assertEquals(0,restored.total());
-    }
-    @Test void malformedReservationAndFractionalQuantityNeverBecomeUsableContents() {
-        var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);
-        var raw=MatterCellData.from(store).copyTag();raw.putString("reservations","unknown encoding");
+        var raw=MatterCellData.from(store).copyTag();raw.putString("contents","unknown encoding");
         var malformed=new MatterCellData(raw);assertTrue(malformed.open(64000).isEmpty());assertEquals(raw,malformed.copyTag());
         var fractional=MatterCellData.from(store).copyTag();fractional.getListOrEmpty("contents").getCompoundOrEmpty(0).putDouble("amount",1000.5);
         assertTrue(new MatterCellData(fractional).open(64000).isEmpty());

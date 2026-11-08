@@ -700,7 +700,6 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
     private static Component stockTooltip(MachineSnapshot.Entry e, String label) {
         var lines = joined(Component.literal(label), SubstanceNames.phase(e.phase())).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
-        if (e.available() != e.amount()) lines.append("\n").append(Component.translatable("screen.rematter.stock_available", number(e.available())));
         if (!e.known()) lines.append("\n").append(tr("unknown_substance_hint"));
         return lines.append("\n").append(tr("substance_details_hint"));
     }
@@ -877,11 +876,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             if(stock!=seen){seen=stock;entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);}
             String name=entry==null?id:name(entry).getString();substanceIcon(g,key,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
             String symbol=SubstanceLabels.iconLabel(id);text(g,(symbol.isEmpty()?SubstanceNames.phase(phase):joined(Component.literal(symbol),SubstanceNames.phase(phase))).getString(),x+34,y+33,198,phaseColor(phase));
-            String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());String available=entry==null?(stock.complete()?"0":"?"):number(entry.available());
+            String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_stored", stored).getString(), x + 11, y + 50, 222, TEXT);
-            ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_available", available).getString(), x + 11, y + 71, 222, TEXT);
-            ScreenChrome.twoLines(g, font, tr("quantity_not_item").getString(), x + 11, y + 93, 222, MUTED);
-            text(g, id, x + 11, y + 114, 222, MUTED);
+            ScreenChrome.twoLines(g, font, tr("quantity_not_item").getString(), x + 11, y + 71, 222, MUTED);
+            text(g, id, x + 11, y + 92, 222, MUTED);
             if (entry != null && !entry.known()) text(g, tr("unknown_substance_hint").getString(), x + 11, y + 126, 222, WARNING);
             else if (!stock.complete()) text(g, Component.translatable("screen.rematter.partial_contents_hint", stock.entries().size(), stock.totalTypes()).getString(), x + 11, y + 126, 222, WARNING);
             super.extractRenderState(g, mx, my, partial);

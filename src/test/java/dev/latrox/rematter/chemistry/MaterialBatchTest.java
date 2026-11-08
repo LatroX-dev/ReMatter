@@ -40,7 +40,7 @@ class MaterialBatchTest {
         assertEquals(Map.of(COPPER, 7_000L), nuggets().matterFor(63));
     }
 
-    @Test void wholeBatchCapacityAndReservationsDoNotPartiallyConsumeOrProduceMatter() {
+    @Test void wholeBatchCapacityDoesNotPartiallyConsumeOrProduceMatter() {
         MatterInventory store = new MatterInventory(1_000);
         store.insert(WATER, 1);
         var before = store.snapshot();
@@ -49,11 +49,8 @@ class MaterialBatchTest {
         assertEquals(before, store.snapshot());
         store.extract(WATER, 1);
         assertTrue(store.apply(Map.of(), nuggets().matter()));
-        var reservation = store.reserve(nuggets().matter(), Map.of()).orElseThrow();
+        assertTrue(store.apply(nuggets().matter(), Map.of()));
         assertFalse(store.apply(nuggets().matter(), Map.of()));
-        store = MatterInventory.restore(store.snapshot());
-        assertTrue(store.commit(reservation));
-        assertFalse(store.commit(reservation));
         assertEquals(0, store.total());
     }
 

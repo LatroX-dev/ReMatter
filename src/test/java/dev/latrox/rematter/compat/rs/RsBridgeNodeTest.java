@@ -129,9 +129,9 @@ class RsBridgeNodeTest {
                 Map.of(Resource.matter(HYDROGEN),2000L,Resource.matter(OXYGEN),1000L),4000,20);
         Port(){store.insert(WATER,16000);}
         public UUID ownerId(){return owner;}public UUID bridgeId(){return bridge;}public boolean active(){return active;}
-        public Map<SubstanceKey,Long> availableEntries(){return store.availableContents();}
+        public Map<SubstanceKey,Long> availableEntries(){return store.contents();}
         public long insert(SubstanceKey k,long amount,AutomationPort.Action mode){return !active?0:mode==AutomationPort.Action.SIMULATE?Math.min(amount,store.freeSpace()):store.insert(k,amount);}
-        public long extract(SubstanceKey k,long amount,AutomationPort.Action mode){return !active?0:mode==AutomationPort.Action.SIMULATE?Math.min(amount,store.available(k)):store.extract(k,amount);}
+        public long extract(SubstanceKey k,long amount,AutomationPort.Action mode){return !active?0:mode==AutomationPort.Action.SIMULATE?Math.min(amount,store.amount(k)):store.extract(k,amount);}
         public List<Recipe> recipes(){return List.of(recipe);}public boolean busy(){return ledger.busy();}
         public boolean acceptTransferred(String id,String revision,int batches,Map<Resource,Long> inputs,AutomationPort.Action mode){return active&&id.equals(recipe.id())&&revision.equals(recipe.revision())&&ledger.accept(recipe,batches,inputs,mode);}
         public List<Delivery> pendingOutputs(){return ledger.pendingOutputs();}

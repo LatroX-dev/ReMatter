@@ -52,7 +52,7 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
 
     long amount(int index) {
         return isEnabled(index) && exportable.test(mapping(index))
-                ? inventory.get().available(mapping(index).matter()) / mapping(index).unitsPerChemical() : 0;
+                ? inventory.get().amount(mapping(index).matter()) / mapping(index).unitsPerChemical() : 0;
     }
 
     long capacity(int index) {
@@ -83,7 +83,7 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
         if (!isValid(index, chemicalId) || amount == 0 || !exportable.test(mapping(index))) return 0;
         MatterStore source = inventory.get();
         var mapping = mapping(index);
-        int extracted = (int) Math.min(amount, source.available(mapping.matter()) / mapping.unitsPerChemical());
+        int extracted = (int) Math.min(amount, source.amount(mapping.matter()) / mapping.unitsPerChemical());
         if (extracted == 0) return 0;
         long internal = Math.multiplyExact((long) extracted, mapping.unitsPerChemical());
         updateSnapshots(transaction);
