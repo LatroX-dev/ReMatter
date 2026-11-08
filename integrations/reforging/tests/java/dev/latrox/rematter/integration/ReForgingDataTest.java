@@ -100,7 +100,7 @@ class ReForgingDataTest {
         assertEquals(registry.elementAmounts(electrolysis.inputs()), registry.elementAmounts(electrolysis.outputs()));
         Set<SubstanceKey> reachable = new HashSet<>(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL,
                 BuiltinChemistry.ROCK, BuiltinChemistry.LAVA, BuiltinChemistry.WATER,
-                BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN, BuiltinChemistry.NITROGEN));
+                BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN));
         boolean changed;
         do {
             changed = false;

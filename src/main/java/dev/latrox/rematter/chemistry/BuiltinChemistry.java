@@ -17,7 +17,6 @@ public final class BuiltinChemistry {
     public static final SubstanceKey CALCIUM = key("calcium", Phase.SOLID);
     public static final SubstanceKey HYDROGEN = key("hydrogen", Phase.GAS);
     public static final SubstanceKey OXYGEN = key("oxygen", Phase.GAS);
-    public static final SubstanceKey NITROGEN = key("nitrogen", Phase.GAS);
     public static final SubstanceKey WATER = key("water", Phase.LIQUID);
     public static final SubstanceKey STEAM = key("water", Phase.GAS);
     public static final SubstanceKey ICE = key("water", Phase.SOLID);
@@ -45,7 +44,6 @@ public final class BuiltinChemistry {
         element(builder, CALCIUM, "Ca", 1);
         element(builder, HYDROGEN, "H₂", 2);
         element(builder, OXYGEN, "O₂", 2);
-        element(builder, NITROGEN, "N₂", 2);
 
         substance(builder, WATER.id(), "H₂O", SubstanceKind.COMPOUND,
                 Map.of(HYDROGEN.id(), 2L, OXYGEN.id(), 1L), Set.of(Phase.SOLID, Phase.LIQUID, Phase.GAS));
@@ -89,7 +87,6 @@ public final class BuiltinChemistry {
         builder.allowSynthesis("minecraft:lava", SynthesisCategory.FLUID);
         builder.allowSynthesis(HYDROGEN.id().toString(), SynthesisCategory.GAS);
         builder.allowSynthesis(OXYGEN.id().toString(), SynthesisCategory.GAS);
-        builder.allowSynthesis(NITROGEN.id().toString(), SynthesisCategory.GAS);
 
         process(builder, "water_electrolysis", ProcessType.ELECTROLYSIS,
                 Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), 32_000, 200);

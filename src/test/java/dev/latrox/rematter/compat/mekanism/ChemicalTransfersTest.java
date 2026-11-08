@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.HYDROGEN;
-import static dev.latrox.rematter.chemistry.BuiltinChemistry.NITROGEN;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.OXYGEN;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.STEAM;
 import static dev.latrox.rematter.chemistry.BuiltinChemistry.WATER;
@@ -229,7 +228,7 @@ class ChemicalTransfersTest {
         MatterInventory inventory = new MatterInventory(5_000);
         SubstanceKey unknown = SubstanceKey.of("missing:gas", Phase.GAS);
         inventory.insert(unknown, 700);
-        inventory.insert(NITROGEN, 500);
+        inventory.insert(SubstanceKey.of("rematter:nitrogen", Phase.GAS), 500);
         ChemicalTransfers handler = handler(inventory, new AtomicInteger());
         MatterInventory.Snapshot before = inventory.snapshot();
 
