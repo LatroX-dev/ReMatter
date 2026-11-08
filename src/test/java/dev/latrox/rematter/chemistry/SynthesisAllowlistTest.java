@@ -20,7 +20,7 @@ class SynthesisAllowlistTest {
             assertTrue(REGISTRY.profile(item).isPresent(), item);
             assertFalse(REGISTRY.synthesisPolicy().allows(item), item);
         }
-        for (String item : List.of("minecraft:ender_pearl", "minecraft:obsidian", "mysticalagriculture:imperium_essence")) {
+        for (String item : List.of("minecraft:ender_pearl", "mysticalagriculture:imperium_essence")) {
             assertTrue(REGISTRY.synthesisPolicy().allowsItem(item), item);
         }
     }

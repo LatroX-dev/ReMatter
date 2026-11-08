@@ -33,7 +33,7 @@ class ReForgingDataTest {
                 registry.elementAmounts(Map.of(CRYSTAL, 1_000L)));
         assertEquals(Map.of(BuiltinChemistry.SILICA, 1_000L), registry.profile("minecraft:sand").orElseThrow().matter());
         assertEquals(Map.of(CRYSTAL, 1_000L), registry.profile("minecraft:quartz").orElseThrow().matter());
-        assertTrue(registry.synthesisPolicy().allows("minecraft:quartz"));
+        assertFalse(registry.synthesisPolicy().allows("minecraft:quartz"), "The gem stays recovery-only, as in the standalone mod");
     }
 
     @Test
@@ -85,7 +85,7 @@ class ReForgingDataTest {
             var profile = registry.profile(item).orElseThrow();
             assertEquals(Map.of(CRYSTAL, amount), profile.matter(), item);
             assertEquals(item.equals("thaumaturge:nugget_quartz") ? 9 : 1, profile.itemCount(), item);
-            assertEquals(!item.contains("ore"), registry.synthesisPolicy().allows(item), item);
+            assertEquals(!item.contains("ore") && !item.equals("minecraft:quartz"), registry.synthesisPolicy().allows(item), item);
         });
     }
 

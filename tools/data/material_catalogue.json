@@ -1245,7 +1245,7 @@
     "basalt": {
       "category": "composed_material",
       "synthesis": true,
-      "basis": "Simplified mafic oxide composition on the common stone scale of 3,000 units per block. Variants and reviewed mod forms share this ratio.",
+      "basis": "Simplified mafic oxide composition on the common stone scale of 3,000 units per block. Basalt uses the blackstone proportions because Hextale crucible transmutation turns either block into the other one to one. Variants and reviewed mod forms share this ratio.",
       "batch": {
         "items": 1,
         "matter": [
@@ -1257,12 +1257,12 @@
           {
             "substance": "rematter:alumina",
             "phase": "solid",
-            "amount": 1062
+            "amount": 1150
           },
           {
             "substance": "rematter:calcium_oxide",
             "phase": "solid",
-            "amount": 1188
+            "amount": 1100
           }
         ]
       }
@@ -1285,7 +1285,7 @@
     "blackstone": {
       "category": "composed_material",
       "synthesis": true,
-      "basis": "Simplified oxide composition on the common stone scale. Variants and reviewed mod forms share this ratio.",
+      "basis": "Simplified oxide composition on the common stone scale, shared with basalt because Hextale crucible transmutation turns either block into the other one to one. Variants and reviewed mod forms share this ratio.",
       "batch": {
         "items": 1,
         "matter": [
@@ -2879,8 +2879,8 @@
     },
     "obsidian": {
       "category": "composed_material",
-      "synthesis": true,
-      "basis": "Shared mineral constituents. Four dusts contain one block. Only the natural block can be synthesized, because Occultism gray_paste/obsidian and crystallize/obsidian turn one dust into a whole block.",
+      "synthesis": false,
+      "basis": "Shared mineral constituents. Four dusts contain one block. Recovery only: Occultism gray_paste/obsidian and crystallize/obsidian turn one dust into a whole block, and Ender IO grinding balls mill one block into up to eight dusts.",
       "batch": {
         "items": 1,
         "matter": [
@@ -3283,7 +3283,8 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "basis": "Crystalline quartz keeps its own identity; gems, dusts, nuggets and blocks share one batch. The gem is recovery-only because Ender IO grinding balls raise its milling bonus."
     },
     "quicksilver": {
       "substance": "mercury",
@@ -22981,12 +22982,12 @@
         {
           "substance": "rematter:alumina",
           "phase": "solid",
-          "amount": 1062
+          "amount": 1150
         },
         {
           "substance": "rematter:calcium_oxide",
           "phase": "solid",
-          "amount": 1188
+          "amount": 1100
         }
       ],
       "decomposition_energy": 8000,
@@ -24559,11 +24560,12 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 400,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One natural block contains four obsidian dusts.",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Ender IO sag_milling/obsidian repeats its four dusts with grinding-ball output bonuses, about seven and at most eight dusts per block, and each dust recovers a quarter block."
       }
     },
     {
@@ -24708,11 +24710,12 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": true,
+      "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
-        "tags": []
+        "tags": [],
+        "synthesis": "Recovery only. Ender IO sag_milling/quartz mills one gem into one powder plus a 10% bonus powder, and grinding balls raise that chance to 24%, so a synthesizable gem would gain crystalline silica on every pass. Quartz blocks mill into at most four gems and stay synthesizable."
       }
     },
     {
@@ -27815,7 +27818,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
+        "quantity": "occultism:crushing/blackstone_dust: exactly one crushed item per block, with crushing multiplier disabled.",
         "tags": [
           "c:dusts/blackstone"
         ]
@@ -27875,7 +27878,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
+        "quantity": "occultism:crushing/calcite_dust: exactly one crushed item per block, with crushing multiplier disabled.",
         "tags": [
           "c:dusts/calcite"
         ]
@@ -27911,7 +27914,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
+        "quantity": "occultism:crushing/end_stone_dust: exactly one crushed item per block, with crushing multiplier disabled.",
         "tags": [
           "c:dusts/end_stone"
         ]
@@ -28038,7 +28041,7 @@
       "synthesis": false,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
-        "quantity": "One separately retained base material unit.",
+        "quantity": "occultism:crushing/echo_dust: exactly one dust per echo shard at spirit tier 4, with crushing multiplier disabled; one separately retained base material unit.",
         "tags": [
           "c:dusts",
           "c:dusts/echo"

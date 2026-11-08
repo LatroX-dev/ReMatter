@@ -1,5 +1,5 @@
 {
   "schema_version": 1,
   "item": "minecraft:obsidian",
-  "category": "natural_material"
+  "disabled": true
 }
