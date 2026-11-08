@@ -524,7 +524,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "lithium": {
       "name": "Lithium",
@@ -597,7 +597,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "osmium": {
       "name": "Osmium",
@@ -651,7 +651,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "plutonium": {
       "name": "Plutonium",
@@ -794,7 +794,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "sky_stone": {
       "name": "Sky Stone",
@@ -951,7 +951,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "titanium": {
       "name": "Titanium",
@@ -988,7 +988,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     },
     "vital_essence": {
       "name": "Vital Essence",
@@ -1012,7 +1012,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Existing stable element definition."
+      "basis": "Element identity; formula quantities are game units, not kilograms."
     }
   },
   "families": {
@@ -1729,7 +1729,7 @@
     "desh": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+      "basis": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
       "batch": {
         "items": 1,
         "matter": [
@@ -2860,7 +2860,7 @@
     "novite": {
       "category": "composed_material",
       "synthesis": false,
-      "basis": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+      "basis": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
       "batch": {
         "items": 1,
         "matter": [
@@ -19171,7 +19171,7 @@
         "tags": [
           "c:dusts/desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       },
       "required_item": "jaopca:dusts.desh"
@@ -19205,7 +19205,7 @@
         "tags": [
           "c:dusts/novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       },
       "required_item": "jaopca:dusts.novite"
@@ -30593,7 +30593,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Explicit ReMatter item registration; plain stack without storage or equipment components.",
-        "quantity": "Metal dust matches its existing elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
+        "quantity": "Metal dust matches its elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
         "tags": [
           "c:dusts/copper"
         ]
@@ -30702,7 +30702,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Explicit ReMatter item registration; plain stack without storage or equipment components.",
-        "quantity": "Metal dust matches its existing elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
+        "quantity": "Metal dust matches its elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
         "tags": [
           "c:dusts/gold"
         ]
@@ -30728,7 +30728,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Explicit ReMatter item registration; plain stack without storage or equipment components.",
-        "quantity": "Metal dust matches its existing elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
+        "quantity": "Metal dust matches its elemental ingot. Workshop powders and products retain the complete four-piece batch as 250 units per piece; heat changes the retained state, not its nominal composition.",
         "tags": [
           "c:dusts/iron"
         ]
@@ -31357,7 +31357,7 @@
         "tags": [
           "c:storage_blocks/desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       }
     },
@@ -31395,7 +31395,7 @@
         "tags": [
           "c:ingots/desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       }
     },
@@ -31433,7 +31433,7 @@
         "tags": [
           "c:ores/desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       }
     },
@@ -31518,7 +31518,7 @@
         "tags": [
           "c:storage_blocks/novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       }
     },
@@ -31551,7 +31551,7 @@
         "tags": [
           "c:ingots/novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       }
     },
@@ -31584,7 +31584,7 @@
         "tags": [
           "c:ores/novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       }
     },
@@ -31622,7 +31622,7 @@
         "tags": [
           "c:raw_materials/desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       }
     },
@@ -31660,7 +31660,7 @@
         "tags": [
           "c:storage_blocks/raw_desh"
         ],
-        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
+        "composition": "Stellaris smelts one raw Desh per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model. ReMatter models one ingot as 550 iron, 250 titanium and 200 Stellar Essence.",
         "synthesis": "Stellaris does not establish a constituent recipe for Desh. Use the native ore chain."
       }
     },
@@ -31693,7 +31693,7 @@
         "tags": [
           "c:raw_materials/novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       }
     },
@@ -31726,7 +31726,7 @@
         "tags": [
           "c:storage_blocks/raw_novite"
         ],
-        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. Existing recoveries are ReMatter’s nominal gameplay model.",
+        "composition": "Stellaris smelts one raw Novite per ingot and compacts nine into one block. The recipes do not specify constituents. The constituent split is a ReMatter model.",
         "synthesis": "Stellaris does not establish a constituent recipe for Novite. Use the native ore chain."
       }
     },

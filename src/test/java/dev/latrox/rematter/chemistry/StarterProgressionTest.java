@@ -31,7 +31,6 @@ class StarterProgressionTest {
             assertTrue(leaves.stream().allMatch(id -> id.startsWith("minecraft:") || id.startsWith("#minecraft:")));
             assertEquals("rematter:" + name, recipe(name).getAsJsonObject("result").get("id").getAsString());
             assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty(), "An internal module is manufactured equipment");
-            assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + name + ".json"));
             assertEquals("rematter:" + name, json("data/rematter/advancement/recipes/" + name + ".json")
                     .getAsJsonObject("rewards").getAsJsonArray("recipes").get(0).getAsString());
         }
@@ -94,7 +93,6 @@ class StarterProgressionTest {
         assertTrue(cluster.keySet().containsAll(Set.of("rematter:rhedon", "rematter:virel")));
         for (String name : List.of("matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin")) {
             assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty());
-            assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + name + ".json"));
         }
     }
 
@@ -148,8 +146,7 @@ class StarterProgressionTest {
     @Test void componentsStorageAndUnprofiledMatrixMaterialsCannotBeSynthesized() throws Exception {
         for (String component : List.of("hand_preparator", "material_preparator", "industrial_preparator", "sinter_furnace", "machine_frame", "structural_bars", "control_circuit", "optical_circuit", "cell_housing", "matter_drive", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m", "matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin", "diamond_lattice", "ender_conductor", "netherite_sheath")) {
             assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + component));
-            assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/material_profile/materials/" + component + ".json"));
-            assertNull(getClass().getClassLoader().getResource("data/rematter/rematter/synthesis/materials/" + component + ".json"));
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + component).isEmpty(), component);
         }
         Set<String> forbidden = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:industrial_preparator", "rematter:sinter_furnace", "rematter:machine_frame", "rematter:structural_bars", "rematter:control_circuit", "rematter:optical_circuit", "rematter:cell_housing", "rematter:matter_drive",
                 "rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m",
