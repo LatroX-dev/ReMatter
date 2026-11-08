@@ -4,9 +4,19 @@
   "item": "occultism:iesnium_ingot",
   "matter": [
     {
-      "substance": "rematter:iesnium",
+      "substance": "rematter:arcane_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 400
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 400
+    },
+    {
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 200
     }
   ],
   "decomposition_energy": 32000,

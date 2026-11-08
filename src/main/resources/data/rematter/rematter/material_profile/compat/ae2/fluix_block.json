@@ -4,9 +4,9 @@
   "item": "ae2:fluix_block",
   "matter": [
     {
-      "substance": "rematter:fluix",
+      "substance": "rematter:certus_quartz",
       "phase": "solid",
-      "amount": 4000
+      "amount": 1000
     }
   ],
   "decomposition_energy": 128000,

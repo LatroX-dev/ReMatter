@@ -4,9 +4,14 @@
   "item": "alltheores:bronze_ingot",
   "matter": [
     {
-      "substance": "rematter:bronze",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 750
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid",
+      "amount": 31
     }
   ],
   "decomposition_energy": 8000,

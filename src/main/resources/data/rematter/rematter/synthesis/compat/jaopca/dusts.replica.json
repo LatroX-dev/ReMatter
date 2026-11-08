@@ -3,5 +3,5 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:dusts.replica",
   "item": "jaopca:dusts.replica",
-  "category": "raw_material"
+  "disabled": true
 }

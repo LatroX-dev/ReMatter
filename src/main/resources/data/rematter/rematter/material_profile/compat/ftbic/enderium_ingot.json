@@ -4,9 +4,19 @@
   "item": "ftbic:enderium_ingot",
   "matter": [
     {
-      "substance": "rematter:enderium",
+      "substance": "rematter:ender_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:lead",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

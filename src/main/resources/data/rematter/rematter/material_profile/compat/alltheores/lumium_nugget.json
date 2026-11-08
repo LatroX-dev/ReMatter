@@ -5,9 +5,24 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:lumium",
+      "substance": "rematter:nether_essence",
       "phase": "solid",
       "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid",
+      "amount": 750
     }
   ],
   "decomposition_energy": 8000,

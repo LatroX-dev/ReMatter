@@ -4,9 +4,19 @@
   "item": "mysticalagriculture:supremium_gemstone_block",
   "matter": [
     {
-      "substance": "rematter:supremium_gemstone",
+      "substance": "rematter:diamond",
       "phase": "solid",
       "amount": 9000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:supremium_essence",
+      "phase": "solid",
+      "amount": 18000
     }
   ],
   "decomposition_energy": 288000,

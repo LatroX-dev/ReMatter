@@ -5,9 +5,14 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:invar",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 1000
+      "amount": 666
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 333
     }
   ],
   "decomposition_energy": 8000,

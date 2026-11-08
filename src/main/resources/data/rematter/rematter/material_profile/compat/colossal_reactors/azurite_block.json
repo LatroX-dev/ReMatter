@@ -4,7 +4,7 @@
   "item": "colossal_reactors:azurite_block",
   "matter": [
     {
-      "substance": "rematter:azurite",
+      "substance": "rematter:lapis",
       "phase": "solid",
       "amount": 9000
     }

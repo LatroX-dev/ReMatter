@@ -4,9 +4,19 @@
   "item": "mysticalagriculture:awakened_supremium_gemstone",
   "matter": [
     {
-      "substance": "rematter:awakened_supremium_gemstone",
+      "substance": "rematter:awakened_supremium_essence",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:diamond",
       "phase": "solid",
       "amount": 1000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 4000
     }
   ],
   "decomposition_energy": 32000,

@@ -3,9 +3,19 @@
   "item": "minecraft:diorite",
   "matter": [
     {
-      "substance": "rematter:diorite",
+      "substance": "rematter:silica",
       "phase": "solid",
-      "amount": 1000
+      "amount": 1400
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 900
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 700
     }
   ],
   "decomposition_energy": 8000,

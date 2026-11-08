@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "mekanism_extras",
   "item": "mekanism_extras:block_naquadah",
-  "category": "raw_material"
+  "disabled": true
 }

@@ -4,9 +4,9 @@
   "item": "nautec:aquarine_copper_block",
   "matter": [
     {
-      "substance": "rematter:aquarine_copper",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 9000
+      "amount": 1125
     }
   ],
   "decomposition_energy": 288000,

@@ -5,9 +5,14 @@
   "item": "jaopca:dusts.novite",
   "matter": [
     {
-      "substance": "rematter:novite",
+      "substance": "rematter:stellar_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 32000,

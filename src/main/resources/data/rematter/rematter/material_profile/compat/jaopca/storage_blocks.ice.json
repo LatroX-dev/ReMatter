@@ -5,7 +5,7 @@
   "item": "jaopca:storage_blocks.ice",
   "matter": [
     {
-      "substance": "rematter:natural_ice",
+      "substance": "rematter:water",
       "phase": "solid",
       "amount": 9000
     }

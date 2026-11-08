@@ -4,9 +4,14 @@
   "item": "infinity_nexus_mod:bronze_block",
   "matter": [
     {
-      "substance": "rematter:bronze",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 9000
+      "amount": 6750
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid",
+      "amount": 279
     }
   ],
   "decomposition_energy": 72000,

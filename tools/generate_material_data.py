@@ -30,13 +30,21 @@ def generate(catalogue, check=False):
     data = resources / "data/rematter/rematter"
     names = {}
     substances = catalogue["substances"]
+    substance_directory = data / "substance"
+    if check:
+        expected = {substance_directory / f"{key}.json" for key in substances}
+        unexpected = sorted(set(substance_directory.rglob("*.json")) - expected)
+        if unexpected:
+            paths = ", ".join(str(path.relative_to(ROOT)) for path in unexpected)
+            raise ValueError(f"Substance definitions outside the catalogue: {paths}")
     for substance_id, row in sorted(substances.items()):
         if not ID.fullmatch("rematter:" + substance_id):
             raise ValueError(f"Invalid substance ID: {substance_id}")
         key = "substance.rematter." + substance_id
+        path = substance_directory / (substance_id + ".json")
         definition = {"schema_version": 1, "translation_key": key, "symbol": row["symbol"],
                       "kind": row["kind"], "composition": row["composition"], "phases": row["phases"]}
-        output(data / "substance" / (substance_id + ".json"), definition, check)
+        output(path, definition, check)
         names[key] = row["name"]
     seen = set()
     for row in catalogue["items"]:
@@ -63,7 +71,8 @@ def generate(catalogue, check=False):
         profile["item"] = item
         if count != 1:
             profile["item_count"] = count
-        profile.update({"matter": row["matter"], "decomposition_energy": row["decomposition_energy"],
+        profile.update({"matter": row["matter"],
+                        "decomposition_energy": row["decomposition_energy"],
                         "synthesis_energy": row["synthesis_energy"], "ticks": row["ticks"]})
         output(data / "material_profile" / relative, profile, check)
         allowance = {"schema_version": 1}

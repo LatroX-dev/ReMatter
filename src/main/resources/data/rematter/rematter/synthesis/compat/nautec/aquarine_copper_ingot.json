@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "nautec",
   "item": "nautec:aquarine_copper_ingot",
-  "category": "raw_material"
+  "disabled": true
 }

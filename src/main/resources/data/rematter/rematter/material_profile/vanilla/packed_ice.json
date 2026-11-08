@@ -3,7 +3,7 @@
   "item": "minecraft:packed_ice",
   "matter": [
     {
-      "substance": "rematter:packed_ice",
+      "substance": "rematter:water",
       "phase": "solid",
       "amount": 1000
     }

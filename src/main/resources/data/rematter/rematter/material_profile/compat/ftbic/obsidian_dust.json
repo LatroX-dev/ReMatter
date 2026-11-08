@@ -4,7 +4,12 @@
   "item": "ftbic:obsidian_dust",
   "matter": [
     {
-      "substance": "rematter:obsidian",
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 64
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 250
     }

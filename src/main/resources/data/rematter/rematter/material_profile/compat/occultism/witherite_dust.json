@@ -4,9 +4,29 @@
   "item": "occultism:witherite_dust",
   "matter": [
     {
-      "substance": "rematter:occultism_witherite",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 1000
+      "amount": 383
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 366
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1333
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 1333
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 32000,

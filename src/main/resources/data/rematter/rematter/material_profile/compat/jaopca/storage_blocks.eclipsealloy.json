@@ -5,9 +5,14 @@
   "item": "jaopca:storage_blocks.eclipsealloy",
   "matter": [
     {
-      "substance": "rematter:eclipsealloy",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 81000
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 81000
     }
   ],
   "decomposition_energy": 288000,

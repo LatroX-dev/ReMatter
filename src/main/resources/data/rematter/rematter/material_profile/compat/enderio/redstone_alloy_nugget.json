@@ -5,7 +5,12 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:redstone_alloy",
+      "substance": "rematter:arcane_essence",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 1000
     }

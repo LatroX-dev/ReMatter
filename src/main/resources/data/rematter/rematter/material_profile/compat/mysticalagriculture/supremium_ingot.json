@@ -4,9 +4,19 @@
   "item": "mysticalagriculture:supremium_ingot",
   "matter": [
     {
-      "substance": "rematter:supremium_metal",
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 1000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:supremium_essence",
+      "phase": "solid",
+      "amount": 2000
     }
   ],
   "decomposition_energy": 32000,

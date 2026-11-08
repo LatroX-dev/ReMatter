@@ -3,9 +3,19 @@
   "item": "minecraft:netherrack",
   "matter": [
     {
-      "substance": "rematter:netherrack",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 1000
+      "amount": 180
+    },
+    {
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 20
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 800
     }
   ],
   "decomposition_energy": 8000,

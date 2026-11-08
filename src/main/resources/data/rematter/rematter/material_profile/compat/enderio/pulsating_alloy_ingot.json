@@ -4,9 +4,19 @@
   "item": "enderio:pulsating_alloy_ingot",
   "matter": [
     {
-      "substance": "rematter:pulsating_alloy",
+      "substance": "rematter:ender_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

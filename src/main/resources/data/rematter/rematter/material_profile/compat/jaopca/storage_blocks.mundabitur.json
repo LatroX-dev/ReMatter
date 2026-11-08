@@ -5,9 +5,19 @@
   "item": "jaopca:storage_blocks.mundabitur",
   "matter": [
     {
-      "substance": "rematter:mundabitur",
+      "substance": "rematter:arcane_crystal",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:arcane_essence",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2250
     }
   ],
   "decomposition_energy": 288000,

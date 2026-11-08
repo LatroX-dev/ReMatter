@@ -4,9 +4,39 @@
   "item": "enderio:vibrant_alloy_block",
   "matter": [
     {
-      "substance": "rematter:vibrant_alloy",
+      "substance": "rematter:arcane_essence",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 11250
     }
   ],
   "decomposition_energy": 72000,

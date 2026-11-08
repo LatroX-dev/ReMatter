@@ -4,7 +4,12 @@
   "item": "appflux:harden_insulating_resin",
   "matter": [
     {
-      "substance": "rematter:insulating_resin",
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 1000
     }

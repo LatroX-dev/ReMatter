@@ -4,7 +4,7 @@
   "item": "hextale:radiant_alloy_block",
   "matter": [
     {
-      "substance": "rematter:radiant_alloy",
+      "substance": "rematter:gold",
       "phase": "solid",
       "amount": 9000
     }

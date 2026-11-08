@@ -3,9 +3,14 @@
   "item": "minecraft:netherite_block",
   "matter": [
     {
-      "substance": "rematter:netherite",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 36000
     }
   ],
   "decomposition_energy": 288000,

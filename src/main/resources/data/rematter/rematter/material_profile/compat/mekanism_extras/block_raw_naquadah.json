@@ -4,9 +4,14 @@
   "item": "mekanism_extras:block_raw_naquadah",
   "matter": [
     {
-      "substance": "rematter:naquadah",
+      "substance": "rematter:stellar_essence",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2997
+    },
+    {
+      "substance": "rematter:uranium",
+      "phase": "solid",
+      "amount": 6003
     }
   ],
   "decomposition_energy": 288000,

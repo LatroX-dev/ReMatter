@@ -4,9 +4,19 @@
   "item": "mysticalagriculture:tertium_ingot_block",
   "matter": [
     {
-      "substance": "rematter:tertium_metal",
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 9000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:tertium_essence",
+      "phase": "solid",
+      "amount": 18000
     }
   ],
   "decomposition_energy": 288000,

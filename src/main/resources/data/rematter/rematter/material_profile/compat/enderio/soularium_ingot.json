@@ -4,7 +4,7 @@
   "item": "enderio:soularium_ingot",
   "matter": [
     {
-      "substance": "rematter:soularium",
+      "substance": "rematter:gold",
       "phase": "solid",
       "amount": 1000
     }

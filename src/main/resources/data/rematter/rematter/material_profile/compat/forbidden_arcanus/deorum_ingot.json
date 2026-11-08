@@ -4,9 +4,14 @@
   "item": "forbidden_arcanus:deorum_ingot",
   "matter": [
     {
-      "substance": "rematter:deorum",
+      "substance": "rematter:arcane_crystal",
       "phase": "solid",
-      "amount": 1000
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
     }
   ],
   "decomposition_energy": 32000,

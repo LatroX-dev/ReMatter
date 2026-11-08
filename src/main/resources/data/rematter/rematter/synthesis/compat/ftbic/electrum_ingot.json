@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "ftbic",
   "item": "ftbic:electrum_ingot",
-  "category": "raw_material"
+  "disabled": true
 }

@@ -4,9 +4,14 @@
   "item": "ftbic:invar_block",
   "matter": [
     {
-      "substance": "rematter:invar",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 9000
+      "amount": 5994
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 2997
     }
   ],
   "decomposition_energy": 72000,

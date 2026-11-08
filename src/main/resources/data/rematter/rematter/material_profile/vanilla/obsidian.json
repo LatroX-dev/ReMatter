@@ -3,7 +3,12 @@
   "item": "minecraft:obsidian",
   "matter": [
     {
-      "substance": "rematter:obsidian",
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 256
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 1000
     }

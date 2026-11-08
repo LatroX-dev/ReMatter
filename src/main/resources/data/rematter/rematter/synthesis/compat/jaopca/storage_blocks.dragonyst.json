@@ -3,5 +3,5 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:storage_blocks.dragonyst",
   "item": "jaopca:storage_blocks.dragonyst",
-  "category": "raw_material"
+  "disabled": true
 }

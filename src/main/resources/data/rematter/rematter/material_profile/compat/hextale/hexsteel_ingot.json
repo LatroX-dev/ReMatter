@@ -4,7 +4,12 @@
   "item": "hextale:hexsteel_ingot",
   "matter": [
     {
-      "substance": "rematter:hexsteel",
+      "substance": "rematter:hextech",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 1000
     }

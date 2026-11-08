@@ -4,9 +4,19 @@
   "item": "occultism:raw_iesnium_block",
   "matter": [
     {
-      "substance": "rematter:iesnium",
+      "substance": "rematter:arcane_essence",
       "phase": "solid",
-      "amount": 9000
+      "amount": 3600
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3600
+    },
+    {
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 1800
     }
   ],
   "decomposition_energy": 288000,

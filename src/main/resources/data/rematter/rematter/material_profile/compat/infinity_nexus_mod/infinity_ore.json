@@ -4,9 +4,19 @@
   "item": "infinity_nexus_mod:infinity_ore",
   "matter": [
     {
-      "substance": "rematter:infinity",
+      "substance": "rematter:iridium",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:quantum_essence",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:stellar_essence",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 32000,

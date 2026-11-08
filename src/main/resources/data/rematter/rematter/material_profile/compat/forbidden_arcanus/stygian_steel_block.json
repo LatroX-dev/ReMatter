@@ -4,9 +4,19 @@
   "item": "forbidden_arcanus:stygian_steel_block",
   "matter": [
     {
-      "substance": "rematter:stygian_steel",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 9000
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 18000
     }
   ],
   "decomposition_energy": 288000,

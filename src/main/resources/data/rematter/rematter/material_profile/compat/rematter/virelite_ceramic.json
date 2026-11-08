@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "rematter",
+  "item": "rematter:virelite_ceramic",
+  "matter": [
+    {
+      "substance": "rematter:aluminum",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 1625
+    },
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

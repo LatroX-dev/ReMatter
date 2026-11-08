@@ -4,9 +4,9 @@
   "item": "thaumaturge:metal_brass",
   "matter": [
     {
-      "substance": "rematter:brass",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2997
     }
   ],
   "decomposition_energy": 72000,

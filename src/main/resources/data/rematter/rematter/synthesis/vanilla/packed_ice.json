@@ -1,5 +1,5 @@
 {
   "schema_version": 1,
   "item": "minecraft:packed_ice",
-  "category": "natural_material"
+  "disabled": true
 }

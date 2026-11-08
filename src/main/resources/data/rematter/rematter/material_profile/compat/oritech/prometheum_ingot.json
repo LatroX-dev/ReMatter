@@ -4,9 +4,14 @@
   "item": "oritech:prometheum_ingot",
   "matter": [
     {
-      "substance": "rematter:prometheum",
+      "substance": "rematter:diamond",
       "phase": "solid",
-      "amount": 1000
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 2000
     }
   ],
   "decomposition_energy": 32000,

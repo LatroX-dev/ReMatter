@@ -4,7 +4,12 @@
   "item": "oritech:energite_dust",
   "matter": [
     {
-      "substance": "rematter:energite",
+      "substance": "rematter:fluxite",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:nickel",
       "phase": "solid",
       "amount": 1000
     }

@@ -4,9 +4,14 @@
   "item": "replication:replica_ingot",
   "matter": [
     {
-      "substance": "rematter:replica",
+      "substance": "rematter:quantum_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 333
+    },
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 667
     }
   ],
   "decomposition_energy": 32000,

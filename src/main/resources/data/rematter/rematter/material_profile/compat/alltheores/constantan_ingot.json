@@ -4,9 +4,14 @@
   "item": "alltheores:constantan_ingot",
   "matter": [
     {
-      "substance": "rematter:constantan",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

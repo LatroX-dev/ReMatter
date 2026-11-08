@@ -4,9 +4,19 @@
   "item": "forbidden_arcanus:stygian_steel_ingot",
   "matter": [
     {
-      "substance": "rematter:stygian_steel",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2000
     }
   ],
   "decomposition_energy": 32000,

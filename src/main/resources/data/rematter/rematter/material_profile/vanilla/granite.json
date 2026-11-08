@@ -3,9 +3,19 @@
   "item": "minecraft:granite",
   "matter": [
     {
-      "substance": "rematter:granite",
+      "substance": "rematter:silica",
       "phase": "solid",
-      "amount": 1000
+      "amount": 1900
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 350
     }
   ],
   "decomposition_energy": 8000,

@@ -3,7 +3,7 @@
   "item": "minecraft:blue_ice",
   "matter": [
     {
-      "substance": "rematter:blue_ice",
+      "substance": "rematter:water",
       "phase": "solid",
       "amount": 1000
     }

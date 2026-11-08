@@ -4,7 +4,12 @@
   "item": "hextale:hexsteel_block",
   "matter": [
     {
-      "substance": "rematter:hexsteel",
+      "substance": "rematter:hextech",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 9000
     }

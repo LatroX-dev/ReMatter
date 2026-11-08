@@ -4,9 +4,19 @@
   "item": "mysticalagradditions:insanium_ingot_block",
   "matter": [
     {
-      "substance": "rematter:insanium_metal",
+      "substance": "rematter:insanium_essence",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 9000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 36000
     }
   ],
   "decomposition_energy": 288000,

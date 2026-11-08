@@ -3,5 +3,5 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:storage_blocks.ferricore",
   "item": "jaopca:storage_blocks.ferricore",
-  "category": "raw_material"
+  "disabled": true
 }

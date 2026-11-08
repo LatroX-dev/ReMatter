@@ -4,9 +4,24 @@
   "item": "enderio:dark_steel_block",
   "matter": [
     {
-      "substance": "rematter:dark_steel",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 9000
+      "amount": 1152
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4500
     }
   ],
   "decomposition_energy": 72000,

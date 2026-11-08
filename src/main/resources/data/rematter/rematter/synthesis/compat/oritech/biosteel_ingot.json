@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "oritech",
   "item": "oritech:biosteel_ingot",
-  "category": "raw_material"
+  "disabled": true
 }

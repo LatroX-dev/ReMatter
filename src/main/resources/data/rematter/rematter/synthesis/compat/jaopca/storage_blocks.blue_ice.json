@@ -3,5 +3,5 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:storage_blocks.blue_ice",
   "item": "jaopca:storage_blocks.blue_ice",
-  "category": "raw_material"
+  "disabled": true
 }

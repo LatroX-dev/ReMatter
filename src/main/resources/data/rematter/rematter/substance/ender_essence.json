@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "translation_key": "substance.rematter.ender_essence",
-  "symbol": "End",
+  "symbol": "Edr",
   "kind": "element",
   "composition": {
     "rematter:ender_essence": 1

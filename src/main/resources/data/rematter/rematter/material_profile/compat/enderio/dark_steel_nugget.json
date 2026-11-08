@@ -5,9 +5,24 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:dark_steel",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 1000
+      "amount": 128
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

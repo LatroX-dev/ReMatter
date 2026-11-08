@@ -4,9 +4,14 @@
   "item": "enderio:conductive_alloy_ingot",
   "matter": [
     {
-      "substance": "rematter:conductive_alloy",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

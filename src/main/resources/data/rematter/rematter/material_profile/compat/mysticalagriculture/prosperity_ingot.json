@@ -4,9 +4,14 @@
   "item": "mysticalagriculture:prosperity_ingot",
   "matter": [
     {
-      "substance": "rematter:prosperity_metal",
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 1000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 4000
     }
   ],
   "decomposition_energy": 32000,

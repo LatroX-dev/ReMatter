@@ -4,7 +4,12 @@
   "item": "oritech:adamant_dust",
   "matter": [
     {
-      "substance": "rematter:adamant",
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:nickel",
       "phase": "solid",
       "amount": 1000
     }

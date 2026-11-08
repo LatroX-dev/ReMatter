@@ -4,9 +4,19 @@
   "item": "stellaris:raw_desh",
   "matter": [
     {
-      "substance": "rematter:desh",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 1000
+      "amount": 571
+    },
+    {
+      "substance": "rematter:stellar_essence",
+      "phase": "solid",
+      "amount": 143
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 286
     }
   ],
   "decomposition_energy": 32000,

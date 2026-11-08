@@ -4,9 +4,9 @@
   "item": "colossal_reactors:stainless_steel_ingot",
   "matter": [
     {
-      "substance": "rematter:stainless_steel",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 1000
+      "amount": 282
     }
   ],
   "decomposition_energy": 8000,

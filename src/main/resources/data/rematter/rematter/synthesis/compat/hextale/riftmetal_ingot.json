@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "hextale",
   "item": "hextale:riftmetal_ingot",
-  "category": "raw_material"
+  "disabled": true
 }

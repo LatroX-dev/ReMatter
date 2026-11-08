@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "occultism",
   "item": "occultism:crushed_blue_ice",
-  "category": "raw_material"
+  "disabled": true
 }

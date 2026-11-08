@@ -6,7 +6,7 @@
     {
       "substance": "rematter:silicon",
       "phase": "solid",
-      "amount": 1000
+      "amount": 250
     }
   ],
   "decomposition_energy": 8000,

@@ -4,7 +4,12 @@
   "item": "enderio:redstone_alloy_block",
   "matter": [
     {
-      "substance": "rematter:redstone_alloy",
+      "substance": "rematter:arcane_essence",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 9000
     }

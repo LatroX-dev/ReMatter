@@ -4,9 +4,19 @@
   "item": "occultism:crushed_end_stone",
   "matter": [
     {
-      "substance": "rematter:end_stone",
+      "substance": "rematter:calcium_oxide",
       "phase": "solid",
-      "amount": 1000
+      "amount": 200
+    },
+    {
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 700
     }
   ],
   "decomposition_energy": 8000,

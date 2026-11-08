@@ -4,8 +4,13 @@
   "item": "occultism:crushed_calcite",
   "matter": [
     {
-      "substance": "rematter:calcite",
+      "substance": "rematter:calcium_oxide",
       "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
       "amount": 1000
     }
   ],

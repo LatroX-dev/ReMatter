@@ -4,9 +4,9 @@
   "item": "ae2:fluix_dust",
   "matter": [
     {
-      "substance": "rematter:fluix",
+      "substance": "rematter:certus_quartz",
       "phase": "solid",
-      "amount": 1000
+      "amount": 250
     }
   ],
   "decomposition_energy": 32000,

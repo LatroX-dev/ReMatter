@@ -4,9 +4,19 @@
   "item": "mekanism:block_refined_obsidian",
   "matter": [
     {
-      "substance": "rematter:refined_obsidian",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 9000
+      "amount": 576
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2250
     }
   ],
   "decomposition_energy": 72000,

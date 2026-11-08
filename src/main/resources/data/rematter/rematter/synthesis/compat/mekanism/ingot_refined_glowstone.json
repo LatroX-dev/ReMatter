@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "mekanism",
   "item": "mekanism:ingot_refined_glowstone",
-  "category": "raw_material"
+  "disabled": true
 }

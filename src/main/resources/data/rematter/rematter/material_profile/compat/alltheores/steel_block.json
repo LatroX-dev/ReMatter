@@ -4,9 +4,14 @@
   "item": "alltheores:steel_block",
   "matter": [
     {
-      "substance": "rematter:steel",
+      "substance": "rematter:carbon",
       "phase": "solid",
-      "amount": 9000
+      "amount": 90
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 8910
     }
   ],
   "decomposition_energy": 72000,

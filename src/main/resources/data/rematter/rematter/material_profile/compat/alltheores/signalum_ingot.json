@@ -4,9 +4,24 @@
   "item": "alltheores:signalum_ingot",
   "matter": [
     {
-      "substance": "rematter:signalum",
+      "substance": "rematter:arcane_essence",
       "phase": "solid",
       "amount": 1000
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 8000,

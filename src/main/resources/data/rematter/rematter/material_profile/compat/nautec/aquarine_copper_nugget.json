@@ -5,9 +5,9 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:aquarine_copper",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 125
     }
   ],
   "decomposition_energy": 32000,

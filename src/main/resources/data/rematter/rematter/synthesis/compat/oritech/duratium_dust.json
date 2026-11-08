@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "oritech",
   "item": "oritech:duratium_dust",
-  "category": "raw_material"
+  "disabled": true
 }

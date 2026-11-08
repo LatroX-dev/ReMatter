@@ -5,9 +5,9 @@
   "item": "jaopca:storage_blocks.blazegold",
   "matter": [
     {
-      "substance": "rematter:blazegold",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 20250
     }
   ],
   "decomposition_energy": 288000,

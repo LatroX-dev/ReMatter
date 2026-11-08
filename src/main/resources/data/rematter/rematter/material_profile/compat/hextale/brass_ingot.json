@@ -4,9 +4,9 @@
   "item": "hextale:brass_ingot",
   "matter": [
     {
-      "substance": "rematter:brass",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 333
     }
   ],
   "decomposition_energy": 8000,

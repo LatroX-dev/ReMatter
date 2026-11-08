@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "thaumaturge",
   "item": "thaumaturge:nugget_thaumium",
-  "category": "raw_material"
+  "disabled": true
 }

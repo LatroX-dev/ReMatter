@@ -5,8 +5,13 @@
   "item": "jaopca:storage_blocks.calcite",
   "matter": [
     {
-      "substance": "rematter:calcite",
+      "substance": "rematter:calcium_oxide",
       "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
       "amount": 9000
     }
   ],

@@ -3,9 +3,14 @@
   "item": "minecraft:netherite_ingot",
   "matter": [
     {
-      "substance": "rematter:netherite",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 1000
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 4000
     }
   ],
   "decomposition_energy": 32000,

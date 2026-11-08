@@ -4,9 +4,19 @@
   "item": "aquaculture:neptunium_block",
   "matter": [
     {
-      "substance": "rematter:aquaculture_neptunium",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 1494
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 6003
+    },
+    {
+      "substance": "rematter:vital_essence",
+      "phase": "solid",
+      "amount": 1503
     }
   ],
   "decomposition_energy": 288000,

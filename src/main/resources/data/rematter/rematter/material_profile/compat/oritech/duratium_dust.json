@@ -4,7 +4,7 @@
   "item": "oritech:duratium_dust",
   "matter": [
     {
-      "substance": "rematter:duratium",
+      "substance": "rematter:platinum",
       "phase": "solid",
       "amount": 1000
     }

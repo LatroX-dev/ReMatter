@@ -4,9 +4,19 @@
   "item": "occultism:crushed_blackstone",
   "matter": [
     {
-      "substance": "rematter:blackstone",
+      "substance": "rematter:silica",
       "phase": "solid",
-      "amount": 1000
+      "amount": 750
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1150
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1100
     }
   ],
   "decomposition_energy": 8000,

@@ -4,9 +4,24 @@
   "item": "alltheores:lumium_block",
   "matter": [
     {
-      "substance": "rematter:lumium",
+      "substance": "rematter:nether_essence",
       "phase": "solid",
       "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid",
+      "amount": 6750
     }
   ],
   "decomposition_energy": 72000,

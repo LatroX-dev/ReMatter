@@ -1,12 +1,11 @@
 {
   "schema_version": 1,
   "translation_key": "substance.rematter.certus_quartz",
-  "symbol": "",
+  "symbol": "SiO₂",
   "kind": "compound",
   "composition": {
     "rematter:silicon": 1,
-    "rematter:oxygen": 2,
-    "rematter:arcane_essence": 1
+    "rematter:oxygen": 2
   },
   "phases": [
     "solid"

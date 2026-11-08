@@ -4,9 +4,14 @@
   "item": "colossal_reactors:tough_alloy_block",
   "matter": [
     {
-      "substance": "rematter:tough_alloy",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2223
+    },
+    {
+      "substance": "rematter:lead",
+      "phase": "solid",
+      "amount": 2250
     }
   ],
   "decomposition_energy": 72000,

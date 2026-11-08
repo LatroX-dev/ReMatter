@@ -4,9 +4,9 @@
   "item": "justdirethings:raw_ferricore",
   "matter": [
     {
-      "substance": "rematter:ferricore",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 1000
+      "amount": 2250
     }
   ],
   "decomposition_energy": 32000,

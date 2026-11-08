@@ -4,9 +4,9 @@
   "item": "justdirethings:blazegold_ingot",
   "matter": [
     {
-      "substance": "rematter:blazegold",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 1000
+      "amount": 2250
     }
   ],
   "decomposition_energy": 32000,

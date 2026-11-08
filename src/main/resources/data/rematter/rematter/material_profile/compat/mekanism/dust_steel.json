@@ -4,9 +4,14 @@
   "item": "mekanism:dust_steel",
   "matter": [
     {
-      "substance": "rematter:steel",
+      "substance": "rematter:carbon",
       "phase": "solid",
-      "amount": 1000
+      "amount": 10
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 990
     }
   ],
   "decomposition_energy": 8000,

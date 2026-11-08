@@ -4,9 +4,9 @@
   "item": "ftbic:electrum_block",
   "matter": [
     {
-      "substance": "rematter:electrum",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 9000
+      "amount": 4500
     }
   ],
   "decomposition_energy": 72000,

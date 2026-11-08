@@ -4,9 +4,19 @@
   "item": "forbidden_arcanus:mundabitur_dust",
   "matter": [
     {
-      "substance": "rematter:mundabitur",
+      "substance": "rematter:arcane_crystal",
       "phase": "solid",
-      "amount": 1000
+      "amount": 250
+    },
+    {
+      "substance": "rematter:arcane_essence",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 32000,

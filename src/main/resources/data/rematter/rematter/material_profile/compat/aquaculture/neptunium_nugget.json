@@ -5,9 +5,19 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:aquaculture_neptunium",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 1000
+      "amount": 166
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 667
+    },
+    {
+      "substance": "rematter:vital_essence",
+      "phase": "solid",
+      "amount": 167
     }
   ],
   "decomposition_energy": 32000,

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "rematter",
+  "item": "rematter:netherite_powder",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 100
+}

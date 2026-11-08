@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "alltheores",
   "item": "alltheores:brass_nugget",
-  "category": "raw_material"
+  "disabled": true
 }

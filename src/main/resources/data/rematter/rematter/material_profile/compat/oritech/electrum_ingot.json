@@ -4,9 +4,9 @@
   "item": "oritech:electrum_ingot",
   "matter": [
     {
-      "substance": "rematter:electrum",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 1000
+      "amount": 500
     }
   ],
   "decomposition_energy": 8000,

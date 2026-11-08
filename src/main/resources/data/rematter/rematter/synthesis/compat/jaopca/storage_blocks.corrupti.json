@@ -3,5 +3,5 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:storage_blocks.corrupti",
   "item": "jaopca:storage_blocks.corrupti",
-  "category": "raw_material"
+  "disabled": true
 }

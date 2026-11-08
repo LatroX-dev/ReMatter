@@ -4,9 +4,9 @@
   "item": "colossal_reactors:stainless_steel_block",
   "matter": [
     {
-      "substance": "rematter:stainless_steel",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 9000
+      "amount": 2538
     }
   ],
   "decomposition_energy": 72000,

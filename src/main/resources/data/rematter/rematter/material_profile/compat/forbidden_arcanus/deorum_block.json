@@ -4,9 +4,14 @@
   "item": "forbidden_arcanus:deorum_block",
   "matter": [
     {
-      "substance": "rematter:deorum",
+      "substance": "rematter:arcane_crystal",
       "phase": "solid",
-      "amount": 9000
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 18000
     }
   ],
   "decomposition_energy": 288000,

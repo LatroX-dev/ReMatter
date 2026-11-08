@@ -4,9 +4,9 @@
   "item": "nautec:aquarine_copper_ingot",
   "matter": [
     {
-      "substance": "rematter:aquarine_copper",
+      "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 1000
+      "amount": 125
     }
   ],
   "decomposition_energy": 32000,

@@ -4,9 +4,14 @@
   "item": "oritech:polymer_resin",
   "matter": [
     {
-      "substance": "rematter:polymer_resin",
+      "substance": "rematter:carbon",
       "phase": "solid",
-      "amount": 1000
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 2000
     }
   ],
   "decomposition_energy": 32000,

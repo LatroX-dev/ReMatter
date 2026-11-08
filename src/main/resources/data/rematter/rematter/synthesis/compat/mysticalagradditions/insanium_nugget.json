@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "mysticalagradditions",
   "item": "mysticalagradditions:insanium_nugget",
-  "category": "raw_material"
+  "disabled": true
 }

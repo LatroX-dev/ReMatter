@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "translation_key": "substance.rematter.nether_essence",
-  "symbol": "Ntr",
+  "symbol": "Cdr",
   "kind": "element",
   "composition": {
     "rematter:nether_essence": 1

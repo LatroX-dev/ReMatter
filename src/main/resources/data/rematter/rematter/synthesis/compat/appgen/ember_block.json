@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "appgen",
   "item": "appgen:ember_block",
-  "category": "raw_material"
+  "disabled": true
 }

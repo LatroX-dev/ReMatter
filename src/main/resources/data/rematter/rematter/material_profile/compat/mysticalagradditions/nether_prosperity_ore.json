@@ -6,7 +6,7 @@
     {
       "substance": "rematter:prosperity_essence",
       "phase": "solid",
-      "amount": 2000
+      "amount": 1000
     }
   ],
   "decomposition_energy": 64000,

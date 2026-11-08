@@ -5,9 +5,39 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:vibrant_alloy",
+      "substance": "rematter:arcane_essence",
       "phase": "solid",
-      "amount": 1000
+      "amount": 250
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1250
     }
   ],
   "decomposition_energy": 8000,

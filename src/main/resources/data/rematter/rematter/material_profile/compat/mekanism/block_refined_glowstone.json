@@ -4,7 +4,12 @@
   "item": "mekanism:block_refined_glowstone",
   "matter": [
     {
-      "substance": "rematter:refined_glowstone",
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 9000
     }

@@ -4,7 +4,7 @@
   "item": "oritech:biosteel_dust",
   "matter": [
     {
-      "substance": "rematter:biosteel",
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 1000
     }

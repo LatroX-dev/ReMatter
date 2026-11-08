@@ -4,9 +4,14 @@
   "item": "colossal_reactors:tough_alloy_ingot",
   "matter": [
     {
-      "substance": "rematter:tough_alloy",
+      "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 1000
+      "amount": 247
+    },
+    {
+      "substance": "rematter:lead",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 8000,

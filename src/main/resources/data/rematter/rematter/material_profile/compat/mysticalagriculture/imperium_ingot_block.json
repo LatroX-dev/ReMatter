@@ -4,9 +4,19 @@
   "item": "mysticalagriculture:imperium_ingot_block",
   "matter": [
     {
-      "substance": "rematter:imperium_metal",
+      "substance": "rematter:imperium_essence",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:iron",
       "phase": "solid",
       "amount": 9000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 36000
     }
   ],
   "decomposition_energy": 288000,

@@ -5,9 +5,34 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:end_steel",
+      "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 1000
+      "amount": 192
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 50
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1100
     }
   ],
   "decomposition_energy": 8000,

@@ -5,7 +5,12 @@
   "item": "jaopca:storage_blocks.ender_pearl",
   "matter": [
     {
-      "substance": "rematter:ender_pearl",
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 1000
     }

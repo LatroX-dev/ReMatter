@@ -4,7 +4,7 @@
   "item": "enderio:soularium_block",
   "matter": [
     {
-      "substance": "rematter:soularium",
+      "substance": "rematter:gold",
       "phase": "solid",
       "amount": 9000
     }

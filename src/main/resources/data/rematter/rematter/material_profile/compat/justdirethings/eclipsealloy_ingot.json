@@ -4,9 +4,14 @@
   "item": "justdirethings:eclipsealloy_ingot",
   "matter": [
     {
-      "substance": "rematter:eclipsealloy",
+      "substance": "rematter:gold",
       "phase": "solid",
-      "amount": 1000
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:netherite_scrap",
+      "phase": "solid",
+      "amount": 9000
     }
   ],
   "decomposition_energy": 32000,

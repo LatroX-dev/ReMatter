@@ -5,7 +5,12 @@
   "item": "jaopca:storage_blocks.insulating_resin",
   "matter": [
     {
-      "substance": "rematter:insulating_resin",
+      "substance": "rematter:nether_essence",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
       "phase": "solid",
       "amount": 9000
     }

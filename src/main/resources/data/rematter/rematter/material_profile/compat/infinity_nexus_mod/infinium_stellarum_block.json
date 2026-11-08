@@ -4,9 +4,19 @@
   "item": "infinity_nexus_mod:infinium_stellarum_block",
   "matter": [
     {
-      "substance": "rematter:stellarum",
+      "substance": "rematter:iridium",
       "phase": "solid",
-      "amount": 9000
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:quantum_essence",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:stellar_essence",
+      "phase": "solid",
+      "amount": 2250
     }
   ],
   "decomposition_energy": 288000,

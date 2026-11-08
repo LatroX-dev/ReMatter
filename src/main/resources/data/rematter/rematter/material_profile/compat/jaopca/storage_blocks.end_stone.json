@@ -5,9 +5,19 @@
   "item": "jaopca:storage_blocks.end_stone",
   "matter": [
     {
-      "substance": "rematter:end_stone",
+      "substance": "rematter:calcium_oxide",
       "phase": "solid",
-      "amount": 9000
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:ender_essence",
+      "phase": "solid",
+      "amount": 900
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 6300
     }
   ],
   "decomposition_energy": 72000,
