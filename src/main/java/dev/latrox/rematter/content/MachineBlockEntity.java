@@ -286,7 +286,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public int[] cellSlots() {
         return java.util.stream.IntStream.range(0, cellBayCount()).map(this::cellSlotForBay).toArray();
     }
-    public MachineSnapshot.CellView cellView(int bay) { return bays.view(bay); }
     public List<MachineSnapshot.CellView> cellViews() { return bays.views(); }
     public boolean chemicalAutomationAllowed() {
         return kind().isStorage() && storageStatus().equals("ready") && automationAllowed();
@@ -721,16 +720,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         work.processedThisTick = false;
         work.status = diagnostic;
     }
-    /** Read-only discovery for optional integrations; no live mutable inventory escapes this boundary. */
-    public NetworkInspection inspectMatterNetwork(UUID requester) {
-        if (requester == null || !Objects.equals(owner, requester) || !isLiveServerMachine())
-            return new NetworkInspection(MachineSnapshot.NetworkView.EMPTY, List.of());
-        var network = matterNetwork(true);
-        var workers = network.ready() ? network.workers().stream()
-                .map(worker -> new NetworkWorker(worker.getBlockPos().immutable(), worker.kind(), worker.selectedId(),
-                        worker.runState().running(), worker.runState().queuedBatches(), worker.runState().repeat())).toList() : List.<NetworkWorker>of();
-        return new NetworkInspection(network.view(), workers);
-    }
     /** Integrations must revalidate immediately before dispatching an order on the server thread. */
     public boolean isCurrentNetworkWorker(UUID requester, MachineBlockEntity worker) {
         if (requester == null || !Objects.equals(owner, requester) || !isLiveServerMachine()
@@ -738,11 +727,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 || !Objects.equals(worker.owner, requester)) return false;
         var network = matterNetwork(true);
         return network.ready() && network.workers().stream().anyMatch(member -> member == worker);
-    }
-    public record NetworkWorker(BlockPos position, MachineKind kind, String selectedRecipe,
-                                boolean running, int queuedBatches, boolean repeat) {}
-    public record NetworkInspection(MachineSnapshot.NetworkView network, List<NetworkWorker> workers) {
-        public NetworkInspection { workers = List.copyOf(workers); }
     }
     TerminalDevicesPayload.Device terminalDevice() {
         var choice = terminalChoice();

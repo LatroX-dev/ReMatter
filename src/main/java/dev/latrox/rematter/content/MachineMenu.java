@@ -135,7 +135,6 @@ public final class MachineMenu extends AbstractContainerMenu {
     public boolean mixingRole() { return PreparationTier.isPreparation(kind()) && kind() != MachineKind.SINTER_FURNACE; }
     public boolean inputRole() { return kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER || PreparationTier.isPreparation(kind()); }
     public boolean diskRole() { return kind().isStorage(); }
-    public int diskSlot() { return diskRole() ? 0 : -1; }
     public int diskMenuSlot(int bay) {
         if(bay<0 || bay>=diskBayCount())return -1;
         return MachineCellAccess.slotForBay(kind(),bay);
@@ -147,8 +146,6 @@ public final class MachineMenu extends AbstractContainerMenu {
     public boolean supportsUpgrades() { return kind().processes() && !PreparationTier.manual(kind()); }
     public View view() { return view; }
     public void setView(View value) { view = java.util.Objects.requireNonNull(value); }
-    public void setSettingsOpen(boolean value) { setView(value ? View.CONFIGURATION : View.MAIN); }
-    public boolean settingsOpen() { return view != View.MAIN; }
     /** The client's stock rows in key order. {@code totalTypes} counts every stored type, shown or not. */
     public record Stock(int containerId, boolean readable, int totalTypes, List<MachineSnapshot.Entry> entries) {
         public static final Stock EMPTY = new Stock(-1, false, 0, List.of());
