@@ -173,7 +173,10 @@ public final class MachineAutomationHost implements AutomationPort {
         ticking=true;
         try {
             var level=(ServerLevel)machine.getLevel();
-            if(loadedAt==Long.MIN_VALUE)loadedAt=level.getGameTime();
+            long now=level.getGameTime();
+            if(loadedAt==Long.MIN_VALUE)loadedAt=now;
+            // A completion only holds back its deliveries within the tick it happened in.
+            completedAt.values().removeIf(tick->tick<now);
             var network=machine.matterNetwork(false);
             if(lockedData!=null||!machine.automation()||!elected(network)) {revoke();return;}
             // Each native backend has its own provider and queue. Revoke only same-backend losers.
@@ -187,7 +190,7 @@ public final class MachineAutomationHost implements AutomationPort {
             if(!active()){revoke();return;}
             refreshCatalogue();
             validateClaims(network);
-            retireStaleOrders(level.getGameTime());
+            retireStaleOrders(now);
             if(adapter!=null)adapter.tick();
             if(adapter==null||!adapter.connected()) {releaseAll();return;}
             for(var worker:network.workers()) {
