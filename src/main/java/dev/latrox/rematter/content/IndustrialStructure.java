@@ -20,7 +20,7 @@ public final class IndustrialStructure {
     }
     public static final Set<String> DIAGNOSTICS = Set.of("ready", "structure", "structure_too_short", "structure_unloaded",
             "structure_frame", "structure_wall", "structure_endcaps", "structure_ports", "structure_modules_missing", "structure_module_incomplete",
-            "structure_module_position", "structure_module_type", "structure_interior", "structure_ambiguous");
+            "structure_module_position", "structure_module_type", "structure_interior", "structure_ambiguous", "structure_claimed");
     public record Cell(int x, int y, int depth, Role role, Direction outward) {}
     public record Shape(int width, int height, int depth, int controllerColumn) {
         public Shape {
@@ -50,6 +50,9 @@ public final class IndustrialStructure {
             } catch(IllegalArgumentException invalid) {return Optional.empty();}
         }
         public boolean contains(BlockPos controller,BlockPos part) { return bounds(controller,facing,shape).contains(part); }
+        public boolean overlaps(BlockPos controller,ProtectionClaim other,BlockPos otherController) {
+            return bounds(controller,facing,shape).intersects(bounds(otherController,other.facing,other.shape));
+        }
     }
     public record LocalModule(int x, int y, int depth, Material material) {
         public LocalModule { if (!material.module()) throw new IllegalArgumentException("Not an industrial module"); }
@@ -100,6 +103,7 @@ public final class IndustrialStructure {
     private record Bounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         boolean contains(BlockPos p) { return p.getX() >= minX && p.getX() <= maxX && p.getY() >= minY && p.getY() <= maxY && p.getZ() >= minZ && p.getZ() <= maxZ; }
         Bounds expand(int amount) { return new Bounds(minX-amount,minY-amount,minZ-amount,maxX+amount,maxY+amount,maxZ+amount); }
+        boolean intersects(Bounds o) { return minX <= o.maxX && o.minX <= maxX && minY <= o.maxY && o.minY <= maxY && minZ <= o.maxZ && o.minZ <= maxZ; }
     }
     private record ChunkStamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, ChunkRevisions.Revision revision) {
         boolean matches(ServerLevel level) {
@@ -335,7 +339,7 @@ public final class IndustrialStructure {
             return Material.valueOf(module.kind().name());
         return Material.OTHER;
     }
-    /** The shell after the port rule. Repeated calls in one tick cost one map lookup while nothing structural changed. */
+    /** The shell after the port and claim rules. Repeated calls in one tick cost one map lookup while nothing structural changed. */
     public static Formation inspect(MachineBlockEntity machine) {
         Formation basic=raw(machine);
         if(!basic.formed)return basic;
@@ -352,7 +356,10 @@ public final class IndustrialStructure {
                 var shell=raw(other);
                 neighbors.add(new Neighbor(new WeakReference<>(other),shell,claimant(other,shell)));
             }
-            var result=keepsPorts(self,neighbors.stream().map(Neighbor::claimant).toList())?basic:Formation.invalid(basic.shape,"structure_ambiguous");
+            var others=neighbors.stream().map(Neighbor::claimant).toList();
+            var shell=new ProtectionClaim(basic.shape,machine.getBlockState().getValue(MachineBlock.FACING));
+            var result=!keepsPorts(self,others)?Formation.invalid(basic.shape,"structure_ambiguous")
+                    :!clearOfForeignClaims(self,shell,others)?Formation.invalid(basic.shape,"structure_claimed"):basic;
             if(!observed.matches(level))return Formation.EMPTY;
             seen.settled=new Settled(basic,observed,self,List.copyOf(neighbors),result);
         }
@@ -373,6 +380,15 @@ public final class IndustrialStructure {
             if(Objects.equals(self.owner(),other.owner())){if(other.ports().contains(port))return false;}
             else if(other.claims(port)||other.ports().contains(port)&&!self.claims(port))return false;
         }
+        return true;
+    }
+    /**
+     * A shell never forms over a block inside another owner's protection claim. The first chamber to form keeps its
+     * space, so a later foreign shell can neither take its parts nor protect them against their owner.
+     */
+    static boolean clearOfForeignClaims(Claimant self,ProtectionClaim shell,List<Claimant> others) {
+        for(var other:others)if(!Objects.equals(self.owner(),other.owner())&&other.claim()!=null
+                &&other.claim().overlaps(other.controller(),shell,self.controller()))return false;
         return true;
     }
     private static List<MachineBlockEntity> candidates(ServerLevel level,Bounds area){
@@ -418,13 +434,13 @@ public final class IndustrialStructure {
         seen.tick=tick;seen.epoch=epoch;
         return found;
     }
-    /** Controllers whose current shell or retained claim contains the part. */
+    /** Controllers whose formed shell or retained claim contains the part. An unformed shape protects nothing. */
     static List<MachineBlockEntity> controllersUsing(ServerLevel level,BlockPos partPos){
         if(!level.getServer().isSameThread()||!level.hasChunkAt(partPos))return List.of();
         var result=new ArrayList<MachineBlockEntity>();
         for(var machine:candidates(level,around(partPos,MAX_SIZE-1))){
-            var shell=raw(machine);var claim=machine.industrialProtectionClaim();
-            if(shell.shape!=null&&bounds(machine,shell.shape).contains(partPos)
+            var shell=inspect(machine);var claim=machine.industrialProtectionClaim();
+            if(shell.formed&&bounds(machine,shell.shape).contains(partPos)
                     || claim!=null&&claim.contains(machine.getBlockPos(),partPos))result.add(machine);
         }
         return List.copyOf(result);

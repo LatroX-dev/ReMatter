@@ -294,6 +294,20 @@ class IndustrialStructureTest {
         assertFalse(IndustrialStructure.keepsPorts(unclaimed,List.of(newcomer)));
         assertFalse(IndustrialStructure.keepsPorts(newcomer,List.of(unclaimed)));
     }
+    @Test void aForeignShellNeverFormsOverAClaimedChamberSoItCannotLockItsParts() {
+        var shape=new IndustrialStructure.Shape(5,5,5,2);var facing=Direction.NORTH;
+        var a=new BlockPos(0,64,0);var sharedWall=new BlockPos(-4,64,0);var apart=new BlockPos(-5,64,0);
+        var claimA=new IndustrialStructure.ProtectionClaim(shape,facing);var shell=new IndustrialStructure.ProtectionClaim(shape,facing);
+        assertTrue(claimA.overlaps(a,shell,sharedWall));assertFalse(claimA.overlaps(a,shell,apart));
+        UUID ownerA=UUID.randomUUID(),ownerB=UUID.randomUUID();
+        var incumbent=new IndustrialStructure.Claimant(a,ownerA,Set.of(),claimA);
+        var newcomer=new IndustrialStructure.Claimant(sharedWall,ownerB,Set.of(),null);
+        assertFalse(IndustrialStructure.clearOfForeignClaims(newcomer,shell,List.of(incumbent)));
+        assertTrue(IndustrialStructure.clearOfForeignClaims(new IndustrialStructure.Claimant(apart,ownerB,Set.of(),null),shell,List.of(incumbent)));
+        assertTrue(IndustrialStructure.clearOfForeignClaims(incumbent,claimA,List.of(newcomer)));
+        var sameOwner=new IndustrialStructure.Claimant(sharedWall,ownerA,Set.of(),null);
+        assertTrue(IndustrialStructure.clearOfForeignClaims(sameOwner,shell,List.of(incumbent)));
+    }
     @Test void shellsOfOneOwnerThatShareAPortBothStopWhateverTheirClaims() {
         var shape=new IndustrialStructure.Shape(5,5,5,2);var facing=Direction.NORTH;
         var a=new BlockPos(0,64,0);var b=new BlockPos(-4,64,0);var port=new BlockPos(-2,65,2);var owner=UUID.randomUUID();

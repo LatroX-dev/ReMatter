@@ -105,7 +105,7 @@ Filled machines and Cells retain their contents when carried. Mechanisms animate
 - Operators (permission level 2 or higher) can open and break any machine.
 - Automated fake players act on a machine only when they carry its owner's UUID. A machine that a fake player places belongs to the UUID it carries. A machine placed without any player, for example by a command, belongs to the first real player who uses it.
 - A matter network includes only one owner's machines. Other players' machines on the same cables are not part of it and never share its stock.
-- An industrial chamber never forms over a Machine Port inside another owner's chamber, and a port that two owners' chambers could use stays with the chamber that already claims it.
+- An industrial chamber never forms over any block of a chamber that another owner formed first, and a port that two owners' chambers could use stays with the chamber that already claims it. Only a formed chamber or the claim it leaves protects its parts.
 
 Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Matter Cables have no owner: anyone can break or extend them, and FE pushed into a cable reaches every connected FE receiver, including other players' machines. Breaking a cable can disconnect your devices. On a shared server, protect bases with a claim mod.
 
