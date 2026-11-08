@@ -3,7 +3,7 @@
   "type": "electrolysis",
   "inputs": [
     {
-      "substance": "reforging:crystalline_silica",
+      "substance": "rematter:crystalline_silica",
       "phase": "solid",
       "amount": 1000
     }

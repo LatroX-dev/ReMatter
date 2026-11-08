@@ -1,5 +1,6 @@
 package dev.latrox.rematter.integration;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
@@ -21,7 +22,8 @@ import net.neoforged.neoforge.common.conditions.NeverCondition;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReForgingDataTest {
-    private static final SubstanceKey CRYSTAL = SubstanceKey.of("reforging:crystalline_silica", Phase.SOLID);
+    private static final SubstanceKey CRYSTAL = SubstanceKey.of("rematter:crystalline_silica", Phase.SOLID);
+    private static final Path DATAPACK = Path.of("integrations/reforging/datapack");
 
     @Test
     void crystallineQuartzHasTheSameElementBalanceButASeparateIdentity() throws Exception {
@@ -76,7 +78,7 @@ class ReForgingDataTest {
                 "mekanism:dust_quartz", 1_000L, "oritech:quartz_dust", 1_000L,
                 "thaumaturge:nugget_quartz", 1_000L, "minecraft:nether_quartz_ore", 1_000L,
                 "thaumaturge:ore_quartz", 1_000L, "thaumaturge:deepslate_ore_quartz", 1_000L);
-        Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().containsKey(CRYSTAL))
+        Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().keySet().equals(Set.of(CRYSTAL)))
                 .map(MaterialProfile::itemId).collect(Collectors.toSet());
         assertEquals(amounts.keySet(), actual);
         amounts.forEach((item, amount) -> {
@@ -96,18 +98,14 @@ class ReForgingDataTest {
         assertEquals(64_000, electrolysis.energy());
         assertEquals(400, electrolysis.ticks());
         assertEquals(registry.elementAmounts(electrolysis.inputs()), registry.elementAmounts(electrolysis.outputs()));
-        Set<SubstanceKey> reachable = new HashSet<>(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL,
-                BuiltinChemistry.ROCK, BuiltinChemistry.LAVA, BuiltinChemistry.WATER,
-                BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN));
-        boolean changed;
-        do {
-            changed = false;
-            for (ProcessRecipe recipe : registry.processes()) {
-                if (reachable.containsAll(recipe.inputs().keySet())) changed |= reachable.addAll(recipe.outputs().keySet());
-            }
-        } while (changed);
-        assertFalse(reachable.contains(CRYSTAL));
-        assertFalse(reachable.contains(BuiltinChemistry.SILICON));
+        var reachable = MatterReachability.from(registry, Set.of("minecraft:sand", "minecraft:clay_ball", "minecraft:dirt",
+                "minecraft:stone", "minecraft:cobblestone"), Set.of("minecraft:water", "minecraft:lava"));
+        assertTrue(reachable.matter().containsAll(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL, BuiltinChemistry.ROCK,
+                BuiltinChemistry.LAVA, BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN)));
+        assertFalse(reachable.matter().contains(CRYSTAL));
+        assertFalse(reachable.matter().contains(BuiltinChemistry.SILICON));
+        assertFalse(reachable.matter().contains(BuiltinChemistry.ALUMINUM));
+        assertFalse(reachable.items().contains("minecraft:quartz"));
     }
 
     @Test
@@ -137,8 +135,10 @@ class ReForgingDataTest {
         ChemistryRegistry before = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
         ChemistryRegistry pack = integration();
         ChemistryRegistry after = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
-        assertFalse(after.isKnown(CRYSTAL));
         assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(after.profiles()));
+        assertEquals(java.util.List.copyOf(before.substances()), java.util.List.copyOf(pack.substances()),
+                "The integration shares the standalone substance identities");
+        assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(pack.profiles()));
         assertEquals(before.synthesisPolicy().entries(), after.synthesisPolicy().entries());
         pack.synthesisPolicy().entries().forEach((item, category) ->
                 assertEquals(before.synthesisPolicy().entries().get(item), category,
@@ -292,7 +292,7 @@ class ReForgingDataTest {
     }
 
     @Test
-    void obsidianRecoveryRequiresFourDustsAndTheOldOneDustShortcutIsDisabled() throws Exception {
+    void obsidianRecoveryRequiresFourDustsAndOneDustShortcutsAreDisabled() throws Exception {
         ChemistryRegistry registry = integration();
         var block = registry.profile("minecraft:obsidian").orElseThrow();
         var dust = registry.profile("mekanism:dust_obsidian").orElseThrow();
@@ -305,19 +305,36 @@ class ReForgingDataTest {
         assertTrue(inventory.apply(Map.of(), dust.matter()));
         assertTrue(inventory.apply(block.matter(), Map.of()));
         assertEquals(0, inventory.total());
-        JsonObject override = readFile(Path.of("integrations/reforging/datapack/data/occultism/recipe/crystallize/obsidian.json"));
-        var conditions = override.getAsJsonArray("neoforge:conditions");
-        assertEquals(1, conditions.size());
-        JsonObject condition = conditions.get(0).getAsJsonObject();
-        assertEquals("neoforge:never", condition.get("type").getAsString());
-        assertFalse(NeverCondition.CODEC.codec().parse(JsonOps.INSTANCE, condition).getOrThrow()
+        for (String shortcut : Set.of("occultism/recipe/crystallize/obsidian.json", "occultism/recipe/crafting/gray_paste/obsidian.json")) {
+            assertDisabled(readFile(DATAPACK.resolve("data/" + shortcut)));
+        }
+        JsonObject milling = readFile(DATAPACK.resolve("data/enderio/recipe/sag_milling/obsidian.json"));
+        assertEquals("#c:obsidians", milling.get("input").getAsString());
+        assertEquals("none", milling.get("bonus").getAsString());
+        assertEquals(1, milling.getAsJsonArray("outputs").size());
+        JsonObject powder = milling.getAsJsonArray("outputs").get(0).getAsJsonObject().getAsJsonObject("item");
+        assertEquals("enderio:powdered_obsidian", powder.get("id").getAsString());
+        assertEquals(block.matter(), registry.profile(powder.get("id").getAsString()).orElseThrow().matterFor(powder.get("count").getAsInt()));
+    }
+
+    @Test
+    void ironAndEnderPearlsCannotBecomeNetheriteThroughEasyNetherite() throws Exception {
+        assertDisabled(readFile(DATAPACK.resolve("data/netherite/recipe/netherite.json")));
+        assertFalse(integration().synthesisPolicy().allows("minecraft:netherite_ingot"));
+    }
+
+    private static void assertDisabled(JsonObject override) {
+        var never = override.getAsJsonArray("neoforge:conditions").asList().stream().map(JsonElement::getAsJsonObject)
+                .filter(condition -> condition.get("type").getAsString().equals("neoforge:never")).toList();
+        assertEquals(1, never.size());
+        assertFalse(NeverCondition.CODEC.codec().parse(JsonOps.INSTANCE, never.get(0)).getOrThrow()
                 .test(ICondition.IContext.EMPTY));
     }
 
     private static long minimumCost(long energy) { return Math.multiplyExact(energy, 4) / 5; }
 
     private static ChemistryRegistry integration() {
-        return ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES, Path.of("integrations/reforging/datapack"));
+        return ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES, DATAPACK);
     }
 
     private static JsonObject readFile(Path path) throws Exception {

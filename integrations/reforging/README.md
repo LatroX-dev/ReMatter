@@ -4,15 +4,13 @@ This optional integration applies specific rules while ReMatter, Replication, an
 
 ## Quartz
 
-Quartz decomposes into 1,000 units of `reforging:crystalline_silica` and synthesizes from the same quantity. Its SiO₂ composition is unchanged. Sand continues to use `rematter:silica`; the two substances have separate identities. The integration keeps its existing crystalline-silica ID so previously stored quartz feedstock remains usable.
+Quartz decomposes into 1,000 units of `rematter:crystalline_silica` and synthesizes from the same quantity, exactly as in the standalone mod. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
 
-Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. These rules use exact item profiles, not a synthesis permission inferred from a tag. The profiles override the standalone files at their original resource IDs; installing a second profile for the same item under another namespace is invalid.
+Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. Virelite keeps the quartz share of its preparation batch as crystalline silica and its sand and clay shares as amorphous silica and clay, so sand and clay add no electrolysis feedstock.
 
 The integration adds no crystallization reaction. Sand, separated minerals, silicon, and oxygen therefore cannot become crystalline silica through the included chemistry recipes. This keeps the quartz recovery cycle available without turning sand into an inexpensive quartz source. A future crystallization recipe requires its own progression and balance review.
 
-Silica electrolysis uses this crystalline quartz feedstock in ReForging. Its silicon and oxygen outputs, 64,000 FE cost and 400-tick duration are unchanged. Ordinary sand and separated amorphous silica cannot feed this process. This prevents a sand → silicon → EMC → sand loop when silicon material recovery is available; silicon obtained through the pack's normal routes can still be recovered.
-
-Existing stored `rematter:silica` remains that substance; it is not converted into crystalline silica. Existing quartz items can enter the new recovery cycle. An operation in progress may restart when the catalogue changes.
+Silica electrolysis uses this crystalline quartz feedstock in ReForging instead of amorphous silica. Its silicon and oxygen outputs, 64,000 FE cost and 400-tick duration are unchanged. Ordinary sand and separated amorphous silica cannot feed this process. This prevents a sand → silicon → EMC → sand loop when silicon material recovery is available; silicon obtained through the pack's normal routes can still be recovered.
 
 The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exactly one quartz dust, with grinding-ball output bonuses disabled. Its energy cost remains 2,400 FE. This closes a pre-existing gem → extra dust → gem loop that also works through other mods. Quartz-ore processing and its bonuses are unchanged. KubeJS can still unify the output to the pack's canonical quartz dust.
 
@@ -20,9 +18,9 @@ The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exact
 
 Recovery preserves the approved material identity and quantity. Nine nuggets, one ingot or full dust, and one ninth of a normal metal block represent the same amount. Four-gem quartz and amethyst blocks use their actual four-item recipes. Refined powders, charged crystals, fuels and distinct mineral grades must not become interchangeable merely because their names or tags are similar.
 
-One obsidian block mills into four dusts. The integration disables Occultism's one-dust obsidian crystallization because it would quadruple the recovered material. Four dusts can be recovered and synthesized through ReMatter. Ender IO mills one pearl into nine fragments. Occultism crushes one pearl into one full ReMatter powder and crystallizes a pearl from one full ReMatter or AE2 powder. The JAOPCA storage block packs and unpacks exactly nine Ender IO fragments.
+One obsidian block mills into four dusts. The integration disables Occultism's one-dust obsidian crystallization and its gray paste crafting recipe because each turns a single dust into a whole block. Ender IO's obsidian grinding keeps its four dusts without grinding-ball bonuses, which would otherwise yield up to eight. Four dusts recover one block; only the block itself can be synthesized. Ender IO mills one pearl into nine fragments. Occultism crushes one pearl into one full ReMatter powder and crystallizes a pearl from one full ReMatter or AE2 powder. The JAOPCA storage block packs and unpacks exactly nine Ender IO fragments.
 
-The standalone catalogue keeps ambiguous alloys as their own mixtures and gives decomposition and synthesis separate permissions. Raw ores, enriched intermediates, fuel families and manufactured components do not gain synthesis from this integration. In particular, coal dust must not provide a cheaper route to coal, and refined-obsidian powder must not bypass the osmium used to make its ingot.
+The standalone catalogue recovers ambiguous alloys only as the constituents common to all interchangeable recipes, for example copper from brass, and gives decomposition and synthesis separate permissions. Netherite ingots, blocks and dusts recover the smallest share of gold and Netherium any native route uses and cannot be synthesized. The integration disables Easy Netherite's recipe, which crafts a Netherite Ingot from an iron ingot and an ender pearl and would turn both into gold and Netherium. Raw ores, enriched intermediates, fuel families and manufactured components do not gain synthesis from this integration. In particular, coal dust must not provide a cheaper route to coal, and refined-obsidian powder must not bypass the osmium used to make its ingot.
 
 The data tests retain conservative energy floors for the included water-to-hydrogen, water-to-steam and stone-to-lava routes, including the maximum 20% ReMatter efficiency saving. These floors depend on the target pack's generator configuration; changing fuel values, turbine efficiencies, chemical conversion ratios or adding new feedstock routes requires another balance review. They do not imply that every generator, resource farm or recipe combination has been exercised in gameplay. Intentional ore enrichment, crystal growth, seeds and bees are not disabled by these rules.
 
@@ -49,14 +47,14 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:recovered_matter`
 - `rematter:automation_pattern`
 
-The exclusions cover empty and filled variants of those exact items. The existing `reforging:rematter/stateful_machines` tag ID is retained and now also includes the portable Cells. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
+The exclusions cover empty and filled variants of those exact items. The `reforging:rematter/stateful_machines` tag lists them. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
 
 Replication's `skip_calculation` tag does not override an explicit matter-value recipe. Existing patterns, previously learned knowledge, and later third-party overrides must be checked after activation. Do not add these machines or Cells to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
 
 ## Installation
 
 1. Back up the target world and its configuration. Review the complete combination of mods and data packs before activating it in an existing world.
-2. Copy the contents of `datapack/` into a new data pack directory. With Paxi, use `config/paxi/datapacks/reforging-rematter-compat/`; otherwise use the world's `datapacks/reforging-rematter-compat/` directory. `pack.mcmeta` must be at that directory's root. When upgrading, replace the old integration directory rather than merging files: the former `data/reforging/rematter/material_profile/quartz.json` must be removed to avoid a duplicate item target.
+2. Copy the contents of `datapack/` into a new data pack directory. With Paxi, use `config/paxi/datapacks/reforging-rematter-compat/`; otherwise use the world's `datapacks/reforging-rematter-compat/` directory. `pack.mcmeta` must be at that directory's root.
 3. Prepare the Equivox configuration in a separate file, using Python 3:
 
    ```sh
@@ -68,7 +66,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
 4. Review the generated file, then replace `config/Equivox/custom_emc.json` after backing up the original. The helper never edits the input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
 5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and the protected machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
 
-Removing this integration while crystalline silica is stored is not a migration strategy. Keep the data definitions available until those stores have been handled deliberately. No conversion of Replication patterns, Equivox knowledge, or EMC balances is provided.
+Removing the integration restores the standalone silica electrolysis, which consumes amorphous silica; stored crystalline silica keeps its identity. No conversion of Replication patterns, Equivox knowledge, or EMC balances is provided.
 
 ## Validation
 
