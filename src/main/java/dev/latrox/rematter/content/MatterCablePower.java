@@ -136,7 +136,7 @@ public final class MatterCablePower {
                     var endpoint = endpoints.get((start + i) % count);
                     if (endpoint.position.equals(adjacent)) continue;
                     for (var face : endpoint.faces) {
-                        var handler = face.capability.getCapability();
+                        var handler = face.capability.cache.getCapability();
                         if (handler == null || handler instanceof Connection) continue;
                         int moved = handler.insert(remaining, transaction);
                         if (moved == 0) continue;
@@ -169,17 +169,46 @@ public final class MatterCablePower {
 
     private record Flow(Component component, BlockPos otherCable) {}
     private record Endpoint(BlockPos position, List<Face> faces) {}
-    private record Face(BlockPos cable, BlockCapabilityCache<EnergyHandler, @Nullable Direction> capability) {}
+    private record Face(BlockPos cable, FaceCapability capability) {}
+
+    /**
+     * The FE capability of one endpoint side. A rescan of its component keeps it, so a block change near the cables
+     * does not register a new capability listener for every endpoint; an invalidation reaches the endpoints now using it.
+     */
+    private static final class FaceCapability {
+        private final BlockCapabilityCache<EnergyHandler, @Nullable Direction> cache;
+        private @Nullable Endpoints user;
+
+        private FaceCapability(ServerLevel level, BlockPos position, Direction side) {
+            cache = BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, position, side, () -> true, this::invalidate);
+        }
+
+        private void invalidate() { if (user != null) user.invalidate(); }
+    }
 
     private static final class Endpoints {
         private final List<Endpoint> candidates = new ArrayList<>();
+        private final Map<BlockPos, Endpoint> byPosition = new HashMap<>();
         private @Nullable List<Endpoint> active;
 
-        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides) {
-            List<Face> faces = sides.stream().map(side -> new Face(side.cable,
-                    BlockCapabilityCache.create(Capabilities.Energy.BLOCK, level, position, side.outward,
-                            () -> true, this::invalidate))).toList();
-            candidates.add(new Endpoint(position, faces));
+        /** Reuses the capability of each side that {@code previous}, the endpoints of the replaced scan, already watched. */
+        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides, @Nullable Endpoints previous) {
+            List<Face> faces = sides.stream().map(side -> {
+                var capability = previous == null ? null : previous.capability(position, side.cable);
+                if (capability == null) capability = new FaceCapability(level, position, side.outward);
+                capability.user = this;
+                return new Face(side.cable, capability);
+            }).toList();
+            var endpoint = new Endpoint(position, faces);
+            candidates.add(endpoint);
+            byPosition.put(position, endpoint);
+        }
+
+        private @Nullable FaceCapability capability(BlockPos position, BlockPos cable) {
+            var endpoint = byPosition.get(position);
+            if (endpoint == null) return null;
+            for (var face : endpoint.faces) if (face.cable.equals(cable)) return face.capability;
+            return null;
         }
 
         private void invalidate() { active = null; }
@@ -188,7 +217,7 @@ public final class MatterCablePower {
             if (active != null) return active;
             var found = new ArrayList<Endpoint>();
             for (var candidate : candidates) {
-                var faces = candidate.faces.stream().filter(face -> face.capability.getCapability() != null).toList();
+                var faces = candidate.faces.stream().filter(face -> face.capability.cache.getCapability() != null).toList();
                 if (!faces.isEmpty()) found.add(new Endpoint(candidate.position, faces));
             }
             active = List.copyOf(found);
@@ -243,7 +272,7 @@ public final class MatterCablePower {
             var cached = indexed.get(origin);
             if (cached != null && cached.current(level)) return cached;
             if (cached != null) indexed.remove(cached);
-            var component = new Discovery(level).scan(origin);
+            var component = new Discovery(level, cached == null ? null : cached.endpoints).scan(origin);
             if (!component.cables.isEmpty()) indexed.put(component, component.cables);
             return component;
         }
@@ -304,11 +333,15 @@ public final class MatterCablePower {
 
     private static final class Discovery {
         private final ServerLevel level;
+        private final @Nullable Endpoints previous;
         private final Map<Long, ChunkStamp> stamps = new HashMap<>();
         private final Map<Long, LevelChunk> loadedChunks = new HashMap<>();
         private final Map<BlockPos, BlockState> observed = new HashMap<>();
 
-        private Discovery(ServerLevel level) { this.level = level; }
+        private Discovery(ServerLevel level, @Nullable Endpoints previous) {
+            this.level = level;
+            this.previous = previous;
+        }
 
         private Component scan(BlockPos origin) {
             if (!(read(origin).getBlock() instanceof MatterPipeBlock pipe)) return result(Set.of(), null);
@@ -334,7 +367,7 @@ public final class MatterCablePower {
                 }
             }
             var endpoints = new Endpoints();
-            ends.forEach((position, sides) -> endpoints.add(level, position, sides));
+            ends.forEach((position, sides) -> endpoints.add(level, position, sides, previous));
             return result(cables, endpoints);
         }
 
