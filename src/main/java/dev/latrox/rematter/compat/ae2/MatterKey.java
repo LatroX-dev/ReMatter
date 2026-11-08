@@ -8,13 +8,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MatterRecoveryItem;
+import dev.latrox.rematter.content.SubstanceText;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
+import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -49,6 +51,14 @@ public final class MatterKey extends AEKey {
         @Override public String getUnitSymbol() { return "u"; }
     };
 
+    /**
+     * AE2 asks for display names on both sides. The server names a key from its own catalogue; the client installs
+     * names from its synchronized catalogue. An undefined key keeps its stable ID and is marked unknown.
+     */
+    private static volatile Function<SubstanceKey, Component> names = key -> Component.translatable(
+            "gui.rematter.viewer.substance_phase", SubstanceText.name(ReMatter.chemistry(), key), SubstanceText.phase(key.phase()));
+    static void installNames(Function<SubstanceKey, Component> clientNames) { names = Objects.requireNonNull(clientNames); }
+
     private final SubstanceKey substance;
     private MatterKey(SubstanceKey substance) { this.substance = INTERN.intern(Objects.requireNonNull(substance)); }
     public static MatterKey of(SubstanceKey substance) { return new MatterKey(substance); }
@@ -63,10 +73,7 @@ public final class MatterKey extends AEKey {
         output.writeUtf(substance.id().toString(), 512);
         output.writeEnum(substance.phase());
     }
-    @Override protected Component computeDisplayName() {
-        // Stable even if a datapack defining this substance is temporarily unavailable.
-        return Component.literal(substance.id() + " (" + substance.phase().name().toLowerCase(Locale.ROOT) + ")");
-    }
+    @Override protected Component computeDisplayName() { return names.apply(substance); }
     @Override public void addDrops(long amount, List<ItemStack> drops, Level level, BlockPos position) {
         if (amount < 0) throw new IllegalArgumentException("Negative recovery quantity");
         if (amount > 0) drops.add(MatterRecoveryItem.create(substance, amount));

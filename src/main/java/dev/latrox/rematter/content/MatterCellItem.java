@@ -2,9 +2,6 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.chemistry.MatterInventory;
 import dev.latrox.rematter.chemistry.SubstanceStack;
-import dev.latrox.rematter.ReMatter;
-import dev.latrox.rematter.network.ClientChemistry;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
@@ -41,17 +38,8 @@ public final class MatterCellItem extends Item {
         long total=rows.stream().mapToLong(SubstanceStack::quantity).sum();
         tooltip.accept(Component.translatable("item.rematter.matter_cell.usage",total,capacity));
         tooltip.accept(Component.translatable("item.rematter.matter_cell.types",rows.size(),MatterCellData.MAX_TYPES));
-        var registry=context.level()!=null&&context.level().isClientSide()?ClientChemistry.current():ReMatter.chemistry();
-        rows.stream().limit(3).forEach(row -> {
-            var key=row.key();
-            var phase=Component.translatable("item.rematter.matter_cell.phase."+key.phase().name().toLowerCase(Locale.ROOT));
-            var definition=registry.definition(key.id()).orElse(null);
-            // A missing definition keeps its stored amount and stays visibly unknown until it is resolved.
-            Component name=definition==null?Component.translatable("gui.rematter.unknown_substance",key.id().toString(),phase)
-                    :Component.translatableWithFallback(definition.translationKey(),key.id().toString());
-            if (definition != null && !definition.symbol().isBlank()) name = Component.translatable("item.rematter.matter_cell.symbol",name,definition.symbol().strip());
-            tooltip.accept(Component.translatable("item.rematter.matter_cell.row",name,phase,row.quantity()));
-        });
+        var registry=SubstanceText.catalogue(context.level());
+        rows.stream().limit(3).forEach(row -> tooltip.accept(SubstanceText.row(registry,row.key(),row.quantity())));
         if(rows.size()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",rows.size()-3));
     }
 }

@@ -127,12 +127,18 @@ public final class ChemistryViewer {
         return Component.translatable("gui.rematter.viewer.substance_phase", SubstanceNames.labelled(key), SubstanceNames.phase(key.phase()));
     }
 
-    public static List<Component> matterTooltip(SubstanceKey key, long amount) {
+    /** The lines every substance tooltip starts with: the labelled name, the phase and, for an undefined key, the unknown hint. */
+    public static List<Component> matterLines(SubstanceKey key) {
         var lines = new ArrayList<Component>();
         lines.add(SubstanceNames.labelled(key));
         lines.add(SubstanceNames.phase(key.phase()));
-        lines.add(Component.translatable("gui.rematter.viewer.matter_units", Quantities.number(amount)));
         if (!SubstanceNames.known(key)) lines.add(Component.translatable("screen.rematter.unknown_substance_hint"));
+        return lines;
+    }
+
+    public static List<Component> matterTooltip(SubstanceKey key, long amount) {
+        var lines = matterLines(key);
+        lines.add(Component.translatable("gui.rematter.viewer.matter_units", Quantities.number(amount)));
         lines.add(Component.translatable("gui.rematter.viewer.stored_substance"));
         return lines;
     }

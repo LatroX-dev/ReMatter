@@ -5,6 +5,7 @@ import dev.latrox.rematter.automation.AutomationAdapter;
 import dev.latrox.rematter.automation.AutomationBackends;
 import dev.latrox.rematter.automation.AutomationNetworkPolicy;
 import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.DefinedMatter;
 import dev.latrox.rematter.automation.OrderLedger;
 import dev.latrox.rematter.automation.OrderLedgerCodec;
 import dev.latrox.rematter.automation.StaleOrders;
@@ -268,10 +269,10 @@ public final class MachineAutomationHost implements AutomationPort {
         if(accepted&&action==Action.EXECUTE)changed();return accepted;
     }
     @Override public Map<SubstanceKey,Long> availableEntries() {
-        return active()?machine.matterNetwork(false).inventory().availableContents():Map.of();
+        return active()?DefinedMatter.offered(ReMatter.chemistry(),machine.matterNetwork(false).inventory().availableContents()):Map.of();
     }
     @Override public long insert(SubstanceKey key,long maximum,Action action) {
-        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null)return 0;
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long accepted=MachineBlockEntity.insertable(network.inventory(),key,maximum);
         if(accepted==0||action==Action.SIMULATE)return accepted;
@@ -283,7 +284,7 @@ public final class MachineAutomationHost implements AutomationPort {
         return accepted;
     }
     @Override public long extract(SubstanceKey key,long maximum,Action action) {
-        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null)return 0;
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
         var network=machine.matterNetwork(true);if(!elected(network))return 0;
         long extracted=Math.min(maximum,network.inventory().available(key));
         if(extracted==0||action==Action.SIMULATE)return extracted;

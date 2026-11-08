@@ -1,8 +1,6 @@
 package dev.latrox.rematter.content;
 
-import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.*;
-import dev.latrox.rematter.network.ClientChemistry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -51,12 +49,7 @@ public final class MatterRecoveryItem extends Item {
         var value=read(stack);
         if(value.isEmpty()){tooltip.accept(Component.translatable("item.rematter.recovered_matter.locked"));return;}
         var substance=value.get();
-        var registry = context.level()!=null && context.level().isClientSide() ? ClientChemistry.current() : ReMatter.chemistry();
-        var id = substance.key().id();
-        String symbol = registry.definition(id).map(SubstanceDefinition::symbol).orElse("").strip();
-        String label = symbol.isEmpty() ? id.toString() : symbol + " · " + id;
-        tooltip.accept(Component.literal(label+" · "+substance.key().phase().name().toLowerCase(java.util.Locale.ROOT)));
-        tooltip.accept(Component.literal(substance.quantity()+" u"));
+        tooltip.accept(SubstanceText.row(SubstanceText.catalogue(context.level()),substance.key(),substance.quantity()));
         tooltip.accept(Component.translatable("item.rematter.recovered_matter.hint"));
     }
 }

@@ -12,6 +12,8 @@ import com.refinedmods.refinedstorage.common.api.grid.view.AbstractGridResource;
 import com.refinedmods.refinedstorage.common.api.grid.view.GridResource;
 import com.refinedmods.refinedstorage.common.api.grid.view.GridResourceType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -40,27 +42,36 @@ public final class RsMatterGrid extends AbstractGridResource<RsMatterKey> {
      * is installed by RsClient; this class must never link ReMatter's client package itself.
      */
     interface View {
-        Component name(SubstanceKey substance, String sortName);
+        Component name(SubstanceKey substance);
+        /** The identity lines of a tooltip; an undefined substance is marked unknown there. */
+        List<Component> lines(SubstanceKey substance);
         String symbol(SubstanceKey substance);
         void render(GuiGraphicsExtractor graphics, int x, int y, SubstanceKey substance);
     }
     private static View view = new View() {
-        @Override public Component name(SubstanceKey substance, String sortName) { return Component.literal(sortName); }
+        @Override public Component name(SubstanceKey substance) { return Component.literal(sortName(substance)); }
+        @Override public List<Component> lines(SubstanceKey substance) { return List.of(name(substance)); }
         @Override public String symbol(SubstanceKey substance) { return ""; }
         @Override public void render(GuiGraphicsExtractor graphics, int x, int y, SubstanceKey substance) {}
     };
     static void install(View clientView) { view = java.util.Objects.requireNonNull(clientView); }
     public RsMatterGrid(RsMatterKey key) {
-        super(key, sortName(key.substance()), ignored -> Set.of());
+        super(key, sortName(key.substance()), searchableNames(key.substance()), ignored -> Set.of());
     }
     private static String sortName(SubstanceKey substance) {
         return substance.id() + " [" + substance.phase().name().toLowerCase(Locale.ROOT) + "]";
     }
-    static Component displayName(SubstanceKey substance) { return view.name(substance, sortName(substance)); }
-    @Override public Set<String> getSearchableNames() {
-        String symbol = view.symbol(resource.substance());
-        return symbol.isBlank() || symbol.equals(getSortName()) ? super.getSearchableNames() : Set.of(getSortName(), symbol);
+    /** The stable ID, the formula and the name in the client's language all find a row. */
+    private static Set<String> searchableNames(SubstanceKey substance) {
+        var names = new LinkedHashSet<String>();
+        names.add(sortName(substance));
+        names.add(view.name(substance).getString());
+        String symbol = view.symbol(substance);
+        if (!symbol.isBlank()) names.add(symbol);
+        return Set.copyOf(names);
     }
+    static Component displayName(SubstanceKey substance) { return view.name(substance); }
+    static List<Component> lines(SubstanceKey substance) { return view.lines(substance); }
     @Override public int getRegistryId() { return 0; }
     @Override public List<ClientTooltipComponent> getExtractionHints(ItemStack stack, ResourceRepository<GridResource> repository) { return List.of(); }
     @Override public GridResourceType getType() { return TYPE; }
@@ -74,7 +85,9 @@ public final class RsMatterGrid extends AbstractGridResource<RsMatterKey> {
     @Override public String getDisplayedAmount(ResourceRepository<GridResource> repository) { return Long.toString(getAmount(repository)); }
     @Override public String getAmountInTooltip(ResourceRepository<GridResource> repository) { return getAmount(repository) + " u"; }
     @Override public List<Component> getTooltip() {
-        return List.of(displayName(resource.substance()), Component.translatable("integration.rematter.request_by_autocrafting"));
+        var tooltip = new ArrayList<>(lines(resource.substance()));
+        tooltip.add(Component.translatable("integration.rematter.request_by_autocrafting"));
+        return tooltip;
     }
     @Override public Optional<TooltipComponent> getTooltipImage() { return Optional.empty(); }
     @Override public boolean is(GridResource other) { return other instanceof RsMatterGrid row && resource.equals(row.resource); }
