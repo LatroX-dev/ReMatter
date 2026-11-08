@@ -9,6 +9,9 @@ stray files fail the check and are removed by generation.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
+import csv
+import io
 import json
 from pathlib import Path
 import re
@@ -18,10 +21,13 @@ ID = re.compile(r"[a-z0-9_.-]+:[a-z0-9_./-]+")
 DATA = ROOT / "src/main/resources/data/rematter/rematter"
 GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis")
 FORMS = {"ingot", "dust", "nugget", "material_block", "material", "gem", "natural", "raw", "ore"}
+TEMPLATE = ROOT / "tools/data/material_coverage_template.md"
+COVERAGE = ROOT / "docs/material-coverage.md"
+COVERAGE_LIST = ROOT / "docs/material-coverage.csv"
 
 
 def output(path, value, check, written):
-    content = json.dumps(value, indent=2, ensure_ascii=False) + "\n"
+    content = value if isinstance(value, str) else json.dumps(value, indent=2, ensure_ascii=False) + "\n"
     written.add(path)
     if check:
         if not path.is_file() or path.read_text() != content:
@@ -153,6 +159,61 @@ def stray_files(written, check):
                 folder.rmdir()
 
 
+def matter_text(matter):
+    return " + ".join(f"{entry['substance']}[{entry['phase']}]={entry['amount']}" for entry in matter)
+
+
+def coverage_list(catalogue):
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(["id", "type", "family", "form", "batch", "matter", "synthesis",
+                     "decomposition_energy_fe", "synthesis_energy_fe", "ticks"])
+    for row in catalogue["items"]:
+        writer.writerow([row["item"], "item", row["family"], row["form"], row.get("item_count", 1), matter_text(row["matter"]),
+                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"]])
+    for row in catalogue["fluids"]:
+        writer.writerow([row["fluid"], "fluid", "", "fluid", row["amount"], matter_text(row["matter"]),
+                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"]])
+    for row in catalogue["gases"]:
+        writer.writerow([row["substance"], "gas", "", "gas", "", "", "true", "", "", ""])
+    return buffer.getvalue()
+
+
+def coverage_page(catalogue):
+    rows = catalogue["items"]
+    profiles = Counter(row["item"].split(":", 1)[0] for row in rows)
+    outputs = Counter(row["item"].split(":", 1)[0] for row in rows if row["synthesis"])
+    fluid_outputs = sum(row["synthesis"] for row in catalogue["fluids"])
+    summary = (f"The data catalogue contains **{len(rows)} item profiles** across **{len(profiles)} namespaces**, "
+               f"with **{sum(outputs.values())} explicit item synthesis outputs**. It also covers "
+               f"**{len(catalogue['fluids'])} fluids** ({fluid_outputs} with synthesis) and **{len(catalogue['gases'])} gas outputs**, "
+               f"and defines {len(catalogue['substances'])} substances in addition to the built-in core elements and compounds. "
+               "Installing a supported mod does not imply that every item from it is supported.")
+    table = ["| Namespace | Profiles | Synthesis outputs |", "| --- | ---: | ---: |"]
+    table += [f"| `{namespace}` | {profiles[namespace]} | {outputs[namespace]} |" for namespace in sorted(profiles)]
+    fluid_table = ["| Fluid | Batch | Matter | Synthesis |", "| --- | ---: | --- | --- |"]
+    fluid_table += [f"| `{row['fluid']}` | {row['amount']} mB | {matter_text(row['matter'])} | {'yes' if row['synthesis'] else 'no'} |"
+                    for row in catalogue["fluids"]]
+    gas_lines = [f"- `{row['substance']}`" + (f" (with `{row['required_mod']}`)" if "required_mod" in row else "")
+                 for row in catalogue["gases"]]
+    page = TEMPLATE.read_text()
+    for name, value in {"summary": summary, "namespace_table": "\n".join(table),
+                        "fluids": "\n".join(fluid_table) + "\n\nGases that may leave storage as gas:\n\n" + "\n".join(gas_lines)}.items():
+        token = "{{" + name + "}}"
+        if page.count(token) != 1:
+            raise ValueError(f"Coverage template needs exactly one {token}")
+        page = page.replace(token, value)
+    if "{{" in page:
+        raise ValueError("Unknown placeholder in the coverage template")
+    return page
+
+
+def coverage(catalogue, check):
+    written = set()
+    output(COVERAGE_LIST, coverage_list(catalogue), check, written)
+    output(COVERAGE, coverage_page(catalogue), check, written)
+
+
 def language(names, check):
     language_path = ROOT / "src/main/resources/assets/rematter/lang/en_us.json"
     current = json.loads(language_path.read_text())
@@ -173,6 +234,7 @@ def generate(catalogue, check=False):
     gas_count = gases(catalogue, check, written)
     stray_files(written, check)
     language(names, check)
+    coverage(catalogue, check)
     return {"substances": len(catalogue["substances"]), "profiles": profile_count, "fluids": fluid_count,
             "synthesis_outputs": sum(row["synthesis"] for row in catalogue["items"]),
             "fluid_outputs": sum(row["synthesis"] for row in catalogue["fluids"]), "gas_outputs": gas_count}

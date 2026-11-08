@@ -1,0 +1,65 @@
+name: Material coverage gap
+description: Report an item, fluid or gas that lacks a reviewed material profile, or a profile with wrong quantities.
+labels: [material-coverage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Reports in English or German are welcome. Search existing issues and the material coverage list first.
+        A profile states what decomposition recovers. Synthesis is a separate permission for raw and natural materials, fluids and gases; plates, wires, components, equipment, machines, special loot and boss items stay in their native production chains.
+  - type: input
+    id: target
+    attributes:
+      label: Exact item, fluid or chemical ID
+      description: For example `alltheores:tin_ingot` or `mekanism:chlorine`. Use one report per material family.
+    validations:
+      required: true
+  - type: input
+    id: mod
+    attributes:
+      label: Mod and version
+      description: The mod that registers the ID and its exact version.
+    validations:
+      required: true
+  - type: dropdown
+    id: form
+    attributes:
+      label: Material form
+      options:
+        - Ingot, dust, gem or nugget
+        - Storage block
+        - Natural block or raw material
+        - Ore or raw ore
+        - Fluid
+        - Gas or chemical
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind of report
+      options:
+        - Missing profile
+        - Wrong quantity or composition
+        - Synthesis should be allowed or forbidden
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: recipes
+    attributes:
+      label: Manufacturing and recycling recipes
+      description: List the native recipes that make, compress, split or recycle this material, with their recipe IDs, input and output counts. Include ore processing or duplication routes that change the yield.
+    validations:
+      required: true
+  - type: textarea
+    id: stored
+    attributes:
+      label: Stored data
+      description: Does the item carry energy, fluids, inventories, enchantments or other non-default components? Describe them or write "none".
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected profile
+      description: The constituents and quantities you expect per item or batch, and why.

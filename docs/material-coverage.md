@@ -1,8 +1,8 @@
 # Material coverage
 
-ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item profiles and their separate synthesis permissions. Tags help investigate candidates but never grant support at runtime.
+ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **962 item profiles** across **34 namespaces**, with **475 explicit synthesis outputs**. It defines 77 substances alongside 17 built-in substances. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **479 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
 
 ## Quantities and material states
 
@@ -66,7 +66,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `mekanism` | 67 | 40 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 77 | 47 |
+| `minecraft` | 81 | 51 |
 | `mysticalagradditions` | 11 | 2 |
 | `mysticalagriculture` | 61 | 46 |
 | `nautec` | 4 | 1 |
@@ -81,11 +81,40 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `stellaris` | 19 | 3 |
 | `thaumaturge` | 18 | 5 |
 
-The complete per-item list is [material-coverage.csv](material-coverage.csv). A zero synthesis count still permits analysis and supported decomposition.
+The complete list of item, fluid and gas entries is [material-coverage.csv](material-coverage.csv). Its `batch` column counts items for item profiles and millibuckets for fluid profiles. A zero synthesis count still permits analysis and supported decomposition.
 
 ## Fluids and gases
 
-Water and lava retain the original explicit conversions. Ten additional Mekanism fluid profiles cover hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrogen fluoride, ethene and lithium. These use exact source-fluid IDs and explicit amount ratios. Flowing variants are not additional resources. See [Integrations](integrations.md) for chemical-tube support and the distinction between external fluids and gases.
+Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing variants are not additional resources. Gas permissions allow a stored gas to leave through a chemical adapter; see [Integrations](integrations.md) for chemical-tube support and the distinction between external fluids and gases.
+
+| Fluid | Batch | Matter | Synthesis |
+| --- | ---: | --- | --- |
+| `mekanism:chlorine` | 1000 mB | rematter:chlorine[gas]=1000 | yes |
+| `mekanism:ethene` | 1000 mB | rematter:ethene[gas]=1000 | yes |
+| `mekanism:hydrofluoric_acid` | 1000 mB | rematter:hydrofluoric_acid[gas]=1000 | yes |
+| `mekanism:hydrogen` | 1000 mB | rematter:hydrogen[gas]=1000 | yes |
+| `mekanism:hydrogen_chloride` | 1000 mB | rematter:hydrogen_chloride[gas]=2000 | yes |
+| `mekanism:lithium` | 1000 mB | rematter:lithium[gas]=10000 | yes |
+| `mekanism:oxygen` | 1000 mB | rematter:oxygen[gas]=1000 | yes |
+| `mekanism:sulfur_dioxide` | 1000 mB | rematter:sulfur_dioxide[gas]=1000 | yes |
+| `mekanism:sulfur_trioxide` | 1000 mB | rematter:sulfur_trioxide[gas]=1000 | yes |
+| `mekanism:sulfuric_acid` | 1000 mB | rematter:sulfuric_acid[gas]=1000 | yes |
+| `minecraft:lava` | 1000 mB | rematter:mineral_mix[liquid]=1000 | yes |
+| `minecraft:water` | 1000 mB | rematter:water[liquid]=1000 | yes |
+
+Gases that may leave storage as gas:
+
+- `rematter:chlorine` (with `mekanism`)
+- `rematter:ethene` (with `mekanism`)
+- `rematter:hydrofluoric_acid` (with `mekanism`)
+- `rematter:hydrogen`
+- `rematter:hydrogen_chloride` (with `mekanism`)
+- `rematter:lithium` (with `mekanism`)
+- `rematter:oxygen`
+- `rematter:sulfur_dioxide` (with `mekanism`)
+- `rematter:sulfur_trioxide` (with `mekanism`)
+- `rematter:sulfuric_acid` (with `mekanism`)
+- `rematter:water`
 
 ## Boundaries and remaining work
 
@@ -98,4 +127,4 @@ This is a material catalogue, not complete chemical coverage of every item in a 
 - Other registered fluids, fuels, potion mixtures, experience fluids, molten magical materials and nuclear isotope chains need explicit identities, units and cycle reviews.
 - Native integration checks and pack balancing are separate from data generation. A parsed profile alone is not evidence of a completed gameplay or balance test.
 
-For a new material request, include its exact item or fluid ID, mod version, the expected material form, relevant manufacturing and recycling recipes, and any stored data. Report it through the repository material-coverage issue template.
+For a new material request, include its exact item or fluid ID, mod version, the expected material form, relevant manufacturing and recycling recipes, and any stored data. Report it through the repository's "Material coverage gap" issue template.
