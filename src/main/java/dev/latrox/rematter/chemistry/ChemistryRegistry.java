@@ -33,16 +33,6 @@ public final class ChemistryRegistry {
         return new Builder();
     }
 
-    public Builder toBuilder() {
-        Builder builder = new Builder();
-        substances.values().forEach(builder::addSubstance);
-        profiles.values().forEach(builder::addProfile);
-        fluidProfiles.values().forEach(builder::addFluidProfile);
-        processes.values().forEach(builder::addProcess);
-        synthesisPolicy.entries().forEach(builder::allowSynthesis);
-        return builder;
-    }
-
     public Optional<SubstanceDefinition> definition(SubstanceId id) {
         return Optional.ofNullable(substances.get(id));
     }
@@ -73,10 +63,6 @@ public final class ChemistryRegistry {
 
     public Collection<ProcessRecipe> processes() {
         return processes.values();
-    }
-
-    public Collection<ProcessRecipe> recipes() {
-        return processes();
     }
 
     public SynthesisPolicy synthesisPolicy() {

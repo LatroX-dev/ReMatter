@@ -18,8 +18,8 @@ class MaterialBatchTest {
         var registry = ShippedChemistry.standalone();
         var ingot = registry.profile("minecraft:copper_ingot").orElseThrow();
         var block = registry.profile("minecraft:copper_block").orElseThrow();
-        assertEquals(ingot.matter(), nuggets.matterFor(9));
-        assertEquals(block.matter(), nuggets.matterFor(81));
+        assertEquals(ingot.matter(), ChemistryFixtures.matterFor(nuggets, 9));
+        assertEquals(block.matter(), ChemistryFixtures.matterFor(nuggets, 81));
         MatterInventory inventory = new MatterInventory(9_000);
         for (int cycle = 0; cycle < 1_000; cycle++) {
             assertTrue(inventory.apply(Map.of(), block.matter()));
@@ -29,15 +29,11 @@ class MaterialBatchTest {
         assertEquals(1_000, ingot.matter().get(COPPER));
     }
 
-    @Test void partialBatchesAndInvalidCountsNeverProduceApproximateMatter() {
-        for (long count : new long[]{-1, 0, 1, 8, 10, 64, Long.MAX_VALUE}) {
-            assertThrows(IllegalArgumentException.class, () -> nuggets().matterFor(count));
-        }
+    @Test void invalidBatchItemCountsAreRejected() {
         for (int count : new int[]{0, -1, 65, Integer.MAX_VALUE}) {
             assertThrows(IllegalArgumentException.class, () -> new MaterialProfile("example:nugget", count,
                     Map.of(COPPER, 1_000L), 1, 1, 1));
         }
-        assertEquals(Map.of(COPPER, 7_000L), nuggets().matterFor(63));
     }
 
     @Test void wholeBatchCapacityDoesNotPartiallyConsumeOrProduceMatter() {
@@ -56,13 +52,13 @@ class MaterialBatchTest {
 
     @Test void manufacturedBatchProfilesNeverGrantSynthesisOrEraseSavedUnknownIds() {
         var plates = new MaterialProfile("example:copper_plate", 3, Map.of(COPPER, 2_000L), 1, 1, 1);
-        var registry = BuiltinChemistry.create().toBuilder().addProfile(plates).build();
+        var registry = ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(plates).build();
         assertFalse(registry.synthesisPolicy().allowsItem(plates.itemId()));
         var unknown = SubstanceKey.of("absent:rare_material", Phase.SOLID);
         MatterInventory store = new MatterInventory(5_000);
         store.insert(unknown, 33);
         assertTrue(store.apply(Map.of(), plates.matter()));
-        var saved = MatterInventory.restore(store.snapshot());
+        var saved = MatterInventory.restore(store.snapshot(), Integer.MAX_VALUE);
         assertEquals(Map.of(unknown, 33L, COPPER, 2_000L), saved.contents());
         assertFalse(registry.isKnown(unknown));
     }
@@ -70,9 +66,9 @@ class MaterialBatchTest {
     @Test void allotropesConserveCarbonButDoNotBecomeInterchangeableStorageOrPermissions() {
         var diamond = SubstanceKey.of("example:diamond", Phase.SOLID);
         var definition = new SubstanceDefinition(diamond.id(), "substance.example.diamond", "C",
-                SubstanceKind.ALLOTROPE, Composition.element(CARBON.id()), Set.of(Phase.SOLID));
+                SubstanceKind.ALLOTROPE, new Composition(Map.of(CARBON.id(), 1L)), Set.of(Phase.SOLID));
         var profile = new MaterialProfile("example:diamond", Map.of(diamond, 1_000L), 1, 1, 1);
-        var registry = BuiltinChemistry.create().toBuilder().addSubstance(definition).addProfile(profile)
+        var registry = ChemistryFixtures.copyOf(BuiltinChemistry.create()).addSubstance(definition).addProfile(profile)
                 .allowSynthesis(profile.itemId(), SynthesisCategory.RAW_MATERIAL).build();
         assertEquals(registry.elementAmounts(Map.of(CARBON, 1_000L)), registry.elementAmounts(profile.matter()));
         MatterInventory inventory = new MatterInventory(2_000);
@@ -81,6 +77,6 @@ class MaterialBatchTest {
         assertEquals(1_000, inventory.amount(CARBON));
         assertTrue(registry.processes().stream().noneMatch(recipe -> recipe.outputs().containsKey(diamond)));
         assertThrows(IllegalArgumentException.class, () -> new SubstanceDefinition(diamond.id(), "diamond", "C",
-                SubstanceKind.ALLOTROPE, Composition.element(diamond.id()), Set.of(Phase.SOLID)));
+                SubstanceKind.ALLOTROPE, new Composition(Map.of(diamond.id(), 1L)), Set.of(Phase.SOLID)));
     }
 }

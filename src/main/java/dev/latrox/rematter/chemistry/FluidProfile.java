@@ -15,11 +15,4 @@ public record FluidProfile(String fluidId, int amount, Map<SubstanceKey, Long> m
             throw new IllegalArgumentException("A fluid profile requires a bounded whole batch, matter, energy, and duration");
         }
     }
-
-    public Map<SubstanceKey, Long> matterFor(long millibuckets) {
-        if (millibuckets <= 0 || millibuckets % amount != 0) {
-            throw new IllegalArgumentException("Fluid amount must contain whole material batches");
-        }
-        return MatterAmounts.multiply(matter, millibuckets / amount);
-    }
 }

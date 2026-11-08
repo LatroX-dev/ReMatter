@@ -1,5 +1,6 @@
 package dev.latrox.rematter.content;
 
+import dev.latrox.rematter.chemistry.ChemistryFixtures;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.chemistry.BuiltinChemistry;
@@ -65,9 +66,9 @@ class MachineEnergyPolicyTest {
     @Test void aCatalogueWithAnUnaffordableBatchIsRejectedAtLoad() {
         var copper = new SubstanceKey(SubstanceId.parse("rematter:copper"), Phase.SOLID);
         var affordable = new MaterialProfile("example:affordable", Map.of(copper, 1L), 10, MachineEnergyPolicy.MAX_BATCH_ENERGY, 20);
-        assertDoesNotThrow(() -> MachineEnergyPolicy.requireFits(BuiltinChemistry.create().toBuilder().addProfile(affordable).build()));
+        assertDoesNotThrow(() -> MachineEnergyPolicy.requireFits(ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(affordable).build()));
         var expensive = new MaterialProfile("example:expensive", Map.of(copper, 1L), 10, MachineEnergyPolicy.MAX_BATCH_ENERGY + 1, 20);
-        var registry = BuiltinChemistry.create().toBuilder().addProfile(expensive).build();
+        var registry = ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(expensive).build();
         var error = assertThrows(IllegalArgumentException.class, () -> MachineEnergyPolicy.requireFits(registry));
         assertTrue(error.getMessage().contains("example:expensive"));
     }

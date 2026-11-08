@@ -23,10 +23,6 @@ public final class SynthesisPolicy {
         this.allowed = Collections.unmodifiableMap(checked);
     }
 
-    public boolean allows(String exactId) {
-        return allowed.containsKey(exactId);
-    }
-
     public boolean allowsItem(String exactId) {
         SynthesisCategory category = allowed.get(exactId);
         return category == SynthesisCategory.RAW_MATERIAL || category == SynthesisCategory.NATURAL_MATERIAL;

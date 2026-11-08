@@ -132,7 +132,7 @@ class MatterNetworkInventoryTest {
         var before=network.snapshot();
         assertFalse(network.apply(Map.of(),Map.of(COPPER,Long.MAX_VALUE,WATER,1L)));
         assertEquals(before,network.snapshot());
-        assertTrue(a.setCapacity(Long.MAX_VALUE));var changed=a.snapshot();
+        ChemistryFixtures.resize(a,Long.MAX_VALUE);var changed=a.snapshot();
         assertFalse(network.canApply(Map.of(),Map.of(WATER,1L)));assertFalse(network.apply(Map.of(),Map.of(WATER,1L)));
         assertThrows(ArithmeticException.class,network::total);assertEquals(changed,a.snapshot());assertEquals(0,b.total());
     }

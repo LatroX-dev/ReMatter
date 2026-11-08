@@ -39,7 +39,7 @@ class NativeProcessingLoopTest {
         assertEquals(profile("minecraft:end_stone").matter(), profile("occultism:crushed_end_stone").matter());
         assertEquals(profile("minecraft:calcite").matter(), profile("occultism:crushed_calcite").matter());
         assertEquals(profile("minecraft:blackstone").matter(), profile("occultism:crushed_blackstone").matter());
-        assertFalse(REGISTRY.synthesisPolicy().allows("occultism:echo_dust"));
+        assertFalse(REGISTRY.synthesisPolicy().category("occultism:echo_dust").isPresent());
     }
 
     /** Upper bound of the expected output: a bonus chance raised by the strongest grinding ball, capped at certainty. */
@@ -51,7 +51,7 @@ class NativeProcessingLoopTest {
     private static void assertMilling(String input, String output, double expectedCount) {
         MaterialProfile source = profile(input);
         MaterialProfile product = profile(output);
-        if (!REGISTRY.synthesisPolicy().allows(input)) return;
+        if (!REGISTRY.synthesisPolicy().category(input).isPresent()) return;
         for (Map.Entry<SubstanceKey, Long> entry : source.matter().entrySet()) {
             double perInput = (double) entry.getValue() / source.itemCount();
             double recovered = expectedCount * product.matter().getOrDefault(entry.getKey(), 0L) / product.itemCount();

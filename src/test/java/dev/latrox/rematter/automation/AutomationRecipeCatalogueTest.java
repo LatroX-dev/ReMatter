@@ -43,7 +43,7 @@ class AutomationRecipeCatalogueTest {
         assertFalse(matter.isEmpty());
         assertTrue(matter.stream().allMatch(registry::isKnown));
         var undefined=new SubstanceKey(SubstanceId.parse("example:removed"),Phase.SOLID);
-        var removed=registry.toBuilder().addProfile(new MaterialProfile("example:sample",1,Map.of(undefined,1L),1,1,1));
+        var removed=ChemistryFixtures.copyOf(registry).addProfile(new MaterialProfile("example:sample",1,Map.of(undefined,1L),1,1,1));
         assertThrows(IllegalArgumentException.class,removed::build);
     }
     @Test void networksAreOfferedOnlyDefinedStock() {

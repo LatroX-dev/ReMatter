@@ -23,10 +23,6 @@ public record Composition(Map<SubstanceId, Long> elements) {
         elements = Collections.unmodifiableMap(copy);
     }
 
-    public static Composition element(SubstanceId id) {
-        return new Composition(Map.of(id, 1L));
-    }
-
     public Map<SubstanceId, Long> multiply(long quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");

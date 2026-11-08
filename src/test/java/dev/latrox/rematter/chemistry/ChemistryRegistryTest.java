@@ -39,13 +39,13 @@ class ChemistryRegistryTest {
         ProcessRecipe creation = new ProcessRecipe(SubstanceId.parse("example:free_copper"), ProcessType.REACTION,
                 Map.of(COPPER, 1L), Map.of(COPPER, 2L), 100, 20);
         assertThrows(IllegalArgumentException.class,
-                () -> BuiltinChemistry.create().toBuilder().addProcess(creation).build());
+                () -> ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProcess(creation).build());
 
         SubstanceKey unknown = SubstanceKey.of("example:unknown", Phase.SOLID);
         ProcessRecipe unknownRecipe = new ProcessRecipe(SubstanceId.parse("example:unknown_process"), ProcessType.REACTION,
                 Map.of(unknown, 1L), Map.of(unknown, 1L), 100, 20);
         assertThrows(IllegalArgumentException.class,
-                () -> BuiltinChemistry.create().toBuilder().addProcess(unknownRecipe).build());
+                () -> ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProcess(unknownRecipe).build());
     }
 
     @Test
@@ -53,22 +53,22 @@ class ChemistryRegistryTest {
         MaterialProfile gaseousCopper = new MaterialProfile("example:gas_copper", Map.of(
                 new SubstanceKey(COPPER.id(), Phase.GAS), 1L), 100, 100, 20);
         assertThrows(IllegalArgumentException.class,
-                () -> BuiltinChemistry.create().toBuilder().addProfile(gaseousCopper).build());
+                () -> ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(gaseousCopper).build());
         MaterialProfile overflow = new MaterialProfile("example:too_much_water", Map.of(WATER, Long.MAX_VALUE),
                 100, 100, 20);
         assertThrows(ArithmeticException.class,
-                () -> BuiltinChemistry.create().toBuilder().addProfile(overflow).build());
+                () -> ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(overflow).build());
     }
 
     @Test
     void manufacturedItemsCannotBeApprovedByCategoryOrImplicitProfile() {
         MaterialProfile machine = new MaterialProfile("example:machine", Map.of(COPPER, 1_000L), 100, 100, 20);
-        ChemistryRegistry registry = ShippedChemistry.standalone().toBuilder().addProfile(machine).build();
+        ChemistryRegistry registry = ChemistryFixtures.copyOf(ShippedChemistry.standalone()).addProfile(machine).build();
         assertTrue(registry.profile("example:machine").isPresent());
-        assertFalse(registry.synthesisPolicy().allows("example:machine"));
-        assertFalse(registry.synthesisPolicy().allows("minecraft:raw_copper"));
-        assertFalse(registry.synthesisPolicy().allows("minecraft:copper_sword"));
-        assertTrue(registry.synthesisPolicy().allows("minecraft:copper_ingot"));
+        assertFalse(registry.synthesisPolicy().category("example:machine").isPresent());
+        assertFalse(registry.synthesisPolicy().category("minecraft:raw_copper").isPresent());
+        assertFalse(registry.synthesisPolicy().category("minecraft:copper_sword").isPresent());
+        assertTrue(registry.synthesisPolicy().category("minecraft:copper_ingot").isPresent());
         for (SynthesisCategory category : Set.of(SynthesisCategory.MACHINE, SynthesisCategory.COMPONENT,
                 SynthesisCategory.EQUIPMENT, SynthesisCategory.OTHER)) {
             assertThrows(IllegalArgumentException.class,
@@ -80,7 +80,7 @@ class ChemistryRegistryTest {
 
     @Test
     void plainItemSynthesisRequiresARealProfile() {
-        assertThrows(IllegalArgumentException.class, () -> BuiltinChemistry.create().toBuilder()
+        assertThrows(IllegalArgumentException.class, () -> ChemistryFixtures.copyOf(BuiltinChemistry.create())
                 .allowSynthesis("example:unknown_ingot", SynthesisCategory.RAW_MATERIAL).build());
     }
 
@@ -89,8 +89,8 @@ class ChemistryRegistryTest {
         ChemistryRegistry registry = ShippedChemistry.standalone();
         MaterialProfile ingot = registry.profile("minecraft:copper_ingot").orElseThrow();
         MaterialProfile block = registry.profile("minecraft:copper_block").orElseThrow();
-        assertEquals(ingot.matterFor(9), block.matter());
-        assertThrows(ArithmeticException.class, () -> ingot.matterFor(Long.MAX_VALUE));
+        assertEquals(ChemistryFixtures.matterFor(ingot, 9), block.matter());
+        assertThrows(ArithmeticException.class, () -> ChemistryFixtures.matterFor(ingot, Long.MAX_VALUE));
     }
 
     @Test

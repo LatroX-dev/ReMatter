@@ -63,20 +63,6 @@ public final class MatterInventory implements MatterStore {
         }
     }
 
-    public boolean setCapacity(long newCapacity) {
-        if (newCapacity <= 0) {
-            throw new IllegalArgumentException("Capacity must be positive");
-        }
-        synchronized (MUTATION_LOCK) {
-            if (newCapacity < total) {
-                return false;
-            }
-            capacity = newCapacity;
-            revision++;
-            return true;
-        }
-    }
-
     public long amount(SubstanceKey key) {
         Objects.requireNonNull(key, "key");
         synchronized (MUTATION_LOCK) {
@@ -145,19 +131,6 @@ public final class MatterInventory implements MatterStore {
         }
     }
 
-    /** Moves the entire inventory to an empty destination, or leaves both owners unchanged. */
-    public boolean transferAllTo(MatterInventory destination) {
-        Objects.requireNonNull(destination, "destination");
-        synchronized (MUTATION_LOCK) {
-            if (destination == this || destination.total != 0 || !destination.canApplyLocked(Map.of(), contents)) return false;
-            destination.applyLocked(Map.of(), contents);
-            contents.clear();
-            total = 0;
-            revision++;
-            return true;
-        }
-    }
-
     /** Moves only what the destination can retain. No intermediate resource ownership is exposed. */
     public long transferTo(MatterInventory destination, SubstanceKey key, long maximum) {
         Objects.requireNonNull(destination, "destination");
@@ -194,9 +167,6 @@ public final class MatterInventory implements MatterStore {
      * Invalid or newer data is rejected instead of replacing it with an empty store.
      * Missing substance definitions are deliberately preserved by ID and phase.
      */
-    public static MatterInventory restore(Snapshot snapshot) {
-        return restore(snapshot, Integer.MAX_VALUE);
-    }
     public static MatterInventory restore(Snapshot snapshot, int maximumTypes) {
         Objects.requireNonNull(snapshot, "snapshot");
         MatterInventory restored = new MatterInventory(snapshot.capacity(), maximumTypes);

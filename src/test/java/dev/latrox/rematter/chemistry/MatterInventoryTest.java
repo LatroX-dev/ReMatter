@@ -57,7 +57,7 @@ class MatterInventoryTest {
         original.insert(missing, 1_234);
         assertFalse(BuiltinChemistry.create().isKnown(missing));
 
-        MatterInventory restored = MatterInventory.restore(original.snapshot());
+        MatterInventory restored = MatterInventory.restore(original.snapshot(), Integer.MAX_VALUE);
         assertEquals(1_234, restored.amount(missing));
         assertEquals(original.snapshot(), restored.snapshot());
     }
@@ -91,9 +91,9 @@ class MatterInventoryTest {
     void corruptSnapshotsAreRejectedInsteadOfEmptied() {
         SubstanceStack stack = new SubstanceStack(COPPER, 600);
         assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(1_000, List.of(stack, stack))));
+                () -> MatterInventory.restore(new MatterInventory.Snapshot(1_000, List.of(stack, stack)), Integer.MAX_VALUE));
         assertThrows(IllegalArgumentException.class,
-                () -> MatterInventory.restore(new MatterInventory.Snapshot(500, List.of(stack))));
+                () -> MatterInventory.restore(new MatterInventory.Snapshot(500, List.of(stack)), Integer.MAX_VALUE));
     }
 
     @Test
@@ -116,7 +116,7 @@ class MatterInventoryTest {
 
         assertTrue(inventory.apply(Map.of(WATER, 1_000L), Map.of(HYDROGEN, 600L, OXYGEN, 300L)));
         inventory.extract(unknown, 100);
-        assertTrue(inventory.setCapacity(4_000));
+        ChemistryFixtures.resize(inventory, 4_000);
         inventory.restoreInPlace(before);
 
         assertSame(retainedReference, inventory);
@@ -150,7 +150,6 @@ class MatterInventoryTest {
                 () -> inventory.insert(WATER, 100),
                 () -> inventory.extract(WATER, 10),
                 () -> inventory.apply(Map.of(WATER, 10L), Map.of(HYDROGEN, 10L)),
-                () -> inventory.setCapacity(2_000),
                 () -> inventory.transferTo(other, WATER, 5),
                 () -> inventory.restoreInPlace(inventory.snapshot()));
         for (Runnable change : changes) {
@@ -158,8 +157,5 @@ class MatterInventoryTest {
             change.run();
             assertTrue(inventory.revision() > before);
         }
-        long otherRevision = other.revision();
-        assertTrue(other.transferAllTo(new MatterInventory(1_000)));
-        assertTrue(other.revision() > otherRevision);
     }
 }

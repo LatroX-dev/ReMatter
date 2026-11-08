@@ -1,5 +1,6 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.chemistry.ChemistryFixtures;
 import dev.latrox.rematter.chemistry.BuiltinChemistry;
 import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.Phase;
@@ -16,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ProcessPresentationTest {
     @Test void productUsesExactBatchWithoutRoundingOrMultiplyingRecipeCost() {
         var profile = new MaterialProfile("example:copper_nugget", 9, Map.of(COPPER, 1_000L), 8_000, 16_000, 100);
-        var registry = BuiltinChemistry.create().toBuilder().addProfile(profile)
+        var registry = ChemistryFixtures.copyOf(BuiltinChemistry.create()).addProfile(profile)
                 .allowSynthesis(profile.itemId(), SynthesisCategory.RAW_MATERIAL).build();
         var product = ProcessPresentation.resolve(registry, MachineKind.SYNTHESIZER, profile.itemId(), "Copper nuggets").orElseThrow();
         assertEquals("item", product.outputKind());

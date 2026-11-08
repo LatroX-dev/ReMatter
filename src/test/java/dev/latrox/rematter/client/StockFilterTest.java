@@ -9,6 +9,7 @@ import dev.latrox.rematter.content.MachineSnapshot.Entry;
 import dev.latrox.rematter.content.MachineSnapshot.StockKey;
 import dev.latrox.rematter.content.StockQuery;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.IntStream;
@@ -73,7 +74,7 @@ class StockFilterTest {
 
     private static SubstanceDefinition definition(String id, String symbol) {
         var key = SubstanceId.parse(id);
-        return new SubstanceDefinition(key, "substance.test", symbol, SubstanceKind.ELEMENT, Composition.element(key), Set.of(Phase.SOLID));
+        return new SubstanceDefinition(key, "substance.test", symbol, SubstanceKind.ELEMENT, new Composition(Map.of(key, 1L)), Set.of(Phase.SOLID));
     }
 
     @Test void unknownPhasesAreRejected() {

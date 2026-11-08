@@ -113,7 +113,6 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                 throw new IllegalArgumentException("Invalid structure view");
         }
         public boolean formed() { return diagnostic.equals("ready"); }
-        public int volume() { return formed() ? (width - 2) * (depth - 2) * (height - 2) : 0; }
     }
     /** One Drive bay. The client names the cell from its item ID. */
     public record CellView(boolean installed, boolean readable, String itemId, long capacity, int types, int maxTypes) {

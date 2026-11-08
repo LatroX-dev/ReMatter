@@ -23,12 +23,4 @@ public record MaterialProfile(
                            long decompositionEnergy, long synthesisEnergy, int ticks) {
         this(itemId, 1, matter, decompositionEnergy, synthesisEnergy, ticks);
     }
-
-    /** Rejects partial batches instead of rounding fractional nuggets or dusts. */
-    public Map<SubstanceKey, Long> matterFor(long count) {
-        if (count <= 0 || count % itemCount != 0) {
-            throw new IllegalArgumentException("Item count must contain whole material batches");
-        }
-        return MatterAmounts.multiply(matter, count / itemCount);
-    }
 }

@@ -1,5 +1,6 @@
 package dev.latrox.rematter.compat;
 
+import dev.latrox.rematter.chemistry.ChemistryFixtures;
 import dev.latrox.rematter.chemistry.BuiltinChemistry;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.Composition;
@@ -67,7 +68,7 @@ class ChemistryViewerTest {
     @Test void onlyMatterThatAShownRecipeReachesIsListed() {
         var orphan = SubstanceKey.of("example:orphanite", Phase.SOLID);
         var modOnly = SubstanceKey.of("example:missing_essence", Phase.SOLID);
-        var registry = ShippedChemistry.standalone().toBuilder()
+        var registry = ChemistryFixtures.copyOf(ShippedChemistry.standalone())
                 .addSubstance(element(orphan.id()))
                 .addSubstance(element(modOnly.id()))
                 .addProfile(new MaterialProfile("example:missing_block", Map.of(modOnly, 9_000L), 1_000, 2_000, 20))
@@ -95,6 +96,6 @@ class ChemistryViewerTest {
 
     private static SubstanceDefinition element(SubstanceId id) {
         return new SubstanceDefinition(id, "substance." + id.namespace() + "." + id.path(), "", SubstanceKind.ELEMENT,
-                Composition.element(id), Set.of(Phase.SOLID));
+                new Composition(Map.of(id, 1L)), Set.of(Phase.SOLID));
     }
 }

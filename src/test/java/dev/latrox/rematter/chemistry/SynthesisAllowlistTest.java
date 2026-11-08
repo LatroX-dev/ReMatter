@@ -18,7 +18,7 @@ class SynthesisAllowlistTest {
                 "mysticalagriculture:awakened_supremium_block", "forbidden_arcanus:deorum_ingot", "forbidden_arcanus:stellarite_piece",
                 "forbidden_arcanus:corrupted_arcane_crystal", "occultism:obsidian_dust", "enderio:powdered_ender_pearl")) {
             assertTrue(REGISTRY.profile(item).isPresent(), item);
-            assertFalse(REGISTRY.synthesisPolicy().allows(item), item);
+            assertFalse(REGISTRY.synthesisPolicy().category(item).isPresent(), item);
         }
         for (String item : List.of("minecraft:ender_pearl", "mysticalagriculture:imperium_essence")) {
             assertTrue(REGISTRY.synthesisPolicy().allowsItem(item), item);

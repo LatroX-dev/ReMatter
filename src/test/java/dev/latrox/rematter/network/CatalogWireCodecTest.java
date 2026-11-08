@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CatalogWireCodecTest {
     @Test
     void completeCatalogueRetainsExactChemistryAndExplicitSynthesisPermissions() throws Exception {
-        ChemistryRegistry original = ShippedChemistry.standalone().toBuilder()
+        ChemistryRegistry original = ChemistryFixtures.copyOf(ShippedChemistry.standalone())
                 .addProfile(new MaterialProfile("example:copper_sample", 9, Map.of(BuiltinChemistry.COPPER, 17L), 31, 59, 7))
                 .addFluidProfile(new FluidProfile("example:molten_copper", 144, Map.of(BuiltinChemistry.COPPER, 1_000L), 1, 2, 3))
                 .build();
@@ -27,7 +27,7 @@ class CatalogWireCodecTest {
         assertEquals(java.util.List.copyOf(original.processes()), java.util.List.copyOf(received.processes()));
         assertFalse(original.synthesisPolicy().entries().isEmpty());
         assertEquals(original.synthesisPolicy().entries(), received.synthesisPolicy().entries());
-        assertFalse(received.synthesisPolicy().allows("example:copper_sample"));
+        assertFalse(received.synthesisPolicy().category("example:copper_sample").isPresent());
         ProcessRecipe electrolysis = received.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow();
         assertEquals(Map.of(BuiltinChemistry.HYDROGEN, 1_000L, BuiltinChemistry.OXYGEN, 500L), electrolysis.outputs());
     }
@@ -73,12 +73,12 @@ class CatalogWireCodecTest {
     void serverRejectsUntransportableNamesBeforeSync() {
         SubstanceId id = SubstanceId.parse("example:long_name");
         ChemistryRegistry catalogue = ChemistryRegistry.builder().addSubstance(new SubstanceDefinition(id,
-                "a".repeat(513), "X", SubstanceKind.ELEMENT, Composition.element(id), java.util.Set.of(Phase.SOLID))).build();
+                "a".repeat(513), "X", SubstanceKind.ELEMENT, new Composition(Map.of(id, 1L)), java.util.Set.of(Phase.SOLID))).build();
         assertThrows(IllegalArgumentException.class, () -> CatalogWireCodec.encode(catalogue));
     }
 
     @Test void largeCatalogueRoundTripsEveryProfileAndPermission() {
-        var builder = BuiltinChemistry.create().toBuilder();
+        var builder = ChemistryFixtures.copyOf(BuiltinChemistry.create());
         for (int i = 0; i < 2_000; i++) {
             String id = "example:material_" + i;
             builder.addProfile(new MaterialProfile(id, i % 2 == 0 ? 9 : 1,

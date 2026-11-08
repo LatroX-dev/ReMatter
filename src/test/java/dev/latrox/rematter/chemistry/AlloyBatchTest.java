@@ -18,28 +18,28 @@ class AlloyBatchTest {
     @Test
     void fourBronzeRecoverTheCheaperNativeBatchExactlyAndSinglePiecesAreNotRounded() {
         MaterialProfile ingot = profile("alltheores:bronze_ingot");
-        assertEquals(Map.of(BuiltinChemistry.COPPER, 3_000L, TIN, 125L), ingot.matterFor(4));
-        assertThrows(IllegalArgumentException.class, () -> ingot.matterFor(1));
-        assertEquals(ingot.matterFor(36), profile("alltheores:bronze_block").matterFor(4));
-        assertEquals(ingot.matterFor(4), profile("alltheores:bronze_nugget").matterFor(36));
+        assertEquals(Map.of(BuiltinChemistry.COPPER, 3_000L, TIN, 125L), ChemistryFixtures.matterFor(ingot, 4));
+        assertThrows(IllegalArgumentException.class, () -> ChemistryFixtures.matterFor(ingot, 1));
+        assertEquals(ChemistryFixtures.matterFor(ingot, 36), ChemistryFixtures.matterFor(profile("alltheores:bronze_block"), 4));
+        assertEquals(ChemistryFixtures.matterFor(ingot, 4), ChemistryFixtures.matterFor(profile("alltheores:bronze_nugget"), 36));
         assertTrue(REGISTRY.synthesisPolicy().allowsItem(ingot.itemId()));
     }
 
     @Test
     void invarAndNetheriteKeepTheSmallerShareOfEachElementAndCannotBeSynthesized() {
         MaterialProfile invar = profile("alltheores:invar_ingot");
-        assertEquals(Map.of(BuiltinChemistry.IRON, 1_500L, NICKEL, 1_000L), invar.matterFor(3));
-        assertEquals(invar.matterFor(9), profile("alltheores:invar_block").matter());
+        assertEquals(Map.of(BuiltinChemistry.IRON, 1_500L, NICKEL, 1_000L), ChemistryFixtures.matterFor(invar, 3));
+        assertEquals(ChemistryFixtures.matterFor(invar, 9), profile("alltheores:invar_block").matter());
         // Oritech alloys one iron and one nickel into two invar.
-        assertTrue(invar.matterFor(6).get(BuiltinChemistry.IRON) <= 3_000L);
+        assertTrue(ChemistryFixtures.matterFor(invar, 6).get(BuiltinChemistry.IRON) <= 3_000L);
         // Two iron and one nickel yield three invar elsewhere.
-        assertTrue(invar.matterFor(3).get(NICKEL) <= 1_000L);
+        assertTrue(ChemistryFixtures.matterFor(invar, 3).get(NICKEL) <= 1_000L);
         MaterialProfile netherite = profile("minecraft:netherite_ingot");
         assertEquals(Map.of(BuiltinChemistry.GOLD, 500L, NETHERIUM, 1_000L), netherite.matter());
-        assertEquals(netherite.matterFor(9), profile("minecraft:netherite_block").matter());
+        assertEquals(ChemistryFixtures.matterFor(netherite, 9), profile("minecraft:netherite_block").matter());
         for (String item : List.of("alltheores:invar_ingot", "ftbic:invar_dust", "alltheores:invar_block",
                 "minecraft:netherite_ingot", "minecraft:netherite_block", "mekanism:dust_netherite", "occultism:netherite_dust")) {
-            assertFalse(REGISTRY.synthesisPolicy().allows(item), item);
+            assertFalse(REGISTRY.synthesisPolicy().category(item).isPresent(), item);
         }
     }
 
@@ -53,11 +53,11 @@ class AlloyBatchTest {
 
     @Test
     void gooAlloysRecoverAtMostOneTwentiethOfTheirInputBlockPerIngot() {
-        assertEquals(profile("minecraft:gold_block").matter(), profile("justdirethings:blazegold_ingot").matterFor(20));
-        assertEquals(profile("minecraft:iron_block").matter(), profile("justdirethings:ferricore_ingot").matterFor(20));
-        assertEquals(profile("minecraft:netherite_block").matter(), profile("justdirethings:eclipsealloy_ingot").matterFor(20));
+        assertEquals(profile("minecraft:gold_block").matter(), ChemistryFixtures.matterFor(profile("justdirethings:blazegold_ingot"), 20));
+        assertEquals(profile("minecraft:iron_block").matter(), ChemistryFixtures.matterFor(profile("justdirethings:ferricore_ingot"), 20));
+        assertEquals(profile("minecraft:netherite_block").matter(), ChemistryFixtures.matterFor(profile("justdirethings:eclipsealloy_ingot"), 20));
         for (String alloy : List.of("blazegold", "ferricore", "eclipsealloy")) {
-            assertEquals(profile("justdirethings:" + alloy + "_ingot").matterFor(5), profile("justdirethings:raw_" + alloy).matter());
+            assertEquals(ChemistryFixtures.matterFor(profile("justdirethings:" + alloy + "_ingot"), 5), profile("justdirethings:raw_" + alloy).matter());
         }
     }
 

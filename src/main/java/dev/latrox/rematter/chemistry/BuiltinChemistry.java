@@ -5,8 +5,6 @@ import java.util.Set;
 
 /** Core substances and balanced processes. Item, fluid and gas permissions come from the generated catalogue data. */
 public final class BuiltinChemistry {
-    public static final long MATERIAL_UNIT = 1_000;
-
     public static final SubstanceKey COPPER = key("copper", Phase.SOLID);
     public static final SubstanceKey IRON = key("iron", Phase.SOLID);
     public static final SubstanceKey GOLD = key("gold", Phase.SOLID);

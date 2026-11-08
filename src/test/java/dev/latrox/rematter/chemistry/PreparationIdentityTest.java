@@ -35,7 +35,7 @@ class PreparationIdentityTest {
             var profile = REGISTRY.profile(result);
             if (profile.isEmpty()) continue;
             long count = recipe.getAsJsonObject("result").get("count").getAsLong();
-            assertEquals(ingredients(recipe, producers), profile.orElseThrow().matterFor(count), result);
+            assertEquals(ingredients(recipe, producers), ChemistryFixtures.matterFor(profile.orElseThrow(), count), result);
             checked++;
         }
         assertTrue(checked >= 8, "Workshop powders, ceramics and powders keep their ingredient identities");

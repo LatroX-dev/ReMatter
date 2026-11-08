@@ -43,7 +43,7 @@ class MachineReadinessTest {
         var store = new MatterInventory(1000);
         store.insert(WATER, 1000);
         assertEquals("storage_full", MachineReadiness.check(true, store, INPUT, OUTPUT, false, 0, 100));
-        store.setCapacity(1500);
+        ChemistryFixtures.resize(store, 1500);
         assertEquals("output_blocked", MachineReadiness.check(true, store, INPUT, OUTPUT, false, 0, 100));
         assertEquals("insufficient_energy", MachineReadiness.check(true, store, INPUT, OUTPUT, true, 99, 100));
         assertEquals("ready", MachineReadiness.check(true, store, INPUT, OUTPUT, true, 100, 100));
@@ -67,7 +67,7 @@ class MachineReadinessTest {
         assertEquals("storage_full", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
         assertEquals("storage_full", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
         assertEquals(1, counted.plans);
-        counted.store.setCapacity(1500);
+        ChemistryFixtures.resize(counted.store, 1500);
         assertEquals("ready", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
         assertEquals(2, counted.plans);
         assertEquals("insufficient_energy", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 99, 100));

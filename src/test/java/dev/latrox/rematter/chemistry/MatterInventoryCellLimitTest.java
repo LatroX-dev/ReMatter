@@ -30,6 +30,6 @@ class MatterInventoryCellLimitTest {
     @Test void inventoryWithoutATypeLimitRestoresWithoutOne() {
         var unlimited=new MatterInventory(1_000_000);
         for(int i=0;i<600;i++)assertEquals(1,unlimited.insert(key("substance_"+i),1));
-        assertEquals(600,MatterInventory.restore(unlimited.snapshot()).typeCount());
+        assertEquals(600,MatterInventory.restore(unlimited.snapshot(), Integer.MAX_VALUE).typeCount());
     }
 }

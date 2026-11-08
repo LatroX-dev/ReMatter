@@ -93,11 +93,9 @@ class MachineSnapshotTest {
                 structure, MachineSnapshot.NetworkView.EMPTY, List.of());
         var decoded = roundTrip(MachineSnapshot.CODEC, snapshot);
         assertEquals(snapshot, decoded);
-        assertEquals(24, decoded.structure().volume());
+        assertEquals(6, decoded.structure().depth());
         assertFalse(MachineSnapshot.StructureView.EMPTY.formed());
-        assertEquals(0, MachineSnapshot.StructureView.EMPTY.volume());
         assertEquals(3,structure.moduleCount());
-        assertEquals(343, new MachineSnapshot.StructureView(9, 9, 9, 970,49,"ready",49,48,1,0,0,0).volume());
     }
     @Test void malformedStructureSizesRatesAndControllerKindsAreRejected() {
         for (var values : List.of(new int[]{0,3,5,4}, new int[]{3,10,5,4}, new int[]{3,3,2,4},

@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /** Data-only validation of the packaged optional definitions, without Minecraft or FML initialization. */
 class ShippedChemistryDataTest {
+    /** One ingot or dust of a pure element. */
+    private static final long MATERIAL_UNIT = 1_000;
     @Test
     void automationCatalogueRetainsEveryShippedBatchAndOnlyApprovedSynthesis() throws Exception {
         ChemistryRegistry registry = readShippedData().build();
@@ -161,12 +163,12 @@ class ShippedChemistryDataTest {
             String element = substance.id().path();
             if (!Set.of(element + "_ingot", element + "_dust", "ingot_" + element, "dust_" + element).contains(path)
                     || profile.itemCount() != 1) continue;
-            assertEquals(Composition.element(substance.id()), substance.composition(), profile.itemId());
+            assertEquals(new Composition(Map.of(substance.id(), 1L)), substance.composition(), profile.itemId());
             Long previous = amountPerForm.putIfAbsent(entry.getKey(), entry.getValue());
             if (previous != null) {
                 assertEquals(previous, entry.getValue(), "Unequal dust/ingot values for " + profile.itemId());
             }
-            assertEquals(BuiltinChemistry.MATERIAL_UNIT, entry.getValue().longValue(), profile.itemId());
+            assertEquals(MATERIAL_UNIT, entry.getValue().longValue(), profile.itemId());
         }
     }
 
@@ -183,7 +185,7 @@ class ShippedChemistryDataTest {
 
             assertTrue(inventory.apply(Map.of(), profile.matter()), profile.itemId());
             assertEquals(Math.addExact(materialTotal, 17), inventory.total());
-            inventory = MatterInventory.restore(inventory.snapshot());
+            inventory = MatterInventory.restore(inventory.snapshot(), Integer.MAX_VALUE);
             assertTrue(inventory.apply(profile.matter(), Map.of()), profile.itemId());
             assertEquals(before, inventory.contents(), profile.itemId());
             assertEquals(17, inventory.total(), profile.itemId());
@@ -203,7 +205,7 @@ class ShippedChemistryDataTest {
         for (MaterialProfile profile : allProfiles) {
             assertTrue(inventory.apply(Map.of(), profile.matter()), profile.itemId());
         }
-        MatterInventory restored = MatterInventory.restore(inventory.snapshot());
+        MatterInventory restored = MatterInventory.restore(inventory.snapshot(), Integer.MAX_VALUE);
         assertEquals(expected, restored.contents());
         assertEquals(expectedTotal, restored.total());
         assertEquals(0, restored.freeSpace());

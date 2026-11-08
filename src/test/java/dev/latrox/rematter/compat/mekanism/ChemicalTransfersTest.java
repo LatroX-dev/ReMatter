@@ -251,7 +251,7 @@ class ChemicalTransfersTest {
         }
 
         assertEquals(before, inventory.snapshot());
-        assertEquals(before, MatterInventory.restore(inventory.snapshot()).snapshot());
+        assertEquals(before, MatterInventory.restore(inventory.snapshot(), Integer.MAX_VALUE).snapshot());
     }
 
     @Test
