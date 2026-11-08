@@ -6,6 +6,7 @@ import dev.latrox.rematter.chemistry.Composition;
 import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.ProcessType;
+import dev.latrox.rematter.chemistry.ShippedChemistry;
 import dev.latrox.rematter.chemistry.SubstanceDefinition;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
@@ -48,8 +49,8 @@ class ChemistryViewerTest {
     }
 
     @Test void recipeIdsAreStableUniqueAndSynthetic() {
-        var first = entries(BuiltinChemistry.create());
-        var second = entries(BuiltinChemistry.create());
+        var first = entries(ShippedChemistry.standalone());
+        var second = entries(ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES));
         assertEquals(first.stream().map(ChemistryViewer.Entry::id).toList(), second.stream().map(ChemistryViewer.Entry::id).toList());
         var unique = new HashSet<Identifier>();
         for (var entry : first) {
@@ -66,7 +67,7 @@ class ChemistryViewerTest {
     @Test void onlyMatterThatAShownRecipeReachesIsListed() {
         var orphan = SubstanceKey.of("example:orphanite", Phase.SOLID);
         var modOnly = SubstanceKey.of("example:missing_essence", Phase.SOLID);
-        var registry = BuiltinChemistry.create().toBuilder()
+        var registry = ShippedChemistry.standalone().toBuilder()
                 .addSubstance(element(orphan.id()))
                 .addSubstance(element(modOnly.id()))
                 .addProfile(new MaterialProfile("example:missing_block", Map.of(modOnly, 9_000L), 1_000, 2_000, 20))
@@ -82,7 +83,7 @@ class ChemistryViewerTest {
     }
 
     @Test void decompositionExplainsWhetherSynthesisIsAllowedAndKeepsTheExactBatch() {
-        var entries = entries(BuiltinChemistry.create());
+        var entries = entries(ShippedChemistry.standalone());
         var copper = entries.stream().filter(entry -> entry.id().getPath().equals("/decomposition/item/minecraft/raw_copper")).findFirst().orElseThrow();
         assertEquals(ChemistryViewer.Category.DECOMPOSITION, copper.category());
         assertTrue(copper.consumed().isPresent() && copper.produced().isEmpty() && copper.inputs().isEmpty());
