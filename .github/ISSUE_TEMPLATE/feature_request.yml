@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Suggestions in English or German are welcome. Search existing issues first.
-        Synthesis is limited to raw materials and natural materials; manufactured components and equipment stay in existing production chains.
+        Synthesis is limited to explicitly permitted raw and natural materials, fluids and gases; manufactured components, equipment and machines stay in their existing production chains.
   - type: textarea
     id: need
     attributes:
