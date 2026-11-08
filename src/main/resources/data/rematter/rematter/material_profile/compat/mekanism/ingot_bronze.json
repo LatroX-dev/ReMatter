@@ -2,19 +2,20 @@
   "schema_version": 1,
   "required_mod": "mekanism",
   "item": "mekanism:ingot_bronze",
+  "item_count": 4,
   "matter": [
     {
       "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 750
+      "amount": 3000
     },
     {
       "substance": "rematter:tin",
       "phase": "solid",
-      "amount": 31
+      "amount": 125
     }
   ],
-  "decomposition_energy": 8000,
-  "synthesis_energy": 16000,
-  "ticks": 100
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 400
 }

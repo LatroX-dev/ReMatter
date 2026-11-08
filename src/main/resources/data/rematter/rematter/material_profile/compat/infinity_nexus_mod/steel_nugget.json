@@ -12,7 +12,7 @@
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 990
+      "amount": 1000
     }
   ],
   "decomposition_energy": 8000,

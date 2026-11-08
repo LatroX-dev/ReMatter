@@ -55,8 +55,8 @@ class WorkshopMaterialsTest {
                         "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:arcane_essence", 1000L),
                 "lumivex", Map.of("rematter:copper", 3000L, "rematter:gold", 1000L,
                         "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:nether_essence", 1000L),
-                "virelite", Map.of("rematter:aluminum", 2000L, "rematter:silicon", 4000L,
-                        "rematter:oxygen", 13000L, "rematter:hydrogen", 4000L));
+                "virelite", Map.of("rematter:silicon", 1000L, "rematter:oxygen", 2000L,
+                        "rematter:clay", 1000L, "rematter:crystalline_silica", 1000L));
         ChemistryRegistry elements = BuiltinChemistry.create();
         for (String family : FAMILIES) {
             JsonObject unfired = profile(powder(family)), finished = profile(product(family));

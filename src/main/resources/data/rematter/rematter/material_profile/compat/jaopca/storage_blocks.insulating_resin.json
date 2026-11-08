@@ -5,17 +5,12 @@
   "item": "jaopca:storage_blocks.insulating_resin",
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:silicon",
       "phase": "solid",
-      "amount": 9000
-    },
-    {
-      "substance": "rematter:silica",
-      "phase": "solid",
-      "amount": 9000
+      "amount": 2250
     }
   ],
-  "decomposition_energy": 288000,
-  "synthesis_energy": 576000,
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
   "ticks": 900
 }

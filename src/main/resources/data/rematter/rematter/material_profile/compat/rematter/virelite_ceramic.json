@@ -4,24 +4,19 @@
   "item": "rematter:virelite_ceramic",
   "matter": [
     {
-      "substance": "rematter:aluminum",
+      "substance": "rematter:clay",
       "phase": "solid",
-      "amount": 500
+      "amount": 250
     },
     {
-      "substance": "rematter:hydrogen",
-      "phase": "gas",
-      "amount": 500
-    },
-    {
-      "substance": "rematter:oxygen",
-      "phase": "gas",
-      "amount": 1625
-    },
-    {
-      "substance": "rematter:silicon",
+      "substance": "rematter:crystalline_silica",
       "phase": "solid",
-      "amount": 1000
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
     }
   ],
   "decomposition_energy": 8000,

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "fluid": "minecraft:water",
+  "amount": 1000,
+  "matter": [
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 2000,
+  "ticks": 80
+}

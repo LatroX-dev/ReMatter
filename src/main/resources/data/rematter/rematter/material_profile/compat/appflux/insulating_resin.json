@@ -4,17 +4,12 @@
   "item": "appflux:insulating_resin",
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:silicon",
       "phase": "solid",
-      "amount": 1000
-    },
-    {
-      "substance": "rematter:silica",
-      "phase": "solid",
-      "amount": 1000
+      "amount": 250
     }
   ],
-  "decomposition_energy": 32000,
-  "synthesis_energy": 64000,
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
   "ticks": 100
 }

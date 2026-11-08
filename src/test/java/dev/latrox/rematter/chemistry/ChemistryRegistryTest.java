@@ -63,7 +63,7 @@ class ChemistryRegistryTest {
     @Test
     void manufacturedItemsCannotBeApprovedByCategoryOrImplicitProfile() {
         MaterialProfile machine = new MaterialProfile("example:machine", Map.of(COPPER, 1_000L), 100, 100, 20);
-        ChemistryRegistry registry = BuiltinChemistry.create().toBuilder().addProfile(machine).build();
+        ChemistryRegistry registry = ShippedChemistry.standalone().toBuilder().addProfile(machine).build();
         assertTrue(registry.profile("example:machine").isPresent());
         assertFalse(registry.synthesisPolicy().allows("example:machine"));
         assertFalse(registry.synthesisPolicy().allows("minecraft:raw_copper"));
@@ -86,7 +86,7 @@ class ChemistryRegistryTest {
 
     @Test
     void copperBlockAndIngotProfilesCannotDuplicateMaterialThroughCrafting() {
-        ChemistryRegistry registry = BuiltinChemistry.create();
+        ChemistryRegistry registry = ShippedChemistry.standalone();
         MaterialProfile ingot = registry.profile("minecraft:copper_ingot").orElseThrow();
         MaterialProfile block = registry.profile("minecraft:copper_block").orElseThrow();
         assertEquals(ingot.matterFor(9), block.matter());
@@ -95,7 +95,7 @@ class ChemistryRegistryTest {
 
     @Test
     void allRequiredMaterialPhasesHaveExplicitSupportedDefinitions() {
-        ChemistryRegistry registry = BuiltinChemistry.create();
+        ChemistryRegistry registry = ShippedChemistry.standalone();
         assertTrue(registry.profile("minecraft:dirt").isPresent());
         assertTrue(registry.profile("minecraft:stone").isPresent());
         assertTrue(registry.isKnown(WATER));

@@ -5,17 +5,17 @@
     {
       "substance": "rematter:silica",
       "phase": "solid",
-      "amount": 600
+      "amount": 750
     },
     {
       "substance": "rematter:alumina",
       "phase": "solid",
-      "amount": 850
+      "amount": 1062
     },
     {
       "substance": "rematter:calcium_oxide",
       "phase": "solid",
-      "amount": 950
+      "amount": 1188
     }
   ],
   "decomposition_energy": 8000,

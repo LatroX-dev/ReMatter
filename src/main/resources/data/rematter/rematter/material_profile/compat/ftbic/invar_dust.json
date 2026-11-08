@@ -2,19 +2,20 @@
   "schema_version": 1,
   "required_mod": "ftbic",
   "item": "ftbic:invar_dust",
+  "item_count": 3,
   "matter": [
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 666
+      "amount": 1500
     },
     {
       "substance": "rematter:nickel",
       "phase": "solid",
-      "amount": 333
+      "amount": 1000
     }
   ],
-  "decomposition_energy": 8000,
-  "synthesis_energy": 16000,
-  "ticks": 100
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 300
 }

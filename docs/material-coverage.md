@@ -1,14 +1,14 @@
 # Material coverage
 
-ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item profiles and their separate synthesis permissions. Tags help investigate candidates but never grant support at runtime.
+ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **962 item profiles** across **34 namespaces**, with **475 explicit synthesis outputs**. It defines 77 substances alongside 17 built-in substances. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
 
 ## Quantities and material states
 
-- One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units.
+- One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units. Every material family declares one exact batch, and each profile must hold a whole multiple of it. Where a recipe divides a constituent unevenly, the profile covers several items instead of rounding. Energy and duration scale with the same share, so a block costs as much as the ingots it contains.
 - Nine Ender IO Ender Pearl Powder fragments contain the same constituents as one pearl. ReMatter's full powder and AE2 Ender Dust each contain a whole pearl's constituents. A JAOPCA pearl powder block can be made from nine tag ingredients of either size. ReMatter recovers one pearl equivalent and leaves its synthesis disabled.
-- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts.
+- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts. Only the natural block can be synthesized, because Occultism turns a single dust into a whole block.
 - Compressed blocks use their reviewed recipe quantities. Quartz, Certus Quartz and uncharged Ember blocks use four crystals; ordinary metal storage blocks use nine ingots. JAOPCA powder blocks use their verified nine-powder recipe, not a ratio inferred from their name.
 - Ores and raw metals are decomposition inputs only. Conservative recovery does not promise the yield of an external ore-processing chain.
 - Crystalline silica remains distinct from sand and amorphous silica. Diamond and graphite are distinct carbon allotropes. No automatic conversion between these states is added.
@@ -16,25 +16,35 @@ The data catalogue contains **962 item profiles** across **34 namespaces**, with
 - Refined Obsidian dust retains the obsidian and diamond constituents of its infusion recipe. Refined Glowstone and Refined Obsidian ingots still require Mekanism compression. Decomposition recovers the constituents of the corresponding dust without recovering the machine's osmium reagent. Mystical essences and gemstones retain their tier identities.
 - Uncharged Ember Crystal, corrupted Arcane Crystal, Stellarite and Dimensional Shard retain separate identities. Occultism's Gambler can produce Spirit-Attuned Gems from ordinary gems, so attuned gems and blocks are excluded from diamond recovery.
 - Burnt Otherrock, Burnt Otherstone and Otherworld Ashes retain their processed states; they are not aliases for unburnt rock, logs or living wood.
-- AppFlux insulating resin recovers the Glowstone constituents common to the uncured and hardened forms. ReMatter models Oritech's finished plastic as polyethylene, `(C₂H₄)ₙ`. Each sheet recovers carbon and molecular hydrogen. The block recovers nine sheets' worth. Resin recovers the plastic fraction of its native one-sheet furnace route. These profiles are for decomposition.
+- AppFlux insulating resin recovers only the one silicon item that every resin route uses, 250 silicon, because Applied Generators makes resin without glowstone and duplicates it. ReMatter models Oritech's finished plastic as polyethylene, `(C₂H₄)ₙ`. One polymer resin recovers four sheets' worth of carbon and molecular hydrogen, the best native centrifuge yield, so each sheet recovers a quarter of a resin. The block recovers nine sheets' worth. These profiles are for decomposition.
 - Natural ice, packed ice and blue ice recover solid water. Each block equals one corresponding crushed item, and JAOPCA powder storage blocks contain nine. FTBIC and Refurbished Furniture compress both grades at 1:1, so recovery follows that lower bound. Native recipes produce packed ice and blue ice.
 - ReMatter's diamond, emerald, lapis, amethyst and netherite powders recover the same amounts as their one-to-one grinding inputs.
-- Netherite scrap and scrap dust both contain Netherium (`Nt`), a fictional constituent. A Netherite Ingot contains four Gold Ingot batches and four scrap batches. Scrap storage blocks contain nine scrap batches. Ancient Debris provides one scrap batch through decomposition.
+- Netherite scrap and scrap dust both contain Netherium (`Nt`), a fictional constituent. Native routes make a Netherite Ingot from as little as one gold ingot and one scrap or one eighth of a gold dust and four scrap, so an ingot or dust recovers the smallest share of each, 500 gold and 1,000 Netherium, and none of them can be synthesized. Scrap storage blocks contain nine scrap batches. Ancient Debris provides one scrap batch through decomposition.
 - Prismarine shards and crystals retain separate identities. Natural Prismarine contains four shards; the JAOPCA crystal block contains nine crystals. Ecologics Seashell Blocks contain nine shells; decorative shell tiles are outside this catalogue.
 - Coal, charcoal, graphite, uraninite and combustible candidates remain decomposition-only until their complete energy cycles have been reviewed. Nuclear fuel rods and isotope mixtures are outside these generic material profiles.
 - Nondefault item components are rejected. Profiles do not authorize consuming stored energy, inventories, patterns, enchantments or custom item data. Machines and manufactured components are not synthesis outputs.
 
 ## Alloys, compounds and mixtures
 
-Reviewed alloys use the ingredients and output counts of the reference mod recipes. Where shared tags allow brands to be exchanged, recovery uses the smallest verified common quantities. One Bronze Ingot recovers 750 copper and 31 tin units. Oritech's lowest-cost Adamant recipe uses one nickel ingot and one diamond. Recovery-only profiles keep native production required when routes consume different ingredients or when the full composition cannot be verified. The catalogue records the recipe basis or identifies a native mineral's composition as a ReMatter model.
+Reviewed alloys use the ingredients and output counts of the reference mod recipes. Where shared tags allow brands to be exchanged, recovery uses the smallest verified common quantities. Four Bronze Ingots recover exactly 3,000 copper and 125 tin, and three Invar recover 1,500 iron and 1,000 nickel; such alloys decompose in whole batches. Where routes disagree element by element, as for Invar and Netherite, recovery keeps the smaller amount of each element and synthesis stays disabled. Oritech's lowest-cost Adamant recipe uses one nickel ingot and one diamond. Recovery-only profiles keep native production required when routes consume different ingredients or when the full composition cannot be verified. The catalogue records the recipe basis or identifies a native mineral's composition as a ReMatter model.
 
-The explicit synthesis list accounts for progression and equivalent constituent recipes. Finished Rhevon, Lumivex and Virelite require firing. Mystical Agriculture alloys and gemstones recover their actual base and same-tier ingredients. Their distinct essence grades preserve native upgrading. Thaumaturge Void Metal stays outside material recovery until its seed and aspect chemistry has a supported model.
+The explicit synthesis list accounts for progression and equivalent constituent recipes. Finished Rhevon, Lumivex and Virelite require firing. Workshop powders and their fired forms decompose into exactly the substances of their ingredients; Virelite keeps sand silica, quartz and clay bound instead of releasing elemental silicon, aluminum or gases. Mystical Agriculture alloys and gemstones recover their actual base and same-tier ingredients. Special loot, boss-gated and top-tier progression materials are recovery-only: echo, Supremium, Insanium and Awakened Supremium, Deorum, Stellarite and corrupted Arcane Crystal. Ender pearls remain synthesizable as a renewable mob drop. Their distinct essence grades preserve native upgrading. Thaumaturge Void Metal stays outside material recovery until its seed and aspect chemistry has a supported model.
 
 Certus Quartz uses silica chemistry and retains its crystal structure. Fluix recovery yields 250 units of Certus per crystal or dust. AdvancedAE and Applied Generators produce batches of 64 from 16 charged Certus, and their duplication routes omit redstone and Nether Quartz.
 
-Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
+Stone, cobblestone, deepslate, andesite, diorite, granite, tuff, basalt and blackstone share silica, alumina and calcium oxide. Their proportions are simplified gameplay compositions with 3,000 oxide units per block. Sandstone uses the same amount of silica as its four sand inputs. The mineral blend process supplies the solid feedstock for lava from the same three ingredients.
 
-End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence. Calcite yields calcium oxide and carbon dioxide.
+End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. Ten blocks provide the Enderion required by one Ender Pearl. Netherrack adds Cinderium (`Cdr`) to silica and alumina. Fifty blocks supply the Cinderium for one Glowstone Dust. Redstone contains silica and Arcane Essence (`Arc`). Calcite yields calcium oxide and carbon dioxide.
+
+Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
+
+- **Arcane Essence** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Supremium Essence, Tertium Essence; held directly by 30 item profiles.
+- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 23 item profiles.
+- **Enderion** (`Edr`): Dimensional Shard Material; held directly by 29 item profiles.
+- **Netherium** (`Nt`): held directly by 18 item profiles.
+- **Quantum Essence** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
+- **Stellar Essence** (`Stl`): Sky Stone, Stellarite; held directly by 30 item profiles.
+- **Vital Essence** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
 
 Lapis Lazuli uses a simplified lazurite model with sodium, calcium, aluminum, silicon, oxygen and sulfur. Real lapis lazuli contains several minerals with variable proportions.
 
@@ -48,29 +58,29 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | --- | ---: | ---: |
 | `ae2` | 9 | 6 |
 | `ae2omnicells` | 1 | 1 |
-| `alltheores` | 205 | 88 |
+| `alltheores` | 205 | 83 |
 | `appflux` | 4 | 2 |
-| `appgen` | 6 | 3 |
+| `appgen` | 6 | 2 |
 | `aquaculture` | 3 | 0 |
 | `colossal_reactors` | 36 | 12 |
 | `ecologics` | 2 | 2 |
-| `enderio` | 33 | 26 |
+| `enderio` | 33 | 24 |
 | `energizedpower` | 20 | 12 |
 | `extendedae` | 4 | 1 |
-| `forbidden_arcanus` | 17 | 10 |
-| `ftbic` | 84 | 45 |
+| `forbidden_arcanus` | 17 | 3 |
+| `ftbic` | 84 | 40 |
 | `hextale` | 18 | 3 |
 | `infinity_nexus_mod` | 78 | 41 |
-| `jaopca` | 38 | 19 |
+| `jaopca` | 38 | 17 |
 | `justdirethings` | 7 | 0 |
-| `mekanism` | 67 | 40 |
+| `mekanism` | 67 | 38 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 77 | 47 |
-| `mysticalagradditions` | 11 | 2 |
-| `mysticalagriculture` | 61 | 46 |
+| `minecraft` | 81 | 49 |
+| `mysticalagradditions` | 11 | 0 |
+| `mysticalagriculture` | 61 | 37 |
 | `nautec` | 4 | 1 |
-| `occultism` | 36 | 21 |
+| `occultism` | 36 | 18 |
 | `oritech` | 53 | 26 |
 | `powah` | 9 | 0 |
 | `refinedstorage` | 1 | 1 |
@@ -81,11 +91,40 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `stellaris` | 19 | 3 |
 | `thaumaturge` | 18 | 5 |
 
-The complete per-item list is [material-coverage.csv](material-coverage.csv). A zero synthesis count still permits analysis and supported decomposition.
+The complete list of item, fluid and gas entries is [material-coverage.csv](material-coverage.csv). Its `batch` column counts items for item profiles and millibuckets for fluid profiles. A zero synthesis count still permits analysis and supported decomposition.
 
 ## Fluids and gases
 
-Water and lava retain the original explicit conversions. Ten additional Mekanism fluid profiles cover hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrogen fluoride, ethene and lithium. These use exact source-fluid IDs and explicit amount ratios. Flowing variants are not additional resources. See [Integrations](integrations.md) for chemical-tube support and the distinction between external fluids and gases.
+Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing variants are not additional resources. Gas permissions allow a stored gas to leave through a chemical adapter; see [Integrations](integrations.md) for chemical-tube support and the distinction between external fluids and gases.
+
+| Fluid | Batch | Matter | Synthesis |
+| --- | ---: | --- | --- |
+| `mekanism:chlorine` | 1000 mB | rematter:chlorine[gas]=1000 | yes |
+| `mekanism:ethene` | 1000 mB | rematter:ethene[gas]=1000 | yes |
+| `mekanism:hydrofluoric_acid` | 1000 mB | rematter:hydrofluoric_acid[gas]=1000 | yes |
+| `mekanism:hydrogen` | 1000 mB | rematter:hydrogen[gas]=1000 | yes |
+| `mekanism:hydrogen_chloride` | 1000 mB | rematter:hydrogen_chloride[gas]=2000 | yes |
+| `mekanism:lithium` | 1000 mB | rematter:lithium[gas]=10000 | yes |
+| `mekanism:oxygen` | 1000 mB | rematter:oxygen[gas]=1000 | yes |
+| `mekanism:sulfur_dioxide` | 1000 mB | rematter:sulfur_dioxide[gas]=1000 | yes |
+| `mekanism:sulfur_trioxide` | 1000 mB | rematter:sulfur_trioxide[gas]=1000 | yes |
+| `mekanism:sulfuric_acid` | 1000 mB | rematter:sulfuric_acid[gas]=1000 | yes |
+| `minecraft:lava` | 1000 mB | rematter:mineral_mix[liquid]=1000 | yes |
+| `minecraft:water` | 1000 mB | rematter:water[liquid]=1000 | yes |
+
+Gases that may leave storage as gas:
+
+- `rematter:chlorine` (with `mekanism`)
+- `rematter:ethene` (with `mekanism`)
+- `rematter:hydrofluoric_acid` (with `mekanism`)
+- `rematter:hydrogen`
+- `rematter:hydrogen_chloride` (with `mekanism`)
+- `rematter:lithium` (with `mekanism`)
+- `rematter:oxygen`
+- `rematter:sulfur_dioxide` (with `mekanism`)
+- `rematter:sulfur_trioxide` (with `mekanism`)
+- `rematter:sulfuric_acid` (with `mekanism`)
+- `rematter:water`
 
 ## Boundaries and remaining work
 
@@ -98,4 +137,4 @@ This is a material catalogue, not complete chemical coverage of every item in a 
 - Other registered fluids, fuels, potion mixtures, experience fluids, molten magical materials and nuclear isotope chains need explicit identities, units and cycle reviews.
 - Native integration checks and pack balancing are separate from data generation. A parsed profile alone is not evidence of a completed gameplay or balance test.
 
-For a new material request, include its exact item or fluid ID, mod version, the expected material form, relevant manufacturing and recycling recipes, and any stored data. Report it through the repository material-coverage issue template.
+For a new material request, include its exact item or fluid ID, mod version, the expected material form, relevant manufacturing and recycling recipes, and any stored data. Report it through the repository's "Material coverage gap" issue template.

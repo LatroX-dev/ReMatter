@@ -1,5 +1,6 @@
 package dev.latrox.rematter.integration;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
@@ -12,8 +13,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.HashMap;
-import java.util.Locale;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
@@ -23,7 +22,8 @@ import net.neoforged.neoforge.common.conditions.NeverCondition;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReForgingDataTest {
-    private static final SubstanceKey CRYSTAL = SubstanceKey.of("reforging:crystalline_silica", Phase.SOLID);
+    private static final SubstanceKey CRYSTAL = SubstanceKey.of("rematter:crystalline_silica", Phase.SOLID);
+    private static final Path DATAPACK = Path.of("integrations/reforging/datapack");
 
     @Test
     void crystallineQuartzHasTheSameElementBalanceButASeparateIdentity() throws Exception {
@@ -78,7 +78,7 @@ class ReForgingDataTest {
                 "mekanism:dust_quartz", 1_000L, "oritech:quartz_dust", 1_000L,
                 "thaumaturge:nugget_quartz", 1_000L, "minecraft:nether_quartz_ore", 1_000L,
                 "thaumaturge:ore_quartz", 1_000L, "thaumaturge:deepslate_ore_quartz", 1_000L);
-        Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().containsKey(CRYSTAL))
+        Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().keySet().equals(Set.of(CRYSTAL)))
                 .map(MaterialProfile::itemId).collect(Collectors.toSet());
         assertEquals(amounts.keySet(), actual);
         amounts.forEach((item, amount) -> {
@@ -98,18 +98,14 @@ class ReForgingDataTest {
         assertEquals(64_000, electrolysis.energy());
         assertEquals(400, electrolysis.ticks());
         assertEquals(registry.elementAmounts(electrolysis.inputs()), registry.elementAmounts(electrolysis.outputs()));
-        Set<SubstanceKey> reachable = new HashSet<>(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL,
-                BuiltinChemistry.ROCK, BuiltinChemistry.LAVA, BuiltinChemistry.WATER,
-                BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN, BuiltinChemistry.NITROGEN));
-        boolean changed;
-        do {
-            changed = false;
-            for (ProcessRecipe recipe : registry.processes()) {
-                if (reachable.containsAll(recipe.inputs().keySet())) changed |= reachable.addAll(recipe.outputs().keySet());
-            }
-        } while (changed);
-        assertFalse(reachable.contains(CRYSTAL));
-        assertFalse(reachable.contains(BuiltinChemistry.SILICON));
+        var reachable = MatterReachability.from(registry, Set.of("minecraft:sand", "minecraft:clay_ball", "minecraft:dirt",
+                "minecraft:stone", "minecraft:cobblestone"), Set.of("minecraft:water", "minecraft:lava"));
+        assertTrue(reachable.matter().containsAll(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL, BuiltinChemistry.ROCK,
+                BuiltinChemistry.LAVA, BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN)));
+        assertFalse(reachable.matter().contains(CRYSTAL));
+        assertFalse(reachable.matter().contains(BuiltinChemistry.SILICON));
+        assertFalse(reachable.matter().contains(BuiltinChemistry.ALUMINUM));
+        assertFalse(reachable.items().contains("minecraft:quartz"));
     }
 
     @Test
@@ -136,11 +132,13 @@ class ReForgingDataTest {
 
     @Test
     void standaloneCatalogueRemainsUnmodified() throws Exception {
-        ChemistryRegistry before = catalogue(false);
+        ChemistryRegistry before = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
         ChemistryRegistry pack = integration();
-        ChemistryRegistry after = catalogue(false);
-        assertFalse(after.isKnown(CRYSTAL));
+        ChemistryRegistry after = ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES);
         assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(after.profiles()));
+        assertEquals(java.util.List.copyOf(before.substances()), java.util.List.copyOf(pack.substances()),
+                "The integration shares the standalone substance identities");
+        assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(pack.profiles()));
         assertEquals(before.synthesisPolicy().entries(), after.synthesisPolicy().entries());
         pack.synthesisPolicy().entries().forEach((item, category) ->
                 assertEquals(before.synthesisPolicy().entries().get(item), category,
@@ -294,7 +292,7 @@ class ReForgingDataTest {
     }
 
     @Test
-    void obsidianRecoveryRequiresFourDustsAndTheOldOneDustShortcutIsDisabled() throws Exception {
+    void obsidianRecoveryRequiresFourDustsAndOneDustShortcutsAreDisabled() throws Exception {
         ChemistryRegistry registry = integration();
         var block = registry.profile("minecraft:obsidian").orElseThrow();
         var dust = registry.profile("mekanism:dust_obsidian").orElseThrow();
@@ -307,105 +305,38 @@ class ReForgingDataTest {
         assertTrue(inventory.apply(Map.of(), dust.matter()));
         assertTrue(inventory.apply(block.matter(), Map.of()));
         assertEquals(0, inventory.total());
-        JsonObject override = readFile(Path.of("integrations/reforging/datapack/data/occultism/recipe/crystallize/obsidian.json"));
-        var conditions = override.getAsJsonArray("neoforge:conditions");
-        assertEquals(1, conditions.size());
-        JsonObject condition = conditions.get(0).getAsJsonObject();
-        assertEquals("neoforge:never", condition.get("type").getAsString());
-        assertFalse(NeverCondition.CODEC.codec().parse(JsonOps.INSTANCE, condition).getOrThrow()
+        for (String shortcut : Set.of("occultism/recipe/crystallize/obsidian.json", "occultism/recipe/crafting/gray_paste/obsidian.json")) {
+            assertDisabled(readFile(DATAPACK.resolve("data/" + shortcut)));
+        }
+        JsonObject milling = readFile(DATAPACK.resolve("data/enderio/recipe/sag_milling/obsidian.json"));
+        assertEquals("#c:obsidians", milling.get("input").getAsString());
+        assertEquals("none", milling.get("bonus").getAsString());
+        assertEquals(1, milling.getAsJsonArray("outputs").size());
+        JsonObject powder = milling.getAsJsonArray("outputs").get(0).getAsJsonObject().getAsJsonObject("item");
+        assertEquals("enderio:powdered_obsidian", powder.get("id").getAsString());
+        assertEquals(block.matter(), registry.profile(powder.get("id").getAsString()).orElseThrow().matterFor(powder.get("count").getAsInt()));
+    }
+
+    @Test
+    void ironAndEnderPearlsCannotBecomeNetheriteThroughEasyNetherite() throws Exception {
+        assertDisabled(readFile(DATAPACK.resolve("data/netherite/recipe/netherite.json")));
+        assertFalse(integration().synthesisPolicy().allows("minecraft:netherite_ingot"));
+    }
+
+    private static void assertDisabled(JsonObject override) {
+        var never = override.getAsJsonArray("neoforge:conditions").asList().stream().map(JsonElement::getAsJsonObject)
+                .filter(condition -> condition.get("type").getAsString().equals("neoforge:never")).toList();
+        assertEquals(1, never.size());
+        assertFalse(NeverCondition.CODEC.codec().parse(JsonOps.INSTANCE, never.get(0)).getOrThrow()
                 .test(ICondition.IContext.EMPTY));
     }
 
     private static long minimumCost(long energy) { return Math.multiplyExact(energy, 4) / 5; }
 
-    private static ChemistryRegistry integration() throws Exception { return catalogue(true); }
-
-    /** Reproduce ResourceManager priority first, then reject duplicate item targets as the runtime loader does. */
-    private static ChemistryRegistry catalogue(boolean withPack) throws Exception {
-        ChemistryRegistry defaults = BuiltinChemistry.create();
-        Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
-        Map<String, MaterialProfile> profiles = new TreeMap<>();
-        Map<String, FluidProfile> fluids = new TreeMap<>();
-        Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
-        Map<String, SynthesisCategory> permissions = new TreeMap<>(defaults.synthesisPolicy().entries());
-        defaults.substances().forEach(value -> substances.put(value.id(), value));
-        defaults.profiles().forEach(value -> profiles.put(value.itemId(), value));
-        defaults.fluidProfiles().forEach(value -> fluids.put(value.fluidId(), value));
-        defaults.processes().forEach(value -> processes.put(value.id(), value));
-        Map<String, Path> documents = new TreeMap<>();
-        overlay(documents, Path.of("src/main/resources"));
-        if (withPack) overlay(documents, Path.of("integrations/reforging/datapack"));
-        Map<String, String> targets = new HashMap<>();
-        for (var document : documents.entrySet()) {
-            String[] parts = document.getKey().split("/", 5);
-            String directory = parts[3];
-            String relative = parts[4];
-            SubstanceId id = SubstanceId.parse(parts[1] + ":" + relative.substring(0, relative.length() - 5));
-            JsonObject json = readFile(document.getValue());
-            assertEquals(1, integer(json, "schema_version"));
-            boolean disabled = json.has("disabled") && json.get("disabled").getAsBoolean();
-            if (directory.equals("substance")) {
-                if (disabled) { substances.remove(id); continue; }
-                Map<SubstanceId, Long> composition = new TreeMap<>();
-                json.getAsJsonObject("composition").entrySet().forEach(entry -> composition.put(SubstanceId.parse(entry.getKey()), entry.getValue().getAsBigDecimal().longValueExact()));
-                Set<Phase> phases = new HashSet<>();
-                json.getAsJsonArray("phases").forEach(value -> phases.add(Phase.valueOf(value.getAsString().toUpperCase(Locale.ROOT))));
-                substances.put(id, new SubstanceDefinition(id, json.get("translation_key").getAsString(), json.has("symbol") ? json.get("symbol").getAsString() : "",
-                        SubstanceKind.valueOf(json.get("kind").getAsString().toUpperCase(Locale.ROOT)), new Composition(composition), phases));
-            } else if (directory.equals("material_profile")) {
-                String item = json.get("item").getAsString();
-                assertNull(targets.put(directory + ":" + item, document.getKey()), "Duplicate item target: " + item);
-                if (disabled) { profiles.remove(item); permissions.remove(item); continue; }
-                profiles.put(item, new MaterialProfile(item, json.has("item_count") ? integer(json, "item_count") : 1,
-                        amounts(json, "matter"), number(json, "decomposition_energy"), number(json, "synthesis_energy"), integer(json, "ticks")));
-            } else if (directory.equals("fluid_profile")) {
-                String fluid = json.get("fluid").getAsString();
-                assertNull(targets.put(directory + ":" + fluid, document.getKey()), "Duplicate fluid target: " + fluid);
-                if (disabled) { fluids.remove(fluid); permissions.remove(fluid); continue; }
-                fluids.put(fluid, new FluidProfile(fluid, integer(json, "amount"), amounts(json, "matter"),
-                        number(json, "decomposition_energy"), number(json, "synthesis_energy"), integer(json, "ticks")));
-            } else if (directory.equals("process")) {
-                if (disabled) { processes.remove(id); continue; }
-                processes.put(id, new ProcessRecipe(id, ProcessType.valueOf(json.get("type").getAsString().toUpperCase(Locale.ROOT)),
-                        amounts(json, "inputs"), amounts(json, "outputs"), number(json, "energy"), integer(json, "ticks")));
-            } else if (directory.equals("synthesis")) {
-                String item = json.get("item").getAsString();
-                assertNull(targets.put(directory + ":" + item, document.getKey()), "Duplicate synthesis target: " + item);
-                if (disabled) permissions.remove(item);
-                else permissions.put(item, SynthesisCategory.valueOf(json.get("category").getAsString().toUpperCase(Locale.ROOT)));
-            } else fail("Unexpected chemistry directory: " + directory);
-        }
-        var builder = ChemistryRegistry.builder();
-        substances.values().forEach(builder::addSubstance);
-        profiles.values().forEach(builder::addProfile);
-        fluids.values().forEach(builder::addFluidProfile);
-        processes.values().forEach(builder::addProcess);
-        permissions.forEach(builder::allowSynthesis);
-        return builder.build();
+    private static ChemistryRegistry integration() {
+        return ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES, DATAPACK);
     }
 
-    private static void overlay(Map<String, Path> documents, Path root) throws Exception {
-        try (var files = Files.walk(root.resolve("data"))) {
-            for (Path file : files.filter(path -> path.toString().endsWith(".json")).toList()) {
-                String relative = root.relativize(file).toString().replace(java.io.File.separatorChar, '/');
-                String[] parts = relative.split("/", 5);
-                if (parts.length == 5 && parts[2].equals("rematter")) documents.put(relative, file);
-            }
-        }
-    }
-
-    private static Map<SubstanceKey, Long> amounts(JsonObject json, String field) {
-        Map<SubstanceKey, Long> result = new TreeMap<>();
-        json.getAsJsonArray(field).forEach(value -> {
-            JsonObject entry = value.getAsJsonObject();
-            SubstanceKey key = SubstanceKey.of(entry.get("substance").getAsString(), Phase.valueOf(entry.get("phase").getAsString().toUpperCase(Locale.ROOT)));
-            assertNull(result.put(key, number(entry, "amount")));
-        });
-        return result;
-    }
-
-    private static long number(JsonObject json, String key) { return json.get(key).getAsBigDecimal().longValueExact(); }
-    private static int integer(JsonObject json, String key) { return Math.toIntExact(number(json, key)); }
     private static JsonObject readFile(Path path) throws Exception {
         try (var reader = Files.newBufferedReader(path)) { return JsonParser.parseReader(reader).getAsJsonObject(); }
     }

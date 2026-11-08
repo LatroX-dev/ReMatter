@@ -6,12 +6,12 @@
     {
       "substance": "rematter:iron",
       "phase": "solid",
-      "amount": 5994
+      "amount": 4500
     },
     {
       "substance": "rematter:nickel",
       "phase": "solid",
-      "amount": 2997
+      "amount": 3000
     }
   ],
   "decomposition_energy": 72000,

@@ -2,15 +2,15 @@
   "schema_version": 1,
   "required_mod": "alltheores",
   "item": "alltheores:brass_nugget",
-  "item_count": 9,
+  "item_count": 27,
   "matter": [
     {
       "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 333
+      "amount": 1000
     }
   ],
-  "decomposition_energy": 8000,
-  "synthesis_energy": 16000,
-  "ticks": 100
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 300
 }

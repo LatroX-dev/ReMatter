@@ -5,7 +5,7 @@
   "kind": "mixture",
   "composition": {
     "rematter:vital_essence": 1024,
-    "rematter:arcane_essence": 1
+    "rematter:arcane_essence": 256
   },
   "phases": [
     "solid"

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "translation_key": "substance.rematter.entro",
   "symbol": "",
-  "kind": "compound",
+  "kind": "mixture",
   "composition": {
     "rematter:silicon": 1,
     "rematter:oxygen": 2,

@@ -1,5 +1,5 @@
 {
   "schema_version": 1,
   "item": "minecraft:netherite_ingot",
-  "category": "raw_material"
+  "disabled": true
 }

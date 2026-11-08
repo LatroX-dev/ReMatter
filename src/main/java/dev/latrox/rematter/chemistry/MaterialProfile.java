@@ -18,7 +18,7 @@ public record MaterialProfile(
         }
     }
 
-    /** Existing single-item definitions retain their stored quantity scale. */
+    /** A profile for exactly one item. */
     public MaterialProfile(String itemId, Map<SubstanceKey, Long> matter,
                            long decompositionEnergy, long synthesisEnergy, int ticks) {
         this(itemId, 1, matter, decompositionEnergy, synthesisEnergy, ticks);

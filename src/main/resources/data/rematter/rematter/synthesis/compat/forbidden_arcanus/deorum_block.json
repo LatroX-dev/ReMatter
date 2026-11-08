@@ -2,5 +2,5 @@
   "schema_version": 1,
   "required_mod": "forbidden_arcanus",
   "item": "forbidden_arcanus:deorum_block",
-  "category": "raw_material"
+  "disabled": true
 }

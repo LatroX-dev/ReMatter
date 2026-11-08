@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:cobblestone",
+  "matter": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

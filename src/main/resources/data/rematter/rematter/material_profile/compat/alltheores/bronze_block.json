@@ -2,19 +2,20 @@
   "schema_version": 1,
   "required_mod": "alltheores",
   "item": "alltheores:bronze_block",
+  "item_count": 4,
   "matter": [
     {
       "substance": "rematter:copper",
       "phase": "solid",
-      "amount": 6750
+      "amount": 27000
     },
     {
       "substance": "rematter:tin",
       "phase": "solid",
-      "amount": 279
+      "amount": 1125
     }
   ],
-  "decomposition_energy": 72000,
-  "synthesis_energy": 144000,
-  "ticks": 900
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
 }

@@ -6,12 +6,12 @@
     {
       "substance": "rematter:quantum_essence",
       "phase": "solid",
-      "amount": 333
+      "amount": 400
     },
     {
       "substance": "rematter:silicon",
       "phase": "solid",
-      "amount": 667
+      "amount": 600
     }
   ],
   "decomposition_energy": 32000,
