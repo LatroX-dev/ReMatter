@@ -1,5 +1,6 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceDefinition;
 import dev.latrox.rematter.chemistry.SubstanceId;
@@ -7,7 +8,10 @@ import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.SubstanceKind;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.awt.Color;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.ToIntFunction;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -17,21 +21,32 @@ public final class SubstanceIcon {
     private static final Set<String> FICTIONAL_CONSTITUENTS = Set.of(
             "arcane_essence", "ender_essence", "nether_essence", "quantum_essence", "stellar_essence", "vital_essence");
 
+    private static final int MAX_STYLES = 32_768;
+    private static final Map<SubstanceKey, Style> STYLES = new ConcurrentHashMap<>();
+
+    static { ClientChemistry.addListener(catalogue -> STYLES.clear()); }
+
     private SubstanceIcon() {}
 
+    /** Everything a badge needs from the catalogue. It is computed once per key until the catalogue changes. */
+    record Style(boolean known, SubstanceKind kind, String first, String second, int facets, boolean fictional,
+                 int color, int shadow, int light) {}
+
     public static void draw(GuiGraphicsExtractor graphics, int x, int y, SubstanceKey key) {
-        var definition = ClientChemistry.current().definition(key.id()).orElse(null);
-        var kind = definition == null ? SubstanceKind.MIXTURE : definition.kind();
-        String symbol = definition == null ? "?" : SubstanceLabels.iconLabel(definition);
-        boolean fictional = isFictional(key.id(), definition);
-        long fingerprint = fingerprint(key.id());
-        int color = accent(fingerprint, key.id(), fictional);
-        int shadow = blend(color, UiPalette.RECESS, 1, 3);
-        int light = blend(color, UiPalette.TEXT, 2, 1);
+        Font font = Minecraft.getInstance().font;
+        Style style = style(key, font::width);
+        int shadow = style.shadow(), light = style.light();
 
         graphics.fill(x + 1, y, x + 15, y + 16, UiPalette.RECESS);
         graphics.fill(x, y + 1, x + 16, y + 15, UiPalette.RECESS);
-        switch (kind) {
+        if (!style.known()) {
+            // An undefined substance keeps a fixed warning badge instead of a signature it no longer has.
+            graphics.fill(x + 1, y, x + 15, y + 1, style.color());
+            graphics.fill(x + 1, y + 15, x + 15, y + 16, style.color());
+            graphics.fill(x, y + 1, x + 1, y + 15, style.color());
+            graphics.fill(x + 15, y + 1, x + 16, y + 15, style.color());
+        }
+        switch (style.kind()) {
             case ELEMENT -> {
                 graphics.fill(x + 6, y + 1, x + 10, y + 13, shadow);
                 graphics.fill(x + 3, y + 4, x + 13, y + 10, shadow);
@@ -51,34 +66,55 @@ public final class SubstanceIcon {
         }
 
         // The centre is the bright core. The other eight facets encode a stable visual signature.
-        int facets = (int) (fingerprint >>> 32) & 0xff;
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 3; col++) {
                 int index = row * 3 + col;
                 int facet = index < 4 ? index : index - 1;
-                int shade = index == 4 ? light : ((facets & (1 << facet)) == 0 ? shadow : color);
+                int shade = index == 4 ? light : ((style.facets() & (1 << facet)) == 0 ? shadow : style.color());
                 int left = x + 4 + col * 3;
                 int top = y + 3 + row * 3;
                 graphics.fill(left, top, left + 2, top + 2, shade);
             }
         }
-        if (fictional) {
+        if (style.fictional()) {
             graphics.fill(x + 12, y + 1, x + 14, y + 2, light);
             graphics.fill(x + 13, y + 2, x + 14, y + 3, light);
         }
-        drawSymbol(graphics, x, y, symbol);
+        drawSymbol(graphics, font, x, y, style);
         drawPhase(graphics, x, y + 14, key.phase());
     }
 
-    private static void drawSymbol(GuiGraphicsExtractor graphics, int x, int y, String symbol) {
-        Font font = Minecraft.getInstance().font;
-        int width = font.width(symbol);
-        int split = width > 22 ? formulaBreak(font, symbol, width) : 0;
-        String first = split == 0 ? symbol : symbol.substring(0, split);
-        String second = split == 0 ? "" : symbol.substring(split);
+    static Style style(SubstanceKey key, ToIntFunction<String> width) {
+        Style style = STYLES.get(key);
+        if (style != null) return style;
+        if (STYLES.size() >= MAX_STYLES) STYLES.clear();
+        style = compute(ClientChemistry.current(), key, width);
+        STYLES.put(key, style);
+        return style;
+    }
+
+    static Style compute(ChemistryRegistry registry, SubstanceKey key, ToIntFunction<String> width) {
+        var definition = registry.definition(key.id()).orElse(null);
+        if (definition == null || !registry.isKnown(key)) {
+            int color = UiPalette.WARNING;
+            return new Style(false, SubstanceKind.MIXTURE, "?", "", 0, false, color,
+                    blend(color, UiPalette.RECESS, 1, 3), blend(color, UiPalette.TEXT, 2, 1));
+        }
+        String symbol = SubstanceLabels.iconLabel(definition);
+        int symbolWidth = width.applyAsInt(symbol);
+        int split = symbolWidth > 22 ? formulaBreak(width, symbol, symbolWidth) : 0;
+        boolean fictional = isFictional(key.id(), definition);
+        long fingerprint = fingerprint(key.id());
+        int color = accent(fingerprint, key.id(), fictional);
+        return new Style(true, definition.kind(), split == 0 ? symbol : symbol.substring(0, split), split == 0 ? "" : symbol.substring(split),
+                (int) (fingerprint >>> 32) & 0xff, fictional, color, blend(color, UiPalette.RECESS, 1, 3), blend(color, UiPalette.TEXT, 2, 1));
+    }
+
+    private static void drawSymbol(GuiGraphicsExtractor graphics, Font font, int x, int y, Style style) {
+        String first = style.first(), second = style.second();
         int firstWidth = font.width(first);
         int secondWidth = font.width(second);
-        int height = split == 0 ? 8 : 16;
+        int height = second.isEmpty() ? 8 : 16;
         float scale = Math.min(1F, Math.min(14F / Math.max(1, Math.max(firstWidth, secondWidth)), 12F / height));
 
         int top = (int) ((14 - height * scale) / 2);
@@ -87,20 +123,20 @@ public final class SubstanceIcon {
         pose.pushMatrix();
         try {
             pose.translate(x + 8F, y + top).scale(scale);
-            graphics.text(font, first, -firstWidth / 2, 0, UiPalette.TEXT, true);
-            if (split != 0) graphics.text(font, second, -secondWidth / 2, 8, UiPalette.TEXT, true);
+            graphics.text(font, first, -firstWidth / 2, 0, style.known() ? UiPalette.TEXT : UiPalette.WARNING, true);
+            if (!second.isEmpty()) graphics.text(font, second, -secondWidth / 2, 8, UiPalette.TEXT, true);
         } finally {
             pose.popMatrix();
         }
     }
 
-    private static int formulaBreak(Font font, String formula, int width) {
+    private static int formulaBreak(ToIntFunction<String> width, String formula, int fullWidth) {
         int split = 0;
-        int widest = width;
+        int widest = fullWidth;
         for (int i = 1; i < formula.length(); i++) {
             char next = formula.charAt(i);
             if (next == '(' || (Character.isUpperCase(next) && formula.charAt(i - 1) != '(')) {
-                int candidate = Math.max(font.width(formula.substring(0, i)), font.width(formula.substring(i)));
+                int candidate = Math.max(width.applyAsInt(formula.substring(0, i)), width.applyAsInt(formula.substring(i)));
                 if (candidate < widest) {
                     split = i;
                     widest = candidate;
