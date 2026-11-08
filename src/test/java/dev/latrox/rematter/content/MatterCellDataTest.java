@@ -51,10 +51,21 @@ class MatterCellDataTest {
         var rows=raw.getListOrEmpty("contents");rows.add(rows.getCompoundOrEmpty(0).copy());
         var duplicate=new MatterCellData(raw);assertTrue(duplicate.open(64000).isEmpty());assertEquals(2,duplicate.copyTag().getListOrEmpty("contents").size());
         var bad=new CompoundTag();bad.putInt("schema",1);var badRows=new ListTag();
-        var row=new CompoundTag();row.putString("substance","rematter:copper");row.putString("phase","SOLID");row.putLong("amount",-1);badRows.add(row);bad.put("contents",badRows);
+        var row=new CompoundTag();row.putString("substance","rematter:copper");row.putString("phase","SOLID");row.putLong("amount",-1);badRows.add(row);bad.put("contents",badRows);bad.put("reservations",new ListTag());
         assertTrue(new MatterCellData(bad).open(64000).isEmpty());
         var tooMany=new MatterInventory(64000);for(int i=0;i<513;i++)tooMany.insert(new SubstanceKey(SubstanceId.parse("test:key_"+i),Phase.SOLID),1);
         assertThrows(IllegalArgumentException.class,()->MatterCellData.from(tooMany));
+    }
+    @Test void onlyTheCurrentLayoutOpensAndAnyOtherLayoutStaysUnchanged() {
+        var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);
+        var current=MatterCellData.from(store).copyTag();
+        assertEquals(Set.of("schema","contents","reservations"),current.keySet());
+        assertEquals(1000,new MatterCellData(current).open(64000).orElseThrow().total());
+        var withoutReservations=current.copy();withoutReservations.remove("reservations");
+        var kept=new MatterCellData(withoutReservations);
+        assertTrue(kept.open(64000).isEmpty());assertEquals(withoutReservations,kept.copyTag());
+        var older=current.copy();older.putInt("schema",0);
+        assertTrue(new MatterCellData(older).open(64000).isEmpty());
     }
     @Test void reservationsRemainOwnedAcrossCellPersistenceAndCanCompleteExactlyOnce() {
         var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);

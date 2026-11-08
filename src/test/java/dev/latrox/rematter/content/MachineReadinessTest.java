@@ -68,5 +68,41 @@ class MachineReadinessTest {
         assertEquals("missing_matter",MachineReadiness.check(true,new MatterNetworkInventory(java.util.List.of(a)),INPUT,OUTPUT,true,100,100));
         assertEquals(aBefore,a.snapshot()); assertEquals(bBefore,b.snapshot());
     }
-
+    @Test void repeatedChecksReuseTheStorageVerdictUntilTheStoreChanges() {
+        var counted = new CountingStore(new MatterInventory(1000));
+        counted.store.insert(WATER, 1000);
+        var readiness = new MachineReadiness();
+        assertEquals("storage_full", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
+        assertEquals("storage_full", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
+        assertEquals(1, counted.plans);
+        counted.store.setCapacity(1500);
+        assertEquals("ready", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 100, 100));
+        assertEquals(2, counted.plans);
+        assertEquals("insufficient_energy", readiness.checkRepeated(true, counted, INPUT, OUTPUT, true, 99, 100));
+        assertEquals("output_blocked", readiness.checkRepeated(true, counted, INPUT, OUTPUT, false, 100, 100));
+        assertEquals(2, counted.plans);
+        assertEquals("ready", readiness.checkRepeated(true, counted, INPUT, Map.of(GAS, 1000L), true, 100, 100));
+        assertEquals(3, counted.plans);
+        assertEquals("no_storage", readiness.checkRepeated(true, null, INPUT, OUTPUT, true, 100, 100));
+    }
+    /** Counts full plans, so the test sees whether a verdict was reused. */
+    private static final class CountingStore implements MatterStore {
+        private final MatterInventory store;
+        private int plans;
+        CountingStore(MatterInventory store) { this.store = store; }
+        @Override public long capacity() { return store.capacity(); }
+        @Override public long total() { return store.total(); }
+        @Override public long freeSpace() { return store.freeSpace(); }
+        @Override public int typeCount() { return store.typeCount(); }
+        @Override public long amount(SubstanceKey key) { return store.amount(key); }
+        @Override public long available(SubstanceKey key) { return store.available(key); }
+        @Override public long reserved(SubstanceKey key) { return store.reserved(key); }
+        @Override public Map<SubstanceKey, Long> contents() { return store.contents(); }
+        @Override public Map<SubstanceKey, Long> availableContents() { return store.availableContents(); }
+        @Override public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { return store.hasTypeSpace(inputs, outputs); }
+        @Override public boolean canApply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { plans++; return store.canApply(inputs, outputs); }
+        @Override public boolean apply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) { return store.apply(inputs, outputs); }
+        @Override public long revision() { return store.revision(); }
+        @Override public java.util.List<MatterInventory> members() { return store.members(); }
+    }
 }

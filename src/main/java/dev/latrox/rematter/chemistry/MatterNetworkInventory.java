@@ -1,5 +1,6 @@
 package dev.latrox.rematter.chemistry;
 
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,12 +16,16 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * An immutable membership view over existing inventories. Reads and network splits never move matter.
- * Batches are planned on disposable copies and committed to all physical owners under the same lock.
- * The caller owns connectivity/permission checks and must mark the member owners dirty after a commit.
+ * Batches are planned on disposable copies of only the members they touch, and committed to those
+ * physical owners under the same lock. The caller owns connectivity/permission checks and must mark
+ * the member owners dirty after a commit.
  */
 public final class MatterNetworkInventory implements MatterStore {
     public static final int MAX_MEMBERS = 384;
     private final List<MatterInventory> members;
+    private long aggregatedRevision = -1;
+    private @Nullable Map<SubstanceKey, Long> aggregatedContents;
+    private @Nullable Map<SubstanceKey, Long> aggregatedAvailable;
 
     public MatterNetworkInventory(List<MatterInventory> members) {
         this.members = List.copyOf(members);
@@ -40,6 +45,14 @@ public final class MatterNetworkInventory implements MatterStore {
     @Override public long reserved(SubstanceKey key) { Objects.requireNonNull(key); return sum(member -> member.reserved(key)); }
     @Override public Map<SubstanceKey, Long> contents() { return amounts(false); }
     @Override public Map<SubstanceKey, Long> availableContents() { return amounts(true); }
+    @Override public long revision() {
+        synchronized (MatterInventory.MUTATION_LOCK) {
+            // Every member counter only grows, so the sum changes whenever any member changes.
+            long revision = 0;
+            for (var member : members) revision += member.revision();
+            return revision;
+        }
+    }
 
     private long sum(ToLongFunction<MatterInventory> value) {
         synchronized (MatterInventory.MUTATION_LOCK) {
@@ -49,13 +62,24 @@ public final class MatterNetworkInventory implements MatterStore {
             return total;
         }
     }
+    /** Aggregates are rebuilt only after a member changed; repeated reads of unchanged stock share one map. */
     private Map<SubstanceKey, Long> amounts(boolean onlyAvailable) {
         synchronized (MatterInventory.MUTATION_LOCK) {
             validateTotals();
+            long revision = revision();
+            if (revision != aggregatedRevision) {
+                aggregatedContents = null;
+                aggregatedAvailable = null;
+                aggregatedRevision = revision;
+            }
+            var cached = onlyAvailable ? aggregatedAvailable : aggregatedContents;
+            if (cached != null) return cached;
             var result = new TreeMap<SubstanceKey, Long>();
             for (var member : members) (onlyAvailable ? member.availableContents() : member.contents())
                     .forEach((key, amount) -> result.merge(key, amount, Math::addExact));
-            return Collections.unmodifiableMap(result);
+            var aggregate = Collections.unmodifiableMap(result);
+            if (onlyAvailable) aggregatedAvailable = aggregate; else aggregatedContents = aggregate;
+            return aggregate;
         }
     }
     private void validateTotals() {
@@ -91,24 +115,49 @@ public final class MatterNetworkInventory implements MatterStore {
             var plan = plan(inputs, outputs, false, activity);
             if (plan == null) return false;
             // Every replacement is already validated. No callback or fallible partial allocation occurs here.
-            for (int i=0;i<members.size();i++) members.get(i).replaceWithValidated(plan.get(i));
+            for (int i=0;i<members.size();i++) if (plan.touched(i)) members.get(i).replaceWithValidated(plan.get(i));
             return true;
         }
     }
 
-    private @Nullable List<MatterInventory> plan(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
-                                                 boolean typesOnly, @Nullable List<MemberActivity> activity) {
+    /** The members as seen by one planning attempt: untouched members are read in place, touched ones are copies. */
+    private final class Draft extends AbstractList<MatterInventory> {
+        private final MatterInventory[] copies = new MatterInventory[members.size()];
+        @Override public MatterInventory get(int index) { return copies[index] != null ? copies[index] : members.get(index); }
+        @Override public int size() { return copies.length; }
+        boolean touched(int index) { return copies[index] != null; }
+        MatterInventory edit(int index) {
+            if (copies[index] == null) copies[index] = members.get(index).planningCopy();
+            return copies[index];
+        }
+    }
+
+    /** Necessary conditions that need no allocation: enough unreserved input and enough total room for the net output. */
+    private boolean aggregateFits(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs, boolean typesOnly) {
+        for (var input : inputs.entrySet()) {
+            long available = 0;
+            for (var member : members) available = Math.addExact(available, member.available(input.getKey()));
+            if (available < input.getValue()) return false;
+        }
+        if (typesOnly) return true;
+        long room = MatterAmounts.total(inputs);
+        for (var member : members) room = Math.addExact(room, member.freeSpace());
+        return room >= MatterAmounts.total(outputs);
+    }
+
+    private @Nullable Draft plan(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs,
+                                 boolean typesOnly, @Nullable List<MemberActivity> activity) {
         try {
             validateTotals();
             var checkedInputs = MatterAmounts.copy(inputs);
             var checkedOutputs = MatterAmounts.copy(outputs);
+            if (!aggregateFits(checkedInputs, checkedOutputs, typesOnly)) return null;
             var pending = new ArrayDeque<List<Integer>>(); pending.add(List.of());
             var visited = new HashSet<List<Integer>>(); var budget = new MatterOutputAllocator.Budget();
             int attempts=0;
             while(!pending.isEmpty() && attempts++<64 && !budget.exhausted()) {
                 var selected=pending.removeLast(); if(!visited.add(selected))continue;
-                var copies=new ArrayList<MatterInventory>(members.size());
-                for(var member:members)copies.add(MatterInventory.restore(member.snapshot(),member.maximumTypes()));
+                var copies=new Draft();
                 var withdrawn = activity == null ? null : new boolean[members.size()];
                 var decisions=new ArrayList<Integer>(); var alternatives=new ArrayList<Integer>();
                 for(var input:checkedInputs.entrySet()) {
@@ -123,7 +172,7 @@ public final class MatterNetworkInventory implements MatterStore {
                         if(choice>=candidates.size())throw new IllegalStateException("Invalid input allocation alternative");
                         decisions.add(choice);alternatives.add(candidates.size());
                         int member = candidates.get(choice);
-                        long extracted = copies.get(member).extract(input.getKey(),remaining);
+                        long extracted = copies.edit(member).extract(input.getKey(),remaining);
                         remaining -= extracted;
                         if (withdrawn != null && extracted > 0) withdrawn[member] = true;
                     }
@@ -131,7 +180,7 @@ public final class MatterNetworkInventory implements MatterStore {
                 var allocation=MatterOutputAllocator.allocate(copies,checkedOutputs,typesOnly,budget);
                 if(allocation!=null) {
                     if(!typesOnly)for(int i=0;i<copies.size();i++)
-                        if(!copies.get(i).apply(Map.of(),allocation.get(i)))throw new IllegalStateException("Invalid output allocation");
+                        if(!allocation.get(i).isEmpty()&&!copies.edit(i).apply(Map.of(),allocation.get(i)))throw new IllegalStateException("Invalid output allocation");
                     if (activity != null && withdrawn != null) {
                         for (int i = 0; i < members.size(); i++) {
                             boolean deposited = !allocation.get(i).isEmpty();

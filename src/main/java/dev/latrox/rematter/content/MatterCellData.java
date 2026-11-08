@@ -56,8 +56,8 @@ public final class MatterCellData {
     /** Capacity comes from the actual cell item, never from a mutable data field. */
     public Optional<MatterInventory> open(long capacity) {
         try {
-            if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != SCHEMA || !(raw.keySet().equals(Set.of("schema", "contents"))
-                    || raw.keySet().equals(Set.of("schema", "contents", "reservations")))) return Optional.empty();
+            if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != SCHEMA
+                    || !raw.keySet().equals(Set.of("schema", "contents", "reservations"))) return Optional.empty();
             var rows = raw.getList("contents").orElseThrow();
             if (rows.size() > MAX_TYPES) return Optional.empty();
             var contents = new ArrayList<SubstanceStack>();
@@ -68,7 +68,7 @@ public final class MatterCellData {
                         Phase.valueOf(row.getString("phase").orElseThrow())), exactAmount(row)));
             }
             var reservations=new ArrayList<MatterInventory.Reservation>();
-            var savedReservations=raw.contains("reservations") ? raw.getList("reservations").orElseThrow() : new ListTag();
+            var savedReservations=raw.getList("reservations").orElseThrow();
             if(savedReservations.size()>MAX_TYPES)return Optional.empty();
             for(int i=0;i<savedReservations.size();i++) {
                 var row=savedReservations.getCompound(i).orElseThrow();
@@ -76,7 +76,7 @@ public final class MatterCellData {
                 reservations.add(new MatterInventory.Reservation(UUID.fromString(row.getString("token").orElseThrow()),
                         readAmounts(row.getList("inputs").orElseThrow()),readAmounts(row.getList("outputs").orElseThrow())));
             }
-            return Optional.of(MatterInventory.restore(new MatterInventory.Snapshot(1,capacity,contents,reservations), MAX_TYPES));
+            return Optional.of(MatterInventory.restore(new MatterInventory.Snapshot(MatterInventory.SCHEMA_VERSION,capacity,contents,reservations), MAX_TYPES));
         } catch (RuntimeException invalid) { return Optional.empty(); }
     }
     private static ListTag amounts(Map<SubstanceKey,Long> values) {

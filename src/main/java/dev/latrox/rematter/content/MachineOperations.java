@@ -37,6 +37,7 @@ final class MachineOperations {
     }
 
     private final MachineBlockEntity machine;
+    private final MachineReadiness readiness = new MachineReadiness();
     private @Nullable PreparationRecipe lastPreparationRecipe;
 
     MachineOperations(MachineBlockEntity machine) { this.machine = machine; }
@@ -135,7 +136,7 @@ final class MachineOperations {
                     primary.getComponentsPatch().isEmpty() && secondary.getComponentsPatch().isEmpty() && tertiary.getComponentsPatch().isEmpty(),
                     true, operation.canFinish(), energy, operation.cost());
         }
-        return MachineReadiness.check(needsStorage, store, operation.inputs(), operation.outputs(), operation.canFinish(), energy, operation.cost());
+        return readiness.checkRepeated(needsStorage, store, operation.inputs(), operation.outputs(), operation.canFinish(), energy, operation.cost());
     }
 
     String inputStatus(ChemistryRegistry registry) {

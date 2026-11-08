@@ -10,11 +10,12 @@ final class MatterOutputAllocator {
 
     static List<Map<SubstanceKey,Long>> allocate(List<MatterInventory> cells, Map<SubstanceKey,Long> outputs, boolean typesOnly, Budget budget) {
         var keys=List.copyOf(outputs.keySet()); int count=cells.size(); long required=MatterAmounts.total(outputs);
-        var existing=new ArrayList<Set<SubstanceKey>>(); int[] freeTypes=new int[count]; long[] freeSpace=new long[count];
+        // Only the output keys matter here, so each cell answers per key instead of copying its whole type table.
+        var existing=new ArrayList<BitSet>(); int[] freeTypes=new int[count]; long[] freeSpace=new long[count];
         for(int i=0;i<count;i++) {
-            var cell=cells.get(i); var types=new HashSet<>(cell.contents().keySet());
-            cell.snapshot().reservations().forEach(reservation -> types.addAll(reservation.outputs().keySet()));
-            existing.add(types); freeTypes[i]=cell.maximumTypes()-types.size();
+            var cell=cells.get(i); var types=new BitSet(keys.size());
+            for(int k=0;k<keys.size();k++) if(cell.occupiesType(keys.get(k))) types.set(k);
+            existing.add(types); freeTypes[i]=cell.maximumTypes()-cell.occupiedTypes();
             freeSpace[i]=typesOnly?required:cell.freeSpace();
         }
         var pending=new ArrayDeque<BitSet>(); var visited=new HashSet<BitSet>(); pending.add(new BitSet());
@@ -28,7 +29,7 @@ final class MatterOutputAllocator {
                     var key=keys.get(k); long amount=outputs.get(key); flow.add(source,k,amount);
                     // Existing types first avoids needless fragmentation; bounded alternatives fix conflicts.
                     for(int pass=0;pass<2;pass++) for(int c=0;c<count;c++) {
-                        boolean present=existing.get(c).contains(key);
+                        boolean present=existing.get(c).get(k);
                         if((pass==0)!=present || freeSpace[c]==0 || !present&&freeTypes[c]==0 || forbidden.get(k*count+c)) continue;
                         var edge=flow.add(k,keys.size()+c,Math.min(amount,freeSpace[c]));
                         links.add(new Link(k,c,edge,present));

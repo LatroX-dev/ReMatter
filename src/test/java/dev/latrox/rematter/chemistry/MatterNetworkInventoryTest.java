@@ -179,6 +179,48 @@ class MatterNetworkInventoryTest {
         }
         assertEquals(0,shared.amount(COPPER));assertEquals(1000,shared.total()+a.total()+b.total());
     }
+    @Test void aBatchCommitsOnlyTheCellsItTouchesAndLeavesTheOthersUnchanged() {
+        var cells = new ArrayList<MatterInventory>();
+        for (int index = 0; index < 384; index++) cells.add(cell(1000, 4, COPPER, 10));
+        var network = new MatterNetworkInventory(cells);
+        var before = cells.stream().map(MatterInventory::revision).toList();
+        assertTrue(network.canApply(Map.of(COPPER, 10L), Map.of(WATER, 15L)));
+        assertEquals(before, cells.stream().map(MatterInventory::revision).toList());
+        var activity = network.applyTracked(Map.of(COPPER, 10L), Map.of(WATER, 15L));
+        assertNotNull(activity);
+        int changed = 0;
+        for (int index = 0; index < cells.size(); index++) if (cells.get(index).revision() != before.get(index)) changed++;
+        assertEquals(activity.size(), changed);
+        assertTrue(changed <= 2);
+        assertEquals(3830, network.amount(COPPER)); assertEquals(15, network.amount(WATER));
+    }
+    @Test void networkRevisionAndSharedAggregatesFollowEveryMemberChange() {
+        var a = cell(1000, 4, COPPER, 10); var b = cell(1000, 4, WATER, 20);
+        var network = new MatterNetworkInventory(List.of(a, b));
+        long revision = network.revision();
+        var contents = network.contents(); var available = network.availableContents();
+        assertSame(contents, network.contents()); assertSame(available, network.availableContents());
+        assertEquals(revision, network.revision());
+        assertFalse(network.apply(Map.of(COPPER, 11L), Map.of()));
+        assertEquals(revision, network.revision()); assertSame(contents, network.contents());
+        b.insert(COPPER, 1);
+        assertNotEquals(revision, network.revision());
+        assertEquals(Map.of(COPPER, 11L, WATER, 20L), network.contents());
+        assertNotSame(contents, network.contents());
+        revision = network.revision();
+        var token = a.reserve(Map.of(COPPER, 5L), Map.of()).orElseThrow();
+        assertNotEquals(revision, network.revision()); assertEquals(6, network.availableContents().get(COPPER));
+        revision = network.revision();
+        assertTrue(a.cancel(token)); assertNotEquals(revision, network.revision());
+        assertEquals(11, network.availableContents().get(COPPER));
+    }
+    @Test void aggregateShortageIsRejectedBeforeAnyPlanningCopy() {
+        var a = cell(100, 4, COPPER, 90); var b = cell(100, 4, WATER, 90);
+        var network = new MatterNetworkInventory(List.of(a, b));
+        assertFalse(network.canApply(Map.of(COPPER, 10L), Map.of(WATER, 31L)));
+        assertTrue(network.canApply(Map.of(COPPER, 10L), Map.of(WATER, 30L)));
+        assertFalse(network.hasTypeSpace(Map.of(COPPER, 91L), Map.of()));
+    }
     private static MatterInventory cell(long capacity,int types,SubstanceKey key,long amount) {
         var cell=new MatterInventory(capacity,types);assertEquals(amount,cell.insert(key,amount));return cell;
     }

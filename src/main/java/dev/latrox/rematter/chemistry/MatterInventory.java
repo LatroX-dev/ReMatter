@@ -22,6 +22,7 @@ public final class MatterInventory implements MatterStore {
 
     private long capacity;
     private long total;
+    private long revision;
     private final int maximumTypes;
     private final TreeMap<SubstanceKey, Long> contents = new TreeMap<>();
     private final LinkedHashMap<UUID, Reservation> reservations = new LinkedHashMap<>();
@@ -42,6 +43,8 @@ public final class MatterInventory implements MatterStore {
     public int maximumTypes() { return maximumTypes; }
     @Override public List<MatterInventory> members() { return List.of(this); }
     public int typeCount() { synchronized (MUTATION_LOCK) { return contents.size(); } }
+    /** Changes with every committed change to quantities, capacity or reservations, and never repeats. */
+    @Override public long revision() { synchronized (MUTATION_LOCK) { return revision; } }
     public boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
         var checkedInputs = MatterAmounts.copy(inputs); var checkedOutputs = MatterAmounts.copy(outputs);
         synchronized (MUTATION_LOCK) { return hasTypeSpaceLocked(checkedInputs, checkedOutputs, null); }
@@ -74,6 +77,7 @@ public final class MatterInventory implements MatterStore {
                 return false;
             }
             capacity = newCapacity;
+            revision++;
             return true;
         }
     }
@@ -128,6 +132,7 @@ public final class MatterInventory implements MatterStore {
             if (accepted > 0) {
                 contents.merge(key, accepted, Math::addExact);
                 total += accepted;
+                revision++;
             }
             return accepted;
         }
@@ -142,6 +147,7 @@ public final class MatterInventory implements MatterStore {
             if (extracted > 0) {
                 subtract(key, extracted);
                 total -= extracted;
+                revision++;
             }
             return extracted;
         }
@@ -185,6 +191,7 @@ public final class MatterInventory implements MatterStore {
             }
             UUID token = UUID.randomUUID();
             reservations.put(token, new Reservation(token, checkedInputs, checkedOutputs));
+            revision++;
             return Optional.of(token);
         }
     }
@@ -209,7 +216,9 @@ public final class MatterInventory implements MatterStore {
     public boolean cancel(UUID token) {
         Objects.requireNonNull(token, "token");
         synchronized (MUTATION_LOCK) {
-            return reservations.remove(token) != null;
+            if (reservations.remove(token) == null) return false;
+            revision++;
+            return true;
         }
     }
 
@@ -228,6 +237,7 @@ public final class MatterInventory implements MatterStore {
             destination.applyLocked(Map.of(), contents);
             contents.clear();
             total = 0;
+            revision++;
             return true;
         }
     }
@@ -250,8 +260,10 @@ public final class MatterInventory implements MatterStore {
             }
             destination.contents.merge(key, moved, Math::addExact);
             destination.total += moved;
+            destination.revision++;
             subtract(key, moved);
             total -= moved;
+            revision++;
             return moved;
         }
     }
@@ -323,6 +335,37 @@ public final class MatterInventory implements MatterStore {
         contents.putAll(restored.contents);
         reservations.clear();
         reservations.putAll(restored.reservations);
+        revision++;
+    }
+
+    /** A detached working copy for planning. Its state is already valid, so it needs no second validation. */
+    MatterInventory planningCopy() {
+        synchronized (MUTATION_LOCK) {
+            var copy = new MatterInventory(capacity, maximumTypes);
+            copy.total = total;
+            copy.contents.putAll(contents);
+            copy.reservations.putAll(reservations);
+            return copy;
+        }
+    }
+
+    /** Whether the key already holds one of this store's type slots, as stock or as a reserved output. */
+    boolean occupiesType(SubstanceKey key) {
+        synchronized (MUTATION_LOCK) {
+            if (contents.containsKey(key)) return true;
+            for (Reservation reservation : reservations.values()) if (reservation.outputs().containsKey(key)) return true;
+            return false;
+        }
+    }
+
+    /** Type slots held by stock and reserved outputs, without copying the stock table. */
+    int occupiedTypes() {
+        synchronized (MUTATION_LOCK) {
+            if (reservations.isEmpty()) return contents.size();
+            var types = new HashSet<>(contents.keySet());
+            for (Reservation reservation : reservations.values()) types.addAll(reservation.outputs().keySet());
+            return types.size();
+        }
     }
 
     private boolean canReserveLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
@@ -362,6 +405,7 @@ public final class MatterInventory implements MatterStore {
         inputs.forEach(this::subtract);
         outputs.forEach((key, quantity) -> contents.merge(key, quantity, Math::addExact));
         total = total - MatterAmounts.total(inputs) + MatterAmounts.total(outputs);
+        revision++;
     }
 
     private void subtract(SubstanceKey key, long amount) {

@@ -17,6 +17,8 @@ public interface MatterStore {
     boolean hasTypeSpace(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);
     boolean canApply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);
     boolean apply(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs);
+    /** Changes whenever a committed change may alter any answer above; equal values mean nothing changed. */
+    long revision();
     /** Immutable, deterministically ordered inventory identities used to bind an in-progress batch. */
     List<MatterInventory> members();
 }

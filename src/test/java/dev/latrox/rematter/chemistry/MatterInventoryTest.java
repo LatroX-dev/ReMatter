@@ -198,4 +198,31 @@ class MatterInventoryTest {
         assertThrows(IllegalArgumentException.class, () -> inventory.restoreInPlace(invalid));
         assertEquals(before, inventory.snapshot());
     }
+    @Test
+    void revisionChangesOnEveryCommittedChangeAndNeverOnRejectedOnes() {
+        MatterInventory inventory = new MatterInventory(1_000);
+        MatterInventory other = new MatterInventory(1_000);
+        long revision = inventory.revision();
+        assertEquals(0, inventory.extract(WATER, 10));
+        assertFalse(inventory.apply(Map.of(WATER, 1L), Map.of()));
+        assertEquals(0, inventory.insert(WATER, 0));
+        assertFalse(inventory.cancel(UUID.randomUUID()));
+        assertEquals(revision, inventory.revision());
+        List<Runnable> changes = List.of(
+                () -> inventory.insert(WATER, 100),
+                () -> inventory.extract(WATER, 10),
+                () -> inventory.apply(Map.of(WATER, 10L), Map.of(HYDROGEN, 10L)),
+                () -> inventory.setCapacity(2_000),
+                () -> inventory.transferTo(other, WATER, 5),
+                () -> inventory.cancel(inventory.reserve(Map.of(WATER, 1L), Map.of()).orElseThrow()),
+                () -> inventory.restoreInPlace(inventory.snapshot()));
+        for (Runnable change : changes) {
+            long before = inventory.revision();
+            change.run();
+            assertTrue(inventory.revision() > before);
+        }
+        long otherRevision = other.revision();
+        assertTrue(other.transferAllTo(new MatterInventory(1_000)));
+        assertTrue(other.revision() > otherRevision);
+    }
 }
