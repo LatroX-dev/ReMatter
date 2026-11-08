@@ -30,6 +30,8 @@ import org.jspecify.annotations.Nullable;
  */
 final class MachineMatterNetwork {
     static final int MAX_NODES = MatterPipeBlock.Tier.RESONANT.networkLimit();
+    /** Blocks one exploration may read, so ownerless cable branches only raise the cost of a scan. */
+    static final int SCAN_BUDGET = 8 * MAX_NODES;
     static final int MAX_STORAGES = 64;
     static final int FITS = -1;
     static final int TOO_LARGE = MatterPipeBlock.Tier.values().length;
@@ -171,7 +173,7 @@ final class MachineMatterNetwork {
     }
     List<MachineBlockEntity> interfaces() { return interfaces; }
     MachineSnapshot.NetworkView view() {
-        return new MachineSnapshot.NetworkView(status, nodes.size(), storageCount, cellCount,
+        return new MachineSnapshot.NetworkView(status, Math.min(MAX_NODES, nodes.size()), storageCount, cellCount,
                 ready() ? inventory.total() : 0, ready() ? inventory.capacity() : 0,
                 ready() ? inventory.typeCount() : 0);
     }
@@ -218,16 +220,30 @@ final class MachineMatterNetwork {
     }
 
     /**
-     * Chooses the cables an exploration may use. A network fits when its node count stays within the limit of its
-     * weakest cable. Otherwise that weakest tier, and everything reachable only through it, is left out and the next
-     * exploration uses only stronger cables, so one weaker cable, for example one placed by another player, never
-     * stops the stronger network it touches. Returns FITS, the next weakest admitted tier, or TOO_LARGE.
+     * Chooses the cables an exploration may use. A network fits when its routed node count stays within the limit of
+     * its weakest routed cable. Otherwise that weakest tier, and everything reachable only through it, is left out and
+     * the next exploration uses only stronger cables, so one weaker cable, for example one placed by another player,
+     * never stops the stronger network it touches. An exploration that exhausts its scan budget is too large.
+     * Returns FITS, the next weakest admitted tier, or TOO_LARGE.
      */
     static int nextStage(int stage, int nodes, boolean truncated, int weakestCable) {
-        if (truncated) return stage + 1;
+        if (truncated) return TOO_LARGE;
         if (weakestCable < 0) return nodes <= MatterPipeBlock.Tier.BASIC.networkLimit() ? FITS : TOO_LARGE;
         if (nodes <= MatterPipeBlock.Tier.values()[weakestCable].networkLimit()) return FITS;
         return weakestCable + 1;
+    }
+
+    /**
+     * The blocks on the exploration tree's routes from the origin to every device. Cable branches that lead to none of
+     * the owner's devices, such as cables another player attached, are not part of the network and count toward no limit.
+     */
+    static Set<BlockPos> routed(Map<BlockPos, BlockPos> parents, List<BlockPos> devices) {
+        var result = new HashSet<BlockPos>();
+        for (var device : devices) {
+            BlockPos position = device;
+            while (position != null && result.add(position)) position = parents.get(position);
+        }
+        return result;
     }
 
     record Edge(BlockPos first, BlockPos second) {
@@ -271,6 +287,8 @@ final class MachineMatterNetwork {
         private final Map<Long, ChunkStamp> chunks = new LinkedHashMap<>();
         private final Map<BlockPos, Node> observed = new HashMap<>();
         private final Set<BlockPos> unloadedPositions = new HashSet<>();
+        private final Map<BlockPos, Node> reached = new HashMap<>();
+        private final Map<BlockPos, BlockPos> parents = new HashMap<>();
         private final Map<BlockPos, Node> connected = new HashMap<>();
         private final Set<Edge> edges = new HashSet<>();
         private boolean unloaded;
@@ -292,11 +310,14 @@ final class MachineMatterNetwork {
             return result("network_too_large");
         }
 
-        /** One bounded breadth-first exploration that admits cables of the given tier ordinal or stronger. */
+        /**
+         * One bounded breadth-first exploration that admits cables of the given tier ordinal or stronger. The network
+         * keeps only the routes to the owner's devices.
+         */
         private void explore(Node root, int stage) {
-            connected.clear(); edges.clear(); unloaded = false; truncated = false;
+            reached.clear(); parents.clear(); connected.clear(); edges.clear(); unloaded = false; truncated = false;
             ArrayDeque<Node> pending = new ArrayDeque<>();
-            connected.put(root.position, root);
+            reached.put(root.position, root);
             pending.add(root);
             while (!pending.isEmpty() && !truncated) {
                 Node node = pending.removeFirst();
@@ -306,12 +327,16 @@ final class MachineMatterNetwork {
                     if (next == null || next.cable() && next.cableTier < stage
                             || !acceptsFrom(next, node) || !acceptsFrom(node, next)) continue;
                     edges.add(Edge.of(node.position, next.position));
-                    if (connected.containsKey(position)) continue;
-                    if (connected.size() == MAX_NODES) { truncated = true; break; }
-                    connected.put(position, next);
+                    if (reached.containsKey(position)) continue;
+                    if (reached.size() == SCAN_BUDGET) { truncated = true; break; }
+                    reached.put(position, next);
+                    parents.put(position, node.position);
                     pending.addLast(next);
                 }
             }
+            var devices = reached.values().stream().filter(node -> !node.cable()).map(Node::position).toList();
+            for (var position : routed(parents, devices)) connected.put(position, reached.get(position));
+            edges.removeIf(edge -> !connected.containsKey(edge.first) || !connected.containsKey(edge.second));
         }
 
         private MachineMatterNetwork result(String diagnostic) {

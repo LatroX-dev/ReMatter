@@ -2,6 +2,7 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.chemistry.MatterInventory;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -21,6 +22,19 @@ class MachineMatterNetworkTest {
         assertEquals(REINFORCED, MachineMatterNetwork.nextStage(BASIC, 301, false, BASIC));
         assertEquals(FITS, MachineMatterNetwork.nextStage(REINFORCED, 300, false, RESONANT));
     }
+    @Test void aForeignCableBranchOfAnyTierAddsNothingToTheNetworkItTouches() {
+        // A Decomposer at x=0 reaches a Drive at x=11 over ten cables; another player hangs 300 cables off x=5.
+        var parents = new HashMap<BlockPos, BlockPos>();
+        for (int x = 1; x <= 11; x++) parents.put(at(x, 0), at(x - 1, 0));
+        parents.put(at(5, 1), at(5, 0));
+        for (int z = 2; z <= 300; z++) parents.put(at(5, z), at(5, z - 1));
+        var routed = MachineMatterNetwork.routed(parents, List.of(at(0, 0), at(11, 0)));
+        assertEquals(12, routed.size());
+        assertFalse(routed.contains(at(5, 1)));
+        assertEquals(FITS, MachineMatterNetwork.nextStage(BASIC, routed.size(), false, BASIC));
+        // A device on the branch makes its route part of the network.
+        assertEquals(12 + 300, MachineMatterNetwork.routed(parents, List.of(at(0, 0), at(11, 0), at(5, 300))).size());
+    }
     @Test void networksWithinTheirWeakestCableLimitFitAtOnce() {
         assertEquals(FITS, MachineMatterNetwork.nextStage(BASIC, 256, false, BASIC));
         assertEquals(FITS, MachineMatterNetwork.nextStage(BASIC, 384, false, REINFORCED));
@@ -30,7 +44,7 @@ class MachineMatterNetworkTest {
     @Test void everyStageProgressesAndTheStrongestTierIsTheLastResort() {
         assertEquals(RESONANT, MachineMatterNetwork.nextStage(REINFORCED, 385, false, REINFORCED));
         assertEquals(TOO_LARGE, MachineMatterNetwork.nextStage(RESONANT, 513, false, RESONANT));
-        assertEquals(REINFORCED, MachineMatterNetwork.nextStage(BASIC, 512, true, BASIC));
+        assertEquals(TOO_LARGE, MachineMatterNetwork.nextStage(BASIC, 512, true, BASIC));
         assertEquals(TOO_LARGE, MachineMatterNetwork.nextStage(RESONANT, 512, true, RESONANT));
         assertEquals(TOO_LARGE, MachineMatterNetwork.nextStage(BASIC, 257, false, -1));
         for (int stage = BASIC; stage < TOO_LARGE; stage++)
@@ -55,6 +69,7 @@ class MachineMatterNetworkTest {
         assertFalse(route.sameTopology(foreign));
         assertFalse(route.sameTopology(null));
     }
+    private static BlockPos at(int x, int z) { return new BlockPos(x, 64, z); }
     private static MachineMatterNetwork network(UUID owner, List<MachineMatterNetwork.Node> nodes) {
         var sorted = new ArrayList<>(nodes);
         sorted.sort(java.util.Comparator.comparing(MachineMatterNetwork.Node::position));

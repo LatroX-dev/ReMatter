@@ -84,7 +84,7 @@ Crafting a new Cell gives you an empty Cell. Installed Cells keep their own cont
 
 ## Extend the network
 
-Matter Cables carry matter-network traffic and forward FE that an external generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, including machines and cables: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. If the network grows past that limit, cables of the weakest tier and the devices only they reach are left out; the stronger part keeps working.
+Matter Cables carry matter-network traffic and forward FE that an external generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cable branches that reach none of your machines do not count. If the network grows past that limit, cables of the weakest tier and the devices only they reach are left out; the stronger part keeps working. A cable system larger than 4,096 connected blocks is too large.
 
 A network includes only your own machines; other players' machines on the same cables stay separate. Cables have no owner, so anyone can break or extend them and FE pushed into a cable reaches every connected receiver. On a shared server, protect your base with a claim mod.
 
