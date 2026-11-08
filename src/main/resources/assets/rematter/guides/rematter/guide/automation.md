@@ -9,21 +9,21 @@ item_ids:
   - rematter:matrix_cluster
   - rematter:matter_cell_256k
   - rematter:matter_cell_1m
-  - rematter:matter_storage
   - rematter:matter_terminal
   - rematter:matter_pipe
+  - rematter:reinforced_matter_cable
+  - rematter:resonant_matter_cable
+  - rematter:network_interface
 ---
-# Stop carrying the Cell by hand
+# Grow the shared material network
 
-Once [sand-to-glass](copper.md) works, add a **Matter Drive** for continuous production. It holds the same Cell and makes its stock available to connected machines.
+Your [sand-to-glass starter line](copper.md) already uses a **Matter Drive**. Add item transport for continuous production, then more Drives when you need capacity. Each Drive holds up to six individually removable Cells in two columns of three. Its populated front bays match the Contents slots, and connected machines share all readable Cells.
 
 <RecipeFor id="rematter:matter_drive" />
 
-## 1. Move the Cell into the Drive
+## 1. Keep the Cell in storage
 
-Place Decomposer, Drive and Synthesizer in a touching row. Put the Cell in the Drive. **Leave the two processors' local Cell slots empty.**
-
-An inserted local Cell always takes priority over a network, even when empty, full or unreadable. Removing it selects the connected storage instead. Check the source under **Details** before starting work.
+Place Decomposer, Drive and Synthesizer in a touching row. Put the Cell in any of the Drive's six **Contents** slots. Check the connected stock in **Configuration** before starting work.
 
 The Drive needs no FE. Both processors still need their own FE connections.
 
@@ -31,9 +31,9 @@ The Drive needs no FE. Both processors still need their own FE connections.
   <Block x="0" y="1" id="rematter:decomposer" />
   <Block x="1" y="1" id="rematter:matter_drive" />
   <Block x="2" y="1" id="rematter:material_synthesizer" />
-  <BlockAnnotation x="0" y="1" color="#63d8bf">Decomposer: local Cell slot empty; use the connected Drive.</BlockAnnotation>
-  <BlockAnnotation x="1" y="1" color="#e6b676">Insert your Cell here. The Drive replaces manual Cell transfers.</BlockAnnotation>
-  <BlockAnnotation x="2" y="1" color="#8dcfff">Synthesizer: local Cell slot empty; choose Glass from the shared stock.</BlockAnnotation>
+  <BlockAnnotation x="0" y="1" color="#63d8bf">Decomposer: its input accepts sand; the connected Drive stores the recovered material.</BlockAnnotation>
+  <BlockAnnotation x="1" y="1" color="#63d8bf">Insert your Cell here. It serves both processors.</BlockAnnotation>
+  <BlockAnnotation x="2" y="1" color="#8dcfff">Synthesizer: choose Glass from the shared stock.</BlockAnnotation>
   <LineAnnotation from="0.5 1.5 1" to="0.5 1.5 2" color="#f7bb56" thickness="3">Keep external FE connected.</LineAnnotation>
   <LineAnnotation from="2.5 1.5 1" to="2.5 1.5 2" color="#f7bb56" thickness="3">Power the Synthesizer separately.</LineAnnotation>
 </GameScene>
@@ -59,33 +59,44 @@ You can dig space below the Synthesizer for its hopper and chest.
 
 ## 3. Start continuous production
 
-Enable **Automation** in both processors' **Details**. Press **Start** on the Decomposer if it is paused.
+Enable **Automation** in both processors' **Configuration** tabs. Hover its symbol to read the explanation; the small On/Off label shows the setting. Press **Start** on the Decomposer if it is paused.
 
-On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then open **Details** and press **Run nonstop**. Put sand in the input chest. The line now produces glass without further menu clicks while input, power and space remain available.
+On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then open **Configuration** and use **Run nonstop**. Hover the circular-arrow symbol to find it. Put sand in the input chest. The line now produces glass while input, power and space remain available.
 
 Hoppers do not select recipes or request synthesis jobs. **Run nonstop** supplies the continuing requests. **Stop repeat** stops continuous production. **Pause** keeps the current order and **Resume** continues it; changing the product cancels the old request.
 
 ## Larger Cells
 
-A 64k Cell holds **64,000 units** and uses one Matrix Crystal. A 256k Cell holds **256,000 units** and uses one Matrix Cluster. A 1M Cell holds **1,000,000 units** and uses four Clusters and an Optical Circuit.
+A 64k Cell holds **64,000 units** and uses a Matrix Crystal and a Control Circuit. A 256k Cell holds **256,000 units** and uses a Matrix Cluster, a Control Circuit and two Ender Conductors. A 1M Cell holds **1,000,000 units** and uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath.
 
-A Cluster combines four Crystals, Rhedon and Virel. The Optical Circuit combines a Control Circuit, Lumin and glass. [Powered preparation](preparation.md) provides these additional fractions.
+A Cluster combines four Crystals with Rhedon, Virel, Structural Bars and Matrix Blend. An Optical Circuit uses Lumivex, glass, a Control Circuit and Diamond Lattices. Each Cell also needs a separately crafted Cell Housing.
 
 <RecipeFor id="rematter:matrix_cluster" />
+<RecipeFor id="rematter:optical_circuit" />
 <RecipeFor id="rematter:matter_cell_256k" />
 <RecipeFor id="rematter:matter_cell_1m" />
 
 Every Cell supports up to **512 substance/phase pairs**. Solids, liquids and gases share its space. Water and water vapor are different types.
 
-Larger Cells are crafted empty. They do not consume your old filled Cell; swapping Cells does not combine their contents.
+Crafting a new Cell gives you an empty Cell. Installed Cells keep their own contents, and the Drive pools their available stock.
 
 ## Extend the network
 
-Matter Pipes bridge gaps. A Terminal gives another view of the stock. Use **one Drive or original Matter Storage** per connected network, with at most 64 machines and pipes in loaded chunks. All connected machines must have the same owner.
+Matter Cables carry matter-network traffic and FE. Supply FE from an external generator or energy store. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, including machines and cables: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. All connected machines must have the same owner.
+
+Connect Matter Cables to eligible rear, side or bottom ports. The Matter Terminal connects at the rear. In the Terminal's network view, open connected device menus or queue a selected recipe on a compatible worker. Use separate transport for physical items and ordinary fluids.
 
 <RecipeFor id="rematter:matter_pipe" />
+<RecipeFor id="rematter:reinforced_matter_cable" />
+<RecipeFor id="rematter:resonant_matter_cable" />
 <RecipeFor id="rematter:matter_terminal" />
 
-Original **Matter Storage** blocks keep their built-in contents and need no Cell. They remain an alternative for existing installations.
-
 Item and fluid automation cannot move Cells or upgrades. Owners can use buckets manually. Enable Automation only for trusted external connections; it does not share private menu access.
+
+## AE2 and Refined Storage requests
+
+Connect a **ReMatter Network Interface** to the material network and to the chosen external system. In its **Configuration**, select the backend and turn **Automation** on. Then enable **Network jobs** on the powered workers that should accept requests. Hover each network symbol for its full label. Use a separate Interface for AE2 and Refined Storage when both share the same ReMatter installation.
+
+The connected systems can request supported recipes from available workers. They still need the complete ingredients, power and output space. The automatic alloy catalogue offers powder manufacture and ingot production; it omits reverse alloy grinding so that a request for powder does not depend on first making its own ingot. Reverse grinding remains usable in physical machines and manually encoded processing patterns.
+
+<RecipeFor id="rematter:network_interface" />

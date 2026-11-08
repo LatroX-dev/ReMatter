@@ -3,7 +3,7 @@ navigation:
   title: Materials and the matrix
   icon: rematter:matrix_crystal
   parent: index.md
-  position: 6
+  position: 7
 ---
 # Materials and the matrix
 
@@ -25,7 +25,7 @@ A filled Cell contains substance quantities. It does not store a scanned item pa
 
 The Synthesizer's product list shows approved recipes. Selecting one only prepares a job. You still need every ingredient, enough FE and room for the complete output. The Analyzer supplies information; it grants no synthesis permission.
 
-Frames, Control Circuits, Cells and machines remain assembled items. Craft them normally.
+Frames, Control Circuits, Cells and machines remain assembled items. Craft them in their fixed recipe layouts. [Powders, alloys and ceramic](metallurgy.md) adds physical workshop materials for those assemblies; these are distinct from the quantities held in a Cell.
 
 ## One batch is not always one item
 

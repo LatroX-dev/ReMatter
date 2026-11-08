@@ -10,21 +10,21 @@ item_ids:
 ---
 # Sand, a Cell, then glass
 
-Use your [two-machine starter kit](setup.md), its **64k Matter Cell**, external power and **one sand**.
+Use your [starter line](setup.md), its **64k Matter Cell in the Drive**, external power and **one sand**.
 
 ## 1. Load the Decomposer
 
-Open the Decomposer. Put the Cell in its **Cell slot**, separate from the material input. Put the sand in the material input.
+Open the Decomposer. Put sand in its material input. The adjacent Drive supplies storage through the Cell installed there.
 
-Inserting a Cell pauses the machine so you can check its source before processing. Press **Start**.
+Check the storage source in **Configuration**, then return to **Process** and press the triangle whose tooltip reads **Start**.
 
-Wait for the cutter to finish. The sand is consumed only when its full result can be stored. Open **Details** to inspect the local stock: it now contains **Silica**.
+Wait for the cutter to finish. The sand is consumed only when its full result can be stored. Open the Drive's **Contents** tab: it now contains **Silica**.
 
-## 2. Carry the Cell to the Synthesizer
+## 2. Keep the Cell in the Drive
 
-Remove the Cell from the Decomposer and put it in the Synthesizer's **Cell slot**. Its silica travels with it.
+Leave the Cell installed. The touching Synthesizer can use the same silica without moving an item or Cell between machines.
 
-The Cell does not stay active in both machines. Removing or inserting it pauses work. Open **Details** to check that the Synthesizer is using its local Cell.
+Open the Synthesizer's **Configuration** tab to check its connected storage, then return to **Process**. If you change the Cell or network, check the new source before resuming.
 
 ## 3. Choose and make glass
 
@@ -34,7 +34,7 @@ The Cell does not stay active in both machines. Removing or inserting it pauses 
 4. Press **Use recipe**.
 5. Press **Start** to request one complete batch.
 
-Take **one glass** from the output when the press finishes. Use a single **Start** request for this experiment; leave **Run nonstop** under **Details** unused.
+Take **one glass** from the output when the press finishes. Use a single **Start** request for this experiment; leave **Run nonstop** under **Configuration** unused. Hover the recipe and action symbols to see their full labels.
 
 **The same sand-derived silica has become a useful building material.** The Cell remains usable; the Crystal is not spent. It is not a free-copy recipe, and does not multiply the amount of material.
 
@@ -50,4 +50,4 @@ Server recipes can differ. Always use the machine's displayed requirements.
 
 The product list contains only approved outputs. Stored ingredients can be used for another listed recipe when its exact requirements are met. Knowing that recipe does not add missing stock.
 
-For continuing production without moving the Cell by hand, see [Drive and automation](automation.md). If the first batch waits, check [the machine's status](help.md).
+For continuing production with hoppers or a larger network, see [Drive and automation](automation.md). If the first batch waits, check [the machine's status](help.md).

@@ -3,7 +3,7 @@ navigation:
   title: When a machine waits
   icon: rematter:decomposer
   parent: index.md
-  position: 10
+  position: 11
 ---
 # When a machine waits
 
@@ -11,29 +11,25 @@ Read the status and the displayed storage source before changing ingredients.
 
 ## Prepare the matrix first
 
-For a single extraction, put the raw material in the primary input and leave the second input empty. For Matrix Blend, put Silith in the primary input and Argil in the second. Keep room for the entire output.
+For a single extraction, put the raw material in the left input and leave the other ingredient slots empty. For Matrix Blend, put Silith on the left and Argil in the middle. Alloy and ceramic mixtures use the [three-slot order](metallurgy.md). Keep room for the entire output.
 
 The Hand Preparator needs repeated **Crank** presses instead of FE. Rhedon, Virel and Lumin require the powered Material Preparator. No preparation machine needs a Cell or matter network. The Industrial Preparator also needs its complete casing structure.
 
 ## Choose a source
 
-For the first manual setup, insert a readable Cell in the Decomposer or Synthesizer's dedicated Cell slot.
-
-For network production, remove the processor's local Cell and connect one Drive containing a Cell, or an original Matter Storage. An inserted local Cell takes priority even when empty, full or unreadable; the machine does not quietly take stock from somewhere else.
-
-A Drive needs its own inserted Cell. An original Matter Storage has built-in capacity.
+Insert a readable Cell in a Matter Drive and connect the Drive to the processors. A touching row is enough. Use Matter Cables to bridge gaps. Each Drive accepts up to six Cells.
 
 ## Start after changing a Cell
 
-Inserting or removing a Cell pauses the processor and resets unfinished progress. Its uncommitted input and FE are kept.
+Changing a Drive's Cell changes the storage source. Check the connection, then resume any paused processor. Uncommitted inputs and FE are kept.
 
-Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or **Recipe**, choose the product, confirm with **Use recipe** and press **Start**. For continuous production, use **Details → Run nonstop**. **Stop repeat** stops that mode. If a pending job is paused, **Resume** continues the same order.
+Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or **Recipe**, choose the product, confirm with **Use recipe** and press **Start**. For continuous production, use **Configuration → Run nonstop**. **Stop repeat** stops that mode. If a pending job is paused, **Resume** continues the same order.
 
-Changing the connected storage also pauses work. Confirm the intended source under **Details** before resuming.
+Changing the connected storage also pauses work. Confirm the intended source under **Configuration** before resuming.
 
 ## Supply power
 
-The Material Preparator and both processors need external FE. A Drive needs none, and Matter Pipes do not carry it. The full batch's energy must be available before progress advances.
+The Material Preparator, Sinter Furnace and chemistry processors need external FE. Matter Cables forward FE to eligible power ports. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. The full batch's energy must be available before progress advances.
 
 ## Add missing material
 
@@ -49,20 +45,22 @@ Collect the Synthesizer's output, make room in its output chest, or drain its ta
 
 ## Check a network or reactor
 
-Use one Drive or Matter Storage per connected network. Keep all owners the same and the route loaded, with no more than 64 machines and pipes.
+Keep all connected machines under the same owner and the route loaded. A network supports up to 64 Drives. Check the [cable tiers](automation.md) for its total node limit.
 
-Industrial chambers have width/depth 3–9, with height **5–9 for preparation** or **4–9 for reactions**. Include floor and roof, Casing edges/corners and at least two Ports. The front controller sits one block above the base, away from the edge columns. Connect outside Port faces, not the controller or Glass.
+Industrial chambers have width and depth 3–9. The Industrial Preparator needs at least a **3×4 or 4×3** footprint and a height of **5–9**. Reactors need a height of **4–9**. Use Casing for the edges and corners, and across the entire Reactor floor and roof. The front controller sits one block above the base, away from the edge columns. Use at least two Ports and connect their outward faces.
+
+Once the chamber forms, a Port can connect from its outward face. Check its configured role if a Matter Cable or other connection fails.
 
 Check the reason shown by the controller:
 
 - **Too short:** raise the Preparator to at least five blocks, or Reactor to four.
 - **Frame, wall or Port fault:** complete the shell and provide two separate Ports away from its edges.
-- **Missing or incomplete modules:** build at least one complete column directly on the inside floor.
-- **Wrong module or position:** preparation needs Basin → Separation Unit → Grinding Unit; reaction needs Field Coil → Reaction Chamber. Follow the order from the floor upwards. Do not float or stack columns.
-- **Blocked interior:** remove unrelated blocks; space outside the complete columns must be air.
+- **Missing or incomplete modules:** fit at least one of every required module type.
+- **Wrong module or position:** each matching type can mount on the inside floor or directly under the roof. Click a support's top or bottom face. Keep the middle clear.
+- **Blocked interior:** remove unrelated blocks; space between the installed floor and ceiling parts must be air.
 - **Unloaded or ambiguous structure:** keep the chamber loaded and give it a single unambiguous controller.
 
-A larger shell without additional complete columns does not work faster. Pause before rebuilding. An older empty shell must be fitted with modules before work can continue; keep its controller and stored contents.
+A larger shell without additional working parts does not work faster. Pause before rebuilding.
 
 ## Preserve unreadable contents
 

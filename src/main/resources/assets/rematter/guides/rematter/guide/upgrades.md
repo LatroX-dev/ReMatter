@@ -3,14 +3,14 @@ navigation:
   title: Upgrades
   icon: rematter:speed_upgrade
   parent: index.md
-  position: 9
+  position: 10
 item_ids:
   - rematter:speed_upgrade
   - rematter:efficiency_upgrade
 ---
 # Upgrades
 
-Open a processing machine's **Details** to reach its upgrade slot. It holds up to **four upgrades of one type**.
+Open a processing machine's **Upgrades** side tab to reach its upgrade slot. It holds up to **four upgrades of one type**. Hover the Speed and Efficiency symbols to compare their effects before inserting one.
 
 ## Speed
 
