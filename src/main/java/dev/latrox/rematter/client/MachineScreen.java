@@ -25,6 +25,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -45,12 +46,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static final int FULL_GRID_COLUMNS = 3;
     private final List<StockButton> stockButtons = new ArrayList<>();
     private EditBox search;
-    private Button primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
-    private Button terminalDevices, returnToTerminal;
+    private ConsoleButton primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
+    private ConsoleButton terminalDevices, returnToTerminal;
     private TabButton processTab, upgradesTab, configurationTab;
-    private Button ports;
+    private ConsoleButton ports;
     private boolean sideTabs;
     private int page;
+    private MachineMenu.Stock shownStock;
+    private String shownQuery;
+    private List<MachineSnapshot.Entry> shownEntries = List.of();
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, PANEL_WIDTH, PANEL_HEIGHT);
@@ -83,7 +87,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         search.setBordered(false);
         search.setTextColor(TEXT);
         search.setValue(query);
-        search.setResponder(value -> page = 0);
+        search.setResponder(value -> { page = 0; updateWidgets(); });
 
         processTab = tab(MachineMenu.View.MAIN, 12, 84, passive() ? "tab_contents" : "tab_process");
         upgradesTab = tab(MachineMenu.View.UPGRADES, 100, 84, "tab_upgrades");
@@ -101,8 +105,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         backend = control("", 12, 126, 272, 18, b -> send(9), "backend_hint");
         repeat = control("", 12, 126, 224, 18, b -> send(5), "continuous_hint");
         addBatch = control("", 240, 126, 44, 18, b -> send(4), "add_batch_hint");
-        previous = control("previous_hint", 12, STOCK_FOOTER, 20, 13, b -> page = Math.max(0, page - 1), "previous_hint");
-        next = control("next_hint", 264, STOCK_FOOTER, 20, 13, b -> page++, "next_hint");
+        previous = control("previous_hint", 12, STOCK_FOOTER, 20, 13, b -> turnPage(-1), "previous_hint");
+        next = control("next_hint", 264, STOCK_FOOTER, 20, 13, b -> turnPage(1), "next_hint");
         terminalDevices = control("terminal.network", 186, 5, 98, 17, b -> openTerminalDevices(), "terminal.network_hint");
         returnToTerminal = control("terminal.return", 186, 5, 98, 17,
                 b -> send(MachineMenu.RETURN_TO_TERMINAL), "terminal.return_hint");
@@ -118,21 +122,21 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         updateWidgets();
     }
     private static Component tr(String key) { return Component.translatable("screen.rematter." + key); }
-    private Button control(String key, int x, int y, int width, int height, Button.OnPress action, String hint) {
-        var button = addRenderableWidget(Button.builder(key.isEmpty() ? Component.empty() : tr(key), action)
-                .bounds(leftPos + x, topPos + y, width, height).build(ConsoleButton::new));
-        explain(button,tr(hint));return button;
-    }
-    private static void explain(Button button, Component hint) {
-        Component label=button.getMessage();
-        button.setTooltip(Tooltip.create(label.getString().isBlank()||label.getString().equals(hint.getString())?hint:label.copy().append("\n").append(hint)));
+    private ConsoleButton control(String key, int x, int y, int width, int height, Button.OnPress action, String hint) {
+        var button = addRenderableWidget(new ConsoleButton(Button.builder(key.isEmpty() ? Component.empty() : tr(key), action)
+                .bounds(leftPos + x, topPos + y, width, height)));
+        button.explain(tr(hint));return button;
     }
     private TabButton tab(MachineMenu.View view, int x, int width, String key) {
         int tabX = sideTabs ? leftPos - SIDE_TAB_WIDTH + 1 : leftPos + x;
         int tabY = sideTabs ? SIDE_TAB_TOP + view.ordinal() * SIDE_TAB_PITCH : 25;
-        return addRenderableWidget(new TabButton(Button.builder(tr(key), b -> { menu.setView(view); page = 0; })
+        return addRenderableWidget(new TabButton(Button.builder(tr(key), b -> { menu.setView(view); page = 0; updateWidgets(); })
                 .bounds(tabX, topPos + tabY, sideTabs ? SIDE_TAB_WIDTH : width, sideTabs ? SIDE_TAB_HEIGHT : 18)
                 .tooltip(Tooltip.create(tr(key))), view));
+    }
+    private void turnPage(int step) {
+        page = Math.max(0, page + step);
+        updateWidgets();
     }
     private boolean main() { return menu.view() == MachineMenu.View.MAIN; }
     private boolean configuration() { return menu.view() == MachineMenu.View.CONFIGURATION; }
@@ -163,12 +167,18 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static String label(MachineSnapshot.Amount amount) {
         return amount.known() ? SubstanceLabels.shortLabel(amount.id(), name(amount).getString()) : name(amount).getString();
     }
+    /** Filtered once per stock update or search change, not on every frame. */
     private List<MachineSnapshot.Entry> entries() {
-        String query = search == null ? "" : search.getValue().strip().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) return menu.stock().entries();
-        return menu.stock().entries().stream().filter(e -> name(e).getString().toLowerCase(Locale.ROOT).contains(query)
+        var stock = menu.stock();
+        String raw = search == null ? "" : search.getValue();
+        if (stock == shownStock && raw.equals(shownQuery)) return shownEntries;
+        String query = raw.strip().toLowerCase(Locale.ROOT);
+        shownEntries = query.isEmpty() ? stock.entries() : stock.entries().stream().filter(e -> name(e).getString().toLowerCase(Locale.ROOT).contains(query)
                 || e.id().toLowerCase(Locale.ROOT).contains(query) || e.phase().contains(query)
                 || SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(e.id()), query)).toList();
+        shownStock = stock;
+        shownQuery = raw;
+        return shownEntries;
     }
     private int gridColumns() { return disk() ? 2 : FULL_GRID_COLUMNS; }
     private int gridX() { return disk() ? 111 : 12; }
@@ -184,32 +194,32 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         processTab.active = configurationTab.active = ready;
         ports.visible = ports.active = ready && configuration() && MachinePortMode.configurable(menu.kind());
         processTab.setMessage(tr(passive() ? "tab_contents" : "tab_process"));
-        processTab.setTooltip(Tooltip.create(processTab.getMessage()));
+        processTab.explain(processTab.getMessage());
         upgradesTab.visible = ready && menu.supportsUpgrades();
         upgradesTab.active = ready;
         if (sideTabs) configurationTab.setY(topPos + SIDE_TAB_TOP + (upgradesTab.visible ? 2 : 1) * SIDE_TAB_PITCH);
-        explain(upgradesTab,tr("upgrade_hint").copy().append("\n").append(tr("upgrade_limit")).append("\n").append(tr("upgrade_effect_hint")));
+        upgradesTab.explain(tr("upgrade_hint").copy().append("\n").append(tr("upgrade_limit")).append("\n").append(tr("upgrade_effect_hint")));
         search.visible = search.active = ready && main() && passive();
         search.setX(leftPos + gridX() + 5);
         search.setWidth(CONTENT_RIGHT - gridX() - 10);
         primary.visible = ready && main() && decision.visible(); primary.active = ready && decision.enabled();
-        primary.setMessage(tr(decision.labelKey())); explain(primary,tr(decision.hintKey()));
+        primary.setMessage(tr(decision.labelKey())); primary.explain(tr(decision.hintKey()));
         choose.visible = ready && main() && !s.networkJobs() && selecting() && !decision.opensRecipeSelection(); choose.active = ready && s.choiceCount() > 0;
         automation.visible = ready && configuration(); automation.setMessage(tr(s.automation() ? "automation_on" : "automation_off"));
-        explain(automation,tr("automation_hint"));
+        automation.explain(tr("automation_hint"));
         repeat.visible = addBatch.visible = ready && configuration() && selecting() && !s.networkJobs();
         boolean valid = s.selected() >= 0 && !s.preview().id().isEmpty() && s.selectedId().equals(s.preview().id()) && !s.status().equals("selection_unavailable");
         repeat.active = valid; repeat.setMessage(tr(s.repeat() ? "stop_repeat" : "run_repeat"));
-        explain(repeat,tr("continuous_hint"));
+        repeat.explain(tr("continuous_hint"));
         addBatch.active = valid && !s.repeat() && s.queuedBatches() < 64;
         boolean recoveringUpgrade = configuration() && menu.slots.get(2).isActive();
         boolean canNetwork = menu.kind().processes() && menu.kind()!=MachineKind.ANALYZER && !handPreparator() && !recoveringUpgrade;
         networkJobs.visible = ready && configuration() && canNetwork;
         networkJobs.setMessage(tr(s.networkJobs()?"network_jobs_on":"network_jobs_off"));
-        explain(networkJobs,tr("network_jobs_hint"));
+        networkJobs.explain(tr("network_jobs_hint"));
         backend.visible = ready && configuration() && menu.kind()==MachineKind.NETWORK_INTERFACE;
         backend.setMessage(Component.translatable("screen.rematter.backend",tr(switch(s.backend()){case "ae2","rs"->"backend_"+s.backend();default->"backend_none";})));
-        explain(backend,tr("backend_hint"));
+        backend.explain(tr("backend_hint"));
         automation.setWidth(canNetwork ? 134 : 272);
         backend.setX(leftPos + (recoveringUpgrade ? 109 : 12));
         backend.setWidth(recoveringUpgrade ? 175 : 272);
@@ -221,20 +231,19 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         previous.setX(leftPos + gridX());
         for (int i = 0; i < stockButtons.size(); i++) {
             var b = stockButtons.get(i); int index = page * perPage() + i;
-            b.entry = i < perPage() && index < values.size() ? values.get(index) : null;
+            b.show(i < perPage() && index < values.size() ? values.get(index) : null);
             b.visible = b.active = ready && main() && passive() && b.entry != null;
             b.setX(leftPos + gridX() + i % gridColumns() * tilePitch());
             b.setY(topPos + STOCK_TOP + i / gridColumns() * STOCK_PITCH);
             b.setWidth(tilePitch() - 2);
-            if (b.entry != null) {
-                String label = b.entry.known() ? SubstanceLabels.shortLabel(b.entry.id(), name(b.entry).getString()) : name(b.entry).getString();
-                b.setMessage(Component.literal(label + ", " + b.entry.phase() + ", " + number(b.entry.amount()) + " u"));
-                b.setTooltip(Tooltip.create(stockTooltip(b.entry, label)));
-            }
         }
     }
+    @Override protected void containerTick() {
+        super.containerTick();
+        updateWidgets();
+    }
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        updateWidgets(); super.extractRenderState(g, mouseX, mouseY, partialTick);
+        super.extractRenderState(g, mouseX, mouseY, partialTick);
         int mx = mouseX - leftPos, my = mouseY - topPos; var s = menu.snapshot();
         if (s.containerId() != menu.containerId) return;
         if(main() && disk()) {
@@ -400,13 +409,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             var ingredient = p.inputs().getFirst();
             ScreenChrome.twoLines(g, font, label(ingredient), 38, 75, 90,
                     ingredient.available() < ingredient.required() ? WARNING : TEXT);
-            text(g, compact(ingredient.required()) + " u", 38, 99, 90, MUTED);
+            text(g, matter(ingredient.required()), 38, 99, 90, MUTED);
         } else if (!p.inputs().isEmpty()) {
             for (int i = 0; i < Math.min(2, p.inputs().size()); i++) {
                 var ingredient = p.inputs().get(i);
                 text(g, label(ingredient), 38, 72 + i * 19, 90,
                         ingredient.available() < ingredient.required() ? WARNING : TEXT);
-                text(g, compact(ingredient.required()) + " u", 38, 81 + i * 19, 80, MUTED);
+                text(g, matter(ingredient.required()), 38, 81 + i * 19, 80, MUTED);
             }
             if (p.inputs().size() > 2 || !p.complete()) g.text(font, "+", 122, 100, MUTED, false);
         } else if (selecting()) {
@@ -421,20 +430,19 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         } else if (menu.slots.get(1).isActive() || !outputIcon(p).isEmpty()) {
             drawSlotLabel(g, 1, s);
             if (p.outputCount() > 0 && (p.outputKind().equals("fluid") || !menu.slots.get(1).hasItem()))
-                text(g, compact(p.outputCount()) + (p.outputKind().equals("fluid") ? " mB" : ""), 246, 89, 38, MUTED);
+                text(g, p.outputKind().equals("fluid") ? Quantities.fluid(Quantities.compact(p.outputCount())).getString() : Quantities.compact(p.outputCount()), 246, 89, 38, MUTED);
         } else if (!p.outputs().isEmpty()) {
             var output = p.outputs().getFirst();
             ScreenChrome.twoLines(g, font, label(output), 209, 73, 75, output.known() ? TEXT : WARNING);
-            text(g, compact(output.required()) + " u", 209, 98, 65, ACCENT);
+            text(g, matter(output.required()), 209, 98, 65, ACCENT);
             if (p.outputs().size() > 1 || !p.complete()) g.text(font, "+", 278, 98, MUTED, false);
         }
         var work = menu.progress();
         if (work.duration() > 0) {
-            String progress = Math.clamp(100L * work.progress() / work.duration(), 0, 100) + "%";
+            String progress = Component.translatable("screen.rematter.percent", Math.clamp(100L * work.progress() / work.duration(), 0, 100)).getString();
             g.text(font, progress, (processArrowStart() + 200 - font.width(progress)) / 2, 100, MUTED, false);
         }
-        String status = statusText().getString();
-        if (s.repeat() && selecting()) status += " · " + tr("continuous").getString();
+        String status = (s.repeat() && selecting() ? joined(statusText(), tr("continuous")) : statusText()).getString();
         boolean activeWork = working(s.status());
         ScreenChrome.icon(g, activeWork ? Icon.PLAY : s.status().equals("ready") ? Icon.CHECK : Icon.INFO,
                 12, 119, activeWork ? ACCENT : TEXT);
@@ -459,16 +467,16 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
             text(g, tr("upgrades").getString(), 68, 116, 210, TEXT);
         }
-        String cost = s.preview().id().isEmpty() ? compact(menu.progress().energy()) + " FE"
-                : compact(s.preview().energy()) + " FE · " + String.format(Locale.ROOT, "%.1f s", s.preview().ticks() / 20.0);
+        String cost = (s.preview().id().isEmpty() ? Quantities.energy(Quantities.compact(menu.progress().energy()))
+                : Component.translatable("screen.rematter.preview_cost", Quantities.compact(s.preview().energy()), Quantities.seconds(s.preview().ticks()))).getString();
         text(g, cost, 68, 131, 210, MUTED);
     }
 
     private void configurationLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
         String heading = tr("automation_explain").getString();
-        if (industrial()) heading = s.structure().formed()
-                ? dimensions(s) + " · " + s.structure().workRate() + "× · −" + s.structure().energySavingPercent() + "% FE"
-                : statusText().getString();
+        var v = s.structure();
+        if (industrial()) heading = (v.formed() ? Component.translatable("screen.rematter.structure_heading", v.width(), v.depth(), v.height(),
+                v.workRate(), v.energySavingPercent()) : statusText()).getString();
         else if (menu.kind() == MachineKind.NETWORK_INTERFACE) heading = statusText().getString();
         if (disk() && java.util.stream.IntStream.of(1, 2, 3, 4).anyMatch(i -> menu.slots.get(i).hasItem()))
             heading = tr("drive_recovery").getString();
@@ -491,7 +499,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                         33, 82, 249, MUTED);
             } else {
                 ScreenChrome.icon(g, passive() ? Icon.STORAGE : Icon.POWER, 14, 80, ACCENT);
-                text(g, passive() ? compact(s.used()) + " / " + compact(s.capacity()) + " u" : compact(menu.progress().energy()) + " FE", 33, 82, 249, MUTED);
+                text(g, (passive() ? capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity()))
+                        : Quantities.energy(Quantities.compact(menu.progress().energy()))).getString(), 33, 82, 249, MUTED);
             }
         }
         if (menu.slots.get(2).isActive()) ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
@@ -519,13 +528,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             ScreenChrome.twoLines(g, font, message, gridX() + 5, 87, CONTENT_RIGHT - gridX() - 10, MUTED);
         }
         int pageCount = pages(visibleEntries);
-        String pagination = pageCount > 1 ? (page + 1) + " / " + pageCount : "";
-        String capacity = disk() ? "" : compact(s.used()) + " / " + compact(s.capacity()) + " u";
-        String footer = pagination.isEmpty() ? capacity : capacity.isEmpty() ? pagination : capacity + " · " + pagination;
-        if (stock.truncated()) {
-            String shown = Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()).getString();
-            footer = footer.isEmpty() ? shown : footer + " · " + shown;
-        }
+        var parts = new ArrayList<Component>();
+        if (!disk()) parts.add(capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity())));
+        if (pageCount > 1) parts.add(Component.translatable("screen.rematter.page", Math.min(page, pageCount - 1) + 1, pageCount));
+        if (stock.truncated()) parts.add(Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()));
+        String footer = parts.stream().reduce(MachineScreen::joined).map(Component::getString).orElse("");
         int start = gridX() + (previous.visible ? 24 : 2), end = CONTENT_RIGHT - (next.visible ? 24 : 2);
         String label = fitted(footer, end - start);
         g.text(font, label, (start + end - font.width(label)) / 2, STOCK_FOOTER + 3, stock.complete() ? ACCENT : WARNING, false);
@@ -540,9 +547,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var p=s.preview();var lines=new ArrayList<Component>();lines.add(previewTitle(s));
         if(menu.inputRole()&&!preparator()&&s.sampleBatchSize()>1)lines.add(Component.translatable("screen.rematter.composition_batch",s.sampleBatchSize()));
         lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+19)/20)
-                :Component.translatable("screen.rematter.preview_cost",number(p.energy()),String.format(Locale.ROOT,"%.1f",p.ticks()/20.0)));
-        for(var a:p.inputs())lines.add(Component.translatable("screen.rematter.preview_input",label(a),a.phase(),number(a.required()),number(a.available())));
-        for(var a:p.outputs())lines.add(Component.translatable("screen.rematter.preview_output",label(a),a.phase(),number(a.required())));
+                :Component.translatable("screen.rematter.preview_cost",number(p.energy()),Quantities.seconds(p.ticks())));
+        for(var a:p.inputs())lines.add(Component.translatable("screen.rematter.preview_input",label(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available())));
+        for(var a:p.outputs())lines.add(Component.translatable("screen.rematter.preview_output",label(a),SubstanceNames.phase(a.phase()),number(a.required())));
         if(p.inputs().stream().anyMatch(a->!a.known())||p.outputs().stream().anyMatch(a->!a.known()))lines.add(tr("unknown_substance_hint"));
         if(!p.complete())lines.add(tr("preview_partial"));return lines;
     }
@@ -596,15 +603,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var lines=new ArrayList<Component>();
         if(handPreparator()){lines.add(tr("hand_powered"));lines.add(tr("crank_hint"));return lines;}
         if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());
-        lines.add(tr("source_"+s.storageSource()));lines.add(Component.literal(number(s.used())+" / "+number(s.capacity())+" u"));
+        lines.add(tr("source_"+s.storageSource()));lines.add(capacity(number(s.used()),number(s.capacity())));
         if(menu.kind().processes())lines.add(energyLine());
         if(disk()) {
             lines.add(Component.translatable("screen.rematter.drive_cells",s.cells().stream().filter(MachineSnapshot.CellView::installed).count()));
             if(s.cells().stream().anyMatch(c->c.installed()&&!c.readable()))lines.add(tr("drive_blocked"));
             for(int bay=0;bay<s.cells().size();bay++) {
                 var cell=s.cells().get(bay);if(!cell.installed())continue;
-                lines.add(Component.translatable("screen.rematter.drive_bay",bay+1).append(": ").append(SubstanceNames.item(cell.itemId())).append(" · ")
-                        .append(cell.readable()?Component.translatable("screen.rematter.cell_types",cell.types(),cell.maxTypes()):tr("cell_unreadable")));
+                lines.add(Component.translatable("screen.rematter.drive_bay_detail",Component.translatable("screen.rematter.drive_bay",bay+1),SubstanceNames.item(cell.itemId()),
+                        cell.readable()?Component.translatable("screen.rematter.cell_types",cell.types(),cell.maxTypes()):tr("cell_unreadable")));
             }
         }
         var n=s.network();
@@ -619,32 +626,41 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         else if(!stock.readable())lines.add(tr("contents_unavailable"));
         return lines;
     }
-    private Component stockTooltip(MachineSnapshot.Entry e, String label) {
-        var lines = Component.literal(label + " · " + e.phase()).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
+    private static Component stockTooltip(MachineSnapshot.Entry e, String label) {
+        var lines = joined(Component.literal(label), SubstanceNames.phase(e.phase())).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
         if (e.available() != e.amount()) lines.append("\n").append(Component.translatable("screen.rematter.stock_available", number(e.available())));
         if (!e.known()) lines.append("\n").append(tr("unknown_substance_hint"));
         return lines.append("\n").append(tr("substance_details_hint"));
     }
-    private static void substanceIcon(GuiGraphicsExtractor g,String id,String phase,int x,int y) {
-        try {
-            var key = new SubstanceKey(SubstanceId.parse(id),Phase.valueOf(phase.toUpperCase(Locale.ROOT)));
-            SubstanceIcon.draw(g,x,y,key);
-        } catch(IllegalArgumentException ignored) {
-            ScreenChrome.icon(g,Icon.INFO,x+2,y+2,MUTED);
-        }
+    private static SubstanceKey key(String id,String phase) {
+        try { return new SubstanceKey(SubstanceId.parse(id),Phase.valueOf(phase.toUpperCase(Locale.ROOT))); }
+        catch(IllegalArgumentException invalid) { return null; }
+    }
+    private static void substanceIcon(GuiGraphicsExtractor g,SubstanceKey key,int x,int y) {
+        if(key!=null)SubstanceIcon.draw(g,x,y,key);
+        else ScreenChrome.icon(g,Icon.INFO,x+2,y+2,MUTED);
     }
     private static int phaseColor(String phase) {return switch(phase){case "liquid"->LIQUID;case "gas"->GAS;default->WARNING;};}
-    private String dimensions(MachineSnapshot s){var v=s.structure();return v.width()+"×"+v.depth()+"×"+v.height();}
     private String fitted(String value,int width) {
         return ScreenChrome.fit(font,value,width);
     }
     private void text(GuiGraphicsExtractor g,String v,int x,int y,int width,int color){g.text(font,fitted(v,width),x,y,color,false);}
     private ItemStack outputIcon(MachineSnapshot.Preview p){try{Identifier id=Identifier.parse(p.outputId());if(p.outputKind().equals("item")&&BuiltInRegistries.ITEM.containsKey(id))return new ItemStack(BuiltInRegistries.ITEM.getValue(id));if(p.outputKind().equals("fluid")&&BuiltInRegistries.FLUID.containsKey(id))return new ItemStack(BuiltInRegistries.FLUID.getValue(id).getBucket());}catch(RuntimeException ignored){}return ItemStack.EMPTY;}
-    private static String number(long v){return String.format(Locale.ROOT,"%,d",v);}
+    private static String number(long v){return Quantities.number(v);}
+    private static String matter(long v){return Quantities.matter(Quantities.compact(v)).getString();}
+    private static Component capacity(String used,String capacity){return Component.translatable("screen.rematter.capacity",used,capacity);}
+    private static MutableComponent joined(Component first,Component second){return Component.translatable("screen.rematter.joined",first,second);}
     private Component energyLine(){return Component.translatable("screen.rematter.energy_buffer",number(menu.progress().energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
-    private static String compact(long v){if(v>=1_000_000_000_000L)return String.format(Locale.ROOT,"%.1e",(double)v);if(v>=1_000_000_000)return String.format(Locale.ROOT,"%.1fB",v/1e9);if(v>=1_000_000)return String.format(Locale.ROOT,"%.1fM",v/1e6);if(v>=10_000)return String.format(Locale.ROOT,"%.1fk",v/1000.0);return Long.toString(v);}
     private class ConsoleButton extends Button {
+        private Component explainedLabel, explainedHint;
         ConsoleButton(Builder b){super(b);}
+        /** The tooltip names the control and explains it; it is rebuilt only when either text changes. */
+        void explain(Component hint) {
+            Component label=getMessage();
+            if(label.equals(explainedLabel)&&hint.equals(explainedHint))return;
+            explainedLabel=label;explainedHint=hint;
+            setTooltip(Tooltip.create(label.getString().isBlank()||label.getString().equals(hint.getString())?hint:label.copy().append("\n").append(hint)));
+        }
         void background(GuiGraphicsExtractor g,boolean selected){ScreenChrome.raised(g,getX(),getY(),getWidth(),getHeight(),selected||isHoveredOrFocused(),active);}
         private boolean toggled(){var s=menu.snapshot();return this==automation&&s.automation()||this==networkJobs&&s.networkJobs()||this==repeat&&s.repeat();}
         private Icon symbol() {
@@ -712,28 +728,44 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
 
     private final class StockButton extends ConsoleButton {
         private MachineSnapshot.Entry entry;
+        private SubstanceKey key;
+        private String name = "", amount = "";
 
         StockButton(Builder builder) { super(builder); }
+
+        /** Names, icon key and tooltip are resolved once per shown row. */
+        void show(MachineSnapshot.Entry value) {
+            if (java.util.Objects.equals(value, entry)) return;
+            entry = value;
+            if (value == null) return;
+            key = key(value.id(), value.phase());
+            name = name(value).getString();
+            amount = matter(value.amount());
+            String label = value.known() ? SubstanceLabels.shortLabel(value.id(), name) : name;
+            setMessage(Component.translatable("screen.rematter.stock_entry", label, SubstanceNames.phase(value.phase()),
+                    Quantities.matter(number(value.amount()))));
+            setTooltip(Tooltip.create(stockTooltip(value, label)));
+        }
 
         @Override protected void extractContents(GuiGraphicsExtractor g, int mx, int my, float partial) {
             if (entry == null) return;
             background(g, false);
-            substanceIcon(g, entry.id(), entry.phase(), getX() + 3, getY() + 1);
+            substanceIcon(g, key, getX() + 3, getY() + 1);
             int left = getX() + 22;
             int available = getWidth() - 26;
-            text(g, name(entry).getString(), left, getY() + 1, available, entry.known() ? TEXT : WARNING);
-            text(g, compact(entry.amount()) + " u", left, getY() + 9, available, ACCENT);
+            text(g, name, left, getY() + 1, available, entry.known() ? TEXT : WARNING);
+            text(g, amount, left, getY() + 9, available, ACCENT);
         }
     }
     /** Quantity details are a real accessible screen, never an inventory slot or an implicit withdrawal. */
     private final class StockDetailsScreen extends Screen {
-        private final String id,phase;private int x,y;
-        StockDetailsScreen(String id,String phase){super(tr("substance_details"));this.id=id;this.phase=phase;}
+        private final String id,phase;private final SubstanceKey key;private int x,y;
+        StockDetailsScreen(String id,String phase){super(tr("substance_details"));this.id=id;this.phase=phase;key=key(id,phase);}
         @Override protected void init(){x=(width-244)/2;y=(height-170)/2;addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+87,y+141,70,18).build(ConsoleButton::new));}
         @Override public boolean isPauseScreen(){return false;}
         @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu)onClose();}
-        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();var entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);String name=entry==null?id:name(entry).getString();substanceIcon(g,id,phase,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
-            String symbol=SubstanceLabels.iconLabel(id);text(g,symbol.isEmpty()?phase:symbol+" · "+phase,x+34,y+33,198,phaseColor(phase));
+        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();var entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);String name=entry==null?id:name(entry).getString();substanceIcon(g,key,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
+            String symbol=SubstanceLabels.iconLabel(id);text(g,(symbol.isEmpty()?SubstanceNames.phase(phase):joined(Component.literal(symbol),SubstanceNames.phase(phase))).getString(),x+34,y+33,198,phaseColor(phase));
             String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());String available=entry==null?(stock.complete()?"0":"?"):number(entry.available());
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_stored", stored).getString(), x + 11, y + 50, 222, TEXT);
             ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_available", available).getString(), x + 11, y + 71, 222, TEXT);
