@@ -1,13 +1,16 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
+import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A chunk-local revision changes on both sides of nested structural mutations, without a global mutation lock.
@@ -18,6 +21,22 @@ import net.neoforged.neoforge.event.level.ChunkEvent;
 public final class ChunkRevisions {
     private static final AtomicLong EPOCH = new AtomicLong();
     public record Revision(long value, int mutationDepth) { public boolean stable() { return mutationDepth == 0; } }
+    /**
+     * One chunk as an observation read it: absent, or loaded at a revision. It still matches only while the same chunk
+     * object is loaded at that revision outside any mutation, or while an absent chunk stays absent.
+     */
+    record Stamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, Revision revision) {
+        private static final Revision ABSENT = new Revision(0, 0);
+        static Stamp of(int x, int z, @Nullable LevelChunk chunk) {
+            return chunk == null ? new Stamp(x, z, null, ABSENT) : new Stamp(x, z, new WeakReference<>(chunk), current(chunk));
+        }
+        static Stamp capture(ServerLevel level, int x, int z) { return of(x, z, level.getChunkSource().getChunkNow(x, z)); }
+        boolean matches(ServerLevel level) {
+            var current = level.getChunkSource().getChunkNow(x, z);
+            if (chunk == null) return current == null;
+            return current != null && current == chunk.get() && revision.stable() && revision.equals(ChunkRevisions.current(current));
+        }
+    }
     public interface Tracked {
         Revision rematter$chunkRevision();
         void rematter$touchChunkRevision();

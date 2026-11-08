@@ -2,7 +2,6 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.chemistry.MatterInventory;
 import dev.latrox.rematter.chemistry.MatterNetworkInventory;
-import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,7 +48,7 @@ final class MachineMatterNetwork {
     private final List<MachineBlockEntity> interfaces;
     private final Set<Edge> edges;
     private final Set<BlockPos> cablePositions;
-    private final List<ChunkStamp> chunks;
+    private final List<ChunkRevisions.Stamp> chunks;
     private final String status;
     private final int storageCount;
     private final int cellCount;
@@ -57,7 +56,7 @@ final class MachineMatterNetwork {
     private final @Nullable MatterNetworkInventory inventory;
     private long checkedTick = Long.MIN_VALUE, checkedEpoch, rereadTick = Long.MIN_VALUE;
 
-    MachineMatterNetwork(UUID owner, List<Node> nodes, Set<Edge> edges, List<ChunkStamp> chunks,
+    MachineMatterNetwork(UUID owner, List<Node> nodes, Set<Edge> edges, List<ChunkRevisions.Stamp> chunks,
                          String status, int storageCount, List<MachineBlockEntity> stores,
                          @Nullable MatterNetworkInventory inventory) {
         this.owner = owner;
@@ -249,14 +248,6 @@ final class MachineMatterNetwork {
     record Edge(BlockPos first, BlockPos second) {
         static Edge of(BlockPos a, BlockPos b) { return a.compareTo(b) <= 0 ? new Edge(a, b) : new Edge(b, a); }
     }
-    record ChunkStamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, ChunkRevisions.Revision revision) {
-        boolean matches(ServerLevel level) {
-            var current = level.getChunkSource().getChunkNow(x, z);
-            if (chunk == null) return current == null;
-            return current != null && current == chunk.get() && revision.stable()
-                    && revision.equals(ChunkRevisions.current(current));
-        }
-    }
     /** One device or cable. A cable carries its tier ordinal; every other node has cableTier -1. */
     record Node(BlockPos position, Object block, int cableTier, @Nullable BlockEntity entity,
                 @Nullable MachineBlockEntity controller, @Nullable Direction outward,
@@ -284,7 +275,7 @@ final class MachineMatterNetwork {
     private static final class Scan {
         private final ServerLevel level;
         private final UUID owner;
-        private final Map<Long, ChunkStamp> chunks = new LinkedHashMap<>();
+        private final Map<Long, ChunkRevisions.Stamp> chunks = new LinkedHashMap<>();
         private final Map<BlockPos, Node> observed = new HashMap<>();
         private final Set<BlockPos> unloadedPositions = new HashSet<>();
         private final Map<BlockPos, Node> reached = new HashMap<>();
@@ -365,8 +356,7 @@ final class MachineMatterNetwork {
             int x = position.getX() >> 4, z = position.getZ() >> 4;
             long chunkKey = (long)x << 32 ^ (z & 0xffffffffL);
             LevelChunk chunk = level.getChunkSource().getChunkNow(x, z);
-            chunks.computeIfAbsent(chunkKey, ignored -> new ChunkStamp(x, z,
-                    chunk == null ? null : new WeakReference<>(chunk), chunk == null ? new ChunkRevisions.Revision(0, 0) : ChunkRevisions.current(chunk)));
+            chunks.computeIfAbsent(chunkKey, ignored -> ChunkRevisions.Stamp.of(x, z, chunk));
             if (chunk == null) { unloadedPositions.add(position); observed.put(position, null); return null; }
             var state = level.getBlockState(position);
             BlockEntity entity = level.getBlockEntity(position);

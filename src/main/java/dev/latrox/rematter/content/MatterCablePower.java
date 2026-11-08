@@ -1,9 +1,7 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
-import dev.latrox.rematter.content.ChunkRevisions.Revision;
 import dev.latrox.rematter.content.preparation.PreparationTier;
-import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -324,7 +322,7 @@ public final class MatterCablePower {
     private static final class Component {
         private final Set<BlockPos> cables;
         private final @Nullable Endpoints endpoints;
-        private final List<ChunkStamp> stamps;
+        private final List<ChunkRevisions.Stamp> stamps;
         // Access order, so only the cables that recently received FE keep their endpoint distances.
         private final Map<BlockPos, Map<BlockPos, Integer>> distances = new LinkedHashMap<>(16, 0.75F, true) {
             @Override protected boolean removeEldestEntry(Map.Entry<BlockPos, Map<BlockPos, Integer>> eldest) {
@@ -333,7 +331,7 @@ public final class MatterCablePower {
         };
         private long checkedTick = Long.MIN_VALUE, checkedEpoch;
 
-        private Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkStamp> stamps) {
+        private Component(Set<BlockPos> cables, @Nullable Endpoints endpoints, List<ChunkRevisions.Stamp> stamps) {
             this.cables = cables; this.endpoints = endpoints; this.stamps = stamps;
         }
 
@@ -392,21 +390,12 @@ public final class MatterCablePower {
         }
     }
 
-    private record ChunkStamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, @Nullable Revision revision) {
-        private boolean matches(ServerLevel level) {
-            var current = level.getChunkSource().getChunkNow(x, z);
-            if (chunk == null) return current == null;
-            return current != null && current == chunk.get() && revision != null && revision.stable()
-                    && revision.equals(ChunkRevisions.current(current));
-        }
-    }
-
     private record EndpointSide(BlockPos cable, Direction outward) {}
 
     private static final class Discovery {
         private final ServerLevel level;
         private final @Nullable Endpoints previous;
-        private final Map<Long, ChunkStamp> stamps = new HashMap<>();
+        private final Map<Long, ChunkRevisions.Stamp> stamps = new HashMap<>();
         private final Map<Long, LevelChunk> loadedChunks = new HashMap<>();
         private final Map<BlockPos, BlockState> observed = new HashMap<>();
 
@@ -454,9 +443,8 @@ public final class MatterCablePower {
                 long key = (long) x << 32 | (z & 0xffffffffL);
                 stamps.computeIfAbsent(key, ignored -> {
                     var chunk = level.getChunkSource().getChunkNow(x, z);
-                    if (chunk == null) return new ChunkStamp(x, z, null, null);
-                    loadedChunks.put(key, chunk);
-                    return new ChunkStamp(x, z, new WeakReference<>(chunk), ChunkRevisions.current(chunk));
+                    if (chunk != null) loadedChunks.put(key, chunk);
+                    return ChunkRevisions.Stamp.of(x, z, chunk);
                 });
                 var chunk = loadedChunks.get(key);
                 return chunk == null ? Blocks.AIR.defaultBlockState() : chunk.getBlockState(position);

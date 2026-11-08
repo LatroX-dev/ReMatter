@@ -6,7 +6,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.chunk.LevelChunk;
 import org.jspecify.annotations.Nullable;
 
 /** Bounded rectangular shells. Chunk identity and mutation revisions protect every cached observation. */
@@ -105,14 +104,7 @@ public final class IndustrialStructure {
         Bounds expand(int amount) { return new Bounds(minX-amount,minY-amount,minZ-amount,maxX+amount,maxY+amount,maxZ+amount); }
         boolean intersects(Bounds o) { return minX <= o.maxX && o.minX <= maxX && minY <= o.maxY && o.minY <= maxY && minZ <= o.maxZ && o.minZ <= maxZ; }
     }
-    private record ChunkStamp(int x, int z, @Nullable WeakReference<LevelChunk> chunk, ChunkRevisions.Revision revision) {
-        boolean matches(ServerLevel level) {
-            var current = level.getChunkSource().getChunkNow(x, z);
-            if (chunk == null) return current == null;
-            return current != null && chunk.get() == current && revision.stable() && revision.equals(ChunkRevisions.current(current));
-        }
-    }
-    private record Stamp(List<ChunkStamp> chunks) {
+    private record Stamp(List<ChunkRevisions.Stamp> chunks) {
         boolean matches(ServerLevel level) { return chunks.stream().allMatch(chunk -> chunk.matches(level)); }
     }
     /** What one controller last observed, with the game tick and epoch of its last confirmation. */
@@ -279,11 +271,8 @@ public final class IndustrialStructure {
     }
     private static Bounds around(BlockPos p, int radius) { return new Bounds(p.getX()-radius,p.getY()-radius,p.getZ()-radius,p.getX()+radius,p.getY()+radius,p.getZ()+radius); }
     private static Stamp stamp(ServerLevel level, Bounds area) {
-        var chunks = new ArrayList<ChunkStamp>();
-        for (int x=area.minX>>4;x<=area.maxX>>4;x++) for(int z=area.minZ>>4;z<=area.maxZ>>4;z++) {
-            var chunk=level.getChunkSource().getChunkNow(x,z);
-            chunks.add(new ChunkStamp(x,z,chunk==null?null:new WeakReference<>(chunk),chunk==null?new ChunkRevisions.Revision(0,0):ChunkRevisions.current(chunk)));
-        }
+        var chunks = new ArrayList<ChunkRevisions.Stamp>();
+        for (int x=area.minX>>4;x<=area.maxX>>4;x++) for(int z=area.minZ>>4;z<=area.maxZ>>4;z++) chunks.add(ChunkRevisions.Stamp.capture(level,x,z));
         return new Stamp(List.copyOf(chunks));
     }
     private static boolean live(MachineBlockEntity machine) {
