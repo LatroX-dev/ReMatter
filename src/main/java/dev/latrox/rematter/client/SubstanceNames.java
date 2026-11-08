@@ -3,6 +3,7 @@ package dev.latrox.rematter.client;
 import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.content.ChemistryText;
 import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.network.ClientChemistry;
@@ -22,15 +23,9 @@ public final class SubstanceNames {
         if (!known) return Component.translatable("gui.rematter.unknown_substance", id, phase(phase));
         try {
             return ClientChemistry.current().definition(SubstanceId.parse(id))
-                    .<Component>map(definition -> Component.translatableWithFallback(definition.translationKey(), readable(definition.id().path())))
+                    .<Component>map(definition -> Component.translatableWithFallback(definition.translationKey(), ChemistryText.readable(definition.id().path())))
                     .orElseGet(() -> Component.literal(id));
         } catch (IllegalArgumentException invalid) { return Component.literal(id); }
-    }
-
-    /** A data-pack substance without a translation is named from the last part of its stable ID. */
-    static String readable(String path) {
-        String name = path.substring(path.lastIndexOf('/') + 1).replace('_', ' ');
-        return name.isEmpty() ? name : Character.toUpperCase(name.charAt(0)) + name.substring(1);
     }
 
     /** Recipe viewers and terminals use the client's catalogue to decide whether a key is still defined. */

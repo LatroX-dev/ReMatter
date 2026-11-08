@@ -38,8 +38,8 @@ public final class MatterCellItem extends Item {
         long total=rows.stream().mapToLong(SubstanceStack::quantity).sum();
         tooltip.accept(Component.translatable("item.rematter.matter_cell.usage",total,capacity));
         tooltip.accept(Component.translatable("item.rematter.matter_cell.types",rows.size(),MatterCellData.MAX_TYPES));
-        var registry=SubstanceText.catalogue(context.level());
-        rows.stream().limit(3).forEach(row -> tooltip.accept(SubstanceText.row(registry,row.key(),row.quantity())));
+        var registry=ChemistryText.catalogue(context.level());
+        rows.stream().limit(3).forEach(row -> tooltip.accept(ChemistryText.row(registry,row.key(),row.quantity())));
         if(rows.size()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",rows.size()-3));
     }
 }

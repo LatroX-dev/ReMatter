@@ -5,6 +5,7 @@ import dev.latrox.rematter.chemistry.ProcessType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.client.SubstanceNames;
+import dev.latrox.rematter.content.ChemistryText;
 import dev.latrox.rematter.content.MachineKind;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,8 @@ public final class ChemistryViewer {
 
     public record Matter(SubstanceKey key, long amount) {}
 
-    public record Entry(Category category, Identifier id, Optional<Resource> consumed, Optional<Resource> produced,
+    /** {@code process} names the chemical process that a reaction, separation or phase change entry shows. */
+    public record Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
                        List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed) {
         public Entry {
             inputs = List.copyOf(inputs);
@@ -66,6 +68,7 @@ public final class ChemistryViewer {
         /** The same explanation in every viewer: the synthesis permission, the exact batch and where amounts are shown. */
         public List<Component> notes() {
             var notes = new ArrayList<Component>();
+            process.ifPresent(notes::add);
             notes.add(Component.translatable(switch (category) {
                 case DECOMPOSITION -> synthesisAllowed ? "gui.rematter.viewer.synthesis_allowed" : "gui.rematter.viewer.decomposition_only";
                 case SYNTHESIS -> "gui.rematter.viewer.approved_output";
@@ -91,9 +94,9 @@ public final class ChemistryViewer {
             var resource = new Resource(false, item, profile.itemCount());
             var matter = matter(profile.matter());
             boolean allowed = registry.synthesisPolicy().allowsItem(profile.itemId());
-            result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", item), Optional.of(resource),
+            result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", item), Optional.empty(), Optional.of(resource),
                     Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(), allowed));
-            if (allowed) result.add(new Entry(Category.SYNTHESIS, recipeId(Category.SYNTHESIS, "item", item), Optional.empty(),
+            if (allowed) result.add(new Entry(Category.SYNTHESIS, recipeId(Category.SYNTHESIS, "item", item), Optional.empty(), Optional.empty(),
                     Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true));
         }
         for (var profile : registry.fluidProfiles()) {
@@ -102,15 +105,15 @@ public final class ChemistryViewer {
             var resource = new Resource(true, fluid, profile.amount());
             var matter = matter(profile.matter());
             boolean allowed = registry.synthesisPolicy().allowsFluid(profile.fluidId());
-            result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "fluid", fluid), Optional.of(resource),
+            result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "fluid", fluid), Optional.empty(), Optional.of(resource),
                     Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(), allowed));
-            if (allowed) result.add(new Entry(Category.SYNTHESIS, recipeId(Category.SYNTHESIS, "fluid", fluid), Optional.empty(),
+            if (allowed) result.add(new Entry(Category.SYNTHESIS, recipeId(Category.SYNTHESIS, "fluid", fluid), Optional.empty(), Optional.empty(),
                     Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true));
         }
         for (var process : registry.processes()) {
             var category = Category.of(process.type());
             var source = Identifier.fromNamespaceAndPath(process.id().namespace(), process.id().path());
-            result.add(new Entry(category, recipeId(category, "process", source), Optional.empty(), Optional.empty(),
+            result.add(new Entry(category, recipeId(category, "process", source), Optional.of(ChemistryText.process(process)), Optional.empty(), Optional.empty(),
                     matter(process.inputs()), matter(process.outputs()), process.energy(), process.ticks(), false));
         }
         return List.copyOf(result);

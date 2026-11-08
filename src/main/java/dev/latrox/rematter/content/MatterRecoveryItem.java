@@ -49,7 +49,7 @@ public final class MatterRecoveryItem extends Item {
         var value=read(stack);
         if(value.isEmpty()){tooltip.accept(Component.translatable("item.rematter.recovered_matter.locked"));return;}
         var substance=value.get();
-        tooltip.accept(SubstanceText.row(SubstanceText.catalogue(context.level()),substance.key(),substance.quantity()));
+        tooltip.accept(ChemistryText.row(ChemistryText.catalogue(context.level()),substance.key(),substance.quantity()));
         tooltip.accept(Component.translatable("item.rematter.recovered_matter.hint"));
     }
 }

@@ -21,6 +21,13 @@ public record ProcessRecipe(
         }
     }
 
+    public String translationKey() { return translationKey(id); }
+
+    /** Processes are named by language files under {@code process.<namespace>.<path>}. */
+    public static String translationKey(SubstanceId id) {
+        return "process." + id.namespace() + "." + id.path().replace('/', '.');
+    }
+
     public long energyAtTick(int tick) {
         if (tick < 0 || tick >= ticks) {
             throw new IllegalArgumentException("Tick outside recipe duration");

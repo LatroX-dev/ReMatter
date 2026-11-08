@@ -13,7 +13,7 @@ import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.SubstanceId;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.MatterRecoveryItem;
-import dev.latrox.rematter.content.SubstanceText;
+import dev.latrox.rematter.content.ChemistryText;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -56,7 +56,7 @@ public final class MatterKey extends AEKey {
      * names from its synchronized catalogue. An undefined key keeps its stable ID and is marked unknown.
      */
     private static volatile Function<SubstanceKey, Component> names = key -> Component.translatable(
-            "gui.rematter.viewer.substance_phase", SubstanceText.name(ReMatter.chemistry(), key), SubstanceText.phase(key.phase()));
+            "gui.rematter.viewer.substance_phase", ChemistryText.name(ReMatter.chemistry(), key), ChemistryText.phase(key.phase()));
     static void installNames(Function<SubstanceKey, Component> clientNames) { names = Objects.requireNonNull(clientNames); }
 
     private final SubstanceKey substance;
