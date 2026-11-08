@@ -27,13 +27,4 @@ public record ProcessRecipe(
     public static String translationKey(SubstanceId id) {
         return "process." + id.namespace() + "." + id.path().replace('/', '.');
     }
-
-    public long energyAtTick(int tick) {
-        if (tick < 0 || tick >= ticks) {
-            throw new IllegalArgumentException("Tick outside recipe duration");
-        }
-        long base = energy / ticks;
-        long remainder = energy % ticks;
-        return base + (tick < remainder ? 1 : 0);
-    }
 }

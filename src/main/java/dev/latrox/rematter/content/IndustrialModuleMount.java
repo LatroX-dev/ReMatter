@@ -10,7 +10,6 @@ public enum IndustrialModuleMount {
     private final Direction anchorFace;
     IndustrialModuleMount(Direction anchorFace) { this.anchorFace = anchorFace; }
     public Direction anchorFace() { return anchorFace; }
-    public Direction anchorDirection() { return anchorFace.getOpposite(); }
     public boolean suspended() { return this == CEILING; }
 
     public static Optional<IndustrialModuleMount> forPlacement(Direction clickedFace, boolean supported) {

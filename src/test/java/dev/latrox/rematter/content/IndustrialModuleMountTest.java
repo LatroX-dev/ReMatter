@@ -9,8 +9,6 @@ class IndustrialModuleMountTest {
         var floor = IndustrialModuleMount.forPlacement(Direction.UP, true).orElseThrow();
         var ceiling = IndustrialModuleMount.forPlacement(Direction.DOWN, true).orElseThrow();
         assertFalse(floor.suspended()); assertTrue(ceiling.suspended());
-        assertEquals(Direction.DOWN, floor.anchorDirection());
-        assertEquals(Direction.UP, ceiling.anchorDirection());
         assertEquals(Direction.UP, floor.anchorFace());
         assertEquals(Direction.DOWN, ceiling.anchorFace());
         for (var side : Direction.Plane.HORIZONTAL)
