@@ -2,7 +2,7 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **966 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **11 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **12 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
 
 ## Quantities and material states
 
@@ -120,6 +120,7 @@ Gases that may leave storage as gas:
 - `rematter:hydrogen`
 - `rematter:hydrogen_chloride` (with `mekanism`)
 - `rematter:lithium` (with `mekanism`)
+- `rematter:osmium` (with `mekanism`)
 - `rematter:oxygen`
 - `rematter:sulfur_dioxide` (with `mekanism`)
 - `rematter:sulfur_trioxide` (with `mekanism`)

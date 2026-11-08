@@ -32629,6 +32629,11 @@
       "basis": "Only the Mekanism adapter supplies this gas; export mirrors the permitted Mekanism fluid."
     },
     {
+      "substance": "rematter:osmium",
+      "required_mod": "mekanism",
+      "basis": "Only the Mekanism adapter supplies this gas. Osmium is a released plain element, so its chemical may return to Mekanism."
+    },
+    {
       "substance": "rematter:oxygen",
       "basis": "Water and silica electrolysis release oxygen; it is a permitted gas output."
     },
