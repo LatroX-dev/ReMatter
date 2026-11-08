@@ -1,6 +1,8 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.chemistry.MatterInventory;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
@@ -38,7 +40,11 @@ final class MatterCellMount {
     MachineSnapshot.CellView view(ItemStack current) {
         if (current.isEmpty()) return MachineSnapshot.CellView.EMPTY;
         long capacity = current.getItem() instanceof MatterCellItem cell ? cell.capacity() : 0;
-        return new MachineSnapshot.CellView(true, readable(current), current.getHoverName().getString(),capacity,
-                readable(current) ? inventory.typeCount() : 0,MatterCellData.MAX_TYPES);
+        boolean readable = readable(current);
+        return installedView(BuiltInRegistries.ITEM.getKey(current.getItem()), readable, capacity, readable ? inventory.typeCount() : 0);
+    }
+    /** An occupied bay names its item by registry ID; the client resolves the display name. */
+    static MachineSnapshot.CellView installedView(Identifier item, boolean readable, long capacity, int types) {
+        return new MachineSnapshot.CellView(true, readable, item.toString(), capacity, types, MatterCellData.MAX_TYPES);
     }
 }

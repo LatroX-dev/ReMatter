@@ -6,6 +6,7 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
@@ -143,6 +144,19 @@ class MachineSnapshotTest {
         assertEquals(MachineSnapshot.CellView.EMPTY,decoded.cells().get(4));
         assertThrows(IllegalArgumentException.class,()->driveSnapshot("ready", List.of(primary)));
         assertThrows(IllegalArgumentException.class,()->driveSnapshot("ready", Collections.nCopies(7,primary)));
+    }
+    @Test void mountedCellViewsNameTheItemIdForTheMenuAndTheSummary() {
+        var readable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_64k"),true,64000,2);
+        var unreadable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_1m"),false,1_000_000,0);
+        assertEquals("rematter:matter_cell_64k",readable.itemId());
+        var cells = new java.util.ArrayList<>(EMPTY_BAYS);
+        cells.set(0,readable); cells.set(3,unreadable);
+        var snapshot = driveSnapshot("unknown_schema", cells);
+        assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
+        var summary = new MachineBlockEntity.Summary("unknown_schema",0,0,1,0,0,"none",0,List.of(),false,0,"",
+                MachineSnapshot.StructureView.EMPTY,cells,0,0);
+        assertEquals(unreadable,summary.cells().get(3));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"64k Matter Cell",64000,0,512));
     }
     @Test void networkCountsAllSixCellsPerDriveWithoutAcceptingInventedBays() {
         var full=new MachineSnapshot.NetworkView("ready",64,64,384,1,24_576_000,512);
