@@ -77,8 +77,8 @@ def batches(row, family_name, family):
     actual = {(entry["substance"], entry["phase"]): entry["amount"] for entry in row["matter"]}
     if len(actual) != len(row["matter"]) or set(actual) != set(expected):
         raise ValueError(f"Matter of {item} does not match the constituents of family {family_name}")
-    multiples = {amount // expected[key] for key, amount in actual.items() if amount % expected[key] == 0}
-    if len(multiples) != 1 or len(actual) != sum(amount % expected[key] == 0 for key, amount in actual.items()) or 0 in multiples:
+    multiples = {amount // expected[key] for key, amount in actual.items()}
+    if any(amount % expected[key] for key, amount in actual.items()) or len(multiples) != 1:
         raise ValueError(f"Fractional per-item ratio for {item}: use item_count for a whole multiple of the {family_name} batch")
     count = multiples.pop()
     pieces = row.get("item_count", 1)
