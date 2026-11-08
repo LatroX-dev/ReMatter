@@ -101,9 +101,25 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         return LayerDefinition.create(mesh,32,32);
     }
 
+    /** The extracted state that a kind's visuals read. Everything else is never extracted. */
+    enum Detail {
+        NONE, MOTION, ITEMS, CELLS;
+
+        static Detail of(MachineKind kind) {
+            return switch (kind) {
+                case TERMINAL, NETWORK_INTERFACE -> NONE;
+                case ELECTROLYZER, REACTOR -> MOTION;
+                case DRIVE -> CELLS;
+                case ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
+                        INDUSTRIAL_PREPARATOR, INDUSTRIAL_REACTOR -> ITEMS;
+            };
+        }
+    }
+
     @Override public MachineRenderState createRenderState() { return new MachineRenderState(); }
     @Override public boolean shouldRender(MachineBlockEntity machine,Vec3 camera) {
-        return (!IndustrialStructure.isIndustrial(machine.kind()) || machine.industrialFormed())
+        return Detail.of(machine.kind()) != Detail.NONE
+                && (!IndustrialStructure.isIndustrial(machine.kind()) || machine.industrialFormed())
                 && BlockEntityRenderer.super.shouldRender(machine,camera);
     }
     @Override public AABB getRenderBoundingBox(MachineBlockEntity machine) {
@@ -121,13 +137,17 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         BlockEntityRenderer.super.extractRenderState(machine,state,partialTick,cameraPosition,breakProgress);
         state.kind=machine.kind(); state.facing=machine.getBlockState().getValue(MachineBlock.FACING);
         state.active=machine.getBlockState().getValue(MachineBlock.ACTIVE);
-        state.cellMask=machine.kind()==MachineKind.DRIVE?machine.visibleCellMask():0;
-        for(int bay=0;bay<6;bay++) {
-            state.cellTiers[bay]=machine.kind()==MachineKind.DRIVE?Math.clamp(machine.visibleCellTier(bay),0,4):0;
-            var appearance=(state.cellMask&(1<<bay))!=0?cellAppearance(state.cellTiers[bay]):ItemStack.EMPTY;
-            itemModelResolver.updateForTopItem(state.cellItems[bay],appearance,ItemDisplayContext.FIXED,
-                    machine.getLevel(),null,(int)machine.getBlockPos().asLong()+bay+20);
+        var detail=Detail.of(state.kind);
+        if(detail==Detail.CELLS) {
+            state.cellMask=machine.visibleCellMask();
+            for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++) {
+                state.cellTiers[bay]=Math.clamp(machine.visibleCellTier(bay),0,4);
+                var appearance=(state.cellMask&(1<<bay))!=0?cellAppearance(state.cellTiers[bay]):ItemStack.EMPTY;
+                itemModelResolver.updateForTopItem(state.cellItems[bay],appearance,ItemDisplayContext.FIXED,
+                        machine.getLevel(),null,(int)machine.getBlockPos().asLong()+bay+20);
+            }
         }
+        if(detail!=Detail.MOTION&&detail!=Detail.ITEMS)return;
         state.preparationStage=machine.preparationStage();state.preparationMixing=machine.preparationMixing();
         double time=machine.getLevel()==null?0:machine.getLevel().getGameTime()+(double)partialTick;
         state.phase=motion.computeIfAbsent(machine,key->new ProcessVisualMotion()).sample(time,machine.visualProgress(),machine.visualDuration(),state.active);
@@ -135,6 +155,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         state.drive=state.active?1:state.hasProcess?.25F:0;
         state.industrialWidth=machine.industrialWidth();state.industrialHeight=machine.industrialHeight();
         state.industrialDepth=machine.industrialDepth();state.industrialColumn=machine.industrialControllerColumn();
+        if(detail!=Detail.ITEMS)return;
         int seed=(int)machine.getBlockPos().asLong();
         itemModelResolver.updateForTopItem(state.inputItem,machine.visibleInputItem(),ItemDisplayContext.FIXED,machine.getLevel(),null,seed);
         itemModelResolver.updateForTopItem(state.secondaryItem,machine.visibleSecondaryItem(),ItemDisplayContext.FIXED,machine.getLevel(),null,seed+3);
