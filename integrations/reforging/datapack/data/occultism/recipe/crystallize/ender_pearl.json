@@ -1,0 +1,32 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "occultism"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "occultism:crystallize"
+    },
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "rematter"
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "rematter:full_ender_pearl_powders"
+      }
+    }
+  ],
+  "type": "occultism:crystallize",
+  "ingredient": "#rematter:full_ender_pearl_powders",
+  "result": {
+    "type": "occultism:item",
+    "id": "minecraft:ender_pearl"
+  },
+  "min_tier": 2,
+  "ignore_crystallize_multiplier": true
+}

@@ -171,10 +171,43 @@ class ReForgingDataTest {
         assertTrue(hydrogenCost > 2_000, "1,000 hydrogen units return 2,000 FE in the target gas generator");
         long evaporationCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy());
         assertTrue(evaporationCost > 11_580, "Conservative upper bound for 1,000 steam in the target turbines");
-        long lavaCost = minimumCost(registry.profile("minecraft:stone").orElseThrow().decompositionEnergy())
-                + minimumCost(registry.recipe(SubstanceId.parse("rematter:mineral_melting")).orElseThrow().energy())
-                + minimumCost(registry.fluidProfile("minecraft:lava").orElseThrow().synthesisEnergy());
+        var stone = registry.profile("minecraft:stone").orElseThrow();
+        var blending = registry.recipe(SubstanceId.parse("rematter:mineral_blending")).orElseThrow();
+        var melting = registry.recipe(SubstanceId.parse("rematter:mineral_melting")).orElseThrow();
+        var lava = registry.fluidProfile("minecraft:lava").orElseThrow();
+        assertEquals(stone.matter(), blending.inputs());
+        assertEquals(blending.outputs(), melting.inputs());
+        assertEquals(melting.outputs(), lava.matter());
+        long lavaCost = minimumCost(stone.decompositionEnergy()) + minimumCost(blending.energy())
+                + minimumCost(melting.energy()) + minimumCost(lava.synthesisEnergy());
         assertTrue(lavaCost > 100_000, "A target Magmator returns 100,000 FE per 1,000 mB lava");
+    }
+
+    @Test
+    void ordinaryRockCraftingCannotCreateMineralConstituents() throws Exception {
+        ChemistryRegistry registry = integration();
+        var cobble = registry.profile("minecraft:cobblestone").orElseThrow();
+        var diorite = registry.profile("minecraft:diorite").orElseThrow();
+        var andesite = registry.profile("minecraft:andesite").orElseThrow();
+        var granite = registry.profile("minecraft:granite").orElseThrow();
+        var quartz = registry.profile("minecraft:quartz").orElseThrow();
+        Map<SubstanceKey, Long> andesiteIngredients = new TreeMap<>(cobble.matter());
+        diorite.matter().forEach((key, amount) -> andesiteIngredients.merge(key, amount, Math::addExact));
+        assertEquals(andesiteIngredients, andesite.matterFor(2));
+        assertRockConservation(registry, cobble, quartz, diorite);
+        assertRockConservation(registry, diorite, quartz, granite);
+        assertEquals(registry.profile("minecraft:sand").orElseThrow().matterFor(4),
+                registry.profile("minecraft:sandstone").orElseThrow().matter());
+    }
+
+    private static void assertRockConservation(ChemistryRegistry registry, MaterialProfile rock,
+                                               MaterialProfile quartz, MaterialProfile result) {
+        Map<SubstanceKey, Long> ingredients = new TreeMap<>(rock.matter());
+        quartz.matter().forEach((key, amount) -> ingredients.merge(key, amount, Math::addExact));
+        var availableElements = registry.elementAmounts(ingredients);
+        registry.elementAmounts(result.matter()).forEach((element, amount) ->
+                assertTrue(amount <= availableElements.getOrDefault(element, 0L), result.itemId() + " creates " + element));
+        assertFalse(result.matter().containsKey(CRYSTAL));
     }
 
     @Test
@@ -188,11 +221,76 @@ class ReForgingDataTest {
         assertEquals(1, aeDust.itemCount(), "AE2 dust is a full pearl unit");
         assertEquals(pearl.matter(), powder.matter());
         assertEquals(pearl.matter(), aeDust.matter());
+        assertEquals(pearl.matterFor(1), profile(registry, "rematter:ender_pearl_powder").matterFor(1));
+        assertEquals(pearl.matterFor(1), profile(registry, "jaopca:storage_blocks.ender_pearl").matterFor(1));
+        assertFalse(registry.synthesisPolicy().allows("jaopca:storage_blocks.ender_pearl"));
+        var crystallize = readFile(Path.of("integrations/reforging/datapack/data/occultism/recipe/crystallize/ender_pearl.json"));
+        assertEquals("#rematter:full_ender_pearl_powders", crystallize.get("ingredient").getAsString());
+        assertTrue(crystallize.get("ignore_crystallize_multiplier").getAsBoolean());
+        var crush = readFile(Path.of("integrations/reforging/datapack/data/occultism/recipe/crushing/ender_pearl_dust_from_tag.json"));
+        assertEquals("rematter:ender_pearl_powder", crush.getAsJsonObject("result").get("id").getAsString());
+        assertTrue(crush.get("ignore_crushing_multiplier").getAsBoolean());
+        var storage = Path.of("integrations/reforging/datapack/data/jaopca/recipe");
+        var pack = readFile(storage.resolve("storage_blocks.to_storage_block.ender_pearl.json"));
+        var unpack = readFile(storage.resolve("storage_blocks.to_material.ender_pearl.json"));
+        assertEquals("enderio:powdered_ender_pearl", pack.getAsJsonObject("key").get("P").getAsString());
+        assertEquals(9, pack.getAsJsonArray("pattern").asList().stream().mapToInt(line -> line.getAsString().length()).sum());
+        assertEquals("enderio:powdered_ender_pearl", unpack.getAsJsonObject("result").get("id").getAsString());
+        assertEquals(9, unpack.getAsJsonObject("result").get("count").getAsInt());
         MatterInventory recovered = new MatterInventory(100_000);
         assertTrue(recovered.apply(Map.of(), powder.matter()));
         assertFalse(recovered.apply(pearl.matterFor(2), Map.of()));
         assertTrue(recovered.apply(pearl.matter(), Map.of()));
         assertEquals(0, recovered.total());
+    }
+
+    @Test
+    void dimensionMaterialsAndAlloyRecipesConserveTheirSharedConstituents() throws Exception {
+        ChemistryRegistry registry = integration();
+        var end = SubstanceKey.of("rematter:ender_essence", Phase.SOLID);
+        var nether = SubstanceKey.of("rematter:nether_essence", Phase.SOLID);
+        assertEquals(10 * profile(registry, "minecraft:end_stone").matter().get(end),
+                profile(registry, "minecraft:ender_pearl").matter().get(end));
+        assertEquals(50 * profile(registry, "minecraft:netherrack").matter().get(nether),
+                profile(registry, "minecraft:glowstone_dust").matter().get(nether));
+        assertRecipeMatter(registry, "enderio:conductive_alloy_ingot", 2, "minecraft:iron_ingot", "minecraft:copper_ingot");
+        assertRecipeMatter(registry, "enderio:dark_steel_ingot", 2, "minecraft:iron_ingot", "enderio:powdered_coal", "minecraft:obsidian");
+        assertRecipeMatter(registry, "enderio:energetic_alloy_ingot", 2, "minecraft:redstone", "enderio:conductive_alloy_ingot", "minecraft:gold_ingot");
+        assertRecipeMatter(registry, "enderio:vibrant_alloy_ingot", 2, "enderio:energetic_alloy_ingot", "minecraft:ender_pearl", "minecraft:glowstone_dust");
+        assertRecipeMatter(registry, "enderio:pulsating_alloy_ingot", 2, "minecraft:iron_ingot", "minecraft:ender_pearl");
+        assertRecipeMatter(registry, "enderio:end_steel_ingot", 2, "minecraft:end_stone", "enderio:dark_steel_ingot", "minecraft:obsidian");
+        assertRecipeMatter(registry, "mekanism:ingot_refined_glowstone", 1, "minecraft:glowstone_dust");
+        assertRecipeMatter(registry, "mekanism:ingot_refined_obsidian", 1, "mekanism:dust_refined_obsidian");
+        for (String form : Set.of("block", "ingot", "nugget")) {
+            for (String material : Set.of("refined_glowstone", "refined_obsidian")) {
+                assertFalse(registry.synthesisPolicy().allows("mekanism:" + form + "_" + material));
+            }
+        }
+    }
+
+    private static void assertRecipeMatter(ChemistryRegistry registry, String result, int count, String... ingredients) {
+        Map<SubstanceKey, Long> supplied = new TreeMap<>();
+        for (String item : ingredients) {
+            profile(registry, item).matterFor(1).forEach((key, amount) -> supplied.merge(key, amount, Math::addExact));
+        }
+        assertEquals(supplied, profile(registry, result).matterFor(count), result);
+    }
+
+    private static MaterialProfile profile(ChemistryRegistry registry, String item) {
+        return registry.profile(item).orElseThrow();
+    }
+
+    @Test
+    void nativeAlloyRoutesDoNotDuplicateSharedIngredients() throws Exception {
+        ChemistryRegistry registry = integration();
+        assertRecipeMatter(registry, "oritech:adamant_ingot", 1, "alltheores:nickel_ingot", "minecraft:diamond");
+        assertEquals(profile(registry, "minecraft:copper_ingot").matterFor(3),
+                profile(registry, "nautec:aquarine_copper_ingot").matterFor(24));
+        assertFalse(registry.synthesisPolicy().allows("nautec:aquarine_copper_ingot"));
+        assertEquals(profile(registry, "alltheores:electrum_ingot").matter(),
+                profile(registry, "oritech:electrum_ingot").matter());
+        assertFalse(registry.synthesisPolicy().allows("alltheores:electrum_ingot"));
+        assertFalse(registry.synthesisPolicy().allows("oritech:electrum_ingot"));
     }
 
     @Test

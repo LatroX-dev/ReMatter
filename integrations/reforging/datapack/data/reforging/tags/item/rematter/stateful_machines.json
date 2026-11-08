@@ -22,10 +22,6 @@
       "required": false
     },
     {
-      "id": "rematter:matter_storage",
-      "required": false
-    },
-    {
       "id": "rematter:matter_terminal",
       "required": false
     },
@@ -71,6 +67,10 @@
     },
     {
       "id": "rematter:automation_pattern",
+      "required": false
+    },
+    {
+      "id": "rematter:sinter_furnace",
       "required": false
     }
   ]

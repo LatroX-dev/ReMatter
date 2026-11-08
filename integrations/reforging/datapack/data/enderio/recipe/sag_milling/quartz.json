@@ -3,6 +3,23 @@
     {
       "type": "neoforge:mod_loaded",
       "modid": "enderio"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "enderio:sag_milling"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:item",
+      "value": "enderio:powdered_quartz"
+    },
+    {
+      "type": "neoforge:not",
+      "value": {
+        "type": "neoforge:tag_empty",
+        "tag": "c:gems/quartz"
+      }
     }
   ],
   "type": "enderio:sag_milling",

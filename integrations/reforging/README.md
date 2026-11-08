@@ -20,7 +20,7 @@ The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exact
 
 Recovery preserves the approved material identity and quantity. Nine nuggets, one ingot or full dust, and one ninth of a normal metal block represent the same amount. Four-gem quartz and amethyst blocks use their actual four-item recipes. Refined powders, charged crystals, fuels and distinct mineral grades must not become interchangeable merely because their names or tags are similar.
 
-Obsidian is a specific exception to the full-dust rule: one block mills into four dusts, each worth 250 units. The integration disables only Occultism's one-dust-to-one-obsidian crystallization recipe, which would otherwise multiply the material fourfold. Its recipe type cannot consume a four-item input batch. Four dusts can instead be recovered and synthesized through ReMatter. Other Occultism crystallization recipes are unchanged. Ender IO's small ender-pearl powder is another explicit exception: nine powders recover one pearl; AE2's full ender dust represents one pearl per item.
+One obsidian block mills into four dusts. The integration disables Occultism's one-dust obsidian crystallization because it would quadruple the recovered material. Four dusts can be recovered and synthesized through ReMatter. Ender IO mills one pearl into nine fragments. Occultism crushes one pearl into one full ReMatter powder and crystallizes a pearl from one full ReMatter or AE2 powder. The JAOPCA storage block packs and unpacks exactly nine Ender IO fragments.
 
 The standalone catalogue keeps ambiguous alloys as their own mixtures and gives decomposition and synthesis separate permissions. Raw ores, enriched intermediates, fuel families and manufactured components do not gain synthesis from this integration. In particular, coal dust must not provide a cheaper route to coal, and refined-obsidian powder must not bypass the osmium used to make its ingot.
 
@@ -28,23 +28,26 @@ The data tests retain conservative energy floors for the included water-to-hydro
 
 ## Machines and Cells
 
-These twelve machines and three Matter Cells are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
+These machines, Matter Cells, recovery items and automation patterns are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
 
 - `rematter:analyzer`
 - `rematter:decomposer`
 - `rematter:material_synthesizer`
 - `rematter:electrolyzer`
 - `rematter:chemical_reactor`
-- `rematter:matter_storage`
 - `rematter:matter_terminal`
 - `rematter:industrial_reactor`
 - `rematter:matter_drive`
 - `rematter:material_preparator`
 - `rematter:hand_preparator`
 - `rematter:industrial_preparator`
+- `rematter:sinter_furnace`
+- `rematter:network_interface`
 - `rematter:matter_cell_64k`
 - `rematter:matter_cell_256k`
 - `rematter:matter_cell_1m`
+- `rematter:recovered_matter`
+- `rematter:automation_pattern`
 
 The exclusions cover empty and filled variants of those exact items. The existing `reforging:rematter/stateful_machines` tag ID is retained and now also includes the portable Cells. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
 
@@ -63,7 +66,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
    ```
 
 4. Review the generated file, then replace `config/Equivox/custom_emc.json` after backing up the original. The helper never edits the input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
-5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and all twelve machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
+5. Restart the test environment and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and the protected machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
 
 Removing this integration while crystalline silica is stored is not a migration strategy. Keep the data definitions available until those stores have been handled deliberately. No conversion of Replication patterns, Equivox knowledge, or EMC balances is provided.
 

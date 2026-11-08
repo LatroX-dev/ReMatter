@@ -34,7 +34,7 @@ class EquivoxMergeTest(unittest.TestCase):
         self.assertEqual(18, len(result["entries"]))
         self.assertEqual(set(MERGER.protected_items()), {entry["id"] for entry in result["entries"]})
         self.assertTrue(all(entry["emc"] == 0 for entry in result["entries"]))
-        self.assertTrue({"rematter:hand_preparator", "rematter:industrial_preparator", "rematter:material_preparator", "rematter:matter_drive", "rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:network_interface", "rematter:recovered_matter", "rematter:automation_pattern"}.issubset(MERGER.protected_items()))
+        self.assertTrue({"rematter:sinter_furnace", "rematter:hand_preparator", "rematter:industrial_preparator", "rematter:material_preparator", "rematter:matter_drive", "rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:network_interface", "rematter:recovered_matter", "rematter:automation_pattern"}.issubset(MERGER.protected_items()))
         self.assertNotIn("rematter:matrix_crystal", MERGER.protected_items())
         self.assertNotIn("rematter:matter_pipe", MERGER.protected_items())
         self.assertNotIn("rematter:guide", MERGER.protected_items())
