@@ -1,0 +1,10 @@
+{
+  "parent": "rematter:block/matter_cable_geometry_core",
+  "textures": {
+    "particle": "rematter:block/graphite",
+    "conductor": "rematter:block/reaction_chamber_crystal",
+    "shield": "rematter:block/cable_sleeve_rhevon",
+    "trace": "rematter:block/reinforced_matter_cable_traces",
+    "junction": "rematter:block/reinforced_matter_cable_contacts"
+  }
+}

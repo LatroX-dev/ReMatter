@@ -1,0 +1,57 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "from": [
+        6,
+        6,
+        6
+      ],
+      "to": [
+        10,
+        10,
+        10
+      ],
+      "faces": {
+        "east": {
+          "texture": "#trace",
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#trace",
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#trace",
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#trace",
+          "uv": [
+            6,
+            0,
+            10,
+            16
+          ],
+          "rotation": 90
+        }
+      }
+    }
+  ]
+}

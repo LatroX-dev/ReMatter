@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:block/machine_socket_right",
+  "textures": {
+    "teal": "rematter:block/machine_ember"
+  }
+}

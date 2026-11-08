@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:block/sinter_furnace",
+  "textures": {
+    "status": "rematter:block/machine_ember"
+  }
+}

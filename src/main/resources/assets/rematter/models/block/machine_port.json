@@ -1,6 +1,6 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "rematter:block/machine_port_active",
   "textures": {
-    "all": "rematter:block/port_combined"
+    "teal": "rematter:block/socket_rim"
   }
 }

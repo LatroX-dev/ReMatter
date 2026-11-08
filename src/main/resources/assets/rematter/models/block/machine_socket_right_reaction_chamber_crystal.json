@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:block/machine_socket_right",
+  "textures": {
+    "teal": "rematter:block/reaction_chamber_crystal"
+  }
+}

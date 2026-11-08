@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:item/material_synthesizer"
+    "model": "rematter:block/material_synthesizer"
   }
 }

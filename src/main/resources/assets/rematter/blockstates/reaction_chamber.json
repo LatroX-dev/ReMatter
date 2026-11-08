@@ -1,35 +1,67 @@
 {
   "variants": {
-    "active=false,facing=north": {
+    "active=false,facing=north,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 0
     },
-    "active=true,facing=north": {
+    "active=false,facing=north,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 0
+    },
+    "active=true,facing=north,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 0
     },
-    "active=false,facing=east": {
+    "active=true,facing=north,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 0
+    },
+    "active=false,facing=east,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 90
     },
-    "active=true,facing=east": {
+    "active=false,facing=east,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 90
+    },
+    "active=true,facing=east,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 90
     },
-    "active=false,facing=south": {
+    "active=true,facing=east,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 90
+    },
+    "active=false,facing=south,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 180
     },
-    "active=true,facing=south": {
+    "active=false,facing=south,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 180
+    },
+    "active=true,facing=south,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 180
     },
-    "active=false,facing=west": {
+    "active=true,facing=south,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 180
+    },
+    "active=false,facing=west,suspended=false": {
       "model": "rematter:block/reaction_chamber",
       "y": 270
     },
-    "active=true,facing=west": {
+    "active=false,facing=west,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
+      "y": 270
+    },
+    "active=true,facing=west,suspended=false": {
       "model": "rematter:block/reaction_chamber",
+      "y": 270
+    },
+    "active=true,facing=west,suspended=true": {
+      "model": "rematter:block/reaction_chamber_suspended",
       "y": 270
     }
   }

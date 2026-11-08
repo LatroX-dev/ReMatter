@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:item/decomposer"
+    "model": "rematter:block/decomposer"
   }
 }

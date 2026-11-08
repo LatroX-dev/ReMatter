@@ -1,0 +1,818 @@
+{
+  "textures": {
+    "ceramic": "rematter:block/ceramic",
+    "graphite": "rematter:block/graphite",
+    "brushed_steel": "rematter:block/brushed_steel",
+    "copper_trim": "rematter:block/copper_trim",
+    "rubber": "rematter:block/rubber",
+    "reaction_chamber_crystal": "rematter:block/matrix_cluster_core",
+    "housing": "rematter:block/frame",
+    "particle": "rematter:block/graphite"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        14.75,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#housing"
+        },
+        "south": {
+          "texture": "#housing"
+        },
+        "east": {
+          "texture": "#housing"
+        },
+        "west": {
+          "texture": "#housing"
+        },
+        "up": {
+          "texture": "#housing"
+        },
+        "down": {
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "from": [
+        0.35,
+        14.2,
+        0.35
+      ],
+      "to": [
+        15.65,
+        14.75,
+        15.65
+      ],
+      "faces": {
+        "north": {
+          "texture": "#graphite"
+        },
+        "south": {
+          "texture": "#graphite"
+        },
+        "east": {
+          "texture": "#graphite"
+        },
+        "west": {
+          "texture": "#graphite"
+        },
+        "up": {
+          "texture": "#graphite"
+        },
+        "down": {
+          "texture": "#graphite"
+        }
+      }
+    },
+    {
+      "from": [
+        7.7,
+        14.06,
+        0
+      ],
+      "to": [
+        8.3,
+        14.2,
+        4.2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        14.06,
+        7.7
+      ],
+      "to": [
+        4.2,
+        14.2,
+        8.3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        7.7,
+        14.06,
+        11.8
+      ],
+      "to": [
+        8.3,
+        14.2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        11.8,
+        14.06,
+        7.7
+      ],
+      "to": [
+        16,
+        14.2,
+        8.3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        13.3,
+        3
+      ],
+      "to": [
+        13,
+        14.2,
+        13
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#graphite"
+        }
+      }
+    },
+    {
+      "from": [
+        5.2,
+        11.82,
+        3.2
+      ],
+      "to": [
+        10.8,
+        13.3,
+        5.15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "from": [
+        5.2,
+        11.82,
+        10.85
+      ],
+      "to": [
+        10.8,
+        13.3,
+        12.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "from": [
+        3.2,
+        11.82,
+        5.2
+      ],
+      "to": [
+        5.15,
+        13.3,
+        10.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "from": [
+        10.85,
+        11.82,
+        5.2
+      ],
+      "to": [
+        12.8,
+        13.3,
+        10.8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#housing"
+        }
+      }
+    },
+    {
+      "from": [
+        5.65,
+        11.49,
+        3.4
+      ],
+      "to": [
+        10.35,
+        11.82,
+        4.15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        5.65,
+        11.49,
+        11.85
+      ],
+      "to": [
+        10.35,
+        11.82,
+        12.6
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#reaction_chamber_crystal"
+        }
+      }
+    },
+    {
+      "from": [
+        3.4,
+        11.49,
+        5.65
+      ],
+      "to": [
+        4.15,
+        11.82,
+        10.35
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        }
+      }
+    },
+    {
+      "from": [
+        11.85,
+        11.49,
+        5.65
+      ],
+      "to": [
+        12.6,
+        11.82,
+        10.35
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#brushed_steel"
+        }
+      }
+    }
+  ]
+}

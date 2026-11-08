@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "rematter:item/blue_matrix_crystal"
+  }
+}

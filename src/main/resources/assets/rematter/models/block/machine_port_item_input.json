@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:block/machine_port_active",
+  "textures": {
+    "teal": "rematter:block/machine_copper"
+  }
+}

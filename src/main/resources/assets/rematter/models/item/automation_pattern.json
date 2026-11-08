@@ -1,3 +1,6 @@
 {
-  "parent": "rematter:item/control_circuit"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "rematter:item/automation_pattern"
+  }
 }

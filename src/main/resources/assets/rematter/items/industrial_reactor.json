@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:item/industrial_reactor"
+    "model": "rematter:block/industrial_reactor"
   }
 }

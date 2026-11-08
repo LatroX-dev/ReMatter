@@ -1,7 +1,648 @@
 {
-  "variants": {
-    "": {
-      "model": "rematter:block/machine_port"
+  "multipart": [
+    {
+      "when": {
+        "formed": "false",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port"
+      }
+    },
+    {
+      "when": {
+        "formed": "false",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "false",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "false",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "false",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "false",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "automatic",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_active",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_input",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_input",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "item_output",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_item_output",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_input",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_input",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "fluid_output",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_fluid_output",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "matter",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_matter",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "chemical",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_chemical",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "disabled",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_disabled",
+        "x": 90
+      }
     }
-  }
+  ]
 }

@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:item/industrial_preparator"
+    "model": "rematter:block/industrial_preparator"
   }
 }

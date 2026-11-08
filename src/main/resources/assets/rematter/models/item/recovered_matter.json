@@ -1,3 +1,6 @@
 {
-  "parent": "rematter:item/matrix_cluster"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "rematter:item/recovered_matter"
+  }
 }

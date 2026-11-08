@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "rematter:item/network_interface"
+    "model": "rematter:block/network_interface"
   }
 }
