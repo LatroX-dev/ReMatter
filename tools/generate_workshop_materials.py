@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """Generate physical workshop recipes and explicit optional machine integrations."""
 from pathlib import Path
-import json
+import argparse
+from generated_files import GeneratedFiles
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "src/main/resources/data"
+OUTPUT = GeneratedFiles(ROOT, False)
 
 
 def write(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    OUTPUT.json(path, data)
 
 
 def recipe(name, data):
@@ -129,6 +130,16 @@ def workshop_dust_tag():
 
 
 def main():
+    global OUTPUT
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check", action="store_true", help="Compare the generated files instead of writing them.")
+    args = parser.parse_args()
+    OUTPUT = GeneratedFiles(ROOT, args.check)
+    generate()
+    print(f'{"Verified" if args.check else "Generated"} {OUTPUT.count} workshop files.')
+
+
+def generate():
     for metal in ("iron", "copper", "gold"):
         # Copper and gold crystal additives must be available before the first powered machine.
         preparation(metal + "_dust", [("#c:ingots/" + metal, 1)], metal + "_dust",

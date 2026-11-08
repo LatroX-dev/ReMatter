@@ -5,9 +5,11 @@ import argparse
 import copy
 import json
 import math
-from material_tiles import TILE, crystal_pixel, write_png
+from generated_files import GeneratedFiles
+from material_tiles import TILE, crystal_pixel
 
-RES = Path(__file__).resolve().parents[1] / 'src/main/resources'
+ROOT = Path(__file__).resolve().parents[1]
+RES = ROOT / 'src/main/resources'
 ASSETS = RES / 'assets/rematter'
 NAMES = ('grinding_unit', 'separation_unit', 'mixing_basin', 'field_coil', 'reaction_chamber')
 FACES = ('north', 'south', 'east', 'west', 'up', 'down')
@@ -15,16 +17,17 @@ parser = argparse.ArgumentParser(description=__doc__)
 mode = parser.add_mutually_exclusive_group()
 mode.add_argument('--models-only', action='store_true', help='Write model/blockstate references only; preserve recipes and every texture byte')
 mode.add_argument('--textures-only', action='store_true', help='Refresh the shared crystal materials only')
+parser.add_argument('--check', action='store_true', help='Compare the selected files instead of writing them')
 ARGS = parser.parse_args()
 MODELS_ONLY = ARGS.models_only
+OUTPUT = GeneratedFiles(ROOT, ARGS.check)
 
 def write(path, data):
     if ARGS.textures_only:
         return
     if MODELS_ONLY and not path.is_relative_to(ASSETS):
         return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + '\n')
+    OUTPUT.json(path, data)
 
 def box(a, b, material='housing', rotation=None):
     item = {'from': list(a), 'to': list(b), 'faces': {f: {'texture': '#' + material} for f in FACES}}
@@ -142,10 +145,12 @@ def cluster_core(x, y):
 
 
 if not MODELS_ONLY:
-    write_png(ASSETS/'textures/block/reaction_chamber_crystal.png', TILE, TILE,
-              lambda x, y: crystal_pixel((83, 185, 181), x, y))
-    write_png(ASSETS/'textures/block/matrix_cluster_core.png', TILE, TILE, cluster_core)
-if ARGS.textures_only:
+    OUTPUT.png(ASSETS/'textures/block/reaction_chamber_crystal.png', TILE, TILE,
+               lambda x, y: crystal_pixel((83, 185, 181), x, y))
+    OUTPUT.png(ASSETS/'textures/block/matrix_cluster_core.png', TILE, TILE, cluster_core)
+if ARGS.check:
+    print(f'Verified {OUTPUT.count} module files.')
+elif ARGS.textures_only:
     print('Generated 128px crystal materials.')
 elif MODELS_ONLY:
     print('Generated five module block/item models; recipes and textures preserved.')

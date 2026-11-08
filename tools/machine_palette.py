@@ -43,11 +43,11 @@ def hex_color(rgb):
     return "#" + bytes(rgb).hex()
 
 
-def write_tiles(root):
+def write_tiles(root, write=write_png):
     for family, rgb in RGB.items():
         for folder, emitting in (("block", False), ("entity", True)):
             path = root / "textures" / folder / f"machine_{family}.png"
-            write_png(path, TILE, TILE, lambda x, y: crystal_pixel(rgb, x, y, emitting=emitting))
+            write(path, TILE, TILE, lambda x, y: crystal_pixel(rgb, x, y, emitting=emitting))
 
 
 def apply_models(root):

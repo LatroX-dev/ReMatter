@@ -7,17 +7,20 @@ import math
 from connection_geometry import (SOCKET_TEXTURES, machine_state_assets, reactor_socket,
                                  write_cable_models, write_cable_textures, write_port_models)
 from machine_palette import CHASSIS, COPPER_CONTACT, MATTE_TRIM, RECESS, write_tiles
-from material_tiles import TILE, soft_light, write_png
+from generated_files import GeneratedFiles
+from material_tiles import TILE, soft_light
 
 parser = argparse.ArgumentParser(description=__doc__)
 mode = parser.add_mutually_exclusive_group()
 mode.add_argument('--models-only', action='store_true', help='Preserve every authored texture and animation metadata file.')
 mode.add_argument('--textures-only', action='store_true', help='Refresh materials without rewriting model or blockstate data.')
 parser.add_argument('--refresh-glass', action='store_true', help='Rebuild only the native clear-glass texture, even with --models-only.')
+parser.add_argument('--check', action='store_true', help='Compare the selected files instead of writing them.')
 ARGS = parser.parse_args()
 MODELS_ONLY = ARGS.models_only
 
 ROOT = Path(__file__).resolve().parents[1] / 'src/main/resources/assets/rematter'
+OUTPUT = GeneratedFiles(ROOT, ARGS.check)
 FACES = ('north', 'south', 'east', 'west', 'up', 'down')
 PALETTE = {
     'graphite': CHASSIS, 'edge': (76, 83, 84), 'steel': (174, 183, 181), 'ceramic': (229, 222, 204),
@@ -29,13 +32,11 @@ PALETTE = {
 def json_file(path, value):
     if MODELS_ONLY and path.startswith('textures/'): return
     if ARGS.textures_only and not path.startswith('textures/'): return
-    p = ROOT / path
-    p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(value, indent=2) + '\n')
+    OUTPUT.json(ROOT / path, value)
 
 def png(path, width, height, pixel):
     if MODELS_ONLY and not (ARGS.refresh_glass and path == 'textures/block/reactor_glass.png'): return
-    write_png(ROOT / path, width, height, pixel)
+    OUTPUT.png(ROOT / path, width, height, pixel)
 
 def rgba(rgb, delta=0):
     return tuple(max(0, min(255, c + delta)) for c in rgb) + (255,)
@@ -263,7 +264,7 @@ for name in MACHINES:
         item_model = f'rematter:item/{name}'
     json_file(f'items/{name}.json', {'model': {'type': 'minecraft:model', 'model': item_model}})
 if not MODELS_ONLY:
-    write_tiles(ROOT)
+    write_tiles(ROOT, OUTPUT.png)
 
 # One broad recessed plate, with the bevel lit on the inside of the rim.
 def reactor_casing_pixel(x, y):
@@ -328,7 +329,9 @@ json_file('models/block/machine_port_active.json', {
 })
 write_port_models(json_file)
 json_file('items/machine_port.json',{'model':{'type':'minecraft:model','model':'rematter:block/machine_port'}})
-if ARGS.textures_only:
+if ARGS.check:
+    print(f'Verified {OUTPUT.count} visual files.')
+elif ARGS.textures_only:
     print('Generated 128px machine, connector, cable and glass materials.')
 else:
     print(f'Generated variants for {len(MACHINES)} machine models, and connector models.')

@@ -8,17 +8,21 @@ import zlib
 TILE = 128
 
 
-def write_png(path, width, height, pixel):
+def png_bytes(width, height, pixel):
     def chunk(kind, data):
         return (struct.pack('>I', len(data)) + kind + data
                 + struct.pack('>I', zlib.crc32(kind + data) & 0xffffffff))
 
     data = b''.join(b'\0' + bytes(value for x in range(width) for value in pixel(x, y))
                     for y in range(height))
+    return (b'\x89PNG\r\n\x1a\n'
+            + chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 6, 0, 0, 0))
+            + chunk(b'IDAT', zlib.compress(data, 9)) + chunk(b'IEND', b''))
+
+
+def write_png(path, width, height, pixel):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_bytes(b'\x89PNG\r\n\x1a\n'
-                     + chunk(b'IHDR', struct.pack('>IIBBBBB', width, height, 8, 6, 0, 0, 0))
-                     + chunk(b'IDAT', zlib.compress(data, 9)) + chunk(b'IEND', b''))
+    path.write_bytes(png_bytes(width, height, pixel))
 
 
 def soft_light(x, y):
