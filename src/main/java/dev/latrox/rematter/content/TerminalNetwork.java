@@ -18,9 +18,10 @@ final class TerminalNetwork {
                 && terminal.canAccess(player) && Container.stillValidBlockEntity(terminal, player);
     }
 
-    static List<MachineBlockEntity> devices(MachineBlockEntity terminal, Player player, boolean force) {
+    /** A deep check re-reads every node of the route; requests that act on a device use it. */
+    static List<MachineBlockEntity> devices(MachineBlockEntity terminal, Player player, boolean deep) {
         if (!isValidAnchor(terminal, player)) return List.of();
-        return terminal.matterNetwork(force).manageableMachines();
+        return terminal.matterNetwork(deep).manageableMachines();
     }
 
     static boolean canManage(MachineBlockEntity terminal, MachineBlockEntity device, Player player) {

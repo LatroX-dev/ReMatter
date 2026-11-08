@@ -64,23 +64,38 @@ public final class IndustrialStructure {
         public int moduleCount() { return formed() ? coreCount(modules) : 0; }
         public IndustrialPerformance performance() { return formed() ? performanceOf(modules) : IndustrialPerformance.EMPTY; }
     }
-    public record Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, String diagnostic) {
+    /** One observed shell. Derived values are computed once, because every tick asks for them several times. */
+    public static final class Formation {
         public static final Formation EMPTY = invalid(null,"structure");
-        public Formation {
-            ports = List.copyOf(ports); modules = List.copyOf(modules);
+        private final boolean formed;
+        private final @Nullable Shape shape;
+        private final List<Port> ports;
+        private final List<Module> modules;
+        private final String diagnostic;
+        private final Set<BlockPos> modulePositions;
+        private final IndustrialPerformance performance;
+        private final String layoutFingerprint;
+        Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, String diagnostic) {
+            this.ports = List.copyOf(ports); this.modules = List.copyOf(modules);
             if (!DIAGNOSTICS.contains(diagnostic) || formed != diagnostic.equals("ready")
                     || formed && (shape == null || modules.isEmpty()) || !formed && (!ports.isEmpty() || !modules.isEmpty()))
                 throw new IllegalArgumentException("Invalid formation");
+            this.formed = formed; this.shape = shape; this.diagnostic = diagnostic;
+            var local = this.modules.stream().map(m -> new LocalModule(m.x, m.y, m.depth, Material.valueOf(m.kind.name()))).toList();
+            modulePositions = this.modules.stream().map(Module::position).collect(java.util.stream.Collectors.toUnmodifiableSet());
+            performance = formed ? performanceOf(local) : IndustrialPerformance.EMPTY;
+            layoutFingerprint = moduleFingerprint(local);
         }
+        public boolean formed() { return formed; }
+        public @Nullable Shape shape() { return shape; }
+        public List<Port> ports() { return ports; }
+        public List<Module> modules() { return modules; }
+        public String diagnostic() { return diagnostic; }
+        public boolean hasModuleAt(BlockPos position) { return modulePositions.contains(position); }
         public int moduleCount() { return formed ? (int) modules.stream().filter(m -> m.kind == IndustrialModuleKind.GRINDING_UNIT || m.kind == IndustrialModuleKind.REACTION_CHAMBER).count() : 0; }
-        public IndustrialPerformance performance() {
-            return formed ? performanceOf(modules.stream().map(m -> new LocalModule(m.x, m.y, m.depth, Material.valueOf(m.kind.name()))).toList()) : IndustrialPerformance.EMPTY;
-        }
-        public int baseWorkRate(MachineKind kind) { return performance().workRate(kind); }
-        public int energySavingPercent(MachineKind kind) { return performance().energySavingPercent(kind); }
-        public String layoutFingerprint() {
-            return moduleFingerprint(modules.stream().map(m->new LocalModule(m.x,m.y,m.depth,Material.valueOf(m.kind.name()))).toList());
-        }
+        public IndustrialPerformance performance() { return performance; }
+        public int baseWorkRate(MachineKind kind) { return performance.workRate(kind); }
+        public String layoutFingerprint() { return layoutFingerprint; }
         static Formation invalid(@Nullable Shape shape,String diagnostic) { return new Formation(false,shape,List.of(),List.of(),diagnostic); }
     }
     private record Bounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
@@ -97,10 +112,40 @@ public final class IndustrialStructure {
     private record Stamp(List<ChunkStamp> chunks) {
         boolean matches(ServerLevel level) { return chunks.stream().allMatch(chunk -> chunk.matches(level)); }
     }
-    private record Cached(Stamp stamp, Formation raw, @Nullable Formation complete) {}
-    private record PortCache(Stamp stamp, @Nullable WeakReference<MachineBlockEntity> controller) {}
-    private static final Map<MachineBlockEntity, Cached> CACHE = Collections.synchronizedMap(new WeakHashMap<>());
-    private static final Map<MachinePortBlockEntity, PortCache> PORT_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
+    /** What one controller last observed, with the game tick and epoch of its last confirmation. */
+    private static final class Observation {
+        private @Nullable Stamp stamp;
+        private Formation raw = Formation.EMPTY;
+        private long rawTick = Long.MIN_VALUE, rawEpoch;
+        private @Nullable Settled settled;
+        private long settledTick = Long.MIN_VALUE, settledEpoch;
+    }
+    /** A shell after the port rule, valid while its neighbourhood and every neighbour's shell and stake are unchanged. */
+    private record Settled(Formation raw, Stamp area, Claimant self, List<Neighbor> neighbors, Formation result) {
+        boolean current(ServerLevel level, Formation basic, Claimant claimant) {
+            if (raw != basic || !self.equals(claimant) || !area.matches(level)) return false;
+            for (var neighbor : neighbors) {
+                var machine = neighbor.machine.get();
+                if (machine == null) return false;
+                var shell = IndustrialStructure.raw(machine);
+                if (shell != neighbor.raw || !claimant(machine, shell).equals(neighbor.claimant)) return false;
+            }
+            return true;
+        }
+    }
+    private record Neighbor(WeakReference<MachineBlockEntity> machine, Formation raw, Claimant claimant) {}
+    /** One controller's stake in port positions: the ports of its formed shell and its retained protection claim. */
+    record Claimant(BlockPos controller, @Nullable UUID owner, Set<BlockPos> ports, @Nullable ProtectionClaim claim) {
+        Claimant { ports = Set.copyOf(ports); }
+        boolean claims(BlockPos position) { return claim != null && claim.contains(controller, position); }
+    }
+    private static final class PortObservation {
+        private @Nullable WeakReference<MachineBlockEntity> controller;
+        private @Nullable Stamp vacant;
+        private long tick = Long.MIN_VALUE, epoch;
+    }
+    private static final Map<MachineBlockEntity, Observation> OBSERVATIONS = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<MachinePortBlockEntity, PortObservation> PORTS = Collections.synchronizedMap(new WeakHashMap<>());
     private IndustrialStructure() {}
     public static boolean isIndustrial(MachineKind kind) { return kind == MachineKind.INDUSTRIAL_PREPARATOR || kind == MachineKind.INDUSTRIAL_REACTOR; }
     /** Minimum outer height of each chamber type. */
@@ -139,9 +184,6 @@ public final class IndustrialStructure {
             return material == Material.CASING || material == Material.GLASS || material == Material.PORT ? distance : -1;
         }
         return -1;
-    }
-    public static boolean validates(MachineKind kind, Shape shape, Materials blocks) {
-        return inspectLayout(kind,shape,blocks).formed();
     }
     /** Validate the complete shell and the modules mounted on its inner floor and ceiling. */
     public static Inspection inspectLayout(MachineKind kind, Shape shape, Materials blocks) {
@@ -219,9 +261,18 @@ public final class IndustrialStructure {
         return bounds(machine.getBlockPos(),facing,shape);
     }
     private static Bounds bounds(BlockPos controller,Direction facing,Shape shape) {
-        var a = worldPosition(controller,facing,new Cell(-shape.controllerColumn,-1,0,Role.FRAME,null));
-        var b = worldPosition(controller,facing,new Cell(shape.width-shape.controllerColumn-1,shape.height-2,shape.depth-1,Role.FRAME,null));
-        return new Bounds(Math.min(a.getX(),b.getX()),a.getY(),Math.min(a.getZ(),b.getZ()),Math.max(a.getX(),b.getX()),b.getY(),Math.max(a.getZ(),b.getZ()));
+        return box(worldPosition(controller,facing,new Cell(-shape.controllerColumn,-1,0,Role.FRAME,null)),
+                worldPosition(controller,facing,new Cell(shape.width-shape.controllerColumn-1,shape.height-2,shape.depth-1,Role.FRAME,null)));
+    }
+    /** Every block the detection rays and the largest possible shell can read around one controller. */
+    private static Bounds reach(MachineBlockEntity machine) {
+        var facing=machine.getBlockState().getValue(MachineBlock.FACING);
+        return box(worldPosition(machine.getBlockPos(),facing,new Cell(1-MAX_SIZE,-1,0,Role.INTERIOR,null)),
+                worldPosition(machine.getBlockPos(),facing,new Cell(MAX_SIZE-1,MAX_SIZE-1,MAX_SIZE,Role.INTERIOR,null)));
+    }
+    private static Bounds box(BlockPos a, BlockPos b) {
+        return new Bounds(Math.min(a.getX(),b.getX()),Math.min(a.getY(),b.getY()),Math.min(a.getZ(),b.getZ()),
+                Math.max(a.getX(),b.getX()),Math.max(a.getY(),b.getY()),Math.max(a.getZ(),b.getZ()));
     }
     private static Bounds around(BlockPos p, int radius) { return new Bounds(p.getX()-radius,p.getY()-radius,p.getZ()-radius,p.getX()+radius,p.getY()+radius,p.getZ()+radius); }
     private static Stamp stamp(ServerLevel level, Bounds area) {
@@ -236,39 +287,42 @@ public final class IndustrialStructure {
         return isIndustrial(machine.kind()) && machine.getLevel() instanceof ServerLevel level && level.getServer().isSameThread()
                 && !machine.isRemoved() && level.hasChunkAt(machine.getBlockPos()) && level.getBlockEntity(machine.getBlockPos()) == machine;
     }
+    /** The shell alone. Within one game tick an unchanged epoch confirms it; otherwise its watched chunks must be unchanged. */
     private static Formation raw(MachineBlockEntity machine) {
         if (!live(machine)) return Formation.EMPTY;
         var level=(ServerLevel)machine.getLevel();
-        var cached=CACHE.get(machine);
-        if(cached!=null&&cached.stamp.matches(level))return cached.raw;
-        // Every possible shape and every shell that could share one of its ports fits this watch area.
-        var observed=stamp(level,around(machine.getBlockPos(),3*(MAX_SIZE-1)));
-        if(!observed.matches(level))return Formation.EMPTY;
+        var seen=OBSERVATIONS.computeIfAbsent(machine,ignored->new Observation());
+        long tick=level.getGameTime(),epoch=ChunkRevisions.epoch();
+        if(seen.rawTick==tick&&seen.rawEpoch==epoch)return seen.raw;
+        if(seen.stamp==null||!seen.stamp.matches(level)){
+            var observed=stamp(level,reach(machine));
+            if(!observed.matches(level))return Formation.EMPTY;
+            var result=scan(level,machine);
+            // A reentrant block/BE callback cannot publish a result observed during mutation.
+            if(!observed.matches(level))return Formation.EMPTY;
+            seen.stamp=observed;seen.raw=result;seen.settled=null;
+        }
+        seen.rawTick=tick;seen.rawEpoch=epoch;
+        return seen.raw;
+    }
+    private static Formation scan(ServerLevel level,MachineBlockEntity machine) {
         var facing=machine.getBlockState().getValue(MachineBlock.FACING);
         Materials blocks=(x,y,depth)->material(level,machine,worldPosition(machine.getBlockPos(),facing,new Cell(x,y,depth,Role.INTERIOR,null)));
         var shape=detect(machine.kind(),blocks).orElse(null);
-        Formation result=Formation.EMPTY;
-        if(shape!=null){
-            var inspection=inspectLayout(machine.kind(),shape,blocks);
-            if(!inspection.formed())result=Formation.invalid(shape,inspection.diagnostic);
-            else {
-            var ports=new ArrayList<Port>();
-            for(var cell:layout(shape))if(cell.role==Role.WALL){
-                var pos=worldPosition(machine.getBlockPos(),facing,cell);
-                if(level.getBlockState(pos).is(ModContent.MACHINE_PORT.get()))ports.add(new Port(pos,worldDirection(facing,cell.outward)));
-            }
-            var modules=new ArrayList<Module>();
-            for(var module:inspection.modules){
-                var pos=worldPosition(machine.getBlockPos(),facing,new Cell(module.x,module.y,module.depth,Role.INTERIOR,null));
-                modules.add(new Module(pos,IndustrialModuleKind.valueOf(module.material.name()),module.x,module.y,module.depth));
-            }
-            result=new Formation(true,shape,ports,modules,"ready");
-            }
+        if(shape==null)return Formation.EMPTY;
+        var inspection=inspectLayout(machine.kind(),shape,blocks);
+        if(!inspection.formed())return Formation.invalid(shape,inspection.diagnostic);
+        var ports=new ArrayList<Port>();
+        for(var cell:layout(shape))if(cell.role==Role.WALL){
+            var pos=worldPosition(machine.getBlockPos(),facing,cell);
+            if(level.getBlockState(pos).is(ModContent.MACHINE_PORT.get()))ports.add(new Port(pos,worldDirection(facing,cell.outward)));
         }
-        // A reentrant block/BE callback cannot publish a result observed during mutation.
-        if(!observed.matches(level))return Formation.EMPTY;
-        CACHE.put(machine,new Cached(observed,result,null));
-        return result;
+        var modules=new ArrayList<Module>();
+        for(var module:inspection.modules){
+            var pos=worldPosition(machine.getBlockPos(),facing,new Cell(module.x,module.y,module.depth,Role.INTERIOR,null));
+            modules.add(new Module(pos,IndustrialModuleKind.valueOf(module.material.name()),module.x,module.y,module.depth));
+        }
+        return new Formation(true,shape,ports,modules,"ready");
     }
     private static Material material(ServerLevel level,MachineBlockEntity machine,BlockPos pos){
         if(!level.hasChunkAt(pos))return Material.UNLOADED;
@@ -282,21 +336,45 @@ public final class IndustrialStructure {
             return Material.valueOf(module.kind().name());
         return Material.OTHER;
     }
+    /** The shell after the port rule. Repeated calls in one tick cost one map lookup while nothing structural changed. */
     public static Formation inspect(MachineBlockEntity machine) {
         Formation basic=raw(machine);
         if(!basic.formed)return basic;
-        var level=(ServerLevel)machine.getLevel();var cached=CACHE.get(machine);
-        if(cached!=null&&cached.complete!=null&&cached.stamp.matches(level))return cached.complete;
-        var portPositions=new HashSet<BlockPos>();basic.ports.forEach(port->portPositions.add(port.position));
-        Formation result=basic;
-        // One bounded BE-map query for the whole shell, not one search for every possible port.
-        for(var other:candidates(level,bounds(machine,basic.shape).expand(MAX_SIZE-1))){
-            if(other==machine)continue;
-            var otherShell=raw(other);
-            if(otherShell.formed&&otherShell.ports.stream().anyMatch(port->portPositions.contains(port.position))){result=Formation.invalid(basic.shape,"structure_ambiguous");break;}
+        var level=(ServerLevel)machine.getLevel();var seen=OBSERVATIONS.get(machine);
+        long tick=level.getGameTime(),epoch=ChunkRevisions.epoch();
+        if(seen.settled!=null&&seen.settledTick==tick&&seen.settledEpoch==epoch)return seen.settled.result;
+        var self=claimant(machine,basic);
+        if(seen.settled==null||!seen.settled.current(level,basic,self)){
+            // Every controller whose shell or claim could reach one of these ports stands in this area.
+            var area=bounds(machine,basic.shape).expand(MAX_SIZE-1);
+            var observed=stamp(level,area);
+            var neighbors=new ArrayList<Neighbor>();
+            for(var other:candidates(level,area))if(other!=machine){
+                var shell=raw(other);
+                neighbors.add(new Neighbor(new WeakReference<>(other),shell,claimant(other,shell)));
+            }
+            var result=keepsPorts(self,neighbors.stream().map(Neighbor::claimant).toList())?basic:Formation.invalid(basic.shape,"structure_ambiguous");
+            if(!observed.matches(level))return Formation.EMPTY;
+            seen.settled=new Settled(basic,observed,self,List.copyOf(neighbors),result);
         }
-        if(cached==null||!cached.stamp.matches(level))return Formation.EMPTY;
-        CACHE.put(machine,new Cached(cached.stamp,basic,result));return result;
+        seen.settledTick=tick;seen.settledEpoch=epoch;
+        return seen.settled.result;
+    }
+    private static Claimant claimant(MachineBlockEntity machine,Formation shell) {
+        var ports=new HashSet<BlockPos>();shell.ports.forEach(port->ports.add(port.position));
+        return new Claimant(machine.getBlockPos(),machine.networkOwner(),ports,machine.industrialProtectionClaim());
+    }
+    /**
+     * Shells of one owner that share a port both stop. Against another owner a port belongs only to its sole claimant:
+     * no shell forms over a port inside a foreign protection claim, and a shell keeps a port that a foreign shell also
+     * uses only while its own claim covers that port.
+     */
+    static boolean keepsPorts(Claimant self,List<Claimant> others) {
+        for(var other:others)for(var port:self.ports()){
+            if(Objects.equals(self.owner(),other.owner())){if(other.ports().contains(port))return false;}
+            else if(other.claims(port)||other.ports().contains(port)&&!self.claims(port))return false;
+        }
+        return true;
     }
     private static List<MachineBlockEntity> candidates(ServerLevel level,Bounds area){
         var candidates=new ArrayList<MachineBlockEntity>();
@@ -310,34 +388,45 @@ public final class IndustrialStructure {
         }
         candidates.sort(Comparator.comparingLong(machine->machine.getBlockPos().asLong()));return candidates;
     }
+    private static boolean listsPort(MachineBlockEntity machine,BlockPos port){
+        var shell=inspect(machine);
+        return shell.formed&&shell.ports.stream().anyMatch(candidate->candidate.position.equals(port));
+    }
+    /**
+     * The port rule leaves at most one formed shell per port, so a controller whose shell still lists the port stays the
+     * only one. Without a controller, the search repeats only after a structural change wherever a shell could reach it.
+     */
     static @Nullable MachineBlockEntity associatedController(MachinePortBlockEntity port){
         if(!(port.getLevel() instanceof ServerLevel level)||!level.getServer().isSameThread()||port.isRemoved()
                 ||!level.hasChunkAt(port.getBlockPos())||level.getBlockEntity(port.getBlockPos())!=port)return null;
-        var cached=PORT_CACHE.get(port);
-        if(cached!=null&&cached.stamp.matches(level)){
-            var machine=cached.controller==null?null:cached.controller.get();
-            return machine!=null&&live(machine)?machine:null;
+        var seen=PORTS.computeIfAbsent(port,ignored->new PortObservation());
+        long tick=level.getGameTime(),epoch=ChunkRevisions.epoch();
+        var known=seen.controller==null?null:seen.controller.get();
+        if(seen.tick==tick&&seen.epoch==epoch)return known!=null&&live(known)?known:null;
+        if(known!=null&&listsPort(known,port.getBlockPos())||known==null&&seen.vacant!=null&&seen.vacant.matches(level)){
+            seen.tick=tick;seen.epoch=epoch;return known;
         }
-        var observed=stamp(level,around(port.getBlockPos(),3*(MAX_SIZE-1)));
+        var observed=stamp(level,around(port.getBlockPos(),2*MAX_SIZE-1));
         if(!observed.matches(level))return null;
         MachineBlockEntity found=null;
         for(var machine:candidates(level,around(port.getBlockPos(),MAX_SIZE-1))){
-            var shell=inspect(machine);
-            if(shell.formed&&shell.ports.stream().anyMatch(p->p.position.equals(port.getBlockPos()))){
+            if(listsPort(machine,port.getBlockPos())){
                 if(found!=null){found=null;break;}found=machine;
             }
         }
         if(!observed.matches(level))return null;
-        PORT_CACHE.put(port,new PortCache(observed,found==null?null:new WeakReference<>(found)));return found;
+        seen.controller=found==null?null:new WeakReference<>(found);seen.vacant=found==null?observed:null;
+        seen.tick=tick;seen.epoch=epoch;
+        return found;
     }
-    static List<MachineBlockEntity> controllersUsing(ServerLevel level,BlockPos partPos,boolean portOnly){
+    /** Controllers whose current shell or retained claim contains the part. */
+    static List<MachineBlockEntity> controllersUsing(ServerLevel level,BlockPos partPos){
         if(!level.getServer().isSameThread()||!level.hasChunkAt(partPos))return List.of();
         var result=new ArrayList<MachineBlockEntity>();
         for(var machine:candidates(level,around(partPos,MAX_SIZE-1))){
             var shell=raw(machine);var claim=machine.industrialProtectionClaim();
-            boolean inside=shell.shape!=null&&bounds(machine,shell.shape).contains(partPos)
-                    || claim!=null&&claim.contains(machine.getBlockPos(),partPos);
-            if(portOnly?shell.formed&&shell.ports.stream().anyMatch(port->port.position.equals(partPos)):inside)result.add(machine);
+            if(shell.shape!=null&&bounds(machine,shell.shape).contains(partPos)
+                    || claim!=null&&claim.contains(machine.getBlockPos(),partPos))result.add(machine);
         }
         return List.copyOf(result);
     }

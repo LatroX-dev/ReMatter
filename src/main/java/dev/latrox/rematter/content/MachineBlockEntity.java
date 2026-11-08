@@ -97,7 +97,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private ChemistryRegistry lastRegistry;
     private MachineMatterNetwork cachedNetwork;
     private MachineMatterNetwork boundNetwork;
-    private long networkCacheUntil;
     private long nextMatterActivityTick;
     private boolean committingOwnedState;
     private boolean visibleCell;
@@ -169,14 +168,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     boolean cyclePort(MachinePortMode.Side side) {
         if (!(level instanceof ServerLevel server) || !isLiveServerMachine()
                 || !MachinePortMode.configurable(kind())) return false;
-        var chunk = server.getChunkSource().getChunkNow(worldPosition.getX() >> 4, worldPosition.getZ() >> 4);
-        if (chunk == null) return false;
         MachinePortMode previous = sides.cycle(kind(), side);
         MachinePortMode next = sides.mode(side);
         setChanged();
         if (previous.allows(MachinePortMode.MATTER) != next.allows(MachinePortMode.MATTER)
                 || previous.allows(MachinePortMode.POWER) != next.allows(MachinePortMode.POWER)) {
-            ChunkRevisions.touch(chunk);
+            touchObservations();
             MatterPipeBlock.refreshLoadedAround(server, worldPosition);
         }
         level.invalidateCapabilities(worldPosition);
@@ -224,7 +221,16 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     IndustrialStructure.@Nullable ProtectionClaim industrialProtectionClaim() { return structure.claim(); }
     /** Placement creates a new physical installation, even when a player copied full block data. */
     public void clearIndustrialProtectionClaim() {
-        if (structure.clearClaim()) setChanged();
+        if (structure.clearClaim()) { setChanged(); touchObservations(); }
+    }
+    /**
+     * State that networks and shells observe changed without a block change: owner, mounted cells, side roles or a
+     * protection claim. Advancing this chunk's revision makes every cached observation of it check again.
+     */
+    void touchObservations() {
+        if (!(level instanceof ServerLevel server)) return;
+        var chunk = server.getChunkSource().getChunkNow(worldPosition.getX() >> 4, worldPosition.getZ() >> 4);
+        if (chunk != null) ChunkRevisions.touch(chunk);
     }
     /** Visual authority only: a module never owns an inventory, energy buffer or persistent association. */
     public boolean isModuleWorking(BlockPos modulePosition) {
@@ -266,6 +272,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (Objects.equals(owner, next)) return;
         owner = next;
         setChanged();
+        touchObservations();
         if (level != null) level.invalidateCapabilities(worldPosition);
     }
     public boolean canAccess(Player player) {
@@ -312,7 +319,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         int bay = MachineCellAccess.bayForSlot(kind(), slot);
         if (bay < 0) return;
         bays.mount(bay);
-        cachedNetwork = null; networkCacheUntil = 0;
+        touchObservations();
         if (level != null) {
             level.invalidateCapabilities(worldPosition);
             sendClientUpdate();
@@ -637,7 +644,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
 
     void publishNetworkActivity(MachineMatterNetwork network, List<MatterNetworkInventory.MemberActivity> activity) {
         if (activity.isEmpty() || !(level instanceof ServerLevel server)
-                || !MatterCableActivity.beginRouteLookup(server) || !network.stillValid(this)) return;
+                || !MatterCableActivity.beginRouteLookup(server) || !network.current(this, false)) return;
         nextMatterActivityTick = level.getGameTime() + 6;
         network.pulseActivity(server, worldPosition, activity);
     }
@@ -668,10 +675,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     void resetProgress() { work.reset(); storageSession.clear(); boundNetwork = null; }
 
-    MachineMatterNetwork matterNetwork(boolean force) {
-        if (force || cachedNetwork == null || level == null || level.getGameTime() >= networkCacheUntil || !cachedNetwork.stillValid(this)) {
-            cachedNetwork = MachineMatterNetwork.discover(this);
-            networkCacheUntil = level == null ? 0 : level.getGameTime() + 20;
+    /**
+     * The machine's matter network. One discovery serves every machine it found, so a change costs one bounded
+     * scan per network instead of one per machine. A deep check re-reads every node once per game tick.
+     */
+    MachineMatterNetwork matterNetwork(boolean deep) {
+        if (cachedNetwork == null || !cachedNetwork.current(this, deep)) {
+            var network = MachineMatterNetwork.discover(this);
+            for (var machine : network.machines()) machine.cachedNetwork = network;
+            cachedNetwork = network;
         }
         return cachedNetwork;
     }
@@ -797,6 +809,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         } finally {
             loadingItemVisuals = false;
         }
+        // Data replaced in place, for example by a command, changes owner, cells and side roles at once.
+        touchObservations();
         // The world save remains authoritative; visual state is derived, never persisted separately.
         if (itemVisualsStable()) {
             if (isLiveServerMachine()) publishItemVisuals();
@@ -810,7 +824,6 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         lastRegistry = null;
         operations.forgetPreparationRecipe();
         cachedNetwork = null;
-        networkCacheUntil = 0;
         items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
         var savedItems = input.read("items", RAW_TAG_CODEC).flatMap(raw -> ItemStack.OPTIONAL_CODEC.listOf()
                 .parse(input.lookup().createSerializationContext(NbtOps.INSTANCE), raw).result());

@@ -20,7 +20,7 @@ public final class MachineProtection {
             var state = level.getBlockState(event.getPos());
             if ((state.is(ModContent.REACTOR_CASING.get()) || state.is(ModContent.REACTOR_GLASS.get()) || state.is(ModContent.MACHINE_PORT.get())
                     || state.getBlock() instanceof IndustrialModuleBlock)
-                    && IndustrialStructure.controllersUsing(level, event.getPos(), false).stream().anyMatch(machine -> !machine.canUse(event.getPlayer()))) {
+                    && IndustrialStructure.controllersUsing(level, event.getPos()).stream().anyMatch(machine -> !machine.canUse(event.getPlayer()))) {
                 event.setCanceled(true); event.setNotifyClient(true);
             }
         }

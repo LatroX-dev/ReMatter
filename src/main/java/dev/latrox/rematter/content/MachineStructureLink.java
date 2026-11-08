@@ -52,7 +52,7 @@ final class MachineStructureLink {
         var current = IndustrialStructure.inspect(machine);
         if (current.formed()) {
             var next = new IndustrialStructure.ProtectionClaim(current.shape(), machine.getBlockState().getValue(MachineBlock.FACING));
-            if (!next.equals(claim)) { claim = next; machine.setChanged(); }
+            if (!next.equals(claim)) { claim = next; machine.setChanged(); machine.touchObservations(); }
         }
         if (formed == current.formed() && Objects.equals(shape, current.shape()) && ports.equals(current.ports())
                 && modules.equals(current.modules())) return false;
@@ -73,7 +73,7 @@ final class MachineStructureLink {
         var level = machine.getLevel();
         if (!industrial() || !processedThisTick || lastWorkTick < level.getGameTime() - 1) return false;
         var formation = IndustrialStructure.inspect(machine);
-        return formation.formed() && formation.modules().stream().anyMatch(module -> module.position().equals(modulePosition));
+        return formation.formed() && formation.hasModuleAt(modulePosition);
     }
 
     void publishActivity(boolean active) {

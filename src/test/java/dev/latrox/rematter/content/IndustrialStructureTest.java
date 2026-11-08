@@ -277,4 +277,31 @@ class IndustrialStructureTest {
             assertTrue(IndustrialStructure.ProtectionClaim.restore(invalid).isEmpty());
         }
     }
+    @Test void aForeignShellNeverTakesAClaimedPortAndTheSoleClaimantKeepsIt() {
+        var shape=new IndustrialStructure.Shape(5,5,5,2);var facing=Direction.NORTH;
+        var a=new BlockPos(0,64,0);var b=new BlockPos(-4,64,0);
+        var shared=IndustrialStructure.worldPosition(a,facing,new IndustrialStructure.Cell(-2,1,2,IndustrialStructure.Role.WALL,Direction.WEST));
+        var claimA=new IndustrialStructure.ProtectionClaim(shape,facing);
+        assertTrue(claimA.contains(a,shared));assertFalse(new IndustrialStructure.ProtectionClaim(shape,facing).contains(b,new BlockPos(5,64,2)));
+        UUID ownerA=UUID.randomUUID(),ownerB=UUID.randomUUID();
+        var incumbent=new IndustrialStructure.Claimant(a,ownerA,Set.of(shared),claimA);
+        var newcomer=new IndustrialStructure.Claimant(b,ownerB,Set.of(shared),null);
+        assertTrue(IndustrialStructure.keepsPorts(incumbent,List.of(newcomer)));
+        assertFalse(IndustrialStructure.keepsPorts(newcomer,List.of(incumbent)));
+        var repairing=new IndustrialStructure.Claimant(a,ownerA,Set.of(),claimA);
+        assertFalse(IndustrialStructure.keepsPorts(newcomer,List.of(repairing)));
+        var unclaimed=new IndustrialStructure.Claimant(a,ownerA,Set.of(shared),null);
+        assertFalse(IndustrialStructure.keepsPorts(unclaimed,List.of(newcomer)));
+        assertFalse(IndustrialStructure.keepsPorts(newcomer,List.of(unclaimed)));
+    }
+    @Test void shellsOfOneOwnerThatShareAPortBothStopWhateverTheirClaims() {
+        var shape=new IndustrialStructure.Shape(5,5,5,2);var facing=Direction.NORTH;
+        var a=new BlockPos(0,64,0);var b=new BlockPos(-4,64,0);var port=new BlockPos(-2,65,2);var owner=UUID.randomUUID();
+        var first=new IndustrialStructure.Claimant(a,owner,Set.of(port),new IndustrialStructure.ProtectionClaim(shape,facing));
+        var second=new IndustrialStructure.Claimant(b,owner,Set.of(port),null);
+        assertFalse(IndustrialStructure.keepsPorts(first,List.of(second)));
+        assertFalse(IndustrialStructure.keepsPorts(second,List.of(first)));
+        var separate=new IndustrialStructure.Claimant(b,owner,Set.of(new BlockPos(-6,65,2)),null);
+        assertTrue(IndustrialStructure.keepsPorts(first,List.of(separate)));
+    }
 }
