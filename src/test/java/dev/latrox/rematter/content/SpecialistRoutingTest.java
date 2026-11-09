@@ -10,19 +10,19 @@ class SpecialistRoutingTest {
     @Test void everyProcessHasOneCompactMachineAndOnlySupportedIndustrialAlternatives() {
         for(var process:ShippedChemistry.standalone().processes()) {
             var machines=MachineRouting.machines(process.type());assertFalse(machines.isEmpty());
-            for(var kind:MachineKind.values())assertEquals(machines.contains(kind),MachineRouting.supports(kind,process.type()));
+            for(var kind:MachineKind.values())assertEquals(machines.contains(kind),MachineRouting.supports(kind,process.type()) && !kind.retiredSpecialist());
         }
-        assertFalse(MachineRouting.supports(MachineKind.REACTOR,ProcessType.PHASE_CHANGE));
-        assertFalse(MachineRouting.supports(MachineKind.REACTOR,ProcessType.SEPARATION));
+        assertTrue(MachineRouting.supports(MachineKind.REACTOR,ProcessType.PHASE_CHANGE));
+        assertTrue(MachineRouting.supports(MachineKind.REACTOR,ProcessType.SEPARATION));
     }
     @Test void allCrystalFormsUseTheSameMachineAndDiamondTierIsRetainedInExternalPatterns() {
         var registry=ShippedChemistry.load(mod->!mod.equals("enderio"),ShippedChemistry.MAIN_RESOURCES);
         var recipes=AutomationRecipeCatalogue.chemistry(registry,id->true,id->true);
         for(String id:Set.of("minecraft:diamond","minecraft:diamond_block","mekanism:dust_diamond")) {
-            assertTrue(registry.synthesisPolicy().allowsMachine(id,"crystallizer"));
-            assertFalse(registry.synthesisPolicy().allowsMachine(id,"material_synthesizer"));
+            assertTrue(registry.synthesisPolicy().allowsMachine(id,"material_synthesizer"));
+            assertFalse(registry.synthesisPolicy().allowsMachine(id,"crystallizer"));
             var pattern=recipes.stream().filter(r->r.id().equals(AutomationRecipeCatalogue.id("synthesize_item",id))).findFirst().orElseThrow();
-            assertEquals("crystallizer",pattern.workerKind());assertEquals(2,pattern.requiredTier());
+            assertEquals("material_synthesizer",pattern.workerKind());assertEquals(2,pattern.requiredTier());
         }
         assertFalse(registry.synthesisPolicy().allowsItem("rematter:diamond_powder"));
         assertTrue(registry.synthesisPolicy().allowsMachine("minecraft:ender_pearl","material_synthesizer"));

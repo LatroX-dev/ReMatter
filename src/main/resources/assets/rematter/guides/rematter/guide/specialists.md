@@ -1,59 +1,46 @@
 ---
 navigation:
-  title: Specialist machines
-  icon: rematter:separator
+  title: Reactor processes
+  icon: rematter:chemical_reactor
   parent: index.md
   position: 10
 item_ids:
-  - rematter:separator
-  - rematter:thermal_processor
-  - rematter:crystallizer
-  - rematter:air_separator
+  - rematter:chemical_reactor
+  - rematter:industrial_reactor
   - rematter:pressure_module
 ---
-# Give each process a clear job
+# One reactor, several processes
 
-Connect each processor to your Matter Drive, keep a readable Cell installed and provide external FE. The recipe list shows the complete input, every output, FE and duration. Stored liquids and gases remain quantities until exported through their supported adapters.
+Connect a **Chemical Reactor** to your Matter Drive, install a readable Cell and provide external FE. Choose electrolysis, reactions, separation, heating, cooling or air oxygen in its recipe list. The **Industrial Reactor** runs the same chemical processes in an expandable chamber. The list shows every input, output, FE and duration before you start.
 
 <GameScene zoom="3" interactive={true}>
-  <Block x="0" y="1" id="rematter:separator" />
+  <Block x="0" y="1" id="rematter:chemical_reactor" />
   <Block x="1" y="1" id="rematter:matter_drive" />
-  <Block x="2" y="1" id="rematter:thermal_processor" />
-  <Block x="3" y="1" id="rematter:crystallizer" />
-  <BlockAnnotation x="0" y="1" color="#f0b957">Separator: recover carbon, silica and water from soil.</BlockAnnotation>
-  <BlockAnnotation x="2" y="1" color="#ef785b">Thermal Processor: heat or cool stored substances.</BlockAnnotation>
-  <BlockAnnotation x="3" y="1" color="#bba4f2">Crystallizer: approved crystal outputs; diamonds need a Pressure Module.</BlockAnnotation>
+  <Block x="2" y="1" id="rematter:material_synthesizer" />
+  <BlockAnnotation x="0" y="1" color="#bba4f2">Reactor: choose the chemical process or air oxygen.</BlockAnnotation>
+  <BlockAnnotation x="2" y="1" color="#bba4f2">Synthesizer: approved physical outputs; diamonds require a Pressure Module.</BlockAnnotation>
 </GameScene>
 
-## Separator
+## Recover useful byproducts
 
-Runs **Mineral separation** and **Soil separation**. Soil provides carbon for steel, silica for glass and water for fluid export through a Synthesizer. Read the byproducts before starting; a full store safely pauses the whole batch.
+**Soil separation** supplies carbon for steel, silica for glass and water. **Water electrolysis** supplies hydrogen and oxygen; **Water synthesis** recombines them. Every byproduct requires storage room. A full store pauses the whole batch before partial consumption.
 
-<RecipeFor id="rematter:separator" />
+## Heat and cool
 
-## Thermal Processor
+Choose evaporation, condensation, mineral melting or solidification in the same reactor. The displayed phases distinguish heating from cooling. Both directions require FE. Follow [Useful production](production.md) through the final Synthesizer: melting stored material does not create a filled lava bucket.
 
-Runs **phase changes**, including evaporation, condensation, mineral melting and solidification. The process name and input/output phase show whether it heats or cools. It uses FE in either direction. An Industrial Reactor can also run these processes.
+<RecipeFor id="rematter:chemical_reactor" />
 
-For lava, follow [Useful production](production.md) through the final Synthesizer. Heating alone does not produce a filled bucket.
+## Crystal outputs
 
-<RecipeFor id="rematter:thermal_processor" />
+Use the **Material Synthesizer** for explicitly approved crystal-family products. Install **one Pressure Module** in its upgrade slot for tier 2, required for **every diamond form**, including native AE2/RS crafting patterns. The module occupies the same slot as Speed or Efficiency Upgrades. Ender Pearls and other permitted materials remain Synthesizer products.
 
-## Crystallizer
-
-Makes explicitly approved crystal-family outputs, including their interchangeable gem, dust, nugget and block forms. The Synthesizer cannot bypass this requirement, including through AE2 or RS patterns. Ender Pearls remain Synthesizer products.
-
-Tier 1 uses an Amethyst-based Violet Matrix Crystal and no additional diamond in the device recipe. Your storage Drive still needs its own diamond. Install **one Pressure Module** in the upgrade slot for **tier 2**, required for **every diamond form**. It replaces Speed or Efficiency in that slot. The module's components require advanced preparation.
-
-<RecipeFor id="rematter:crystallizer" />
 <RecipeFor id="rematter:pressure_module" />
 
-## Air Separator
+## Air oxygen
 
-Extracts **200 stored oxygen units** for **16,000 base FE** over **200 ticks**. Place it in the **Overworld**, with an air block directly above and an unobstructed view of the sky. It requires connected Cell storage. Blocking the inlet or moving to an unsupported dimension pauses production without spending FE.
+Choose **Air oxygen** in either reactor. A batch extracts **200 stored oxygen units** for **16,000 base FE** over **200 ticks** in the **Overworld**. Compact reactors require an air block directly above and an unobstructed sky. An industrial chamber takes air above the front edge of its roof. Blocking that inlet pauses production without spending FE. Connected Cell storage is required.
 
-Oxygen can feed supported chemical consumers such as Mekanism's Purification Chamber. There is no nitrogen output without a supported useful consumer. Renewable air is explicitly separate from balanced reactions; it still needs power and output space.
+Oxygen can feed Mekanism's Purification Chamber through a Drive with Automation enabled and a Pressurized Tube. Nitrogen waits for a useful supported consumer. Renewable air remains an explicit environmental source with power and storage costs.
 
-<RecipeFor id="rematter:air_separator" />
-
-Gas venting is off by default. An owner may explicitly discard selected **new** gas outputs under Production settings. Existing stored gas remains untouched. A stock target cannot use a gas that this device is venting.
+Gas venting starts off. An owner may explicitly discard selected **new** gas outputs in Production settings. Existing stored gas remains untouched. A stock target cannot count a gas that this device is venting.

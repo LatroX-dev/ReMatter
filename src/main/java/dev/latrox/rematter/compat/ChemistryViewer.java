@@ -31,7 +31,7 @@ public final class ChemistryViewer {
 
         public Component title() { return Component.translatable("gui.rematter.viewer." + id()); }
 
-        /** The machines that run this category. Electrolysis has its own machine; every other process runs in the reactors. */
+        /** Physical outputs use the Synthesizer; chemical transformations and environmental sources use reactors. */
         public List<MachineKind> machines() {
             return switch (this) {
                 case DECOMPOSITION -> List.of(MachineKind.DECOMPOSER);
@@ -40,8 +40,8 @@ public final class ChemistryViewer {
                 case REACTION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.REACTION);
                 case SEPARATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.SEPARATION);
                 case PHASE_CHANGE -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.PHASE_CHANGE);
-                case CRYSTALLIZATION -> List.of(MachineKind.CRYSTALLIZER);
-                case AIR_SEPARATION -> List.of(MachineKind.AIR_SEPARATOR);
+                case CRYSTALLIZATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.CRYSTALLIZATION);
+                case AIR_SEPARATION -> List.of(MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR);
             };
         }
 

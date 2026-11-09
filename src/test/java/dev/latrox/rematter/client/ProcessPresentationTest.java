@@ -56,7 +56,7 @@ class ProcessPresentationTest {
         assertEquals("", process.outputId());
         assertEquals(Map.of(WATER, 1_000L), process.inputs());
         assertEquals(Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), process.outputs());
-        assertTrue(ProcessPresentation.resolve(registry, MachineKind.REACTOR, process.id(), process.name()).isEmpty());
+        assertTrue(ProcessPresentation.resolve(registry, MachineKind.REACTOR, process.id(), process.name()).isPresent());
         assertTrue(ProcessPresentation.resolve(registry, MachineKind.DECOMPOSER, process.id(), process.name()).isEmpty());
         assertTrue(ProcessPresentation.resolve(registry, MachineKind.REACTOR, "rematter:water_synthesis", "Water synthesis").isPresent());
         assertTrue(ProcessPresentation.resolve(registry, MachineKind.INDUSTRIAL_REACTOR, "rematter:water_synthesis", "Water synthesis").isPresent());

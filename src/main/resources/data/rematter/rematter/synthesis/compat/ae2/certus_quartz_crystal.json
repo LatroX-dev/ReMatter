@@ -2,7 +2,7 @@
   "schema_version": 1,
   "required_mod": "ae2",
   "item": "ae2:certus_quartz_crystal",
-  "synthesis_machine": "crystallizer",
+  "synthesis_machine": "material_synthesizer",
   "crystallization_tier": 1,
   "category": "raw_material"
 }

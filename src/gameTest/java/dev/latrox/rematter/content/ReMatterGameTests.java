@@ -41,6 +41,10 @@ public final class ReMatterGameTests {
         TESTS.put("full_byproduct_is_atomic",ReMatterGameTests::byproduct);
         TESTS.put("advancement_revoke_updates_offline_mirror",ReMatterGameTests::advancement);
         TESTS.put("large_valid_storage_network",ReMatterGameTests::largeNetwork);
+        TESTS.put("normal_placed_cables_connect",ReMatterGameTests::placedCables);
+        TESTS.put("claim_refreshes_cable_arms",ReMatterGameTests::claimedCable);
+        TESTS.put("preparation_slots_require_one_compatible_recipe",ReMatterGameTests::inputFiltering);
+        TESTS.put("industrial_reactor_air_inlet_is_above_roof",ReMatterGameTests::industrialAir);
     }
     private static Identifier id(String path) {return Identifier.fromNamespaceAndPath("rematter_tests",path);}
     @SubscribeEvent
@@ -102,7 +106,7 @@ public final class ReMatterGameTests {
         h.succeedWhen(()->h.assertTrue(r.machine.getItem(1).is(Items.GLASS),"Work did not resume after power returned"));
     }
     private static void crystalTier(GameTestHelper h) {
-        var r=rig(h,MachineKind.CRYSTALLIZER);put(r,Map.of(SubstanceKey.of("rematter:diamond",Phase.SOLID),1000L));
+        var r=rig(h,MachineKind.SYNTHESIZER);put(r,Map.of(SubstanceKey.of("rematter:diamond",Phase.SOLID),1000L));
         h.assertTrue(r.machine.selectRecipe("minecraft:diamond"),"Diamond recipe unavailable");r.machine.requestBatch();
         h.runAtTickTime(160,()-> {
             h.assertTrue(r.machine.getItem(1).isEmpty(),"Tier one created a diamond");
@@ -112,7 +116,7 @@ public final class ReMatterGameTests {
         h.succeedWhen(()->h.assertTrue(r.machine.getItem(1).is(Items.DIAMOND),"Pressure module did not unlock diamond"));
     }
     private static void vent(GameTestHelper h) {
-        var r=rig(h,MachineKind.ELECTROLYZER);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.OXYGEN,7L));
+        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.OXYGEN,7L));
         r.machine.selectRecipe("rematter:water_electrolysis");
         h.assertTrue(r.machine.configure(r.owner,new MachineSettings(0,"","",Set.of("rematter:oxygen"))),"Vent setting rejected");
         r.machine.requestBatch();
@@ -128,7 +132,7 @@ public final class ReMatterGameTests {
         r.machine.selectRecipe("rematter:water_synthesis");other.selectRecipe("rematter:water_synthesis");
         var setting=new MachineSettings(2000,"rematter:water","liquid",Set.of());
         h.assertTrue(r.machine.configure(r.owner,setting)&&other.configure(r.owner,setting),"Target rejected");
-        var locked=place(h,new BlockPos(2,2,3),MachineKind.CRYSTALLIZER,r.owner);locked.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var locked=place(h,new BlockPos(2,2,3),MachineKind.SYNTHESIZER,r.owner);locked.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
         locked.selectRecipe("minecraft:diamond");locked.requestBatch();
         h.runAtTickTime(700,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==2000,"Multiple producers overshot or missed target");
@@ -157,8 +161,8 @@ public final class ReMatterGameTests {
         h.assertTrue(!watched.configure(spectator,new MachineSettings(1,"","",Set.of())),"Spectator changed production settings");h.succeed();
     }
     private static void separation(GameTestHelper h) {
-        var r=rig(h,MachineKind.SEPARATOR);put(r,Map.of(BuiltinChemistry.SOIL,1000L));
-        h.assertTrue(!r.machine.selectRecipe("rematter:water_synthesis"),"Separator accepted reaction");
+        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.SOIL,1000L));
+        h.assertTrue(r.machine.selectRecipe("rematter:water_synthesis"),"Unified reactor rejected reaction");
         r.machine.selectRecipe("rematter:soil_separation");r.machine.requestBatch();
         h.succeedWhen(()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.CARBON)==1000,"Carbon missing");
@@ -167,7 +171,7 @@ public final class ReMatterGameTests {
         });
     }
     private static void phase(GameTestHelper h) {
-        var r=rig(h,MachineKind.THERMAL_PROCESSOR);put(r,Map.of(BuiltinChemistry.WATER,1000L));
+        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L));
         r.machine.selectRecipe("rematter:water_evaporation");r.machine.requestBatch();
         h.succeedWhen(()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.STEAM)==1000,"Steam missing");
@@ -175,7 +179,7 @@ public final class ReMatterGameTests {
         });
     }
     private static void air(GameTestHelper h) {
-        var r=rig(h,MachineKind.AIR_SEPARATOR);h.setBlock(3,3,2,Blocks.STONE);
+        var r=rig(h,MachineKind.REACTOR);h.setBlock(3,3,2,Blocks.STONE);
         r.machine.selectRecipe("rematter:air_oxygen");r.machine.requestBatch();
         h.runAtTickTime(250,()-> {
             h.assertTrue(r.drive.matterStore().total()==0,"Blocked air source produced gas");h.setBlock(3,3,2,Blocks.AIR);
@@ -264,8 +268,92 @@ public final class ReMatterGameTests {
         CableOwners.set(h.getLevel(),cable,foreign.getUUID());
         h.assertTrue(!processor.matterNetwork(true).ready(),"Ownership change left a cached foreign network");h.succeed();
     }
+    private static void placeItem(GameTestHelper h, BlockPos relative, net.minecraft.world.entity.player.Player player, ItemStack stack) {
+        var pos = h.absolutePos(relative);
+        h.getLevel().setBlock(pos.below(), Blocks.STONE.defaultBlockState(), 3);
+        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, stack);
+        var hit = new net.minecraft.world.phys.BlockHitResult(pos.below().getCenter().add(0, .5, 0),
+                net.minecraft.core.Direction.UP, pos.below(), false);
+        var context = new net.minecraft.world.item.context.BlockPlaceContext(player,
+                net.minecraft.world.InteractionHand.MAIN_HAND, stack, hit);
+        ((net.minecraft.world.item.BlockItem) stack.getItem()).place(context);
+        h.assertTrue(!h.getLevel().getBlockState(pos).isAir(), "Normal block-item placement failed");
+    }
+    private static void placedCables(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        placeItem(h, new BlockPos(2,2,2), owner, new ItemStack(ModContent.MACHINES.get(MachineKind.DRIVE).get()));
+        h.getBlockEntity(new BlockPos(2,2,2), MachineBlockEntity.class).setItem(0, new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        placeItem(h, new BlockPos(3,2,2), owner, new ItemStack(ModContent.MATTER_CABLE.get()));
+        placeItem(h, new BlockPos(4,2,2), owner, new ItemStack(ModContent.REINFORCED_MATTER_CABLE.get()));
+        placeItem(h, new BlockPos(5,2,2), owner, new ItemStack(ModContent.RESONANT_MATTER_CABLE.get()));
+        placeItem(h, new BlockPos(6,2,2), owner, new ItemStack(ModContent.MACHINES.get(MachineKind.DECOMPOSER).get()));
+        h.runAtTickTime(5, () -> {
+            for (int x=3;x<=5;x++) {
+                var state=h.getBlockState(new BlockPos(x,2,2));
+                h.assertTrue(state.getValue(net.minecraft.world.level.block.PipeBlock.EAST)
+                        && state.getValue(net.minecraft.world.level.block.PipeBlock.WEST), "Normally placed cable has no endpoint arm at " + x);
+            }
+            var machine=h.getBlockEntity(new BlockPos(6,2,2),MachineBlockEntity.class);
+            h.assertTrue(machine.matterNetwork(true).ready(), "Normally placed cable did not find the Drive");
+            h.succeed();
+        });
+    }
+    private static void claimedCable(GameTestHelper h) {
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);
+        h.setBlock(2,2,2,ModContent.MACHINES.get(MachineKind.REACTOR).get());
+        placeItem(h,new BlockPos(3,2,2),owner,new ItemStack(ModContent.MATTER_CABLE.get()));
+        h.runAtTickTime(5,()-> {
+            h.assertTrue(!h.getBlockState(new BlockPos(3,2,2)).getValue(net.minecraft.world.level.block.PipeBlock.WEST),"Unowned machine connected");
+            var machine=h.getBlockEntity(new BlockPos(2,2,2),MachineBlockEntity.class);
+            machine.interact(owner);
+            h.assertTrue(h.getBlockState(new BlockPos(3,2,2)).getValue(net.minecraft.world.level.block.PipeBlock.WEST),"Claim did not refresh cable arm");
+            h.succeed();
+        });
+    }
+    private static void inputFiltering(GameTestHelper h) {
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);
+        var machine=place(h,new BlockPos(2,2,2),MachineKind.PREPARATOR,owner);
+        var recipes=dev.latrox.rematter.content.preparation.PreparationRecipes.serverRecipes(h.getLevel());
+        var inputs=new dev.latrox.rematter.content.preparation.PreparationInput(new ItemStack(ModContent.IRON_DUST.get()),ItemStack.EMPTY,ItemStack.EMPTY);
+        h.assertTrue(MachineInputPolicy.accepts(MachineKind.PREPARATOR,3,new ItemStack(ModContent.COPPER_DUST.get()),inputs,ReMatter.chemistry(),recipes),"Valid incomplete mixing recipe rejected");
+        h.assertTrue(!MachineInputPolicy.accepts(MachineKind.PREPARATOR,3,new ItemStack(ModContent.ARGIL.get()),inputs,ReMatter.chemistry(),recipes),"Ingredient from an unrelated recipe accepted");
+        machine.setItem(0,new ItemStack(ModContent.IRON_DUST.get()));
+        h.assertTrue(machine.canPlaceItem(3,new ItemStack(ModContent.COPPER_DUST.get())),"Server rejected compatible input");
+        h.assertTrue(!machine.canPlaceItem(3,new ItemStack(ModContent.ARGIL.get())),"Server accepted incompatible mixing input");
+        for(int slot:new int[]{0,3,4})h.assertTrue(!machine.canPlaceItem(slot,new ItemStack(Items.DIRT)),"Server accepted an item without a recipe");
+        h.succeed();
+    }
+    private static void industrialAir(GameTestHelper h) {
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);var origin=h.absolutePos(new BlockPos(4,2,3));
+        var shape=new IndustrialStructure.Shape(3,4,3,1);
+        for(var cell:IndustrialStructure.layout(shape)) {
+            var block=switch(cell.role()) {
+                case FRAME -> ModContent.REACTOR_CASING.get();
+                case WALL -> cell.outward().getAxis().isHorizontal()?ModContent.REACTOR_GLASS.get():ModContent.REACTOR_CASING.get();
+                default -> Blocks.AIR;
+            };
+            h.getLevel().setBlock(IndustrialStructure.worldPosition(origin,net.minecraft.core.Direction.NORTH,cell),block.defaultBlockState(),3);
+        }
+        var reactor=place(h,new BlockPos(4,2,3),MachineKind.INDUSTRIAL_REACTOR,owner);
+        h.setBlock(3,2,4,ModContent.MACHINE_PORT.get());h.setBlock(5,2,4,ModContent.MACHINE_PORT.get());
+        h.setBlock(4,2,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.REACTION_CHAMBER).get());
+        h.setBlock(4,3,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.FIELD_COIL).get());
+        var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);reactor.selectRecipe("rematter:air_oxygen");reactor.requestBatch();
+        var inlet=origin.above(shape.height()-1);
+        h.runAtTickTime(10,()->h.getLevel().setBlock(inlet,Blocks.STONE.defaultBlockState(),3));
+        h.runAtTickTime(60,()-> {
+            h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==0,"Blocked industrial air inlet produced gas");
+            h.assertTrue(reactor.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Blocked industrial air inlet spent FE");
+            h.getLevel().setBlock(inlet,Blocks.AIR.defaultBlockState(),3);
+        });
+        h.succeedWhen(()-> {
+            h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==200,"Industrial air source did not recover after reopening inlet");
+            h.assertTrue(reactor.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-reactor.cost(16000),"Industrial air source paid wrong FE");
+        });
+    }
     private static void byproduct(GameTestHelper h) {
-        var r=rig(h,MachineKind.ELECTROLYZER);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.CARBON,63000L));
+        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.CARBON,63000L));
         r.machine.selectRecipe("rematter:water_electrolysis");r.machine.requestBatch();
         h.runAtTickTime(250,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==1000,"A full byproduct consumed water");

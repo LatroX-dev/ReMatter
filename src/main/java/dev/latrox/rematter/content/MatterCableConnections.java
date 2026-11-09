@@ -24,7 +24,7 @@ public final class MatterCableConnections {
         // ordinary block ticks directly; defer all world/neighbor access until ticking.
         chunk.findBlocks(state -> state.getBlock() instanceof MatterCableBlock || state.getBlock() instanceof MachineBlock || state.getBlock() instanceof MachinePortBlock,
                 (pos, state) -> {
-                    if (borderColumn(pos.getX()) || borderColumn(pos.getZ())) chunk.getBlockTicks().schedule(new ScheduledTick<>(
+                    if (state.getBlock() instanceof MatterCableBlock || borderColumn(pos.getX()) || borderColumn(pos.getZ())) chunk.getBlockTicks().schedule(new ScheduledTick<>(
                             state.getBlock(), pos.immutable(), nextTick, TickPriority.NORMAL, 0));
                 });
     }

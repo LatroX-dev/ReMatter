@@ -1,10 +1,10 @@
 {
   "title": "Build the Crystal Workshop",
   "description": [
-    "The Crystallizer makes approved crystal-family products and their equivalent dust, nugget and block forms. Tier 1 uses Amethyst-based Violet Matrix Crystal; its device recipe adds no further diamond cost. The storage Drive still needs a diamond.",
-    "Every diamond form requires a Pressure Module in the Crystallizer upgrade slot. That rule also applies to native crafting patterns. Machine parts, equipment, wires, plates and circuits keep their normal recipes."
+    "The Material Synthesizer makes approved crystal-family products and their equivalent dust, nugget and block forms. Use your existing Synthesizer; another dedicated crystal machine is not required.",
+    "Every diamond form requires a Pressure Module in the Material Synthesizer upgrade slot. That rule also applies to native crafting patterns. Machine parts, equipment, wires, plates and circuits keep their normal recipes."
   ],
-  "icon": "rematter:crystallizer",
+  "icon": "rematter:material_synthesizer",
   "x": 0.0,
   "y": 7.2,
   "size": 0.9,
@@ -21,7 +21,7 @@
       "type": "item",
       "count": 1,
       "mode": "detect",
-      "item": "rematter:crystallizer"
+      "item": "rematter:material_synthesizer"
     },
     {
       "type": "item",

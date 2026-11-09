@@ -22,6 +22,8 @@ public enum MachineKind {
     private final String id;
     MachineKind(String id) { this.id = id; }
     public String id() { return id; }
+    /** Registered for existing installations, absent from the current crafting progression. */
+    public boolean retiredSpecialist() { return this == ELECTROLYZER || this == SEPARATOR || this == THERMAL_PROCESSOR || this == CRYSTALLIZER || this == AIR_SEPARATOR; }
     public boolean isStorage() { return this == DRIVE; }
     public boolean synthesis() { return this == SYNTHESIZER || this == CRYSTALLIZER; }
     public boolean selectable() { return synthesis() || this == ELECTROLYZER || this == REACTOR

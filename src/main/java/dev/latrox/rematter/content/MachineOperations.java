@@ -68,13 +68,13 @@ final class MachineOperations {
         var choice = machine.selectedChoice();
         if (choice == null) return null;
         if (kind.synthesis()) return synthesis(registry, choice,enforceAccess);
-        if (kind == MachineKind.AIR_SEPARATOR) {
+        if (MachineRouting.environmentSources(kind) && registry.environmentSource(SubstanceId.parse(choice.id())).isPresent()) {
             var source=registry.environmentSource(SubstanceId.parse(choice.id())).orElse(null);
             if(source==null)return null;
             return new Operation(choice.id(),Map.of(),source.outputs(),machine.cost(source.energy()),source.ticks(),
                     () -> source.dimensions().contains(machine.getLevel().dimension().identifier().toString())
-                            && (!source.requiresOpenAir()||machine.getLevel().getBlockState(machine.getBlockPos().above()).isAir()
-                            && machine.getLevel().canSeeSky(machine.getBlockPos().above())), () -> {});
+                            && (!source.requiresOpenAir()||machine.getLevel().getBlockState(airIntake()).isAir()
+                            && machine.getLevel().canSeeSky(airIntake())), () -> {});
         }
         var recipe = registry.recipe(SubstanceId.parse(choice.id())).orElse(null);
         if (recipe == null || !MachineRouting.supports(kind,recipe.type())) return null;
@@ -153,7 +153,9 @@ final class MachineOperations {
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation) {
         long energy = machine.energy().getAmountAsLong();
-        if(machine.kind()==MachineKind.AIR_SEPARATOR&&!operation.canFinish())return "requires_open_air";
+        if(MachineRouting.environmentSources(machine.kind())
+                && dev.latrox.rematter.ReMatter.chemistry().environmentSources().stream().anyMatch(source -> source.id().toString().equals(operation.signature()))
+                && !operation.canFinish())return "requires_open_air";
         if (PreparationTier.isPreparation(machine.kind())) {
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);
             return PreparationWork.readiness(!primary.isEmpty(), !secondary.isEmpty(), mixingPreparation(),
@@ -211,15 +213,9 @@ final class MachineOperations {
 
     /** Recipe-side slot acceptance for inputs; slot roles are checked by the machine. */
     boolean acceptsInput(int index, ItemStack stack, ChemistryRegistry registry) {
-        MachineKind kind = machine.kind();
-        if (PreparationTier.isPreparation(kind)) {
-            if (!(machine.getLevel() instanceof ServerLevel server) || (index != 0 && index != 3 && index != 4)) return false;
-            return PreparationRecipes.serverCatalogue(server).entries().stream().filter(entry -> PreparationTier.permits(kind, entry.minimumTier(), entry.process()))
-                    .anyMatch(entry -> index == 0 ? entry.recipe().acceptsPrimary(stack)
-                            : index == 3 ? entry.recipe().acceptsSecondary(stack) : entry.recipe().acceptsTertiary(stack));
-        }
-        return (kind == MachineKind.DECOMPOSER || kind == MachineKind.ANALYZER) && stack.getComponentsPatch().isEmpty()
-                && profile(registry, stack) != null;
+        if (!(machine.getLevel() instanceof ServerLevel server)) return false;
+        return MachineInputPolicy.accepts(machine.kind(), index, stack, preparationInput(), registry,
+                PreparationRecipes.serverCatalogue(server).entries());
     }
 
     @Nullable RecipeHolder<PreparationRecipe> preparationRecipe() {
@@ -248,6 +244,13 @@ final class MachineOperations {
     }
 
     private PreparationInput preparationInput() { return new PreparationInput(machine.stack(0), machine.stack(3), machine.stack(4)); }
+    private net.minecraft.core.BlockPos airIntake() {
+        if (IndustrialStructure.isIndustrial(machine.kind())) {
+            var shape = IndustrialStructure.inspect(machine).shape();
+            if (shape != null) return machine.getBlockPos().above(shape.height() - 1);
+        }
+        return machine.getBlockPos().above();
+    }
 
     private boolean fitsOutput(ItemStack result) {
         ItemStack output = machine.stack(1);

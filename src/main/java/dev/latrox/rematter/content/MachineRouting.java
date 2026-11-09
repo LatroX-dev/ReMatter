@@ -7,17 +7,19 @@ import java.util.List;
 public final class MachineRouting {
     private MachineRouting() {}
     public static MachineKind primary(ProcessType type) {
-        return switch (type) {
-            case ELECTROLYSIS -> MachineKind.ELECTROLYZER;
-            case REACTION -> MachineKind.REACTOR;
-            case SEPARATION -> MachineKind.SEPARATOR;
-            case PHASE_CHANGE -> MachineKind.THERMAL_PROCESSOR;
-            case CRYSTALLIZATION -> MachineKind.CRYSTALLIZER;
-        };
+        return MachineKind.REACTOR;
     }
     public static boolean supports(MachineKind kind, ProcessType type) {
-        return kind == primary(type) || kind == MachineKind.INDUSTRIAL_REACTOR
-                && (type == ProcessType.REACTION || type == ProcessType.SEPARATION || type == ProcessType.PHASE_CHANGE);
+        return kind == MachineKind.REACTOR || kind == MachineKind.INDUSTRIAL_REACTOR || switch (kind) {
+            case ELECTROLYZER -> type == ProcessType.ELECTROLYSIS;
+            case SEPARATOR -> type == ProcessType.SEPARATION;
+            case THERMAL_PROCESSOR -> type == ProcessType.PHASE_CHANGE;
+            case CRYSTALLIZER -> type == ProcessType.CRYSTALLIZATION;
+            default -> false;
+        };
+    }
+    public static boolean environmentSources(MachineKind kind) {
+        return kind == MachineKind.REACTOR || kind == MachineKind.INDUSTRIAL_REACTOR || kind == MachineKind.AIR_SEPARATOR;
     }
     public static List<MachineKind> machines(ProcessType type) {
         var first = primary(type);

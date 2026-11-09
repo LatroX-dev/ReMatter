@@ -207,10 +207,12 @@ class StarterProgressionTest {
         assertTrue(names.containsAll(Set.of("machine_frame", "structural_bars", "control_circuit", "optical_circuit", "cell_housing",
                 "matrix_cluster", "guide", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m",
                 "analyzer", "decomposer", "material_synthesizer", "matter_drive", "cell_rack", "matter_terminal",
-                "hand_preparator", "material_preparator", "industrial_preparator", "sinter_furnace", "electrolyzer",
+                "hand_preparator", "material_preparator", "industrial_preparator", "sinter_furnace",
                 "chemical_reactor", "industrial_reactor", "network_interface", "grinding_unit", "separation_unit",
                 "mixing_basin", "field_coil", "reaction_chamber", "reactor_casing", "reactor_glass", "machine_port",
                 "matter_cable", "reinforced_matter_cable", "resonant_matter_cable", "speed_upgrade", "efficiency_upgrade")));
+        for (String retired : Set.of("electrolyzer", "separator", "thermal_processor", "crystallizer", "air_separator"))
+            assertFalse(names.contains(retired), "Retired specialist reappeared in crafting: " + retired);
         names.add("matrix_crystal_from_smelting");
         for (String name : names) {
             var advancement = json("data/rematter/advancement/recipes/" + name + ".json");

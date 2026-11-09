@@ -61,6 +61,7 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     }
 
     @Override public void register(EmiRegistry registry) {
+        ModContent.MACHINES.forEach((kind, block) -> { if (kind.retiredSpecialist()) registry.removeEmiStacks(EmiStack.of(block.get())); });
         registry.addExclusionArea(MachineScreen.class, (screen, consumer) -> {
             for (var area : screen.viewerExclusionAreas())
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));

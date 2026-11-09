@@ -17,7 +17,7 @@ public final class CatalogSync {
 
     public static void register(RegisterPayloadHandlersEvent event) {
         // A peer with another catalogue protocol is rejected before vanilla recipe sync decodes the preparation serializer.
-        event.registrar("8").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
+        event.registrar("9").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
                 ClientChemistry.accept(CatalogWireCodec.decode(payload.bytes)));
     }
 

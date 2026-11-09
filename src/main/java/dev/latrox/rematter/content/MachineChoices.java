@@ -62,12 +62,12 @@ public final class MachineChoices {
                 choices.add(new Choice(fluidChoiceId(profile.fluidId()),
                         Component.translatableWithFallback("gui.rematter.choice.fluid", "%s mB %s", profile.amount(), name).getString()));
             }
-        } else if (kind == MachineKind.AIR_SEPARATOR) {
-            registry.environmentSources().forEach(source -> choices.add(new Choice(source.id().toString(), Component.translatable(source.translationKey()).getString())));
         } else if (kind.selectable()) {
             registry.processes().stream()
                     .filter(recipe -> MachineRouting.supports(kind, recipe.type()))
                     .forEach(recipe -> choices.add(new Choice(recipe.id().toString(), ChemistryText.process(recipe).getString())));
+            if (MachineRouting.environmentSources(kind)) registry.environmentSources().forEach(source ->
+                    choices.add(new Choice(source.id().toString(), Component.translatable(source.translationKey()).getString())));
         }
         if (choices.size() > MAX_CHOICES) throw new IllegalArgumentException("Machine choice limit exceeded");
         choices.sort(Comparator.comparing(Choice::name).thenComparing(Choice::id));

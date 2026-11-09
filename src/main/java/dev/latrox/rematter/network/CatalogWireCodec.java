@@ -13,7 +13,7 @@ public final class CatalogWireCodec {
     private static final int MAX_RAW_BYTES = 16_777_216;
     private static final int MAX_RECORDS = ChemistryRegistry.MAX_SYNTHESIS_ENTRIES;
     private static final int MAX_AMOUNTS = 1_024;
-    private static final int VERSION = 3;
+    private static final int VERSION = 4;
 
     private CatalogWireCodec() {}
 

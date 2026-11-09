@@ -2,7 +2,7 @@
   "schema_version": 1,
   "required_mod": "alltheores",
   "item": "alltheores:sapphire",
-  "synthesis_machine": "crystallizer",
+  "synthesis_machine": "material_synthesizer",
   "crystallization_tier": 1,
   "category": "raw_material"
 }

@@ -11,7 +11,7 @@ item_ids:
 ---
 # Upgrades
 
-Open a processing machine's **Upgrades** side tab to reach its upgrade slot. Speed or Efficiency stacks up to **four of one type**. Parallel stacks up to **three**, only in industrial controllers. The Crystallizer accepts **one Pressure Module**. These choices share one slot. Hover the Speed and Efficiency symbols to compare their effects before inserting one.
+Open a processing machine's **Upgrades** side tab to reach its upgrade slot. Speed or Efficiency stacks up to **four of one type**. Parallel stacks up to **three**, only in industrial controllers. The Material Synthesizer accepts **one Pressure Module**. These choices share one slot. Hover the Speed and Efficiency symbols to compare their effects before inserting one.
 
 ## Speed
 

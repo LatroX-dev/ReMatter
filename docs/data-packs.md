@@ -155,13 +155,13 @@ Disabling a definition does not delete stored quantities; they stay marked as un
 
 1,000 units is a standard convention for defined basic forms, not a universal mass scale. The complete profile of a batch is authoritative. Existing ratios and documented exceptions remain: silicon uses 250 units per item; water and lava use one unit per mB. Derive block and nugget amounts from actual crafting and return routes. Cells hold 64,000, 256,000 or 1,000,000 units and at most 512 substance-ID/phase pairs.
 
-Synthesis entries may declare `"synthesis_machine": "crystallizer"` and `"crystallization_tier": 1` or `2`. Other permitted item/fluid synthesis defaults to `material_synthesizer` at tier 1. Every approved form of a crystal family must carry the same requirement; alternate dusts or blocks cannot bypass it. Tier 2 requires a Pressure Module. These fields restrict an existing explicit permission; they never grant permission by tags or recipe inference.
+Synthesis entries may declare `"synthesis_machine": "material_synthesizer"` and `"crystallization_tier": 1` or `2`. Tier 1 is the default; tier 2 requires a Pressure Module in the Synthesizer. Every approved form of a crystal family must carry the same tier; alternate dusts or blocks cannot bypass it. These fields restrict an existing explicit permission; they never grant permission by tags or recipe inference. The previously registered `crystallizer` ID remains readable for existing definitions; new bundled content uses the Material Synthesizer.
 
 A process or synthesis entry may declare `"requires_advancement": "example:milestone"`. The server checks the machine owner's progress. A missing definition denies work. Acquired progress is mirrored for offline use; revocation updates that mirror. Datapack changes are authoritative on reload and automation jobs are cancelled/refunded when their required permission disappears.
 
 Use `"unavailable_with_mods": ["enderio"]` to disable an otherwise permitted document while any named mod is loaded. Required/excluded mod IDs must be valid and the list is bounded. A higher-priority override at the original path may deliberately remove that condition. The shipped quartz-gem and obsidian permissions use it; ReForging restores both with matching native milling fixes.
 
-Process routing is fixed: electrolysis → Electrolyzer, reaction → Chemical Reactor, separation → Separator, phase change → Thermal Processor. The Industrial Reactor also runs reaction, separation and phase change. Crystallization is reserved for the Crystallizer's permitted physical outputs; no included process turns ordinary silica into crystalline silica.
+All chemical process types run in the Chemical Reactor and Industrial Reactor. Renewable environmental sources are explicit recipes in the same two devices. Physical crystal products use the Material Synthesizer with its explicit permission and pressure requirement. No included process turns ordinary silica into crystalline silica.
 
 ## Renewable environmental sources
 
@@ -179,4 +179,4 @@ A source has no material inputs and therefore is not a balanced chemical process
 }
 ```
 
-Only known gas phases are accepted, with positive bounded quantities, a nonempty dimension allowlist, positive ticks and an affordable complete FE price. The Air Separator enforces the dimension, air and sky rules on the server. Review complete energy cycles whenever adding renewable gases. Gas disposal is a separate owner-selected machine setting and never deletes existing stored quantities.
+Only known gas phases are accepted, with positive bounded quantities, a nonempty dimension allowlist, positive ticks and an affordable complete FE price. Both reactor tiers enforce the dimension, air and sky rules on the server. The compact inlet is directly above the device; the industrial inlet is above the front edge of its roof. Review complete energy cycles whenever adding renewable gases. Gas disposal is a separate owner-selected machine setting and never deletes existing stored quantities.

@@ -99,6 +99,16 @@ public final class PreparationRecipe implements Recipe<PreparationInput> {
     public boolean acceptsPrimary(ItemStack stack){return plain(stack)&&primary.test(stack);}
     public boolean acceptsSecondary(ItemStack stack){return plain(stack)&&secondary.filter(ingredient->ingredient.test(stack)).isPresent();}
     public boolean acceptsTertiary(ItemStack stack){return plain(stack)&&tertiary.filter(ingredient->ingredient.test(stack)).isPresent();}
+    /** Empty companion slots are allowed while assembling a recipe; occupied slots must agree on one recipe. */
+    public boolean acceptsInsertion(PreparationInput input, int slot, ItemStack candidate) {
+        if (slot != 0 && slot != 3 && slot != 4 || !plain(candidate)) return false;
+        ItemStack first = slot == 0 ? candidate : input.primary();
+        ItemStack second = slot == 3 ? candidate : input.secondary();
+        ItemStack third = slot == 4 ? candidate : input.tertiary();
+        return (first.isEmpty() || acceptsPrimary(first))
+                && (second.isEmpty() || acceptsSecondary(second))
+                && (third.isEmpty() || acceptsTertiary(third));
+    }
     public boolean singleInput(){return secondary.isEmpty()&&tertiary.isEmpty();}
     private static boolean plain(ItemStack stack){return !stack.isEmpty()&&stack.getComponentsPatch().isEmpty();}
     @Override public boolean matches(PreparationInput input,Level level){return acceptsPrimary(input.primary())

@@ -33,7 +33,7 @@ class ReForgingDataTest {
                 registry.elementAmounts(Map.of(CRYSTAL, 1_000L)));
         assertEquals(Map.of(BuiltinChemistry.SILICA, 1_000L), registry.profile("minecraft:sand").orElseThrow().matter());
         assertEquals(Map.of(CRYSTAL, 1_000L), registry.profile("minecraft:quartz").orElseThrow().matter());
-        assertTrue(registry.synthesisPolicy().allowsMachine("minecraft:quartz","crystallizer"), "The pack supplies a safe bonus-free grinding override");
+        assertTrue(registry.synthesisPolicy().allowsMachine("minecraft:quartz","material_synthesizer"), "The pack supplies a safe bonus-free grinding override");
     }
 
     @Test

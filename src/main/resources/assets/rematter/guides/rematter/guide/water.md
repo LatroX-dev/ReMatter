@@ -1,16 +1,16 @@
 ---
 navigation:
   title: Water and gases
-  icon: rematter:electrolyzer
+  icon: rematter:chemical_reactor
   parent: index.md
   position: 10
 item_ids:
-  - rematter:electrolyzer
+  - rematter:chemical_reactor
   - rematter:chemical_reactor
 ---
 # Water and gases
 
-Add a Matter Drive with a Cell and connect the Electrolyzer and Chemical Reactor to it. Keep the Cell in the Drive; processors use its shared stock. Supply FE separately to each processing machine. Liquids and gases remain distinct stored quantities, without chemical inventory items.
+Add a Matter Drive with a Cell and connect the Chemical Reactor to it. Keep the Cell in the Drive; processors use its shared stock. Supply FE separately to each processing machine. Liquids and gases remain distinct stored quantities, without chemical inventory items.
 
 ## 1. Store water
 
@@ -20,13 +20,13 @@ Each default operation converts **1,000 mB of water into 1,000 stored water unit
 
 ## 2. Split water
 
-In a powered <ItemLink id="rematter:electrolyzer" />, press **Choose recipe** (or **Recipe** to change the selection) and find **Water electrolysis**. Check the requirements, confirm with **Use recipe**, then press **Start** for one batch.
+In a powered <ItemLink id="rematter:chemical_reactor" />, press **Choose recipe** (or **Recipe** to change the selection) and find **Water electrolysis**. Check the requirements, confirm with **Use recipe**, then press **Start** for one batch.
 
 **1,000 water units -> 1,000 hydrogen units + 500 oxygen units**
 
 The gases enter the same Cell. Their quantity ratio is **2 hydrogen to 1 oxygen**. These units describe chemical quantities, not equal masses.
 
-<RecipeFor id="rematter:electrolyzer" />
+<RecipeFor id="rematter:chemical_reactor" />
 
 ## 3. Recombine the gases
 

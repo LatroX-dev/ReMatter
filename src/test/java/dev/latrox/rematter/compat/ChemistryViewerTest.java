@@ -43,7 +43,7 @@ class ChemistryViewerTest {
             var shown = process(entries, recipe.id().path());
             assertEquals(recipe.type().name(), shown.category().name());
         }
-        assertEquals(List.of(MachineKind.ELECTROLYZER), ChemistryViewer.Category.ELECTROLYSIS.machines());
+        assertEquals(List.of(MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR), ChemistryViewer.Category.ELECTROLYSIS.machines());
         for (var type : Set.of(ProcessType.REACTION, ProcessType.SEPARATION, ProcessType.PHASE_CHANGE, ProcessType.CRYSTALLIZATION)) {
             assertEquals(dev.latrox.rematter.content.MachineRouting.machines(type), ChemistryViewer.Category.valueOf(type.name()).machines());
         }

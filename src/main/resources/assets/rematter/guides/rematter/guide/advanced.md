@@ -42,7 +42,7 @@ Combine one plain Matrix Crystal with one ingredient in a crafting grid.
 | Emerald Dust | <ItemLink id="rematter:leaf_matrix_crystal" /> | Material Synthesizer |
 | Silith | <ItemLink id="rematter:ice_matrix_crystal" /> | Analyzer |
 | Redstone Dust | <ItemLink id="rematter:ember_matrix_crystal" /> | Sinter Furnace |
-| Lapis Lazuli Dust | <ItemLink id="rematter:blue_matrix_crystal" /> | Electrolyzer, Network Interface |
+| Lapis Lazuli Dust | <ItemLink id="rematter:blue_matrix_crystal" /> | Chemical Reactor, Network Interface |
 | Amethyst Dust | <ItemLink id="rematter:violet_matrix_crystal" /> | Chemical Reactor, Industrial Reactor |
 
 The Hand Preparator grinds gold and copper ingots. Gems need the powered Material Preparator. Dusts from other mods with the same common tag work as well.
@@ -83,7 +83,7 @@ Put one blend in the Sinter Furnace's input.
 
 | Blend | Component | Base cost | Used in |
 | --- | --- | --- | --- |
-| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 10 seconds | Analyzer, Electrolyzer, Chemical Reactor, Network Interface, Industrial Preparator, Optical Circuits, upgrades, Cutters, Filters, Foci, 1M Cell |
+| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 10 seconds | Analyzer, Chemical Reactor, Network Interface, Industrial Preparator, Optical Circuits, upgrades, Cutters, Filters, Foci, 1M Cell |
 | Ender Conductor Blend | <ItemLink id="rematter:ender_conductor" /> | 16,000 FE, 12 seconds | 256k and 1M Cells, Matter Terminal, Network Interface, Machine Ports, Reinforced Matter Cable |
 | Netherite Sheath Blend | <ItemLink id="rematter:netherite_sheath" /> | 24,000 FE, 14 seconds | 1M Cell, Industrial Reactor, Resonant Matter Cable |
 

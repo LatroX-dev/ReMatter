@@ -128,7 +128,7 @@ public final class ModContent {
             () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.rematter"))
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
                     .displayItems((parameters, output) -> {
-                        MACHINES.values().forEach(block -> output.accept(block.get()));
+                        MACHINES.forEach((kind, block) -> { if (!kind.retiredSpecialist()) output.accept(block.get()); });
                         output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
                         output.accept(RESONANT_MATTER_CABLE_ITEM.get());

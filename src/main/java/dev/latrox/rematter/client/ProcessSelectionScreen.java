@@ -506,7 +506,7 @@ public final class ProcessSelectionScreen extends Screen {
             graphics.text(font, ScreenChrome.fit(font, label, textWidth),
                     getX() + 28, getY() + 5, PAPER, false);
             String caption = selected ? tr("selected").getString() : batch;
-            if(menu.kind()==MachineKind.CRYSTALLIZER&&registry.synthesisPolicy().requirement(product.id()).tier()>menu.settings().tier())
+            if(menu.kind().synthesis()&&registry.synthesisPolicy().requirement(product.id()).tier()>menu.settings().tier())
                 caption=Component.translatable("status.rematter.requires_pressure").getString();
             graphics.text(font, ScreenChrome.fit(font, caption, textWidth),
                     getX() + 28, getY() + 16, selected ? CYAN : MUTED, false);

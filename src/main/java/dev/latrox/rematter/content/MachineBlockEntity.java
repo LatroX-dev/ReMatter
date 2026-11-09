@@ -150,7 +150,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public FluidStacksResourceHandler fluids() { return fluids; }
     public MachineSettings settings() { return settings; }
     public long ventedTotal() { return ventedTotal; }
-    public int crystallizationTier() { return kind()==MachineKind.CRYSTALLIZER&&stack(2).is(ModContent.PRESSURE_MODULE.get())?2:1; }
+    public int crystallizationTier() { return kind().synthesis()&&stack(2).is(ModContent.PRESSURE_MODULE.get())?2:1; }
     public int parallelCapacity() { return IndustrialStructure.isIndustrial(kind())&&stack(2).is(ModContent.PARALLEL_UPGRADE.get())?1+Math.min(3,stack(2).getCount()):1; }
     public int parallelRunning() { return Math.min(parallelCapacity(),networkJobs?worker.parallelRunning():work.ticket==null?0:work.ticket.remaining()); }
     boolean progressAllows(String advancement) { return level instanceof ServerLevel server&&MachineProgression.allows(server,owner,advancement); }
@@ -326,6 +326,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         setChanged();
         touchObservations();
         if (level != null) level.invalidateCapabilities(worldPosition);
+        if (level instanceof ServerLevel server) MatterCableBlock.refreshLoadedAround(server, worldPosition);
     }
     public boolean canAccess(Player player) {
         return canRemove(player)||!(player instanceof FakePlayer)&&level instanceof ServerLevel
@@ -1071,9 +1072,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (unsupportedData != null || networkJobs && index != 2) return false;
         if (MachineCellAccess.isCellSlot(kind(), index)) return stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell(index);
         if (index == 1) return false;
-        if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get())
-                || IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get())&&stack.getCount()<=3
-                || kind()==MachineKind.CRYSTALLIZER&&stack.is(ModContent.PRESSURE_MODULE.get())&&stack.getCount()==1);
+        if (index == 2) return MachineInputPolicy.acceptsUpgrade(kind(), stack);
         return operations.acceptsInput(index, stack, ReMatter.chemistry());
     }
     @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && !kind().isStorage() && index == 1; }

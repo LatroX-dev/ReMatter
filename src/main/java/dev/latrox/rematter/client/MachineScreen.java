@@ -191,6 +191,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private boolean groupedIngredients() { return preparator() && !menu.snapshot().networkJobs() && menu.slots.get(3).isActive(); }
     private boolean industrial() { return menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR || menu.kind() == MachineKind.INDUSTRIAL_REACTOR; }
     private boolean selecting() { return menu.kind().selectable(); }
+    private boolean previewCard() { return main() && preparator() && !choose.visible && !outputIcon(menu.snapshot().preview()).isEmpty(); }
+    private int upgradeCards() { return menu.kind().synthesis() || industrial() ? 3 : 2; }
+    private int upgradeCardWidth() { return (272 - (upgradeCards() - 1) * 4) / upgradeCards(); }
+    private ItemStack upgradeIcon(int index) {
+        return new ItemStack(index == 0 ? dev.latrox.rematter.content.ModContent.SPEED_UPGRADE.get()
+                : index == 1 ? dev.latrox.rematter.content.ModContent.EFFICIENCY_UPGRADE.get()
+                : menu.kind().synthesis() ? dev.latrox.rematter.content.ModContent.PRESSURE_MODULE.get()
+                : dev.latrox.rematter.content.ModContent.PARALLEL_UPGRADE.get());
+    }
     private static boolean working(String status) { return List.of("working", "grinding", "sieving", "collecting", "dosing", "mixing", "packing", "pressing", "sintering", "cooling").contains(status); }
     private void openRecipes() { minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)); }
     private void openPorts() { minecraft.pushGuiLayer(new MachinePortSettingsScreen(menu)); }
@@ -338,13 +347,20 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         Component marker=slotMarkerTooltip(mx,my,s);
         if(marker!=null){g.setTooltipForNextFrame(marker,mouseX,mouseY);return;}
         if (menu.view() == MachineMenu.View.UPGRADES) {
-            if (inside(mx, my, 12, 55, 134, 37)) tooltip(g, List.of(Component.translatable("item.rematter.speed_upgrade"), tr("speed_upgrade_hint")), mouseX, mouseY);
-            else if (inside(mx, my, 150, 55, 134, 37)) tooltip(g, List.of(Component.translatable("item.rematter.efficiency_upgrade"), tr("efficiency_upgrade_hint")), mouseX, mouseY);
-            else if (inside(mx, my, 67, 105, 217, 36)) tooltip(g, List.of(tr("upgrade_hint"), tr("upgrade_limit"), tr("upgrade_effect_hint")), mouseX, mouseY);
+            for (int i=0;i<upgradeCards();i++) if (inside(mx,my,12+i*(upgradeCardWidth()+4),55,upgradeCardWidth(),37)) {
+                tooltip(g,List.of(upgradeIcon(i).getHoverName(),tr(i==0?"speed_upgrade_hint":i==1?"efficiency_upgrade_hint":menu.kind().synthesis()?"pressure_upgrade_hint":"parallel_upgrade_hint")),mouseX,mouseY);
+                return;
+            }
+            if (inside(mx, my, 67, 105, 217, 36)) tooltip(g, List.of(tr("supported_upgrades_hint"), tr("upgrade_effect_hint")), mouseX, mouseY);
             return;
         }
         if (main() && !passive()) {
-            if (inside(mx, my, 13, 74, 19, 38)) {
+            if (previewCard() && inside(mx, my, 197, 49, 87, 21)) {
+                var lines = new ArrayList<Component>();
+                lines.add(Component.translatable("screen.rematter.result_preview_detail", menu.snapshot().preview().outputCount(), outputIcon(menu.snapshot().preview()).getHoverName()));
+                lines.add(tr("result_preview_hint"));
+                tooltip(g, lines, mouseX, mouseY);
+            } else if (inside(mx, my, 13, 74, 19, 38)) {
                 g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(), mouseX, mouseY);
             } else if (inside(mx, my, 12, 114, primary.visible||buildHint.visible ? 149 : 272, 28)) {
                 var lines = new ArrayList<Component>();
@@ -405,8 +421,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         g.fill(x + 9, y + 47, x + 287, y + 147, PANEL);
         var s = menu.snapshot();
         if (menu.view() == MachineMenu.View.UPGRADES) {
-            ScreenChrome.raised(g, x + 12, y + 55, 134, 37, inside(mouseX - x, mouseY - y, 12, 55, 134, 37), true);
-            ScreenChrome.raised(g, x + 150, y + 55, 134, 37, inside(mouseX - x, mouseY - y, 150, 55, 134, 37), true);
+            for (int i=0;i<upgradeCards();i++) {
+                int cardX=12+i*(upgradeCardWidth()+4);
+                ScreenChrome.raised(g,x+cardX,y+55,upgradeCardWidth(),37,inside(mouseX-x,mouseY-y,cardX,55,upgradeCardWidth(),37),true);
+                g.fakeItem(upgradeIcon(i),x+cardX+5,y+65);
+            }
         } else if (main() && passive() && search.visible) {
             ScreenChrome.inset(g, x + gridX(), y + 49, CONTENT_RIGHT - gridX(), 20);
             if (search.isFocused()) g.fill(x + gridX() + 1, y + 67, search.getX() + search.getWidth(), y + 68, ACCENT);
@@ -439,10 +458,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             g.fill(x+slot.x,y+slot.y+1,x+slot.x+1,y+slot.y+15,0xff0a1115);
             g.fill(x+slot.x,y+slot.y+15,x+slot.x+16,y+slot.y+16,HIGHLIGHT);
         }
-        var output = menu.slots.get(1);
-        if (main() && !passive() && !output.hasItem()) {
-            var icon = outputIcon(s.preview());
-            if (!icon.isEmpty()) g.fakeItem(icon, x + output.x, y + output.y);
+        if (previewCard()) {
+            ScreenChrome.inset(g, x + 197, y + 49, 87, 21);
+            g.fakeItem(outputIcon(s.preview()), x + 200, y + 52);
         }
     }
     @Override protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
@@ -481,7 +499,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         var p = s.preview();
         String name = previewTitle(s).getString();
         ScreenChrome.icon(g, Icon.RECIPE, 12, 52, MUTED);
-        ScreenChrome.twoLines(g, font, name, 30, 50, choose.visible ? 162 : 254, TEXT);
+        ScreenChrome.twoLines(g, font, name, 30, 50, choose.visible || previewCard() ? 162 : 254, TEXT);
+        if (previewCard()) {
+            text(g, tr("result_preview").getString(), 220, 51, 61, MUTED);
+            text(g, tr("result_not_made").getString(), 220, 61, 61, WARNING);
+        }
         if (handPreparator()) ScreenChrome.icon(g, Icon.CRANK, 14, 87, ACCENT);
         if (menu.inputRole()) {
             for (int index : new int[]{0, 3, 4}) if (menu.slots.get(index).isActive()) drawSlotLabel(g, index, s);
@@ -509,8 +531,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             }
         } else if (menu.slots.get(1).isActive() || !outputIcon(p).isEmpty()) {
             drawSlotLabel(g, 1, s);
-            if (p.outputCount() > 0 && (p.outputKind().equals("fluid") || !menu.slots.get(1).hasItem()))
-                text(g, p.outputKind().equals("fluid") ? Quantities.fluid(Quantities.compact(p.outputCount())).getString() : Quantities.compact(p.outputCount()), 246, 89, 38, MUTED);
+            if (p.outputKind().equals("fluid"))
+                text(g, Quantities.fluid(Quantities.compact(s.fluidAmount())).getString(), 246, 89, 38, MUTED);
         } else if (!p.outputs().isEmpty()) {
             var output = p.outputs().getFirst();
             ScreenChrome.twoLines(g, font, label(output), 209, 73, 75, output.known() ? TEXT : WARNING);
@@ -539,10 +561,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
 
     private void upgradeLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
-        ScreenChrome.icon(g, Icon.SPEED, 23, 67, ACCENT);
-        text(g, tr("speed_short").getString(), 42, 69, 96, TEXT);
-        ScreenChrome.icon(g, Icon.EFFICIENCY, 161, 67, ACCENT);
-        text(g, tr("efficiency_short").getString(), 180, 69, 96, TEXT);
+        for (int i=0;i<upgradeCards();i++) text(g,tr(i==0?"speed_short":i==1?"efficiency_short":menu.kind().synthesis()?"pressure_short":"parallel_short").getString(),
+                37+i*(upgradeCardWidth()+4),69,upgradeCardWidth()-29,TEXT);
         if (menu.slots.get(2).isActive()) {
             ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
             text(g, tr("upgrades").getString(), 68, 116, 210, TEXT);
@@ -560,8 +580,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         else if (menu.kind() == MachineKind.NETWORK_INTERFACE) heading = statusText().getString();
         if (disk() && java.util.stream.IntStream.of(1, 2, 3, 4).anyMatch(i -> menu.slots.get(i).hasItem()))
             heading = tr("drive_recovery").getString();
-        ScreenChrome.icon(g, Icon.CONFIGURATION, 12, 52, MUTED);
-        ScreenChrome.twoLines(g, font, heading, 30, 50, ports.visible ? 167 : 254, TEXT);
+        if (!productionSettings.visible) {
+            ScreenChrome.icon(g, Icon.CONFIGURATION, 12, 52, MUTED);
+            ScreenChrome.twoLines(g, font, heading, 30, 50, ports.visible ? 167 : 254, TEXT);
+        }
         boolean hasSlots = false;
         for (int index : new int[]{0, 1, 3, 4}) {
             if (menu.slots.get(index).isActive()) {

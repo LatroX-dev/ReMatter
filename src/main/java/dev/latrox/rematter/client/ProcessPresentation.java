@@ -31,7 +31,7 @@ public final class ProcessPresentation {
             return registry.profile(id).map(profile -> new Product(id, name, "item", id, profile.itemCount(),
                     profile.matter(), Map.of(), profile.synthesisEnergy(), profile.ticks()));
         }
-        if (kind == MachineKind.AIR_SEPARATOR) return registry.environmentSource(SubstanceId.parse(id))
+        if (dev.latrox.rematter.content.MachineRouting.environmentSources(kind) && registry.environmentSource(SubstanceId.parse(id)).isPresent()) return registry.environmentSource(SubstanceId.parse(id))
                 .map(source -> new Product(id, name, "matter", "", source.outputs().size(), Map.of(), source.outputs(), source.energy(), source.ticks()));
         if (!kind.selectable()) return Optional.empty();
         return registry.recipe(SubstanceId.parse(id))

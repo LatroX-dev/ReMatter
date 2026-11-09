@@ -1,10 +1,10 @@
 {
   "title": "Make Soil Useful",
   "description": [
-    "Decompose dirt and run Soil separation in a Separator. Keep room for carbon, silica and water. A supported steel ingot consumes 1,000 iron and 10 carbon units in the Synthesizer.",
+    "Decompose dirt and run Soil separation in a Chemical Reactor. Keep room for carbon, silica and water. A supported steel ingot consumes 1,000 iron and 10 carbon units in the Synthesizer.",
     "Silica can become glass; stored water leaves through the Synthesizer fluid tank. A full byproduct pauses the entire batch without consuming part of its input. The Chemical Reactor now handles reactions, while separation has its own machine."
   ],
-  "icon": "rematter:separator",
+  "icon": "rematter:chemical_reactor",
   "x": 3.6,
   "y": 3.6,
   "size": 0.9,
@@ -21,7 +21,7 @@
       "type": "item",
       "count": 1,
       "mode": "detect",
-      "item": "rematter:separator"
+      "item": "rematter:chemical_reactor"
     },
     {
       "type": "item",

@@ -10,7 +10,7 @@ public record SynthesisRequirement(String machine, int tier, String advancement)
         Objects.requireNonNull(machine); Objects.requireNonNull(advancement);
         if (!machine.equals("material_synthesizer") && !machine.equals("crystallizer"))
             throw new IllegalArgumentException("Unsupported synthesis machine: " + machine);
-        if (tier < 1 || tier > 2 || !machine.equals("crystallizer") && tier != 1)
+        if (tier < 1 || tier > 2)
             throw new IllegalArgumentException("Unsupported synthesis tier");
         if (!advancement.isEmpty()) SubstanceId.parse(advancement);
     }

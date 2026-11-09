@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "item": "minecraft:diamond_block",
-  "synthesis_machine": "crystallizer",
+  "synthesis_machine": "material_synthesizer",
   "crystallization_tier": 2,
   "category": "raw_material"
 }

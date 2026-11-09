@@ -1103,7 +1103,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "andesite": {
@@ -1459,7 +1459,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "charcoal": {
@@ -1509,7 +1509,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "clay": {
@@ -1772,7 +1772,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 2
     },
     "dimensional_shard": {
@@ -1945,7 +1945,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "end_steel": {
@@ -2175,7 +2175,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "fluxite": {
@@ -2308,7 +2308,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "iesnium": {
@@ -3010,7 +3010,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "plastic": {
@@ -3301,7 +3301,7 @@
         ]
       },
       "basis": "Crystalline quartz keeps its own identity; gems, dusts, nuggets and blocks share one batch. The gem is recovery-only because Ender IO grinding balls raise its milling bonus.",
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "quicksilver": {
@@ -3495,7 +3495,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "salt": {
@@ -3513,7 +3513,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "sapphire": {
@@ -3531,7 +3531,7 @@
           }
         ]
       },
-      "synthesis_machine": "crystallizer",
+      "synthesis_machine": "material_synthesizer",
       "crystallization_tier": 1
     },
     "seashell": {

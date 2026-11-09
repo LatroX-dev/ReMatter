@@ -1,10 +1,10 @@
 {
   "title": "Finish the Lava Chain",
   "description": [
-    "Use cobblestone decomposition, Mineral blending in a Reactor, Mineral melting in a Thermal Processor, then Lava synthesis. The final Synthesizer is required to release 1,000 mB into a tank.",
-    "The full base cost is 192,000 FE. Heating stored material does not create a filled bucket by itself. Steam and condensation also use the Thermal Processor; every complete route pays FE."
+    "Use cobblestone decomposition, Mineral blending in a Reactor, Mineral melting in a Chemical Reactor, then Lava synthesis. The final Synthesizer is required to release 1,000 mB into a tank.",
+    "The full base cost is 192,000 FE. Heating stored material does not create a filled bucket by itself. Steam and condensation also use the Chemical Reactor; every complete route pays FE."
   ],
-  "icon": "rematter:thermal_processor",
+  "icon": "rematter:chemical_reactor",
   "x": 7.2,
   "y": 3.6,
   "size": 0.9,
@@ -21,7 +21,7 @@
       "type": "item",
       "count": 1,
       "mode": "detect",
-      "item": "rematter:thermal_processor"
+      "item": "rematter:chemical_reactor"
     },
     {
       "type": "item",

@@ -31,7 +31,7 @@ Craft the **ReMatter Guide** from a book and Silith for the recipes and instruct
 
 Plan this as an **early midgame material workshop**. You need iron, copper, redstone, gold, sand, clay, glass and an external FE source. The starter Drive uses one diamond for its Mint Crystal; the Synthesizer uses three emeralds for its Leaf Crystals. The Hand Preparator starts without FE, but the complete storage line needs powered preparation. Glass teaches the controls; it is not a cheaper replacement for a furnace.
 
-Your next practical goal is **silicon for a storage network**, if a supported silicon-producing mod is installed. In ReForging, one Nether Quartz yields 1,000 crystalline silica; electrolysis turns it into 1,000 silicon and 1,000 oxygen units. The Synthesizer can make **four silicon items**, at 250 units each. This costs **160,000 base FE** across the complete chain. The Electrolyzer and its components add a diamond investment. Refined Storage can smelt quartz directly and Mekanism can crush sand into silicon; these routes use less equipment. ReMatter trades equipment and FE for flexible recovery and a choice of outputs, rather than replacing every native route. Standalone sand can supply the alternative 136,000-FE route where silicon item profiles exist; ReMatter itself adds no silicon item.
+Your next practical goal is **silicon for a storage network**, if a supported silicon-producing mod is installed. In ReForging, one Nether Quartz yields 1,000 crystalline silica; electrolysis turns it into 1,000 silicon and 1,000 oxygen units. The Synthesizer can make **four silicon items**, at 250 units each. This costs **160,000 base FE** across the complete chain. The Chemical Reactor and its components add a diamond investment. Refined Storage can smelt quartz directly and Mekanism can crush sand into silicon; these routes use less equipment. ReMatter trades equipment and FE for flexible recovery and a choice of outputs, rather than replacing every native route. Standalone sand can supply the alternative 136,000-FE route where silicon item profiles exist; ReMatter itself adds no silicon item.
 
 Keep the oxygen for Mekanism processing or explicitly vent new oxygen in **Configuration → Production settings**. Existing gas stock is never vented. [Practical production](src/main/resources/assets/rematter/guides/rematter/guide/production.md) also explains bronze, steel and lava.
 
@@ -73,11 +73,11 @@ Later machines need three advanced components, each mixed as a blend in the Mate
 
 | Component | Blend ingredients | Used in |
 | --- | --- | --- |
-| Diamond Lattice | Diamond Powder, two Matrix Blend, Gold Dust | Analyzer, Electrolyzer, Chemical Reactor, upgrades, Optical Circuits |
+| Diamond Lattice | Diamond Powder, two Matrix Blend, Gold Dust | Analyzer, Chemical Reactor, upgrades, Optical Circuits |
 | Ender Conductor | Ender Pearl Powder, two Lumivex Powder, Copper Dust | Larger Cells, Terminal, Network Interface, Machine Ports |
 | Netherite Sheath | Netherite Powder, two Rhevon Powder, Virelite Powder | 1M Cell, Industrial Reactor, Resonant Matter Cable |
 
-Colored Matrix Crystals select each machine: a plain Crystal combined with Silith makes Ice (Analyzer), with redstone Ember (Sinter Furnace), with Lapis Lazuli Dust Blue (Electrolyzer and Network Interface), and with Amethyst Dust Violet (both reactors).
+Colored Matrix Crystals select each machine: a plain Crystal combined with Silith makes Ice (Analyzer), with redstone Ember (Sinter Furnace), with Lapis Lazuli Dust Blue (Chemical Reactor and Network Interface), and with Amethyst Dust Violet (both reactors).
 
 For greater throughput, build a rectangular industrial chamber with **floor and ceiling parts forming one working field**. Outer width and depth each range from **3 to 9 blocks**. The Industrial Preparator needs a footprint of at least **3×4 or 4×3** and a height of **5–9**. The Industrial Reactor starts at **3×3** with a height of **4–9**. Heights include the floor and roof.
 
@@ -97,13 +97,10 @@ Open an invalid controller and use **Locate missing part**. Its outline marks th
 ## Build beyond the first batch
 
 - **Analyzer:** inspect a sample without consuming it. It needs FE, but no Cell or storage network.
-- **Electrolyzer and Chemical Reactor:** split and recombine stored substances, including water, hydrogen and oxygen.
-- **Separator:** separate soil or minerals. Soil supplies carbon for steel, plus useful silica and water.
-- **Thermal Processor:** heat or cool stored substances, including water/steam and the lava chain. Export the resulting stored liquid through a Synthesizer.
-- **Crystallizer:** assemble approved crystal-family outputs. Every diamond form requires a **Pressure Module**; tier 1 adds no diamond requirement to the device recipe. The starter Drive still needs a diamond.
-- **Air Separator:** renewable oxygen in the Overworld, with an air block above and open sky. No nitrogen is produced without a useful supported consumer.
-- **Industrial Reactor:** run reactions, separation and phase changes in a complete chamber, starting at 3×3×4.
-- **Speed, Efficiency or Parallel Upgrades:** choose throughput, lower batch FE, or up to four concurrent industrial batches in the same upgrade slot. Pressure Modules use that slot in a Crystallizer.
+- **Chemical Reactor:** choose electrolysis, reactions, separation, phase changes or renewable oxygen in one device. Soil supplies carbon for steel; water can be split, recombined, evaporated and condensed. Each complete batch pays its stated FE and retains every byproduct unless explicitly vented.
+- **Material Synthesizer:** assemble approved material and crystal outputs. Every diamond form requires a **Pressure Module** in its upgrade slot. Stored liquids also leave chemistry through this machine's tank.
+- **Air oxygen:** choose this recipe in either reactor tier, in the Overworld with an unobstructed air inlet and open sky. Compact reactors use the block above; industrial reactors use the space above the front edge of their roof. No nitrogen is produced without a useful consumer.
+- **Industrial Reactor:** the same chemical processes in an expandable complete chamber, starting at 3×3×4. Speed, Efficiency or Parallel Upgrades trade throughput, batch FE or up to four individually paid concurrent batches in the same slot.
 
 The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. **1,000 units is a convention for defined basic forms; the complete batch profile is authoritative.** Silicon uses 250 units per item; water and lava use one unit per mB. Block and nugget ratios follow reviewed recipes rather than a universal mass scale. Small forms use complete batches without rounded fractions. Capacity counts units, not mass.
 
@@ -115,7 +112,7 @@ Select a recipe, then set **Configuration → Production settings → Stock targ
 
 The target is a hard ceiling: a complete batch that would exceed it waits. Choose a target divisible by the batch yield. Producers on the same stock share reservations for inputs and planned outputs. Manual and network crafting requests take priority. Gas byproducts need room unless their newly produced quantities are explicitly vented; gas venting starts off and requires confirmation. Network crafting returns all contracted outputs and does not vent them.
 
-On the Synthesizer, Electrolyzer and reactors, **Start** requests one displayed recipe batch. **Configuration → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction.
+On the Synthesizer, Chemical Reactor and reactors, **Start** requests one displayed recipe batch. **Configuration → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction.
 
 Inputs, stock and FE are consumed only when a complete batch commits. If a Cell or Drive changes, a device disconnects or a chamber breaks during a batch, the machine restarts that unfinished batch and continues on its own once its network is valid again; requested and repeating batches are kept. Cable changes that leave every device connected do not interrupt work.
 

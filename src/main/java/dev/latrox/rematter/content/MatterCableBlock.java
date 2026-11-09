@@ -115,6 +115,8 @@ public final class MatterCableBlock extends PipeBlock {
     }
     @Override protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks,
             BlockPos pos, Direction side, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
+        // Ownership and configured endpoints are server data. Client neighbour prediction must not undo its shape.
+        if (!(level instanceof ServerLevel)) return state;
         return state.setValue(PROPERTY_BY_DIRECTION.get(side), connects(level, neighborPos, neighbor, side));
     }
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {

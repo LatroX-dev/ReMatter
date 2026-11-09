@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate specialist machines, their recipes and the two industrial/crystal upgrades."""
+"""Maintain registered machine models and current upgrade recipes. Module icons are authored in Blockbench."""
 from pathlib import Path
 import argparse
 import copy
@@ -58,16 +58,8 @@ def generate(check):
         for path, asset in machine_state_assets(name, "machine_" + color):
             out.json(ASSETS / path, asset)
         out.json(ASSETS / f"items/{name}.json", {"model": {"type": "minecraft:model", "model": f"rematter:block/{name}"}})
-        recipe(out, name, ["IMI", "GFG", "ICI"], {
-            "I": "minecraft:iron_ingot", "M": "rematter:" + crystal, "G": "minecraft:glass",
-            "F": "rematter:machine_frame", "C": "rematter:control_circuit"})
-    for name, accent in [("parallel_upgrade", (106, 186, 208)), ("pressure_module", (186, 133, 220))]:
-        def pixel(x, y, accent=accent, parallel=name == "parallel_upgrade"):
-            if not (3 <= x < 29 and 3 <= y < 29): return (0, 0, 0, 0)
-            if x in (3, 28) or y in (3, 28): return (143, 153, 157, 255)
-            lit = (x // 6) % 2 == 0 and 8 <= y <= 23 if parallel else abs(x - 16) + abs(y - 16) < 11
-            return (*accent, 255) if lit else (37, 44, 49, 255)
-        out.png(ASSETS / f"textures/item/{name}.png", 32, 32, pixel)
+        # Registered IDs remain loadable; all new chemical work uses the two reactor tiers.
+    for name in ("parallel_upgrade", "pressure_module"):
         out.json(ASSETS / f"models/item/{name}.json", {"parent": "minecraft:item/generated", "textures": {"layer0": f"rematter:item/{name}"}})
         out.json(ASSETS / f"items/{name}.json", {"model": {"type": "minecraft:model", "model": f"rematter:item/{name}"}})
         recipe(out, name, ["RLR", "OCO", "RLR"], {
