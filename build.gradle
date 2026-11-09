@@ -32,13 +32,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly('mezz.jei:jei-26.1.2-common-api:29.53.0.114') { transitive = false }
+    compileOnly('mezz.jei:jei-26.1.2-common-api:29.53.0.115') { transitive = false }
     compileOnly('maven.modrinth:jade:26.1.12+neoforge') { transitive = false }
     compileOnly('curse.maven:semi-seasonal-emi-1706958:8945319') { transitive = false }
     compileOnly('org.appliedenergistics:guideme:26.1.17-beta:api') { transitive = false }
     compileOnly('curse.maven:mekanism-version-locked-1713956:9267959') { transitive = false }
     compileOnly('curse.maven:applied-energistics-2-223794:9022271') { transitive = false }
     compileOnly('curse.maven:refined-storage-243076:8211383') { transitive = false }
+    compileOnly('curse.maven:ftb-teams-404468:9405340') { transitive = false }
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.google.code.gson:gson:2.13.2'
@@ -57,24 +58,48 @@ sourceSets.test {
     runtimeClasspath += sourceSets.main.compileClasspath
 }
 
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
 neoForge {
     version = project.neo_version
 
+    mods {
+        "${mod_id}" { sourceSet(sourceSets.main) }
+        rematterGameTest {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gameTest)
+        }
+    }
     runs {
         client {
+            loadedMods = [neoForge.mods.rematter]
             client()
         }
+        visualClient {
+            type = "client"
+            gameDirectory = file("build/visual-test-run")
+            loadedMods = [neoForge.mods.rematter]
+            jvmArgument "-Xmx3G"
+        }
+        gameTestServer {
+            type = "gameTestServer"
+            sourceSet = sourceSets.gameTest
+            gameDirectory = file("build/game-test-run")
+            loadedMods = [neoForge.mods.rematterGameTest]
+            jvmArgument "-Xmx2G"
+        }
         server {
+            loadedMods = [neoForge.mods.rematter]
             server()
             programArgument '--nogui'
         }
     }
 
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
 }
 
 def metadataProperties = [
@@ -106,4 +131,12 @@ tasks.withType(AbstractArchiveTask).configureEach {
 tasks.named('wrapper', Wrapper) {
     distributionType = Wrapper.DistributionType.BIN
     distributionSha256Sum = '72f44c9f8ebcb1af43838f45ee5c4aa9c5444898b3468ab3f4af7b6076c5bc3f'
+}
+
+// Distribute both license notices with binary and source artifacts.
+tasks.withType(Jar).configureEach {
+    from(rootProject.projectDir) {
+        include 'COPYING', 'COPYING.LESSER', 'LICENSE-ASSETS.md'
+        into 'META-INF'
+    }
 }
