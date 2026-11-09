@@ -84,7 +84,7 @@
         "left_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_left_machine_mint"
+        "model": "rematter:block/machine_socket_rack_left_machine_mint"
       }
     },
     {
@@ -93,7 +93,7 @@
         "left_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_left_machine_mint",
+        "model": "rematter:block/machine_socket_rack_left_machine_mint",
         "y": 90
       }
     },
@@ -103,7 +103,7 @@
         "left_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_left_machine_mint",
+        "model": "rematter:block/machine_socket_rack_left_machine_mint",
         "y": 180
       }
     },
@@ -113,7 +113,7 @@
         "left_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_left_machine_mint",
+        "model": "rematter:block/machine_socket_rack_left_machine_mint",
         "y": 270
       }
     },
@@ -123,7 +123,7 @@
         "right_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_right_machine_mint"
+        "model": "rematter:block/machine_socket_rack_right_machine_mint"
       }
     },
     {
@@ -132,7 +132,7 @@
         "right_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_right_machine_mint",
+        "model": "rematter:block/machine_socket_rack_right_machine_mint",
         "y": 90
       }
     },
@@ -142,7 +142,7 @@
         "right_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_right_machine_mint",
+        "model": "rematter:block/machine_socket_rack_right_machine_mint",
         "y": 180
       }
     },
@@ -152,7 +152,7 @@
         "right_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_right_machine_mint",
+        "model": "rematter:block/machine_socket_rack_right_machine_mint",
         "y": 270
       }
     },
@@ -162,7 +162,7 @@
         "back_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint"
+        "model": "rematter:block/machine_socket_rack_back_machine_mint"
       }
     },
     {
@@ -171,7 +171,7 @@
         "back_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/machine_socket_rack_back_machine_mint",
         "y": 90
       }
     },
@@ -181,7 +181,7 @@
         "back_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/machine_socket_rack_back_machine_mint",
         "y": 180
       }
     },
@@ -191,7 +191,7 @@
         "back_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/machine_socket_rack_back_machine_mint",
         "y": 270
       }
     },
@@ -201,7 +201,7 @@
         "bottom_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_bottom_machine_mint"
+        "model": "rematter:block/machine_socket_rack_bottom_machine_mint"
       }
     },
     {
@@ -210,7 +210,7 @@
         "bottom_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_bottom_machine_mint",
+        "model": "rematter:block/machine_socket_rack_bottom_machine_mint",
         "y": 90
       }
     },
@@ -220,7 +220,7 @@
         "bottom_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_bottom_machine_mint",
+        "model": "rematter:block/machine_socket_rack_bottom_machine_mint",
         "y": 180
       }
     },
@@ -230,7 +230,7 @@
         "bottom_cable": "true"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_bottom_machine_mint",
+        "model": "rematter:block/machine_socket_rack_bottom_machine_mint",
         "y": 270
       }
     }

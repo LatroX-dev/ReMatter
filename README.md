@@ -41,7 +41,7 @@ Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **51
 
 The 64k Cell uses one Matrix Crystal and a Control Circuit. The 256k Cell uses a Matrix Cluster, a Control Circuit and two Ender Conductors. The 1M Cell uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath. All tiers use a separately crafted Cell Housing and start empty.
 
-A Matter Drive holds **six individually removable Cells**, arranged in two columns of three. Two three-bay Cell Racks form its assembly. The front shows the inserted Cells, and connected processors use their shared contents.
+A Matter Drive holds **six individually removable Cells**, arranged in two columns of three. Two three-bay Cell Racks form its assembly. The full-block cabinet sits flush beside adjacent Drives. The front shows the inserted Cells, and connected processors use their shared contents.
 
 For continuous production, use hoppers and chests to feed input and collect output. Enable **Automation** under **Configuration** on both processors and press **Run nonstop** under the Synthesizer's **Configuration**.
 

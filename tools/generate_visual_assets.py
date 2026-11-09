@@ -8,6 +8,7 @@ from connection_geometry import (SOCKET_TEXTURES, machine_state_assets, reactor_
                                  write_cable_models, write_cable_textures, write_port_models)
 from machine_palette import CHASSIS, COPPER_CONTACT, MATTE_TRIM, RECESS, write_tiles
 from generated_files import GeneratedFiles
+from machine_housings import machine_housing
 from material_tiles import TILE, soft_light
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -237,7 +238,7 @@ def hand_preparator_idle():
     return parts
 
 
-# Static housings come from the Blockbench exports in models/block.
+# Static housings and service frames come from the Blockbench exports in artwork/machines.
 MACHINES = (
     'hand_preparator', 'material_preparator', 'analyzer', 'decomposer',
     'material_synthesizer', 'electrolyzer', 'chemical_reactor', 'matter_drive',
@@ -249,7 +250,10 @@ facet(reactor_idle, 8, 6, 8, 2.6, 5)
 idle_parts = {'hand_preparator': hand_preparator_idle(), 'chemical_reactor': reactor_idle}
 
 for name in MACHINES:
-    model = json.loads((ROOT / f'models/block/{name}.json').read_text())
+    model = (json.loads((ROOT / f'models/block/{name}.json').read_text())
+             if name.startswith('industrial_') else machine_housing(name))
+    if not name.startswith('industrial_'):
+        json_file(f'models/block/{name}.json', model)
     json_file(f'models/block/{name}_active.json', {
         'parent': f'rematter:block/{name}',
         'textures': {'screen': 'rematter:block/display_active', 'status': 'rematter:block/indicator_active'},

@@ -68,7 +68,7 @@ SOCKET_TEXTURES = {
 
 
 def machine_state_assets(name, accent=None, *, rear_only=False, rear_trim=None):
-    """Bake machine sockets only where the block state reports a Matter Cable arm."""
+    """Add a short hollow coupler to the housing's permanent recessed service frame."""
     horizontal = ('north', 'east', 'south', 'west')
     variants = {}
     for facing in horizontal:
@@ -87,16 +87,15 @@ def machine_state_assets(name, accent=None, *, rear_only=False, rear_trim=None):
     # Local machine sides follow MachinePortMode.Side for a north-facing model.
     sides = {'back': 'south'} if rear_only else {'left': 'east', 'right': 'west', 'back': 'south', 'bottom': 'down'}
     for side, direction in sides.items():
-        geometry = 'machine_socket_' + side
-        elements = socket(direction, depth=1.8 if side == 'bottom' else 3.75)
-        if side in ('left', 'right'):
-            # The bracket carries the neck back to the housing on open machines.
-            x = 12.3 if side == 'left' else 1.3
-            elements.append(box((x, 6.05, 9.95), (x + 2.4, 9.95, 12.5), 'graphite'))
-            elements.append(box((x + .55, 2.9, 10.45), (x + 1.75, 6.6, 11.65), 'graphite'))
-        elif side == 'back':
-            elements.append(box((7, 2.9, 12.85), (9, 7, 14.05), 'graphite'))
-        textures = SOCKET_TEXTURES | {'particle': MODEL + 'graphite'}
+        from machine_housings import authored
+        rack = name == 'matter_drive'
+        geometry = 'machine_socket_' + ('rack_' if rack else '') + side
+        coupler = authored('cable_coupler')
+        if rack:
+            for element in coupler['elements']:
+                element['to'][2] = .7
+        elements = rotate(coupler['elements'], direction)
+        textures = coupler['textures'] | {'graphite': MODEL + 'graphite', 'particle': MODEL + 'graphite'}
         if side == 'back' and rear_trim is not None:
             geometry = name + '_socket_back'
             elements += rear_trim

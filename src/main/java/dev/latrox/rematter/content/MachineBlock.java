@@ -50,9 +50,9 @@ public final class MachineBlock extends Block implements EntityBlock {
             MachinePortMode.Side.LEFT, LEFT_CABLE, MachinePortMode.Side.RIGHT, RIGHT_CABLE,
             MachinePortMode.Side.BACK, BACK_CABLE, MachinePortMode.Side.BOTTOM, BOTTOM_CABLE);
     private static final Map<Direction, VoxelShape> CABLE_PORT_SHAPES = Map.of(
-            Direction.NORTH, box(5, 5, 0, 11, 11, 2), Direction.SOUTH, box(5, 5, 14, 11, 11, 16),
-            Direction.WEST, box(0, 5, 5, 2, 11, 11), Direction.EAST, box(14, 5, 5, 16, 11, 11),
-            Direction.DOWN, box(5, 0, 5, 11, 2, 11));
+            Direction.NORTH, box(5.75, 5.75, 0, 10.25, 10.25, 1.65), Direction.SOUTH, box(5.75, 5.75, 14.35, 10.25, 10.25, 16),
+            Direction.WEST, box(0, 5.75, 5.75, 1.65, 10.25, 10.25), Direction.EAST, box(14.35, 5.75, 5.75, 16, 10.25, 10.25),
+            Direction.DOWN, box(5.75, 0, 5.75, 10.25, 1.65, 10.25));
     private final MachineKind kind;
     private final MapCodec<MachineBlock> codec;
     private final Map<Direction, VoxelShape> shapes;
@@ -61,7 +61,7 @@ public final class MachineBlock extends Block implements EntityBlock {
         super(properties);
         this.kind = kind;
         this.codec = simpleCodec(p -> new MachineBlock(kind, p));
-        this.shapes = Shapes.rotateHorizontal(outline(kind));
+        this.shapes = Shapes.rotateHorizontal(Shapes.or(outline(kind), serviceFrames(kind)));
         BlockState state = stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false);
         for (BooleanProperty cablePort : CABLE_PORTS.values()) state = state.setValue(cablePort, false);
         registerDefaultState(state);
@@ -80,7 +80,7 @@ public final class MachineBlock extends Block implements EntityBlock {
         return shape;
     }
     private static VoxelShape outline(MachineKind kind) {
-        if (IndustrialStructure.isIndustrial(kind)) return Shapes.block();
+        if (IndustrialStructure.isIndustrial(kind) || kind == MachineKind.DRIVE) return Shapes.block();
         VoxelShape base = box(1,0,1,15,3.2,15);
         return switch (kind) {
             case ANALYZER -> Shapes.or(base,box(3.2,3.7,2.7,12.8,4.6,12.3),
@@ -109,15 +109,22 @@ public final class MachineBlock extends Block implements EntityBlock {
                     box(1.1,3.7,5,3.6,12.5,14.6),box(12.4,3.7,5,14.9,12.5,14.6),
                     box(3.6,3.7,12.6,12.4,12.5,14.6),box(2.1,12.5,5,13.9,14.2,14.6),
                     box(5.3,14.2,7,10.7,15.5,12),box(3.5,3.7,.65,12.5,4.6,4.65));
-            case DRIVE -> Shapes.or(base,box(1,2.1,1.8,2.3,15.5,14.8),box(13.7,2.1,1.8,15,15.5,14.8),
-                    box(2.3,2.1,12.7,13.7,14.4,14.8),box(2.3,14.4,1.8,13.7,15.5,14.8),
-                    box(7.25,2.1,1.8,8.75,14.4,12.7),box(2.3,3.15,2,13.7,13.1,12.7));
             case TERMINAL -> Shapes.or(base,box(6.8,3.2,10.5,9.2,8.4,13.2),
                     box(1.5,7.1,10.2,14.5,15.4,12.8),box(2.2,4.5,1.7,13.8,5.7,10.4));
             case NETWORK_INTERFACE -> Shapes.or(base,box(2,3.2,8.8,14,14.8,14),box(6.7,4.2,2.8,9.3,13.4,9),
                     box(2.9,3.2,3.8,5.9,14.5,10.8),box(10.1,3.2,3.8,13.1,14.5,10.8));
             default -> base;
         };
+    }
+    private static VoxelShape serviceFrames(MachineKind kind) {
+        if (IndustrialStructure.isIndustrial(kind) || kind == MachineKind.DRIVE) return Shapes.empty();
+        boolean shortFrame = kind == MachineKind.SINTER_FURNACE;
+        double bottom = shortFrame ? 5.15 : 2.8;
+        double top = shortFrame || kind == MachineKind.SYNTHESIZER || kind == MachineKind.CRYSTALLIZER ? 10.85 : 13.7;
+        double outer = shortFrame ? .04 : 1.48, inner = shortFrame ? 2 : 3.5;
+        VoxelShape rear = box(5.15,bottom,16-inner,10.85,top,16-outer);
+        if (kind == MachineKind.TERMINAL) return rear;
+        return Shapes.or(rear,box(outer,bottom,5.15,inner,top,10.85),box(16-inner,bottom,5.15,16-outer,top,10.85));
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) { return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()); }
     @Override protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {

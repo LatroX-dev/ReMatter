@@ -267,10 +267,10 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 // Bays are numbered top-to-bottom on the left, then top-to-bottom on the right.
                 for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++)if((state.cellMask&(1<<bay))!=0) {
                     // The local front faces north: +X is left when standing in front and looking south.
-                    float x=11.2F-MachineCellAccess.driveColumn(bay)*6.4F,y=11.7F-MachineCellAccess.driveRow(bay)*3.5F;
-                    mountedCell(state.cellItems[bay],x,y,1.55F,state,pose,collector);
+                    float x=11.6F-MachineCellAccess.driveColumn(bay)*7.2F,y=12.1F-MachineCellAccess.driveRow(bay)*4F;
+                    mountedCell(state.cellItems[bay],x,y,.55F,state,pose,collector);
                     if(state.cellTiers[bay]==4) {
-                        pose.pushPose();pose.translate((x+1.95F)/16,(y-.9F)/16,1.3F/16);pose.scale(.7F,.7F,.25F);
+                        pose.pushPose();pose.translate((x+2.35F)/16,(y-1.1F)/16,.3F/16);pose.scale(.7F,.7F,.25F);
                         part(mote,HEATER,true,1,state,pose,collector);pose.popPose();
                     }
                 }
@@ -352,7 +352,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         double sx=b.getXsize(),sy=b.getYsize(),sz=b.getZsize();
         if(!Double.isFinite(sx+sy+sz)||sx<=0||sy<=0||sz<0)return;
         // Match the clear space between the bay rails without flattening the cartridge.
-        double scale=Math.min(4.05/sx,Math.min(2.35/sy,10.4/Math.max(sz,.00001)))/16;
+        double scale=Math.min(5.4/sx,Math.min(2.9/sy,13.4/Math.max(sz,.00001)))/16;
         pose.pushPose();pose.translate(x/16,y/16,z/16);pose.scale((float)scale,(float)scale,(float)scale);
         // The model's north face is its handle; its full depth extends into the drive.
         pose.translate(-(b.minX+b.maxX)/2,-(b.minY+b.maxY)/2,-b.minZ);

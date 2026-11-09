@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.6.3
+
+- Fit Matter Cable sockets into permanent machine frames, with smaller recessed connections on the sides, back and underside.
+- Resize the Matter Drive to a full-block rack so adjacent Drives sit flush. Enlarge all six bays and fit the mounted cells to them.
+
+## 0.6.2
+
+- Keep the separate result preview labelled **Preview**, with its explanatory hover tooltip.
+
+## 0.6.1
+
+- Consolidate chemical processing and air collection into the Chemical and Industrial Reactors. Make approved crystals in the Material Synthesizer.
+- Repair owner-bound cable connections and reject invalid ingredients before slot prediction.
+- Separate expected results from finished output, fix overlapping production labels and redraw the Parallel Upgrade and Pressure Module icons.
+
 ## 0.6.0
 
 - Add Separator, Thermal Processor, Crystallizer and Air Separator with dedicated recipes, models and process routing.

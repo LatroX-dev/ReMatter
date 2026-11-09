@@ -10,6 +10,7 @@ import argparse
 import json
 from pathlib import Path
 from connection_geometry import machine_state_assets
+from machine_housings import machine_housing
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
@@ -55,7 +56,8 @@ def outputs():
             'textures':{'layer0':f'rematter:item/{name}'},
         }
         yield ASSETS/f'items/{name}.json',{'model':{'type':'minecraft:model','model':f'rematter:item/{name}'}}
-    furnace = json.loads((ASSETS / 'models/block/sinter_furnace.json').read_text())
+    furnace = machine_housing('sinter_furnace')
+    yield ASSETS / 'models/block/sinter_furnace.json', furnace
     yield ASSETS / 'models/block/sinter_furnace_active.json', {
         'parent': 'rematter:block/sinter_furnace',
         'textures': {'status': 'rematter:block/machine_ember'},
