@@ -2,17 +2,17 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **966 item profiles** across **34 namespaces**, with **437 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **12 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported.
+The data catalogue contains **966 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **12 gas outputs**, and defines 77 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Crystallizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
 
 ## Quantities and material states
 
 - One ordinary ingot or full dust uses a material batch of 1,000 units. Nine nuggets form one exact batch; individual nuggets are never rounded to 111 or 112 units. Every material family declares one exact batch, and each profile must hold a whole multiple of it. Where a recipe divides a constituent unevenly, the profile covers several items instead of rounding. Energy and duration scale with the same share, so a block costs as much as the ingots it contains.
 - Nine Ender IO Ender Pearl Powder fragments contain the same constituents as one pearl. ReMatter's full powder and AE2 Ender Dust each contain a whole pearl's constituents. A JAOPCA pearl powder block can be made from nine tag ingredients of either size. ReMatter recovers one pearl equivalent and leaves its synthesis disabled.
-- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts. Obsidian is recovery-only: Occultism turns a single dust into a whole block, and Ender IO grinding balls mill one block into up to eight dusts.
+- Four obsidian dusts contain the same silica and alumina as one natural obsidian block. A JAOPCA obsidian powder block contains nine dusts. Obsidian synthesis is disabled while Ender IO is loaded; the ReForging integration restores it with bonus-free milling and corrections to unsafe native return recipes.
 - Compressed blocks use their reviewed recipe quantities. Quartz, Certus Quartz and uncharged Ember blocks use four crystals; ordinary metal storage blocks use nine ingots. JAOPCA powder blocks use their verified nine-powder recipe, not a ratio inferred from their name.
 - Ores and raw metals are decomposition inputs only. Conservative recovery does not promise the yield of an external ore-processing chain.
 - Crystalline silica remains distinct from sand and amorphous silica. Diamond and graphite are distinct carbon allotropes. No automatic conversion between these states is added.
-- The Nether Quartz gem is recovery-only because Ender IO grinding balls raise the bonus powder of its milling recipe. Quartz dusts, nuggets and blocks remain synthesizable; a block mills into at most four gems.
+- The Nether Quartz gem is disabled while Ender IO is loaded because grinding balls raise its milling output; ReForging restores it with bonus-free milling. Quartz dusts, nuggets and blocks remain synthesizable; a block mills into at most four gems.
 - FTB Industrial Contraptions separates one Nether Quartz into three Silicon Gems. Its gems share the silicon ingredient tag with other mods. Oritech yields four silicon per sand with Silicon Wash, and ExtendedAE makes 24 from a blend batch containing six sand and additional quartz. Recovery uses 250 elemental silicon per interchangeable piece and 2,250 per nine-piece block. FTBIC's gem still requires its native Separator.
 - Refined Obsidian dust retains the obsidian and diamond constituents of its infusion recipe. Refined Glowstone and Refined Obsidian ingots still require Mekanism compression. Decomposition recovers the constituents of the corresponding dust without recovering the machine's osmium reagent. Mystical essences and gemstones retain their tier identities.
 - Uncharged Ember Crystal, corrupted Arcane Crystal, Stellarite and Dimensional Shard retain separate identities. Occultism's Gambler can produce Spirit-Attuned Gems from ordinary gems, so attuned gems and blocks are excluded from diamond recovery.
@@ -39,13 +39,13 @@ End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. T
 
 Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
 
-- **Arcane Essence** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Supremium Essence, Tertium Essence; held directly by 30 item profiles.
+- **Arcanium** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Supremium Essence, Tertium Essence; held directly by 30 item profiles.
+- **Astrion** (`Ast`): Sky Stone, Stellarite; held directly by 30 item profiles.
 - **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 23 item profiles.
 - **Enderion** (`Edr`): Dimensional Shard Material; held directly by 29 item profiles.
 - **Netherium** (`Nt`): held directly by 18 item profiles.
-- **Quantum Essence** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
-- **Stellar Essence** (`Stl`): Sky Stone, Stellarite; held directly by 30 item profiles.
-- **Vital Essence** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
+- **Quantium** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
+- **Vitalium** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
 
 Lapis Lazuli uses a simplified lazurite model with sodium, calcium, aluminum, silicon, oxygen and sulfur. Real lapis lazuli contains several minerals with variable proportions.
 
@@ -77,7 +77,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `mekanism` | 67 | 38 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 81 | 47 |
+| `minecraft` | 81 | 49 |
 | `mysticalagradditions` | 11 | 0 |
 | `mysticalagriculture` | 61 | 37 |
 | `nautec` | 4 | 1 |
@@ -140,3 +140,7 @@ This is a material catalogue, not complete chemical coverage of every item in a 
 - Native integration checks and pack balancing are separate from data generation. A parsed profile alone is not evidence of a completed gameplay or balance test.
 
 For a new material request, include its exact item or fluid ID, mod version, the expected material form, relevant manufacturing and recycling recipes, and any stored data. Report it through the repository's "Material coverage gap" issue template.
+
+## Further material review
+
+Unprofiled items are rejected without consumption or substitution. Current follow-up reviews cover [organic feedstock, fluids and crop crates](https://github.com/LatroX-dev/ReMatter/issues/1), [additional progression materials and distinct charged states](https://github.com/LatroX-dev/ReMatter/issues/2), and [remaining generated JAOPCA forms](https://github.com/LatroX-dev/ReMatter/issues/3). Their tags alone grant neither decomposition nor synthesis. Nuclear materials, upgraded fuels and manufactured components remain excluded without an explicit reviewed model.

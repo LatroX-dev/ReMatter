@@ -1,0 +1,48 @@
+{
+  "title": "Make Soil Useful",
+  "description": [
+    "Decompose dirt and run Soil separation in a Separator. Keep room for carbon, silica and water. A supported steel ingot consumes 1,000 iron and 10 carbon units in the Synthesizer.",
+    "Silica can become glass; stored water leaves through the Synthesizer fluid tank. A full byproduct pauses the entire batch without consuming part of its input. The Chemical Reactor now handles reactions, while separation has its own machine."
+  ],
+  "icon": "rematter:separator",
+  "x": 3.6,
+  "y": 3.6,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:separator"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "mekanism:ingot_steel"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/03_glass"
+    ]
+  },
+  "routes": {}
+}

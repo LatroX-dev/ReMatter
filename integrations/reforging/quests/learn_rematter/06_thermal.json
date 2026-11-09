@@ -1,0 +1,48 @@
+{
+  "title": "Finish the Lava Chain",
+  "description": [
+    "Use cobblestone decomposition, Mineral blending in a Reactor, Mineral melting in a Thermal Processor, then Lava synthesis. The final Synthesizer is required to release 1,000 mB into a tank.",
+    "The full base cost is 192,000 FE. Heating stored material does not create a filled bucket by itself. Steam and condensation also use the Thermal Processor; every complete route pays FE."
+  ],
+  "icon": "rematter:thermal_processor",
+  "x": 7.2,
+  "y": 3.6,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:thermal_processor"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "minecraft:lava_bucket"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/03_glass"
+    ]
+  },
+  "routes": {}
+}

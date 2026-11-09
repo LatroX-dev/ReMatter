@@ -130,6 +130,12 @@ Select a permitted reaction and request a batch. Missing stock or FE waits safel
 
 Each **Reaction Focus adds 2× ordinary reaction speed** before upgrades. A 200-tick recipe takes 100 ticks with one Focus, 50 with two. Extra **Field Stabilizers** save FE with diminishing returns: two give 6%, three give 10%.
 
-Inputs and outputs stay exact; each controller runs one batch at a time. Empty chamber space adds no throughput. Pause before moving parts: a broken shell restarts the unfinished batch once the chamber forms again.
+Inputs and outputs stay exact; each controller runs one batch, or up to four with Parallel Upgrades. Empty chamber space adds no throughput. Pause before moving parts: a broken shell restarts the unfinished batch once the chamber forms again.
 
 The formed chamber's Casing, Glass, Ports and fittings can only be broken by players who may use its controller. A chamber never takes over a Machine Port inside another owner's chamber.
+
+## Find a construction error
+
+Open the controller and use **Locate missing part** when a diagnostic offers a position. Close the menu to see the marked outline in the world; it remains for five seconds. The tooltip names the expected part, coordinates and floor/ceiling mounting. Correct that block and reopen the controller to find the next error. Full ghost-block previews are not included.
+
+Use up to three **Parallel Upgrades** for four concurrent, fully paid batches. Speed, Efficiency and Parallel compete for the same slot. All energy savings together stop at 25%.

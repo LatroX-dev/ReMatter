@@ -12,9 +12,10 @@ Start by turning **sand into stored silica, then glass**. First make the crystal
 
 1. [Craft the starter kit](setup.md).
 2. [Make your first glass](copper.md).
-3. [Automate and expand the network](automation.md).
-4. [Make powders, alloys and ceramic](metallurgy.md).
-5. [Color crystals and make advanced components](advanced.md).
+3. [Make silicon, bronze, steel and lava](production.md).
+4. [Automate and expand the network](automation.md).
+5. [Make powders, alloys and ceramic](metallurgy.md).
+6. [Color crystals and make advanced components](advanced.md).
 
 The Cell holds your ingredients. The Synthesizer's product list tells you what you can make from them; knowing a recipe does not supply its material.
 

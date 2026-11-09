@@ -40,7 +40,7 @@ class ShippedChemistryDataTest {
             assertAutomationRecipe(actual, expectedIds, "decompose_item", profile.itemId(), "decomposer",
                     item, matter, profile.decompositionEnergy(), profile.ticks());
             if (registry.synthesisPolicy().allowsItem(profile.itemId())) {
-                assertAutomationRecipe(actual, expectedIds, "synthesize_item", profile.itemId(), "material_synthesizer",
+                assertAutomationRecipe(actual, expectedIds, "synthesize_item", profile.itemId(), registry.synthesisPolicy().requirement(profile.itemId()).machine(),
                         matter, item, profile.synthesisEnergy(), profile.ticks());
             }
         }
@@ -56,7 +56,7 @@ class ShippedChemistryDataTest {
         }
         for (ProcessRecipe process : registry.processes()) {
             assertAutomationRecipe(actual, expectedIds, "process", process.id().toString(),
-                    process.type() == ProcessType.ELECTROLYSIS ? "electrolyzer" : "chemical_reactor",
+                    dev.latrox.rematter.content.MachineRouting.primary(process.type()).id(),
                     automationMatter(process.inputs()), automationMatter(process.outputs()), process.energy(), process.ticks());
         }
         assertEquals(expectedIds, actual.keySet(), "No missing batches or extra synthesis permissions");
@@ -242,10 +242,12 @@ class ShippedChemistryDataTest {
                 }
                 case "process" -> assertEquals(ChemistryDocuments.process(idOf(relative), json),
                         ShippedChemistry.standalone().recipe(idOf(relative)).orElseThrow(), relative.toString());
+                case "environment_source" -> assertEquals(ChemistryDocuments.environmentSource(idOf(relative),json),
+                        ShippedChemistry.standalone().environmentSource(idOf(relative)).orElseThrow());
                 case "synthesis" -> {
                     String item = ChemistryDocuments.string(json, "item");
                     String dependency = requiredMod(json, item, document);
-                    if (ChemistryDocuments.disabled(json)) assertTrue(disabledSynthesis.add(item), "Duplicate disabled permission");
+                    if (ChemistryDocuments.disabled(json)||!ChemistryDocuments.modsMet(json,mod->true)) assertTrue(disabledSynthesis.add(item), "Duplicate disabled permission");
                     else permissions.add(new OptionalPermission(dependency, item, ChemistryDocuments.synthesisCategory(json)));
                 }
                 default -> fail("Unexpected shipped chemistry document: " + relative);

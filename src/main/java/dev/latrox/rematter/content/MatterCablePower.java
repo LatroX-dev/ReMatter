@@ -33,8 +33,8 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Loaded cable components forward pushed FE in the caller's transaction, without storing energy. Cables have no owner,
- * so FE reaches only the ReMatter machines and ports of the player whose device is nearest to where it enters.
+ * Loaded cable components forward pushed FE in the caller's transaction, without storing energy.
+ * Both cable traversal and recipients are restricted to the cable owner's UUID.
  */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class MatterCablePower {
@@ -131,7 +131,7 @@ public final class MatterCablePower {
             // A positive insertion hint keeps senders from treating the cable as full.
             // Actual accepted FE is bounded by the destination, and the cable stores none.
             var chunk = loaded(level, origin);
-            return chunk != null && chunk.getBlockState(origin).getBlock() instanceof MatterCableBlock
+            return chunk != null && chunk.getBlockState(origin).getBlock() instanceof MatterCableBlock&&CableOwners.owner(level,origin)!=null
                     ? Integer.MAX_VALUE : 0;
         }
 
@@ -161,10 +161,13 @@ public final class MatterCablePower {
 
                 var component = cache.component(level, origin);
                 if (component.endpoints == null) return 0;
+                UUID cableOwner=CableOwners.owner(level,origin);
+                if(cableOwner==null)return 0;
                 var distances = component.distances(origin);
                 var candidates = new ArrayList<Candidate<Endpoint>>();
                 for (var endpoint : component.endpoints.active()) {
                     if (endpoint.position.equals(adjacent)) continue;
+                    if(!cableOwner.equals(owner(level,endpoint.position)))continue;
                     candidates.add(new Candidate<>(endpoint, owner(level, endpoint.position),
                             distances.getOrDefault(endpoint.position, Integer.MAX_VALUE), endpoint.position));
                 }
@@ -406,6 +409,8 @@ public final class MatterCablePower {
 
         private Component scan(BlockPos origin) {
             if (!(read(origin).getBlock() instanceof MatterCableBlock)) return result(Set.of(), null);
+            UUID cableOwner=CableOwners.owner(level,origin);
+            if(cableOwner==null)return result(Set.of(),null);
             var cables = new LinkedHashSet<BlockPos>();
             var ends = new LinkedHashMap<BlockPos, List<EndpointSide>>();
             var queue = new ArrayDeque<BlockPos>();
@@ -417,6 +422,7 @@ public final class MatterCablePower {
                     var next = position.relative(direction);
                     var state = read(next);
                     if (state.getBlock() instanceof MatterCableBlock) {
+                        if(!cableOwner.equals(CableOwners.owner(level,next)))continue;
                         if (!cables.add(next)) continue;
                         if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(cables, null);
                         queue.add(next);

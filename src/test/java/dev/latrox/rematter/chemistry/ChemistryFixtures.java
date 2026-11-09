@@ -13,7 +13,8 @@ public final class ChemistryFixtures {
         registry.profiles().forEach(builder::addProfile);
         registry.fluidProfiles().forEach(builder::addFluidProfile);
         registry.processes().forEach(builder::addProcess);
-        registry.synthesisPolicy().entries().forEach(builder::allowSynthesis);
+        registry.synthesisPolicy().entries().forEach((id, category) -> builder.allowSynthesis(id, category, registry.synthesisPolicy().requirement(id)));
+        registry.environmentSources().forEach(builder::addEnvironmentSource);
         return builder;
     }
 

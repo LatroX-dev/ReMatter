@@ -19,7 +19,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 /** A 16 px material badge with a stable pattern, catalogue notation and phase marker. */
 public final class SubstanceIcon {
     private static final Set<String> FICTIONAL_CONSTITUENTS = Set.of(
-            "arcane_essence", "ender_essence", "nether_essence", "netherite_scrap", "quantum_essence", "stellar_essence", "vital_essence");
+            "arcanium", "enderion", "cinderium", "netherium", "quantium", "astrion", "vitalium");
 
     private static final int MAX_STYLES = 32_768;
     private static final Map<SubstanceKey, Style> STYLES = new ConcurrentHashMap<>();

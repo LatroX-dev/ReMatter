@@ -5,7 +5,7 @@
   "item": "jaopca:storage_blocks.glowstone",
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 9000
     },

@@ -86,6 +86,11 @@ final class JadeClient {
                 return;
             }
             tooltip.add(StatusText.of(data.getStringOr("status", "idle"), data.getIntOr("staleOrders", 0), data.getIntOr("heldOrders", 0)));
+            if(data.getLongOr("target",0)>0)tooltip.add(Component.translatable(data.getBooleanOr("targetNetwork",false)
+                    ?"screen.rematter.target_network_count":"screen.rematter.target_local_count",
+                    data.getLongOr("targetStock",-1)<0?"?":dev.latrox.rematter.client.Quantities.number(data.getLongOr("targetStock",0)),
+                    dev.latrox.rematter.client.Quantities.number(data.getLongOr("target",0))));
+            if(data.getIntOr("laneCapacity",1)>1)tooltip.add(Component.translatable("screen.rematter.parallel_state",data.getIntOr("lanes",0),data.getIntOr("laneCapacity",1)));
             if (accessor.showDetails() && accessor.getBlockEntity() instanceof MachineBlockEntity machine
                     && MachinePortMode.configurable(machine.kind())) {
                 tooltip.add(Component.translatable("port.rematter.mode_message",

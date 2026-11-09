@@ -4,7 +4,7 @@
   "item": "ae2:ender_dust",
   "matter": [
     {
-      "substance": "rematter:ender_essence",
+      "substance": "rematter:enderion",
       "phase": "solid",
       "amount": 1000
     },

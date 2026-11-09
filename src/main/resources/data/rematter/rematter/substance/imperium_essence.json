@@ -4,8 +4,8 @@
   "symbol": "",
   "kind": "mixture",
   "composition": {
-    "rematter:vital_essence": 256,
-    "rematter:arcane_essence": 64
+    "rematter:vitalium": 256,
+    "rematter:arcanium": 64
   },
   "phases": [
     "solid"

@@ -21,7 +21,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 ID = re.compile(r"[a-z0-9_.-]+:[a-z0-9_./-]+")
 DATA = ROOT / "src/main/resources/data/rematter/rematter"
-GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis")
+GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis", "environment_source")
 FORMS = {"ingot", "dust", "nugget", "material_block", "material", "gem", "natural", "raw", "ore"}
 TEMPLATE = ROOT / "tools/data/material_coverage_template.md"
 COVERAGE = ROOT / "docs/material-coverage.md"
@@ -55,7 +55,9 @@ def batch_energy_limit():
     policy = (MACHINE_SOURCES / "MachineEnergyPolicy.java").read_text()
     if "MAX_BATCH_ENERGY = MachineBlockEntity.ENERGY_CAPACITY / MAX_SPEED_FACTOR;" not in policy:
         raise ValueError("MachineEnergyPolicy.MAX_BATCH_ENERGY changed; update batch_energy_limit")
-    return java_constant("MachineBlockEntity.java", "ENERGY_CAPACITY") // java_constant("MachineEnergyPolicy.java", "MAX_SPEED_FACTOR")
+    if "ENERGY_CAPACITY = MatterLimits.MACHINE_ENERGY;" not in (MACHINE_SOURCES / "MachineBlockEntity.java").read_text():
+        raise ValueError("Machine energy no longer uses MatterLimits")
+    return java_constant("MatterLimits.java", "MACHINE_ENERGY") // java_constant("MachineEnergyPolicy.java", "MAX_SPEED_FACTOR")
 
 
 def require_energy(target, row, limit):
@@ -153,7 +155,12 @@ def items(catalogue, check, written, limit):
         output(DATA / "material_profile" / relative, profile, check, written)
         allowance = guarded(item, row)
         allowance["item"] = item
+        if row.get("unavailable_with_mods"):
+            allowance["unavailable_with_mods"] = row["unavailable_with_mods"]
         if row["synthesis"]:
+            family = families[row["family"]]
+            for field in ("synthesis_machine", "crystallization_tier", "requires_advancement"):
+                if field in family: allowance[field] = family[field]
             allowance["category"] = "natural_material" if row["form"] == "natural" else "raw_material"
         else:
             allowance["disabled"] = True
@@ -222,15 +229,21 @@ def coverage_list(catalogue):
     buffer = io.StringIO()
     writer = csv.writer(buffer, lineterminator="\n")
     writer.writerow(["id", "type", "family", "form", "batch", "matter", "synthesis",
-                     "decomposition_energy_fe", "synthesis_energy_fe", "ticks"])
+                     "decomposition_energy_fe", "synthesis_energy_fe", "ticks", "required_mod", "unavailable_with_mods",
+                     "synthesis_machine", "crystallization_tier", "requires_advancement"])
     for row in catalogue["items"]:
         writer.writerow([row["item"], "item", row["family"], row["form"], row.get("item_count", 1), matter_text(row["matter"]),
-                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"]])
+                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"],
+                         guarded(row["item"], row).get("required_mod", ""), ";".join(row.get("unavailable_with_mods", [])),
+                         catalogue["families"][row["family"]].get("synthesis_machine", "material_synthesizer") if row["synthesis"] else "",
+                         catalogue["families"][row["family"]].get("crystallization_tier", 1) if row["synthesis"] else "",
+                         catalogue["families"][row["family"]].get("requires_advancement", "")])
     for row in catalogue["fluids"]:
         writer.writerow([row["fluid"], "fluid", "", "fluid", row["amount"], matter_text(row["matter"]),
-                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"]])
+                         str(row["synthesis"]).lower(), row["decomposition_energy"], row["synthesis_energy"], row["ticks"],
+                         guarded(row["fluid"], row).get("required_mod", ""), "", "material_synthesizer" if row["synthesis"] else "", 1, ""])
     for row in catalogue["gases"]:
-        writer.writerow([row["substance"], "gas", "", "gas", "", "", "true", "", "", ""])
+        writer.writerow([row["substance"], "gas", "", "gas", "", "", "true", "", "", "",row.get("required_mod",""),"","drive export","",""])
     return buffer.getvalue()
 
 
@@ -243,7 +256,10 @@ def coverage_page(catalogue):
                f"with **{sum(outputs.values())} explicit item synthesis outputs**. It also covers "
                f"**{len(catalogue['fluids'])} fluids** ({fluid_outputs} with synthesis) and **{len(catalogue['gases'])} gas outputs**, "
                f"and defines {len(catalogue['substances'])} substances in addition to the built-in core elements and compounds. "
-               "Installing a supported mod does not imply that every item from it is supported.")
+               "Installing a supported mod does not imply that every item from it is supported. "
+               "These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, "
+               "unless a pack explicitly overrides them. Crystal-family outputs use the Crystallizer; every diamond form requires tier 2. "
+               "The CSV includes dependency conditions, required machines, tiers and advancements.")
     table = ["| Namespace | Profiles | Synthesis outputs |", "| --- | ---: | ---: |"]
     table += [f"| `{namespace}` | {profiles[namespace]} | {outputs[namespace]} |" for namespace in sorted(profiles)]
     fluid_table = ["| Fluid | Batch | Matter | Synthesis |", "| --- | ---: | --- | --- |"]
@@ -298,6 +314,11 @@ def generate(catalogue, check=False):
     profile_count = items(catalogue, check, written, limit)
     fluid_count = fluids(catalogue, check, written, limit)
     gas_count = gases(catalogue, check, written)
+    for source in catalogue.get("environment_sources", []):
+        namespace, path = resource_path(source["id"])
+        if namespace != "rematter" or not source.get("renewable"):
+            raise ValueError("Invalid environment source")
+        output(DATA / "environment_source" / (path + ".json"), {"schema_version": 1, **source}, check, written)
     stray_files(written, check)
     language(names, check)
     coverage(catalogue, check)

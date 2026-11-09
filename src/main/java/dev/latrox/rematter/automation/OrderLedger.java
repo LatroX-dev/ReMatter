@@ -5,7 +5,7 @@ import dev.latrox.rematter.automation.AutomationPort.*;
 
 /** Durable ownership of transferred ingredients and completed outputs, independent of external mods. */
 public final class OrderLedger {
-    public static final int SCHEMA=1, MAX_ORDERS=64, MAX_BATCHES=64;
+    public static final int SCHEMA=2, MAX_ORDERS=64, MAX_BATCHES=64;
     public record Order(UUID id,Recipe recipe,int batches,int remainingBatches,int progress,
                         Map<Resource,Long> ownedInputs,Map<Resource,Long> pendingOutputs,
                         boolean cancelled,String quarantineReason,UUID workerId) {

@@ -25,7 +25,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                               String storageSource, StructureView structure, NetworkView network, boolean networkJobs,
                               String backend, OrdersView orders, List<CellView> cells) implements CustomPacketPayload {
     /** Version of the menu view payload family: this snapshot, stock changes and progress. */
-    public static final String PROTOCOL = "16";
+    public static final String PROTOCOL = "17";
     /** Prefix of a preview ID that names the item being analyzed or decomposed. */
     public static final String ITEM_SOURCE = "item:";
     public static final int MAX_CHOICE_ID_LENGTH = 520;

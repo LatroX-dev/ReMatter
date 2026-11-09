@@ -1,0 +1,34 @@
+{
+  "title": "ReMatter",
+  "icon": "rematter:matter_cell_64k",
+  "order": 25,
+  "scope": "team",
+  "visibility": "visible",
+  "group": "learn_power_and_processing",
+  "world_reveal": false,
+  "defaults": {
+    "progression": "flexible",
+    "hide_lock_icon": true,
+    "lines_in": "always",
+    "lines_out": "always"
+  },
+  "links": [],
+  "decorations": [
+    {
+      "x": -1,
+      "y": -2.0,
+      "width": 12,
+      "height": 0.8,
+      "locked": true,
+      "front": true,
+      "content": {
+        "type": "label",
+        "text": "REMATTER: BUILD A USEFUL WORKSHOP",
+        "align": "center",
+        "scale": 0.9,
+        "shadow": false,
+        "color": "#63D8BF"
+      }
+    }
+  ]
+}

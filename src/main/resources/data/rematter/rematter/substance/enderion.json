@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "translation_key": "substance.rematter.ender_essence",
+  "translation_key": "substance.rematter.enderion",
   "symbol": "Edr",
   "kind": "element",
   "composition": {
-    "rematter:ender_essence": 1
+    "rematter:enderion": 1
   },
   "phases": [
     "solid"

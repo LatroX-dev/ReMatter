@@ -35,6 +35,7 @@ public final class ProcessSelectionScreen extends Screen {
     private static final int PAGE_BUTTON_WIDTH = 20, MATERIAL_PAGER_WIDTH = 82, CLOSE_WIDTH = 50;
     private final MachineMenu menu;
     private ChemistryRegistry registry;
+    private net.minecraft.locale.Language language;
     private List<ProcessPresentation.Product> products = List.of(), filtered = List.of();
     private final List<ProductButton> resultButtons = new ArrayList<>();
     private final Map<String, ItemStack> icons = new HashMap<>();
@@ -127,6 +128,7 @@ public final class ProcessSelectionScreen extends Screen {
     }
 
     private void loadChoices() {
+        language=net.minecraft.locale.Language.getInstance();
         registry = ClientChemistry.current();
         MachineKind kind = MachineKind.values()[menu.snapshot().kind()];
         products = MachineChoices.forKind(kind, registry).stream()
@@ -219,7 +221,7 @@ public final class ProcessSelectionScreen extends Screen {
     }
     @Override public void tick() {
         if (minecraft.player == null || minecraft.player.containerMenu != menu) { onClose(); return; }
-        if (registry != ClientChemistry.current()) loadChoices();
+        if (registry != ClientChemistry.current()||language!=net.minecraft.locale.Language.getInstance()) loadChoices();
     }
     @Override public boolean isPauseScreen() { return false; }
 
@@ -274,9 +276,10 @@ public final class ProcessSelectionScreen extends Screen {
         drawProductIcon(graphics, product, detailX + 8, detailTop + 7);
         ScreenChrome.twoLines(graphics, font, productLabel(product), detailX + 30, detailTop + 6, detailWidth - 38, PAPER);
         if (inside(mouseX, mouseY, detailX + 7, detailTop + 5, detailWidth - 14, 23)) {
-            graphics.setComponentTooltipForNextFrame(font, List.of(Component.literal(productLabel(product)), Component.literal(product.id()),
+            var tooltip=new ArrayList<>(List.of(Component.literal(productLabel(product)), Component.literal(product.id()),
                     perBatch(product), tr("cost", Quantities.energy(Quantities.number(energy)), Quantities.ticks(Quantities.number(ticks))),
-                    tr(effective ? "upgraded" : "base_values"), tr(selected ? "selected_now" : "preview_only")), mouseX, mouseY);
+                    tr(effective ? "upgraded" : "base_values"), tr(selected ? "selected_now" : "preview_only")));
+            tooltip.addAll(requirements(product));graphics.setComponentTooltipForNextFrame(font,tooltip,mouseX,mouseY);
         }
         if (showSummary) {
             ScreenChrome.icon(graphics, Icon.OUTPUT, detailX + 8, detailTop + 32, CYAN);
@@ -348,6 +351,19 @@ public final class ProcessSelectionScreen extends Screen {
             default -> count == 1 ? tr("one_substance") : tr("substances", count);
         };
         return tr("per_batch", value);
+    }
+    private List<Component> requirements(ProcessPresentation.Product product) {
+        var lines=new ArrayList<Component>();String advancement="";
+        if(menu.kind().synthesis()) {
+            String id=product.id().startsWith(MachineChoices.FLUID_PREFIX)?product.id().substring(MachineChoices.FLUID_PREFIX.length()):product.id();
+            var requirement=registry.synthesisPolicy().requirement(id);advancement=requirement.advancement();
+            if(requirement.tier()>1)lines.add(Component.translatable("gui.rematter.viewer.pressure_required"));
+        } else {
+            var process=registry.recipe(dev.latrox.rematter.chemistry.SubstanceId.parse(product.id())).orElse(null);
+            if(process!=null)advancement=process.requiresAdvancement();
+        }
+        if(!advancement.isEmpty())lines.add(Component.translatable("gui.rematter.viewer.advancement_required",advancement));
+        return lines;
     }
 
     private static boolean inside(int mouseX,int mouseY,int x,int y,int width,int height) {
@@ -476,7 +492,8 @@ public final class ProcessSelectionScreen extends Screen {
             label = productLabel(value);
             batch = perBatch(value).getString();
             setMessage(Component.literal(label));
-            setTooltip(Tooltip.create(Component.literal(label + "\n" + value.id() + "\n").append(tr("view_hint"))));
+            var tooltip=Component.literal(label + "\n" + value.id() + "\n").append(tr("view_hint"));
+            requirements(value).forEach(line->tooltip.append("\n").append(line));setTooltip(Tooltip.create(tooltip));
         }
 
         @Override protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
@@ -489,6 +506,8 @@ public final class ProcessSelectionScreen extends Screen {
             graphics.text(font, ScreenChrome.fit(font, label, textWidth),
                     getX() + 28, getY() + 5, PAPER, false);
             String caption = selected ? tr("selected").getString() : batch;
+            if(menu.kind()==MachineKind.CRYSTALLIZER&&registry.synthesisPolicy().requirement(product.id()).tier()>menu.settings().tier())
+                caption=Component.translatable("status.rematter.requires_pressure").getString();
             graphics.text(font, ScreenChrome.fit(font, caption, textWidth),
                     getX() + 28, getY() + 16, selected ? CYAN : MUTED, false);
         }

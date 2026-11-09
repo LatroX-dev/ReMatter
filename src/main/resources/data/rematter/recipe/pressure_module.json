@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RLR",
+    "OCO",
+    "RLR"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "L": "rematter:diamond_lattice",
+    "O": "rematter:optical_circuit",
+    "C": "rematter:control_circuit"
+  },
+  "result": {
+    "id": "rematter:pressure_module",
+    "count": 1
+  }
+}

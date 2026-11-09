@@ -5,7 +5,7 @@
   "item": "jaopca:storage_blocks.netherite_scrap",
   "matter": [
     {
-      "substance": "rematter:netherite_scrap",
+      "substance": "rematter:netherium",
       "phase": "solid",
       "amount": 9000
     }

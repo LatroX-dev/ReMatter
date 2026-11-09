@@ -2,5 +2,7 @@
   "schema_version": 1,
   "required_mod": "mekanism",
   "item": "mekanism:dust_diamond",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 2,
   "category": "raw_material"
 }

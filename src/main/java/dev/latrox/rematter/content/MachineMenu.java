@@ -55,7 +55,18 @@ public final class MachineMenu extends AbstractContainerMenu {
     private boolean observingTerminal;
     private long lastTerminalAction = Long.MIN_VALUE;
     private long nextSnapshot;
+    private long nextStructureHint;
     private View view = View.MAIN;
+    private dev.latrox.rematter.network.StructureHintPayload structureHint=dev.latrox.rematter.network.StructureHintPayload.EMPTY;
+    public dev.latrox.rematter.network.StructureHintPayload structureHint() {return structureHint;}
+    public void acceptStructureHint(dev.latrox.rematter.network.StructureHintPayload value) {structureHint=value;}
+    private dev.latrox.rematter.network.MachineSettingsPayload settings=dev.latrox.rematter.network.MachineSettingsPayload.EMPTY;
+    public dev.latrox.rematter.network.MachineSettingsPayload settings() {return settings;}
+    public void acceptSettings(dev.latrox.rematter.network.MachineSettingsPayload value) {settings=value;}
+    public boolean configure(ServerPlayer user,MachineSettings value) {
+        if(machine==null||user.containerMenu!=this||!stillValid(user)||!machine.configure(user,value))return false;
+        broadcastChanges();return true;
+    }
 
     public MachineMenu(int id, Inventory inventory) { this(id, inventory, new SimpleContainer(FIRST_PLAYER_SLOT), null, null, null); }
     public MachineMenu(int id, Inventory inventory, MachineBlockEntity machine) { this(id, inventory, machine, machine, null, null); }
@@ -87,7 +98,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         addSlot(new Slot(inventory, 1, 226, SLOT_ROW_Y) {
             @Override public boolean mayPlace(ItemStack stack) { return false; }
             @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player); }
-            @Override public boolean isActive() { return view == View.MAIN && (PreparationTier.isPreparation(kind()) || kind() == MachineKind.SYNTHESIZER && (!snapshot.preview().outputKind().equals("fluid") || hasItem())) || view == View.CONFIGURATION && hasItem(); }
+            @Override public boolean isActive() { return view == View.MAIN && (PreparationTier.isPreparation(kind()) || kind().synthesis() && (!snapshot.preview().outputKind().equals("fluid") || hasItem())) || view == View.CONFIGURATION && hasItem(); }
         });
         addSlot(new Slot(inventory, 2, 45, 124) {
             @Override public boolean mayPlace(ItemStack stack) { return inventory.canPlaceItem(2, stack); }
@@ -153,7 +164,8 @@ public final class MachineMenu extends AbstractContainerMenu {
     public View view() { return view; }
     public void setView(View value) { view = java.util.Objects.requireNonNull(value); }
     /** The client's stock rows in key order. {@code totalTypes} counts every stored type, shown or not. */
-    public record Stock(int containerId, boolean readable, int totalTypes, List<MachineSnapshot.Entry> entries) {
+    public record Stock(int containerId, boolean readable, int totalTypes, List<MachineSnapshot.Entry> entries,int matchingTypes,int listedTypes,boolean approximate) {
+        public Stock(int containerId,boolean readable,int totalTypes,List<MachineSnapshot.Entry> entries) {this(containerId,readable,totalTypes,entries,totalTypes,entries.size(),false);}
         public static final Stock EMPTY = new Stock(-1, false, 0, List.of());
         public Stock { entries = List.copyOf(entries); }
         public boolean complete() { return readable && entries.size() == totalTypes; }
@@ -167,7 +179,7 @@ public final class MachineMenu extends AbstractContainerMenu {
     public void acceptStock(MachineStockPayload value) {
         stockRows.apply(value.reset(), value.changed(), value.removed());
         if (stockRows.size() > MachineSnapshot.MAX_ENTRIES) stockRows.clear();
-        stock = new Stock(value.containerId(), value.readable(), value.totalTypes(), stockRows.values());
+        stock = new Stock(value.containerId(), value.readable(), value.totalTypes(), stockRows.values(),value.matchingTypes(),value.listedTypes(),value.approximate());
     }
     public boolean remote() { return remoteMenu.get() != 0; }
     public TerminalDevicesPayload.Listing terminalDevices() { return terminalDevices; }
@@ -212,7 +224,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         return true;
     }
     @Override public void broadcastChanges() {
-        if ((terminal != null || port != null) && !stillValid(player)) return;
+        if (!stillValid(player)) return;
         if (machine != null) for (var side : MachinePortMode.Side.values()) {
             portModes[side.ordinal()].set(machine.portMode(side).ordinal());
         }
@@ -241,13 +253,23 @@ public final class MachineMenu extends AbstractContainerMenu {
             progress = nextProgress;
             PacketDistributor.sendToPlayer(serverPlayer, nextProgress);
         }
+        if(IndustrialStructure.isIndustrial(machine.kind())&&serverPlayer.level().getGameTime()>=nextStructureHint) {
+            nextStructureHint=serverPlayer.level().getGameTime()+10;
+            var mismatch=IndustrialStructure.inspect(machine).mismatch();
+            var hint=mismatch==null?new dev.latrox.rematter.network.StructureHintPayload(containerId,net.minecraft.core.BlockPos.ZERO,"","")
+                    :new dev.latrox.rematter.network.StructureHintPayload(containerId,mismatch.position(),mismatch.expected(),mismatch.orientation());
+            structureHint=hint;PacketDistributor.sendToPlayer(serverPlayer,hint);
+        }
+        var nextSettings=new dev.latrox.rematter.network.MachineSettingsPayload(containerId,machine.settings(),machine.ventedTotal(),machine.targetStock(),
+                machine.parallelRunning(),machine.parallelCapacity(),machine.crystallizationTier(),machine.canRemove(serverPlayer));
+        if(!settings.equals(nextSettings)) {settings=nextSettings;PacketDistributor.sendToPlayer(serverPlayer,nextSettings);}
         var nextStock = stockView.refresh(machine, stockQuery, MachineSnapshot.MAX_ENTRIES);
         if (nextStock != sentStock) {
             var stockChanges = stockRows.update(nextStock.entries());
-            if (!stockSent || !stockChanges.isEmpty() || nextStock.readable() != stock.readable() || nextStock.totalTypes() != stock.totalTypes()) {
+            if (!stockSent || !stockChanges.isEmpty() || nextStock.readable() != stock.readable() || nextStock.totalTypes() != stock.totalTypes() || nextStock.matchingTypes()!=stock.matchingTypes()||nextStock.approximate()!=stock.approximate()) {
                 PacketDistributor.sendToPlayer(serverPlayer, new MachineStockPayload(containerId, !stockSent, nextStock.readable(),
-                        nextStock.totalTypes(), stockChanges.changed(), stockChanges.removed()));
-                stock = new Stock(containerId, nextStock.readable(), nextStock.totalTypes(), List.of());
+                        nextStock.totalTypes(), stockChanges.changed(), stockChanges.removed(),nextStock.matchingTypes(),nextStock.entries().size(),nextStock.approximate()));
+                stock = new Stock(containerId, nextStock.readable(), nextStock.totalTypes(), List.of(),nextStock.matchingTypes(),nextStock.entries().size(),nextStock.approximate());
                 stockSent = true;
             }
             sentStock = nextStock;
@@ -322,7 +344,7 @@ public final class MachineMenu extends AbstractContainerMenu {
                 if(slots.get(target).mayPlace(original) && moveItemStackTo(original,target,target+1,false)){moved=true;break;}
             }
             if(!moved)return ItemStack.EMPTY;
-        } else if (original.is(ModContent.SPEED_UPGRADE.get()) || original.is(ModContent.EFFICIENCY_UPGRADE.get())) {
+        } else if (original.is(ModContent.SPEED_UPGRADE.get()) || original.is(ModContent.EFFICIENCY_UPGRADE.get()) || original.is(ModContent.PARALLEL_UPGRADE.get()) || original.is(ModContent.PRESSURE_MODULE.get())) {
             if (!supportsUpgrades() || !slots.get(2).mayPlace(original)
                     || !moveItemStackTo(original, 2, 3, false)) return ItemStack.EMPTY;
         } else if (PreparationTier.isPreparation(kind())) {

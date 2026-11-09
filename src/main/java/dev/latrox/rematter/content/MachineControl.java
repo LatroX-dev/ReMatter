@@ -19,8 +19,7 @@ final class MachineControl {
     }
 
     static boolean batchControl(MachineKind kind) {
-        return kind == MachineKind.SYNTHESIZER || kind == MachineKind.ELECTROLYZER
-                || kind == MachineKind.REACTOR || kind == MachineKind.INDUSTRIAL_REACTOR;
+        return kind.selectable();
     }
 
     MachineRunState runState() { return runState; }

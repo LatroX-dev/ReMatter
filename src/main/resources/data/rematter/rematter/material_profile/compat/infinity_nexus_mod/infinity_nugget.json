@@ -10,12 +10,12 @@
       "amount": 500
     },
     {
-      "substance": "rematter:quantum_essence",
+      "substance": "rematter:quantium",
       "phase": "solid",
       "amount": 250
     },
     {
-      "substance": "rematter:stellar_essence",
+      "substance": "rematter:astrion",
       "phase": "solid",
       "amount": 250
     }

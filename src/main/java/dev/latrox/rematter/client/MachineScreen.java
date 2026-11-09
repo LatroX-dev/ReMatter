@@ -60,7 +60,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private ConsoleButton primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
     private ConsoleButton terminalDevices, returnToTerminal, release;
     private TabButton processTab, upgradesTab, configurationTab;
-    private ConsoleButton ports;
+    private ConsoleButton ports, productionSettings, buildHint;
     private boolean sideTabs;
     private int page;
     private ChipButton favoritesChip;
@@ -73,6 +73,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private int shownFavorites = -1;
     private List<MachineSnapshot.Entry> shownEntries = List.of();
     private StockQuery sentQuery;
+    private net.minecraft.locale.Language shownLanguage;
 
     public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, PANEL_WIDTH, PANEL_HEIGHT);
@@ -115,6 +116,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         processTab = tab(MachineMenu.View.MAIN, 12, 84, passive() ? "tab_contents" : "tab_process");
         upgradesTab = tab(MachineMenu.View.UPGRADES, 100, 84, "tab_upgrades");
         configurationTab = tab(MachineMenu.View.CONFIGURATION, 188, 96, "tab_configuration");
+        buildHint=control("locate_part",166,117,118,23,b->onClose(),"locate_part_hint");
+        productionSettings = control("production_settings",12,50,188,19,b->minecraft.pushGuiLayer(new MachineSettingsScreen(menu)),"production_settings_hint");
         ports = control("ports", 205, 50, 79, 19, b -> openPorts(), "ports_hint");
         primary = control("start", 166, 117, 118, 23, b -> {
             var decision = MachinePrimaryAction.forSnapshot(menu.snapshot());
@@ -145,7 +148,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         updateWidgets();
     }
-    private static Component tr(String key) { return Component.translatable("screen.rematter." + key); }
+    private static Component tr(String key,Object...args) { return Component.translatable("screen.rematter." + key,args); }
     private ConsoleButton control(String key, int x, int y, int width, int height, Button.OnPress action, String hint) {
         var button = addRenderableWidget(new ConsoleButton(Button.builder(key.isEmpty() ? Component.empty() : tr(key), action)
                 .bounds(leftPos + x, topPos + y, width, height)));
@@ -187,7 +190,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private boolean preparator() { return dev.latrox.rematter.content.preparation.PreparationTier.isPreparation(menu.kind()); }
     private boolean groupedIngredients() { return preparator() && !menu.snapshot().networkJobs() && menu.slots.get(3).isActive(); }
     private boolean industrial() { return menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR || menu.kind() == MachineKind.INDUSTRIAL_REACTOR; }
-    private boolean selecting() { return menu.kind() == MachineKind.SYNTHESIZER || menu.kind() == MachineKind.ELECTROLYZER || menu.kind() == MachineKind.REACTOR || menu.kind() == MachineKind.INDUSTRIAL_REACTOR; }
+    private boolean selecting() { return menu.kind().selectable(); }
     private static boolean working(String status) { return List.of("working", "grinding", "sieving", "collecting", "dosing", "mixing", "packing", "pressing", "sintering", "cooling").contains(status); }
     private void openRecipes() { minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)); }
     private void openPorts() { minecraft.pushGuiLayer(new MachinePortSettingsScreen(menu)); }
@@ -203,6 +206,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void send(int action) { if (minecraft.gameMode != null) minecraft.gameMode.handleInventoryButtonClick(menu.containerId, action); }
     private Component statusText() {
         var s = menu.snapshot();
+        if(buildHint!=null&&buildHint.visible&&MachinePrimaryAction.forSnapshot(s).opensRecipeSelection())
+            return StatusText.of(s.structure().diagnostic(),0,0);
         if (s.status().equals("structure") && industrial()) return Component.translatable("status.rematter." + s.structure().diagnostic());
         if (working(s.status())) return tr("processing");
         return StatusText.of(s.status(), s.orders().stale(), s.orders().quarantined());
@@ -215,6 +220,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     /** Filtered once per stock, catalogue, filter or favorite change, not on every frame. */
     private List<MachineSnapshot.Entry> entries() {
         var stock = menu.stock();
+        var language=net.minecraft.locale.Language.getInstance();
+        if(language!=shownLanguage) {shownLanguage=language;shownFilter=null;shownCatalogue=null;}
         var catalogue = ClientChemistry.current();
         var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
         int favorites = StockFavorites.get().revision();
@@ -248,6 +255,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         terminalDevices.active = returnToTerminal.active = minecraft.player != null && !minecraft.player.isSpectator();
         var decision = MachinePrimaryAction.forSnapshot(s);
         processTab.active = configurationTab.active = ready;
+        buildHint.visible=ready&&main()&&industrial()&&menu.structureHint().present();buildHint.active=buildHint.visible;
+        if(buildHint.visible) {var h=menu.structureHint();var mount=switch(h.orientation()) {
+            case "up" -> tr("mount_floor");case "down" -> tr("mount_ceiling");default -> tr("mount_any");
+        };buildHint.explain(tr("build_hint",Component.translatable(h.expected()),h.position().getX(),h.position().getY(),h.position().getZ(),mount));}
+        productionSettings.visible=productionSettings.active=ready&&configuration()&&menu.kind().processes()&&menu.kind()!=MachineKind.ANALYZER&&!handPreparator()&&!s.networkJobs();
         ports.visible = ports.active = ready && configuration() && MachinePortMode.configurable(menu.kind());
         processTab.setMessage(tr(passive() ? "tab_contents" : "tab_process"));
         processTab.explain(processTab.getMessage());
@@ -267,9 +279,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             chip.setX(leftPos + chipsLeft + i * (CHIP_SIZE + 1));
             chip.setY(topPos + 51);
         }
-        primary.visible = ready && main() && decision.visible(); primary.active = ready && decision.enabled();
+        primary.visible = ready && main() && decision.visible()&&!buildHint.visible; primary.active = ready && decision.enabled();
         primary.setMessage(tr(decision.labelKey())); primary.explain(tr(decision.hintKey()));
-        choose.visible = ready && main() && !s.networkJobs() && selecting() && !decision.opensRecipeSelection(); choose.active = ready && s.choiceCount() > 0;
+        choose.visible = ready && main() && !s.networkJobs() && selecting() && (!decision.opensRecipeSelection()||buildHint.visible); choose.active = ready && s.choiceCount() > 0;
         automation.visible = ready && configuration(); automation.setMessage(tr(s.automation() ? "automation_on" : "automation_off"));
         automation.explain(tr("automation_hint"));
         repeat.visible = addBatch.visible = ready && configuration() && selecting() && !s.networkJobs();
@@ -278,7 +290,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         repeat.explain(tr("continuous_hint"));
         addBatch.active = valid && !s.repeat() && s.queuedBatches() < 64;
         boolean recoveringUpgrade = configuration() && menu.slots.get(2).isActive();
-        boolean canNetwork = menu.kind().processes() && menu.kind()!=MachineKind.ANALYZER && !handPreparator() && !recoveringUpgrade;
+        boolean canNetwork = menu.kind().supportsNetworkJobs() && !recoveringUpgrade;
         networkJobs.visible = ready && configuration() && canNetwork;
         networkJobs.setMessage(tr(s.networkJobs()?"network_jobs_on":"network_jobs_off"));
         networkJobs.explain(tr("network_jobs_hint"));
@@ -334,7 +346,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if (main() && !passive()) {
             if (inside(mx, my, 13, 74, 19, 38)) {
                 g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(), mouseX, mouseY);
-            } else if (inside(mx, my, 12, 114, primary.visible ? 149 : 272, 28)) {
+            } else if (inside(mx, my, 12, 114, primary.visible||buildHint.visible ? 149 : 272, 28)) {
                 var lines = new ArrayList<Component>();
                 lines.add(statusText());
                 if (industrial()) lines.addAll(structureDetails(s));
@@ -514,7 +526,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         boolean activeWork = working(s.status());
         ScreenChrome.icon(g, activeWork ? Icon.PLAY : s.status().equals("ready") ? Icon.CHECK : Icon.INFO,
                 12, 119, activeWork ? ACCENT : TEXT);
-        ScreenChrome.twoLines(g, font, status, 30, 118, primary.visible ? 129 : 254, activeWork ? ACCENT : TEXT);
+        ScreenChrome.twoLines(g, font, status, 30, 118, primary.visible||buildHint.visible ? 129 : 254, activeWork ? ACCENT : TEXT);
     }
 
     private void drawSlotLabel(GuiGraphicsExtractor g, int index, MachineSnapshot s) {
@@ -597,6 +609,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         }
         int pageCount = pages(visibleEntries);
         var parts = new ArrayList<Component>();
+        if(sentQuery!=null&&(!sentQuery.text().isBlank()||!sentQuery.phases().isEmpty()||sentQuery.favoritesOnly()))
+            parts.add(Component.translatable("screen.rematter.stock_matches",(stock.approximate()?"≥ ":"")+stock.matchingTypes(),stock.totalTypes()));
         // A shortened list leads the footer so the notice is never cut off.
         if (stock.truncated()) parts.add(Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()));
         if (!disk()) parts.add(capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity())));

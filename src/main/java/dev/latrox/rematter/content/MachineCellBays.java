@@ -65,7 +65,7 @@ final class MachineCellBays {
         var stack = stack(bay);
         if (stack.isEmpty()) return 0;
         if (!cells.mount(bay).readable(stack) || !(stack.getItem() instanceof MatterCellItem item)) return 4;
-        return item.capacity() <= 64_000 ? 1 : item.capacity() <= 256_000 ? 2 : 3;
+        return item.capacity() <= MatterLimits.CELL_64K ? 1 : item.capacity() <= MatterLimits.CELL_256K ? 2 : 3;
     }
     int visibleTiers() {
         int tiers = 0;

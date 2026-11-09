@@ -6,8 +6,8 @@
   "composition": {
     "rematter:silicon": 1,
     "rematter:oxygen": 2,
-    "rematter:ender_essence": 1,
-    "rematter:quantum_essence": 1
+    "rematter:enderion": 1,
+    "rematter:quantium": 1
   },
   "phases": [
     "solid"

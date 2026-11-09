@@ -13,7 +13,7 @@ class AutomationRecipeCatalogueTest {
         var recipes=AutomationRecipeCatalogue.chemistry(registry,id->true,id->true);
         for(var profile:registry.profiles()) {
             var outputs=Map.of(Resource.item(profile.itemId()),(long)profile.itemCount());
-            assertEquals(registry.synthesisPolicy().allowsItem(profile.itemId()),recipes.stream().anyMatch(r->r.workerKind().equals("material_synthesizer")&&r.outputs().equals(outputs)),profile.itemId());
+            assertEquals(registry.synthesisPolicy().allowsItem(profile.itemId()),recipes.stream().anyMatch(r->r.workerKind().equals(registry.synthesisPolicy().requirement(profile.itemId()).machine())&&r.outputs().equals(outputs)),profile.itemId());
             assertTrue(recipes.stream().anyMatch(r->r.workerKind().equals("decomposer")&&r.inputs().equals(outputs)&&r.outputs().equals(AutomationRecipeCatalogue.matter(profile.matter()))),profile.itemId());
         }
         for(var profile:registry.fluidProfiles()) {

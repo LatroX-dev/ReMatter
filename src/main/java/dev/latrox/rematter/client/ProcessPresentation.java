@@ -20,20 +20,22 @@ public final class ProcessPresentation {
     }
 
     public static Optional<Product> resolve(ChemistryRegistry registry, MachineKind kind, String id, String name) {
-        if (kind == MachineKind.SYNTHESIZER) {
+        if (kind.synthesis()) {
             if (id.startsWith("fluid:")) {
                 String fluid = id.substring(6);
-                if (!registry.synthesisPolicy().allowsFluid(fluid)) return Optional.empty();
+                if (!registry.synthesisPolicy().allowsFluid(fluid)||!registry.synthesisPolicy().allowsMachine(fluid,kind.id())) return Optional.empty();
                 return registry.fluidProfile(fluid).map(profile -> new Product(id, name, "fluid", fluid,
                         profile.amount(), profile.matter(), Map.of(), profile.synthesisEnergy(), profile.ticks()));
             }
-            if (!registry.synthesisPolicy().allowsItem(id)) return Optional.empty();
+            if (!registry.synthesisPolicy().allowsItem(id) || !registry.synthesisPolicy().allowsMachine(id, kind.id())) return Optional.empty();
             return registry.profile(id).map(profile -> new Product(id, name, "item", id, profile.itemCount(),
                     profile.matter(), Map.of(), profile.synthesisEnergy(), profile.ticks()));
         }
-        if (kind != MachineKind.ELECTROLYZER && kind != MachineKind.REACTOR && kind != MachineKind.INDUSTRIAL_REACTOR) return Optional.empty();
+        if (kind == MachineKind.AIR_SEPARATOR) return registry.environmentSource(SubstanceId.parse(id))
+                .map(source -> new Product(id, name, "matter", "", source.outputs().size(), Map.of(), source.outputs(), source.energy(), source.ticks()));
+        if (!kind.selectable()) return Optional.empty();
         return registry.recipe(SubstanceId.parse(id))
-                .filter(recipe -> (kind == MachineKind.ELECTROLYZER) == (recipe.type() == ProcessType.ELECTROLYSIS))
+                .filter(recipe -> dev.latrox.rematter.content.MachineRouting.supports(kind, recipe.type()))
                 .map(recipe -> new Product(id, name, "matter", "", recipe.outputs().size(),
                         recipe.inputs(), recipe.outputs(), recipe.energy(), recipe.ticks()));
     }

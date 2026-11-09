@@ -42,8 +42,11 @@ public final class MachineAutomationRecipes {
     private static List<String> items(Ingredient ingredient) {
         return ingredient.items().filter(holder->ingredient.test(new net.minecraft.world.item.ItemStack(holder))).map(holder->BuiltInRegistries.ITEM.getKey(holder.value()).toString()).distinct().sorted().toList();
     }
+    public static boolean supports(MachineBlockEntity machine,Recipe recipe) {
+        return supports(machine.kind(),recipe)&&machine.crystallizationTier()>=recipe.requiredTier()&&machine.progressAllows(recipe.requiresAdvancement());
+    }
     public static boolean supports(MachineKind kind,Recipe recipe) {
-        return kind.id().equals(recipe.workerKind()) || kind==MachineKind.INDUSTRIAL_REACTOR&&recipe.workerKind().equals(MachineKind.REACTOR.id())
+        return kind.id().equals(recipe.workerKind()) || kind==MachineKind.INDUSTRIAL_REACTOR&&(recipe.workerKind().equals(MachineKind.REACTOR.id())||recipe.workerKind().equals(MachineKind.SEPARATOR.id())||recipe.workerKind().equals(MachineKind.THERMAL_PROCESSOR.id()))
                 || kind==MachineKind.INDUSTRIAL_PREPARATOR&&recipe.workerKind().equals(MachineKind.PREPARATOR.id());
     }
 }

@@ -1,5 +1,7 @@
 {
   "schema_version": 1,
   "item": "minecraft:emerald",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 1,
   "category": "raw_material"
 }

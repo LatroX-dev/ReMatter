@@ -29,12 +29,18 @@ public final class ShippedChemistry {
     }
 
     public static ChemistryRegistry load(Path... roots) {
+        return load(mod -> true, roots);
+    }
+
+    public static ChemistryRegistry load(java.util.function.Predicate<String> mods, Path... roots) {
         ChemistryRegistry core = BuiltinChemistry.create();
         Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
         Map<String, MaterialProfile> profiles = new TreeMap<>();
         Map<String, FluidProfile> fluids = new TreeMap<>();
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         Map<String, SynthesisCategory> permissions = new TreeMap<>();
+        Map<String, SynthesisRequirement> requirements = new TreeMap<>();
+        Map<SubstanceId, EnvironmentSource> sources = new TreeMap<>();
         core.substances().forEach(value -> substances.put(value.id(), value));
         core.processes().forEach(value -> processes.put(value.id(), value));
         Map<String, Path> documents = new TreeMap<>();
@@ -46,6 +52,7 @@ public final class ShippedChemistry {
             String relative = parts[4];
             SubstanceId id = SubstanceId.parse(parts[1] + ":" + relative.substring(0, relative.length() - 5));
             JsonObject json = read(document.getValue());
+            if (!ChemistryDocuments.modsMet(json, mods)) continue;
             ChemistryDocuments.requireSchema(json);
             boolean disabled = ChemistryDocuments.disabled(json);
             switch (directory) {
@@ -70,7 +77,14 @@ public final class ShippedChemistry {
                 case "synthesis" -> {
                     String target = unique(targets, directory, ChemistryDocuments.string(json, "item"), document.getKey());
                     if (disabled) permissions.remove(target);
-                    else permissions.put(target, ChemistryDocuments.synthesisCategory(json));
+                    else {
+                        permissions.put(target, ChemistryDocuments.synthesisCategory(json));
+                        requirements.put(target, ChemistryDocuments.synthesisRequirement(json));
+                    }
+                }
+                case "environment_source" -> {
+                    if (disabled) sources.remove(id);
+                    else sources.put(id, ChemistryDocuments.environmentSource(id, json));
                 }
                 default -> throw new IllegalStateException("Unexpected chemistry directory: " + document.getKey());
             }
@@ -80,7 +94,8 @@ public final class ShippedChemistry {
         profiles.values().forEach(builder::addProfile);
         fluids.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
-        permissions.forEach(builder::allowSynthesis);
+        permissions.forEach((id, category) -> builder.allowSynthesis(id, category, requirements.get(id)));
+        sources.values().forEach(builder::addEnvironmentSource);
         return builder.build();
     }
 

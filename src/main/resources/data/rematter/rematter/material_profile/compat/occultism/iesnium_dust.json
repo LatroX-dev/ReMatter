@@ -4,7 +4,7 @@
   "item": "occultism:iesnium_dust",
   "matter": [
     {
-      "substance": "rematter:arcane_essence",
+      "substance": "rematter:arcanium",
       "phase": "solid",
       "amount": 400
     },
@@ -14,7 +14,7 @@
       "amount": 400
     },
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 200
     }

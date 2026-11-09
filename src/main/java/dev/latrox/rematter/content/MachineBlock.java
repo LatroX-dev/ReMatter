@@ -86,7 +86,7 @@ public final class MachineBlock extends Block implements EntityBlock {
             case ANALYZER -> Shapes.or(base,box(3.2,3.7,2.7,12.8,4.6,12.3),
                     box(1.7,3.2,10.6,3.7,12.3,14.3),box(3,12,9.7,11.7,14.7,14.3),
                     box(12,3.2,10.8,14,9,14.3));
-            case SYNTHESIZER -> Shapes.or(base,box(3.7,4.1,3.1,12.3,5,11.7),
+            case SYNTHESIZER, CRYSTALLIZER -> Shapes.or(base,box(3.7,4.1,3.1,12.3,5,11.7),
                     box(1.4,3.2,2.6,4.6,10.9,5.8),box(11.4,3.2,2.6,14.6,10.9,5.8),
                     box(6.4,3.2,10.8,9.6,15.1,14));
             case DECOMPOSER -> Shapes.or(base,box(3.4,3.8,3,12.6,4.7,12.2),
@@ -99,9 +99,9 @@ public final class MachineBlock extends Block implements EntityBlock {
                     box(2.2,9.1,3.8,4,13.2,12.4),box(12,9.1,3.8,13.8,13.2,12.4),
                     box(3.5,3.3,4.2,12.5,5.2,11.8),box(13.4,10.3,5.2,15.95,15.2,6.8),
                     box(4,9.6,4.4,12,12.4,11),box(3.6,6.85,4.7,12.4,7.15,10.7));
-            case ELECTROLYZER -> Shapes.or(base,box(2,3.2,4.5,6.6,14.5,11.5),
+            case ELECTROLYZER, THERMAL_PROCESSOR, AIR_SEPARATOR -> Shapes.or(base,box(2,3.2,4.5,6.6,14.5,11.5),
                     box(9.4,3.2,4.5,14,14.5,11.5),box(6.9,3.2,11.5,9.1,14.6,14.8));
-            case REACTOR -> Shapes.or(base,box(3.1,3.9,3.1,12.9,4.8,12.9),
+            case REACTOR, SEPARATOR -> Shapes.or(base,box(3.1,3.9,3.1,12.9,4.8,12.9),
                     box(1.7,4.5,10.7,3.1,13.4,12.4),box(12.9,4.5,10.7,14.3,13.4,12.4),
                     box(2.7,13.1,5.8,3.5,13.6,10.2),box(12.5,13.1,5.8,13.3,13.6,10.2),
                     box(5.8,13.1,2.7,10.2,13.6,3.5),box(5.5,13.1,11.4,10.5,14.5,13.6));
@@ -206,7 +206,7 @@ public final class MachineBlock extends Block implements EntityBlock {
     }
     @Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {
         // Vanilla appends full block data after this call, so an empty result must stop foreign data picks.
-        if (includeData && level.getBlockEntity(pos) instanceof MachineBlockEntity machine && !machine.canAccess(player)) {
+        if (includeData && level.getBlockEntity(pos) instanceof MachineBlockEntity machine && !machine.canRemove(player)) {
             return ItemStack.EMPTY;
         }
         return new ItemStack(this);

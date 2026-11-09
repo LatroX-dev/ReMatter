@@ -6,8 +6,8 @@
   "composition": {
     "rematter:silicon": 1,
     "rematter:oxygen": 2,
-    "rematter:arcane_essence": 1,
-    "rematter:nether_essence": 1
+    "rematter:arcanium": 1,
+    "rematter:cinderium": 1
   },
   "phases": [
     "solid"

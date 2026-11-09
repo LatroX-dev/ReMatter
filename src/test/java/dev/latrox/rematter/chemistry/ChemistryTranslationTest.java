@@ -57,6 +57,7 @@ class ChemistryTranslationTest {
                 }
             }
         }
+        ShippedChemistry.standalone().environmentSources().forEach(source->required.add(source.translationKey()));
         JsonObject language = read(Path.of("src/main/resources/assets/rematter/lang/en_us.json"));
         Set<String> missing = new TreeSet<>(required);
         missing.removeIf(key -> language.has(key) && !language.get(key).getAsString().isBlank());

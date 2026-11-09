@@ -202,8 +202,8 @@ class OrderLedgerTest {
     }
     @Test void exactJsonRejectsFutureFieldsDuplicateKeysAndFractionalAmountsWithoutLosingRawData() {
         var ledger=accepted(1);String valid=OrderLedgerCodec.write(ledger);
-        for(String raw:List.of(valid.replace("\"schema\":1","\"schema\":42"),valid.replace("\"schema\":1","\"schema\":1,\"future\":99"),
-                valid.replace("\"schema\":1","\"schema\":1,\"schema\":1"),valid.replace("\"amount\":10","\"amount\":10.5"),"[]","not json")) {
+        for(String raw:List.of(valid.replace("\"schema\":2","\"schema\":42"),valid.replace("\"schema\":2","\"schema\":2,\"future\":99"),
+                valid.replace("\"schema\":2","\"schema\":2,\"schema\":2"),valid.replace("\"amount\":10","\"amount\":10.5"),"[]","not json")) {
             var loaded=OrderLedgerCodec.read(raw);assertFalse(loaded.readable());assertEquals(raw,loaded.write());
         }
         assertEquals(ledger.snapshot(),OrderLedgerCodec.read(valid).ledger().orElseThrow().snapshot());
@@ -215,7 +215,7 @@ class OrderLedgerTest {
                 order.ownedInputs(),Map.of(GLASS,1L),false,"",null));
         assertThrows(IllegalArgumentException.class,()->new OrderLedger.Order(order.id(),order.recipe(),1,1,0,
                 Map.of(COPPER,11L),Map.of(),true,"",null));
-        assertThrows(IllegalArgumentException.class,()->OrderLedger.restore(new OrderLedger.Snapshot(1,List.of(order,order))));
+        assertThrows(IllegalArgumentException.class,()->OrderLedger.restore(new OrderLedger.Snapshot(OrderLedger.SCHEMA,List.of(order,order))));
     }
     @Test void anOwnerReleasesAStoppedDeliveryOnlyOnceAndOnlyWhatItHolds() {
         var ledger=accepted(2);var id=ledger.next().orElseThrow().id();completeOne(ledger,id);

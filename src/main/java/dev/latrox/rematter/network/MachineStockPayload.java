@@ -14,13 +14,17 @@ import net.minecraft.resources.Identifier;
  * travel. {@code totalTypes} counts every stored type, so a list limited to the row maximum is reported, not hidden.
  */
 public record MachineStockPayload(int containerId, boolean reset, boolean readable, int totalTypes,
-                                  List<MachineSnapshot.Entry> changed, List<MachineSnapshot.StockKey> removed) implements CustomPacketPayload {
+                                  List<MachineSnapshot.Entry> changed, List<MachineSnapshot.StockKey> removed,
+                                  int matchingTypes,int listedTypes,boolean approximate) implements CustomPacketPayload {
     public static final Type<MachineStockPayload> TYPE = new Type<>(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "machine_stock"));
 
+    public MachineStockPayload(int containerId,boolean reset,boolean readable,int totalTypes,List<MachineSnapshot.Entry> changed,List<MachineSnapshot.StockKey> removed) {
+        this(containerId,reset,readable,totalTypes,changed,removed,totalTypes,changed.size(),false);
+    }
     public MachineStockPayload {
         changed = List.copyOf(changed);
         removed = List.copyOf(removed);
-        if (totalTypes < 0 || changed.size() > MachineSnapshot.MAX_ENTRIES || removed.size() > MachineSnapshot.MAX_ENTRIES)
+        if (matchingTypes<0||matchingTypes>totalTypes||listedTypes<0||listedTypes>MachineSnapshot.MAX_ENTRIES||totalTypes < 0 || changed.size() > MachineSnapshot.MAX_ENTRIES || removed.size() > MachineSnapshot.MAX_ENTRIES)
             throw new IllegalArgumentException("Invalid stock change");
     }
 
@@ -37,7 +41,7 @@ public record MachineStockPayload(int containerId, boolean reset, boolean readab
             var removed = new ArrayList<MachineSnapshot.StockKey>(removedCount);
             for (int i = 0; i < removedCount; i++) removed.add(new MachineSnapshot.StockKey(
                     buffer.readUtf(MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH), buffer.readUtf(16)));
-            return new MachineStockPayload(container, reset, readable, total, changed, removed);
+            return new MachineStockPayload(container, reset, readable, total, changed, removed,buffer.readVarInt(),buffer.readVarInt(),buffer.readBoolean());
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, MachineStockPayload value) {
             buffer.writeVarInt(value.containerId);
@@ -52,6 +56,7 @@ public record MachineStockPayload(int containerId, boolean reset, boolean readab
             for (var key : value.removed) {
                 buffer.writeUtf(key.id(), MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH); buffer.writeUtf(key.phase(), 16);
             }
+            buffer.writeVarInt(value.matchingTypes);buffer.writeVarInt(value.listedTypes);buffer.writeBoolean(value.approximate);
         }
     };
 

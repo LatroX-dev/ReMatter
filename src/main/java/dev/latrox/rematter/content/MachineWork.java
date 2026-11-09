@@ -9,6 +9,7 @@ final class MachineWork {
     boolean processedThisTick;
     int preparationStage = -1;
     boolean preparationMixing;
+    BatchReservations.Ticket ticket;
 
     void reset() { progress = 0; duration = 0; job = ""; }
 }

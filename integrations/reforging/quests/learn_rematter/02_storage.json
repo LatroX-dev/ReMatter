@@ -1,0 +1,54 @@
+{
+  "title": "Store Quantities, Keep the Cell",
+  "description": [
+    "Use powered preparation to make the colored Matrix Crystals. Place a Decomposer, Matter Drive and Material Synthesizer in a touching row, all owned by the same player. Insert a Cell into any Drive bay and supply FE to both processors.",
+    "The Cell stores actual substance quantities and stays in the Drive. Solids, liquids and gases share capacity. There is no individual inventory item for each element. ReMatter adds no generator."
+  ],
+  "icon": "rematter:matter_drive",
+  "x": 3.6,
+  "y": 0.0,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:material_preparator"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matter_drive"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matter_cell_64k"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/01_matrix"
+    ]
+  },
+  "routes": {}
+}

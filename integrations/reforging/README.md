@@ -4,7 +4,7 @@ This optional integration applies specific rules while ReMatter, Replication, an
 
 ## Quartz
 
-Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem itself stays recovery-only: the standalone mod disables it because Ender IO grinding balls would multiply it, and this integration never widens the standalone synthesis list. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
+Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem is synthesizable in the Crystallizer. The standalone mod disables it while Ender IO is loaded; this integration explicitly restores it together with the bonus-free milling override below. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
 
 Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. Virelite keeps the quartz share of its preparation batch as crystalline silica and its sand and clay shares as amorphous silica and clay, so sand and clay add no electrolysis feedstock.
 
@@ -18,19 +18,25 @@ The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exact
 
 Recovery preserves the approved material identity and quantity. Nine nuggets, one ingot or full dust, and one ninth of a normal metal block represent the same amount. Four-gem quartz and amethyst blocks use their actual four-item recipes. Refined powders, charged crystals, fuels and distinct mineral grades must not become interchangeable merely because their names or tags are similar.
 
-One obsidian block mills into four dusts. The integration disables Occultism's one-dust obsidian crystallization and its gray paste crafting recipe because each turns a single dust into a whole block. Ender IO's obsidian grinding keeps its four dusts without grinding-ball bonuses, which would otherwise yield up to eight. Four dusts recover one block. Neither the dusts nor the block can be synthesized; the standalone mod has no grinding correction, so it disables the block too. Ender IO mills one pearl into nine fragments. Occultism crushes one pearl into one full ReMatter powder and crystallizes a pearl from one full ReMatter or AE2 powder. The JAOPCA storage block packs and unpacks exactly nine Ender IO fragments.
+One obsidian block mills into four dusts. The integration disables Occultism's one-dust obsidian crystallization and its gray paste crafting recipe because each turns a single dust into a whole block. Ender IO's obsidian grinding keeps its four dusts without grinding-ball bonuses, which would otherwise yield up to eight. Four dusts recover one block. The obsidian block is explicitly synthesizable in this integration; its four-dust quantity is preserved. Standalone disables the block while Ender IO is loaded because it cannot correct native grinding on its own. Ender IO mills one pearl into nine fragments. Occultism crushes one pearl into one full ReMatter powder and crystallizes a pearl from one full ReMatter or AE2 powder. The JAOPCA storage block packs and unpacks exactly nine Ender IO fragments.
 
 The standalone catalogue recovers ambiguous alloys only as the constituents common to all interchangeable recipes, for example copper from brass, and gives decomposition and synthesis separate permissions. Netherite ingots, blocks and dusts recover the smallest share of gold and Netherium any native route uses and cannot be synthesized. The integration disables Easy Netherite's recipe, which crafts a Netherite Ingot from an iron ingot and an ender pearl and would turn both into gold and Netherium. Raw ores, enriched intermediates, fuel families and manufactured components do not gain synthesis from this integration. In particular, coal dust must not provide a cheaper route to coal, and refined-obsidian powder must not bypass the osmium used to make its ingot.
 
-The data tests retain conservative energy floors for the included water-to-hydrogen, water-to-steam and stone-to-lava routes at the maximum 20% Efficiency Upgrade saving. They do not cover the additional Field Stabilizer saving of an Industrial Reactor, which can run the steam and lava steps; that saving needs its own balance review. These floors depend on the target pack's generator configuration; changing fuel values, turbine efficiencies, chemical conversion ratios or adding new feedstock routes requires another balance review. They do not imply that every generator, resource farm or recipe combination has been exercised in gameplay. Intentional ore enrichment, crystal growth, seeds and bees are not disabled by these rules.
+The energy regression tests use the production pricing function across legal compact/industrial routing, structure savings and upgrades. All savings combined are capped at 25%. The tested floors exceed the reference hydrogen, steam and lava generator yields. Parallel lanes pay independently. Generator changes still require a new review; the tests do not claim coverage of every farm, fuel or recipe combination. Intentional ore enrichment, crystal growth, seeds and bees remain available.
 
 ## Machines and Cells
+
+The optional `quests/learn_rematter/` chapter adds nine lessons in the pack's native Embers Questing format. Copy it to `config/embersquesting/books/main/chapters/learn_rematter/` alongside this integration. It uses existing Power Systems grouping and does not replace the book or other chapters. Tasks detect the listed items; the descriptions guide practical process checks, byproduct handling and comparing native production alternatives.
 
 These machines, Matter Cells, recovery items and automation patterns are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
 
 - `rematter:analyzer`
 - `rematter:decomposer`
 - `rematter:material_synthesizer`
+- `rematter:separator`
+- `rematter:thermal_processor`
+- `rematter:crystallizer`
+- `rematter:air_separator`
 - `rematter:electrolyzer`
 - `rematter:chemical_reactor`
 - `rematter:matter_terminal`

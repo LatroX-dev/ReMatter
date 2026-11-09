@@ -15,6 +15,10 @@ item_ids:
   - rematter:cell_housing
   - rematter:matter_cell_64k
 ---
+# Before you start
+
+Plan an early midgame workshop with iron, copper, redstone, gold, sand, clay, glass and an external FE source. The complete starter storage line needs **one diamond for the Drive** and **three emeralds for the Synthesizer**. Glass teaches the controls; silicon, bronze and steel are later practical goals. The first Hand Preparator itself needs no power.
+
 # Make the matrix by hand
 
 The first Hand Preparator needs no FE, Circuit, Crystal, Cell, Drive or Analyzer. A furnace completes its crystal feedstock.

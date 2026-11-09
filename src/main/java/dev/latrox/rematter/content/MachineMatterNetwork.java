@@ -171,6 +171,11 @@ final class MachineMatterNetwork {
         };
     }
     List<MachineBlockEntity> interfaces() { return interfaces; }
+    Object planningKey() { return List.of(owner, status, endpoints); }
+    Set<?> planningMembers() { return inventory == null ? Set.of() : Set.copyOf(inventory.members()); }
+    boolean hasManualWork(MachineBlockEntity except) {
+        return workers.stream().anyMatch(machine -> machine != except && machine.hasManualWork());
+    }
     MachineSnapshot.NetworkView view() {
         return new MachineSnapshot.NetworkView(status, Math.min(MAX_NODES, nodes.size()), storageCount, cellCount,
                 ready() ? inventory.total() : 0, ready() ? inventory.capacity() : 0,
@@ -257,6 +262,7 @@ final class MachineMatterNetwork {
         boolean matches(ServerLevel level, UUID owner) {
             if (level.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4) == null
                     || level.getBlockState(position).getBlock() != block || level.getBlockEntity(position) != entity) return false;
+            if(cable()&&!owner.equals(CableOwners.owner(level,position)))return false;
             if (entity instanceof MachineBlockEntity machine) {
                 if (!machine.networkLive() || !Objects.equals(owner, machine.networkOwner())) return false;
                 if (machine.kind().isStorage() && (!localStatus.equals(machine.networkStorageStatus())
@@ -361,7 +367,7 @@ final class MachineMatterNetwork {
             var state = level.getBlockState(position);
             BlockEntity entity = level.getBlockEntity(position);
             Node result = null;
-            if (state.getBlock() instanceof MatterCableBlock cable)
+            if (state.getBlock() instanceof MatterCableBlock cable&&owner.equals(CableOwners.owner(level,position)))
                 result = new Node(position, cable, cable.tier().ordinal(), entity, null, null, "", "", List.of());
             else if (entity instanceof MachineBlockEntity machine && machine.networkLive() && Objects.equals(owner, machine.networkOwner())) {
                 String structure = "";

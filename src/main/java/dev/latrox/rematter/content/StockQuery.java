@@ -14,12 +14,23 @@ import java.util.Set;
  * The server ranks rows that pass every filter first and favorites first within each group, and only then applies the
  * limit, so neither matches nor favorites are cut off by it. The client still filters the rows it receives.
  */
-public record StockQuery(String text, Set<String> phases, boolean favoritesOnly, Set<StockKey> favorites, Set<String> named) {
+public record StockQuery(String text, Set<String> phases, boolean favoritesOnly, Set<StockKey> favorites, Set<String> named, boolean namesTruncated) {
     public static final int MAX_TEXT = 128;
     public static final int MAX_FAVORITES = 256;
     public static final int MAX_NAMED = 256;
     public static final Set<String> PHASES = Set.of("solid", "liquid", "gas");
     public static final StockQuery ALL = new StockQuery("", Set.of(), false, Set.of(), Set.of());
+
+    public StockQuery(String text, Set<String> phases, boolean favoritesOnly, Set<StockKey> favorites, Set<String> named) {
+        this(text,phases,favoritesOnly,favorites,named,false);
+    }
+
+    public boolean matches(SubstanceKey key) {
+        String search=text.strip().toLowerCase(Locale.ROOT);String id=key.id().toString();String phase=key.phase().name().toLowerCase(Locale.ROOT);
+        return (phases.isEmpty()||phases.contains(phase))&&(!favoritesOnly||favorites.contains(new StockKey(id,phase)))
+                &&(search.isEmpty()||id.toLowerCase(Locale.ROOT).contains(search)||phase.contains(search)||named.contains(id));
+    }
+    public int matches(Iterable<SubstanceKey> keys) {int count=0;for(var key:keys)if(matches(key))count++;return count;}
 
     public StockQuery {
         phases = Set.copyOf(phases); favorites = Set.copyOf(favorites); named = Set.copyOf(named);
@@ -48,8 +59,7 @@ public record StockQuery(String text, Set<String> phases, boolean favoritesOnly,
             String id = key.id().toString();
             String phase = key.phase().name().toLowerCase(Locale.ROOT);
             boolean favorite = favorites.contains(new StockKey(id, phase));
-            boolean shown = (phases.isEmpty() || phases.contains(phase)) && (!favoritesOnly || favorite)
-                    && (search.isEmpty() || id.toLowerCase(Locale.ROOT).contains(search) || phase.contains(search) || named.contains(id));
+            boolean shown = matches(key);
             var rank = ranks.get((shown ? 0 : 2) + (favorite ? 0 : 1));
             if (rank.size() < limit) rank.add(key);
         }

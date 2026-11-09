@@ -20,7 +20,7 @@ public final class AutomationRecipeCatalogue {
             var matter = matter(p.matter());
             result.add(recipe(id("decompose_item",p.itemId()),"decomposer",item,matter,p.decompositionEnergy(),p.ticks()));
             if (registry.synthesisPolicy().allowsItem(p.itemId())) result.add(recipe(id("synthesize_item",p.itemId()),
-                    "material_synthesizer",matter,item,p.synthesisEnergy(),p.ticks()));
+                    registry.synthesisPolicy().requirement(p.itemId()).machine(),matter,item,p.synthesisEnergy(),p.ticks(),registry.synthesisPolicy().requirement(p.itemId()).advancement(),registry.synthesisPolicy().requirement(p.itemId()).tier()));
         }
         for (var p : registry.fluidProfiles()) {
             if (!fluidExists.test(p.fluidId())) continue;
@@ -28,10 +28,10 @@ public final class AutomationRecipeCatalogue {
             var matter = matter(p.matter());
             result.add(recipe(id("decompose_fluid",p.fluidId()),"decomposer",fluid,matter,p.decompositionEnergy(),p.ticks()));
             if (registry.synthesisPolicy().allowsFluid(p.fluidId())) result.add(recipe(id("synthesize_fluid",p.fluidId()),
-                    "material_synthesizer",matter,fluid,p.synthesisEnergy(),p.ticks()));
+                    registry.synthesisPolicy().requirement(p.fluidId()).machine(),matter,fluid,p.synthesisEnergy(),p.ticks(),registry.synthesisPolicy().requirement(p.fluidId()).advancement(),registry.synthesisPolicy().requirement(p.fluidId()).tier()));
         }
         for (var p : registry.processes()) result.add(recipe(id("process",p.id().toString()),
-                p.type()==ProcessType.ELECTROLYSIS?"electrolyzer":"chemical_reactor",matter(p.inputs()),matter(p.outputs()),p.energy(),p.ticks()));
+                dev.latrox.rematter.content.MachineRouting.primary(p.type()).id(),matter(p.inputs()),matter(p.outputs()),p.energy(),p.ticks(),p.requiresAdvancement(),1));
         return checked(result);
     }
     public static Map<Resource,Long> matter(Map<SubstanceKey,Long> values) {
@@ -42,9 +42,12 @@ public final class AutomationRecipeCatalogue {
         var key=SubstanceId.parse(resource);return "rematter:automation/"+operation+"/"+key.namespace()+"/"+key.path();
     }
     public static Recipe recipe(String id,String worker,Map<Resource,Long> inputs,Map<Resource,Long> outputs,long energy,int ticks) {
-        String canonical=id+'\n'+worker+'\n'+new TreeMap<>(inputs)+'\n'+new TreeMap<>(outputs)+'\n'+energy+'\n'+ticks;
+        return recipe(id,worker,inputs,outputs,energy,ticks,"",1);
+    }
+    public static Recipe recipe(String id,String worker,Map<Resource,Long> inputs,Map<Resource,Long> outputs,long energy,int ticks,String advancement,int tier) {
+        String canonical=id+'\n'+worker+'\n'+new TreeMap<>(inputs)+'\n'+new TreeMap<>(outputs)+'\n'+energy+'\n'+ticks+'\n'+advancement+'\n'+tier;
         try {return new Recipe(id,HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))),
-                worker,inputs,outputs,energy,ticks);
+                worker,inputs,outputs,energy,ticks,advancement,tier);
         } catch (NoSuchAlgorithmException impossible) {throw new AssertionError(impossible);}
     }
     public static List<Recipe> checked(Collection<Recipe> recipes) {

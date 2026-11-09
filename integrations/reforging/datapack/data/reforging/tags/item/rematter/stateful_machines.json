@@ -72,6 +72,22 @@
     {
       "id": "rematter:sinter_furnace",
       "required": false
+    },
+    {
+      "id": "rematter:separator",
+      "required": false
+    },
+    {
+      "id": "rematter:thermal_processor",
+      "required": false
+    },
+    {
+      "id": "rematter:crystallizer",
+      "required": false
+    },
+    {
+      "id": "rematter:air_separator",
+      "required": false
     }
   ]
 }

@@ -33,7 +33,7 @@ public record StockQueryPayload(int containerId, StockQuery query) implements Cu
             int namedCount = MachineSnapshot.count(buffer, StockQuery.MAX_NAMED);
             var named = new HashSet<String>(namedCount);
             for (int i = 0; i < namedCount; i++) named.add(buffer.readUtf(MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH));
-            return new StockQueryPayload(containerId, new StockQuery(text, phases, favoritesOnly, favorites, named));
+            return new StockQueryPayload(containerId, new StockQuery(text, phases, favoritesOnly, favorites, named, buffer.readBoolean()));
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, StockQueryPayload payload) {
             var query = payload.query();
@@ -50,6 +50,7 @@ public record StockQueryPayload(int containerId, StockQuery query) implements Cu
             }
             buffer.writeVarInt(query.named().size());
             for (var id : query.named()) buffer.writeUtf(id, MachineSnapshot.MAX_SUBSTANCE_ID_LENGTH);
+            buffer.writeBoolean(query.namesTruncated());
         }
     };
 

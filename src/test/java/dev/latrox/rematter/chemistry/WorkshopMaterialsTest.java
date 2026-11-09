@@ -52,9 +52,9 @@ class WorkshopMaterialsTest {
     @Test void componentProfilesConserveTheWorkshopBatchAndKeepFiringRequired() throws Exception {
         var inputs = Map.of(
                 "rhevon", Map.of("rematter:iron", 3000L, "rematter:copper", 1000L,
-                        "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:arcane_essence", 1000L),
+                        "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:arcanium", 1000L),
                 "lumivex", Map.of("rematter:copper", 3000L, "rematter:gold", 1000L,
-                        "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:nether_essence", 1000L),
+                        "rematter:silicon", 1000L, "rematter:oxygen", 2000L, "rematter:cinderium", 1000L),
                 "virelite", Map.of("rematter:silicon", 1000L, "rematter:oxygen", 2000L,
                         "rematter:clay", 1000L, "rematter:crystalline_silica", 1000L));
         ChemistryRegistry elements = BuiltinChemistry.create();

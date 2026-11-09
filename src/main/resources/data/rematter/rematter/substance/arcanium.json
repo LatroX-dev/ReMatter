@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "translation_key": "substance.rematter.arcane_essence",
+  "translation_key": "substance.rematter.arcanium",
   "symbol": "Arc",
   "kind": "element",
   "composition": {
-    "rematter:arcane_essence": 1
+    "rematter:arcanium": 1
   },
   "phases": [
     "solid"

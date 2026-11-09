@@ -10,10 +10,17 @@ public record ProcessRecipe(
         Map<SubstanceKey, Long> inputs,
         Map<SubstanceKey, Long> outputs,
         long energy,
-        int ticks) {
+        int ticks,
+        String requiresAdvancement) {
+    public ProcessRecipe(SubstanceId id, ProcessType type, Map<SubstanceKey, Long> inputs,
+                         Map<SubstanceKey, Long> outputs, long energy, int ticks) {
+        this(id, type, inputs, outputs, energy, ticks, "");
+    }
     public ProcessRecipe {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(requiresAdvancement, "requiresAdvancement");
+        if (!requiresAdvancement.isEmpty()) SubstanceId.parse(requiresAdvancement);
         inputs = MatterAmounts.copy(inputs);
         outputs = MatterAmounts.copy(outputs);
         if (inputs.isEmpty() || outputs.isEmpty() || energy <= 0 || ticks <= 0) {

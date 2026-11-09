@@ -1,0 +1,48 @@
+{
+  "title": "Give Oxygen a Consumer",
+  "description": [
+    "Place an Air Separator in the Overworld, with an air block above and open sky. It makes 200 stored oxygen units for 16,000 base FE over 200 ticks. It needs a readable Cell and output space.",
+    "Enable Automation on the Matter Drive, connect a Mekanism Pressurized Tube, and supply oxygen to a Purification Chamber. This provides a practical consumer without a hydrogen surplus. No unused nitrogen byproduct is generated."
+  ],
+  "icon": "rematter:air_separator",
+  "x": 3.6,
+  "y": 7.2,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:air_separator"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "mekanism:purification_chamber"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/04_silicon"
+    ]
+  },
+  "routes": {}
+}

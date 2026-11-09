@@ -18,7 +18,15 @@ final class NetworkJobWorker {
     NetworkJobWorker(MachineBlockEntity machine) { this.machine = machine; }
 
     UUID id() { return id; }
+    private int parallelBatches;
+    int parallelRunning() {return parallelBatches;}
     boolean free() { return lease.current().isEmpty(); }
+    boolean readyClaim() {
+        var order=currentOrder();if(order==null||!machine.acceptsNetworkWork())return false;
+        var recipe=order.recipe();
+        return machine.crystallizationTier()>=recipe.requiredTier()&&machine.progressAllows(recipe.requiresAdvancement())
+                &&machine.energy().getAmountAsLong()>=machine.cost(baseEnergy(recipe.energy()));
+    }
     boolean has(MachineAutomationHost host, UUID order) { return lease.matches(host, order); }
     boolean shouldYield(String backend, boolean otherBackendReady) { return lease.shouldYield(backend, otherBackendReady); }
 
@@ -33,7 +41,7 @@ final class NetworkJobWorker {
 
     void release(MachineAutomationHost host, UUID order) {
         if (!lease.release(host, order)) return;
-        assignedTopology = null; signature = "";
+        assignedTopology = null; signature = ""; parallelBatches=0;
         machine.resetProgress(); machine.work().processedThisTick = false;
     }
 
@@ -75,14 +83,17 @@ final class NetworkJobWorker {
             release(claim); work.status = "storage_changed"; return;
         }
         var recipe = order.recipe();
+        if(!machine.progressAllows(recipe.requiresAdvancement())) {host.cancelRestricted(orderId,machine);work.status="requires_advancement";return;}
+        if(machine.crystallizationTier()<recipe.requiredTier()) {release(claim);work.status="requires_pressure";return;}
         long required = machine.cost(baseEnergy(recipe.energy()));
         int speed = machine.speed();
-        String current = recipe.revision() + ":" + required + ":" + speed;
+        String current = recipe.revision() + ":" + required + ":" + speed + ":" + machine.parallelCapacity();
         if (IndustrialStructure.isIndustrial(machine.kind())) current += ":" + IndustrialStructure.inspect(machine).layoutFingerprint();
         if (!signature.isEmpty() && !signature.equals(current)) { release(claim); work.status = "network_controlled"; return; }
         signature = current;
         var energy = machine.energy();
-        if (energy.getAmountAsLong() < required) { work.status = "insufficient_energy"; return; }
+        if(parallelBatches==0)parallelBatches=(int)Math.min(Math.min(machine.parallelCapacity(),order.remainingBatches()),energy.getAmountAsLong()/Math.max(1,required));
+        if (parallelBatches==0||energy.getAmountAsLong() < required*parallelBatches) { work.status = "insufficient_energy"; return; }
         if (!host.advance(orderId, machine, speed)) { release(claim); work.status = "network_controlled"; return; }
         order = host.order(orderId, machine);
         if (order == null) { release(claim); work.status = "network_controlled"; return; }
@@ -98,10 +109,15 @@ final class NetworkJobWorker {
                 release(claim); work.status = "storage_changed"; return;
             }
             // The ledger owns these inputs. Completion never withdraws the same matter or items again.
-            if (!host.complete(orderId, machine)) { release(claim); work.status = "network_controlled"; return; }
-            energy.set((int) (energy.getAmountAsLong() - required));
-            if (order.remainingBatches() == 1) lease.completed(host, orderId, host.backend());
-            host.changed(); work.progress = 0; work.duration = 0;
+            int completed=parallelBatches;
+            for(int lane=0;lane<completed;lane++) {
+                if(lane>0&&!host.advance(orderId,machine,recipe.ticks())) {release(claim);return;}
+                var finishing=host.order(orderId,machine);
+                if(finishing==null||!host.complete(orderId,machine)) {release(claim);work.status="network_controlled";return;}
+                energy.set((int)(energy.getAmountAsLong()-required));
+                if(finishing.remainingBatches()==1)lease.completed(host,orderId,host.backend());
+            }
+            parallelBatches=0;host.changed(); work.progress = 0; work.duration = 0;
         }
         machine.setChanged();
     }

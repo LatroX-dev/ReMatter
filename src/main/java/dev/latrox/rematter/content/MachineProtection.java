@@ -17,13 +17,17 @@ import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 public final class MachineProtection {
     private MachineProtection() {}
     @SubscribeEvent public static void beforeBreak(BreakBlockEvent event) {
+        if(event.getLevel() instanceof ServerLevel level&&level.getBlockState(event.getPos()).getBlock() instanceof MatterCableBlock
+                &&!CableOwners.canRemove(level,event.getPos(),event.getPlayer())) {
+            event.setCanceled(true);event.setNotifyClient(true);
+        }
         if (event.getLevel().getBlockEntity(event.getPos()) instanceof MachineBlockEntity machine
-                && (!machine.canUse(event.getPlayer()) || !machine.canRemoveCell())) {
+                && (!machine.canRemove(event.getPlayer()) || !machine.canRemoveCell())) {
             event.setCanceled(true);
             event.setNotifyClient(true);
         }
         if (event.getLevel() instanceof ServerLevel level && shellPart(level.getBlockState(event.getPos()))
-                && IndustrialStructure.controllersUsing(level, event.getPos()).stream().anyMatch(machine -> !machine.canUse(event.getPlayer()))) {
+                && IndustrialStructure.controllersUsing(level, event.getPos()).stream().anyMatch(machine -> !machine.canRemove(event.getPlayer()))) {
             event.setCanceled(true); event.setNotifyClient(true);
         }
     }
@@ -31,6 +35,7 @@ public final class MachineProtection {
         if (event.getLevel() instanceof ServerLevel level) event.getAffectedBlocks().removeIf(pos -> withstandsExplosion(level, pos));
     }
     private static boolean withstandsExplosion(ServerLevel level, BlockPos pos) {
+        if(level.getBlockState(pos).getBlock() instanceof MatterCableBlock&&CableOwners.owner(level,pos)!=null)return true;
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.networkOwner() != null) return true;
         return shellPart(level.getBlockState(pos)) && !IndustrialStructure.controllersUsing(level, pos).isEmpty();
     }

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:quartz",
+  "category": "raw_material",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 1
+}

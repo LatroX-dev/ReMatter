@@ -3,7 +3,7 @@
   "item": "minecraft:deepslate_redstone_ore",
   "matter": [
     {
-      "substance": "rematter:arcane_essence",
+      "substance": "rematter:arcanium",
       "phase": "solid",
       "amount": 1000
     },

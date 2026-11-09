@@ -36,32 +36,20 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:arcane_essence": 1
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
       ],
       "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. Crystalline silica carries one conserved fictional constituent per formula unit."
     },
-    "arcane_essence": {
-      "name": "Arcane Essence",
-      "symbol": "Arc",
-      "kind": "element",
-      "composition": {
-        "rematter:arcane_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
-    },
     "awakened_supremium_essence": {
       "name": "Awakened Supremium Essence",
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 4096,
-        "rematter:arcane_essence": 1024
+        "rematter:vitalium": 4096,
+        "rematter:arcanium": 1024
       },
       "phases": [
         "solid"
@@ -101,7 +89,7 @@
         "rematter:magnesium": 1,
         "rematter:silicon": 2,
         "rematter:oxygen": 6,
-        "rematter:arcane_essence": 1
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
@@ -116,7 +104,7 @@
         "rematter:aluminum": 2,
         "rematter:silicon": 2,
         "rematter:oxygen": 7,
-        "rematter:arcane_essence": 1
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
@@ -224,8 +212,8 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:arcane_essence": 1,
-        "rematter:nether_essence": 1
+        "rematter:arcanium": 1,
+        "rematter:cinderium": 1
       },
       "phases": [
         "solid"
@@ -264,8 +252,8 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:ender_essence": 1,
-        "rematter:quantum_essence": 1
+        "rematter:enderion": 1,
+        "rematter:quantium": 1
       },
       "phases": [
         "solid"
@@ -279,8 +267,8 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:arcane_essence": 1,
-        "rematter:quantum_essence": 1
+        "rematter:arcanium": 1,
+        "rematter:quantium": 1
       },
       "phases": [
         "solid"
@@ -295,7 +283,7 @@
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
         "rematter:sulfur": 1,
-        "rematter:nether_essence": 1
+        "rematter:cinderium": 1
       },
       "phases": [
         "solid"
@@ -317,18 +305,6 @@
       ],
       "basis": "Named material retained separately from amorphous ingredients and other crystal forms. Mineral formulas are simplified end members; fantasy crystals include conserved fictional constituents."
     },
-    "ender_essence": {
-      "name": "Enderion",
-      "symbol": "Edr",
-      "kind": "element",
-      "composition": {
-        "rematter:ender_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
-    },
     "entro": {
       "name": "Entro Crystal",
       "symbol": "",
@@ -336,7 +312,7 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:quantum_essence": 1
+        "rematter:quantium": 1
       },
       "phases": [
         "solid"
@@ -388,7 +364,7 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:quantum_essence": 1
+        "rematter:quantium": 1
       },
       "phases": [
         "solid"
@@ -451,8 +427,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 256,
-        "rematter:arcane_essence": 64
+        "rematter:vitalium": 256,
+        "rematter:arcanium": 64
       },
       "phases": [
         "solid"
@@ -464,8 +440,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 4,
-        "rematter:arcane_essence": 1
+        "rematter:vitalium": 4,
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
@@ -477,8 +453,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 4096,
-        "rematter:arcane_essence": 1024
+        "rematter:vitalium": 4096,
+        "rematter:arcanium": 1024
       },
       "phases": [
         "solid"
@@ -563,30 +539,6 @@
       ],
       "basis": "Element identity; formula quantities are game units, not kilograms."
     },
-    "nether_essence": {
-      "name": "Cinderium",
-      "symbol": "Cdr",
-      "kind": "element",
-      "composition": {
-        "rematter:nether_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
-    },
-    "netherite_scrap": {
-      "name": "Netherium",
-      "symbol": "Nt",
-      "kind": "element",
-      "composition": {
-        "rematter:netherite_scrap": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional refractory metal recovered from Ancient Debris and Netherite Scrap. Gold and Netherium make Netherite. Cinderium is a separate constituent."
-    },
     "nickel": {
       "name": "Nickel",
       "symbol": "Ni",
@@ -620,7 +572,7 @@
         "rematter:calcium": 1,
         "rematter:carbon": 1,
         "rematter:oxygen": 3,
-        "rematter:arcane_essence": 1
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
@@ -672,7 +624,7 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:vital_essence": 1
+        "rematter:vitalium": 1
       },
       "phases": [
         "solid"
@@ -686,7 +638,7 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:vital_essence": 1
+        "rematter:vitalium": 1
       },
       "phases": [
         "solid"
@@ -698,8 +650,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 1,
-        "rematter:arcane_essence": 1
+        "rematter:vitalium": 1,
+        "rematter:arcanium": 1
       },
       "phases": [
         "solid"
@@ -711,25 +663,13 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 16,
-        "rematter:arcane_essence": 4
+        "rematter:vitalium": 16,
+        "rematter:arcanium": 4
       },
       "phases": [
         "solid"
       ],
       "basis": "Each tier holds four of the tier below, matching the native infusion and uncrafting, so both constituents scale by four. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
-    },
-    "quantum_essence": {
-      "name": "Quantum Essence",
-      "symbol": "Qnt",
-      "kind": "element",
-      "composition": {
-        "rematter:quantum_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
     },
     "ruby": {
       "name": "Ruby",
@@ -805,7 +745,7 @@
         "rematter:aluminum": 2,
         "rematter:iron": 1,
         "rematter:oxygen": 12,
-        "rematter:stellar_essence": 1
+        "rematter:astrion": 1
       },
       "phases": [
         "solid"
@@ -829,25 +769,13 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 1,
-        "rematter:nether_essence": 1
+        "rematter:vitalium": 1,
+        "rematter:cinderium": 1
       },
       "phases": [
         "solid"
       ],
       "basis": "Soulium Dust drops from Nether Soulstone ores at the Prosperity scale, so it pairs one Vital Essence with one Cinderium. Distinct conserved magical-material state; no conversion between tiers, essence, infused metal and gemstone."
-    },
-    "stellar_essence": {
-      "name": "Stellar Essence",
-      "symbol": "Stl",
-      "kind": "element",
-      "composition": {
-        "rematter:stellar_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
     },
     "stellarite": {
       "name": "Stellarite",
@@ -856,7 +784,7 @@
       "composition": {
         "rematter:silicon": 1,
         "rematter:oxygen": 2,
-        "rematter:stellar_essence": 1
+        "rematter:astrion": 1
       },
       "phases": [
         "solid"
@@ -920,8 +848,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 1024,
-        "rematter:arcane_essence": 256
+        "rematter:vitalium": 1024,
+        "rematter:arcanium": 256
       },
       "phases": [
         "solid"
@@ -933,8 +861,8 @@
       "symbol": "",
       "kind": "mixture",
       "composition": {
-        "rematter:vital_essence": 64,
-        "rematter:arcane_essence": 16
+        "rematter:vitalium": 64,
+        "rematter:arcanium": 16
       },
       "phases": [
         "solid"
@@ -990,18 +918,6 @@
       ],
       "basis": "Element identity; formula quantities are game units, not kilograms."
     },
-    "vital_essence": {
-      "name": "Vital Essence",
-      "symbol": "Vt",
-      "kind": "element",
-      "composition": {
-        "rematter:vital_essence": 1
-      },
-      "phases": [
-        "solid"
-      ],
-      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
-    },
     "zinc": {
       "name": "Zinc",
       "symbol": "Zn",
@@ -1013,6 +929,90 @@
         "solid"
       ],
       "basis": "Element identity; formula quantities are game units, not kilograms."
+    },
+    "arcanium": {
+      "name": "Arcanium",
+      "symbol": "Arc",
+      "kind": "element",
+      "composition": {
+        "rematter:arcanium": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
+    },
+    "enderion": {
+      "name": "Enderion",
+      "symbol": "Edr",
+      "kind": "element",
+      "composition": {
+        "rematter:enderion": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
+    },
+    "cinderium": {
+      "name": "Cinderium",
+      "symbol": "Cdr",
+      "kind": "element",
+      "composition": {
+        "rematter:cinderium": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
+    },
+    "netherium": {
+      "name": "Netherium",
+      "symbol": "Nt",
+      "kind": "element",
+      "composition": {
+        "rematter:netherium": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional refractory metal recovered from Ancient Debris and Netherite Scrap. Gold and Netherium make Netherite. Cinderium is a separate constituent."
+    },
+    "quantium": {
+      "name": "Quantium",
+      "symbol": "Qnt",
+      "kind": "element",
+      "composition": {
+        "rematter:quantium": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
+    },
+    "astrion": {
+      "name": "Astrion",
+      "symbol": "Ast",
+      "kind": "element",
+      "composition": {
+        "rematter:astrion": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
+    },
+    "vitalium": {
+      "name": "Vitalium",
+      "symbol": "Vt",
+      "kind": "element",
+      "composition": {
+        "rematter:vitalium": 1
+      },
+      "phases": [
+        "solid"
+      ],
+      "basis": "Fictional conserved constituent shared by related mod materials; not a real periodic-table element."
     }
   },
   "families": {
@@ -1102,7 +1102,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "andesite": {
       "category": "composed_material",
@@ -1456,7 +1458,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "charcoal": {
       "substance": "charcoal",
@@ -1504,7 +1508,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "clay": {
       "substance": "clay",
@@ -1629,7 +1635,7 @@
             "amount": 2000
           },
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 125
           },
@@ -1739,7 +1745,7 @@
             "amount": 550
           },
           {
-            "substance": "rematter:stellar_essence",
+            "substance": "rematter:astrion",
             "phase": "solid",
             "amount": 200
           },
@@ -1765,7 +1771,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 2
     },
     "dimensional_shard": {
       "substance": "dimensional_shard",
@@ -1826,7 +1834,7 @@
             "amount": 200
           },
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 100
           },
@@ -1883,7 +1891,7 @@
             "amount": 225
           },
           {
-            "substance": "rematter:netherite_scrap",
+            "substance": "rematter:netherium",
             "phase": "solid",
             "amount": 450
           }
@@ -1936,7 +1944,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "end_steel": {
       "category": "composed_material",
@@ -1961,7 +1971,7 @@
             "amount": 250
           },
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 50
           },
@@ -1991,7 +2001,7 @@
             "amount": 200
           },
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 100
           },
@@ -2011,7 +2021,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 1000
           },
@@ -2031,7 +2041,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 500
           },
@@ -2056,7 +2066,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 500
           },
@@ -2164,7 +2174,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "fluxite": {
       "substance": "fluxite",
@@ -2191,7 +2203,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 1000
           },
@@ -2295,7 +2307,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "iesnium": {
       "category": "composed_material",
@@ -2305,7 +2319,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 400
           },
@@ -2315,7 +2329,7 @@
             "amount": 400
           },
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 200
           }
@@ -2468,12 +2482,12 @@
             "amount": 500
           },
           {
-            "substance": "rematter:quantum_essence",
+            "substance": "rematter:quantium",
             "phase": "solid",
             "amount": 250
           },
           {
-            "substance": "rematter:stellar_essence",
+            "substance": "rematter:astrion",
             "phase": "solid",
             "amount": 250
           }
@@ -2670,7 +2684,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 1000
           },
@@ -2705,7 +2719,7 @@
             "amount": 250
           },
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 250
           },
@@ -2725,7 +2739,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:stellar_essence",
+            "substance": "rematter:astrion",
             "phase": "solid",
             "amount": 400
           },
@@ -2772,7 +2786,7 @@
             "amount": 650
           },
           {
-            "substance": "rematter:vital_essence",
+            "substance": "rematter:vitalium",
             "phase": "solid",
             "amount": 200
           }
@@ -2792,7 +2806,7 @@
             "amount": 500
           },
           {
-            "substance": "rematter:netherite_scrap",
+            "substance": "rematter:netherium",
             "phase": "solid",
             "amount": 1000
           }
@@ -2800,7 +2814,7 @@
       }
     },
     "netherite_scrap": {
-      "substance": "netherite_scrap",
+      "substance": "netherium",
       "phase": "solid",
       "category": "element",
       "synthesis": true,
@@ -2808,7 +2822,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:netherite_scrap",
+            "substance": "rematter:netherium",
             "phase": "solid",
             "amount": 1000
           }
@@ -2829,7 +2843,7 @@
             "amount": 180
           },
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 20
           },
@@ -2865,7 +2879,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:stellar_essence",
+            "substance": "rematter:astrion",
             "phase": "solid",
             "amount": 500
           },
@@ -2879,7 +2893,7 @@
     },
     "obsidian": {
       "category": "composed_material",
-      "synthesis": false,
+      "synthesis": true,
       "basis": "Shared mineral constituents. Four dusts contain one block. Recovery only: Occultism gray_paste/obsidian and crystallize/obsidian turn one dust into a whole block, and Ender IO grinding balls mill one block into up to eight dusts.",
       "batch": {
         "items": 1,
@@ -2920,7 +2934,7 @@
             "amount": 500
           },
           {
-            "substance": "rematter:netherite_scrap",
+            "substance": "rematter:netherium",
             "phase": "solid",
             "amount": 1000
           },
@@ -2995,7 +3009,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "plastic": {
       "category": "composed_material",
@@ -3252,7 +3268,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 500
           },
@@ -3284,7 +3300,9 @@
           }
         ]
       },
-      "basis": "Crystalline quartz keeps its own identity; gems, dusts, nuggets and blocks share one batch. The gem is recovery-only because Ender IO grinding balls raise its milling bonus."
+      "basis": "Crystalline quartz keeps its own identity; gems, dusts, nuggets and blocks share one batch. The gem is recovery-only because Ender IO grinding balls raise its milling bonus.",
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "quicksilver": {
       "substance": "mercury",
@@ -3325,7 +3343,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 1000
           },
@@ -3345,7 +3363,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 1000
           },
@@ -3365,7 +3383,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 1000
           },
@@ -3435,7 +3453,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:quantum_essence",
+            "substance": "rematter:quantium",
             "phase": "solid",
             "amount": 400
           },
@@ -3476,7 +3494,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "salt": {
       "substance": "salt",
@@ -3492,7 +3512,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "sapphire": {
       "substance": "sapphire",
@@ -3508,7 +3530,9 @@
             "amount": 1000
           }
         ]
-      }
+      },
+      "synthesis_machine": "crystallizer",
+      "crystallization_tier": 1
     },
     "seashell": {
       "substance": "seashell",
@@ -3534,7 +3558,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 1000
           },
@@ -3767,12 +3791,12 @@
             "amount": 500
           },
           {
-            "substance": "rematter:quantum_essence",
+            "substance": "rematter:quantium",
             "phase": "solid",
             "amount": 250
           },
           {
-            "substance": "rematter:stellar_essence",
+            "substance": "rematter:astrion",
             "phase": "solid",
             "amount": 250
           }
@@ -4100,7 +4124,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 250
           },
@@ -4110,7 +4134,7 @@
             "amount": 125
           },
           {
-            "substance": "rematter:ender_essence",
+            "substance": "rematter:enderion",
             "phase": "solid",
             "amount": 500
           },
@@ -4125,7 +4149,7 @@
             "amount": 125
           },
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 500
           },
@@ -4161,7 +4185,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 250
           },
@@ -4191,7 +4215,7 @@
         "items": 1,
         "matter": [
           {
-            "substance": "rematter:arcane_essence",
+            "substance": "rematter:arcanium",
             "phase": "solid",
             "amount": 250
           },
@@ -4231,7 +4255,7 @@
             "amount": 250
           },
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 250
           },
@@ -4261,7 +4285,7 @@
             "amount": 250
           },
           {
-            "substance": "rematter:nether_essence",
+            "substance": "rematter:cinderium",
             "phase": "solid",
             "amount": 250
           },
@@ -4428,7 +4452,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1000
         },
@@ -4615,7 +4639,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 9000
         }
@@ -6291,7 +6315,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 4500
         },
@@ -6329,7 +6353,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -6367,7 +6391,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -6405,7 +6429,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -6987,7 +7011,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 9000
         },
@@ -7029,7 +7053,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -7071,7 +7095,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -7113,7 +7137,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -7602,7 +7626,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -9370,7 +9394,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 9000
         },
@@ -9412,7 +9436,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -9454,7 +9478,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -9496,7 +9520,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -10510,7 +10534,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -10546,7 +10570,7 @@
           "amount": 5850
         },
         {
-          "substance": "rematter:vital_essence",
+          "substance": "rematter:vitalium",
           "phase": "solid",
           "amount": 1800
         }
@@ -10583,7 +10607,7 @@
           "amount": 650
         },
         {
-          "substance": "rematter:vital_essence",
+          "substance": "rematter:vitalium",
           "phase": "solid",
           "amount": 200
         }
@@ -10620,7 +10644,7 @@
           "amount": 650
         },
         {
-          "substance": "rematter:vital_essence",
+          "substance": "rematter:vitalium",
           "phase": "solid",
           "amount": 200
         }
@@ -11918,7 +11942,7 @@
           "amount": 2250
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 450
         },
@@ -11969,7 +11993,7 @@
           "amount": 250
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 50
         },
@@ -12020,7 +12044,7 @@
           "amount": 250
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 50
         },
@@ -12056,7 +12080,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 4500
         },
@@ -12102,7 +12126,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 500
         },
@@ -12148,7 +12172,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 500
         },
@@ -12246,7 +12270,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1000
         },
@@ -12440,7 +12464,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 4500
         },
@@ -12477,7 +12501,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -12514,7 +12538,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -12551,7 +12575,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 9000
         },
@@ -12584,7 +12608,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -12617,7 +12641,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -12734,7 +12758,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 2250
         },
@@ -12744,7 +12768,7 @@
           "amount": 1125
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 4500
         },
@@ -12759,7 +12783,7 @@
           "amount": 1125
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 4500
         },
@@ -12790,7 +12814,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 250
         },
@@ -12800,7 +12824,7 @@
           "amount": 125
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -12815,7 +12839,7 @@
           "amount": 125
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 500
         },
@@ -12846,7 +12870,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 250
         },
@@ -12856,7 +12880,7 @@
           "amount": 125
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -12871,7 +12895,7 @@
           "amount": 125
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 500
         },
@@ -13150,7 +13174,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -13739,7 +13763,7 @@
           "amount": 2000
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 125
         },
@@ -13913,7 +13937,7 @@
           "amount": 250
         },
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 250
         },
@@ -14700,7 +14724,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 4500
         },
@@ -14738,7 +14762,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -14776,7 +14800,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -14814,7 +14838,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 500
         },
@@ -15395,7 +15419,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -17364,12 +17388,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -17661,12 +17685,12 @@
           "amount": 4500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 2250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 2250
         }
@@ -17698,12 +17722,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -17735,12 +17759,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -17772,12 +17796,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -17809,12 +17833,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -17846,12 +17870,12 @@
           "amount": 4500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 2250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 2250
         }
@@ -17883,12 +17907,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -18258,12 +18282,12 @@
           "amount": 500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 250
         }
@@ -19152,7 +19176,7 @@
           "amount": 550
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 200
         },
@@ -19186,7 +19210,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 500
         },
@@ -19220,7 +19244,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 400
         },
@@ -19285,12 +19309,12 @@
           "amount": 4500
         },
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 2250
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 2250
         }
@@ -19483,7 +19507,7 @@
           "amount": 18000
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1125
         },
@@ -19537,7 +19561,7 @@
           "amount": 1800
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 900
         },
@@ -19605,7 +19629,7 @@
           "amount": 2025
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 4050
         }
@@ -19638,7 +19662,7 @@
           "amount": 1800
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 900
         },
@@ -19670,7 +19694,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1000
         },
@@ -19759,7 +19783,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 9000
         },
@@ -19910,7 +19934,7 @@
           "amount": 2250
         },
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 2250
         },
@@ -19944,7 +19968,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 9000
         }
@@ -20304,7 +20328,7 @@
           "amount": 1500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 3000
         },
@@ -20397,7 +20421,7 @@
           "amount": 225
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 450
         }
@@ -20486,7 +20510,7 @@
           "amount": 1125
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 2250
         }
@@ -20782,7 +20806,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 9000
         },
@@ -21386,7 +21410,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -21778,7 +21802,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -22039,7 +22063,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -22398,7 +22422,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 3600
         },
@@ -22430,7 +22454,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 3600
         },
@@ -22462,7 +22486,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22494,7 +22518,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22526,7 +22550,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22558,7 +22582,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22590,7 +22614,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22622,7 +22646,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 400
         },
@@ -22910,7 +22934,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -23641,7 +23665,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -23883,7 +23907,7 @@
           "amount": 200
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 100
         },
@@ -23912,7 +23936,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1000
         },
@@ -23966,7 +23990,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 4000
         },
@@ -23995,7 +24019,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1000
         },
@@ -24429,7 +24453,7 @@
           "amount": 4500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 9000
         }
@@ -24460,7 +24484,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -24486,7 +24510,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -24518,7 +24542,7 @@
           "amount": 180
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 20
         },
@@ -24560,13 +24584,16 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 400,
-      "synthesis": false,
+      "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One natural block contains four obsidian dusts.",
         "tags": [],
-        "synthesis": "Recovery only. Ender IO sag_milling/obsidian repeats its four dusts with grinding-ball output bonuses, about seven and at most eight dusts per block, and each dust recovers a quarter block."
-      }
+        "synthesis": "Available without Ender IO; the ReForging integration supplies bonus-free SAG Milling overrides before enabling this output with Ender IO."
+      },
+      "unavailable_with_mods": [
+        "enderio"
+      ]
     },
     {
       "item": "minecraft:packed_ice",
@@ -24710,13 +24737,16 @@
       "decomposition_energy": 32000,
       "synthesis_energy": 64000,
       "ticks": 100,
-      "synthesis": false,
+      "synthesis": true,
       "evidence": {
         "registry": "Exact ID, material form and default components checked for Minecraft 26.1.2 / NeoForge 26.1.2.124.",
         "quantity": "One base material unit; nuggets use an exact nine-item batch; ore recovery is conservative and one-way",
         "tags": [],
-        "synthesis": "Recovery only. Ender IO sag_milling/quartz mills one gem into one powder plus a 10% bonus powder, and grinding balls raise that chance to 24%, so a synthesizable gem would gain crystalline silica on every pass. Quartz blocks mill into at most four gems and stay synthesizable."
-      }
+        "synthesis": "Available without Ender IO; the ReForging integration supplies bonus-free SAG Milling overrides before enabling this output with Ender IO."
+      },
+      "unavailable_with_mods": [
+        "enderio"
+      ]
     },
     {
       "item": "minecraft:quartz_block",
@@ -24907,7 +24937,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -24936,7 +24966,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 9000
         },
@@ -24965,7 +24995,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -27898,7 +27928,7 @@
           "amount": 200
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 100
         },
@@ -27996,7 +28026,7 @@
           "amount": 200
         },
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 100
         },
@@ -28110,7 +28140,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 3600
         },
@@ -28120,7 +28150,7 @@
           "amount": 3600
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1800
         }
@@ -28147,7 +28177,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 400
         },
@@ -28157,7 +28187,7 @@
           "amount": 400
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 200
         }
@@ -28184,7 +28214,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 400
         },
@@ -28194,7 +28224,7 @@
           "amount": 400
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 200
         }
@@ -28221,7 +28251,7 @@
       "item_count": 9,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 400
         },
@@ -28231,7 +28261,7 @@
           "amount": 400
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 200
         }
@@ -28258,7 +28288,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 400
         },
@@ -28268,7 +28298,7 @@
           "amount": 400
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 200
         }
@@ -28352,7 +28382,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -28378,7 +28408,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -28464,7 +28494,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 400
         },
@@ -28474,7 +28504,7 @@
           "amount": 400
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 200
         }
@@ -28501,7 +28531,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 3600
         },
@@ -28511,7 +28541,7 @@
           "amount": 3600
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 1800
         }
@@ -28761,7 +28791,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         },
@@ -30528,7 +30558,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 1000
         },
@@ -30663,7 +30693,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:ender_essence",
+          "substance": "rematter:enderion",
           "phase": "solid",
           "amount": 1000
         },
@@ -30782,7 +30812,7 @@
           "amount": 250
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 250
         },
@@ -30823,7 +30853,7 @@
           "amount": 250
         },
         {
-          "substance": "rematter:nether_essence",
+          "substance": "rematter:cinderium",
           "phase": "solid",
           "amount": 250
         },
@@ -30860,7 +30890,7 @@
           "amount": 500
         },
         {
-          "substance": "rematter:netherite_scrap",
+          "substance": "rematter:netherium",
           "phase": "solid",
           "amount": 1000
         }
@@ -30886,7 +30916,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 250
         },
@@ -30927,7 +30957,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:arcane_essence",
+          "substance": "rematter:arcanium",
           "phase": "solid",
           "amount": 250
         },
@@ -31038,7 +31068,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 400
         },
@@ -31070,7 +31100,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 400
         },
@@ -31102,7 +31132,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 3600
         },
@@ -31134,7 +31164,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 3600
         },
@@ -31166,7 +31196,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:quantum_essence",
+          "substance": "rematter:quantium",
           "phase": "solid",
           "amount": 400
         },
@@ -31340,7 +31370,7 @@
           "amount": 4950
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 1800
         },
@@ -31378,7 +31408,7 @@
           "amount": 550
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 200
         },
@@ -31416,7 +31446,7 @@
           "amount": 550
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 200
         },
@@ -31501,7 +31531,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 4500
         },
@@ -31534,7 +31564,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 500
         },
@@ -31567,7 +31597,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 500
         },
@@ -31605,7 +31635,7 @@
           "amount": 550
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 200
         },
@@ -31643,7 +31673,7 @@
           "amount": 4950
         },
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 1800
         },
@@ -31676,7 +31706,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 500
         },
@@ -31709,7 +31739,7 @@
       "item_count": 1,
       "matter": [
         {
-          "substance": "rematter:stellar_essence",
+          "substance": "rematter:astrion",
           "phase": "solid",
           "amount": 4500
         },
@@ -32658,6 +32688,25 @@
     {
       "substance": "rematter:water",
       "basis": "Water evaporation produces steam; Mekanism water vapor maps to the same gas."
+    }
+  ],
+  "environment_sources": [
+    {
+      "id": "rematter:air_oxygen",
+      "renewable": true,
+      "outputs": [
+        {
+          "substance": "rematter:oxygen",
+          "phase": "gas",
+          "amount": 200
+        }
+      ],
+      "energy": 16000,
+      "ticks": 200,
+      "dimensions": [
+        "minecraft:overworld"
+      ],
+      "requires_open_air": true
     }
   ]
 }

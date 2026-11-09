@@ -12,6 +12,8 @@ import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.content.preparation.PreparationWork;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+import java.util.TreeMap;
+import dev.latrox.rematter.chemistry.Phase;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -39,6 +41,7 @@ final class MachineOperations {
     private final MachineBlockEntity machine;
     private final MachineReadiness readiness = new MachineReadiness();
     private @Nullable PreparationRecipe lastPreparationRecipe;
+    private String restriction="";
 
     MachineOperations(MachineBlockEntity machine) { this.machine = machine; }
 
@@ -53,15 +56,31 @@ final class MachineOperations {
     boolean mixingPreparation() { return lastPreparationRecipe != null && !lastPreparationRecipe.singleInput(); }
 
     @Nullable Operation operation(ChemistryRegistry registry) {
+        return operation(registry,true);
+    }
+    /** A read-only plan may describe a locked selection; only operation() authorizes execution. */
+    @Nullable Operation previewOperation(ChemistryRegistry registry) { return operation(registry,false); }
+    private @Nullable Operation operation(ChemistryRegistry registry,boolean enforceAccess) {
+        restriction="";
         MachineKind kind = machine.kind();
         if (PreparationTier.isPreparation(kind)) return preparation();
         if (kind == MachineKind.ANALYZER || kind == MachineKind.DECOMPOSER) return sample(registry, kind);
         var choice = machine.selectedChoice();
         if (choice == null) return null;
-        if (kind == MachineKind.SYNTHESIZER) return synthesis(registry, choice);
+        if (kind.synthesis()) return synthesis(registry, choice,enforceAccess);
+        if (kind == MachineKind.AIR_SEPARATOR) {
+            var source=registry.environmentSource(SubstanceId.parse(choice.id())).orElse(null);
+            if(source==null)return null;
+            return new Operation(choice.id(),Map.of(),source.outputs(),machine.cost(source.energy()),source.ticks(),
+                    () -> source.dimensions().contains(machine.getLevel().dimension().identifier().toString())
+                            && (!source.requiresOpenAir()||machine.getLevel().getBlockState(machine.getBlockPos().above()).isAir()
+                            && machine.getLevel().canSeeSky(machine.getBlockPos().above())), () -> {});
+        }
         var recipe = registry.recipe(SubstanceId.parse(choice.id())).orElse(null);
-        if (recipe == null) return null;
-        return new Operation(choice.id(), recipe.inputs(), recipe.outputs(), machine.cost(recipe.energy()), recipe.ticks(), () -> true, () -> {});
+        if (recipe == null || !MachineRouting.supports(kind,recipe.type())) return null;
+        if(enforceAccess&&!machine.progressAllows(recipe.requiresAdvancement())) { restriction="requires_advancement";return null; }
+        return new Operation(choice.id(), recipe.inputs(), recipe.outputs(), machine.cost(recipe.energy()), recipe.ticks(),
+                () -> machine.progressAllows(recipe.requiresAdvancement()), () -> {});
     }
 
     private @Nullable Operation preparation() {
@@ -103,7 +122,12 @@ final class MachineOperations {
                 () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - conversion.amount()));
     }
 
-    private @Nullable Operation synthesis(ChemistryRegistry registry, MachineChoices.Choice choice) {
+    private @Nullable Operation synthesis(ChemistryRegistry registry, MachineChoices.Choice choice,boolean enforceAccess) {
+        String target=choice.id().startsWith(MachineChoices.FLUID_PREFIX)?choice.id().substring(MachineChoices.FLUID_PREFIX.length()):choice.id();
+        var requirement=registry.synthesisPolicy().requirement(target);
+        if(!registry.synthesisPolicy().allowsMachine(target,machine.kind().id()))return null;
+        if(enforceAccess&&machine.crystallizationTier()<requirement.tier()) {restriction="requires_pressure";return null;}
+        if(enforceAccess&&!machine.progressAllows(requirement.advancement())) {restriction="requires_advancement";return null;}
         var conversion = choice.id().startsWith(MachineChoices.FLUID_PREFIX)
                 ? registry.fluidProfile(choice.id().substring(MachineChoices.FLUID_PREFIX.length())).orElse(null) : null;
         if (conversion != null) {
@@ -129,16 +153,18 @@ final class MachineOperations {
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation) {
         long energy = machine.energy().getAmountAsLong();
+        if(machine.kind()==MachineKind.AIR_SEPARATOR&&!operation.canFinish())return "requires_open_air";
         if (PreparationTier.isPreparation(machine.kind())) {
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);
             return PreparationWork.readiness(!primary.isEmpty(), !secondary.isEmpty(), mixingPreparation(),
                     primary.getComponentsPatch().isEmpty() && secondary.getComponentsPatch().isEmpty() && tertiary.getComponentsPatch().isEmpty(),
                     true, operation.canFinish(), energy, operation.cost());
         }
-        return readiness.checkRepeated(needsStorage, store, operation.inputs(), operation.outputs(), operation.canFinish(), energy, operation.cost());
+        return readiness.checkRepeated(needsStorage, store, operation.inputs(), storedOutputs(operation), operation.canFinish(), energy, operation.cost());
     }
 
     String inputStatus(ChemistryRegistry registry) {
+        if(!restriction.isEmpty())return restriction;
         MachineKind kind = machine.kind();
         if (PreparationTier.isPreparation(kind)) return preparationInputStatus(kind);
         if (machine.supportsBatchControl()) return "choose_process";
@@ -233,5 +259,46 @@ final class MachineOperations {
     private void putOutput(ItemStack result) {
         if (machine.stack(1).isEmpty()) machine.putStack(1, result);
         else machine.stack(1).grow(result.getCount());
+    }
+
+    /** Limit physical inputs and output slots independently of virtual stock reservations. */
+    long physicalLimit(Operation operation) {
+        if(PreparationTier.isPreparation(machine.kind())) {
+            var holder=preparationRecipe();if(holder==null)return 0;var recipe=holder.value();
+            long limit=machine.stack(0).getCount()/recipe.primaryCount();
+            if(recipe.secondary().isPresent())limit=Math.min(limit,machine.stack(3).getCount()/recipe.secondaryCount());
+            if(recipe.tertiary().isPresent())limit=Math.min(limit,machine.stack(4).getCount()/recipe.tertiaryCount());
+            var result=recipe.result();var current=machine.stack(1);
+            if(!current.isEmpty()&&!ItemStack.isSameItemSameComponents(current,result))return 0;
+            long target=machine.targetActive()?machine.settings().target():0;
+            long room=Math.min(result.getMaxStackSize()-current.getCount(),target>0?Math.max(0,target-current.getCount()):Long.MAX_VALUE);
+            return Math.min(limit,room/result.getCount());
+        }
+        if(machine.kind().synthesis()) {
+            var choice=machine.selectedChoice();if(choice==null)return 0;
+            long target=machine.targetActive()?machine.settings().target():0;
+            if(choice.id().startsWith(MachineChoices.FLUID_PREFIX)) {
+                var p=dev.latrox.rematter.ReMatter.chemistry().fluidProfile(choice.id().substring(6)).orElse(null);
+                if(p==null)return 0;long stored=machine.fluids().getAmountAsLong(0);
+                return Math.max(0,Math.min(MachineBlockEntity.TANK_CAPACITY-stored,target>0?target-stored:Long.MAX_VALUE))/p.amount();
+            }
+            var p=dev.latrox.rematter.ReMatter.chemistry().profile(choice.id()).orElse(null);
+            if(p==null)return 0;var out=machine.stack(1);
+            long maximum=operation.visualResult().getMaxStackSize();
+            return Math.max(0,Math.min(maximum-out.getCount(),target>0?target-out.getCount():Long.MAX_VALUE))/p.itemCount();
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    Map<SubstanceKey,Long> storedOutputs(Operation operation) {
+        var outputs=new TreeMap<>(operation.outputs());
+        outputs.keySet().removeIf(key->key.phase()==Phase.GAS&&machine.settings().ventedGases().contains(key.id().toString()));
+        return Map.copyOf(outputs);
+    }
+    long ventedAmount(Operation operation) {
+        long amount=0;
+        for(var entry:operation.outputs().entrySet())if(entry.getKey().phase()==Phase.GAS
+                &&machine.settings().ventedGases().contains(entry.getKey().id().toString()))amount=Math.addExact(amount,entry.getValue());
+        return amount;
     }
 }

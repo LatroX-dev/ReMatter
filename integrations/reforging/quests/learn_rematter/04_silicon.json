@@ -1,0 +1,48 @@
+{
+  "title": "Recover Silicon for Storage",
+  "description": [
+    "In this pack, Nether Quartz supplies crystalline silica. Electrolyze 1,000 units into 1,000 silicon and 1,000 oxygen units, then synthesize four silicon items at 250 units each. The complete base cost is 160,000 FE.",
+    "Compare the native alternatives: Refined Storage smelts quartz directly, and Mekanism crushes sand into silicon. ReMatter offers recovery choices and shared stock rather than the cheapest route in every case. Export oxygen through an automated Drive and Mekanism tube, or explicitly confirm venting of new oxygen only."
+  ],
+  "icon": "refinedstorage:silicon",
+  "x": 0.0,
+  "y": 3.6,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:electrolyzer"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "refinedstorage:silicon"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/03_glass"
+    ]
+  },
+  "routes": {}
+}

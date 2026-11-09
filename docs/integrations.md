@@ -1,6 +1,6 @@
 # Integrations
 
-ReMatter targets Minecraft 26.1.2 and NeoForge 26.1.2.124. It is a standalone chemistry mod; ReForging supplies a reference collection of optional integrations and external energy sources. Support for another Minecraft version or loader requires a separate port.
+ReMatter targets Minecraft 26.1.2 and NeoForge 26.1.2.126. It is a standalone chemistry mod; ReForging supplies a reference collection of optional integrations and external energy sources. Support for another Minecraft version or loader requires a separate port.
 
 A Hand Preparator first makes the dry matrix feedstock without FE. Connect a Decomposer and Material Synthesizer to a Matter Drive holding a Cell. ReMatter provides its own storage network, recipe selection and production controls, with optional Applied Energistics 2 and Refined Storage integration.
 
@@ -26,9 +26,9 @@ If the native network does not confirm a finished delivery, the interface stops 
 
 The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs, processing times, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
 
-JEI and EMI show the same categories: decomposition, synthesis, electrolysis, reaction, separation, phase change and crystallization, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
+JEI and EMI show the same categories: decomposition, synthesis, electrolysis, reaction, separation, phase change crystallization and renewable air separation, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
 
-- **JEI:** built against JEI 29.53.0.114 for 26.1.2.
+- **JEI:** built against JEI 29.53.0.115 for 26.1.2.
 - **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2**, the continuation used in ReForging. The original EMI project currently has no 26.1.2 build. When SEMI and JEI are installed together, the native EMI integration supplies the ReMatter categories.
 
 These integrations are optional. Viewer builds for other Minecraft versions are not supported.
@@ -78,7 +78,7 @@ Ten matching source fluids are supported through explicit profiles: hydrogen, ox
 
 ## Energy, fluids, and items
 
-Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward FE that a source pushes into them to the ReMatter machines and Machine Ports of the player whose device is nearest to the source; other mods' blocks receive none. They store none, and nothing can pull FE out through a cable.
+Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward pushed FE only along the cable owner's connected cables and only to that owner's ReMatter machines and Machine Ports. Foreign or unowned cables do not connect; other mods' blocks receive none. They store none, and nothing can pull FE out through a cable.
 
 Item and fluid automation is off by default. Enable it in the processing machine's **Configuration**. For an automated glass line, put a Cell in a connected Matter Drive. One hopper feeds sand into the Decomposer and another extracts glass from the Synthesizer. Keep the Decomposer running, select Glass with **Choose recipe** or **Recipe**, confirm with **Use recipe**, and press **Configuration → Run nonstop** on the Synthesizer to keep producing. **Stop repeat** stops continuous production. **Pause** and **Resume** retain the current order. Feeding input through a pipe does not request synthesis jobs on its own.
 
@@ -93,3 +93,17 @@ The [material catalogue](material-coverage.md) lists the reviewed material famil
 Add or rebalance profiles with [chemistry data packs](data-packs.md). Decomposition does not grant synthesis permission. Every synthesized output needs an explicit allowed category; manufactured components, machines, and equipment remain excluded.
 
 For ReForging's coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It requires crystalline quartz silica for silicon electrolysis, removes Ender IO grinding-ball bonuses from quartz-gem and obsidian milling, disables native recipes that would turn a single dust or cheap ingredients into a whole block or ingot, and excludes ReMatter machines from Replication and Equivox copying. These additional pack rules are not activated by installing the standalone mod.
+
+## Specialist machines and production rules
+
+The Separator runs separation, the Thermal Processor runs phase changes, and the Chemical Reactor runs reactions. The Industrial Reactor retains reaction, separation and phase-change work. JEI/EMI workstations, manual choices and native network jobs use the same routing. Approved crystal-family synthesis belongs to the Crystallizer; every diamond form requires tier 2 with a Pressure Module. This also applies to AE2 and RS patterns. A process or synthesis permission may require its owner's advancement. Revocation prevents new batches and returns already owned automation inputs through the order refund path.
+
+The Air Separator produces 200 stored oxygen units for 16,000 base FE over 200 ticks in the Overworld, with air directly above and open sky. The Drive exports oxygen to Mekanism at 1:1 for uses such as its Purification Chamber. Nitrogen is not produced. Gas venting applies only to explicitly selected newly produced gas outputs; it starts off and does not alter stored stock or native crafting contracts.
+
+Production targets count either a substance/phase in the connected ReMatter network or the producer's own item/fluid output buffer. AE2 and RS inventories are outside this scope. All producers share reservations for inputs and planned substance outputs; only complete batches fit below the hard target. Manual requests have priority. Industrial controllers accept up to three Parallel Upgrades for four concurrent, fully paid batches in their existing upgrade slot. Combined structural and Efficiency savings never exceed 25%.
+
+FTB Teams 26.1.2.5 enables current team members to operate machines. Ownership, network identity, advancement checks, removal and disposal privileges remain attached to the owner. Team membership is checked live and fails closed when the backend is unavailable.
+
+## Reference versions
+
+The development and test baseline uses ReForging 0.9.0, Minecraft 26.1.2 and NeoForge 26.1.2.126. Compile-only APIs and metadata target AE2 26.1.13-beta, Refined Storage 3.2.1, Jade 26.1.12, GuideME 26.1.17-beta, JEI 29.53.0.115, SEMI 1.1.24, Mekanism Version Locked 26.1.2-2.11 (mod version 10.8.0) and FTB Teams 26.1.2.5. Exact API compilation is not a claim that every optional gameplay path has been exercised.

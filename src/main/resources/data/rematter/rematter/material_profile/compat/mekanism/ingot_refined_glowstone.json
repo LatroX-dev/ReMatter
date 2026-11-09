@@ -4,7 +4,7 @@
   "item": "mekanism:ingot_refined_glowstone",
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 1000
     },

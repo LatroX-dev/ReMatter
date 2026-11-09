@@ -17,6 +17,10 @@
     "rematter:machine_port",
     "#rematter:industrial_modules",
     "rematter:network_interface",
-    "rematter:sinter_furnace"
+    "rematter:sinter_furnace",
+    "rematter:separator",
+    "rematter:thermal_processor",
+    "rematter:crystallizer",
+    "rematter:air_separator"
   ]
 }

@@ -201,7 +201,7 @@ public final class MachineAutomationHost implements AutomationPort {
                 for(var order:ledger.snapshot().orders()) {
                     Recipe current=catalogue.get(order.recipe().id());
                     if(order.workerId()!=null||order.cancelled()||order.quarantined()||order.remainingBatches()==0
-                            ||current==null||!current.equals(order.recipe())||!MachineAutomationRecipes.supports(worker.kind(),current))continue;
+                            ||current==null||!current.equals(order.recipe())||!MachineAutomationRecipes.supports(worker,current))continue;
                     if(ledger.claim(order.id(),worker.networkWorkerId(),current.revision())) {
                         if(worker.tryBindNetworkOrder(this,order.id())) {
                             assigned.put(order.id(),worker);changed();break;
@@ -227,7 +227,7 @@ public final class MachineAutomationHost implements AutomationPort {
         for(var order:ledger.snapshot().orders()) {
             var current=catalogue.get(order.recipe().id());
             if(order.workerId()==null&&!order.cancelled()&&!order.quarantined()&&order.remainingBatches()>0
-                    &&current!=null&&current.equals(order.recipe())&&MachineAutomationRecipes.supports(worker.kind(),current))return true;
+                    &&current!=null&&current.equals(order.recipe())&&MachineAutomationRecipes.supports(worker,current))return true;
         }
         return false;
     }
@@ -288,7 +288,11 @@ public final class MachineAutomationHost implements AutomationPort {
                     .sorted(java.util.Comparator.comparing(Recipe::id)).toList();
             eligibleCatalogue=catalogue;eligibleWorkerKinds=Set.copyOf(kinds);
         }
-        return eligibleRecipes;
+        return eligibleRecipes.stream().filter(recipe->machine.progressAllows(recipe.requiresAdvancement())).toList();
+    }
+    void cancelRestricted(UUID orderId,MachineBlockEntity worker) {
+        if(order(orderId,worker)==null)return;
+        ledger.cancel(orderId);release(orderId,worker);changed();
     }
     @Override public boolean busy() { return !active()||ledger.busy(); }
     @Override public boolean acceptTransferred(String recipeId,String revision,int batches,Map<Resource,Long> inputs,Action action) {

@@ -13,7 +13,7 @@ public final class CatalogWireCodec {
     private static final int MAX_RAW_BYTES = 16_777_216;
     private static final int MAX_RECORDS = ChemistryRegistry.MAX_SYNTHESIS_ENTRIES;
     private static final int MAX_AMOUNTS = 1_024;
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     private CatalogWireCodec() {}
 
@@ -49,11 +49,20 @@ public final class CatalogWireCodec {
             for (ProcessRecipe value : registry.processes()) {
                 string(out, value.id().toString()); string(out, value.type().name());
                 amounts(out, value.inputs()); amounts(out, value.outputs());
-                out.writeLong(value.energy()); out.writeInt(value.ticks());
+                out.writeLong(value.energy()); out.writeInt(value.ticks()); string(out, value.requiresAdvancement());
+            }
+            writeCount(out, registry.environmentSources().size(), ChemistryRegistry.MAX_PROCESSES);
+            for (EnvironmentSource value : registry.environmentSources()) {
+                string(out, value.id().toString()); amounts(out, value.outputs());
+                out.writeLong(value.energy()); out.writeInt(value.ticks()); out.writeBoolean(value.requiresOpenAir());
+                writeCount(out, value.dimensions().size(), 32);
+                for (String dimension : new TreeSet<>(value.dimensions())) string(out, dimension);
             }
             writeCount(out, registry.synthesisPolicy().entries().size(), MAX_RECORDS);
             for (var entry : registry.synthesisPolicy().entries().entrySet()) {
                 string(out, entry.getKey()); string(out, entry.getValue().name());
+                var requirement = registry.synthesisPolicy().requirement(entry.getKey());
+                string(out, requirement.machine()); out.writeInt(requirement.tier()); string(out, requirement.advancement());
             }
             out.flush();
             BoundedBytes compressed = new BoundedBytes(MAX_COMPRESSED_BYTES);
@@ -106,10 +115,20 @@ public final class CatalogWireCodec {
             int processes = count(in, ChemistryRegistry.MAX_PROCESSES);
             for (int i = 0; i < processes; i++) {
                 builder.addProcess(new ProcessRecipe(SubstanceId.parse(string(in)), ProcessType.valueOf(string(in)),
-                        amounts(in), amounts(in), in.readLong(), in.readInt()));
+                        amounts(in), amounts(in), in.readLong(), in.readInt(), string(in)));
+            }
+            int sources = count(in, ChemistryRegistry.MAX_PROCESSES);
+            for (int i = 0; i < sources; i++) {
+                var id = SubstanceId.parse(string(in)); var outputs = amounts(in); long energy = in.readLong(); int ticks = in.readInt();
+                boolean open = in.readBoolean(); int dimensions = count(in, 32); var worlds = new TreeSet<String>();
+                for (int d = 0; d < dimensions; d++) if (!worlds.add(string(in))) throw new IllegalArgumentException("Duplicate source dimension");
+                builder.addEnvironmentSource(new EnvironmentSource(id, outputs, energy, ticks, worlds, open));
             }
             int permissions = count(in, MAX_RECORDS);
-            for (int i = 0; i < permissions; i++) builder.allowSynthesis(string(in), SynthesisCategory.valueOf(string(in)));
+            for (int i = 0; i < permissions; i++) {
+                String id = string(in); var category = SynthesisCategory.valueOf(string(in));
+                builder.allowSynthesis(id, category, new SynthesisRequirement(string(in), in.readInt(), string(in)));
+            }
             if (in.read() != -1) throw new IllegalArgumentException("Trailing chemistry catalogue data");
             return builder.build();
         } catch (IOException error) {

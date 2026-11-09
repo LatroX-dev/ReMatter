@@ -17,7 +17,7 @@ public final class CatalogSync {
 
     public static void register(RegisterPayloadHandlersEvent event) {
         // A peer with another catalogue protocol is rejected before vanilla recipe sync decodes the preparation serializer.
-        event.registrar("7").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
+        event.registrar("8").playToClient(Payload.TYPE, Payload.CODEC, (payload, context) ->
                 ClientChemistry.accept(CatalogWireCodec.decode(payload.bytes)));
     }
 
@@ -28,7 +28,8 @@ public final class CatalogSync {
             cachedRegistry = registry;
         }
         Payload payload = cachedPayload;
-        event.getRelevantPlayers().forEach(player -> PacketDistributor.sendToPlayer(player, payload));
+        event.getRelevantPlayers().filter(player -> !(player instanceof net.neoforged.neoforge.common.util.FakePlayer))
+                .forEach(player -> PacketDistributor.sendToPlayer(player, payload));
     }
 
     public record Payload(byte[] bytes) implements CustomPacketPayload {

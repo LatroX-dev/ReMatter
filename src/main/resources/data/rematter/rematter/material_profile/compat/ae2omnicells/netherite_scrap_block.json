@@ -4,7 +4,7 @@
   "item": "ae2omnicells:netherite_scrap_block",
   "matter": [
     {
-      "substance": "rematter:netherite_scrap",
+      "substance": "rematter:netherium",
       "phase": "solid",
       "amount": 9000
     }

@@ -33,9 +33,14 @@ public interface AutomationPort {
         }
     }
     record Recipe(String id, String revision, String workerKind, Map<Resource,Long> inputs,
-                  Map<Resource,Long> outputs, long energy, int ticks) {
+                  Map<Resource,Long> outputs, long energy, int ticks, String requiresAdvancement, int requiredTier) {
+        public Recipe(String id,String revision,String workerKind,Map<Resource,Long> inputs,Map<Resource,Long> outputs,long energy,int ticks) {
+            this(id,revision,workerKind,inputs,outputs,energy,ticks,"",1);
+        }
         public Recipe {
             SubstanceId.parse(id);
+            Objects.requireNonNull(requiresAdvancement);if(!requiresAdvancement.isEmpty())SubstanceId.parse(requiresAdvancement);
+            if(requiredTier<1||requiredTier>2)throw new IllegalArgumentException("Invalid required machine tier");
             if(id.length()>512 || revision==null || revision.isBlank() || revision.length()>128
                     || workerKind==null || workerKind.isBlank() || workerKind.length()>128 || energy<0 || ticks<1)
                 throw new IllegalArgumentException("Invalid automation recipe");

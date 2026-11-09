@@ -62,8 +62,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  * Pricing, operations, selection, cell bays, network jobs, side roles, visuals and menu views live in collaborators.
  */
 public final class MachineBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
-    public static final int ENERGY_CAPACITY = 2_400_000;
-    public static final int TANK_CAPACITY = 16_000;
+    private static final Map<ServerLevel, BatchReservations> PLANNING = new java.util.WeakHashMap<>();
+    public static final int ENERGY_CAPACITY = MatterLimits.MACHINE_ENERGY;
+    public static final int TANK_CAPACITY = MatterLimits.MACHINE_FLUID;
     private static final Codec<Tag> RAW_TAG_CODEC = Codec.PASSTHROUGH.xmap(
             dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(), tag -> new Dynamic<>(NbtOps.INSTANCE, tag));
     private static final Set<String> BLOCK_ENTITY_METADATA = Set.of("id", "x", "y", "z", "components");
@@ -87,6 +88,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private final MachineStorageSession storageSession = new MachineStorageSession();
     private final MachineSideConfig sides = new MachineSideConfig();
     private final MachineWork work = new MachineWork();
+    private MachineSettings settings=MachineSettings.DEFAULT;
+    private long ventedTotal;
     private final MachineVisuals visuals = new MachineVisuals();
     private final MachineOperations operations = new MachineOperations(this);
     private final MachineControl control = new MachineControl(this);
@@ -121,7 +124,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     };
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
         @Override public boolean isValid(int index, FluidResource resource) {
-            return isLiveServerMachine() && !networkJobs && (kind() == MachineKind.DECOMPOSER || kind() == MachineKind.SYNTHESIZER)
+            return isLiveServerMachine() && !networkJobs && (kind() == MachineKind.DECOMPOSER || kind().synthesis())
                     && !resource.isEmpty() && resource.isComponentsPatchEmpty()
                     && ReMatter.chemistry().fluidProfile(BuiltInRegistries.FLUID.getKey(resource.getFluid()).toString()).isPresent();
         }
@@ -145,6 +148,47 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public MachineKind kind() { return ((MachineBlock) getBlockState().getBlock()).kind(); }
     public SimpleEnergyHandler energy() { return energy; }
     public FluidStacksResourceHandler fluids() { return fluids; }
+    public MachineSettings settings() { return settings; }
+    public long ventedTotal() { return ventedTotal; }
+    public int crystallizationTier() { return kind()==MachineKind.CRYSTALLIZER&&stack(2).is(ModContent.PRESSURE_MODULE.get())?2:1; }
+    public int parallelCapacity() { return IndustrialStructure.isIndustrial(kind())&&stack(2).is(ModContent.PARALLEL_UPGRADE.get())?1+Math.min(3,stack(2).getCount()):1; }
+    public int parallelRunning() { return Math.min(parallelCapacity(),networkJobs?worker.parallelRunning():work.ticket==null?0:work.ticket.remaining()); }
+    boolean progressAllows(String advancement) { return level instanceof ServerLevel server&&MachineProgression.allows(server,owner,advancement); }
+    boolean targetActive() { return settings.target()>0&&control.runState().repeat(); }
+    boolean hasManualWork() {
+        if(networkJobs)return worker.readyClaim();
+        if(!control.runState().running()||control.runState().queuedBatches()==0||!industrialStructureReady())return false;
+        var operation=operations.operation(ReMatter.chemistry());if(operation==null)return false;
+        boolean storage=kind()!=MachineKind.ANALYZER&&!PreparationTier.isPreparation(kind());
+        var network=storage?matterNetwork(false):null;
+        return (network==null||network.ready())&&operations.readiness(storage,network==null?null:network.inventory(),operation).equals("ready");
+    }
+    static void clearPlanning() { PLANNING.clear(); }
+    private BatchReservations planning() { return PLANNING.computeIfAbsent((ServerLevel)level,ignored->new BatchReservations()); }
+    public boolean configure(Player player,MachineSettings next) {
+        if(!isLiveServerMachine()||player.isSpectator()||!canAccess(player)||!kind().processes()||kind()==MachineKind.ANALYZER||PreparationTier.manual(kind()))return false;
+        if(!next.ventedGases().equals(settings.ventedGases())&&!canRemove(player))return false;
+        for(String gas:next.ventedGases())if(!ReMatter.chemistry().isKnown(dev.latrox.rematter.chemistry.SubstanceKey.of(gas,dev.latrox.rematter.chemistry.Phase.GAS)))return false;
+        boolean physical=kind().synthesis()||PreparationTier.isPreparation(kind());
+        if(physical) {
+            if(!next.targetSubstance().isEmpty())return false;
+            long maximum=selectedId().startsWith(MachineChoices.FLUID_PREFIX)?TANK_CAPACITY:64;
+            if(next.target()>maximum)return false;
+        } else if(next.target()>0) {
+            var op=operations.operation(ReMatter.chemistry());
+            if(op==null||next.targetSubstance().isEmpty()||!op.outputs().containsKey(dev.latrox.rematter.chemistry.SubstanceKey.of(next.targetSubstance(),
+                    dev.latrox.rematter.chemistry.Phase.valueOf(next.targetPhase().toUpperCase(java.util.Locale.ROOT)))))return false;
+        }
+        boolean hadTarget=targetActive();
+        boolean targetChanged=next.target()!=settings.target()||!next.targetSubstance().equals(settings.targetSubstance())||!next.targetPhase().equals(settings.targetPhase());
+        if(next.equals(settings))return true;
+        settings=next;resetProgress();
+        if(targetChanged) {
+            if(next.target()>0)control.runState(MachineRunState.automatic());
+            else if(hadTarget)control.runState(MachineRunState.manual());
+        }
+        setChanged();return true;
+    }
     ItemStack stack(int slot) { return items.get(slot); }
     void putStack(int slot, ItemStack stack) { items.set(slot, stack); }
     MachineWork work() { return work; }
@@ -193,7 +237,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return new PortEnergyHandler(energy, () -> isLiveServerMachine() && allowsPort(side, MachinePortMode.POWER));
     }
     @Nullable ResourceHandler<FluidResource> sidedFluids(@Nullable Direction side) {
-        if (!automation || kind() != MachineKind.DECOMPOSER && kind() != MachineKind.SYNTHESIZER
+        if (!automation || kind() != MachineKind.DECOMPOSER && !kind().synthesis()
                 || !allowsPort(side, MachinePortMode.FLUID_INPUT) && !allowsPort(side, MachinePortMode.FLUID_OUTPUT)) return null;
         return new AutomationResourceHandler<>(automatedFluids,
                 () -> allowsPort(side, MachinePortMode.FLUID_INPUT),
@@ -241,6 +285,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return isLiveServerMachine() && structure.moduleWorking(modulePosition, work.processedThisTick);
     }
     @Override public void setRemoved() {
+        resetProgress();
         worker.release();
         if (automationHost != null) automationHost.close();
         work.processedThisTick = false;
@@ -283,8 +328,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level != null) level.invalidateCapabilities(worldPosition);
     }
     public boolean canAccess(Player player) {
-        return MachineAccess.allows(owner, player.getUUID(),
-                player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER), player instanceof FakePlayer);
+        return canRemove(player)||!(player instanceof FakePlayer)&&level instanceof ServerLevel
+                &&dev.latrox.rematter.compat.TeamAccess.shared(owner,player.getUUID());
+    }
+    public boolean canRemove(Player player) {
+        return MachineAccess.allows(owner,player.getUUID(),player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER),player instanceof FakePlayer);
     }
     /** A deliberate interaction: an unowned machine becomes the player's, then the usual access check applies. */
     public boolean interact(Player player) {
@@ -428,7 +476,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
      */
     boolean releaseHeldOrder(ServerPlayer player, UUID orderId) {
         var host = automationHost();
-        if (host == null || !isLiveServerMachine() || player.isSpectator() || !canAccess(player)) return false;
+        if (host == null || !isLiveServerMachine() || player.isSpectator() || !canRemove(player)) return false;
         var held = host.heldResources(orderId).orElse(null);
         if (held == null) return false;
         var taken = new TreeMap<AutomationPort.Resource, Long>();
@@ -479,7 +527,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return true;
     }
     public boolean networkJobs() { return networkJobs; }
-    public boolean supportsNetworkJobs() { return kind().processes() && kind() != MachineKind.ANALYZER && !PreparationTier.manual(kind()); }
+    public boolean supportsNetworkJobs() { return kind().supportsNetworkJobs(); }
     public boolean toggleNetworkJobs() {
         if (!isLiveServerMachine() || !supportsNetworkJobs()) return false;
         worker.release(); networkJobs = !networkJobs;
@@ -634,13 +682,35 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         var operation = operations.operation(registry);
         if (operation == null) { work.status = operations.inputStatus(registry); resetProgress(); return; }
+        if(work.ticket!=null&&!work.ticket.valid())resetProgress();
+        if(targetActive()&&network!=null&&network.hasManualWork(this)) {resetProgress();work.status="manual_priority";return;}
         int speed = speed();
-        String fingerprint = operation.signature() + ":" + operation.cost() + ":" + operation.ticks() + ":" + speed;
+        String fingerprint = operation.signature() + ":" + operation.cost() + ":" + operation.ticks() + ":" + speed + ":" + parallelCapacity();
         if (IndustrialStructure.isIndustrial(kind())) fingerprint += ":" + IndustrialStructure.inspect(this).layoutFingerprint();
-        if (!fingerprint.equals(work.job)) { work.progress = 0; work.job = fingerprint; }
+        if (!fingerprint.equals(work.job)) { resetProgress(); work.job = fingerprint; }
         work.duration = operation.ticks();
         String reason = operations.readiness(needsStorage, store, operation);
         if (!reason.equals("ready")) { work.status = reason; return; }
+        if(work.ticket==null) {
+            int limit=parallelCapacity();
+            if(supportsBatchControl()&&!runState.repeat())limit=Math.min(limit,runState.queuedBatches());
+            var outputs=operations.storedOutputs(operation);
+            dev.latrox.rematter.chemistry.SubstanceKey targetKey=null;
+            if(targetActive()&&!settings.targetSubstance().isEmpty()) {
+                targetKey=dev.latrox.rematter.chemistry.SubstanceKey.of(settings.targetSubstance(),
+                        dev.latrox.rematter.chemistry.Phase.valueOf(settings.targetPhase().toUpperCase(java.util.Locale.ROOT)));
+                if(!outputs.containsKey(targetKey)) {work.status="target_unavailable";return;}
+            }
+            try {
+                work.ticket=planning().reserve(worker.id(),network==null?this:network.planningKey(),
+                        network==null?Set.of(this):network.planningMembers(),level.getGameTime(),
+                        store==null?Map.of():store.contents(),store==null?Long.MAX_VALUE:store.capacity(),
+                        operation.inputs(),outputs,limit,energy.getAmountAsLong(),operation.cost(),operations.physicalLimit(operation),
+                        targetActive()?settings.target():0,targetKey);
+            } catch(ArithmeticException invalidQuantity) {work.status="invalid_quantity";return;}
+            if(work.ticket==null) {work.status=targetActive()?"target_reached":"resources_reserved";return;}
+        }
+        planning().touch(work.ticket,level.getGameTime());
         if (store != null) { storageSession.bind(store); boundNetwork = network; }
         work.progress = (int) Math.min(work.duration, (long) work.progress + speed);
         visuals.capture(items.get(0), operation.visualResult(), work.progress, work.duration);
@@ -664,34 +734,34 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         reason = operations.readiness(needsStorage, store, operation);
         if (!reason.equals("ready")) { work.status = reason; work.processedThisTick = false; return; }
-        boolean changedOwnedState = false;
-        List<MatterNetworkInventory.MemberActivity> cableActivity;
-        committingOwnedState = true;
-        try {
-            cableActivity = network == null ? List.of() : commitNetworkMatter(network, operation.inputs(), operation.outputs());
-            if (cableActivity == null) {
-                work.processedThisTick = false;
-                work.status = MachineReadiness.check(true, store, operation.inputs(), operation.outputs(), true,
-                        energy.getAmountAsLong(), operation.cost());
-                return;
+        var ticket=work.ticket;
+        if(ticket==null||!ticket.valid()) {resetProgress();work.status="storage_changed";return;}
+        int batches=ticket.remaining();
+        for(int batch=0;batch<batches;batch++) {
+            reason=operations.readiness(needsStorage,store,operation);
+            if(!reason.equals("ready")) {work.status=reason;work.processedThisTick=false;return;}
+            boolean changedOwnedState=false;
+            List<MatterNetworkInventory.MemberActivity> cableActivity;
+            committingOwnedState=true;
+            try {
+                var outputs=operations.storedOutputs(operation);
+                cableActivity=network==null?List.of():commitNetworkMatter(network,operation.inputs(),outputs);
+                if(cableActivity==null) {work.status="output_full";work.processedThisTick=false;return;}
+                changedOwnedState=true;
+                operation.finish().run();
+                energy.set((int)(energy.getAmountAsLong()-operation.cost()));
+                long vented=operations.ventedAmount(operation);
+                ventedTotal=vented>Long.MAX_VALUE-ventedTotal?Long.MAX_VALUE:ventedTotal+vented;
+                if(supportsBatchControl())control.runState(control.runState().completed());
+                planning().completed(ticket);
+            } finally {
+                committingOwnedState=false;
+                if(changedOwnedState) {if(network!=null)network.markChanged();setChanged();}
             }
-            // Both callbacks below are deferred until matter, physical resources, FE and the queue agree.
-            changedOwnedState = true;
-            operation.finish().run();
-            energy.set((int) (energy.getAmountAsLong() - operation.cost()));
-            if (supportsBatchControl()) control.runState(control.runState().completed());
-            resetProgress();
-            work.status = kind() == MachineKind.ANALYZER ? "analyzed" : "ready";
-            if (kind() == MachineKind.ANALYZER) control.runState(control.runState().pause());
-        } finally {
-            committingOwnedState = false;
-            if (changedOwnedState) {
-                // Also flush actual authoritative changes if an unexpected exception interrupts finalization.
-                if (network != null) network.markChanged();
-                setChanged();
-            }
+            if(network!=null)publishNetworkActivity(network,cableActivity);
         }
-        if (network != null) publishNetworkActivity(network, cableActivity);
+        resetProgress();work.status=kind()==MachineKind.ANALYZER?"analyzed":"ready";
+        if(kind()==MachineKind.ANALYZER)control.runState(control.runState().pause());
     }
 
     /** A null result means no matter was committed. Empty activity still means the commit succeeded. */
@@ -732,12 +802,31 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         return MachineEnergyPolicy.cost(base, upgrade(), items.get(2).getCount(), kind(), performance);
     }
+    int effectiveSavingPercent() {
+        var beforeSavings=upgrade()==MachineEnergyPolicy.Upgrade.SPEED?MachineEnergyPolicy.Upgrade.SPEED:MachineEnergyPolicy.Upgrade.NONE;
+        long reference=MachineEnergyPolicy.cost(1_000_000,beforeSavings,items.get(2).getCount(),kind(),null);
+        return (int)((reference-cost(1_000_000))*100/reference);
+    }
+    /** Exact current count in the configured scope. -1 means no readable stock observation. */
+    public long targetStock() {
+        if(settings.target()==0)return 0;
+        if(settings.targetSubstance().isEmpty())return kind().synthesis()&&selectedId().startsWith(MachineChoices.FLUID_PREFIX)
+                ?fluids.getAmountAsLong(0):items.get(1).getCount();
+        var network=matterNetwork(false);if(!network.ready()||network.inventory()==null)return -1;
+        return network.inventory().amount(SubstanceKey.of(settings.targetSubstance(),
+                dev.latrox.rematter.chemistry.Phase.valueOf(settings.targetPhase().toUpperCase(java.util.Locale.ROOT))));
+    }
     private MachineEnergyPolicy.Upgrade upgrade() {
         ItemStack upgrade = items.get(2);
         if (upgrade.is(ModContent.SPEED_UPGRADE.get())) return MachineEnergyPolicy.Upgrade.SPEED;
         return upgrade.is(ModContent.EFFICIENCY_UPGRADE.get()) ? MachineEnergyPolicy.Upgrade.EFFICIENCY : MachineEnergyPolicy.Upgrade.NONE;
     }
-    void resetProgress() { work.reset(); storageSession.clear(); boundNetwork = null; }
+    void resetProgress() {
+        if(work.ticket!=null&&level instanceof ServerLevel server) {
+            var book=PLANNING.get(server);if(book!=null)book.release(worker.id());
+        }
+        work.ticket=null;work.reset();storageSession.clear();boundNetwork=null;
+    }
 
     /**
      * The machine's matter network. One discovery serves every machine it found, so a change costs one bounded
@@ -808,7 +897,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         var choice = terminalChoice();
         return new TerminalDevicesPayload.Device(worldPosition, kind(), work.status, choice == null ? "" : choice.id(),
                 Math.min(work.progress, work.duration), work.duration,
-                supportsBatchControl() ? control.runState().queuedBatches() : 0, choice != null && canQueueFromTerminal());
+                supportsBatchControl() ? control.runState().queuedBatches() : 0, choice != null && canQueueFromTerminal(),
+                settings.target(),targetStock(),!settings.targetSubstance().isEmpty(),Math.min(parallelRunning(),parallelCapacity()),parallelCapacity());
     }
     boolean queueFromTerminal(String expectedRecipe) {
         var choice = terminalChoice();
@@ -854,6 +944,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.putBoolean("repeat", runState.repeat());
         output.putInt("queued_batches", runState.queuedBatches());
         output.putString("selection", control.selectedId());
+        output.putLong("target",settings.target());
+        output.putString("target_substance",settings.targetSubstance());output.putString("target_phase",settings.targetPhase());
+        output.store("vented_gases",Codec.STRING.listOf(),settings.ventedGases().stream().sorted().toList());
+        output.putLong("vented_total",ventedTotal);
         structure.save(output);
         if (!analysis.isEmpty()) {
             ValueOutput savedAnalysis = output.child("analysis");
@@ -905,6 +999,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             return;
         }
         owner = input.getString("owner").map(MachineSchema::owner).orElse(null);
+        try {
+            settings=new MachineSettings(input.getLongOr("target",0),input.getStringOr("target_substance",""),
+                    input.getStringOr("target_phase",""),Set.copyOf(input.read("vented_gases",Codec.STRING.listOf()).orElse(List.of())));
+            ventedTotal=input.getLongOr("vented_total",0);if(ventedTotal<0)throw new IllegalArgumentException("Invalid vent counter");
+        } catch(RuntimeException invalidSettings) {
+            unsupportedData=input.read(STORED_DATA).orElseGet(CompoundTag::new);work.status="unsupported_data";bays.mountAll();return;
+        }
         automation = input.getBooleanOr("automation", false);
         sides.load(input, kind());
         networkJobs = supportsNetworkJobs() && input.getBooleanOr("network_jobs", false);
@@ -970,7 +1071,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (unsupportedData != null || networkJobs && index != 2) return false;
         if (MachineCellAccess.isCellSlot(kind(), index)) return stack.getItem() instanceof MatterCellItem && stack.getCount() == 1 && canRemoveCell(index);
         if (index == 1) return false;
-        if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));
+        if (index == 2) return kind().processes() && !PreparationTier.manual(kind()) && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get())
+                || IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get())&&stack.getCount()<=3
+                || kind()==MachineKind.CRYSTALLIZER&&stack.is(ModContent.PRESSURE_MODULE.get())&&stack.getCount()==1);
         return operations.acceptsInput(index, stack, ReMatter.chemistry());
     }
     @Override public boolean canTakeItem(Container target, int index, ItemStack stack) { return automationAllowed() && !IndustrialStructure.isIndustrial(kind()) && !kind().isStorage() && index == 1; }

@@ -195,6 +195,9 @@ final class TerminalDevicesScreen extends Screen {
             if (!value.recipeId().isEmpty()) details.append("\n").append(tr("selected", recipe(value)));
             if (value.duration() > 0) details.append("\n").append(tr("progress", value.progress(), value.duration()));
             if (value.queuedBatches() > 0) details.append("\n").append(tr("queued", value.queuedBatches()));
+            if(value.target()>0)details.append("\n").append(Component.translatable(value.networkTarget()?"screen.rematter.target_network_count":"screen.rematter.target_local_count",
+                    value.targetStock()<0?"?":Quantities.number(value.targetStock()),Quantities.number(value.target())));
+            if(value.batchCapacity()>1)details.append("\n").append(Component.translatable("screen.rematter.parallel_state",value.workingBatches(),value.batchCapacity()));
             setTooltip(Tooltip.create(details.append("\n").append(tr("open_hint"))));
         }
 
@@ -208,7 +211,8 @@ final class TerminalDevicesScreen extends Screen {
             draw(g, name(device), textX, getY() + 4, textWidth, TEXT);
             if (!device.recipeId().isEmpty()) draw(g, recipe(device), textX, getY() + 14, textWidth, MUTED);
             int statusY = getY() + (device.recipeId().isEmpty() ? 16 : 24);
-            String status = status(device).getString();
+            String status = device.target()>0?Component.translatable(device.networkTarget()?"screen.rematter.target_network_count":"screen.rematter.target_local_count",
+                    device.targetStock()<0?"?":Quantities.compact(device.targetStock()),Quantities.compact(device.target())).getString():status(device).getString();
             String coordinates = position(device);
             int coordinatesWidth = font.width(coordinates);
             if (font.width(status) + coordinatesWidth + 12 <= textWidth) {

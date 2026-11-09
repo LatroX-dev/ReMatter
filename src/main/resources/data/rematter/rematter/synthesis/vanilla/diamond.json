@@ -1,5 +1,7 @@
 {
   "schema_version": 1,
   "item": "minecraft:diamond",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 2,
   "category": "raw_material"
 }

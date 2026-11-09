@@ -2,5 +2,7 @@
   "schema_version": 1,
   "required_mod": "occultism",
   "item": "occultism:amethyst_dust",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 1,
   "category": "raw_material"
 }

@@ -16,7 +16,7 @@ import net.neoforged.fml.ModList;
 
 /** A usable vanilla book, with an optional richer GuideME presentation. */
 public final class TutorialBookItem extends WrittenBookItem {
-    public static final int PAGE_COUNT = 31;
+    public static final int PAGE_COUNT = 49;
 
     public TutorialBookItem(Properties properties) {
         super(properties.stacksTo(1).component(DataComponents.WRITTEN_BOOK_CONTENT,

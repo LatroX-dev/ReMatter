@@ -31,6 +31,8 @@ public final class ReMatter {
         modBus.addListener(ReleaseHeldOrderPayload::register);
         modBus.addListener(SelectProcessPayload::register);
         modBus.addListener(StockQueryPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.MachineConfigurationPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.StructureHintPayload::register);
         modBus.addListener(TerminalDeviceActionPayload::register);
         modBus.addListener(TerminalDevicesPayload::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);

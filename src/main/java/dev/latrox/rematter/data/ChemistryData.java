@@ -69,6 +69,8 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         Map<String, FluidProfile> fluids = new TreeMap<>();
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         Map<String, SynthesisCategory> synthesis = new TreeMap<>();
+        Map<String, SynthesisRequirement> requirements = new TreeMap<>();
+        Map<SubstanceId, EnvironmentSource> sources = new TreeMap<>();
         Map<String, Identifier> profileSources = new HashMap<>();
         Map<String, Identifier> fluidSources = new HashMap<>();
         Map<String, Identifier> synthesisSources = new HashMap<>();
@@ -122,9 +124,17 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             requireUniqueTarget(synthesisSources, item, id);
             if (disabled(json)) {
                 synthesis.remove(item);
+                requirements.remove(item);
                 return;
             }
             synthesis.put(item, ChemistryDocuments.synthesisCategory(json));
+            requirements.put(item, ChemistryDocuments.synthesisRequirement(json));
+        });
+
+        readDirectory(manager, "rematter/environment_source", (id, json) -> {
+            var key = SubstanceId.parse(id.toString());
+            if (disabled(json)) sources.remove(key);
+            else sources.put(key, ChemistryDocuments.environmentSource(key, json));
         });
 
         ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
@@ -132,7 +142,8 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         profiles.values().forEach(builder::addProfile);
         fluids.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
-        synthesis.forEach(builder::allowSynthesis);
+        synthesis.forEach((id, category) -> builder.allowSynthesis(id, category, requirements.get(id)));
+        sources.values().forEach(builder::addEnvironmentSource);
         ChemistryRegistry result = builder.build();
         SynthesisOutputs.validate(result, this::defaultsFor);
         MachineEnergyPolicy.requireFits(result);
@@ -188,6 +199,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
 
     static boolean prerequisitesMet(String directory, JsonObject json, Predicate<String> modLoaded,
                                     Predicate<String> itemRegistered, Predicate<String> fluidRegistered) {
+        if (!ChemistryDocuments.modsMet(json, modLoaded)) return false;
         String requiredMod = json.has("required_mod") ? string(json, "required_mod") : null;
         if (requiredMod != null && !modLoaded.test(requiredMod)) return false;
         if (json.has("required_item") && !itemRegistered.test(string(json, "required_item"))) return false;

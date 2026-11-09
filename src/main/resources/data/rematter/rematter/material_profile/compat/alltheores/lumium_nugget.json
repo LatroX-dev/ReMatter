@@ -5,7 +5,7 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 1000
     },

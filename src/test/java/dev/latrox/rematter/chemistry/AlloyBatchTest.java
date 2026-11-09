@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AlloyBatchTest {
     private static final SubstanceKey TIN = SubstanceKey.of("rematter:tin", Phase.SOLID);
     private static final SubstanceKey NICKEL = SubstanceKey.of("rematter:nickel", Phase.SOLID);
-    private static final SubstanceKey NETHERIUM = SubstanceKey.of("rematter:netherite_scrap", Phase.SOLID);
+    private static final SubstanceKey NETHERIUM = SubstanceKey.of("rematter:netherium", Phase.SOLID);
     private static final ChemistryRegistry REGISTRY = ShippedChemistry.standalone();
 
     @Test

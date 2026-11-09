@@ -19,7 +19,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 /** Immutable raw contents retain unknown schemas unchanged instead of becoming an empty cell. */
 public final class MatterCellData {
     public static final int SCHEMA = 1;
-    public static final int MAX_TYPES = 512;
+    public static final int MAX_TYPES = MatterLimits.CELL_TYPES;
     public static final Codec<MatterCellData> CODEC = CompoundTag.CODEC.xmap(MatterCellData::new, MatterCellData::copyTag);
     public static final StreamCodec<ByteBuf, MatterCellData> STREAM_CODEC = ByteBufCodecs.COMPOUND_TAG.map(MatterCellData::new, MatterCellData::copyTag);
     public static final java.util.function.Supplier<DataComponentType<MatterCellData>> TYPE = () -> Registration.TYPE.get();

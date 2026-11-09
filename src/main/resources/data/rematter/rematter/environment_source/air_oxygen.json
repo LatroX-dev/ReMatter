@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "id": "rematter:air_oxygen",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 200
+    }
+  ],
+  "energy": 16000,
+  "ticks": 200,
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "requires_open_air": true
+}

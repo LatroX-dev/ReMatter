@@ -90,4 +90,17 @@ class StockQueryTest {
         assertThrows(IllegalArgumentException.class, () -> query("", Set.of(), false, Set.of(), tooManyNames));
         assertDoesNotThrow(() -> query("iron", Set.of("solid"), true, Set.of(key), Set.of("test:iron")));
     }
+    @Test void matchingCountIsIndependentOfTheTransmittedRowLimitAndHonorsEveryFilter() {
+        var searched=query("material_39",Set.of(),false,Set.of(),Set.of());
+        assertEquals(20,searched.matches(STOCK));
+        assertEquals(3,searched.select(STOCK,3).size());
+        assertEquals(10,query("material_39",Set.of("liquid"),false,Set.of(),Set.of()).matches(STOCK));
+        var favorite=new StockKey("test:material_399","liquid");
+        assertEquals(1,query("material_39",Set.of("liquid"),true,Set.of(favorite),Set.of()).matches(STOCK));
+    }
+    @Test void truncatedTranslatedNamesRetainTheLowerBoundFlagWithoutInventingMatches() {
+        var bounded=new StockQuery("translated",Set.of("gas"),false,Set.of(),Set.of("test:zinc_vapor"),true);
+        assertTrue(bounded.namesTruncated());assertEquals(1,bounded.matches(STOCK));
+        assertFalse(StockQuery.ALL.namesTruncated());assertEquals(STOCK.size(),StockQuery.ALL.matches(STOCK));
+    }
 }

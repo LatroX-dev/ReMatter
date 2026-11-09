@@ -6,7 +6,7 @@
   "composition": {
     "rematter:silicon": 1,
     "rematter:oxygen": 2,
-    "rematter:vital_essence": 1
+    "rematter:vitalium": 1
   },
   "phases": [
     "solid"

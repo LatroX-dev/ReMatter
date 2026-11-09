@@ -3,7 +3,7 @@
   "item": "minecraft:ender_pearl",
   "matter": [
     {
-      "substance": "rematter:ender_essence",
+      "substance": "rematter:enderion",
       "phase": "solid",
       "amount": 1000
     },

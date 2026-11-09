@@ -1,5 +1,8 @@
 {
   "schema_version": 1,
   "item": "minecraft:obsidian",
-  "disabled": true
+  "unavailable_with_mods": [
+    "enderio"
+  ],
+  "category": "natural_material"
 }

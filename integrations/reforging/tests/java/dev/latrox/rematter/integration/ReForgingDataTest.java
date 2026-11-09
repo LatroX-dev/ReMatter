@@ -33,7 +33,7 @@ class ReForgingDataTest {
                 registry.elementAmounts(Map.of(CRYSTAL, 1_000L)));
         assertEquals(Map.of(BuiltinChemistry.SILICA, 1_000L), registry.profile("minecraft:sand").orElseThrow().matter());
         assertEquals(Map.of(CRYSTAL, 1_000L), registry.profile("minecraft:quartz").orElseThrow().matter());
-        assertFalse(registry.synthesisPolicy().category("minecraft:quartz").isPresent(), "The gem stays recovery-only, as in the standalone mod");
+        assertTrue(registry.synthesisPolicy().allowsMachine("minecraft:quartz","crystallizer"), "The pack supplies a safe bonus-free grinding override");
     }
 
     @Test
@@ -85,7 +85,7 @@ class ReForgingDataTest {
             var profile = registry.profile(item).orElseThrow();
             assertEquals(Map.of(CRYSTAL, amount), profile.matter(), item);
             assertEquals(item.equals("thaumaturge:nugget_quartz") ? 9 : 1, profile.itemCount(), item);
-            assertEquals(!item.contains("ore") && !item.equals("minecraft:quartz"), registry.synthesisPolicy().category(item).isPresent(), item);
+            assertEquals(!item.contains("ore"), registry.synthesisPolicy().category(item).isPresent(), item);
         });
     }
 
@@ -121,7 +121,7 @@ class ReForgingDataTest {
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
         expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:recovered_matter", "rematter:automation_pattern"));
         assertEquals(expected, actual);
-        assertEquals(18, actual.size());
+        assertEquals(22, actual.size());
         for (String tag : Set.of("cant_be_scanned", "cant_be_disintegrated", "skip_calculation")) {
             JsonObject rule = read("data/replication/tags/item/" + tag + ".json");
             assertFalse(rule.get("replace").getAsBoolean());
@@ -140,9 +140,15 @@ class ReForgingDataTest {
                 "The integration shares the standalone substance identities");
         assertEquals(java.util.List.copyOf(before.profiles()), java.util.List.copyOf(pack.profiles()));
         assertEquals(before.synthesisPolicy().entries(), after.synthesisPolicy().entries());
-        pack.synthesisPolicy().entries().forEach((item, category) ->
-                assertEquals(before.synthesisPolicy().entries().get(item), category,
-                        "Pack integration must not widen synthesis: " + item));
+        var exceptions=Set.of("minecraft:quartz","minecraft:obsidian");
+        pack.synthesisPolicy().entries().forEach((item, category) -> {
+            if(!exceptions.contains(item))assertEquals(before.synthesisPolicy().entries().get(item),category,"Pack integration must not widen synthesis: "+item);
+            else {
+                assertNull(before.synthesisPolicy().entries().get(item));
+                try {assertEquals("none",readFile(Path.of("integrations/reforging/datapack/data/enderio/recipe/sag_milling/"+item.substring(10)+".json")).get("bonus").getAsString());}
+                catch(Exception error) {throw new AssertionError(error);}
+            }
+        });
     }
 
     @Test
@@ -165,9 +171,9 @@ class ReForgingDataTest {
     @Test
     void existingEnergyRoutesRemainLossyAtMaximumReMatterEfficiency() throws Exception {
         ChemistryRegistry registry = integration();
-        long hydrogenCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().energy());
+        long hydrogenCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().energy(),MachineKind.ELECTROLYZER);
         assertTrue(hydrogenCost > 2_000, "1,000 hydrogen units return 2,000 FE in the target gas generator");
-        long evaporationCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy());
+        long evaporationCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy(),MachineKind.THERMAL_PROCESSOR,MachineKind.INDUSTRIAL_REACTOR);
         assertTrue(evaporationCost > 11_580, "Conservative upper bound for 1,000 steam in the target turbines");
         var stone = registry.profile("minecraft:stone").orElseThrow();
         var blending = registry.recipe(SubstanceId.parse("rematter:mineral_blending")).orElseThrow();
@@ -176,8 +182,8 @@ class ReForgingDataTest {
         assertEquals(stone.matter(), blending.inputs());
         assertEquals(blending.outputs(), melting.inputs());
         assertEquals(melting.outputs(), lava.matter());
-        long lavaCost = minimumCost(stone.decompositionEnergy()) + minimumCost(blending.energy())
-                + minimumCost(melting.energy()) + minimumCost(lava.synthesisEnergy());
+        long lavaCost = minimumCost(stone.decompositionEnergy(),MachineKind.DECOMPOSER) + minimumCost(blending.energy(),MachineKind.REACTOR,MachineKind.INDUSTRIAL_REACTOR)
+                + minimumCost(melting.energy(),MachineKind.THERMAL_PROCESSOR,MachineKind.INDUSTRIAL_REACTOR) + minimumCost(lava.synthesisEnergy(),MachineKind.SYNTHESIZER);
         assertTrue(lavaCost > 100_000, "A target Magmator returns 100,000 FE per 1,000 mB lava");
     }
 
@@ -245,8 +251,8 @@ class ReForgingDataTest {
     @Test
     void dimensionMaterialsAndAlloyRecipesConserveTheirSharedConstituents() throws Exception {
         ChemistryRegistry registry = integration();
-        var end = SubstanceKey.of("rematter:ender_essence", Phase.SOLID);
-        var nether = SubstanceKey.of("rematter:nether_essence", Phase.SOLID);
+        var end = SubstanceKey.of("rematter:enderion", Phase.SOLID);
+        var nether = SubstanceKey.of("rematter:cinderium", Phase.SOLID);
         assertEquals(10 * profile(registry, "minecraft:end_stone").matter().get(end),
                 profile(registry, "minecraft:ender_pearl").matter().get(end));
         assertEquals(50 * profile(registry, "minecraft:netherrack").matter().get(nether),
@@ -331,7 +337,13 @@ class ReForgingDataTest {
                 .test(ICondition.IContext.EMPTY));
     }
 
-    private static long minimumCost(long energy) { return Math.multiplyExact(energy, 4) / 5; }
+    private static long minimumCost(long energy,MachineKind... machines) {
+        var maximal=new dev.latrox.rematter.content.IndustrialPerformance(0,0,0,dev.latrox.rematter.content.IndustrialPerformance.MAX_PARTS_PER_TYPE-1,1);
+        long best=Long.MAX_VALUE;
+        for(var kind:machines)for(var upgrade:dev.latrox.rematter.content.MachineEnergyPolicy.Upgrade.values())for(int count=0;count<=4;count++)
+            best=Math.min(best,dev.latrox.rematter.content.MachineEnergyPolicy.cost(energy,upgrade,count,kind,kind==MachineKind.INDUSTRIAL_REACTOR?maximal:null));
+        return best;
+    }
 
     private static ChemistryRegistry integration() {
         return ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES, DATAPACK);

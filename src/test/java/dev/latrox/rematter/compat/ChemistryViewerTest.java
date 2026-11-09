@@ -45,7 +45,7 @@ class ChemistryViewerTest {
         }
         assertEquals(List.of(MachineKind.ELECTROLYZER), ChemistryViewer.Category.ELECTROLYSIS.machines());
         for (var type : Set.of(ProcessType.REACTION, ProcessType.SEPARATION, ProcessType.PHASE_CHANGE, ProcessType.CRYSTALLIZATION)) {
-            assertEquals(List.of(MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR), ChemistryViewer.Category.valueOf(type.name()).machines());
+            assertEquals(dev.latrox.rematter.content.MachineRouting.machines(type), ChemistryViewer.Category.valueOf(type.name()).machines());
         }
     }
 

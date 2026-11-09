@@ -21,6 +21,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineEnergyPolicyTest {
+    @Test void combinedSavingsNeverExceedTheGlobalCapAcrossEverySupportedCount() {
+        for(long base:new long[]{1,2,3,4,19,20,99,100,16000,1200000,Long.MAX_VALUE})
+            for(int coils=1;coils<IndustrialPerformance.MAX_PARTS_PER_TYPE;coils++)
+                for(var upgrade:MachineEnergyPolicy.Upgrade.values())for(int count=0;count<=4;count++) {
+                    var hardware=new IndustrialPerformance(0,0,0,coils,1);
+                    long reference=MachineEnergyPolicy.cost(base,upgrade==MachineEnergyPolicy.Upgrade.SPEED?upgrade:MachineEnergyPolicy.Upgrade.NONE,
+                            count,MachineKind.INDUSTRIAL_REACTOR,null);
+                    long price=MachineEnergyPolicy.cost(base,upgrade,count,MachineKind.INDUSTRIAL_REACTOR,hardware);
+                    assertTrue(price>=reference-reference/4);assertTrue(price<=reference);
+                }
+        var maximum=new IndustrialPerformance(0,0,0,IndustrialPerformance.MAX_PARTS_PER_TYPE-1,1);
+        assertEquals(12000,MachineEnergyPolicy.cost(16000,MachineEnergyPolicy.Upgrade.EFFICIENCY,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
+    }
     @Test void speedUpgradesMultiplyTheBaseRateUpToTheSlotLimit() {
         assertEquals(2, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.NONE, 4));
         assertEquals(4, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 1));

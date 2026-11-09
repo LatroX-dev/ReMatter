@@ -5,7 +5,7 @@
   "item": "jaopca:dusts.replica",
   "matter": [
     {
-      "substance": "rematter:quantum_essence",
+      "substance": "rematter:quantium",
       "phase": "solid",
       "amount": 400
     },

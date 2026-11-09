@@ -27,6 +27,10 @@ public final class UiPalette {
             case ANALYZER -> 0xffd7d1bc;
             case DECOMPOSER -> 0xffdc894f;
             case SYNTHESIZER -> 0xff7dd27f;
+            case CRYSTALLIZER -> 0xffc794eb;
+            case SEPARATOR -> 0xffe3a94b;
+            case THERMAL_PROCESSOR -> 0xffea7765;
+            case AIR_SEPARATOR -> 0xff83cdd9;
             case ELECTROLYZER,NETWORK_INTERFACE -> 0xff6794f1;
             case REACTOR,INDUSTRIAL_REACTOR -> 0xffb381e8;
             case PREPARATOR,INDUSTRIAL_PREPARATOR,HAND_PREPARATOR -> 0xffe3a94b;

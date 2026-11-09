@@ -52,12 +52,12 @@ public final class OrderLedgerCodec {
     }
     public static JsonObject writeRecipe(Recipe recipe) {
         var json=new JsonObject();json.addProperty("id",recipe.id());json.addProperty("revision",recipe.revision());json.addProperty("worker",recipe.workerKind());
-        json.add("inputs",amounts(recipe.inputs()));json.add("outputs",amounts(recipe.outputs()));json.addProperty("energy",recipe.energy());json.addProperty("ticks",recipe.ticks());return json;
+        json.add("inputs",amounts(recipe.inputs()));json.add("outputs",amounts(recipe.outputs()));json.addProperty("energy",recipe.energy());json.addProperty("ticks",recipe.ticks());json.addProperty("requires_advancement",recipe.requiresAdvancement());json.addProperty("required_tier",recipe.requiredTier());return json;
     }
     public static Recipe readRecipe(JsonElement value) {
-        var json=object(value,"id","revision","worker","inputs","outputs","energy","ticks");
+        var json=object(value,"id","revision","worker","inputs","outputs","energy","ticks","requires_advancement","required_tier");
         return new Recipe(string(json,"id"),string(json,"revision"),string(json,"worker"),
-                amounts(json,"inputs"),amounts(json,"outputs"),number(json,"energy"),integer(json,"ticks"));
+                amounts(json,"inputs"),amounts(json,"outputs"),number(json,"energy"),integer(json,"ticks"),string(json,"requires_advancement"),integer(json,"required_tier"));
     }
     private static JsonObject order(OrderLedger.Order order) {
         var json=new JsonObject();json.addProperty("id",order.id().toString());json.add("recipe",writeRecipe(order.recipe()));

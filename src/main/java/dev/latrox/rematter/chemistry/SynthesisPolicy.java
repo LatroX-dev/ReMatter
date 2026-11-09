@@ -9,8 +9,13 @@ import java.util.TreeMap;
 /** Only exact, explicitly curated output IDs can be synthesized. No tag/recipe inference. */
 public final class SynthesisPolicy {
     private final Map<String, SynthesisCategory> allowed;
+    private final Map<String, SynthesisRequirement> requirements;
 
     public SynthesisPolicy(Map<String, SynthesisCategory> allowed) {
+        this(allowed, Map.of());
+    }
+
+    public SynthesisPolicy(Map<String, SynthesisCategory> allowed, Map<String, SynthesisRequirement> requirements) {
         TreeMap<String, SynthesisCategory> checked = new TreeMap<>();
         allowed.forEach((id, category) -> {
             SubstanceId.parse(id);
@@ -21,6 +26,9 @@ public final class SynthesisPolicy {
             checked.put(id, category);
         });
         this.allowed = Collections.unmodifiableMap(checked);
+        if (!checked.keySet().containsAll(requirements.keySet()))
+            throw new IllegalArgumentException("Conditions require an explicit synthesis permission");
+        this.requirements = Map.copyOf(requirements);
     }
 
     public boolean allowsItem(String exactId) {
@@ -38,5 +46,13 @@ public final class SynthesisPolicy {
 
     public Map<String, SynthesisCategory> entries() {
         return allowed;
+    }
+
+    public SynthesisRequirement requirement(String exactId) {
+        return requirements.getOrDefault(exactId, SynthesisRequirement.DEFAULT);
+    }
+
+    public boolean allowsMachine(String exactId, String machine) {
+        return allowed.containsKey(exactId) && requirement(exactId).machine().equals(machine);
     }
 }

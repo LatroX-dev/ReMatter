@@ -44,9 +44,9 @@ public enum MachinePortMode implements StringRepresentable {
         return switch (this) {
             case AUTOMATIC, DISABLED, MATTER -> true;
             case ITEM_INPUT -> PreparationTier.isPreparation(kind) || kind == MachineKind.DECOMPOSER || kind == MachineKind.ANALYZER;
-            case ITEM_OUTPUT -> PreparationTier.isPreparation(kind) || kind == MachineKind.SYNTHESIZER;
+            case ITEM_OUTPUT -> PreparationTier.isPreparation(kind) || kind.synthesis();
             case FLUID_INPUT -> kind == MachineKind.DECOMPOSER;
-            case FLUID_OUTPUT -> kind == MachineKind.DECOMPOSER || kind == MachineKind.SYNTHESIZER;
+            case FLUID_OUTPUT -> kind == MachineKind.DECOMPOSER || kind.synthesis();
             case POWER -> kind.processes() && !PreparationTier.manual(kind);
             case CHEMICAL -> kind.isStorage();
         };

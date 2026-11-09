@@ -26,6 +26,11 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
         view.putBoolean("locked", summary == null);
         if (summary != null) {
             view.putString("status", summary.status());
+            if(machine.settings().target()>0) {
+                view.putLong("target",machine.settings().target());view.putLong("targetStock",machine.targetStock());
+                view.putBoolean("targetNetwork",!machine.settings().targetSubstance().isEmpty());
+            }
+            view.putInt("lanes",machine.parallelRunning());view.putInt("laneCapacity",machine.parallelCapacity());
             view.putInt("staleOrders", summary.staleOrders());
             view.putInt("heldOrders", summary.heldOrders());
             view.putBoolean("processes", machine.kind().processes());

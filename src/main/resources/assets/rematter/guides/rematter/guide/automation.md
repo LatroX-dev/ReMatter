@@ -86,7 +86,7 @@ Crafting a new Cell gives you an empty Cell. Installed Cells keep their own cont
 
 Matter Cables carry matter-network traffic and forward FE that an external generator or energy store pushes into them. They store no FE, and nothing can pull FE out through a cable. The network supports up to **64 Drives** in loaded chunks. The lowest cable tier in the network sets its total node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cable branches that reach none of your machines do not count. If the network grows past that limit, cables of the weakest tier and the devices only they reach are left out; the stronger part keeps working. A cable system larger than 4,096 connected blocks is too large.
 
-A network includes only your own machines; other players' machines on the same cables stay separate. Cables have no owner, so anyone can break or extend them. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters. On a shared server, protect your base with a claim mod.
+A network includes only your own machines; other players' machines on the same cables stay separate. Cables belong to their placer. Only the owner or an operator may remove them. Cable traversal and pushed FE remain within that owner's devices. On a shared server, protect your base with a claim mod.
 
 Connect Matter Cables to eligible rear, side or bottom ports. The Matter Terminal connects at the rear. In the Terminal's network view, open connected device menus or queue a selected recipe on a compatible worker. Use separate transport for physical items and ordinary fluids.
 
@@ -108,3 +108,9 @@ The connected systems can request supported recipes from available workers. They
 If a recipe changes, outdated jobs return their inputs to the external network. If the external network does not confirm a delivery, the Interface stops it and keeps its resources. Press **Release** in **Configuration** to receive them after a confirmation: matter arrives as <ItemLink id="rematter:recovered_matter" />, which you use on your Drive to store it again; fluids go into the Interface's tank.
 
 <RecipeFor id="rematter:network_interface" />
+
+## Ownership and teams
+
+Place every machine and Matter Cable for one stock network as the same owner. Foreign and unowned cables do not connect. FE travels only to the cable owner's devices. Current FTB Teams members may operate machines, but removal, disposal settings and held-delivery recovery remain owner/operator actions. Team membership does not merge stock networks or share advancements.
+
+Use **Production settings** for a hard stock target. Matter processes count the selected substance and phase across the connected ReMatter network. Physical outputs count only the local output buffer. Set a multiple of the complete batch yield. AE2 and RS stock is outside this target.

@@ -2,5 +2,7 @@
   "schema_version": 1,
   "required_mod": "mekanism",
   "item": "mekanism:dust_fluorite",
+  "synthesis_machine": "crystallizer",
+  "crystallization_tier": 1,
   "category": "raw_material"
 }

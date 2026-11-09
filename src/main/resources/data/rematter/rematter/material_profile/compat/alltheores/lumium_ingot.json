@@ -4,7 +4,7 @@
   "item": "alltheores:lumium_ingot",
   "matter": [
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 1000
     },

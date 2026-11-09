@@ -28,11 +28,13 @@ record StockFilter(String text, Set<String> phases, boolean favoritesOnly) {
         String query = text.strip().toLowerCase(Locale.ROOT);
         var named = new LinkedHashSet<String>();
         if (!query.isEmpty()) for (var definition : catalogue) {
-            if (named.size() == StockQuery.MAX_NAMED) break;
+            if (named.size() > StockQuery.MAX_NAMED) break;
             if (name.apply(definition).toLowerCase(Locale.ROOT).contains(query) || SubstanceLabels.matchesSymbol(symbol.apply(definition), query))
                 named.add(definition.id().toString());
         }
-        return new StockQuery(text, phases, favoritesOnly, favorites, named);
+        boolean truncated=named.size()>StockQuery.MAX_NAMED;
+        if(truncated)named.removeLast();
+        return new StockQuery(text, phases, favoritesOnly, favorites, named, truncated);
     }
 
     /** An empty phase selection shows every phase. Rows keep the synchronized order within each group. */

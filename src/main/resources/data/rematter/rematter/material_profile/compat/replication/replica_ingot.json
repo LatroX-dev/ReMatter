@@ -4,7 +4,7 @@
   "item": "replication:replica_ingot",
   "matter": [
     {
-      "substance": "rematter:quantum_essence",
+      "substance": "rematter:quantium",
       "phase": "solid",
       "amount": 400
     },

@@ -4,7 +4,7 @@
   "item": "alltheores:signalum_block",
   "matter": [
     {
-      "substance": "rematter:arcane_essence",
+      "substance": "rematter:arcanium",
       "phase": "solid",
       "amount": 9000
     },

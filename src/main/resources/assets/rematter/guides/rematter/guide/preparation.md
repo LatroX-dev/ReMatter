@@ -172,7 +172,7 @@ Ports work only after the complete chamber forms. Connect external FE to an outw
 
 ## Add more working parts
 
-Each **Cutter and Basin adds 2× ordinary preparation speed** before upgrades. One of each gives 4×: 23 ticks for extraction or 30 for Matrix Blend. Two of each give 8×: 12 or 15 ticks. Each controller runs one batch at a time; input and output quantities stay exact.
+Each **Cutter and Basin adds 2× ordinary preparation speed** before upgrades. One of each gives 4×: 23 ticks for extraction or 30 for Matrix Blend. Two of each give 8×: 12 or 15 ticks. Each controller runs one batch, or up to four with Parallel Upgrades; input and output quantities stay exact.
 
 Industrial preparation starts at twice the ordinary recipe FE. Extra **Phase Filters** reduce that cost with diminishing returns: two give 6% savings, three give 10%. Hover the structure symbol for counts, actual speed and energy savings.
 

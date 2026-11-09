@@ -108,9 +108,9 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         static Detail of(MachineKind kind) {
             return switch (kind) {
                 case TERMINAL, NETWORK_INTERFACE -> NONE;
-                case ELECTROLYZER, REACTOR -> MOTION;
+                case ELECTROLYZER, REACTOR, SEPARATOR, THERMAL_PROCESSOR, AIR_SEPARATOR -> MOTION;
                 case DRIVE -> CELLS;
-                case ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
+                case ANALYZER, DECOMPOSER, SYNTHESIZER, CRYSTALLIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
                         INDUSTRIAL_PREPARATOR, INDUSTRIAL_REACTOR -> ITEMS;
             };
         }
@@ -226,7 +226,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                     fragments(8,7,7.6F,3.6F,p,false,state,pose,collector);
                 }
             }
-            case SYNTHESIZER -> {
+            case SYNTHESIZER, CRYSTALLIZER -> {
                 halo(8,6.1F,7.4F,p*180,0,.88F,state,pose,collector);
                 transformItems(8,7.6F,7.4F,4.2F,state,pose,collector);
                 if(state.hasProcess) {
@@ -237,7 +237,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 }
                 item(state.outputItem,8,3.92F,2.1F,5.6F,2.8F,2.4F,state,pose,collector);
             }
-            case ELECTROLYZER -> {
+            case ELECTROLYZER, THERMAL_PROCESSOR, AIR_SEPARATOR -> {
                 for(int pole=0;pole<2;pole++) {
                     float x=pole==0?4.3F:11.7F;
                     float y=state.hasProcess?6+6*(pole==0?p:1-p):9;
@@ -245,7 +245,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                     if(state.hasProcess)beam(x,5.5F,7.7F,x,12.8F,7.7F,state,pose,collector);
                 }
             }
-            case REACTOR -> {
+            case REACTOR, SEPARATOR -> {
                 crystal(8,8.5F,8,p*180,1,false,state,pose,collector);
                 halo(8,8.5F,8,p*90,45,1.05F,state,pose,collector);
                 if(state.hasProcess)beam(8,4.8F,8,8,13.2F,8,state,pose,collector);
@@ -377,13 +377,13 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         var textures=new java.util.EnumMap<MachineKind,Identifier>(MachineKind.class);
         for(var kind:MachineKind.values()) {
             String family=switch(kind) {
-                case ANALYZER -> "ice";
+                case ANALYZER, AIR_SEPARATOR -> "ice";
                 case DECOMPOSER -> "copper";
                 case SYNTHESIZER -> "leaf";
                 case ELECTROLYZER,NETWORK_INTERFACE -> "blue";
-                case REACTOR,INDUSTRIAL_REACTOR -> "violet";
-                case PREPARATOR,INDUSTRIAL_PREPARATOR -> "amber";
-                case SINTER_FURNACE -> "ember";
+                case REACTOR,INDUSTRIAL_REACTOR,CRYSTALLIZER -> "violet";
+                case PREPARATOR,INDUSTRIAL_PREPARATOR,SEPARATOR -> "amber";
+                case SINTER_FURNACE,THERMAL_PROCESSOR -> "ember";
                 case DRIVE,TERMINAL -> "mint";
                 default -> null;
             };

@@ -1,0 +1,52 @@
+{
+  "title": "Scale a Measured Reserve",
+  "description": [
+    "Choose a useful process and set Production settings to a target divisible by its complete batch yield. Processes count one substance and phase in connected ReMatter stock. Physical outputs count only their local buffer, not a chest or AE2/RS stock.",
+    "Industrial chambers accept up to three Parallel Upgrades for four concurrent batches. Each reserves its full inputs, FE and output space, and pays its complete effective FE price. Parallel, Speed and Efficiency share one slot. All savings together cap at 25%.",
+    "Use Locate missing part on an invalid controller to find its first diagnosed block. After closing the menu, the outline remains briefly. Test a full output, power interruption and repair before leaving the line unattended."
+  ],
+  "icon": "rematter:parallel_upgrade",
+  "x": 7.2,
+  "y": 7.2,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:industrial_reactor"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:parallel_upgrade"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/05_separation",
+      "learn_rematter/06_thermal",
+      "learn_rematter/07_crystals",
+      "learn_rematter/08_air"
+    ]
+  },
+  "routes": {}
+}

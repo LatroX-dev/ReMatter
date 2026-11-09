@@ -61,6 +61,15 @@ public final class MatterCableBlock extends PipeBlock {
         return connections(state) < 3 ? cable : Shapes.or(cable, JUNCTION);
     }
     private static boolean connects(LevelReader level, BlockPos position, BlockState neighbor, Direction towardsNeighbor) {
+        if(level instanceof ServerLevel server) {
+            var owner=CableOwners.owner(server,position.relative(towardsNeighbor.getOpposite()));
+            if(owner==null)return false;
+            if(neighbor.getBlock() instanceof MatterCableBlock&&!owner.equals(CableOwners.owner(server,position)))return false;
+            if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!owner.equals(machine.networkOwner()))return false;
+            if(level.getBlockEntity(position) instanceof MachinePortBlockEntity port) {
+                var controller=port.controller(null);if(controller==null||!owner.equals(controller.networkOwner()))return false;
+            }
+        }
         if (neighbor.getBlock() instanceof MatterCableBlock) return true;
         Direction outward = towardsNeighbor.getOpposite();
         if (neighbor.getBlock() instanceof MachineBlock machine) {
@@ -79,10 +88,20 @@ public final class MatterCableBlock extends PipeBlock {
                 && server.getCapability(Capabilities.Energy.BLOCK, position, neighbor, null, outward) != null;
     }
     @Override protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
-        if (state.getBlock() != oldState.getBlock()) level.invalidateCapabilities(pos);
+        if (state.getBlock() != oldState.getBlock()) {
+            if(level instanceof ServerLevel server)CableOwners.set(server,pos,null);
+            level.invalidateCapabilities(pos);
+        }
+    }
+    @Override public void setPlacedBy(Level level,BlockPos pos,BlockState state,net.minecraft.world.entity.LivingEntity placer,
+            net.minecraft.world.item.ItemStack stack) {
+        super.setPlacedBy(level,pos,state,placer,stack);
+        if(level instanceof ServerLevel server&&placer instanceof net.minecraft.world.entity.player.Player player)
+            CableOwners.set(server,pos,player.getUUID());
     }
     @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         super.affectNeighborsAfterRemoval(state, level, pos, moved);
+        if(!(level.getBlockState(pos).getBlock() instanceof MatterCableBlock))CableOwners.set(level,pos,null);
         level.invalidateCapabilities(pos);
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {

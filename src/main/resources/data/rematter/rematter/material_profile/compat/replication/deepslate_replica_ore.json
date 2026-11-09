@@ -4,7 +4,7 @@
   "item": "replication:deepslate_replica_ore",
   "matter": [
     {
-      "substance": "rematter:quantum_essence",
+      "substance": "rematter:quantium",
       "phase": "solid",
       "amount": 400
     },

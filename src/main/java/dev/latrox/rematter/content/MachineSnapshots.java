@@ -26,7 +26,7 @@ final class MachineSnapshots {
     private MachineSnapshots() {}
 
     /** Stock rows in key order, selected by the viewer's query within the row limit; {@code totalTypes} counts every stored type. */
-    record Stock(boolean readable, int totalTypes, long used, long capacity, String source, List<MachineSnapshot.Entry> entries) {
+    record Stock(boolean readable, int totalTypes, long used, long capacity, String source, List<MachineSnapshot.Entry> entries, int matchingTypes, boolean approximate) {
         Stock { entries = List.copyOf(entries); }
     }
 
@@ -89,7 +89,7 @@ final class MachineSnapshots {
         }
         String origin = store == null ? "none" : machine.kind().isStorage() ? "local" : "network";
         return new Stock(source.independent() || store != null, displayed.size(), store == null ? 0 : store.total(),
-                store == null ? 0 : store.capacity(), origin, entries);
+                store == null ? 0 : store.capacity(), origin, entries, query.matches(keys), query.namesTruncated());
     }
 
     static MachineProgressPayload progress(MachineBlockEntity machine, int containerId) {
@@ -161,7 +161,7 @@ final class MachineSnapshots {
         return new MachineSnapshot.StructureView(shape == null ? 0 : shape.width(), shape == null ? 0 : shape.depth(),
                 shape == null ? 0 : shape.height(), formation.formed() ? machine.speed() : 0, formation.moduleCount(), formation.diagnostic(),
                 performance.grinding(), performance.mixing(), performance.separation(), performance.coils(), performance.chambers(),
-                performance.energySavingPercent(kind));
+                formation.formed()?machine.effectiveSavingPercent():0);
     }
 
     private static MachineSnapshot.Preview preview(MachineBlockEntity machine, ChemistryRegistry registry, @Nullable MatterStore store) {
@@ -199,12 +199,12 @@ final class MachineSnapshots {
         if (!machine.supportsBatchControl()) return MachineSnapshot.Preview.EMPTY;
         var choice = machine.selectedChoice();
         if (choice == null) return MachineSnapshot.Preview.EMPTY;
-        var operation = operations.operation(registry);
+        var operation = operations.previewOperation(registry);
         if (operation == null) return MachineSnapshot.Preview.EMPTY;
         String outputKind = "matter";
         String outputId = "";
         int outputCount = 0;
-        if (kind == MachineKind.SYNTHESIZER) {
+        if (kind.synthesis()) {
             if (choice.id().startsWith(MachineChoices.FLUID_PREFIX)) {
                 var profile = registry.fluidProfile(choice.id().substring(MachineChoices.FLUID_PREFIX.length())).orElseThrow();
                 outputKind = "fluid"; outputId = profile.fluidId(); outputCount = profile.amount();

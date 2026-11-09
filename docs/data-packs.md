@@ -19,6 +19,7 @@ Place JSON files in the following directories of a Minecraft data pack:
 | `data/<namespace>/rematter/material_profile/` | The substances contained in an explicit whole item batch |
 | `data/<namespace>/rematter/fluid_profile/` | An explicit canonical fluid batch and its stored substances |
 | `data/<namespace>/rematter/process/` | Balanced transformations between stored substances |
+| `data/<namespace>/rematter/environment_source/` | Explicit renewable, gas-only environmental sources |
 | `data/<namespace>/rematter/synthesis/` | Explicit permission to synthesize a particular output |
 
 Every document requires `"schema_version": 1`; any other version rejects the reload. Substance and process IDs come from the namespace and filename, including any nested path. Files with the same path use data-pack priority among the entries whose dependencies are available. Two profile or synthesis files at different paths that target the same item are rejected, even when one of them is disabled. Every shipped item profile has a synthesis entry, disabled for recovery-only items, at `data/rematter/rematter/synthesis/vanilla/<item path>.json` for Minecraft items or `data/rematter/rematter/synthesis/compat/<namespace>/<item path>.json` for other mods. To change such a permission, override that exact path with higher pack priority instead of adding a file in your own namespace.
@@ -149,3 +150,33 @@ Override a substance or process file with `{"schema_version": 1, "disabled": tru
 Fluid profile disabling uses its `fluid` field. Catalogues are bounded to 32768 item profiles, 4096 fluid profiles, 8192 substances, and 8192 processes. The complete encoded catalogue must also fit the validated network size limits. Oversized data is rejected before it replaces the active registry.
 
 Disabling a definition does not delete stored quantities; they stay marked as unknown until the definition returns. Keep substance IDs stable when updating a pack.
+
+## Quantities and specialist requirements
+
+1,000 units is a standard convention for defined basic forms, not a universal mass scale. The complete profile of a batch is authoritative. Existing ratios and documented exceptions remain: silicon uses 250 units per item; water and lava use one unit per mB. Derive block and nugget amounts from actual crafting and return routes. Cells hold 64,000, 256,000 or 1,000,000 units and at most 512 substance-ID/phase pairs.
+
+Synthesis entries may declare `"synthesis_machine": "crystallizer"` and `"crystallization_tier": 1` or `2`. Other permitted item/fluid synthesis defaults to `material_synthesizer` at tier 1. Every approved form of a crystal family must carry the same requirement; alternate dusts or blocks cannot bypass it. Tier 2 requires a Pressure Module. These fields restrict an existing explicit permission; they never grant permission by tags or recipe inference.
+
+A process or synthesis entry may declare `"requires_advancement": "example:milestone"`. The server checks the machine owner's progress. A missing definition denies work. Acquired progress is mirrored for offline use; revocation updates that mirror. Datapack changes are authoritative on reload and automation jobs are cancelled/refunded when their required permission disappears.
+
+Use `"unavailable_with_mods": ["enderio"]` to disable an otherwise permitted document while any named mod is loaded. Required/excluded mod IDs must be valid and the list is bounded. A higher-priority override at the original path may deliberately remove that condition. The shipped quartz-gem and obsidian permissions use it; ReForging restores both with matching native milling fixes.
+
+Process routing is fixed: electrolysis → Electrolyzer, reaction → Chemical Reactor, separation → Separator, phase change → Thermal Processor. The Industrial Reactor also runs reaction, separation and phase change. Crystallization is reserved for the Crystallizer's permitted physical outputs; no included process turns ordinary silica into crystalline silica.
+
+## Renewable environmental sources
+
+A source has no material inputs and therefore is not a balanced chemical process. Put it in its own directory and explicitly mark it renewable. Example:
+
+```json
+{
+  "schema_version": 1,
+  "renewable": true,
+  "outputs": [{"substance": "rematter:oxygen", "phase": "gas", "amount": 200}],
+  "energy": 16000,
+  "ticks": 200,
+  "dimensions": ["minecraft:overworld"],
+  "requires_open_air": true
+}
+```
+
+Only known gas phases are accepted, with positive bounded quantities, a nonempty dimension allowlist, positive ticks and an affordable complete FE price. The Air Separator enforces the dimension, air and sky rules on the server. Review complete energy cycles whenever adding renewable gases. Gas disposal is a separate owner-selected machine setting and never deletes existing stored quantities.

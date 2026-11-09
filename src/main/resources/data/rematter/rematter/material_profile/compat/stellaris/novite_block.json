@@ -4,7 +4,7 @@
   "item": "stellaris:novite_block",
   "matter": [
     {
-      "substance": "rematter:stellar_essence",
+      "substance": "rematter:astrion",
       "phase": "solid",
       "amount": 4500
     },

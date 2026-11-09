@@ -51,13 +51,13 @@ public final class ModContent {
         }
     }
     public static final DeferredBlock<MatterCableBlock> MATTER_CABLE = BLOCKS.registerBlock("matter_cable", MatterCableBlock::new,
-            p -> p.mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.METAL).noOcclusion());
+            p -> p.mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<MatterCableBlock> REINFORCED_MATTER_CABLE = BLOCKS.registerBlock("reinforced_matter_cable",
             p -> new MatterCableBlock(MatterCableBlock.Tier.REINFORCED, p),
-            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.5F).sound(SoundType.METAL).noOcclusion());
+            p -> p.mapColor(MapColor.COLOR_CYAN).strength(2.5F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<MatterCableBlock> RESONANT_MATTER_CABLE = BLOCKS.registerBlock("resonant_matter_cable",
             p -> new MatterCableBlock(MatterCableBlock.Tier.RESONANT, p),
-            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(3.0F).sound(SoundType.METAL).noOcclusion());
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(3.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<Block> REACTOR_CASING = BLOCKS.registerSimpleBlock("reactor_casing",
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_CABLE);
@@ -72,6 +72,8 @@ public final class ModContent {
     public static final DeferredItem<BlockItem> MACHINE_PORT_ITEM = ITEMS.registerSimpleBlockItem(MACHINE_PORT);
     public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade", p -> p.stacksTo(4));
     public static final DeferredItem<Item> EFFICIENCY_UPGRADE = ITEMS.registerSimpleItem("efficiency_upgrade", p -> p.stacksTo(4));
+    public static final DeferredItem<Item> PARALLEL_UPGRADE = ITEMS.registerSimpleItem("parallel_upgrade", p -> p.stacksTo(3));
+    public static final DeferredItem<Item> PRESSURE_MODULE = ITEMS.registerSimpleItem("pressure_module", p -> p.stacksTo(1));
     public static final DeferredItem<Item> MATRIX_BLEND = ITEMS.registerSimpleItem("matrix_blend");
     public static final DeferredItem<Item> MATRIX_CRYSTAL = ITEMS.registerSimpleItem("matrix_crystal");
     public static final DeferredItem<Item> MATRIX_CLUSTER = ITEMS.registerSimpleItem("matrix_cluster");
@@ -107,9 +109,9 @@ public final class ModContent {
     private static final List<DeferredItem<Item>> COLORED_MATRIX_CRYSTALS =
             List.of("ice", "copper", "leaf", "blue", "violet", "amber", "ember", "mint").stream()
                     .map(family -> ITEMS.registerSimpleItem(family + "_matrix_crystal")).toList();
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_64K = ITEMS.registerItem("matter_cell_64k", p -> new MatterCellItem(p, 64_000L));
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_256K = ITEMS.registerItem("matter_cell_256k", p -> new MatterCellItem(p, 256_000L));
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_1M = ITEMS.registerItem("matter_cell_1m", p -> new MatterCellItem(p, 1_000_000L));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_64K = ITEMS.registerItem("matter_cell_64k", p -> new MatterCellItem(p, MatterLimits.CELL_64K));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_256K = ITEMS.registerItem("matter_cell_256k", p -> new MatterCellItem(p, MatterLimits.CELL_256K));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_1M = ITEMS.registerItem("matter_cell_1m", p -> new MatterCellItem(p, MatterLimits.CELL_1M));
     public static final DeferredItem<Item> AUTOMATION_PATTERN = ITEMS.registerSimpleItem("automation_pattern", p -> p.stacksTo(1));
     public static final DeferredItem<Item> CELL_RACK = ITEMS.registerSimpleItem("cell_rack");
     public static final DeferredItem<MatterRecoveryItem> RECOVERED_MATTER = ITEMS.registerItem("recovered_matter", MatterRecoveryItem::new);
@@ -137,6 +139,8 @@ public final class ModContent {
                         INDUSTRIAL_MODULES.values().forEach(block -> output.accept(block.get()));
                         output.accept(SPEED_UPGRADE.get());
                         output.accept(EFFICIENCY_UPGRADE.get());
+                        output.accept(PARALLEL_UPGRADE.get());
+                        output.accept(PRESSURE_MODULE.get());
                         output.accept(MATRIX_BLEND.get());
                         output.accept(MATRIX_CRYSTAL.get());
                         COLORED_MATRIX_CRYSTALS.forEach(item -> output.accept(item.get()));
@@ -180,6 +184,7 @@ public final class ModContent {
         BLOCK_ENTITIES.register(bus);
         MENUS.register(bus);
         TABS.register(bus);
+        CableOwners.TYPES.register(bus);
         MatterCellData.register(bus);
         dev.latrox.rematter.content.preparation.PreparationRecipes.register(bus);
         bus.addListener(ModContent::registerCapabilities);

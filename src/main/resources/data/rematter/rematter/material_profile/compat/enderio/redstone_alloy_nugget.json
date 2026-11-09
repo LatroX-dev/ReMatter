@@ -5,7 +5,7 @@
   "item_count": 9,
   "matter": [
     {
-      "substance": "rematter:arcane_essence",
+      "substance": "rematter:arcanium",
       "phase": "solid",
       "amount": 1000
     },

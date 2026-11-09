@@ -18,6 +18,7 @@ public final class ChemistryRegistry {
     private final Map<String, MaterialProfile> profiles;
     private final Map<String, FluidProfile> fluidProfiles;
     private final Map<SubstanceId, ProcessRecipe> processes;
+    private final Map<SubstanceId, EnvironmentSource> environmentSources;
     private final SynthesisPolicy synthesisPolicy;
 
     private ChemistryRegistry(Builder builder) {
@@ -25,7 +26,8 @@ public final class ChemistryRegistry {
         profiles = Collections.unmodifiableMap(new TreeMap<>(builder.profiles));
         fluidProfiles = Collections.unmodifiableMap(new TreeMap<>(builder.fluidProfiles));
         processes = Collections.unmodifiableMap(new TreeMap<>(builder.processes));
-        synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis);
+        environmentSources = Collections.unmodifiableMap(new TreeMap<>(builder.environmentSources));
+        synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis, builder.synthesisRequirements);
         validate();
     }
 
@@ -68,6 +70,9 @@ public final class ChemistryRegistry {
     public SynthesisPolicy synthesisPolicy() {
         return synthesisPolicy;
     }
+
+    public Collection<EnvironmentSource> environmentSources() { return environmentSources.values(); }
+    public Optional<EnvironmentSource> environmentSource(SubstanceId id) { return Optional.ofNullable(environmentSources.get(id)); }
 
     public boolean isKnown(SubstanceKey key) {
         SubstanceDefinition definition = substances.get(key.id());
@@ -126,6 +131,8 @@ public final class ChemistryRegistry {
                         + ": " + inputElements + " -> " + outputElements);
             }
         }
+        if (environmentSources.size() > MAX_PROCESSES) throw new IllegalArgumentException("Too many environment sources");
+        for (EnvironmentSource source : environmentSources.values()) elementAmounts(source.outputs());
     }
 
     private SubstanceDefinition requireSubstance(SubstanceKey key) {
@@ -142,6 +149,8 @@ public final class ChemistryRegistry {
         private final Map<String, FluidProfile> fluidProfiles = new TreeMap<>();
         private final Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         private final Map<String, SynthesisCategory> allowedSynthesis = new TreeMap<>();
+        private final Map<String, SynthesisRequirement> synthesisRequirements = new TreeMap<>();
+        private final Map<SubstanceId, EnvironmentSource> environmentSources = new TreeMap<>();
 
         public Builder addSubstance(SubstanceDefinition definition) {
             Objects.requireNonNull(definition, "definition");
@@ -176,6 +185,10 @@ public final class ChemistryRegistry {
         }
 
         public Builder allowSynthesis(String exactId, SynthesisCategory category) {
+            return allowSynthesis(exactId, category, SynthesisRequirement.DEFAULT);
+        }
+
+        public Builder allowSynthesis(String exactId, SynthesisCategory category, SynthesisRequirement requirement) {
             SubstanceId.parse(exactId);
             Objects.requireNonNull(category, "category");
             if (!category.permitted()) {
@@ -184,6 +197,13 @@ public final class ChemistryRegistry {
             if (allowedSynthesis.putIfAbsent(exactId, category) != null) {
                 throw new IllegalArgumentException("Duplicate synthesis entry: " + exactId);
             }
+            synthesisRequirements.put(exactId, Objects.requireNonNull(requirement));
+            return this;
+        }
+
+        public Builder addEnvironmentSource(EnvironmentSource source) {
+            if (environmentSources.putIfAbsent(source.id(), source) != null)
+                throw new IllegalArgumentException("Duplicate environment source: " + source.id());
             return this;
         }
 

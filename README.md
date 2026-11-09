@@ -27,6 +27,14 @@ The default batch turns one sand into enough stored silica for one glass, using 
 
 Craft the **ReMatter Guide** from a book and Silith for the recipes and instructions. Optional **GuideME** adds interactive 3D views. Sneak-use opens the basic book.
 
+## Before you start
+
+Plan this as an **early midgame material workshop**. You need iron, copper, redstone, gold, sand, clay, glass and an external FE source. The starter Drive uses one diamond for its Mint Crystal; the Synthesizer uses three emeralds for its Leaf Crystals. The Hand Preparator starts without FE, but the complete storage line needs powered preparation. Glass teaches the controls; it is not a cheaper replacement for a furnace.
+
+Your next practical goal is **silicon for a storage network**, if a supported silicon-producing mod is installed. In ReForging, one Nether Quartz yields 1,000 crystalline silica; electrolysis turns it into 1,000 silicon and 1,000 oxygen units. The Synthesizer can make **four silicon items**, at 250 units each. This costs **160,000 base FE** across the complete chain. The Electrolyzer and its components add a diamond investment. Refined Storage can smelt quartz directly and Mekanism can crush sand into silicon; these routes use less equipment. ReMatter trades equipment and FE for flexible recovery and a choice of outputs, rather than replacing every native route. Standalone sand can supply the alternative 136,000-FE route where silicon item profiles exist; ReMatter itself adds no silicon item.
+
+Keep the oxygen for Mekanism processing or explicitly vent new oxygen in **Configuration → Production settings**. Existing gas stock is never vented. [Practical production](src/main/resources/assets/rematter/guides/rematter/guide/production.md) also explains bronze, steel and lava.
+
 ## Cells and connected storage
 
 Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **512 substance/phase pairs** per Cell. Solids, liquids and gases share capacity; water and water vapor are different types.
@@ -39,7 +47,7 @@ For continuous production, use hoppers and chests to feed input and collect outp
 
 Multiple Drives can share one network and pool their capacity, up to **64 Drives**. Matter Cables carry the matter network and forward FE that a generator or energy store pushes into them to ReMatter machines. They store no FE, and nothing can pull FE out through a cable. Each powered machine buffers up to **2,400,000 FE** and accepts up to 16,000 FE per transfer. A batch starts only when its complete FE price is stored.
 
-The lowest cable tier in a network sets its node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cable branches that reach none of your machines, including cables other players attach, do not count. A network that outgrows its weakest cable leaves that tier, and whatever only it reaches, out of the network; the stronger part keeps working. A cable system larger than 4,096 connected blocks reports that the network is too large. Work waits while part of a network is in an unloaded chunk.
+The lowest cable tier in a network sets its node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cables belong to their placer. Foreign and unowned cables do not connect to your network. Your cable branches that reach none of your machines do not count toward the routed node limit. A network that outgrows its weakest cable leaves that tier, and whatever only it reaches, out of the network; the stronger part keeps working. A cable system larger than the 4,096-block exploration budget reports that the network is too large. Work waits while part of a network is in an unloaded chunk.
 
 Connect a Matter Terminal at its back to inspect stock, open connected device menus and queue supported production batches. Stock views in the Terminal, Drives and Network Interfaces have a search field, **Solids**, **Liquids** and **Gases** filters, and **Favorites**. Favorites are stored on each player's client in `config/rematter/stock_favorites.json`, up to 256 per player. A view lists up to 512 types: matches and favorites come first, and a notice shows how many of the stored types are listed.
 
@@ -80,18 +88,32 @@ Build the edges and corners from Reactor Casing. The Industrial Reactor also use
 | Industrial Preparator | Cutter, Filter and Basin on either mounting plane | 2× per Basin and Cutter |
 | Industrial Reactor | Stabilizer and Focus on either mounting plane | 2× per Focus |
 
-Fit at least one of every required part directly on the inside floor or under the ceiling; all matching types work on either mounting plane. Clicking a support's top or bottom face automatically orients the fitting; sideways and unsupported placement are rejected. Keep the middle clear. **Empty space adds no throughput.** Extra Filters or Stabilizers save FE with diminishing returns: two give 6%, three give 10%. Preparation starts at twice the ordinary recipe FE, reactions at the original cost, before this saving and upgrades. Inputs and outputs stay exact; each controller runs one batch at a time and shows the effective duration.
+Fit at least one of every required part directly on the inside floor or under the ceiling; all matching types work on either mounting plane. Clicking a support's top or bottom face automatically orients the fitting; sideways and unsupported placement are rejected. Keep the middle clear. **Empty space adds no throughput.** Extra Filters or Stabilizers save FE with diminishing returns: two give 6%, three give 10%. Preparation starts at twice the ordinary recipe FE, reactions at the original cost, before this saving and upgrades. **All savings together are capped at 25%**, including Efficiency Upgrades. Inputs and outputs stay exact. A controller runs one batch, or up to four concurrent batches with Parallel Upgrades; every batch pays its full effective FE price.
 
 If a shell or module becomes invalid, the controller shows the reason and restarts its unfinished batch once the chamber forms again.
+
+Open an invalid controller and use **Locate missing part**. Its outline marks the first diagnosed position and remains briefly after closing the menu. The tooltip names the part, coordinates and mounting direction. Repair it and check the next diagnostic.
 
 ## Build beyond the first batch
 
 - **Analyzer:** inspect a sample without consuming it. It needs FE, but no Cell or storage network.
-- **Electrolyzer and Chemical Reactor:** split and recombine stored substances, including water, hydrogen and oxygen. The Chemical Reactor also runs separation, phase-change and crystallization processes.
-- **Industrial Reactor:** run reactor processes faster in a complete chamber, starting at 3×3×4.
-- **Speed and Efficiency Upgrades:** trade energy for throughput or reduce the energy cost of each batch.
+- **Electrolyzer and Chemical Reactor:** split and recombine stored substances, including water, hydrogen and oxygen.
+- **Separator:** separate soil or minerals. Soil supplies carbon for steel, plus useful silica and water.
+- **Thermal Processor:** heat or cool stored substances, including water/steam and the lava chain. Export the resulting stored liquid through a Synthesizer.
+- **Crystallizer:** assemble approved crystal-family outputs. Every diamond form requires a **Pressure Module**; tier 1 adds no diamond requirement to the device recipe. The starter Drive still needs a diamond.
+- **Air Separator:** renewable oxygen in the Overworld, with an air block above and open sky. No nitrogen is produced without a useful supported consumer.
+- **Industrial Reactor:** run reactions, separation and phase changes in a complete chamber, starting at 3×3×4.
+- **Speed, Efficiency or Parallel Upgrades:** choose throughput, lower batch FE, or up to four concurrent industrial batches in the same upgrade slot. Pressure Modules use that slot in a Crystallizer.
 
-The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. Small forms use complete batches: nine supported nuggets represent one ingot without rounded fractions. Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions. The Nether Quartz gem and the obsidian block are recovery-only because Ender IO grinding balls would multiply them; quartz dusts, nuggets and blocks remain synthesizable.
+The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. **1,000 units is a convention for defined basic forms; the complete batch profile is authoritative.** Silicon uses 250 units per item; water and lava use one unit per mB. Block and nugget ratios follow reviewed recipes rather than a universal mass scale. Small forms use complete batches without rounded fractions. Capacity counts units, not mass.
+
+Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions. Nether Quartz gems and obsidian are recovery-only **while Ender IO is loaded**. The ReForging integration restores them together with bonus-free native grinding recipes.
+
+## Keep a useful reserve
+
+Select a recipe, then set **Configuration → Production settings → Stock target**. Use zero to disable it and stop target-driven production. Matter-producing processes count the selected substance and phase across the connected ReMatter network. Item and fluid production counts only the local output buffer, never a chest, AE2 or RS stock. The server reports the scope and exact current count, including in Jade.
+
+The target is a hard ceiling: a complete batch that would exceed it waits. Choose a target divisible by the batch yield. Producers on the same stock share reservations for inputs and planned outputs. Manual and network crafting requests take priority. Gas byproducts need room unless their newly produced quantities are explicitly vented; gas venting starts off and requires confirmation. Network crafting returns all contracted outputs and does not vent them.
 
 On the Synthesizer, Electrolyzer and reactors, **Start** requests one displayed recipe batch. **Configuration → Run nonstop** starts continuing production; **Stop repeat** stops it. **Pause** keeps the current order, and **Resume** continues it. Selecting another recipe cancels the old request and waits for a new instruction.
 
@@ -107,7 +129,9 @@ Filled machines and Cells retain their contents when carried. Mechanisms animate
 - A matter network includes only one owner's machines. Other players' machines on the same cables are not part of it and never share its stock.
 - An industrial chamber never forms over any block of a chamber that another owner formed first, and a port that two owners' chambers could use stays with the chamber that already claims it. Only a formed chamber or the claim it leaves protects its parts.
 
-Casing, Glass, Ports and modules of a formed chamber can only be broken by players who may use its controller. Pistons cannot move Reactor Casing or Glass, and explosions destroy neither owned machines nor the parts of a formed chamber. Matter Cables have no owner: anyone can break or extend them, and breaking a cable can disconnect your devices. FE pushed into a cable reaches only the ReMatter machines and Machine Ports of the player whose device is nearest to where the FE enters; other players' machines and other mods' blocks on the same cables receive none. On a shared server, protect bases with a claim mod.
+Casing, Glass, Ports and modules of a formed chamber can only be broken by the controller's owner or an operator. Cables follow the same ownership rule. Pistons cannot move protected parts or cables, and explosions spare owned machines, owned cables and claimed chamber parts. FE pushed into a cable reaches only machines and Machine Ports belonging to that cable's owner; other mods' blocks receive none. Unowned cables connect nothing.
+
+With a supported **FTB Teams** installation, current team members can operate devices and configure ordinary production. Ownership remains with the placer: removal, gas-disposal changes and recovery of held deliveries require the owner or an operator. Leaving a team immediately removes shared access. Team membership does not merge matter networks or grant the owner's advancements. Pack authors can gate a synthesis permission or process with `requires_advancement`; offline operation uses a server-side mirror of the owner's completed advancements.
 
 ## Optional integrations
 
@@ -133,4 +157,4 @@ Report bugs and suggest improvements through [Issues](https://github.com/LatroX-
 
 ## License
 
-No open-source license has been selected yet. Until one is chosen, all rights are reserved.
+Code, data and documentation are **LGPL-3.0-only**; see [COPYING.LESSER](COPYING.LESSER) and [COPYING](COPYING). Textures, models, blockstates, item model definitions and artwork are **All Rights Reserved**, © LatroX; see [LICENSE-ASSETS.md](LICENSE-ASSETS.md).

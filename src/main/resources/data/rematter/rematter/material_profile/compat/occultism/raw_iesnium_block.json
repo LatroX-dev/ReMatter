@@ -4,7 +4,7 @@
   "item": "occultism:raw_iesnium_block",
   "matter": [
     {
-      "substance": "rematter:arcane_essence",
+      "substance": "rematter:arcanium",
       "phase": "solid",
       "amount": 3600
     },
@@ -14,7 +14,7 @@
       "amount": 3600
     },
     {
-      "substance": "rematter:nether_essence",
+      "substance": "rematter:cinderium",
       "phase": "solid",
       "amount": 1800
     }

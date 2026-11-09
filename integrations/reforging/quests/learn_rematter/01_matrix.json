@@ -1,0 +1,46 @@
+{
+  "title": "Prepare the Matrix",
+  "description": [
+    "Start in early midgame with iron, copper, gold, redstone, sand, clay and glass. The complete storage line needs external FE, one diamond for its Drive and three emeralds for its Synthesizer. The first Hand Preparator itself needs no power.",
+    "Crank sand into Silith and a clay ball into Argil. Combine one of each in the Hand Preparator for four Matrix Blend, then smelt the Blend into Matrix Crystals. Craft a ReMatter Guide from a book and Silith for the exact grids."
+  ],
+  "icon": "rematter:hand_preparator",
+  "x": 0.0,
+  "y": 0.0,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:hand_preparator"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matrix_crystal"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": []
+  },
+  "routes": {}
+}

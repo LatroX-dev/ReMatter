@@ -1,0 +1,54 @@
+{
+  "title": "Teach the Line with Glass",
+  "description": [
+    "Decompose one sand, inspect the stored silica, then select Glass in the Synthesizer and request one batch. The default complete chain costs 24,000 FE and makes one glass. Glass is a controls lesson; an ordinary furnace is already cheaper.",
+    "Check the displayed input, every output, FE and pause reason. Use the ReMatter Guide for the production walkthrough. These item tasks detect inventory, so verify the chemical line yourself before moving on."
+  ],
+  "icon": "minecraft:glass",
+  "x": 7.2,
+  "y": 0.0,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:decomposer"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:material_synthesizer"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "minecraft:glass"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/02_storage"
+    ]
+  },
+  "routes": {}
+}
