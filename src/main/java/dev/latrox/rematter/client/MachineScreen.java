@@ -501,8 +501,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         ScreenChrome.icon(g, Icon.RECIPE, 12, 52, MUTED);
         ScreenChrome.twoLines(g, font, name, 30, 50, choose.visible || previewCard() ? 162 : 254, TEXT);
         if (previewCard()) {
-            text(g, tr("result_preview").getString(), 220, 51, 61, MUTED);
-            text(g, tr("result_not_made").getString(), 220, 61, 61, WARNING);
+            text(g, tr("result_preview").getString(), 220, 55, 61, MUTED);
         }
         if (handPreparator()) ScreenChrome.icon(g, Icon.CRANK, 14, 87, ACCENT);
         if (menu.inputRole()) {

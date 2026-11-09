@@ -627,7 +627,6 @@
   "screen.rematter.mount_any": "any valid orientation",
   "screen.rematter.target_limit": "Maximum target in this scope: %s",
   "screen.rematter.result_preview": "Preview",
-  "screen.rematter.result_not_made": "Not made",
   "screen.rematter.result_preview_detail": "Preview: %s × %s",
   "screen.rematter.result_preview_hint": "Expected result only. Work is required; the output slot contains finished items only.",
   "guide.rematter.page.1": "ReMatter Guide\n\nStart with a Hand\nPreparator and\nfurnace. Make a Cell,\nthen connect\nDecomposer, Drive and\nSynthesizer to turn\nsand into glass.\n\nThe Cell stays in the\nDrive. No Analyzer,\nAE2 or RS is required.",
