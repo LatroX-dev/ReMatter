@@ -43,6 +43,8 @@ The 64k Cell uses one Matrix Crystal and a Control Circuit. The 256k Cell uses a
 
 A Matter Drive holds **six individually removable Cells**, arranged in two columns of three. Two three-bay Cell Racks form its assembly. The full-block cabinet sits flush beside adjacent Drives. The front shows the inserted Cells, and connected processors use their shared contents.
 
+Each Cell has a status light: **blue** means empty, **green** means it contains matter with room available, **amber** means its quantity or substance-type capacity is full, and **red** means its contents cannot be read safely. Unreadable contents stay preserved. The same lights appear on mounted Cells, held Cells and inventory items.
+
 For continuous production, use hoppers and chests to feed input and collect output. Enable **Automation** under **Configuration** on both processors and press **Run nonstop** under the Synthesizer's **Configuration**.
 
 Multiple Drives can share one network and pool their capacity, up to **64 Drives**. Matter Cables carry the matter network and forward FE that a generator or energy store pushes into them to ReMatter machines. They store no FE, and nothing can pull FE out through a cable. Each powered machine buffers up to **2,400,000 FE** and accepts up to 16,000 FE per transfer. A batch starts only when its complete FE price is stored.

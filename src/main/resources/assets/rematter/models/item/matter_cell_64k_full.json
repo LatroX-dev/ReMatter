@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:item/matter_cell_64k",
+  "textures": {
+    "cell_led": "rematter:block/cell_led_amber"
+  }
+}

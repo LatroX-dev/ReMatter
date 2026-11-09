@@ -83,6 +83,9 @@ def cell_model(name):
         x = round(first + 2.03 * index, 3)
         parts.append(box((x, 9.28, .10), (x + 1.59, 10.02, .23), 'status'))
         parts.append(box((x, 10.80, 3.04), (x + 1.59, 10.91, 6.43), 'status'))
+    lamp=json.loads((ROOT/'artwork/machines/cell_status_lamp.json').read_text())
+    parts.extend(lamp['elements'])
+    textures.update(lamp['textures'])
     return {'ambientocclusion': False, 'gui_light': 'side', 'textures': textures,
             'elements': parts, 'display': DISPLAY}
 
@@ -92,8 +95,16 @@ def outputs():
         model = cell_model(name)
         validate(model)
         yield ASSETS / f'models/item/{name}.json', model
-        yield ASSETS / f'items/{name}.json', {
-            'model': {'type': 'minecraft:model', 'model': f'rematter:item/{name}'}}
+        colors={'empty':'blue','stored':'green','full':'amber','locked':'red'}
+        for status,color in colors.items():
+            yield ASSETS / f'models/item/{name}_{status}.json', {
+                'parent':f'rematter:item/{name}',
+                'textures':{'cell_led':f'rematter:block/cell_led_{color}'}}
+        item_model={'type':'minecraft:select','property':'rematter:cell_status',
+                    'cases':[{'when':status,'model':{'type':'minecraft:model','model':f'rematter:item/{name}_{status}'}}
+                             for status in colors],
+                    'fallback':{'type':'minecraft:model','model':f'rematter:item/{name}'}}
+        yield ASSETS / f'items/{name}.json', {'model':item_model}
 
 
 def validate(model):

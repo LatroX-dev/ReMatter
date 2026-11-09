@@ -682,5 +682,10 @@
   "screen.rematter.parallel_short": "Parallel",
   "screen.rematter.pressure_upgrade_hint": "One Pressure Module unlocks tier 2 diamond outputs. It occupies the upgrade slot.",
   "screen.rematter.parallel_upgrade_hint": "Industrial chambers: up to three modules add individually paid batches, for four concurrent batches.",
-  "screen.rematter.supported_upgrades_hint": "Use one of the types shown above. The slot limit follows the installed item."
+  "screen.rematter.supported_upgrades_hint": "Use one of the types shown above. The slot limit follows the installed item.",
+  "item.rematter.matter_cell.light": "Cell light: %s",
+  "cell_status.rematter.empty": "Empty",
+  "cell_status.rematter.stored": "Storing matter",
+  "cell_status.rematter.full": "Full",
+  "cell_status.rematter.locked": "Locked"
 }

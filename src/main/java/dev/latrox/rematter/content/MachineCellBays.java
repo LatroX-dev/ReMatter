@@ -72,4 +72,17 @@ final class MachineCellBays {
         for (int bay = 0; bay < count(); bay++) tiers |= visibleTier(bay) << (bay * 3);
         return tiers;
     }
+    CellStatus visibleStatus(int bay) {
+        var stack = stack(bay);
+        var mount = cells.mount(bay);
+        if (stack.isEmpty()) return CellStatus.ABSENT;
+        if (!mount.readable(stack)) return CellStatus.LOCKED;
+        var inventory = mount.inventory();
+        return CellStatus.of(true, true, inventory.total(), inventory.capacity(), inventory.typeCount(), inventory.maximumTypes());
+    }
+    int visibleStatuses() {
+        int result = 0;
+        for (int bay = 0; bay < count(); bay++) result |= visibleStatus(bay).ordinal() << (bay * 3);
+        return result;
+    }
 }

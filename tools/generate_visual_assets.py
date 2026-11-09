@@ -74,6 +74,10 @@ for name, color in [('ceramic', 'ceramic'), ('graphite', 'graphite'), ('brushed_
                     ('frame', 'edge'), ('rubber', 'rubber'), ('vessel', 'vessel')]:
     material(name, PALETTE[color])
 material('socket_rim', PALETTE['matte_trim'])
+for color, rgb in {'blue': (64,166,255), 'green': (59,224,122),
+                   'amber': (255,183,53), 'red': (242,68,78)}.items():
+    png(f'textures/block/cell_led_{color}.png', TILE, TILE,
+        lambda x,y,rgb=rgb: rgba(rgb, round(5 * soft_light(x,y))))
 material('cable_sleeve_silith', (187, 181, 161))
 material('cable_sleeve_rhevon', (100, 85, 86))
 material('cable_sleeve_lumivex', (170, 124, 69))

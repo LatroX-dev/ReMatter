@@ -45,6 +45,7 @@ public final class ReMatterGameTests {
         TESTS.put("claim_refreshes_cable_arms",ReMatterGameTests::claimedCable);
         TESTS.put("preparation_slots_require_one_compatible_recipe",ReMatterGameTests::inputFiltering);
         TESTS.put("industrial_reactor_air_inlet_is_above_roof",ReMatterGameTests::industrialAir);
+        TESTS.put("cell_led_tracks_committed_storage",ReMatterGameTests::cellLed);
     }
     private static Identifier id(String path) {return Identifier.fromNamespaceAndPath("rematter_tests",path);}
     @SubscribeEvent
@@ -376,6 +377,24 @@ public final class ReMatterGameTests {
         MachineProgression.capture(player);
         h.assertTrue(MachineProgression.allows(h.getLevel(),owner,requirement),"Pre-existing award was not captured at first login");
         h.assertTrue(!MachineProgression.allows(h.getLevel(),owner,"test:missing"),"Missing definition granted access");h.succeed();
+    }
+    private static void cellLed(GameTestHelper h) {
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);
+        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
+        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));drive.serverTick();
+        h.assertTrue(drive.visibleCellStatus(0)==CellStatus.EMPTY,"Empty cell indicator missing");
+        h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,64000L)),"LED fixture did not fit");drive.serverTick();
+        h.assertTrue(drive.visibleCellStatus(0)==CellStatus.FULL,"Full indicator did not follow live contents");
+        var packet=drive.getUpdateTag(h.getLevel().registryAccess());
+        h.assertTrue((packet.getIntOr("cell_statuses",0)&7)==CellStatus.FULL.ordinal(),"Public update did not carry full indicator");
+        h.assertTrue(!packet.toString().contains("rematter:soil")&&!packet.toString().contains("64000"),"LED leaked detailed stock");
+        h.assertTrue(drive.matterStore().apply(Map.of(BuiltinChemistry.SOIL,1L),Map.of()),"Could not extract LED sample");drive.serverTick();
+        h.assertTrue(drive.visibleCellStatus(0)==CellStatus.STORED,"Green indicator did not follow extraction");
+        var unknown=new net.minecraft.nbt.CompoundTag();unknown.putInt("schema",99);unknown.putLong("preserved",37);
+        var locked=new ItemStack(ModContent.MATTER_CELL_64K.get());locked.set(MatterCellData.TYPE.get(),new MatterCellData(unknown));drive.setItem(0,locked);drive.serverTick();
+        h.assertTrue(drive.visibleCellStatus(0)==CellStatus.LOCKED,"Unreadable cell was not red");
+        h.assertTrue(locked.get(MatterCellData.TYPE.get()).copyTag().equals(unknown),"Reading the LED changed preserved contents");
+        h.succeed();
     }
     private static void largeNetwork(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var drives=new ArrayList<MachineBlockEntity>();

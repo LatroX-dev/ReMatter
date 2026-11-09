@@ -47,7 +47,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
     private final Map<MachineBlockEntity,ProcessVisualMotion> motion=new WeakHashMap<>();
     private final ItemModelResolver itemModelResolver;
     private final ModelPart core, halo, trace, beam, mote, handCrank, handGrip;
-    private final ItemStack[] cellVisuals = new ItemStack[5];
+    private final ItemStack[][] cellVisuals = new ItemStack[5][dev.latrox.rematter.content.CellStatus.values().length];
     private final ModelPart handRoller, handSieve, handMixer;
 
     public MachineRenderer(BlockEntityRendererProvider.Context context) {
@@ -142,7 +142,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
             state.cellMask=machine.visibleCellMask();
             for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++) {
                 state.cellTiers[bay]=Math.clamp(machine.visibleCellTier(bay),0,4);
-                var appearance=(state.cellMask&(1<<bay))!=0?cellAppearance(state.cellTiers[bay]):ItemStack.EMPTY;
+                var appearance=(state.cellMask&(1<<bay))!=0?cellAppearance(state.cellTiers[bay],machine.visibleCellStatus(bay)):ItemStack.EMPTY;
                 itemModelResolver.updateForTopItem(state.cellItems[bay],appearance,ItemDisplayContext.FIXED,
                         machine.getLevel(),null,(int)machine.getBlockPos().asLong()+bay+20);
             }
@@ -165,17 +165,24 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         itemModelResolver.updateForTopItem(state.processOutputItem,machine.visibleProcessOutputItem(),ItemDisplayContext.FIXED,machine.getLevel(),null,seed+6);
     }
 
-    private ItemStack cellAppearance(int tier) {
+    private ItemStack cellAppearance(int tier,dev.latrox.rematter.content.CellStatus status) {
         if(tier==0)return ItemStack.EMPTY;
         // Renderer construction also runs before item components are bound during startup.
         // Resolve stacks only when extracting an actual machine in a loaded world.
-        if(cellVisuals[tier]==null)cellVisuals[tier]=new ItemStack(switch(tier) {
+        int color=status.ordinal();
+        if(cellVisuals[tier][color]==null) {
+            var stack=new ItemStack(switch(tier) {
             case 1 -> ModContent.MATTER_CELL_64K.get();
             case 2 -> ModContent.MATTER_CELL_256K.get();
             case 3 -> ModContent.MATTER_CELL_1M.get();
             default -> ModContent.CELL_HOUSING.get();
-        });
-        return cellVisuals[tier];
+            });
+            stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
+                    new net.minecraft.world.item.component.CustomModelData(java.util.List.of(),java.util.List.of(),
+                            java.util.List.of("rematter:cell_led/"+status.name().toLowerCase(java.util.Locale.ROOT)),java.util.List.of()));
+            cellVisuals[tier][color]=stack;
+        }
+        return cellVisuals[tier][color];
     }
 
     @Override public void submit(MachineRenderState state,PoseStack pose,SubmitNodeCollector collector,CameraRenderState camera) {
@@ -269,10 +276,6 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                     // The local front faces north: +X is left when standing in front and looking south.
                     float x=11.6F-MachineCellAccess.driveColumn(bay)*7.2F,y=12.1F-MachineCellAccess.driveRow(bay)*4F;
                     mountedCell(state.cellItems[bay],x,y,.55F,state,pose,collector);
-                    if(state.cellTiers[bay]==4) {
-                        pose.pushPose();pose.translate((x+2.35F)/16,(y-1.1F)/16,.3F/16);pose.scale(.7F,.7F,.25F);
-                        part(mote,HEATER,true,1,state,pose,collector);pose.popPose();
-                    }
                 }
             }
             case INDUSTRIAL_PREPARATOR,INDUSTRIAL_REACTOR -> {

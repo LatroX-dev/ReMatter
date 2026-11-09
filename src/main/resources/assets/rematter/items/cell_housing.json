@@ -1,6 +1,40 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:item/cell_housing"
+    "type": "minecraft:select",
+    "property": "rematter:cell_status",
+    "cases": [
+      {
+        "when": "empty",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/cell_housing_empty"
+        }
+      },
+      {
+        "when": "stored",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/cell_housing_stored"
+        }
+      },
+      {
+        "when": "full",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/cell_housing_full"
+        }
+      },
+      {
+        "when": "locked",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/cell_housing_locked"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "rematter:item/cell_housing"
+    }
   }
 }

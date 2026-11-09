@@ -107,7 +107,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private long nextMatterActivityTick;
     private boolean committingOwnedState;
     private boolean visibleCell;
-    private int visibleCellMask, visibleCellTiers;
+    private int visibleCellMask, visibleCellTiers, visibleCellStatuses;
+    private int publishedCellStatuses = -1;
     private boolean loadingItemVisuals;
     private int publishedPreparationStage = -1;
     private boolean publishedPreparationMixing;
@@ -423,6 +424,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level != null && level.isClientSide()) return Math.min(4, visibleCellTiers >>> (bay * 3) & 7);
         return bays.visibleTier(bay);
     }
+    public CellStatus visibleCellStatus(int bay) {
+        if (bay < 0 || bay >= cellBayCount()) return CellStatus.ABSENT;
+        return level != null && level.isClientSide()
+                ? CellStatus.decode(visibleCellStatuses >>> (bay * 3) & 7) : bays.visibleStatus(bay);
+    }
     public int preparationStage() { return PreparationTier.isPreparation(kind()) ? work.preparationStage : -1; }
     public boolean preparationMixing() { return PreparationTier.isPreparation(kind()) && work.preparationMixing; }
     @Override public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
@@ -430,6 +436,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         tag.putInt("port_visuals", sides.visuals());
         visuals.write(tag, kind());
         if (cellSlot() >= 0) { tag.putBoolean("cell_present", hasVisibleCell()); tag.putInt("cell_mask", visibleCellMask()); tag.putInt("cell_tiers", bays.visibleTiers()); }
+        if (kind() == MachineKind.DRIVE) tag.putInt("cell_statuses", Transaction.getCurrentOpenedTransaction() == null
+                ? bays.visibleStatuses() : Math.max(0, publishedCellStatuses));
         if (PreparationTier.isPreparation(kind())) { tag.putInt("preparation_stage", work.preparationStage); tag.putBoolean("preparation_mixing", work.preparationMixing); }
         structure.write(tag);
         return tag;
@@ -444,6 +452,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             visibleCell = input.getBooleanOr("cell_present", false);
             visibleCellMask = input.getIntOr("cell_mask", visibleCell ? 1 : 0) & ((1 << cellBayCount()) - 1);
             visibleCellTiers = input.getIntOr("cell_tiers", visibleCell ? 1 : 0) & ((1 << (cellBayCount() * 3)) - 1);
+            visibleCellStatuses = input.getIntOr("cell_statuses", 0) & ((1 << (cellBayCount() * 3)) - 1);
         }
         if (PreparationTier.isPreparation(kind())) {
             work.preparationStage = Math.clamp(input.getIntOr("preparation_stage", -1), -1, 2);
@@ -591,6 +600,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             publishProcessVisuals();
             structure.publishActivity(work.processedThisTick && isLiveServerMachine() && industrialStructureReady());
             publishItemVisuals();
+            if (kind() == MachineKind.DRIVE) {
+                int statuses = bays.visibleStatuses();
+                if (statuses != publishedCellStatuses) {
+                    publishedCellStatuses = statuses;
+                    sendClientUpdate();
+                }
+            }
         }
     }
     public boolean crank(Player player) { return crank(player, null); }

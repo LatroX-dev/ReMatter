@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.4
+
+- Close the Drive's front around its six insertion slots and add vent, fastener and badge details.
+- Add live Cell status lights: blue for empty, green for stored matter, amber for full quantity or type capacity, and red for unreadable contents. Lights also follow Cells held in the hand or viewed in inventory.
+
 ## 0.6.3
 
 - Fit Matter Cable sockets into permanent machine frames, with smaller recessed connections on the sides, back and underside.
