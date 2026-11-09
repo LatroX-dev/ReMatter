@@ -30,8 +30,28 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
       - name: Build and run unit tests
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build --rerun-tasks --no-daemon
       - name: Test optional integration configuration merge
         run: python3 -m unittest discover -s integrations/reforging/tests -p 'test_*.py'
+      - name: Test real server machines in an isolated world
+        run: ./gradlew runGameTestServer --no-daemon
       - name: Verify curated material data matches generated resources
         run: python3 tools/generate_material_data.py --check
+      - name: Verify generated workshop materials
+        run: python3 tools/generate_workshop_materials.py --check
+      - name: Verify generated machine assets
+        run: python3 tools/generate_visual_assets.py --check
+      - name: Verify generated module assets
+        run: python3 tools/generate_module_assets.py --check
+      - name: Verify generated cell models
+        run: python3 tools/generate_cell_models.py --check
+      - name: Verify generated components
+        run: python3 tools/generate_component_assets.py --check
+      - name: Verify generated advanced material icons
+        run: python3 tools/generate_advanced_material_icons.py --check
+      - name: Verify generated metallurgy assets
+        run: python3 tools/generate_metallurgy_assets.py --check
+      - name: Check asset integrity
+        run: python3 tools/check_assets.py
+      - name: Verify specialist device assets and recipes
+        run: python3 tools/generate_device_assets.py --check
