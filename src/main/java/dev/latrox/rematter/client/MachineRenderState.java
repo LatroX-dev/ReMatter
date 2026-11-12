@@ -36,18 +36,16 @@ public final class MachineRenderState extends BlockEntityRenderState implements 
     public CardinalLighting cardinal = CardinalLighting.DEFAULT;
     /** Atlas rectangles of the sprites that {@link #render} samples for this kind. */
     public @Nullable SpriteUv sprites;
-    /** Public side-role ordinals only; rings reuse the Machine Port's atlas sprites. */
-    public @Nullable SpriteUv portSprites;
-    public int portModes;
-    public final int[] portLights = new int[ConfigurablePorts.SIDES.length];
     public int preparationStage;
     public boolean preparationMixing;
+    public final dev.latrox.rematter.client.anim.MovingBoxes moving = new dev.latrox.rematter.client.anim.MovingBoxes();
+    public double clock, turns;
+    public float engage, waiting, progress, handAngle;
+    public final float[] itemScales = new float[6];
     public float phase;
     public float drive;
 
     @Override public void render(PoseStack.Pose pose, VertexConsumer buffer) {
-        if (portSprites != null)
-            ConfigurablePorts.emit(pose, buffer, portModes, portSprites, cardinal, facing, portLights);
         if (sprites == null) return;
         switch (kind) {
             case DRIVE -> DriveBays.emit(pose, buffer, cellMask, cellTiers, cellStatuses, sprites,

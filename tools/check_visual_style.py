@@ -24,6 +24,7 @@ import zlib
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 NAMESPACE = 'rematter'
+PORT_PLATES = f'{NAMESPACE}:port_plates'
 CRYSTALS = ('amber', 'copper', 'mint', 'leaf', 'ice', 'ember', 'blue', 'violet')
 FACES = ('north', 'south', 'east', 'west', 'up', 'down')
 
@@ -794,6 +795,27 @@ class Tree:
             for inner in value:
                 yield from Tree.model_references(inner)
 
+    @staticmethod
+    def port_entries(value):
+        """Every port plate entry below a block state: the sides of a device as models chosen by their role."""
+        if isinstance(value, dict):
+            if value.get('type') == PORT_PLATES and isinstance(value.get('sides'), dict):
+                yield value
+            else:
+                for inner in value.values():
+                    yield from Tree.port_entries(inner)
+        elif isinstance(value, list):
+            for inner in value:
+                yield from Tree.port_entries(inner)
+
+    @staticmethod
+    def port_references(value):
+        """Every model id a port plate entry names. A role ring is no part of what the device itself shows."""
+        for entry in Tree.port_entries(value):
+            for models in entry['sides'].values():
+                if isinstance(models, dict):
+                    yield from (model for model in models.values() if isinstance(model, str))
+
     def own_model(self, reference):
         namespace, _, path = reference.rpartition(':')
         return path if (namespace or 'minecraft') == NAMESPACE else None
@@ -1123,6 +1145,11 @@ def check_icon_sources(tree, problems):
                          'remove the retired canonical PNG entry from the registry')
 
 
+def hard_animation_exception(texture):
+    """Only fault blinking and the explicitly named Primal signature use hard steps."""
+    return texture.stem == 'led_red' or texture.stem in ('entangled_link','cell_cartridge_primal','cell_cartridge_primal_violet','primal_converter_window','primal_converter_window_active') or texture.stem.startswith('drive_primal_cell_')
+
+
 def check_animations(tree, problems):
     for meta in sorted((tree.assets / 'textures').rglob('*.mcmeta')):
         where = tree.rel(meta).split(f'assets/{NAMESPACE}/', 1)[-1]
@@ -1156,6 +1183,10 @@ def check_animations(tree, problems):
                              f'{width}x{height} frames', 'stack whole frames of the sprite width, top to bottom')
                 continue
             count = (image.width // width) * (image.height // height)
+            if 'textures/block/' in where and not hard_animation_exception(texture):
+                if count < 16 or animation.get('interpolate') is not True:
+                    problems.add('S1 smooth animation',where,'a glow, liquid or energy strip needs at least 16 interpolated frames',
+                                 'write at least 16 frames and interpolate: true; only the red fault blink and the Primal signature use hard steps')
             if count < 2:
                 problems.add('anim', where, 'an animation with a single frame', 'add frames, or drop the metadata')
             for entry in animation.get('frames', []):
@@ -1192,7 +1223,7 @@ def check_references(tree, problems):
     used_textures, used_models = {}, {}
     for kind, table in (('items', tree.items), ('blockstates', tree.blockstates)):
         for name, value in table.items():
-            for reference in tree.model_references(value):
+            for reference in list(tree.model_references(value)) + list(tree.port_references(value)):
                 model = tree.own_model(reference)
                 if model is None:
                     continue
@@ -1261,7 +1292,7 @@ def close(value, target=None):
 
 def check_geometry(tree, problems, reachable):
     placed = {tree.own_model(reference) for value in tree.blockstates.values()
-              for reference in tree.model_references(value)}
+              for reference in list(tree.model_references(value)) + list(tree.port_references(value))}
     for name, model in tree.models.items():
         elements = model.get('elements')
         if not elements or name not in reachable:
@@ -1622,6 +1653,94 @@ def check_recipe_hues(tree, problems, palette, guide):
                          'colour of its middle facets')
 
 
+PORT_FACES = {'front': 'north', 'right': 'west', 'back': 'south', 'left': 'east', 'top': 'up', 'bottom': 'down'}
+PORT_ROLE = re.compile(r'^\s*([A-Z_]+)\(0x([0-9a-fA-F]{6})\b', re.M)
+
+
+def check_ports(tree, problems, palette, guide):
+    """Connections: a side shows a port plate only while it is a connection, and the plate is a model of its own.
+
+    A port plate entry of a block state lists, per side and role, the model that draws the side. Where it lists a
+    model for a disabled side, that model is the plain face, and the body leaves the face to the plates: no body
+    sprite carries a painted seat any more. A ring takes its colours from the Machine Port sprite of its role."""
+    rings = {f'block/machine_port_{role}': role for role in
+             (name.split('.', 1)[1] for name in palette.named if name.startswith('PORT_MODES.'))}
+    connections = {}
+    for name, state in sorted(tree.blockstates.items()):
+        entries = list(tree.port_entries(state))
+        if not entries:
+            continue
+        where = f'blockstates/{name}.json'
+        swapped = set()
+        for entry in entries:
+            for side, models in entry['sides'].items():
+                if side not in PORT_FACES or not isinstance(models, dict):
+                    problems.add('ports', where, f'{side} is not a side of a device',
+                                 'name the sides front, right, back, left, top and bottom')
+                    continue
+                if any(role != 'disabled' for role in models):
+                    connections.setdefault(name, set()).add(side)
+                if 'disabled' in models:
+                    swapped.add(side)
+                default = entry.get('default', {}).get(side, 'disabled')
+                if default not in models and default != 'disabled':
+                    problems.add('ports', where, f'the {side} side starts as {default}, which has no model',
+                                 'list a model for the initial role of every side')
+                for role, reference in sorted(models.items()):
+                    model = tree.own_model(reference) if isinstance(reference, str) else None
+                    if model not in tree.models:
+                        continue   # the reference rule reports a missing model
+                    worn = {rings[texture] for texture in map(tree.own_texture, tree.model_textures(model).values())
+                            if texture in rings}
+                    drawn = sum(len(element.get('faces', {})) for element in tree.elements(model) or [])
+                    if role == 'disabled' and (worn or drawn != 1):
+                        problems.add('ports blank', f'models/{model}.json', f'the model of the disabled {side} side of '
+                                     f'{name} draws {drawn} faces{" and a ring" if worn else ""}',
+                                     'a side without a connection is the plain casing face and nothing else')
+                    elif role != 'disabled' and worn - {role}:
+                        problems.add('ports ring', f'models/{model}.json', f'the {role} plate of the {side} side of '
+                                     f'{name} wears the ring of {", ".join(sorted(worn - {role}))}',
+                                     'give the ring the Machine Port sprite of its own role')
+        faces = {PORT_FACES[side] for side in swapped}
+        for model in sorted({tree.own_model(reference) for reference in tree.model_references(state)} & set(tree.models)):
+            for element in tree.elements(model) or []:
+                low, high = element.get('from', [0, 0, 0]), element.get('to', [16, 16, 16])
+                for face in sorted(faces & set(element.get('faces', {}))):
+                    axis = {'north': 2, 'south': 2, 'west': 0, 'east': 0, 'down': 1, 'up': 1}[face]
+                    if close(low[axis] if face in ('north', 'west', 'down') else high[axis],
+                             0 if face in ('north', 'west', 'down') else 16):
+                        problems.add('ports body', f'models/{model}.json', f'{element.get("name", "?")} draws the '
+                                     f'outer {face} face, which belongs to the port plates of {name}',
+                                     'leave the closed sides of a device to its port plates: the body draws no '
+                                     'face, and no painted seat, where a plate can be')
+    header, rows = guide.tables.get('port-sides', ([], []))
+    listed = column(header, 'connection')
+    for row in rows if listed is not None else ():
+        cell = row[listed].lower()
+        wanted = set() if 'none' in cell else {side for side in PORT_FACES if re.search(rf'\b{side}\b', cell)}
+        for device in IDS.findall(row[0]):
+            if device not in tree.blockstates:
+                problems.add('ports guide', 'docs/visual-style.md', f'{device} of the port table has no block state',
+                             'list the devices by their registry id')
+            elif connections.get(device, set()) != wanted:
+                found = ', '.join(sorted(connections.get(device, set()))) or 'none'
+                problems.add('ports guide', 'docs/visual-style.md', f'the port table gives {device} the connections '
+                             f'{", ".join(sorted(wanted)) or "none"}; its block state has plates for {found}',
+                             'make the table and PortSides.java agree, then run the generators')
+    if 'port-sides' in guide.tables:
+        documented = {device for row in rows for device in IDS.findall(row[0])}
+        for device in sorted(set(connections) - documented):
+            problems.add('ports guide', 'docs/visual-style.md', f'{device} has port plates and is missing from the '
+                         'port table', 'add the device to the table of the Connections section')
+    source = tree.java / 'dev/latrox/rematter/content/MachinePortMode.java'
+    for constant, value in PORT_ROLE.findall(source.read_text()) if source.is_file() else ():
+        wanted = palette.named.get('PORT_MODES.' + constant.lower())
+        if wanted is not None and hex_rgb(value) != wanted:
+            problems.add('ports colour', 'MachinePortMode.java', f'the ring of {constant} is #{value.lower()}, the '
+                         f'palette says {rgb_hex(wanted)}', 'the block, the Machine Port and the side diagram of a '
+                         'screen share the PORT_MODES of tools/family_palette.py')
+
+
 JAVA_COLOUR = re.compile(r'\b0[xX](?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b')
 JAVA_FAMILY = re.compile(r'case\s+([A-Z0-9_,\s]+?)\s*->\s*"(%s)"\s*;' % '|'.join(CRYSTALS))
 
@@ -1703,6 +1822,7 @@ def run(tree, palette, guide, java):
     check_hues(tree, problems, palette, guide, java)
     check_recipe_hues(tree, problems, palette, guide)
     check_energy_tier_bands(tree, problems, palette, guide)
+    check_ports(tree, problems, palette, guide)
     check_java(tree, problems, java)
     return problems
 
@@ -1813,8 +1933,8 @@ def selftest():
         files = {
             'textures/block/press_front.png': framed(base),
             'textures/block/plate.png': solid(shade),
-            'textures/block/lamp.png': [[tuple(amber) + (255,)] * 16 for _ in range(16)] + solid(shade, 16),
-            'textures/block/lamp.png.mcmeta': {'animation': {'frametime': 4}},
+            'textures/block/lamp.png': ([[tuple(amber) + (255,)] * 16 for _ in range(16)] + solid(shade,16))*8,
+            'textures/block/lamp.png.mcmeta': {'animation': {'frametime': 4,'interpolate':True}},
             'textures/item/dust.png': icon(),
             'textures/gui/sprites/panel.png': solid(shade, 16),
             'textures/gui/sprites/panel.png.mcmeta': {'gui': {'scaling': {'type': 'nine_slice', 'width': 16,
@@ -1923,8 +2043,8 @@ def selftest():
     violet = (138, 92, 255, 255)
     spectrum = [tuple(primal[name]) + (255,) for name in ('PRIMAL.cool', 'PRIMAL.body', 'PRIMAL.warm')]
     strip = [[spectrum[(x // 6 + frame) % 3] if (x + y + frame) % 5 == 0 else clear for x in range(16)]
-             for frame in range(4) for y in range(16)]
-    plain = [[violet if (x + y + frame) % 5 == 0 else clear for x in range(16)] for frame in range(4) for y in range(16)]
+             for frame in range(16) for y in range(16)]
+    plain = [[violet if (x + y + frame) % 5 == 0 else clear for x in range(16)] for frame in range(16) for y in range(16)]
 
     def natural(files, extra):
         files['textures/block/deep_primal_ore.png'] = strip
@@ -1945,8 +2065,64 @@ def selftest():
             extra['src/main/java/dev/latrox/rematter/client/Bays.java'] = 'class Bays { String[] S = {"drive_cell"}; }'
         return change
 
+    def plates(edit=None):
+        """The press with port plates on its back: the body leaves the face out, a plain model and a plate draw it."""
+        def change(files, extra):
+            ring = f'{NAMESPACE}:block/machine_port_item_input'
+            files['textures/block/machine_port_item_input.png'] = framed(palette.crystals['copper'])
+            files['textures/block/seat.png'] = framed(base)
+            del files['models/block/press.json']['elements'][0]['faces']['south']
+            face = {'name': 'face', 'from': [0, 0, 15.5], 'to': [16, 16, 16],
+                    'faces': {'south': {'texture': '#face', 'cullface': 'south'}}}
+            files['models/block/press_back_blank.json'] = {'parent': 'minecraft:block/block', 'textures': {
+                'particle': f'{NAMESPACE}:block/plate', 'face': f'{NAMESPACE}:block/plate'}, 'elements': [face]}
+            files['models/block/press_back_item_input.json'] = {'parent': 'minecraft:block/block', 'textures': {
+                'particle': f'{NAMESPACE}:block/plate', 'face': f'{NAMESPACE}:block/seat', 'ring': ring},
+                'elements': [face, {
+                    'name': 'ring', 'from': [2, 13, 16], 'to': [14, 14, 16.5],
+                    'faces': {'south': {'texture': '#ring', 'cullface': 'south'}}}]}
+            files['blockstates/press.json'] = {'multipart': [
+                {'apply': {'model': f'{NAMESPACE}:block/press'}},
+                {'apply': {'type': PORT_PLATES, 'default': {'back': 'item_input'}, 'sides': {'back': {
+                    'disabled': f'{NAMESPACE}:block/press_back_blank',
+                    'item_input': f'{NAMESPACE}:block/press_back_item_input'}}}}]}
+            extra['docs/visual-style.md'] = guide_text + '\n' + '\n'.join([
+                '<!-- check:port-sides -->', '| Device | Connections |', '| --- | --- |', '| `press` | back |'])
+            extra['src/main/java/dev/latrox/rematter/content/MachinePortMode.java'] = (
+                'enum MachinePortMode {\n    ITEM_INPUT(0x%s),\n    POWER(0x%s);\n}'
+                % (bytes(palette.crystals['copper']).hex().upper(), bytes(palette.crystals['amber']).hex().upper()))
+            if edit:
+                edit(files, extra)
+        return change
+
+    def plate_model(edit):
+        return plates(lambda files, extra: edit(files['models/block/press_back_item_input.json'],
+                                                files['models/block/press_back_blank.json']))
+
     cases = [
         ('a valid tree', None, []),
+        ('a device with port plates', plates(), []),
+        ('a body that still draws the face of its port plate', plates(lambda files, extra: files[
+            'models/block/press.json']['elements'][0]['faces'].update(
+                south={'texture': '#side', 'cullface': 'south'})), ['ports body']),
+        ('a disabled side that keeps its ring', plate_model(lambda plate, blank: blank.update(
+            textures=plate['textures'], elements=plate['elements'])), ['ports blank']),
+        ('a plate with the ring of another role', plates(lambda files, extra: (
+            files.update({'textures/block/machine_port_power.png': framed(palette.crystals['amber']),
+                          'textures/block/machine_port_item_input.png': None}),
+            files['models/block/press_back_item_input.json']['textures'].update(
+                ring=f'{NAMESPACE}:block/machine_port_power'))), ['ports ring']),
+        ('an initial role without a model', plates(lambda files, extra: files['blockstates/press.json'][
+            'multipart'][1]['apply']['default'].update(back='power')), ['ports']),
+        ('a port table that disagrees with the block state', plates(lambda files, extra: extra.update({
+            'docs/visual-style.md': extra['docs/visual-style.md'].replace('| `press` | back |', '| `press` | back, top |')})),
+         ['ports guide']),
+        ('a device with plates that the port table omits', plates(lambda files, extra: extra.update({
+            'docs/visual-style.md': extra['docs/visual-style.md'].replace('| `press` | back |', '| `grinder` | none |')})),
+         ['ports guide', 'ports guide']),
+        ('a ring colour of the screen that is not the palette colour', plates(lambda files, extra: extra.update({
+            'src/main/java/dev/latrox/rematter/content/MachinePortMode.java':
+                'enum MachinePortMode {\n    ITEM_INPUT(0xE4AF66);\n}'})), ['ports colour']),
         ('an icon without reproducible source', put('artwork/dust.svg', None, 'extra'), ['S3 source']),
         ('a screen truncates its text', put('src/main/java/dev/latrox/rematter/client/Extra.java',
                                            'class Extra { String label = ScreenChrome.fit(font, text, 20); }', 'extra'),
@@ -1989,7 +2165,9 @@ def selftest():
         ('name without an item definition', put('lang/en_us.json', {f'item.{NAMESPACE}.ghost': 'Ghost'}), ['S3 item']),
         ('animation metadata that is not JSON', put('textures/block/lamp.png.mcmeta', '{"animation": '), ['anim']),
         ('strip that does not divide into frames', put('textures/block/lamp.png', solid(amber, 16, 40)), ['anim']),
-        ('frame index beyond the strip', put('textures/block/lamp.png.mcmeta', {'animation': {'frames': [0, 1, 2]}}), ['anim']),
+        ('frame index beyond the strip', put('textures/block/lamp.png.mcmeta', {'animation': {'frames': [0, 1, 16],'interpolate':True}}), ['anim']),
+        ('working strip without interpolation',put('textures/block/lamp.png.mcmeta',{'animation':{'frametime':3}}),['S1 smooth animation']),
+        ('working strip with too few frames',put('textures/block/lamp.png',solid(amber,16,16*8)),['S1 smooth animation']),
         ('strip without metadata', put('textures/block/lamp.png.mcmeta', None), ['anim']),
         ('nine-slice size that is not the sprite size', put('textures/gui/sprites/panel.png.mcmeta', {'gui': {'scaling': {
             'type': 'nine_slice', 'width': 18, 'height': 18, 'border': 3}}}), ['anim']),
@@ -2022,9 +2200,9 @@ def selftest():
         ('GUI sprite nothing draws', put('textures/gui/sprites/icon/stop.png', [[(255, 255, 255, 255)] * 16] * 16),
          ['refs unused']),
         ('texture outside every class', put('textures/misc/thing.png', solid(base)), ['class', 'refs unused']),
-        ('block that does not show the hue of its crystal', put('textures/block/lamp.png', solid(shade, 16, 16) + solid(seam, 16, 16)),
+        ('block that does not show the hue of its crystal', put('textures/block/lamp.png', (solid(shade,16,16)+solid(seam,16,16))*8),
          ['S5 recipe hue']),
-        ('block that shows only a shade of the hue', put('textures/block/lamp.png', solid(dim, 16, 16) + solid(seam, 16, 16)),
+        ('block that shows only a shade of the hue', put('textures/block/lamp.png', (solid(dim,16,16)+solid(seam,16,16))*8),
          ['S5 recipe hue']),
         ('hue on a part of the sprite the model does not show', both(
             put('textures/block/lamp.png', [[tuple(amber if x >= 8 else shade) + (255,) for x in range(16)] for _ in range(16)]),
@@ -2116,7 +2294,7 @@ def selftest():
         ('ore overlay without light', both(natural, lambda files, extra: files['models/block/deep_primal_ore.json'][
             'elements'][1].pop('light_emission')), ['S2 emissive']),
         ('ore overlay in the hue of the host stone', both(natural, put('textures/block/deep_primal_ore.png', [
-            [(150, 110, 60, 255) if (x + y) % 5 == 0 else clear for x in range(16)] for y in range(64)])),
+            [(150, 110, 60, 255) if (x + y) % 5 == 0 else clear for x in range(16)] for y in range(256)])),
          ['S2 palette', 'S5 primal']),
     ]
     failed = 0

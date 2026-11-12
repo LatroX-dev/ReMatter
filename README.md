@@ -136,7 +136,7 @@ Knowledge is personal with current-team sharing by default; servers can select a
 
 Three rare Primal Ores generate only in **new terrain**: deep Overworld Deepslate, Nether Netherrack and outer End islands, outside the central island. One Shard or Silk-Touch ore loads exactly **1,000 u**; Fortune adds none. Separate **16k, 64k and 256k Primal Cells** hold only Primal Matter. Load whole source items or transfer between cells in the inventory. Drives may store both Cell kinds, with separate totals, but Analyzer and Converter payments use only their own payment slot.
 
-The **Primal Converter** spends a finite Primal amount and FE to create known, useful, explicitly curated solid elements in ordinary storage. Common, scarce and invented targets cost 1:1, 2:1 and 4:1 respectively, in output multiples of 250 u. It grants no knowledge, offers no external crafting pattern and never silently fills missing ingredients. Ordinary matter cannot become Primal Matter. Primal Crystal and Discovery Lens preparation require Precision 4.
+The **Primal Converter** spends a finite Primal amount and FE to create known, useful, explicitly curated solid elements in ordinary storage. Search its target list by name or symbol; locked targets explain the required research. The flow display identifies the receiving Drive, Cell bay and free space before starting. A complete output batch must fit one compatible ordinary Cell, including its partition. Common, scarce and invented targets cost 1:1, 2:1 and 4:1 respectively, in output multiples of 250 u. It grants no knowledge, offers no external crafting pattern and never silently fills missing ingredients. Ordinary matter cannot become Primal Matter. Primal Crystal and Discovery Lens preparation require Precision 4.
 
 Two **Entangled Links** can join loaded networks of the same owner within **32 blocks in the same dimension**. Pair them by shift-right-clicking both with a Link item. The pair provides one Basic connection, respects existing budgets and loads no chunks.
 
@@ -156,9 +156,11 @@ The 0.7 development line includes Energy Cubes inspired by the familiar [Mekanis
 | Reinforced | 32,000,000 FE | 16,384 FE/t | 2 |
 | Resonant | 256,000,000 FE | 131,072 FE/t | 4 |
 
-All four horizontal faces have the same socket and charge display. Copper, turquoise and mauve accents match the corresponding cable tiers; the Ember core keeps its energy identity. Configure each face as **Input**, **Output** or **Disabled**. The front starts as Output; the other faces start as Input. Compatible FE items charge in the dedicated slots. All outputs and charging slots share the tier's output allowance; inputs have their own shared allowance. Energy, side settings and charging items remain with the cube when it is moved. Each tier is crafted independently.
+Enabled horizontal faces have the same socket and charge display. A Disabled face covers both with plain casing. Copper, turquoise and mauve accents match the corresponding cable tiers; the Ember core keeps its energy identity. Configure each face as **Input**, **Output** or **Disabled**. The front starts as Output; the other faces start as Input. Compatible FE items charge in the dedicated slots. All outputs and charging slots share the tier's output allowance; inputs have their own shared allowance. Energy, side settings and charging items remain with the cube when it is moved. Each tier is crafted independently.
 
 Compact controls use icons with complete mouseover text. Names and formulas remain complete, while exact stored amounts are available on hover.
+
+Device fronts stay clear of connections; Energy Cubes accept connections on all six faces. An open workbench top is also closed to transport. The top of a sealed device starts **Disabled** and can be enabled in **Settings → Sides**. Disabled sides show plain casing. The named side diagram uses the same roles as cables, hoppers and external systems: left-click cycles forward, right-click or Shift-click cycles backward.
 
 ## Keep a useful reserve
 
@@ -170,7 +172,7 @@ On selectable processors, **Make 1** requests one displayed batch; **Queue +1** 
 
 Inputs, stock and FE are consumed only when a complete batch commits. If a Cell or Drive changes, a device disconnects or a chamber breaks during a batch, the machine restarts that unfinished batch and continues on its own once its network is valid again; requested and repeating batches are kept. Cable changes that leave every device connected do not interrupt work.
 
-Filled machines and Cells retain their contents when carried. Mechanisms animate while processing and stop when work waits; the menu explains the reason.
+Filled machines and Cells retain their contents when carried. Working mechanisms ease into motion and slow to a stop independently of recipe progress updates. Bench status lights use the device hue while working, breathe blue while a loaded job waits, and go dark when idle; the menu explains the waiting reason. Energy Cube core pulses travel upward while charging and downward while discharging.
 
 ## Multiplayer
 

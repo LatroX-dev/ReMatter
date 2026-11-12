@@ -26,3 +26,9 @@ Industrial Reactor and Preparator controllers have separate **Speed, Efficiency 
 Four Speed Upgrades give five times base work rate and double batch FE. Four Efficiency Upgrades save 20% before integer rounding; the absolute saving limit is 25%. Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE.
 
 All lanes share [one transfer budget](throughput.md).
+
+## Read the work
+
+Bench mechanisms show their task: jaws close around a Decomposer sample, the Analyzer scans it with a ring, the Preparator presses or mixes it, and the Synthesizer sends matter toward its product. The Chemical Reactor exchanges liquid between its two columns. Industrial fields turn continuously while modules send pulses into the chamber; Separation Units carry their pulses away from the focus.
+
+A bench status lamp is dark when idle, uses the device colour while working, and breathes blue when a loaded job waits. Read the menu for its actual reason. Mechanisms ease into motion and slow to a stop; rapid recipe batches do not make them jump back every time. A short visual afterglow does not consume extra resources or mean that a paused machine is still producing.

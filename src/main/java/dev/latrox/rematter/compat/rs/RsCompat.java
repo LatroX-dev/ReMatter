@@ -4,6 +4,7 @@ import com.refinedmods.refinedstorage.common.api.RefinedStorageApi;
 import com.refinedmods.refinedstorage.neoforge.api.RefinedStorageNeoForgeApi;
 import dev.latrox.rematter.automation.AutomationBackends;
 import dev.latrox.rematter.content.ModContent;
+import dev.latrox.rematter.content.MachinePortMode;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -26,6 +27,9 @@ public final class RsCompat {
     }
     private static void capabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(RefinedStorageNeoForgeApi.INSTANCE.getNetworkNodeContainerProviderCapability(),ModContent.MACHINE_ENTITY.get(),
-                (machine,side)->{var host=machine.automationHost();return host!=null&&host.adapter("rs") instanceof RsAdapter rs?rs.provider():null;});
+                (machine,side)->{
+                    if(side==null||!machine.allowsPort(side,MachinePortMode.MATTER))return null;
+                    var host=machine.automationHost();return host!=null&&host.adapter("rs") instanceof RsAdapter rs?rs.provider():null;
+                });
     }
 }

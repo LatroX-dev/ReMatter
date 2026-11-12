@@ -93,8 +93,11 @@ final class JadeClient {
             if(data.getIntOr("laneCapacity",1)>1)tooltip.add(Component.translatable("screen.rematter.parallel_state",data.getIntOr("lanes",0),data.getIntOr("laneCapacity",1)));
             if (accessor.showDetails() && accessor.getBlockEntity() instanceof MachineBlockEntity machine
                     && MachinePortMode.configurable(machine.kind())) {
-                tooltip.add(Component.translatable("port.rematter.mode_message",
-                        machine.portMode(accessor.getHitResult().getDirection()).label()));
+                // A side that can never be a connection names its reason instead of a role.
+                var side = MachinePortMode.Side.local(accessor.getBlockState().getValue(MachineBlock.FACING), accessor.getHitResult().getDirection());
+                var closed = dev.latrox.rematter.content.PortSides.closed(machine.kind(), side);
+                tooltip.add(closed != null ? Component.translatable("port.rematter.closed." + closed.name().toLowerCase(java.util.Locale.ROOT)).withStyle(ChatFormatting.GRAY)
+                        : Component.translatable("port.rematter.mode_message", machine.portMode(side).label()));
             }
             boolean industrial = accessor.getBlockState().getBlock() instanceof MachineBlock block
                     && IndustrialStructure.isIndustrial(block.kind());

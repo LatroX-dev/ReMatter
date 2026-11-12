@@ -41,7 +41,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_idle_parts"
+        "model": "rematter:block/chemical_reactor_idle_world_parts"
       }
     },
     {
@@ -50,7 +50,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_idle_parts",
+        "model": "rematter:block/chemical_reactor_idle_world_parts",
         "y": 90
       }
     },
@@ -60,7 +60,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_idle_parts",
+        "model": "rematter:block/chemical_reactor_idle_world_parts",
         "y": 180
       }
     },
@@ -70,7 +70,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_idle_parts",
+        "model": "rematter:block/chemical_reactor_idle_world_parts",
         "y": 270
       }
     },
@@ -80,7 +80,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_active_parts"
+        "model": "rematter:block/chemical_reactor_active_world_parts"
       }
     },
     {
@@ -89,7 +89,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_active_parts",
+        "model": "rematter:block/chemical_reactor_active_world_parts",
         "y": 90
       }
     },
@@ -99,7 +99,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_active_parts",
+        "model": "rematter:block/chemical_reactor_active_world_parts",
         "y": 180
       }
     },
@@ -109,7 +109,285 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/chemical_reactor_active_parts",
+        "model": "rematter:block/chemical_reactor_active_world_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "item_input": "rematter:block/port_plain_left_item_input",
+            "item_output": "rematter:block/port_plain_left_item_output",
+            "fluid_input": "rematter:block/port_plain_left_fluid_input",
+            "fluid_output": "rematter:block/port_plain_left_fluid_output",
+            "power": "rematter:block/port_plain_left_power",
+            "matter": "rematter:block/port_plain_left_matter",
+            "chemical": "rematter:block/port_plain_left_chemical"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "item_input": "rematter:block/port_plain_right_item_input",
+            "item_output": "rematter:block/port_plain_right_item_output",
+            "fluid_input": "rematter:block/port_plain_right_fluid_input",
+            "fluid_output": "rematter:block/port_plain_right_fluid_output",
+            "power": "rematter:block/port_plain_right_power",
+            "matter": "rematter:block/port_plain_right_matter",
+            "chemical": "rematter:block/port_plain_right_chemical"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "item_input": "rematter:block/port_plain_back_item_input",
+            "item_output": "rematter:block/port_plain_back_item_output",
+            "fluid_input": "rematter:block/port_plain_back_fluid_input",
+            "fluid_output": "rematter:block/port_plain_back_fluid_output",
+            "power": "rematter:block/port_plain_back_power",
+            "matter": "rematter:block/port_plain_back_matter",
+            "chemical": "rematter:block/port_plain_back_chemical"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "item_input": "rematter:block/port_plain_bottom_item_input",
+            "item_output": "rematter:block/port_plain_bottom_item_output",
+            "fluid_input": "rematter:block/port_plain_bottom_fluid_input",
+            "fluid_output": "rematter:block/port_plain_bottom_fluid_output",
+            "power": "rematter:block/port_plain_bottom_power",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "chemical": "rematter:block/port_plain_bottom_chemical"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 90,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "item_input": "rematter:block/port_plain_left_item_input",
+            "item_output": "rematter:block/port_plain_left_item_output",
+            "fluid_input": "rematter:block/port_plain_left_fluid_input",
+            "fluid_output": "rematter:block/port_plain_left_fluid_output",
+            "power": "rematter:block/port_plain_left_power",
+            "matter": "rematter:block/port_plain_left_matter",
+            "chemical": "rematter:block/port_plain_left_chemical"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "item_input": "rematter:block/port_plain_right_item_input",
+            "item_output": "rematter:block/port_plain_right_item_output",
+            "fluid_input": "rematter:block/port_plain_right_fluid_input",
+            "fluid_output": "rematter:block/port_plain_right_fluid_output",
+            "power": "rematter:block/port_plain_right_power",
+            "matter": "rematter:block/port_plain_right_matter",
+            "chemical": "rematter:block/port_plain_right_chemical"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "item_input": "rematter:block/port_plain_back_item_input",
+            "item_output": "rematter:block/port_plain_back_item_output",
+            "fluid_input": "rematter:block/port_plain_back_fluid_input",
+            "fluid_output": "rematter:block/port_plain_back_fluid_output",
+            "power": "rematter:block/port_plain_back_power",
+            "matter": "rematter:block/port_plain_back_matter",
+            "chemical": "rematter:block/port_plain_back_chemical"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "item_input": "rematter:block/port_plain_bottom_item_input",
+            "item_output": "rematter:block/port_plain_bottom_item_output",
+            "fluid_input": "rematter:block/port_plain_bottom_fluid_input",
+            "fluid_output": "rematter:block/port_plain_bottom_fluid_output",
+            "power": "rematter:block/port_plain_bottom_power",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "chemical": "rematter:block/port_plain_bottom_chemical"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 180,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "item_input": "rematter:block/port_plain_left_item_input",
+            "item_output": "rematter:block/port_plain_left_item_output",
+            "fluid_input": "rematter:block/port_plain_left_fluid_input",
+            "fluid_output": "rematter:block/port_plain_left_fluid_output",
+            "power": "rematter:block/port_plain_left_power",
+            "matter": "rematter:block/port_plain_left_matter",
+            "chemical": "rematter:block/port_plain_left_chemical"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "item_input": "rematter:block/port_plain_right_item_input",
+            "item_output": "rematter:block/port_plain_right_item_output",
+            "fluid_input": "rematter:block/port_plain_right_fluid_input",
+            "fluid_output": "rematter:block/port_plain_right_fluid_output",
+            "power": "rematter:block/port_plain_right_power",
+            "matter": "rematter:block/port_plain_right_matter",
+            "chemical": "rematter:block/port_plain_right_chemical"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "item_input": "rematter:block/port_plain_back_item_input",
+            "item_output": "rematter:block/port_plain_back_item_output",
+            "fluid_input": "rematter:block/port_plain_back_fluid_input",
+            "fluid_output": "rematter:block/port_plain_back_fluid_output",
+            "power": "rematter:block/port_plain_back_power",
+            "matter": "rematter:block/port_plain_back_matter",
+            "chemical": "rematter:block/port_plain_back_chemical"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "item_input": "rematter:block/port_plain_bottom_item_input",
+            "item_output": "rematter:block/port_plain_bottom_item_output",
+            "fluid_input": "rematter:block/port_plain_bottom_fluid_input",
+            "fluid_output": "rematter:block/port_plain_bottom_fluid_output",
+            "power": "rematter:block/port_plain_bottom_power",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "chemical": "rematter:block/port_plain_bottom_chemical"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 270,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "item_input": "rematter:block/port_plain_left_item_input",
+            "item_output": "rematter:block/port_plain_left_item_output",
+            "fluid_input": "rematter:block/port_plain_left_fluid_input",
+            "fluid_output": "rematter:block/port_plain_left_fluid_output",
+            "power": "rematter:block/port_plain_left_power",
+            "matter": "rematter:block/port_plain_left_matter",
+            "chemical": "rematter:block/port_plain_left_chemical"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "item_input": "rematter:block/port_plain_right_item_input",
+            "item_output": "rematter:block/port_plain_right_item_output",
+            "fluid_input": "rematter:block/port_plain_right_fluid_input",
+            "fluid_output": "rematter:block/port_plain_right_fluid_output",
+            "power": "rematter:block/port_plain_right_power",
+            "matter": "rematter:block/port_plain_right_matter",
+            "chemical": "rematter:block/port_plain_right_chemical"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "item_input": "rematter:block/port_plain_back_item_input",
+            "item_output": "rematter:block/port_plain_back_item_output",
+            "fluid_input": "rematter:block/port_plain_back_fluid_input",
+            "fluid_output": "rematter:block/port_plain_back_fluid_output",
+            "power": "rematter:block/port_plain_back_power",
+            "matter": "rematter:block/port_plain_back_matter",
+            "chemical": "rematter:block/port_plain_back_chemical"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "item_input": "rematter:block/port_plain_bottom_item_input",
+            "item_output": "rematter:block/port_plain_bottom_item_output",
+            "fluid_input": "rematter:block/port_plain_bottom_fluid_input",
+            "fluid_output": "rematter:block/port_plain_bottom_fluid_output",
+            "power": "rematter:block/port_plain_bottom_power",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "chemical": "rematter:block/port_plain_bottom_chemical"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/chemical_reactor_glass_cores"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/chemical_reactor_glass_cores",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/chemical_reactor_glass_cores",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/chemical_reactor_glass_cores",
         "y": 270
       }
     }

@@ -1,8 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "rematter:block/casing_port",
-    "port": "rematter:block/casing_port",
+    "particle": "rematter:block/casing_plain",
     "top": "rematter:block/chassis_top",
     "front": "rematter:block/chemical_reactor_front",
     "alcove": "rematter:block/chassis_alcove",
@@ -29,25 +28,9 @@
         "north": {
           "texture": "#alcove"
         },
-        "south": {
-          "texture": "#port",
-          "cullface": "south"
-        },
-        "east": {
-          "texture": "#port",
-          "cullface": "east"
-        },
-        "west": {
-          "texture": "#port",
-          "cullface": "west"
-        },
         "up": {
           "texture": "#top",
           "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -68,20 +51,12 @@
           "texture": "#front",
           "cullface": "north"
         },
-        "east": {
-          "texture": "#port",
-          "cullface": "east"
-        },
         "west": {
           "texture": "#alcove"
         },
         "up": {
           "texture": "#top",
           "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -105,17 +80,9 @@
         "east": {
           "texture": "#alcove"
         },
-        "west": {
-          "texture": "#port",
-          "cullface": "west"
-        },
         "up": {
           "texture": "#top",
           "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -137,10 +104,6 @@
         },
         "up": {
           "texture": "#alcove"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -163,10 +126,6 @@
         },
         "up": {
           "texture": "#inner"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },

@@ -12,6 +12,8 @@ public final class UiPalette {
     public static final int RECESS = 0xff0a0d11;
     public static final int BORDER = 0xff46515b;
     public static final int HIGHLIGHT = 0xff495059;
+    public static final int SEAM = 0xff13161b;
+    public static final int CONTACT = 0xffae6f49;
     public static final int TEXT = 0xffedf4f3;
     public static final int MUTED = 0xffadbec0;
     public static final int ACCENT = 0xff52d7c8;
@@ -71,9 +73,30 @@ public final class UiPalette {
         int r=((hue>>16)&255),g=((hue>>8)&255),b=hue&255;
         return 255<<24 | Math.round(r+(255-r)*.45F)<<16 | Math.round(g+(255-g)*.45F)<<8 | Math.round(b+(255-b)*.45F);
     }
+    /** A colour mixed toward white, as the palette module lightens a lit edge. */
+    public static int tint(int color, float amount) {
+        int r=(color>>16)&255,g=(color>>8)&255,b=color&255;
+        return color&0xff000000 | Math.round(r+(255-r)*amount)<<16 | Math.round(g+(255-g)*amount)<<8 | Math.round(b+(255-b)*amount);
+    }
     public static int brightness(float brightness) {
         int value=(int)(255*Math.clamp(brightness,0,1));
         return 255<<24|value<<16|value<<8|value;
+    }
+
+    /** Rendered hardware uses the same neutral and status colours as the baked family. */
+    public static final int MOTION_STEEL = 0xffc3ccce;
+    public static final int WAITING_LIGHT = 0xff54b8f1;
+    public static int multiply(int color, float brightness) {
+        brightness=Math.clamp(brightness,0,1);
+        return color&0xff000000 | Math.round(((color>>16)&255)*brightness)<<16
+                | Math.round(((color>>8)&255)*brightness)<<8 | Math.round((color&255)*brightness);
+    }
+    public static int mix(int first,int second,float amount) {
+        amount=Math.clamp(amount,0,1);
+        int r=Math.round(((first>>16)&255)*(1-amount)+((second>>16)&255)*amount);
+        int g=Math.round(((first>>8)&255)*(1-amount)+((second>>8)&255)*amount);
+        int b=Math.round((first&255)*(1-amount)+(second&255)*amount);
+        return WHITE&0xff000000 | r<<16 | g<<8 | b;
     }
 
     private UiPalette() {}

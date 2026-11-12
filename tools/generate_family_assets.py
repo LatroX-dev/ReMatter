@@ -18,8 +18,9 @@ from family_geometry import (ROTATION, Box, GeometryError, build, check_boxes, c
 from family_palette import CABLE_TIERS, PORT_MODES
 from bench_showpieces import DEVICES as BENCHES, boxes as bench_boxes, work_boxes as bench_work, show_skin as bench_skin, work_skin as bench_work_skin, crank_boxes
 from family_sprites import ANIMATIONS, sprites
-from generated_files import GeneratedFiles
-from reactor_showpiece import (PREFIX as REACTOR_SPRITE_PREFIX, column_boxes, column_skin,
+from hardware_sprites import OwnedFiles
+import port_plates
+from reactor_showpiece import (PREFIX as REACTOR_SPRITE_PREFIX, REACTOR_LIQUID, column_boxes, column_skin,
                               liquid_boxes, liquid_skin)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +32,7 @@ NATURAL = {'north': ('-x', '-y'), 'south': ('+x', '-y'), 'west': ('+z', '-y'), '
            'up': ('+x', '+z'), 'down': ('+x', '-z')}
 # Sprites that only the block entity renderer draws: mounted cell faceplates and status lights.
 RENDERER_SPRITES = ('drive_cell_64k', 'drive_cell_256k', 'drive_cell_1m', 'drive_cell_unknown',
-                    'led_blue', 'led_green', 'led_amber', 'led_red', 'drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k')
+                    'led_blue', 'led_green', 'led_amber', 'led_red', 'chemical_reactor_columns_shuttle', 'chemical_reactor_columns_liquid', 'chemical_reactor_columns_glass', 'drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k')
 # Most boxes a block model of each kind may hold.
 BUDGET = {'bench_part': 4, 'network': 16, 'process': 24, 'part': 2, 'reactor_part': 3, 'cable': 2, 'cube': 1}
 
@@ -51,14 +52,19 @@ class Family:
         self.items = {}
         self.compositions = []
 
-    def model(self, name, kind, textures, boxes, skin, *, context=None, skip=(), particle=None):
+    def model(self, name, kind, textures, boxes, skin, *, context=None, skip=(), particle=None, omit=()):
+        """omit names the outer faces that the port plates of the device draw instead of this model."""
         check_boxes(name, boxes)
         if len(boxes) > BUDGET[kind]:
             raise GeometryError(f'{name}: {len(boxes)} boxes exceed the {kind} budget of {BUDGET[kind]}')
         elements = build(boxes, skin, context)
         for element, box in zip(elements, boxes):
-            for face in [face for face in element['faces'] if (box.name, face) in skip]:
+            for face in [face for face in element['faces']
+                         if (box.name, face) in skip or (face in omit and box.on_boundary(face))]:
                 del element['faces'][face]
+        # A box whose only visible faces belong to the plates is not written at all.
+        kept = [(box, element) for box, element in zip(boxes, elements) if element['faces']]
+        boxes, elements = [box for box, _ in kept], [element for _, element in kept]
         used = {face['texture'][1:] for element in elements for face in element['faces'].values()}
         if used != set(textures):
             raise GeometryError(f'{name}: texture keys {sorted(set(textures) ^ used)} are unused or undefined')
@@ -76,20 +82,25 @@ class Family:
         check_composition(label, parts, allowed_overlap)
         self.compositions.append(label)
 
-    def machine(self, name, parts):
-        """Body by facing, plus the part model of the current activity.
+    def machine(self, name, parts, ports=None):
+        """Body by facing, plus the part model of the current activity and the port plates of the closed sides.
 
-        The item shows the machine switched on: lit parts carry the device colour, which is what tells the
-        icons of the family apart in an inventory."""
+        The item shows the machine switched on and unconfigured: lit parts carry the device colour, which is
+        what tells the icons of the family apart in an inventory, and every side shows its initial role."""
         states = [{'when': {'facing': facing}, 'apply': {'model': MODEL + name, **ROTATION[facing]}}
                   for facing in HORIZONTAL]
         for active, part in (('false', parts[0]), ('true', parts[1])):
             states += [{'when': {'facing': facing, 'active': active},
                         'apply': {'model': MODEL + part, **ROTATION[facing]}} for facing in HORIZONTAL]
+        shown = [MODEL + name, MODEL + parts[1]]
+        if ports:
+            states += [{'when': {'facing': facing}, 'apply': {'type': ports['type'], **ROTATION[facing],
+                                                              'default': ports['default'], 'sides': ports['sides']}}
+                       for facing in HORIZONTAL]
+            shown += port_plates.default_models(ports)
         self.blockstates[name] = {'multipart': states}
         self.items[name] = {'model': {'type': 'minecraft:composite', 'models': [
-            {'type': 'minecraft:model', 'model': MODEL + name},
-            {'type': 'minecraft:model', 'model': MODEL + parts[1]}]}}
+            {'type': 'minecraft:model', 'model': model} for model in shown]}}
 
     def cube(self, name):
         self.blockstates[name] = {'variants': {'': {'model': MODEL + name}}}
@@ -115,20 +126,45 @@ def sealed_skin(sides, recess='inner'):
 
 
 def with_parts(family, name, kind, textures, body, skin, parts, part_textures, part_skin, particle,
-               part_kind='part'):
-    """A machine body and its idle and active part models, checked together in both states.
+               part_kind='part', casing='plain', plates=True, renderer=()):
+    """A machine body, its idle and active part models and its port plates, checked together.
 
     Part boxes are screens and lights; they are lit flat in both states, so switching on changes their
-    sprite and glow and nothing else."""
-    drawn = family.model(name, kind, textures, body, skin, context=body + parts, particle=particle)
+    sprite and glow and nothing else. The closed sides belong to the port plates: the body leaves those faces
+    out, and the checks run with every side blank and with every side connected. A structure controller has
+    no connections of its own and keeps its casing faces (plates=False)."""
+    ports = port_plates.definition(name, casing) if plates else None
+    drawn = family.model(name, kind, textures, body, skin, context=body + parts, particle=particle,
+                         omit=port_plates.omitted_faces(name) if plates else ())
     names = []
     for state, emissive in (('idle', False), ('active', True)):
         boxes = [Box(box.name, box.lo, box.hi, emissive=emissive, step=box.step, flat=True) for box in parts]
         part_name = f'{name}_{state}_parts'
         shown = family.model(part_name, part_kind, part_textures[state], boxes, part_skin, context=body + boxes)
-        family.compose(f'{name} {state}', drawn + shown)
-        names.append(part_name)
-    family.machine(name, names)
+        if plates:
+            compose_with_plates(family, f'{name} {state}', name, drawn + shown)
+        else:
+            family.compose(f'{name} {state}', drawn + shown)
+        if renderer:
+            visible=[box for box in boxes if box.name not in renderer]
+            used={part_skin(box,face) if isinstance(part_skin(box,face),str) else part_skin(box,face)[0]
+                  for box in visible for face in ('north','south','east','west','up','down')}
+            world_name=part_name.replace('_parts','_world_parts')
+            family.model(world_name,part_kind,{key:value for key,value in part_textures[state].items() if key in used},
+                         visible,part_skin,context=body+visible,particle=particle)
+            names.append(world_name)
+            if state=='idle':family.models.pop(part_name)
+        else:names.append(part_name)
+    family.machine(name, names, ports)
+    if renderer:
+        for child in family.items[name]['model']['models']:
+            if child['model']==MODEL+names[1]:child['model']=MODEL+f'{name}_active_parts'
+
+
+def compose_with_plates(family, label, device, parts):
+    for connected in (False, True):
+        family.compose(f'{label} {"connected" if connected else "blank"}',
+                       parts + port_plates.parts(device, connected), port_plates.OVERLAP)
 
 
 # --------------------------------------------------------------------------- Matter Drive
@@ -157,10 +193,11 @@ def matter_drive(family):
         Box('rail_right_lower', (1, 5, 0), (7, 6, 2)),
     ]
     bar = Box('activity_bar', (10, 13.5, 0), (14, 14.5, .5), step=True)
-    sides = {'south': 'port', 'east': 'port', 'west': 'port', 'down': 'port', 'up': 'plain'}
-    textures = {'port': 'casing_port', 'plain': 'casing_plain', 'front': 'drive_front', 'bay': 'drive_bay'}
+    sides = dict.fromkeys(('south', 'east', 'west', 'down', 'up'), 'plain')
+    textures = {'front': 'drive_front', 'bay': 'drive_bay'}
+    ports = port_plates.definition('matter_drive')
     drawn = family.model('matter_drive', 'network', textures, body, sealed_skin(sides, 'bay'),
-                         context=body + [bar], particle='casing_plain')
+                         context=body + [bar], particle='casing_plain', omit=port_plates.omitted_faces('matter_drive'))
     names = []
     for state, emissive in (('off', False), ('on', True)):
         lit = Box(bar.name, bar.lo, bar.hi, emissive=emissive, step=True, flat=True)
@@ -173,17 +210,17 @@ def matter_drive(family):
                  for box, faces in ((drive_cell_box(bay), ('north',)),
                                     (drive_led_box(bay), ('north', 'east', 'west', 'up', 'down')))]
         check_boxes('matter_drive bays', [box for box, _ in cells])
-        family.compose('matter_drive ' + state, drawn + shown)
-        family.compose('matter_drive full ' + state, drawn + shown + cells)
-    family.machine('matter_drive', names)
+        compose_with_plates(family, 'matter_drive ' + state, 'matter_drive', drawn + shown)
+        compose_with_plates(family, 'matter_drive full ' + state, 'matter_drive', drawn + shown + cells)
+    family.machine('matter_drive', names, ports)
 
 
 # --------------------------------------------------------------------------- Matter Terminal
 def matter_terminal(family):
     body = sealed_body(4)
     screen = [Box('screen', (1, 4, 1), (15, 15, 2))]
-    sides = {'south': 'port', 'east': 'plain', 'west': 'plain', 'down': 'plain', 'up': 'plain'}
-    textures = {'port': 'casing_port', 'plain': 'casing_plain', 'front': 'terminal_front', 'inner': 'casing_inner'}
+    sides = dict.fromkeys(('south', 'east', 'west', 'down', 'up'), 'plain')
+    textures = {'front': 'terminal_front', 'inner': 'casing_inner'}
     with_parts(family, 'matter_terminal', 'network', textures, body, sealed_skin(sides), screen,
                {'idle': {'screen': 'terminal_screen'}, 'active': {'screen': 'terminal_screen_active'}},
                lambda box, face: 'screen', 'casing_plain')
@@ -198,10 +235,10 @@ def network_interface(family):
     ]
     lights = [Box('lens', (7, 6, 0), (9, 8, .5), step=True),
               Box('signal', (4, 12.5, 0), (12, 13.5, .5), step=True)]
-    sides = {'south': 'port', 'east': 'port', 'west': 'port', 'down': 'port', 'up': 'plain'}
-    textures = {'port': 'casing_port', 'plain': 'casing_plain', 'front': 'interface_front', 'inner': 'casing_inner'}
+    sides = dict.fromkeys(('south', 'east', 'west', 'down', 'up'), 'plain')
+    textures = {'front': 'interface_front', 'inner': 'casing_inner'}
     with_parts(family, 'network_interface', 'network', textures, body, sealed_skin(sides), lights,
-               {'idle': {'light': 'light_blue_standby'}, 'active': {'light': 'light_blue'}},
+               {'idle': {'light': 'light_blue_standby'}, 'active': {'light': 'interface_light_active'}},
                lambda box, face: 'light', 'casing_plain')
 
 
@@ -214,7 +251,7 @@ def controller(family, name):
     with_parts(family, name, 'network', textures, body, sealed_skin(sides), display,
                {'idle': {'display': name + '_display', 'inner': 'casing_inner'},
                 'active': {'display': name + '_display_active', 'inner': 'casing_inner'}},
-               lambda box, face: 'display' if face == 'north' else 'inner', 'reactor_casing')
+               lambda box, face: 'display' if face == 'north' else 'inner', 'reactor_casing', plates=False)
 
 
 # --------------------------------------------------------------------------- Machine Port, Casing, Glass
@@ -347,7 +384,8 @@ def chassis():
 
 def chassis_skin(box, face):
     if box.on_boundary(face):
-        return {'north': 'front', 'up': 'top'}.get(face, 'port')
+        # The four closed sides are left to the port plates; the key only names them until they are omitted.
+        return {'north': 'front', 'up': 'top'}.get(face, 'plate')
     if face == 'north':
         return 'alcove' if box.name == 'rear' else 'front'
     if box.name == 'skirt' or (box.name == 'ledge' and face == 'down'):
@@ -377,14 +415,18 @@ def chemical_reactor(family):
     def part_skin(box, face):
         return 'light' if box.name == 'status_light' else liquid_skin(box, face)
 
-    textures = {'port': 'casing_port', 'top': 'chassis_top', 'front': 'chemical_reactor_front',
+    textures = {'top': 'chassis_top', 'front': 'chemical_reactor_front',
                 'alcove': 'chassis_alcove', 'inner': 'casing_inner'}
     textures.update({material: REACTOR_SPRITE_PREFIX + material
                      for material in ('base', 'lower', 'upper', 'manifold')})
     with_parts(family, 'chemical_reactor', 'process', textures, chassis() + columns, skin, parts,
                {'idle': {'light': 'status_off', 'liquid': REACTOR_SPRITE_PREFIX + 'liquid'},
                 'active': {'light': 'light_violet', 'liquid': REACTOR_SPRITE_PREFIX + 'liquid_active'}},
-               part_skin, 'casing_port', part_kind='reactor_part')
+               part_skin, 'casing_plain', part_kind='reactor_part',renderer=tuple(box.name for box in parts) if REACTOR_LIQUID=='renderer' else ('status_light',))
+    # A dark inset keeps the sight glass closed outside the 64-block renderer range.
+    cores=[Box('glass_core_right',(3.5,7,3.5),(5.5,10,7.5),flat=True),Box('glass_core_left',(10.5,7,3.5),(12.5,10,7.5),flat=True)]
+    if REACTOR_LIQUID=='renderer':family.model('chemical_reactor_glass_cores','reactor_part',{'glass':REACTOR_SPRITE_PREFIX+'glass'},cores,lambda box,face:'glass')
+    if REACTOR_LIQUID=='renderer':family.blockstates['chemical_reactor']['multipart'] += [{'when':{'facing':f},'apply':{'model':MODEL+'chemical_reactor_glass_cores',**ROTATION[f]}} for f in HORIZONTAL]
 
 
 # --------------------------------------------------------------------------- Six workshop benches
@@ -393,7 +435,7 @@ def bench(family,name):
     check_showpiece(name,show+work)
     body=chassis()+show
     materials={bench_skin(name,box,'north')[0] for box in show}
-    textures={'port':'casing_port','top':'chassis_top','front':name+'_front','alcove':'chassis_alcove','inner':'casing_inner'}
+    textures={'top':'chassis_top','front':name+'_front','alcove':'chassis_alcove','inner':'casing_inner'}
     textures.update({material:'bench_'+name+'_plate' if material=='plate' else 'bench_'+material for material in sorted(materials)})
     def skin(box,face):return chassis_skin(box,face) if box.name in CHASSIS else bench_skin(name,box,face)
     light=Box('status_light',(11,1.5,.5),(13,2.5,1),step=True)
@@ -404,7 +446,7 @@ def bench(family,name):
     part_textures={state:{'light':'status_off' if state=='idle' or name=='hand_preparator' else 'light_'+accent_name} for state in ('idle','active')}
     if work:
         for state in ('idle','active'):part_textures[state]['work']='bench_'+name+('_work_active' if state=='active' else '_work')
-    with_parts(family,name,'process',textures,body,skin,parts,part_textures,part_skin,'casing_port',part_kind='bench_part')
+    with_parts(family,name,'process',textures,body,skin,parts,part_textures,part_skin,'casing_plain',part_kind='bench_part',renderer=('status_light',))
     if name=='hand_preparator':
         crank=crank_boxes();shown=family.model('hand_preparator_crank_item','bench_part',{'metal':'bench_metal'},crank,lambda box,face:('metal',*mapped_uv(face,box.lo,box.hi,*NATURAL[face],(0,0))),context=body+crank)
         family.items[name]['model']['models'].append({'type':'minecraft:model','model':MODEL+'hand_preparator_crank_item'})
@@ -417,6 +459,7 @@ def bench(family,name):
 # --------------------------------------------------------------------------- output
 def family():
     result = Family()
+    port_plates.add_family_models(result)
     matter_drive(result)
     matter_terminal(result)
     network_interface(result)
@@ -446,17 +489,18 @@ def check_references(result, art):
     models = {MODEL + name for name in result.models} | {'rematter:item/' + name for name in result.item_models}
     for name, model in {**result.models, **result.item_models}.items():
         for key, texture in model['textures'].items():
-            if texture.removeprefix(MODEL) not in art:
+            # A parent may leave a texture variable to its children.
+            if not texture.startswith('#') and texture.removeprefix(MODEL) not in art:
                 raise GeometryError(f'{name}: sprite {texture} is not generated')
         parent = model['parent']
         if parent.startswith('rematter:') and parent not in models:
             raise GeometryError(f'{name}: parent {parent} is not generated')
     for name, definition in {**result.blockstates, **result.items}.items():
-        for model in referenced_models(definition):
+        for model in list(referenced_models(definition)) + list(port_plates.referenced(definition)):
             if model not in models:
                 raise GeometryError(f'{name}: model {model} is not generated')
     drawn = {texture.removeprefix(MODEL) for model in {**result.models, **result.item_models}.values()
-             for texture in model['textures'].values()}
+             for texture in model['textures'].values() if not texture.startswith('#')}
     if set(art) != drawn | set(RENDERER_SPRITES):
         raise GeometryError(f'sprites without a user or a painter: {sorted(set(art) ^ (drawn | set(RENDERER_SPRITES)))}')
     for name, sprite in art.items():
@@ -471,9 +515,13 @@ def check_references(result, art):
 
 
 def generate(check):
+    import renderer_parts
+    renderer_parts.generate(check)
     result, art = family(), sprites()
     check_references(result, art)
-    out = GeneratedFiles(ROOT, check)
+    out = OwnedFiles(ROOT, check)
+    # Existing white renderer mask is technical ink; expose it on the block atlas too.
+    out.json(ASSETS.parent / 'minecraft/atlases/blocks.json',{'sources':[{'type':'minecraft:single','resource':'rematter:entity/effect_light'}]})
     for name, sprite in art.items():
         out.png(ASSETS / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
         if name in ANIMATIONS:
@@ -482,6 +530,9 @@ def generate(check):
                           ('blockstates', result.blockstates), ('items', result.items)):
         for name, value in files.items():
             out.json(ASSETS / folder / f'{name}.json', value)
+    # Plate models that a changed PortSides.SEALED_TOP no longer needs are removed, or reported by --check.
+    out.sweep(ASSETS / 'models/block',list(port_plates.OWNED)+['chemical_reactor_glass_cores.json']+[name+suffix+'.json' for name in (*BENCHES,'chemical_reactor') for suffix in ('_idle_parts','_active_parts','_idle_world_parts','_active_world_parts')])
+    out.sweep(ASSETS / 'textures/block',['light_blue.png'])
     print(('Verified' if check else 'Generated') + f' {out.count} family files;'
           f' {len(result.models)} block models passed the geometry checks in {len(result.compositions)} compositions.')
 

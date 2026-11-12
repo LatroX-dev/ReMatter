@@ -420,7 +420,7 @@ final class MachineMatterNetwork {
             if (node.entity instanceof MachineBlockEntity machine) {
                 if (IndustrialStructure.isIndustrial(machine.kind()))
                     return IndustrialStructure.inspect(machine).ports().stream().map(IndustrialStructure.Port::position).toList();
-                return java.util.Arrays.stream(Direction.values()).filter(side -> machine.acceptsMatter(side, false))
+                return java.util.Arrays.stream(Direction.values()).filter(side -> machine.acceptsMatter(side))
                         .map(node.position::relative).toList();
             }
             return java.util.Arrays.stream(Direction.values()).map(node.position::relative).toList();
@@ -433,7 +433,7 @@ final class MachineMatterNetwork {
                 if (IndustrialStructure.isIndustrial(machine.kind()))
                     return source.entity instanceof MachinePortBlockEntity && source.controller == machine;
                 for (Direction side : Direction.values()) if (target.position.relative(side).equals(source.position))
-                    return machine.acceptsMatter(side, source.cable());
+                    return machine.acceptsMatter(side);
                 return false;
             }
             return true;

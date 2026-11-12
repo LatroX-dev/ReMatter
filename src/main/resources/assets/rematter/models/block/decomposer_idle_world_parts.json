@@ -1,0 +1,135 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "work": "rematter:block/bench_decomposer_work"
+  },
+  "elements": [
+    {
+      "name": "crusher_contact_left",
+      "from": [
+        3,
+        8,
+        2.5
+      ],
+      "to": [
+        6,
+        11,
+        3
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            0.5,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            0.5,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "crusher_contact_right",
+      "from": [
+        10,
+        8,
+        2.5
+      ],
+      "to": [
+        13,
+        11,
+        3
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            0.5,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            0.5,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            0.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            0.5
+          ]
+        }
+      }
+    }
+  ]
+}

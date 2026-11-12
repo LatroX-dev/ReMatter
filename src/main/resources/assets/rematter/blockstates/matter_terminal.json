@@ -112,6 +112,141 @@
         "model": "rematter:block/matter_terminal_active_parts",
         "y": 270
       }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "default": {
+          "left": "disabled",
+          "right": "disabled",
+          "back": "automatic",
+          "bottom": "disabled",
+          "top": "disabled"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 90,
+        "default": {
+          "left": "disabled",
+          "right": "disabled",
+          "back": "automatic",
+          "bottom": "disabled",
+          "top": "disabled"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 180,
+        "default": {
+          "left": "disabled",
+          "right": "disabled",
+          "back": "automatic",
+          "bottom": "disabled",
+          "top": "disabled"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 270,
+        "default": {
+          "left": "disabled",
+          "right": "disabled",
+          "back": "automatic",
+          "bottom": "disabled",
+          "top": "disabled"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled"
+          }
+        }
+      }
     }
   ]
 }

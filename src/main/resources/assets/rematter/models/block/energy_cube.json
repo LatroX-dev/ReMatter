@@ -2,9 +2,6 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "rematter:block/casing_plain",
-    "side": "rematter:block/energy_cube_side",
-    "plain": "rematter:block/casing_plain",
-    "socket": "rematter:block/energy_cube_socket",
     "inner": "rematter:block/casing_inner"
   },
   "elements": [
@@ -21,28 +18,8 @@
         16
       ],
       "faces": {
-        "north": {
-          "texture": "#side",
-          "cullface": "north"
-        },
-        "south": {
-          "texture": "#side",
-          "cullface": "south"
-        },
-        "east": {
-          "texture": "#side",
-          "cullface": "east"
-        },
-        "west": {
-          "texture": "#side",
-          "cullface": "west"
-        },
         "up": {
-          "texture": "#plain"
-        },
-        "down": {
-          "texture": "#inner",
-          "cullface": "down"
+          "texture": "#inner"
         }
       }
     },
@@ -59,26 +36,6 @@
         16
       ],
       "faces": {
-        "north": {
-          "texture": "#side",
-          "cullface": "north"
-        },
-        "south": {
-          "texture": "#side",
-          "cullface": "south"
-        },
-        "east": {
-          "texture": "#side",
-          "cullface": "east"
-        },
-        "west": {
-          "texture": "#side",
-          "cullface": "west"
-        },
-        "up": {
-          "texture": "#plain",
-          "cullface": "up"
-        },
         "down": {
           "texture": "#inner"
         }
@@ -151,19 +108,11 @@
         2
       ],
       "faces": {
-        "north": {
-          "texture": "#side",
-          "cullface": "north"
-        },
         "south": {
           "texture": "#inner"
         },
         "east": {
           "texture": "#inner"
-        },
-        "west": {
-          "texture": "#side",
-          "cullface": "west"
         }
       }
     },
@@ -183,16 +132,8 @@
         "north": {
           "texture": "#inner"
         },
-        "south": {
-          "texture": "#side",
-          "cullface": "south"
-        },
         "east": {
           "texture": "#inner"
-        },
-        "west": {
-          "texture": "#side",
-          "cullface": "west"
         }
       }
     },
@@ -209,16 +150,8 @@
         2
       ],
       "faces": {
-        "north": {
-          "texture": "#side",
-          "cullface": "north"
-        },
         "south": {
           "texture": "#inner"
-        },
-        "east": {
-          "texture": "#side",
-          "cullface": "east"
         },
         "west": {
           "texture": "#inner"
@@ -241,55 +174,7 @@
         "north": {
           "texture": "#inner"
         },
-        "south": {
-          "texture": "#side",
-          "cullface": "south"
-        },
-        "east": {
-          "texture": "#side",
-          "cullface": "east"
-        },
         "west": {
-          "texture": "#inner"
-        }
-      }
-    },
-    {
-      "name": "socket_north",
-      "from": [
-        4,
-        4,
-        0
-      ],
-      "to": [
-        12,
-        12,
-        1
-      ],
-      "faces": {
-        "north": {
-          "texture": "#socket",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "cullface": "north"
-        },
-        "south": {
-          "texture": "#inner"
-        },
-        "east": {
-          "texture": "#inner"
-        },
-        "west": {
-          "texture": "#inner"
-        },
-        "up": {
-          "texture": "#inner"
-        },
-        "down": {
           "texture": "#inner"
         }
       }
@@ -314,46 +199,6 @@
           "texture": "#inner"
         },
         "up": {
-          "texture": "#plain"
-        },
-        "down": {
-          "texture": "#inner"
-        }
-      }
-    },
-    {
-      "name": "socket_east",
-      "from": [
-        15,
-        4,
-        4
-      ],
-      "to": [
-        16,
-        12,
-        12
-      ],
-      "faces": {
-        "north": {
-          "texture": "#inner"
-        },
-        "south": {
-          "texture": "#inner"
-        },
-        "east": {
-          "texture": "#socket",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "cullface": "east"
-        },
-        "west": {
-          "texture": "#inner"
-        },
-        "up": {
           "texture": "#inner"
         },
         "down": {
@@ -374,46 +219,6 @@
         14
       ],
       "faces": {
-        "east": {
-          "texture": "#inner"
-        },
-        "west": {
-          "texture": "#inner"
-        },
-        "up": {
-          "texture": "#plain"
-        },
-        "down": {
-          "texture": "#inner"
-        }
-      }
-    },
-    {
-      "name": "socket_south",
-      "from": [
-        4,
-        4,
-        15
-      ],
-      "to": [
-        12,
-        12,
-        16
-      ],
-      "faces": {
-        "north": {
-          "texture": "#inner"
-        },
-        "south": {
-          "texture": "#socket",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "cullface": "south"
-        },
         "east": {
           "texture": "#inner"
         },
@@ -448,46 +253,6 @@
           "texture": "#inner"
         },
         "up": {
-          "texture": "#plain"
-        },
-        "down": {
-          "texture": "#inner"
-        }
-      }
-    },
-    {
-      "name": "socket_west",
-      "from": [
-        0,
-        4,
-        4
-      ],
-      "to": [
-        1,
-        12,
-        12
-      ],
-      "faces": {
-        "north": {
-          "texture": "#inner"
-        },
-        "south": {
-          "texture": "#inner"
-        },
-        "east": {
-          "texture": "#inner"
-        },
-        "west": {
-          "texture": "#socket",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "cullface": "west"
-        },
-        "up": {
           "texture": "#inner"
         },
         "down": {
@@ -515,7 +280,7 @@
           "texture": "#inner"
         },
         "up": {
-          "texture": "#plain"
+          "texture": "#inner"
         },
         "down": {
           "texture": "#inner"

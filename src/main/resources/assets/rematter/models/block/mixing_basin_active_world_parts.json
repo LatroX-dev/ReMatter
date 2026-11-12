@@ -1,0 +1,177 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_mixing_basin_work_active"
+  },
+  "elements": [
+    {
+      "name": "charge",
+      "from": [
+        3,
+        3,
+        3
+      ],
+      "to": [
+        13,
+        6,
+        13
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "stirrer_head",
+      "from": [
+        6.5,
+        11,
+        6.5
+      ],
+      "to": [
+        9.5,
+        13,
+        9.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            3,
+            15
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            3,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            3,
+            15
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            3,
+            15
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            3,
+            13
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            3,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "stirrer_tip",
+      "from": [
+        7,
+        13,
+        7
+      ],
+      "to": [
+        9,
+        14,
+        9
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            3,
+            10,
+            5,
+            12
+          ]
+        }
+      }
+    }
+  ]
+}

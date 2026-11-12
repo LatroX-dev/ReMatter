@@ -44,7 +44,7 @@ class GeometryError(ValueError):
 
 
 class Box:
-    def __init__(self, name, start, end, *, emissive=False, step=False, flat=False):
+    def __init__(self, name, start, end, *, emissive=False, step=False, flat=False, proud=False):
         self.name = name
         self.lo = tuple(float(value) for value in start)
         self.hi = tuple(float(value) for value in end)
@@ -54,6 +54,8 @@ class Box:
         # A flat box takes the light of its block without ambient occlusion: lights and showpieces keep
         # their brightness when the machine stands between other blocks.
         self.flat = flat
+        # A proud box may stand half a pixel outside the block: the ring of a port plate, and nothing else.
+        self.proud = proud
 
     def size(self):
         return tuple(self.hi[axis] - self.lo[axis] for axis in range(3))
@@ -76,7 +78,8 @@ class Box:
                     'west': (z, y, 16 - x), 'up': (x, 16 - z, y), 'down': (x, z, 16 - y)}[direction]
         first, second = point(self.lo), point(self.hi)
         return Box(f'{self.name}@{direction}', [min(pair) for pair in zip(first, second)],
-                   [max(pair) for pair in zip(first, second)], emissive=self.emissive, step=self.step, flat=self.flat)
+                   [max(pair) for pair in zip(first, second)], emissive=self.emissive, step=self.step, flat=self.flat,
+                   proud=self.proud)
 
 
 def number(value):
@@ -234,7 +237,8 @@ def check_boxes(label, boxes):
         for value in box.lo + box.hi:
             if abs(value * 2 - round(value * 2)) > EPSILON:
                 raise GeometryError(f'{label}: {box.name} leaves the half-pixel grid at {value}')
-            if value < 0 or value > 16:
+            reach = .5 if box.proud else 0
+            if value < -reach or value > 16 + reach:
                 raise GeometryError(f'{label}: {box.name} leaves the block at {value}')
         size = box.size()
         if min(size) < .5 - EPSILON:

@@ -91,6 +91,9 @@ public final class EnergyCubeGameTests {
     private static void portable(GameTestHelper h){
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var cube=place(h,new BlockPos(2,2,2),EnergyCubeTier.BASIC,owner);
         h.assertTrue(fill(cube,2048)==2048,"Portable fixture missing FE");var item=new ItemStack(Items.IRON_PICKAXE);item.set(DataComponents.REPAIR_COST,3456);cube.setItem(0,item);
+        owner.setPos(cube.getBlockPos().getX()+.5,cube.getBlockPos().getY(),cube.getBlockPos().getZ()+.5);
+        h.assertTrue(cube.cycleSide(owner,MachinePortMode.Side.LEFT),"Portable fixture could not change a side role");
+        int roles=cube.packedSideModes();
         var drops=Block.getDrops(cube.getBlockState(),h.getLevel(),cube.getBlockPos(),cube);
         h.assertTrue(drops.size()==1,"Cube did not make exactly one portable item");var data=drops.getFirst().get(DataComponents.BLOCK_ENTITY_DATA);
         h.assertTrue(data!=null&&!data.contains("owner"),"Portable cube retained installation owner");
@@ -98,6 +101,8 @@ public final class EnergyCubeGameTests {
         h.assertTrue(data.loadInto(next,h.getLevel().registryAccess()),"Cube data failed to restore");next.placedBy(owner);
         h.assertTrue(!next.locked()&&next.energy()==2048,"Portable FE lost or locked");
         h.assertTrue(next.getItem(0).is(Items.IRON_PICKAXE)&&next.getItem(0).getOrDefault(DataComponents.REPAIR_COST,0)==3456,"Portable charging item changed");
+        h.assertTrue(next.packedSideModes()==roles&&next.getBlockState().getValue(EnergyCubeBlock.FLOW)==EnergyCubeBlock.Flow.NONE,
+                "Portable cube lost face roles or copied transient flow");
         var block=(EnergyCubeBlock)cube.getBlockState().getBlock();
         h.assertTrue(block.getCloneItemStack(h.getLevel(),cube.getBlockPos(),cube.getBlockState(),true,owner).isEmpty(),"Creative data pick could copy stored FE/items");
         h.assertTrue(!block.getCloneItemStack(h.getLevel(),cube.getBlockPos(),cube.getBlockState(),false,owner).has(DataComponents.BLOCK_ENTITY_DATA),"Ordinary pick copied stored contents");h.succeed();

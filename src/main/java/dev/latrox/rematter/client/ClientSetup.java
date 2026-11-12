@@ -5,6 +5,7 @@ import dev.latrox.rematter.content.ModContent;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
@@ -15,6 +16,9 @@ public final class ClientSetup {
         event.register(ModContent.MACHINE_MENU.get(), MachineScreen::new);
         event.register(ModContent.ENERGY_CUBE_MENU.get(),EnergyCubeScreen::new);
         event.register(ModContent.CELL_TRANSFER_MENU.get(),CellTransferScreen::new);
+    }
+    @SubscribeEvent public static void registerBlockStateModels(RegisterBlockStateModels event) {
+        event.registerModel(PortPlatesModel.ID, PortPlatesModel.Unbaked.MAP_CODEC);
     }
     @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);

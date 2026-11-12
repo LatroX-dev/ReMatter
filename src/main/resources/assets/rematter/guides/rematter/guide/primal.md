@@ -43,7 +43,9 @@ Analyzer and Converter pay only from their own payment slot. Nearby Drive reserv
 
 <RecipeFor id="rematter:primal_converter" />
 
-Choose a **known, useful, explicitly allowed solid element**, a finite quantity, and Start. Connect ordinary output storage and provide FE. Work waits for stock, energy, transfer work and output room. It creates no research and no finished machine or component.
+Open the target picker and search by **name, symbol or stable ID**. Each allowed solid element shows its Primal-to-output ratio. Locked targets explain the missing research. Select a known target, choose a finite quantity, and Start. The flow runs from the payment Cell through the Converter to ordinary output storage; hover the destination to inspect the receiving **Drive position, Cell bay and free space**. Work waits for stock, energy, transfer work and output room. It creates no research and no finished machine or component.
+
+One complete output batch must fit a single readable ordinary Cell whose substance and phase partition accepts it. Space split between Cells is insufficient for that batch. The displayed destination is the current first fit, not a reservation: the server checks again when committing. A missing destination leaves the payment Cell untouched.
 
 | Target class | Primal for 1,000 u result | Base FE / duration |
 | --- | --- | --- |

@@ -161,7 +161,7 @@ final class MachineExtensions {
         try{quote=quote();}catch(IllegalArgumentException|ArithmeticException invalid){converting=false;work.status="requires_research";machine.setChanged();return;}
         var network=machine.matterNetwork(true);
         if(!network.ready()){work.status=network.status();return;}
-        if(!network.inventory().canApply(Map.of(),quote.outputs())){work.status="output_full";return;}
+        if(!ConverterDestination.observe(network,quote.target(),quote.output()).ready()){work.status="output_full";return;}
         if(machine.energy().getAmountAsLong()<quote.energy()||PrimalCells.view(primal.stack()).amount()<quote.primal()){work.status="research_payment";return;}
         conversionProgress=Math.min(quote.ticks(),conversionProgress+1);work.progress=conversionProgress;work.duration=quote.ticks();work.processedThisTick=true;work.status="working";
         boolean transferred=machine.advanceNetworkTransfer(conversionId.toString(),quote.output());
@@ -185,7 +185,8 @@ final class MachineExtensions {
                     }
                 }
                 case CONVERT_SELECT->{
-                    if(machine.kind()!=MachineKind.PRIMAL_CONVERTER||converting||request.amount()<250||request.amount()>8000)return false;
+                    if(machine.kind()!=MachineKind.PRIMAL_CONVERTER||converting||request.amount()<250||request.amount()>8000
+                            ||ResearchService.conversionClaims(level().getServer(),owner(),machineId).stream().anyMatch(claim->claim.remaining()>0))return false;
                     String previous=conversionTarget;long oldAmount=conversionAmount;conversionTarget=request.target();conversionAmount=request.amount();
                     try{quote();}catch(RuntimeException invalid){conversionTarget=previous;conversionAmount=oldAmount;return false;}
                     conversionProgress=0;conversionId=null;
@@ -237,9 +238,21 @@ final class MachineExtensions {
             out.add("knownTargets",knownTargets);
         }
         var known=ResearchService.knownSubstances(level(),owner());var targets=new JsonArray();
-        if(machine.kind()==MachineKind.PRIMAL_CONVERTER)out.add("conversionClaims",JSON.toJsonTree(ResearchService.conversionClaims(level().getServer(),owner(),machineId)));
-        if(machine.kind()==MachineKind.PRIMAL_CONVERTER)for(var key:PrimalPricing.targets(ReMatter.chemistry(),id->known.stream().anyMatch(k->k.id().equals(id)))){
-            var quote=PrimalPricing.quote(ReMatter.chemistry(),key,conversionAmount,id->true);var row=new JsonObject();row.addProperty("id",key.id().toString());row.addProperty("primal",quote.primal());row.addProperty("energy",quote.energy());row.addProperty("ticks",quote.ticks());targets.add(row);
+        if(machine.kind()==MachineKind.PRIMAL_CONVERTER){
+            var claims=ResearchService.conversionClaims(level().getServer(),owner(),machineId);
+            out.add("conversionClaims",JSON.toJsonTree(claims));
+            for(var key:PrimalPricing.targets(ReMatter.chemistry(),id->true)){
+                var quote=PrimalPricing.quote(ReMatter.chemistry(),key,conversionAmount,id->true);var row=new JsonObject();
+                row.addProperty("id",key.id().toString());row.addProperty("known",known.stream().anyMatch(k->k.id().equals(key.id())));
+                row.addProperty("primal",quote.primal());row.addProperty("energy",quote.energy());row.addProperty("ticks",quote.ticks());
+                row.addProperty("ratio",PrimalPricing.grade(key.id()).orElseThrow().primalPerUnit);targets.add(row);
+            }
+            var pending=claims.stream().filter(claim->claim.remaining()>0).findFirst();
+            if(pending.isPresent())out.add("conversionDestination",ConverterDestination.observe(machine.matterNetwork(true),pending.get().target(),pending.get().remaining()).json());
+            else if(!conversionTarget.isEmpty()){
+                try{var quote=quote();out.add("conversionDestination",ConverterDestination.observe(machine.matterNetwork(true),quote.target(),quote.output()).json());}
+                catch(IllegalArgumentException|ArithmeticException invalid){out.add("conversionDestination",ConverterDestination.missing("choose_target").json());}
+            }else out.add("conversionDestination",ConverterDestination.missing("choose_target").json());
         }
         out.add("targets",targets);
         if(machine.kind()==MachineKind.ANALYZER){

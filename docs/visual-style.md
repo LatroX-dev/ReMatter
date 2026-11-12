@@ -153,13 +153,47 @@ Primal Matter is the one thing in the mod that is many-coloured. It is prismatic
 ## Blocks and models (S1)
 
 - **Density.** Two texels per model pixel. A sprite is 32 x 32 for a block face or 16 x 16 for a small part. Faces are mapped by position, so a sprite never stretches.
-- **Grid.** Every box corner is a multiple of 0.5 px. A feature that stands alone is at least 1 px in two of its dimensions; 0.5 px is only the depth of a step or an inset.
+- **Grid.** Every box corner is a multiple of 0.5 px. A feature that stands alone is at least 1 px in two of its dimensions; 0.5 px is only the depth of a step or an inset. Boxes stay inside the block; the ring of a port plate alone stands half a pixel proud of it.
 - **Geometry or texture?** Geometry carries the silhouette and real depth: the casing, an alcove, a bay, a showpiece, a light that stands proud. Everything else is drawn into the sprite: bolts, seams, vents, labels, keys. If a detail would need a box thinner than 1 px, it is a texture detail.
 - **Faces.** Only visible faces are written. No two faces lie in the same plane, face the same way and overlap. An outer face on the block boundary carries its `cullface`. A showpiece holds at most two rotated boxes; housings hold none.
 - **Sprites.** Palette values only, at most 24 colours in a frame and at most six shades of one hue; alpha 0 or 255. Light comes from the top left: a lit edge on top and left, a shaded edge on the right and bottom, one texel wide.
 - **Lights and screens.** `textures/entity/effect_light.png` is a white tint mask for renderer effects; its white is technical ink, not a Primal identity accent. A lit part has `light_emission` 15 and no shading, so it keeps its brightness between other blocks. Switching a machine on swaps the sprite of its lit parts and nothing else.
-- **Animation.** A vertical strip of square frames with a `.png.mcmeta` beside it. Hard steps for pixel art (the red blink, the reactor liquid); `interpolate` only for glows. Every frame keeps the same transparent pixels.
+- **Animation.** A vertical strip of square frames with a `.png.mcmeta` beside it. Working glows, liquids and energy use at least 16 frames with `interpolate: true`; every frame keeps the same transparent pixels and palette. The red fault blink keeps its deliberate hard switch. Existing Primal signature strips retain their own timing and interpolation.
 - **Never by hand.** A generator writes the sprites, models, block states and item definitions. To change one, change the generator and run it.
+
+### Working motion
+
+Recipe progress measures completed work; it is never the clock of a moving mechanism. A monotonic client frame clock, measured at twenty ticks per real second, drives movement through a shared eased work envelope. It pauses with the game and stays independent of the server's tick rate. Server progress updates estimate only a modest speed change and the size of slow-growing items. Fast batches show a steady process item rather than making it disappear every few frames.
+
+Each mechanism shows its job: the Chemical Reactor exchanges liquid between its two columns, the Decomposer closes its jaws, the Analyzer passes a ring over its sample, the Material Preparator presses or mixes, and the Synthesizer sends pulses from its focus to the product. Industrial rings and module beams use continuous motion with bounded speed. They slow when work waits and resume from their stopped pose. Reciprocating mechanisms return to rest when their job is gone; rotary parts retain their stopped angle.
+
+The small status lamp is off while idle, uses the device hue while working, and breathes status blue over 60 ticks while a loaded job waits. `WAITING_LIGHT` retains the alternative with no waiting lamp. The menu gives the actual waiting reason. A brief visual hold bridges processing gaps: eight server ticks for processors and twenty for Crystal Generators. That hold never authorizes another operation, energy payment or item movement.
+
+Moving boxes sample the same block atlas and face lighting as the hardware around them. Their rest and stroke-end coordinates come from `tools/renderer_parts.py`, which writes `client/anim/RendererParts.java` and checks their composition with the baked model. Endpoints stay on the half-pixel grid; moving edges are drawn each frame. A new moving part needs a rest pose, both stroke endpoints, a speed bound and a native time sequence. A shader or full-pack rendering path must be checked separately from a unit test.
+
+Energy Cubes keep the same four horizontal faces. Core pulses move up for net charging, down for net discharge, and stop when storage stays steady. Flow is sampled coarsely with hysteresis so item charging or a balanced cable network cannot flicker the block state every tick.
+
+## Connections
+
+Where a cable, a pipe, a hopper or a neighbouring device can attach is one table, `PortSides.java`. Cables, every capability, direct links between devices, the side configuration, saved data, the block and the screen read that table and nothing else.
+
+- **The front is never a connection.** Nothing attaches to it, nothing is exposed on it and it cannot be configured. The three Energy Cubes are the one exception: their four sides are identical by design, the front included.
+- **Only a closed face can be a connection.** The top of a bench is its open working area, so it never is. On a sealed device the top is a connection that starts Disabled: the owner enables it where a hopper or a cable from above is wanted. `PortSides.SEALED_TOP` is the one switch for this: `OPT_IN` (recommended), `CONNECTION` (the top starts Automatic like the other sides) or `CLOSED`. The generators read it.
+- **A connection face shows a port plate only while enabled.** Disabled connection faces are plain casing: no seat, ring, well or Cube charge window. Permanently unavailable faces retain their device's front or open working area, without connector hardware. An enabled connection shows the plate: the seat on the casing and a ring that stands half a pixel proud of it. Automatic wears the neutral ring, a specific role the ring of its role in the colours of the Machine Port.
+- **The plate is a block model.** The body of a device leaves its closed sides out; a block state entry of the type `rematter:port_plates` lists, per side and role, the model that draws the side, and the game picks one by the roles the device publishes. Plates are part of the chunk mesh: they do not pop in with distance, and no renderer draws them. The ring is the only geometry of the family outside the block; a solid neighbour hides it.
+- **The screen shows the block.** The side diagram of a settings screen names the six sides around the front. A side that can never be a connection is sunk, cannot be clicked and says why. A connection is a control: a left click steps its role forward, a right click or Shift steps it back, and its glyph is the plate of the block in the same ring colour.
+
+<!-- check:port-sides -->
+| Device | Connections | Never a connection |
+| --- | --- | --- |
+| `analyzer`, `decomposer`, `material_synthesizer`, `chemical_reactor`, `material_preparator`, `hand_preparator`, `sinter_furnace` | left, right, back, bottom | front; top (open working area) |
+| `matter_drive`, `network_interface`, `primal_converter`, `crystal_generator`, `industrial_crystal_generator` | left, right, back, bottom, top (starts Disabled) | front |
+| `matter_terminal` | back (fixed, not configurable) | every other side |
+| `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube` | front, left, right, back, top, bottom | none |
+| `industrial_reactor`, `industrial_preparator` | none: a structure connects through its Machine Ports | all six |
+| `cell_transfer_station` | none: it is operated by hand | all six |
+
+The check compares this table with the block states, the ring colours of `MachinePortMode.java` with `PORT_MODES`, and reports a body model that still draws a face of its port plates.
 
 ## Natural blocks (S2)
 
@@ -207,6 +241,8 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 | Generator | Owns |
 | --- | --- |
 | `generate_family_assets.py` | sprites, models, block states and items of the Matter Drive, Terminal, Network Interface, Machine Port, cables, Reactor Casing and Glass, both industrial controllers, the Chemical Reactor and the six benches |
+| `port_plates.py` (shared by the three generators around it) | the port plates of every device: plain face and plate per side and role, and the `rematter:port_plates` block state entry |
+| `renderer_parts.py` (shared by the family and module generators) | moving hardware coordinates, generated Java constants and composition checks at rest and stroke ends |
 | `generate_progression_assets.py` | Primal Converter and both Crystal Generators |
 | `generate_energy_assets.py` | the three Energy Cube tiers, charge0–8 core models, independent recipes, loot and recipe-book advancements |
 | `generate_module_assets.py` | the five industrial modules |
@@ -215,6 +251,7 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 | `generate_primal_assets.py` | Primal Ores, Primal Shard, Primal Crystal, Discovery Lens, Entangled Link |
 | `generate_gui_assets.py` | GUI frames and icons |
 | `generate_technical_sprites.py`, `generate_storage_sprites.py` | component, upgrade and guide icons from `artwork/components/` |
+| `generate_illustrated_icons.py` | Ice Matrix Crystal, Matrix Cluster, Pressure Module and Parallel Upgrade icons, with their checksums in `artwork/components/illustrated-rendered.json` |
 | `generate_component_assets.py`, `generate_advanced_material_icons.py`, `generate_metallurgy_assets.py`, `generate_device_assets.py` | item models and definitions of the illustrated icons |
 
 Run a generator without arguments to write its files and with `--check` to compare them. `tools/README.md` lists every command. After any visual change run:
@@ -228,7 +265,7 @@ python3 tools/check_assets.py
 
 ## Adding something new
 
-**A block.** 1. Write its recipe first. The Matrix Crystal in it is its hue; choose the crystal by what it stands for. 2. Add the block to "Carried by" in the crystal table, to `FAMILY` in `tools/machine_palette.py` and, for a machine, to `machineAccent`. 3. Describe its boxes and sprites in the generator of its family; reuse the casing sprites and the sealed or alcove body. Draw the accent parts in the crystal's value. 4. Give it an idle and an active state that differ only in lit parts. 5. Run the generator, the generator's `--check` and the style check.
+**A block.** 1. Write its recipe first. The Matrix Crystal in it is its hue; choose the crystal by what it stands for. 2. Add the block to "Carried by" in the crystal table, to `FAMILY` in `tools/machine_palette.py` and, for a machine, to `machineAccent`. 3. Describe its boxes and sprites in the generator of its family; reuse the casing sprites and the sealed or alcove body, and take its closed sides from `port_plates.py`. Decide in `PortSides.java` which sides can be a connection and add the device to the port table. Draw the accent parts in the crystal's value. 4. Give it an idle and an active state that differ only in lit parts. 5. Run the generator, the generator's `--check` and the style check.
 
 **A material, component or tool item.** 1. Draw the icon as an SVG in `artwork/` in the style of the reference icons, or extend a painter. 2. Render it to `textures/item/` at 128 x 128. 3. Add the item to the generator that writes item models and definitions. 4. If its recipe holds a coloured crystal, give the drawing a facet in the crystal's value and add the item to the crystal table. 5. Run the style check; it verifies size, canvas use, anti-aliasing, outline and hue.
 
@@ -248,6 +285,7 @@ python3 tools/check_assets.py
 - [ ] No generated file was edited by hand; the generator or the SVG changed with it.
 - [ ] New block sprites are 32 x 32 or 16 x 16, in palette colours, lit from the top left.
 - [ ] New geometry is on the half-pixel grid and small detail is in the sprite.
+- [ ] A new device is in the port table: its front is closed, a disabled side is plain casing, and its body draws no face that belongs to a port plate.
 - [ ] A new item is either an illustrated 128 px icon or a block-style model, not a small sprite.
 - [ ] Every coloured crystal of a recipe shows on its result in the exact value, and nothing wears a crystal hue without the crystal.
 - [ ] Colour carries its meaning: crystal hue for what the recipe holds, status colours for status, the Primal signature for Primal, and nothing else.

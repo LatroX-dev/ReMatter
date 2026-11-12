@@ -109,9 +109,9 @@ public final class MatterCableBlock extends PipeBlock {
         if(level instanceof ServerLevel server&&level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link)return link.owner()!=null&&link.owner().equals(CableOwners.owner(server,position.relative(towardsNeighbor.getOpposite())));
         Direction outward = towardsNeighbor.getOpposite();
         if (neighbor.getBlock() instanceof MachineBlock machine) {
-            if (!MatterCableConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward, true))
+            if (!MatterCableConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward))
                 return false;
-            return !(level.getBlockEntity(position) instanceof MachineBlockEntity entity) || entity.acceptsMatter(outward, true)
+            return !(level.getBlockEntity(position) instanceof MachineBlockEntity entity) || entity.acceptsMatter(outward)
                     || MatterCablePower.allowsEndpoint(neighbor, outward) && entity.allowsPort(outward, MachinePortMode.POWER);
         }
         if (neighbor.getBlock() instanceof MachinePortBlock) {
@@ -180,11 +180,7 @@ public final class MatterCableBlock extends PipeBlock {
             BlockState neighbor = neighborChunk.getBlockState(neighborPos);
             boolean connected = connects(level, neighborPos, neighbor, side);
             updated = withSide(updated, side, connected, neighbor);
-            // This refresh bypasses neighbor shape updates, so update the matching socket here.
-            if (neighbor.getBlock() instanceof MachineBlock machine) {
-                BlockState withPort = machine.withCablePort(neighbor, side.getOpposite(), connected);
-                if (withPort != neighbor) level.setBlock(neighborPos, withPort, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
-            }
+
         }
         if (updated != state) level.setBlock(pos, updated, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
     }

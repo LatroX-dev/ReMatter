@@ -21,6 +21,8 @@ public enum MachineKind {
     MachineKind(String id) { this.id = id; }
     public String id() { return id; }
     public boolean isStorage() { return this == DRIVE; }
+    /** Bench machines on the alcove chassis: closed left, right, back and bottom, open to the front and the top. */
+    public boolean openTop() { return switch (this) { case REACTOR, ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE -> true; default -> false; }; }
     public boolean synthesis() { return this == SYNTHESIZER; }
     public boolean selectable() { return synthesis() || this == REACTOR || this == INDUSTRIAL_REACTOR; }
     public boolean generator(){return this==CRYSTAL_GENERATOR||this==INDUSTRIAL_CRYSTAL_GENERATOR;}

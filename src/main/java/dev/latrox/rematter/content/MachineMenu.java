@@ -31,7 +31,9 @@ public final class MachineMenu extends AbstractContainerMenu {
     public static final int OPEN_TERMINAL_DEVICES = 10;
     public static final int RETURN_TO_TERMINAL = 11;
     public static final int CLOSE_TERMINAL_DEVICES = 12;
+    /** Six ids step a side forward; the six after them step it backward. */
     public static final int CYCLE_PORT = 40;
+    public static final int CYCLE_PORT_BACK = 46;
     public enum View { MAIN, MACHINES, CONFIGURATION, RESEARCH }
     private final Container inventory;
     private final MachineBlockEntity machine;
@@ -339,8 +341,10 @@ public final class MachineMenu extends AbstractContainerMenu {
     @Override public boolean clickMenuButton(Player player, int id) {
         if (machine == null || player.containerMenu != this || !stillValid(player)) return false;
         int sideIndex = id - CYCLE_PORT;
-        if (sideIndex >= 0 && sideIndex < portModes.length) {
-            if (!machine.cyclePort(MachinePortMode.Side.values()[sideIndex])) return false;
+        if (sideIndex >= 0 && sideIndex < 2 * portModes.length) {
+            // The server decides: a side that is not a connection, the front above all, refuses every request.
+            boolean forward = sideIndex < portModes.length;
+            if (!machine.cyclePort(MachinePortMode.Side.values()[sideIndex % portModes.length], forward)) return false;
             broadcastChanges();
             return true;
         }

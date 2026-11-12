@@ -4,7 +4,7 @@ import dev.latrox.rematter.client.ui.DarkButton;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.energy.EnergyCubeMenu;
 import dev.latrox.rematter.energy.EnergyCubeSideMode;
-import java.util.EnumMap;
+import dev.latrox.rematter.energy.EnergyCubeTier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 /** A storage readout, item charging bays and a compact side map; all changes go through the server menu. */
 public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMenu> {
-    private final EnumMap<MachinePortMode.Side,DarkButton> sides=new EnumMap<>(MachinePortMode.Side.class);
+    private SideDiagram diagram;
     private DarkButton storageTab,settingsTab;
     private boolean settings;
 
@@ -25,27 +25,30 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         super.init();leftPos=Math.max(23,leftPos);
         storageTab=addRenderableWidget(DarkButton.icon(UiIcon.ENERGY,tr("storage"),tr("storage_hint"),leftPos-22,topPos+18,24,22,b->{settings=false;refresh();}));
         settingsTab=addRenderableWidget(DarkButton.icon(UiIcon.SIDES,tr("sides"),tr("sides_hint"),leftPos-22,topPos+42,24,22,b->{settings=true;refresh();}));
-        sides.clear();
-        for(var side:MachinePortMode.Side.values()) {
-            var pos=sidePosition(side);
-            var button=addRenderableWidget(DarkButton.icon(UiIcon.ENERGY,side.label(),tr("side_hint"),leftPos+24+pos[0],topPos+27+pos[1],24,22,b->{
-                if(minecraft.gameMode!=null)minecraft.gameMode.handleInventoryButtonClick(menu.containerId,side.ordinal());
-            }));
-            sides.put(side,button);
-        }
+        // The same diagram as every device; on a cube all six sides are connections, the front included.
+        diagram=new SideDiagram(new SideDiagram.Host() {
+            @Override public SideDiagram.Look look(MachinePortMode.Side side) {
+                var mode=menu.sideMode(side);
+                return new SideDiagram.Look(mode==EnergyCubeSideMode.DISABLED?SideDiagram.Face.PLAIN:SideDiagram.Face.PLATE,tierBand(),modeIcon(mode),false,
+                        tr("side_tooltip",side.label(),mode.label(),mode.meaning()));
+            }
+            @Override public void step(MachinePortMode.Side side,boolean forward) {
+                if(minecraft.gameMode!=null)minecraft.gameMode.handleInventoryButtonClick(menu.containerId,side.ordinal()+(forward?0:MachinePortMode.Side.values().length));
+            }
+            @Override public boolean editable(){return !menu.locked();}
+        },font,leftPos+18,topPos+24,this::addRenderableWidget);
+        diagram.show(MachinePortMode.Side.FRONT);
         refresh();
     }
     private void refresh() {
         menu.setSettings(settings);
         storageTab.setAccent(UiPalette.EMBER);settingsTab.setAccent(UiPalette.EMBER);
         storageTab.setSelected(!settings);settingsTab.setSelected(settings);
-        for(var entry:sides.entrySet()) {
-            var side=entry.getKey();var button=entry.getValue();var mode=menu.sideMode(side);
-            button.visible=settings;button.active=settings&&!menu.locked();
-            button.setAccent(UiPalette.EMBER);button.setIcon(modeIcon(mode));
-            button.setTooltip(Tooltip.create(side.label().copy().append("\n").append(modeText(mode)).append("\n").append(tr("side_hint"))));
-            button.setSelected(mode!=EnergyCubeSideMode.DISABLED);
-        }
+        diagram.update(settings);
+    }
+    /** The band of the seats on the block: the stripe of the Matter Cable of this tier. */
+    private int tierBand(){
+        return UiPalette.WHITE&0xff000000|switch(menu.tier()){case BASIC->UiPalette.CABLE_BASIC;case REINFORCED->UiPalette.CABLE_REINFORCED;case RESONANT->UiPalette.CABLE_RESONANT;};
     }
     @Override protected void containerTick(){super.containerTick();refresh();}
     @Override public void extractBackground(GuiGraphicsExtractor g,int mx,int my,float partial) {
@@ -67,11 +70,10 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
     @Override protected void extractLabels(GuiGraphicsExtractor g,int mx,int my) {
         ScreenChrome.text(g,font,title.getString(),8,6,200,UiPalette.TEXT);
         if(settings) {
-            var hovered=sides.entrySet().stream().filter(e->e.getValue().isHoveredOrFocused()).map(java.util.Map.Entry::getKey).findFirst().orElse(MachinePortMode.Side.FRONT);
-            ScreenChrome.text(g,font,hovered.label().getString(),122,32,80,UiPalette.TEXT);
-            ScreenChrome.icon(g,modeIcon(menu.sideMode(hovered)),120,44,UiPalette.EMBER);
-            ScreenChrome.twoLines(g,font,modeText(menu.sideMode(hovered)).getString(),138,48,64,UiPalette.TEXT);
-            ScreenChrome.twoLines(g,font,tr("map_hint").getString(),122,73,80,UiPalette.MUTED);
+            var side=diagram.shown();var mode=menu.sideMode(side);int y=24+SideDiagram.HEIGHT+2;
+            ScreenChrome.icon(g,modeIcon(mode),18,y-3,mode==EnergyCubeSideMode.DISABLED?UiPalette.MUTED:tierBand());
+            ScreenChrome.text(g,font,tr("side_state",side.label(),mode.label()).getString(),36,y+1,162,mode==EnergyCubeSideMode.DISABLED?UiPalette.MUTED:UiPalette.TEXT);
+            ScreenChrome.twoLines(g,font,mode.meaning().getString(),18,y+12,180,UiPalette.MUTED);
         } else {
             ScreenChrome.text(g,font,tr("reserve",Quantities.compact(menu.energy()),Quantities.compact(menu.capacity())).getString(),18,47,180,UiPalette.TEXT);
             ScreenChrome.icon(g,UiIcon.EXCHANGE,16,56,UiPalette.EMBER);
@@ -95,8 +97,4 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
     }
     private static UiIcon modeIcon(EnergyCubeSideMode mode){return switch(mode){case INPUT->UiIcon.SLOT_INPUT;case OUTPUT->UiIcon.SLOT_OUTPUT;case DISABLED->UiIcon.DISABLED;};}
     private static Component modeText(EnergyCubeSideMode mode){return mode.label();}
-    private static int[] sidePosition(MachinePortMode.Side side){return switch(side){
-        case TOP->new int[]{28,0};case LEFT->new int[]{0,24};case FRONT->new int[]{28,24};
-        case RIGHT->new int[]{56,24};case BOTTOM->new int[]{28,48};case BACK->new int[]{56,48};
-    };}
 }

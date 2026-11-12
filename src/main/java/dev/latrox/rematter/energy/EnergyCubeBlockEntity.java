@@ -26,12 +26,13 @@ import net.neoforged.neoforge.transfer.transaction.*;
 import org.jspecify.annotations.Nullable;
 
 /** A server-owned FE buffer. Its contents and every item-component change share native transactions. */
-public final class EnergyCubeBlockEntity extends BlockEntity implements Container,MenuProvider {
+public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyContainer,MenuProvider {
     private final EnergyCubeTier tier;
     private final NonNullList<ItemStack> items;
     private final ResourceHandler<ItemResource> itemHandler;
     private final SimpleEnergyHandler energy;
     private final EnergyCubeBudget inputBudget,outputBudget;
+    private final EnergyCubeFlow flow=new EnergyCubeFlow();
     private @Nullable UUID owner;
     private @Nullable CompoundTag unsupportedData;
     // FRONT is ordinal zero. Every other face starts as an input.
@@ -78,10 +79,32 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements Containe
         return canAccess(player);
     }
     private void assignOwner(@Nullable UUID next){if(Objects.equals(owner,next))return;owner=next;setChanged();touchTopology();}
-    public boolean cycleSide(Player player,MachinePortMode.Side side){
-        if(!live()||player.isSpectator()||!canAccess(player)||!Container.stillValidBlockEntity(this,player))return false;
-        int shift=side.ordinal()*2;sideModes=(sideModes&~(3<<shift))|sideMode(side).next().ordinal()<<shift;
-        setChanged();touchTopology();return true;
+    public boolean cycleSide(Player player,MachinePortMode.Side side){return cycleSide(player,side,true);}
+    public boolean cycleSide(Player player,MachinePortMode.Side side,boolean forward){
+        if(!live()||player.isSpectator()||!canAccess(player)||!Container.stillValidBlockEntity(this,player)||!PortSides.energyCube(side))return false;
+        var next=forward?sideMode(side).next():sideMode(side).previous();
+        int shift=side.ordinal()*2;sideModes=(sideModes&~(3<<shift))|next.ordinal()<<shift;
+        setChanged();touchTopology();
+        // Only the side roles are public: the plates of a disabled side disappear on every client.
+        level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        return true;
+    }
+    @Override public CompoundTag getUpdateTag(HolderLookup.Provider registries){var tag=new CompoundTag();tag.putInt("side_modes",sideModes);return tag;}
+    @Override public net.minecraft.network.protocol.Packet<net.minecraft.network.protocol.game.ClientGamePacketListener> getUpdatePacket(){
+        return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
+    }
+    @Override public void handleUpdateTag(ValueInput input){
+        int shown=sideModes;sideModes=input.getIntOr("side_modes",shown);
+        if(sideModes!=shown&&level!=null&&level.isClientSide()){
+            requestModelDataUpdate();
+            level.sendBlockUpdated(worldPosition,getBlockState(),getBlockState(),net.minecraft.world.level.block.Block.UPDATE_IMMEDIATE);
+        }
+    }
+    @Override public void onDataPacket(net.minecraft.network.Connection connection,ValueInput input){handleUpdateTag(input);}
+    /** A seat is drawn on every side that is not disabled; input and output share one seat by design. */
+    @Override public net.neoforged.neoforge.model.data.ModelData getModelData(){
+        return net.neoforged.neoforge.model.data.ModelData.of(PortSides.PLATES,PortSides.pack(side->
+                sideMode(side)==EnergyCubeSideMode.DISABLED?MachinePortMode.DISABLED:MachinePortMode.AUTOMATIC));
     }
     private void touchTopology(){
         if(level instanceof ServerLevel server){
@@ -160,6 +183,9 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements Containe
             if(sink!=null&&offer>0)try(var tx=Transaction.openRoot()){if(EnergyHandlerUtil.move(chargingSource,sink,offer,tx)>0)tx.commit();}
         }
         publishCharge();
+        var shownFlow=flow.sample(level.getGameTime(),energy());
+        if(getBlockState().getValue(EnergyCubeBlock.FLOW)!=shownFlow)
+            level.setBlock(worldPosition,getBlockState().setValue(EnergyCubeBlock.FLOW,shownFlow),2);
     }
     private void publishCharge(){
         if(!installed())return;
@@ -200,6 +226,17 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements Containe
     }
     @Override public void setItem(int slot,ItemStack stack,boolean insideTransaction){if(insideTransaction&&!locked())items.set(slot,stack);else setItem(slot,stack);}
     @Override public boolean canPlaceItem(int slot,ItemStack stack){return !locked()&&chargeable(stack);}
+    /** Vanilla hoppers reach WorldlyContainer directly, without the NeoForge capability gate. */
+    @Override public int[] getSlotsForFace(Direction side){
+        if(!live()||sideMode(side)==EnergyCubeSideMode.DISABLED)return new int[0];
+        return java.util.stream.IntStream.range(0,items.size()).toArray();
+    }
+    @Override public boolean canPlaceItemThroughFace(int slot,ItemStack stack,Direction side){
+        return live()&&sideMode(side)==EnergyCubeSideMode.INPUT&&canPlaceItem(slot,stack);
+    }
+    @Override public boolean canTakeItemThroughFace(int slot,ItemStack stack,Direction side){
+        return live()&&sideMode(side)==EnergyCubeSideMode.OUTPUT&&fullyCharged(slot);
+    }
     @Override public int getMaxStackSize(){return 1;}
     @Override public void clearContent(){if(!locked()&&Transaction.getCurrentOpenedTransaction()==null){items.replaceAll(stack->ItemStack.EMPTY);setChanged();}}
     @Override public boolean stillValid(Player player){return canAccess(player)&&Container.stillValidBlockEntity(this,player);}

@@ -1,4 +1,7 @@
-"""Energy Cube ports remain physically identical around the four horizontal sides."""
+"""Energy Cube ports remain physically identical around the four horizontal sides.
+
+Each side owns its complete outward face: a socket and frame while enabled, an unbroken casing face while
+disabled. The charge core remains behind those faces. Check all tiers, charge/flow states and alternatives."""
 from collections import Counter
 import json
 from pathlib import Path
@@ -12,6 +15,9 @@ sys.path.insert(0, str(TOOLS))
 import generate_energy_assets as energy
 import check_visual_style as style
 from family_palette import COPPER, COPPER_LIGHT, COPPER_DARK
+import port_plates
+from generate_family_assets import Family
+
 from family_sprites import sprites as family_sprites
 
 HORIZONTAL = ('north', 'east', 'south', 'west')
@@ -81,15 +87,48 @@ def side_quads(models, side):
     return result
 
 
+COMMON=Family()
+port_plates.add_family_models(COMMON)
+
+
+def resolve_model(family, name):
+    table={};elements=None
+    while name:
+        value=family.models.get(name,COMMON.models.get(name))
+        if value is None:break
+        table={**value.get('textures',{}),**table}
+        if elements is None and 'elements' in value:elements=value['elements']
+        parent=value.get('parent','')
+        name=parent.removeprefix('rematter:block/') if parent.startswith('rematter:block/') else ''
+    if elements is None:raise AssertionError('Missing model geometry')
+    return {'textures':table,'elements':elements}
+
+
+def side_models(family, name, disabled=()):
+    entry=family.blockstates[name]['multipart'][4]['apply']
+    return [resolve_model(family,entry['sides'][side]['disabled' if side in disabled else 'automatic'].removeprefix('rematter:block/'))
+            for side in energy.SOCKET_SIDES]
+
+
+def seats(family, name):
+    return side_models(family,name)
+
+
+def charge_model(family,name,charge,flow):
+    suffix='' if charge==0 or flow=='none' else '_'+flow
+    return family.models[f'{name}_charge_{charge}'+suffix]
+
+
 class EnergyCubeGeometryTests(unittest.TestCase):
     def test_every_tier_charge_and_alternative_has_identical_horizontal_geometry_and_appearance(self):
         for look in energy.ENERGY_CUBE_LOOKS:
             for port_style in energy.ENERGY_PORT_SIZES:
                 family, _ = energy.assets(look, port_style)
                 for name in energy.TIERS:
-                    for charge in range(9):
-                        with self.subTest(look=look, port=port_style, tier=name, charge=charge):
-                            models = [family.models[name], family.models[f'{name}_charge_{charge}']]
+                    for charge,flow,connected in ((c,f,on) for c in range(9) for f in ('none','in','out') for on in (True,False)):
+                        with self.subTest(look=look,port=port_style,tier=name,charge=charge,flow=flow,seats=connected):
+                            models=[family.models[name],charge_model(family,name,charge,flow)]
+                            models+=side_models(family,name,() if connected else energy.SOCKET_SIDES)
                             elements = [element for model in models for element in model['elements']]
                             self.assertEqual(geometry(elements), geometry(elements, 1), 'quarter-turn changes the physical shape')
                             expected = Counter(side_quads(models, 'north'))
@@ -102,7 +141,7 @@ class EnergyCubeGeometryTests(unittest.TestCase):
         for look in energy.ENERGY_CUBE_LOOKS:
             family, art = energy.assets(look)
             for name in energy.TIERS:
-                models = [family.models[name], family.models[f'{name}_charge_0']]
+                models = [family.models[name], family.models[f'{name}_charge_0']] + seats(family, name)
                 for side in HORIZONTAL:
                     with self.subTest(look=look, tier=name, side=side):
                         found = False
@@ -120,6 +159,48 @@ class EnergyCubeGeometryTests(unittest.TestCase):
                             ty = min(sprite.height - 1, max(0, int(v * sprite.height / 16)))
                             found |= tuple(sprite.rows[ty][tx][:3]) in contacts
                         self.assertTrue(found, 'no centered physical seat with a copper contact for a cable')
+
+
+    def test_disabled_horizontal_faces_are_unbroken_plain_casing_including_the_front(self):
+        family,_=energy.assets()
+        for name in energy.TIERS:
+            entry=family.blockstates[name]['multipart'][4]['apply']
+            self.assertEqual(set(entry['sides']),{'front','left','back','right','top','bottom'})
+            for local in energy.SOCKET_SIDES:
+                face=port_plates.FACE[local]
+                model=resolve_model(family,entry['sides'][local]['disabled'].removeprefix('rematter:block/'))
+                quads=side_quads([model],face)
+                self.assertEqual(len(quads),1)
+                rectangle,depth,texture,_,emission=quads[0]
+                self.assertEqual(rectangle,(0,0,16,16),'disabled side leaves a window or cutout')
+                self.assertEqual(depth,0,'disabled casing must lie on the block boundary')
+                self.assertEqual(texture,'rematter:block/casing_plain')
+                self.assertEqual(emission,0,'disabled face must not expose the emissive charge window')
+                self.assertEqual(set(model['elements'][0]['faces']),{face})
+                self.assertEqual(model['elements'][0]['faces'][face]['cullface'],face)
+            for face in HORIZONTAL:
+                self.assertTrue(all(quad[1]>0 for quad in side_quads([family.models[name]],face)),
+                                'common housing retains an outer face that would overlap a blank panel')
+            for local in ('top','bottom'):
+                self.assertEqual(entry['sides'][local]['disabled'],f'rematter:block/port_plain_{local}_disabled')
+                self.assertEqual(entry['sides'][local]['automatic'],f'rematter:block/{name}_port_{local}')
+
+    def test_mixed_blank_and_connected_compositions_cover_every_direction_charge_and_flow(self):
+        family,_=energy.assets()
+        # Charge0 uses the same geometry for all flows; the other eight charges use three independent models.
+        states=[(0,'none')]+[(c,f) for c in range(1,9) for f in ('none','in','out')]
+        for name in energy.TIERS:
+            for charge,flow in states:
+                for mode in ('blank','connected',*('disabled-'+s for s in energy.SOCKET_SIDES)):
+                    for facing in HORIZONTAL:
+                        self.assertIn(f'{name} charge {charge} {flow} {mode} {facing}',family.compositions)
+            for disabled in energy.SOCKET_SIDES:
+                models=[family.models[name],charge_model(family,name,8,'in')]+side_models(family,name,{disabled})
+                face=port_plates.FACE[disabled]
+                outer=[q for q in side_quads(models,face) if q[1]==0]
+                self.assertEqual(len(outer),1,'mixed configuration still overlays housing/socket on its blank face')
+                self.assertEqual(outer[0][0],(0,0,16,16))
+                self.assertEqual(outer[0][2],'rematter:block/casing_plain')
 
 
 class EnergyTierProvenanceTests(unittest.TestCase):

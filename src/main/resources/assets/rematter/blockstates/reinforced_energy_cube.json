@@ -37,8 +37,180 @@
     },
     {
       "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "default": {
+          "front": "automatic",
+          "left": "automatic",
+          "back": "automatic",
+          "right": "automatic",
+          "top": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "front": {
+            "disabled": "rematter:block/energy_cube_port_front_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_front"
+          },
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_left"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_back"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_right"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_top"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_bottom"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 90,
+        "default": {
+          "front": "automatic",
+          "left": "automatic",
+          "back": "automatic",
+          "right": "automatic",
+          "top": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "front": {
+            "disabled": "rematter:block/energy_cube_port_front_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_front"
+          },
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_left"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_back"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_right"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_top"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_bottom"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 180,
+        "default": {
+          "front": "automatic",
+          "left": "automatic",
+          "back": "automatic",
+          "right": "automatic",
+          "top": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "front": {
+            "disabled": "rematter:block/energy_cube_port_front_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_front"
+          },
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_left"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_back"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_right"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_top"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_bottom"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 270,
+        "default": {
+          "front": "automatic",
+          "left": "automatic",
+          "back": "automatic",
+          "right": "automatic",
+          "top": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "front": {
+            "disabled": "rematter:block/energy_cube_port_front_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_front"
+          },
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_left"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_back"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_socket_right"
+          },
+          "top": {
+            "disabled": "rematter:block/port_plain_top_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_top"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/reinforced_energy_cube_port_bottom"
+          }
+        }
+      }
+    },
+    {
+      "when": {
         "facing": "north",
-        "charge": "0"
+        "charge": "0",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_0"
@@ -47,7 +219,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "0"
+        "charge": "0",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_0",
@@ -57,7 +230,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "0"
+        "charge": "0",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_0",
@@ -67,7 +241,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "0"
+        "charge": "0",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_0",
@@ -77,7 +252,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "1"
+        "charge": "0",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "0",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "0",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "0",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "0",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "0",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "0",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "0",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_0",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "1",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_1"
@@ -86,7 +348,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "1"
+        "charge": "1",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_1",
@@ -96,7 +359,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "1"
+        "charge": "1",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_1",
@@ -106,7 +370,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "1"
+        "charge": "1",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_1",
@@ -116,7 +381,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "2"
+        "charge": "1",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "1",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "1",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "1",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "1",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "1",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "1",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "1",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_1_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "2",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_2"
@@ -125,7 +477,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "2"
+        "charge": "2",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_2",
@@ -135,7 +488,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "2"
+        "charge": "2",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_2",
@@ -145,7 +499,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "2"
+        "charge": "2",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_2",
@@ -155,7 +510,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "3"
+        "charge": "2",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "2",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "2",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "2",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "2",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "2",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "2",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "2",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_2_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "3",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_3"
@@ -164,7 +606,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "3"
+        "charge": "3",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_3",
@@ -174,7 +617,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "3"
+        "charge": "3",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_3",
@@ -184,7 +628,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "3"
+        "charge": "3",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_3",
@@ -194,7 +639,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "4"
+        "charge": "3",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "3",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "3",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "3",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "3",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "3",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "3",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "3",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_3_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "4",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_4"
@@ -203,7 +735,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "4"
+        "charge": "4",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_4",
@@ -213,7 +746,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "4"
+        "charge": "4",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_4",
@@ -223,7 +757,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "4"
+        "charge": "4",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_4",
@@ -233,7 +768,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "5"
+        "charge": "4",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "4",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "4",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "4",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "4",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "4",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "4",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "4",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_4_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "5",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_5"
@@ -242,7 +864,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "5"
+        "charge": "5",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_5",
@@ -252,7 +875,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "5"
+        "charge": "5",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_5",
@@ -262,7 +886,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "5"
+        "charge": "5",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_5",
@@ -272,7 +897,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "6"
+        "charge": "5",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "5",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "5",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "5",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "5",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "5",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "5",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "5",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_5_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "6",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_6"
@@ -281,7 +993,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "6"
+        "charge": "6",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_6",
@@ -291,7 +1004,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "6"
+        "charge": "6",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_6",
@@ -301,7 +1015,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "6"
+        "charge": "6",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_6",
@@ -311,7 +1026,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "7"
+        "charge": "6",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "6",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "6",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "6",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "6",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "6",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "6",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "6",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_6_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "7",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_7"
@@ -320,7 +1122,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "7"
+        "charge": "7",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_7",
@@ -330,7 +1133,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "7"
+        "charge": "7",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_7",
@@ -340,7 +1144,8 @@
     {
       "when": {
         "facing": "west",
-        "charge": "7"
+        "charge": "7",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_7",
@@ -350,7 +1155,94 @@
     {
       "when": {
         "facing": "north",
-        "charge": "8"
+        "charge": "7",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "7",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "7",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "7",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "7",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "7",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "7",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "7",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_7_out",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "8",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_8"
@@ -359,7 +1251,8 @@
     {
       "when": {
         "facing": "east",
-        "charge": "8"
+        "charge": "8",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_8",
@@ -369,7 +1262,8 @@
     {
       "when": {
         "facing": "south",
-        "charge": "8"
+        "charge": "8",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_8",
@@ -379,10 +1273,97 @@
     {
       "when": {
         "facing": "west",
-        "charge": "8"
+        "charge": "8",
+        "flow": "none"
       },
       "apply": {
         "model": "rematter:block/reinforced_energy_cube_charge_8",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "8",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_in"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "8",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_in",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "8",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_in",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "8",
+        "flow": "in"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_in",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "8",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_out"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "8",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_out",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "8",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_out",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "8",
+        "flow": "out"
+      },
+      "apply": {
+        "model": "rematter:block/reinforced_energy_cube_charge_8_out",
         "y": 270
       }
     }

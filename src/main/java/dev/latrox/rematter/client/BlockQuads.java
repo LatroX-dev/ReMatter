@@ -9,45 +9,45 @@ import org.joml.Matrix4f;
  * and texture orientation of block models, and the face shade carried in the vertex colour. The texture rectangle
  * (u0, v0)-(u1, v1) is in atlas coordinates; (u0, v0) is the top left corner as seen from outside the face.
  */
-final class BlockQuads {
+public final class BlockQuads {
     private BlockQuads() {}
 
-    static void north(PoseStack.Pose pose, VertexConsumer buffer, float x0, float y0, float x1, float y1, float z,
+    public static void north(PoseStack.Pose pose, VertexConsumer buffer, float x0, float y0, float x1, float y1, float z,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x1, y1, z, u0, v0, color, light);
         vertex(pose, buffer, x1, y0, z, u0, v1, color, light);
         vertex(pose, buffer, x0, y0, z, u1, v1, color, light);
         vertex(pose, buffer, x0, y1, z, u1, v0, color, light);
     }
-    static void south(PoseStack.Pose pose, VertexConsumer buffer, float x0, float y0, float x1, float y1, float z,
+    public static void south(PoseStack.Pose pose, VertexConsumer buffer, float x0, float y0, float x1, float y1, float z,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x0, y1, z, u0, v0, color, light);
         vertex(pose, buffer, x0, y0, z, u0, v1, color, light);
         vertex(pose, buffer, x1, y0, z, u1, v1, color, light);
         vertex(pose, buffer, x1, y1, z, u1, v0, color, light);
     }
-    static void west(PoseStack.Pose pose, VertexConsumer buffer, float x, float y0, float z0, float y1, float z1,
+    public static void west(PoseStack.Pose pose, VertexConsumer buffer, float x, float y0, float z0, float y1, float z1,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x, y1, z0, u0, v0, color, light);
         vertex(pose, buffer, x, y0, z0, u0, v1, color, light);
         vertex(pose, buffer, x, y0, z1, u1, v1, color, light);
         vertex(pose, buffer, x, y1, z1, u1, v0, color, light);
     }
-    static void east(PoseStack.Pose pose, VertexConsumer buffer, float x, float y0, float z0, float y1, float z1,
+    public static void east(PoseStack.Pose pose, VertexConsumer buffer, float x, float y0, float z0, float y1, float z1,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x, y1, z1, u0, v0, color, light);
         vertex(pose, buffer, x, y0, z1, u0, v1, color, light);
         vertex(pose, buffer, x, y0, z0, u1, v1, color, light);
         vertex(pose, buffer, x, y1, z0, u1, v0, color, light);
     }
-    static void up(PoseStack.Pose pose, VertexConsumer buffer, float x0, float z0, float x1, float z1, float y,
+    public static void up(PoseStack.Pose pose, VertexConsumer buffer, float x0, float z0, float x1, float z1, float y,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x0, y, z0, u0, v0, color, light);
         vertex(pose, buffer, x0, y, z1, u0, v1, color, light);
         vertex(pose, buffer, x1, y, z1, u1, v1, color, light);
         vertex(pose, buffer, x1, y, z0, u1, v0, color, light);
     }
-    static void down(PoseStack.Pose pose, VertexConsumer buffer, float x0, float z0, float x1, float z1, float y,
+    public static void down(PoseStack.Pose pose, VertexConsumer buffer, float x0, float z0, float x1, float z1, float y,
             float u0, float v0, float u1, float v1, int color, int light) {
         vertex(pose, buffer, x0, y, z1, u0, v0, color, light);
         vertex(pose, buffer, x0, y, z0, u0, v1, color, light);

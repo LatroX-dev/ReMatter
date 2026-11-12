@@ -108,15 +108,17 @@ WORK = {
     ),
 }
 # Sprites of working parts that move while the module works.
-ANIMATED = {'mixing_basin': (4, {'animation': {'frametime': 4}})}
+ANIMATED = {name: (16, {'animation': {'frametime': 3, 'interpolate': True}}) for name in NAMES}
 
 
 def painters(name):
     """Painter of each material by whether the module hangs; only the blade is drawn differently upside down."""
     hue = module_hue(name)
+    from work_sprites import animated_crystal,animated_liquid
+    style={'field_coil':'rise','separation_unit':'fall'}.get(name,'breath')
     fixed = {'steel': STEEL_FACE, 'plain': STEEL_PLAIN, 'dark': DARK_FACE, 'gunmetal': GUNMETAL_FACE, 'well': well,
-             'membrane': membrane, 'coil': coil, 'edge': cutting_edge(hue), 'crystal': crystal(hue),
-             'liquid': liquid(hue)}
+             'membrane': membrane, 'coil': coil, 'edge': cutting_edge(hue), 'crystal': animated_crystal(hue,style),
+             'liquid': animated_liquid(hue)}
     oriented = {'blade': blade}
 
     def painter(material, suspended):
@@ -150,6 +152,9 @@ class Module:
             build(mount_boxes + body + work, self.skin(suspended))
         for suspended in (False, True):
             self.variant(suspended)
+            self.world_variant(suspended)
+        # Only the standing active full model is an item; the other full models are validation intermediates.
+        self.models={key:value for key,value in self.models.items() if '_world' in key or key in (name,name+'_active_parts')}
 
     def boxes(self, suspended):
         place = mirrored if suspended else lambda lo, hi: (lo, hi)
@@ -211,16 +216,29 @@ class Module:
         self.models[name] = {'parent': 'minecraft:block/block', 'textures': textures, 'elements': elements}
         return emitted(boxes, elements)
 
+    def world_variant(self, suspended):
+        name=self.name+('_suspended' if suspended else '')
+        mount,body,work=self.boxes(suspended)
+        moving={'blade','paddle','cutting_edge'}
+        body=[b for b in body if b.name not in moving];work=[b for b in work if b.name not in moving]
+        skin=self.skin(suspended)
+        drawn=self.model(name+'_world',mount+body,skin,mount+body+work)
+        for state,glowing in (('idle',False),('active',True)):
+            parts=[Box(b.name,b.lo,b.hi,emissive=glowing,step=b.step,flat=True) for b in work]
+            shown=self.model(name+'_'+state+'_world_parts',parts,skin,mount+body+parts,'_active' if glowing else '')
+            check_composition(name+' '+state+' world',drawn+shown)
+            self.compositions+=1
+
     def blockstate(self):
         states = []
         for suspended in ('false', 'true'):
             body = self.name + ('_suspended' if suspended == 'true' else '')
             for facing in HORIZONTAL:
                 states.append({'when': {'facing': facing, 'suspended': suspended},
-                               'apply': {'model': MODEL + body, **ROTATION[facing]}})
+                               'apply': {'model': MODEL + body+'_world', **ROTATION[facing]}})
                 for active, state in (('false', 'idle'), ('true', 'active')):
                     states.append({'when': {'facing': facing, 'suspended': suspended, 'active': active},
-                                   'apply': {'model': f'{MODEL}{body}_{state}_parts', **ROTATION[facing]}})
+                                   'apply': {'model': f'{MODEL}{body}_{state}_world_parts', **ROTATION[facing]}})
         return {'multipart': states}
 
     def item(self):

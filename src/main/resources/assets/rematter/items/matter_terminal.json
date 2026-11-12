@@ -9,6 +9,26 @@
       {
         "type": "minecraft:model",
         "model": "rematter:block/matter_terminal_active_parts"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_left_disabled"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_right_disabled"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_back_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_bottom_disabled"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_top_disabled"
       }
     ]
   }

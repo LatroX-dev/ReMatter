@@ -76,7 +76,7 @@ public final class MatterCablePower {
     static boolean allowsEndpoint(BlockState state, Direction side) {
         if (state.getBlock() instanceof MachineBlock machine) {
             return (machine.kind().processes()||machine.kind().generator()) && !PreparationTier.manual(machine.kind())
-                    && MatterCableConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side, true);
+                    && MatterCableConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side);
         }
         if (state.getBlock() instanceof MachinePortBlock) {
             return MatterCableConnectionPolicy.acceptsPort(state.getValue(MachinePortBlock.FORMED),

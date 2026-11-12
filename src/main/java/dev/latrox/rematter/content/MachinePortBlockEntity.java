@@ -33,7 +33,7 @@ public final class MachinePortBlockEntity extends BlockEntity {
     boolean cycleMode(Player player, Direction side) {
         var target = controller(side);
         if (target == null || !target.canAccess(player) || !Container.stillValidBlockEntity(this, player)) return false;
-        var next = mode.next(target.kind());
+        var next = mode.step(target.kind(), true);
         if (mode == next) return false;
         mode = next;
         setChanged();

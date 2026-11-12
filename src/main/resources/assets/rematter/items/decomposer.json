@@ -9,6 +9,22 @@
       {
         "type": "minecraft:model",
         "model": "rematter:block/decomposer_active_parts"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_left_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_right_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_back_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_bottom_automatic"
       }
     ]
   }

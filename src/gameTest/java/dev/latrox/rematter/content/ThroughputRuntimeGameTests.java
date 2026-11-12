@@ -106,7 +106,7 @@ public final class ThroughputRuntimeGameTests {
         var owner=owner(h);var receiver=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
         var nativeBasic=cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.BASIC,owner);
         var nativeFast=cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.RESONANT,owner);
-        var north=energy(h,receiver.getBlockPos(),Direction.NORTH);var south=energy(h,receiver.getBlockPos(),Direction.SOUTH);
+        var north=energy(h,receiver.getBlockPos(),Direction.EAST);var south=energy(h,receiver.getBlockPos(),Direction.SOUTH);
         try(var outer=Transaction.openRoot()){
             try(var nested=Transaction.open(outer)){h.assertTrue(nativeBasic.insert(2_048,nested)==2_048,"Native simulation failed");h.assertTrue(north.insert(100_000,nested)==100_000,"Foreign nested simulation failed");}
             h.assertTrue(receiver.energy().getAmountAsLong()==0,"Aborted nested transfer changed the real buffer");
@@ -171,7 +171,7 @@ public final class ThroughputRuntimeGameTests {
     private static void generatorReload(GameTestHelper h){
         var gen=generator(h,owner(h));nextTick(h,gen);
         h.assertTrue(gen.getItem(0).isEmpty()&&gen.energy().getAmountAsLong()==64&&remaining(gen)==960,"First generation step did not debit exactly one crystal");
-        var output=energy(h,gen.getBlockPos(),Direction.NORTH);
+        var output=energy(h,gen.getBlockPos(),Direction.EAST);
         try(var tx=Transaction.openRoot()){h.assertTrue(output.extract(64,tx)==64,"Real generator output simulation failed");}
         h.assertTrue(gen.energy().getAmountAsLong()==64&&remaining(gen)==960,"Aborted output changed buffer or unburnt energy");
         reload(h,gen);h.assertTrue(gen.energy().getAmountAsLong()+remaining(gen)==1_024&&gen.getItem(0).isEmpty(),"Reload duplicated or dropped fuel energy");
@@ -184,7 +184,7 @@ public final class ThroughputRuntimeGameTests {
     private static void generatorOutput(GameTestHelper h){
         var gen=generator(h,owner(h));gen.energy().set(MachineBlockEntity.ENERGY_CAPACITY);nextTick(h,gen);
         h.assertTrue(gen.getItem(0).getCount()==1&&remaining(gen)==0,"A full FE buffer consumed a fresh crystal");
-        var north=energy(h,gen.getBlockPos(),Direction.NORTH);var south=energy(h,gen.getBlockPos(),Direction.SOUTH);
+        var north=energy(h,gen.getBlockPos(),Direction.EAST);var south=energy(h,gen.getBlockPos(),Direction.SOUTH);
         try(var outer=Transaction.openRoot()){
             try(var nested=Transaction.open(outer)){h.assertTrue(north.extract(2_048,nested)==2_048,"Generator nested simulation failed");}
             h.assertTrue(gen.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Nested abort did not return generator FE");
@@ -206,7 +206,7 @@ public final class ThroughputRuntimeGameTests {
     }
     private static void linkRepair(GameTestHelper h){
         var owner=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
-        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.NORTH),64)==64,"Origin capability fixture failed");
+        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.EAST),64)==64,"Origin capability fixture failed");
         var a=link(h,new BlockPos(3,3,2),owner);var b=link(h,new BlockPos(18,3,2),owner);var c=link(h,new BlockPos(18,3,8),owner);
         var first=drive(h,new BlockPos(19,3,2),owner,111);var second=drive(h,new BlockPos(19,3,8),owner,222);
         h.assertTrue(!origin.matterNetwork(true).ready(),"Unpaired link unexpectedly crossed to another network");
@@ -221,7 +221,7 @@ public final class ThroughputRuntimeGameTests {
     }
     private static void linkRangeOwner(GameTestHelper h){
         var owner=owner(h);var foreign=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
-        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.NORTH),32)==32,"Real origin capability failed");
+        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.EAST),32)==32,"Real origin capability failed");
         var a=link(h,new BlockPos(4,3,4),owner);var edge=link(h,new BlockPos(36,3,4),owner);var far=link(h,new BlockPos(37,3,4),owner);var hostile=link(h,new BlockPos(5,3,4),foreign);
         h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,far,owner.getUUID()),"33-block link was accepted");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,edge,owner.getUUID()),"Exactly32 blocks should be allowed for loaded own links");
@@ -231,7 +231,7 @@ public final class ThroughputRuntimeGameTests {
     }
     private static void linkDimension(GameTestHelper h){
         var owner=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
-        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.NORTH),16)==16,"Real origin capability failed");
+        h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.EAST),16)==16,"Real origin capability failed");
         var a=link(h,new BlockPos(4,3,4),owner);var b=link(h,new BlockPos(8,3,4),owner);
         var stack=new ItemStack(PrimalContent.ENTANGLED_LINK_ITEM.get());var root=new CompoundTag();var binding=new CompoundTag();
         binding.putString("dimension",h.getLevel().dimension().identifier().toString().equals("minecraft:the_nether")?"minecraft:overworld":"minecraft:the_nether");binding.putLong("position",a.asLong());root.put("rematter_entangled_origin",binding);stack.set(DataComponents.CUSTOM_DATA,CustomData.of(root));
@@ -271,7 +271,7 @@ public final class ThroughputRuntimeGameTests {
         }
         h.assertTrue(receiver.energy().getAmountAsLong()==0,"Root abort retained remote energy");
         h.assertTrue(insert(input,131_072)==2_048&&insert(direct,131_072)==0,"Root abort did not restore exactly one shared Basic allowance");
-        h.assertTrue(insert(energy(h,receiver.getBlockPos(),Direction.NORTH),131_072)==129_024,"Link FE escaped the native+foreign controller absolute cap");
+        h.assertTrue(insert(energy(h,receiver.getBlockPos(),Direction.EAST),131_072)==129_024,"Link FE escaped the native+foreign controller absolute cap");
         h.assertTrue(receiver.energy().getAmountAsLong()==131_072,"Controller did not keep the exact total input");
         nextTick(h);h.assertTrue(insert(direct,131_072)==2_048,"Link allowance did not reset next tick");h.succeed();
     }

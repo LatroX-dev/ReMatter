@@ -91,7 +91,10 @@ public final class Ae2Bridge implements AutomationAdapter, IStorageProvider, ICr
     @Override public boolean connected() { return created && !closed && node.isActive(); }
     @Override public void load(ValueInput input) { node.deserialize(input); }
     @Override public void save(ValueOutput output) { node.serialize(output); }
-    @Override public IGridNode getGridNode(Direction side) { return side != null && foreignNeighbour(side) ? null : node.getNode(); }
+    @Override public IGridNode getGridNode(Direction side) {
+        // AE2 also asks the host directly, before the managed node's exposure refresh on the next tick.
+        return side == null || !host.allowsPort(side, MachinePortMode.MATTER) || foreignNeighbour(side) ? null : node.getNode();
+    }
     @Override public IGridNode getActionableNode() { return node.getNode(); }
 
     /** Run after the host advances its workers; never call this from inside pushPattern. */

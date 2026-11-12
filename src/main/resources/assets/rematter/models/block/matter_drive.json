@@ -2,8 +2,6 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "rematter:block/casing_plain",
-    "port": "rematter:block/casing_port",
-    "plain": "rematter:block/casing_plain",
     "front": "rematter:block/drive_front",
     "bay": "rematter:block/drive_bay"
   },
@@ -23,26 +21,6 @@
       "faces": {
         "north": {
           "texture": "#bay"
-        },
-        "south": {
-          "texture": "#port",
-          "cullface": "south"
-        },
-        "east": {
-          "texture": "#port",
-          "cullface": "east"
-        },
-        "west": {
-          "texture": "#port",
-          "cullface": "west"
-        },
-        "up": {
-          "texture": "#plain",
-          "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -63,20 +41,8 @@
           "texture": "#front",
           "cullface": "north"
         },
-        "east": {
-          "texture": "#port",
-          "cullface": "east"
-        },
         "west": {
           "texture": "#bay"
-        },
-        "up": {
-          "texture": "#plain",
-          "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -99,18 +65,6 @@
         },
         "east": {
           "texture": "#bay"
-        },
-        "west": {
-          "texture": "#port",
-          "cullface": "west"
-        },
-        "up": {
-          "texture": "#plain",
-          "cullface": "up"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -133,10 +87,6 @@
         },
         "up": {
           "texture": "#bay"
-        },
-        "down": {
-          "texture": "#port",
-          "cullface": "down"
         }
       }
     },
@@ -156,10 +106,6 @@
         "north": {
           "texture": "#front",
           "cullface": "north"
-        },
-        "up": {
-          "texture": "#plain",
-          "cullface": "up"
         },
         "down": {
           "texture": "#bay"

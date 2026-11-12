@@ -100,7 +100,12 @@ public final class ReMatterGameTests {
         return new Rig(drive,machine,owner);
     }
     private static MachineBlockEntity place(GameTestHelper h,BlockPos pos,MachineKind kind,net.minecraft.world.entity.player.Player owner) {
-        h.setBlock(pos,ModContent.MACHINES.get(kind).get());
+        return place(h,pos,kind,owner,net.minecraft.core.Direction.NORTH);
+    }
+    /** The front of a device is never a connection, so a fixture turns the front away from what it links to. */
+    private static MachineBlockEntity place(GameTestHelper h,BlockPos pos,MachineKind kind,net.minecraft.world.entity.player.Player owner,
+            net.minecraft.core.Direction front) {
+        h.setBlock(pos,ModContent.MACHINES.get(kind).get().defaultBlockState().setValue(MachineBlock.FACING,front));
         var machine=h.getBlockEntity(pos,MachineBlockEntity.class);machine.placedBy(owner);
         if(!(owner instanceof net.neoforged.neoforge.common.util.FakePlayer)){
             dev.latrox.rematter.research.ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(),h.getLevel().dimension().identifier().toString());
@@ -404,15 +409,32 @@ public final class ReMatterGameTests {
     private static void portConfigurationVisuals(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var relative=new BlockPos(3,3,3);var pos=h.absolutePos(relative);
         var registries=h.getLevel().registryAccess();
-        for(var kind:List.of(MachineKind.DRIVE,MachineKind.NETWORK_INTERFACE,MachineKind.REACTOR))
+        for(var kind:List.of(MachineKind.DRIVE,MachineKind.NETWORK_INTERFACE,MachineKind.REACTOR,MachineKind.PRIMAL_CONVERTER,MachineKind.CRYSTAL_GENERATOR))
             for(var front:net.minecraft.core.Direction.Plane.HORIZONTAL) {
                 h.setBlock(relative,ModContent.MACHINES.get(kind).get().defaultBlockState().setValue(MachineBlock.FACING,front));
                 var machine=h.getBlockEntity(relative,MachineBlockEntity.class);machine.placedBy(owner);
                 for(var side:MachinePortMode.Side.values()) {
-                    var seen=EnumSet.noneOf(MachinePortMode.class);
+                    if(!PortSides.available(kind,side)) {
+                        // The front, and an open top, are never connections: nothing cycles, shows or loads there.
+                        h.assertTrue(!machine.cyclePort(side,true)&&!machine.cyclePort(side,false),"Server configured the closed "+side+" of "+kind);
+                        h.assertTrue(machine.portMode(side)==MachinePortMode.DISABLED,"Closed "+side+" of "+kind+" is not disabled");
+                        h.assertTrue((machine.getUpdateTag(registries).getIntOr("port_visuals",-1)>>>(4*side.ordinal())&15)==MachinePortMode.DISABLED.ordinal(),
+                                "Port update shows a plate on the closed "+side+" of "+kind);
+                        var forged=machine.saveCustomOnly(registries);
+                        var ports=forged.getCompoundOrEmpty("ports").copy();ports.putString(side.getSerializedName(),"matter");forged.put("ports",ports);
+                        var loaded=new MachineBlockEntity(pos,machine.getBlockState());
+                        loaded.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
+                                net.minecraft.util.ProblemReporter.DISCARDING,registries,forged));
+                        h.assertTrue(loaded.portMode(side)==MachinePortMode.DISABLED,"A saved role opened the closed "+side+" of "+kind);
+                        h.assertTrue(!loaded.saveCustomOnly(registries).getCompoundOrEmpty("ports").contains(side.getSerializedName()),
+                                "The dropped role of the closed "+side+" of "+kind+" was saved again");
+                        continue;
+                    }
+                    var seen=EnumSet.noneOf(MachinePortMode.class);var initial=PortSides.initial(kind,side);
+                    h.assertTrue(machine.portMode(side)==initial,"New "+kind+" does not start its "+side+" as "+initial);
                     do {
                         var mode=machine.portMode(side);
-                        h.assertTrue(seen.add(mode),"Port cycle repeated a mode before returning to Automatic");
+                        h.assertTrue(seen.add(mode),"Port cycle repeated a mode before returning to its start");
                         var packet=machine.getUpdateTag(registries);
                         h.assertTrue((packet.getIntOr("port_visuals",-1) >>> (4*side.ordinal()) & 15)==mode.ordinal(),
                                 "Port update omitted "+kind+" "+side+" "+mode);
@@ -426,11 +448,15 @@ public final class ReMatterGameTests {
                             h.assertTrue(client.portMode(face)==machine.portMode(face),"Client port visual differs from server configuration");
                             h.assertTrue(reloaded.portMode(face)==machine.portMode(face),"Reload changed port configuration");
                             h.assertTrue(client.portMode(face.world(front))==machine.portMode(face),"Rotated world face shows wrong port mode");
+                            h.assertTrue(client.getModelData().get(PortSides.PLATES)==machine.getUpdateTag(registries).getIntOr("port_visuals",-1),
+                                    "The drawn plates differ from the published roles");
                         }
                         h.assertTrue(machine.cyclePort(side),"Server rejected supported port configuration");
-                    } while(machine.portMode(side)!=MachinePortMode.AUTOMATIC);
-                    h.assertTrue(seen.contains(MachinePortMode.DISABLED)&&seen.contains(MachinePortMode.MATTER),
-                            "Port cycle omitted disabled or matter mode");
+                    } while(machine.portMode(side)!=initial);
+                    h.assertTrue(seen.contains(MachinePortMode.DISABLED)&&seen.contains(MachinePortMode.MATTER)&&seen.contains(MachinePortMode.AUTOMATIC),
+                            "Port cycle omitted disabled, automatic or matter mode");
+                    // One step back from the start is the last role of the forward order.
+                    h.assertTrue(machine.cyclePort(side,false)&&machine.cyclePort(side,true)&&machine.portMode(side)==initial,"Backward step is not the inverse of forward");
                 }
                 h.setBlock(relative,Blocks.AIR);
             }
@@ -501,8 +527,9 @@ public final class ReMatterGameTests {
     private static void networkLights(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);
         // The Drive stands behind the Terminal, the only side a Terminal connects on, and beside the Interface.
+        // It turns its own back to the Terminal: the front of a device is never a connection.
         var terminalPos=new BlockPos(2,2,1);var interfacePos=new BlockPos(3,2,2);var lonePos=new BlockPos(5,2,2);
-        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
+        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner,net.minecraft.core.Direction.SOUTH);
         var terminal=place(h,terminalPos,MachineKind.TERMINAL,owner);
         var link=place(h,interfacePos,MachineKind.NETWORK_INTERFACE,owner);
         var lone=place(h,lonePos,MachineKind.TERMINAL,owner);
@@ -769,15 +796,20 @@ public final class ReMatterGameTests {
     }
     private static void largeNetwork(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var drives=new ArrayList<MachineBlockEntity>();
+        // Fronts never link. Rows join through their left and right sides; the first column faces outward and
+        // joins the rows through its own left, right and back. A cable behind the last row carries the network
+        // up to the workers, independent of whether the top of a Drive is a connection.
         for(int x=1;x<=8;x++)for(int z=1;z<=8;z++) {
-            var drive=place(h,new BlockPos(x,1,z),MachineKind.DRIVE,owner);drives.add(drive);
+            var drive=place(h,new BlockPos(x,1,z),MachineKind.DRIVE,owner,x==1?net.minecraft.core.Direction.WEST:net.minecraft.core.Direction.NORTH);drives.add(drive);
             for(int bay=0;bay<6;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),new ItemStack(ModContent.MATTER_CELL_64K.get()));
         }
         var workers=new ArrayList<MachineBlockEntity>();
         for(int x=1;x<=5;x++)for(int z=1;z<=4;z++) {
-            var worker=place(h,new BlockPos(x,2,z),MachineKind.DECOMPOSER,owner);workers.add(worker);
+            var worker=place(h,new BlockPos(x,2,z),MachineKind.DECOMPOSER,owner,x==1?net.minecraft.core.Direction.WEST:net.minecraft.core.Direction.NORTH);workers.add(worker);
             worker.energy().set(8000);worker.setItem(0,new ItemStack(Items.SAND));
         }
+        for(var cable:List.of(new BlockPos(2,1,9),new BlockPos(2,2,9),new BlockPos(2,2,8),new BlockPos(2,2,7),new BlockPos(2,2,6),new BlockPos(2,2,5)))
+            h.assertTrue(useItemAt(h,cable,owner,new ItemStack(ModContent.MATTER_CABLE.get())).consumesAction(),"Riser cable placement failed");
         long start=System.nanoTime();var network=workers.getFirst().matterNetwork(true);
         h.assertTrue(network.ready(),"Valid large topology rejected: "+network.status());
         h.assertTrue(network.inventory().members().size()==384&&network.inventory().capacity()==384*MatterLimits.CELL_64K,"Large network did not expose every cell");

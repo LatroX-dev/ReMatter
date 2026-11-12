@@ -7,6 +7,7 @@ from family_palette import BASE, SHADE, SEAM, WELL, HIGHLIGHT, STEEL, STEEL_SHAD
 from family_sprites import Sprite, sealed_frame, plinth, bolt
 from generate_family_assets import Family, sealed_body, sealed_skin, with_parts
 from generated_files import GeneratedFiles
+import port_plates
 from machine_palette import RGB
 from hardware_sprites import PRIMAL_BODY, PRIMAL_CORE, PRIMAL_DEEP, PRIMAL_LIGHT, PRIMAL_FRAMES, PRIMAL_ANIMATION, primal_run
 from recipe_discovery import shaped_discovery
@@ -82,6 +83,9 @@ def display_frame(name, active, frame=0):
 
 def display(name, active):
     if name != 'primal_converter':
+        if active:
+            from work_sprites import strip,generator_window
+            return strip(generator_window(name,f) for f in range(16))
         return display_frame(name, active)
     strip = Sprite(32, 32 * PRIMAL_FRAMES)
     for frame in range(PRIMAL_FRAMES):
@@ -100,18 +104,22 @@ def generate(check=False):
             art[name + '_window' + ('_active' if active else '')] = display(name, active)
         body = sealed_body(2) + [Box('panel', (1, 2, 1), (15, 15, 2))]
         window = [Box('window', (8, 4.5, .5), (13, 12, 1), step=True)] if name == 'primal_converter' else [Box('chamber', (2.5, 4.5, .5), (13.5, 12.5, 1), step=True)]
-        casing = 'reactor_casing' if name.startswith('industrial') else 'casing_plain'
-        sides = {'south': 'port', 'east': 'plain', 'west': 'plain', 'down': 'plain', 'up': 'plain'}
-        with_parts(family, name, 'network', {'port': 'casing_port', 'plain': casing, 'front': name + '_front', 'inner': 'casing_inner'},
+        # The five closed faces belong to the port plates of tools/port_plates.py, in the casing of the device.
+        casing = 'reactor' if name.startswith('industrial') else 'plain'
+        particle = port_plates.CASINGS[casing][0]
+        sides = dict.fromkeys(('south', 'east', 'west', 'down', 'up'), 'plain')
+        with_parts(family, name, 'network', {'front': name + '_front', 'inner': 'casing_inner'},
                    body, sealed_skin(sides), window,
                    {'idle': {'window': name + '_window', 'inner': 'casing_inner'},
                     'active': {'window': name + '_window_active', 'inner': 'casing_inner'}},
-                   lambda box, face: 'window' if face == 'north' else 'inner', casing)
+                   lambda box, face: 'window' if face == 'north' else 'inner', particle, casing=casing)
     out = GeneratedFiles(ROOT, check)
     for name, sprite in art.items():
         out.png(ART / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
         if name.startswith('primal_converter_window'):
             out.json(ART / f'textures/block/{name}.png.mcmeta', PRIMAL_ANIMATION)
+        elif name.endswith('_window_active'):
+            out.json(ART / f'textures/block/{name}.png.mcmeta',{'animation':{'frametime':3,'interpolate':True}})
     for folder, files in (('models/block', family.models), ('blockstates', family.blockstates), ('items', family.items)):
         for name, value in files.items():
             out.json(ART / folder / f'{name}.json', value)

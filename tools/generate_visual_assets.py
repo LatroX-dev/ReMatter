@@ -34,15 +34,12 @@ def effect(hue):
 
 def generate(check=False):
     out = OwnedFiles(ROOT, check)
-    for name in ('ice', 'copper', 'leaf', 'violet', 'amber', 'ember'):
-        image = effect(RGB[name])
-        out.png(ART / f'textures/block/effect_{name}.png', image.width, image.height, image.pixel)
     image = Sprite(16, fill=PRIMAL_CORE)
     out.png(ART / 'textures/entity/effect_light.png', image.width, image.height, image.pixel)
     out.sweep(ART / 'textures/block', [pattern for name in RETIRED_BLOCK for pattern in (name + '.png', name + '.png.mcmeta')]
               + [pattern for name in RGB for pattern in (f'machine_{name}.png', f'machine_{name}.png.mcmeta')])
     out.sweep(ART / 'textures/entity', ['light.png', 'machine_*.png'])
-    out.sweep(ART / 'textures/block', ['effect_*.png'])
+    out.sweep(ART / 'textures/block',[f'effect_{name}.png' for name in ('ice','copper','leaf','violet','amber','ember')])
     out.sweep(ART / 'models/block', ['machine_socket_*.json'])
     print(f"{'Verified' if check else 'Generated'} {out.count} renderer effect sprites")
 

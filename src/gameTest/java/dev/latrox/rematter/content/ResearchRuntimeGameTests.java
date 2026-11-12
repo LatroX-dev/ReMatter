@@ -36,6 +36,7 @@ public final class ResearchRuntimeGameTests {
         TESTS.put("research_runtime_discovery_resumes_and_never_duplicates", ResearchRuntimeGameTests::discovery);
         TESTS.put("research_runtime_exhausted_pool_refunds_once", ResearchRuntimeGameTests::refund);
         TESTS.put("research_runtime_converter_claim_and_cell_watermark", ResearchRuntimeGameTests::converter);
+        TESTS.put("research_runtime_converter_destination_matches_credit", ResearchRuntimeGameTests::converterDestination);
         TESTS.put("research_runtime_physical_checkpoint_and_energy_debt", ResearchRuntimeGameTests::checkpointDebt);
         TESTS.put("research_runtime_post_publication_failure_recovers_payment", ResearchRuntimeGameTests::postPublicationFailure);
         TESTS.put("research_runtime_malformed_financial_ids_preserved", ResearchRuntimeGameTests::malformedIdentity);
@@ -199,6 +200,11 @@ public final class ResearchRuntimeGameTests {
         var claims = r.machine.extensions().view().getAsJsonArray("conversionClaims"); assertTrue(h, claims.size() == 1, "Converter did not create exactly one result owner");
         var claimId = UUID.fromString(claims.get(0).getAsJsonObject().get("id").getAsString()); var machineId = UUID.fromString(claims.get(0).getAsJsonObject().get("machine").getAsString());
         assertTrue(h, primal(r.machine) == 15_000 && r.machine.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - 64_000, "Converter payment was not exact");
+        ResearchService.adminGrant(r.server(),r.uuid(),"rematter:copper");
+        assertTrue(h,!action(r.machine,MachineActionPayload.Action.CONVERT_SELECT,"rematter:copper",250),"Paid pending output allowed changing its target");
+        var retained=r.machine.extensions().view();
+        assertTrue(h,retained.get("conversionTarget").getAsString().equals("rematter:iron")&&retained.get("conversionAmount").getAsLong()==1_000
+                &&retained.getAsJsonArray("conversionClaims").equals(claims),"Rejected target change altered selection or paid claim");
         assertTrue(h, r.drive.matterStore().apply(Map.of(), Map.of(BuiltinChemistry.SOIL, 64_000L)), "Could not block output"); r.drive.setChanged();
         ticks(h, 20, r.machine);
         assertTrue(h, ResearchService.conversionClaims(r.server(), r.uuid(), machineId).getFirst().remaining() == 1_000 && primal(r.machine) == 15_000, "Blocked output lost result or paid twice");
@@ -214,6 +220,41 @@ public final class ResearchRuntimeGameTests {
         var resolved = r.drive.getItem(r.drive.cellSlotForBay(0)).get(MatterCellData.TYPE.get()).resolve(64_000).orElseThrow();
         assertTrue(h, resolved.creditRevision() == 1, "Output cell did not keep its compact credit watermark");
         ticks(h, 20, r.machine); assertTrue(h, primal(r.machine) == 15_000 && r.drive.matterStore().total() == 64_000, "Idle Converter repeated payment or output"); h.succeed();
+    }
+    private static void converterDestination(GameTestHelper h){
+        var r=rig(h,MachineKind.PRIMAL_CONVERTER);fuel(r.machine,16_000,false);
+        ResearchService.adminGrant(r.server(),r.uuid(),"rematter:iron");
+        assertTrue(h,action(r.machine,MachineActionPayload.Action.CONVERT_SELECT,"rematter:iron",1_000),"Known target was rejected");
+        var initial=r.machine.extensions().view();
+        var targets=initial.getAsJsonArray("targets");
+        assertTrue(h,targets.asList().stream().anyMatch(e->e.getAsJsonObject().get("id").getAsString().equals("rematter:iron")&&e.getAsJsonObject().get("known").getAsBoolean()),"Known target lost its unlocked state");
+        assertTrue(h,targets.asList().stream().anyMatch(e->!e.getAsJsonObject().get("known").getAsBoolean()),"Locked eligible targets disappeared from the picker");
+        assertTrue(h,initial.getAsJsonObject("conversionDestination").get("bay").getAsInt()==1,"Initial first-fit destination was not bay1");
+        // Primal Cells are never output destinations; an ordinary Cell's partition remains binding.
+        r.drive.setItem(r.drive.cellSlotForBay(0),new ItemStack(PrimalContent.PRIMAL_CELL_64K.get()));
+        var restricted=new ItemStack(ModContent.MATTER_CELL_64K.get());restricted.set(CellPartitionData.TYPE.get(),CellPartitionData.allowOnly(Set.of(BuiltinChemistry.COPPER)));
+        r.drive.setItem(r.drive.cellSlotForBay(1),restricted);
+        assertTrue(h,r.machine.extensions().view().getAsJsonObject("conversionDestination").get("status").getAsString().equals("no_compatible_cell"),"Primal or restricted Cell was offered as an Iron destination");
+        r.drive.setItem(r.drive.cellSlotForBay(1),new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        r.drive.setItem(r.drive.cellSlotForBay(2),new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        assertTrue(h,r.drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,127_000L)),"Could not prepare fragmented output space");r.drive.setChanged();
+        // Leave 500 u in each Cell: aggregate space fits, but the durable credit belongs to one Cell.
+        var members=r.drive.matterStore().members();
+        long first=members.get(0).total();
+        if(first>63_500)assertTrue(h,members.get(0).transferTo(members.get(1),BuiltinChemistry.SOIL,first-63_500)==first-63_500,"Could not split free space");
+        else if(first<63_500)assertTrue(h,members.get(1).transferTo(members.get(0),BuiltinChemistry.SOIL,63_500-first)==63_500-first,"Could not split free space");
+        assertTrue(h,r.drive.matterStore().canApply(Map.of(),Map.of(BuiltinChemistry.IRON,1_000L)),"Fragmented aggregate fixture did not fit");
+        var blocked=r.machine.extensions().view().getAsJsonObject("conversionDestination");
+        assertTrue(h,blocked.get("status").getAsString().equals("no_compatible_cell"),"Fragmented space advertised a complete destination");
+        assertTrue(h,action(r.machine,MachineActionPayload.Action.CONVERT_START,"",0),"Finite request was rejected");ticks(h,20,r.machine);
+        assertTrue(h,primal(r.machine)==16_000&&r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Blocked destination charged payment");
+        assertTrue(h,members.get(0).extract(BuiltinChemistry.SOIL,500)==500,"Could not make one destination fit");r.drive.setChanged();
+        var ready=r.machine.extensions().view().getAsJsonObject("conversionDestination");
+        assertTrue(h,ready.get("status").getAsString().equals("ready")&&ready.get("bay").getAsInt()==2&&ready.get("free").getAsLong()==1_000,"Preview did not name the first actual fitting ordinary bay");
+        assertTrue(h,ready.get("x").getAsInt()==r.drive.getBlockPos().getX()&&ready.get("z").getAsInt()==r.drive.getBlockPos().getZ(),"Preview named a different storage position");
+        ticks(h,401,r.machine);
+        assertTrue(h,members.get(0).amount(BuiltinChemistry.IRON)==1_000&&members.get(1).amount(BuiltinChemistry.IRON)==0,"Actual credit did not follow the displayed first-fit bay");
+        assertTrue(h,primal(r.machine)==15_000,"Destination recovery changed the one-time Primal price");h.succeed();
     }
     private static void checkpointDebt(GameTestHelper h) {
         var r = deriveRig(h); tick(h, r.machine); var paid = session(r, r.machine);

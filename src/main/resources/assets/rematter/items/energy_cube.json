@@ -9,6 +9,30 @@
       {
         "type": "minecraft:model",
         "model": "rematter:block/energy_cube_charge_0"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_front"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_left"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_back"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_right"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_port_top"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_port_bottom"
       }
     ]
   }

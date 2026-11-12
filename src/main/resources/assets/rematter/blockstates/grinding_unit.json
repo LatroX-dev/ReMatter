@@ -6,7 +6,7 @@
         "suspended": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit"
+        "model": "rematter:block/grinding_unit_world"
       }
     },
     {
@@ -16,7 +16,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_idle_parts"
+        "model": "rematter:block/grinding_unit_idle_world_parts"
       }
     },
     {
@@ -26,7 +26,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_active_parts"
+        "model": "rematter:block/grinding_unit_active_world_parts"
       }
     },
     {
@@ -35,7 +35,7 @@
         "suspended": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit",
+        "model": "rematter:block/grinding_unit_world",
         "y": 90
       }
     },
@@ -46,7 +46,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_idle_parts",
+        "model": "rematter:block/grinding_unit_idle_world_parts",
         "y": 90
       }
     },
@@ -57,7 +57,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_active_parts",
+        "model": "rematter:block/grinding_unit_active_world_parts",
         "y": 90
       }
     },
@@ -67,7 +67,7 @@
         "suspended": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit",
+        "model": "rematter:block/grinding_unit_world",
         "y": 180
       }
     },
@@ -78,7 +78,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_idle_parts",
+        "model": "rematter:block/grinding_unit_idle_world_parts",
         "y": 180
       }
     },
@@ -89,7 +89,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_active_parts",
+        "model": "rematter:block/grinding_unit_active_world_parts",
         "y": 180
       }
     },
@@ -99,7 +99,7 @@
         "suspended": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit",
+        "model": "rematter:block/grinding_unit_world",
         "y": 270
       }
     },
@@ -110,7 +110,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_idle_parts",
+        "model": "rematter:block/grinding_unit_idle_world_parts",
         "y": 270
       }
     },
@@ -121,7 +121,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_active_parts",
+        "model": "rematter:block/grinding_unit_active_world_parts",
         "y": 270
       }
     },
@@ -131,7 +131,7 @@
         "suspended": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended"
+        "model": "rematter:block/grinding_unit_suspended_world"
       }
     },
     {
@@ -141,7 +141,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_idle_parts"
+        "model": "rematter:block/grinding_unit_suspended_idle_world_parts"
       }
     },
     {
@@ -151,7 +151,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_active_parts"
+        "model": "rematter:block/grinding_unit_suspended_active_world_parts"
       }
     },
     {
@@ -160,7 +160,7 @@
         "suspended": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended",
+        "model": "rematter:block/grinding_unit_suspended_world",
         "y": 90
       }
     },
@@ -171,7 +171,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "model": "rematter:block/grinding_unit_suspended_idle_world_parts",
         "y": 90
       }
     },
@@ -182,7 +182,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "model": "rematter:block/grinding_unit_suspended_active_world_parts",
         "y": 90
       }
     },
@@ -192,7 +192,7 @@
         "suspended": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended",
+        "model": "rematter:block/grinding_unit_suspended_world",
         "y": 180
       }
     },
@@ -203,7 +203,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "model": "rematter:block/grinding_unit_suspended_idle_world_parts",
         "y": 180
       }
     },
@@ -214,7 +214,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "model": "rematter:block/grinding_unit_suspended_active_world_parts",
         "y": 180
       }
     },
@@ -224,7 +224,7 @@
         "suspended": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended",
+        "model": "rematter:block/grinding_unit_suspended_world",
         "y": 270
       }
     },
@@ -235,7 +235,7 @@
         "active": "false"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "model": "rematter:block/grinding_unit_suspended_idle_world_parts",
         "y": 270
       }
     },
@@ -246,7 +246,7 @@
         "active": "true"
       },
       "apply": {
-        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "model": "rematter:block/grinding_unit_suspended_active_world_parts",
         "y": 270
       }
     }

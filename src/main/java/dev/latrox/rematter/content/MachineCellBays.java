@@ -61,6 +61,15 @@ final class MachineCellBays {
         for(int bay=0;bay<count();bay++)if(!(stack(bay).getItem() instanceof PrimalCellItem))cells.mount(bay).establishIdentity().ifPresent(result::add);
         return java.util.Set.copyOf(result);
     }
+    /** Matches credit's first-fit order without mutating a cell or establishing a financial identity. */
+    int conversionBay(dev.latrox.rematter.chemistry.SubstanceKey target,long amount){
+        if(amount<=0)return -1;
+        for(int bay=0;bay<count();bay++)if(!(stack(bay).getItem() instanceof PrimalCellItem)){
+            var mount=cells.mount(bay);var inventory=mount.inventory();
+            if(inventory!=null&&mount.readable(stack(bay))&&inventory.canApply(java.util.Map.of(),java.util.Map.of(target,amount)))return bay;
+        }
+        return -1;
+    }
     java.util.Optional<java.util.UUID> credit(java.util.UUID operation,dev.latrox.rematter.chemistry.SubstanceKey target,long amount,net.neoforged.neoforge.transfer.transaction.TransactionContext tx){
         for(int bay=0;bay<count();bay++)if(!(stack(bay).getItem() instanceof PrimalCellItem)){
             var result=cells.mount(bay).credit(operation,target,amount,tx);if(result.isPresent())return result;

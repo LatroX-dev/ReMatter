@@ -9,6 +9,26 @@
       {
         "type": "minecraft:model",
         "model": "rematter:block/industrial_crystal_generator_active_parts"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_reactor_left_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_reactor_right_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_reactor_back_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_reactor_bottom_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_reactor_top_disabled"
       }
     ]
   }

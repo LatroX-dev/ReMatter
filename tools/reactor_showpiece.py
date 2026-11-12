@@ -10,7 +10,8 @@ from family_palette import (SEAM, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, accent, 
 NATURAL = {'north': ('-x', '-y'), 'south': ('+x', '-y'), 'west': ('+z', '-y'), 'east': ('-z', '-y'),
            'up': ('+x', '+z'), 'down': ('+x', '-z')}
 PREFIX = 'chemical_reactor_columns_'
-REACTOR_ANIMATIONS = {PREFIX + 'liquid_active': {'animation': {'frametime': 4}}}
+REACTOR_LIQUID='renderer'  # recommended; 'baked' keeps the smaller texture-only alternative
+REACTOR_ANIMATIONS = {PREFIX + 'liquid_active': {'animation': {'frametime': 3,'interpolate': True}}}
 
 # (name, from, to, material); the two columns share corresponding material sheets.
 PARTS = (
@@ -76,7 +77,10 @@ def _metal_sprite(Sprite, box, dark):
 
 
 def _liquid_sprite(Sprite, active):
-    frames = 4 if active else 1
+    if active:
+        from work_sprites import strip,reactor_liquid
+        return strip(reactor_liquid(True,f,level_bob=(0,0,0,0,1,1,1,1,2,2,2,2,1,1,1,1)[f] if REACTOR_LIQUID=='baked' else None) for f in range(16))
+    frames = 1
     sprite = Sprite(32, 32 * frames, fill=SEAM)
     violet = accent('chemical_reactor')
     body, light, shade = (violet, lighten(violet, .45), scale(violet, .64)) if active else (
@@ -104,6 +108,9 @@ def reactor_sprites(Sprite):
     for box in column_boxes():
         material = MATERIALS[box.name]
         result[PREFIX + material] = _metal_sprite(Sprite, box, material == 'base')
+    from work_sprites import reactor_glass,reactor_shuttle
+    result[PREFIX+'glass']=reactor_glass()
+    result[PREFIX+'shuttle']=reactor_shuttle()
     result[PREFIX + 'liquid'] = _liquid_sprite(Sprite, False)
     result[PREFIX + 'liquid_active'] = _liquid_sprite(Sprite, True)
     return result

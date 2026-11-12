@@ -91,6 +91,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private MachineSettings settings=MachineSettings.DEFAULT;
     private long ventedTotal;
     private final MachineVisuals visuals = new MachineVisuals();
+    private final VisualActivity activity = new VisualActivity();
     private final MachineOperations operations = new MachineOperations(this);
     private final MachineControl control = new MachineControl(this);
     private final NetworkJobWorker worker = new NetworkJobWorker(this);
@@ -115,6 +116,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private int publishedPreparationStage = -1;
     private boolean publishedPreparationMixing;
     private long nextCrank, manualActiveUntil;
+    private int visualCrankSequence;
     private int manualStage = -1;
     private boolean manualMixing;
 
@@ -158,6 +160,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     long drivePrimalCapacity(){return kind()==MachineKind.DRIVE?bays.primalCapacity():0;}
     java.util.Set<java.util.UUID> establishCellIdentities(){return bays.establishIdentities();}
     java.util.Optional<java.util.UUID> creditConvertedMatter(java.util.UUID op,SubstanceKey key,long amount,TransactionContext tx){return bays.credit(op,key,amount,tx);}
+    int conversionBay(SubstanceKey key,long amount){return bays.conversionBay(key,amount);}
     boolean running(){return control.runState().running();}
     boolean allowsPowerOutput(Direction side){return allowsPort(side,MachinePortMode.POWER);}
     public SimpleEnergyHandler energy() { return energy; }
@@ -248,24 +251,25 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     AnalysisState analysis() { return analysis; }
     void completeAnalysis(MaterialProfile profile) { analysis = AnalysisState.completed(profile); }
 
-    public MachinePortMode portMode(MachinePortMode.Side side) { return sides.mode(side); }
+    /** The role a side really has: a side that can never be a connection reads as Disabled everywhere. */
+    public MachinePortMode portMode(MachinePortMode.Side side) { return sides.mode(kind(), side); }
     public MachinePortMode portMode(Direction side) {
         return portMode(MachinePortMode.Side.local(getBlockState().getValue(MachineBlock.FACING), side));
     }
+    /** Every capability, bridge and neighbour link asks here. A side-less query never opens a route around a side. */
     public boolean allowsPort(@Nullable Direction side, MachinePortMode role) {
-        // A side-less query must not provide a route around a configured face.
-        if (side == null) return sides.allowsEverywhere(role);
-        return portMode(side).allows(role);
+        return side != null && portMode(side).allows(role);
     }
-    public boolean acceptsMatter(Direction side, boolean cable) {
-        return MatterCableConnectionPolicy.acceptsMachine(kind(), getBlockState().getValue(MachineBlock.FACING), side, cable)
+    public boolean acceptsMatter(Direction side) {
+        return MatterCableConnectionPolicy.acceptsMachine(kind(), getBlockState().getValue(MachineBlock.FACING), side)
                 && allowsPort(side, MachinePortMode.MATTER);
     }
-    boolean cyclePort(MachinePortMode.Side side) {
-        if (!(level instanceof ServerLevel server) || !isLiveServerMachine()
-                || !MachinePortMode.configurable(kind())) return false;
-        MachinePortMode previous = sides.cycle(kind(), side);
-        MachinePortMode next = sides.mode(side);
+    boolean cyclePort(MachinePortMode.Side side) { return cyclePort(side, true); }
+    boolean cyclePort(MachinePortMode.Side side, boolean forward) {
+        if (!(level instanceof ServerLevel server) || !isLiveServerMachine()) return false;
+        MachinePortMode previous = sides.cycle(kind(), side, forward);
+        if (previous == null) return false;
+        MachinePortMode next = sides.mode(kind(), side);
         setChanged();
         if (previous.allows(MachinePortMode.MATTER) != next.allows(MachinePortMode.MATTER)
                 || previous.allows(MachinePortMode.POWER) != next.allows(MachinePortMode.POWER)) {
@@ -279,8 +283,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     boolean cyclePort(Player player, Direction side) {
         return stillValid(player) && cyclePort(MachinePortMode.Side.local(getBlockState().getValue(MachineBlock.FACING), side));
     }
+    /** The roles the port plates of this block show. */
+    @Override public net.neoforged.neoforge.model.data.ModelData getModelData() {
+        return net.neoforged.neoforge.model.data.ModelData.of(PortSides.PLATES, sides.visuals(kind()));
+    }
     @Nullable EnergyHandler sidedEnergy(@Nullable Direction side) {
-        if(kind().generator())return allowsPort(side,MachinePortMode.POWER)?extensions.output():null;
+        if(kind().generator())return allowsPort(side,MachinePortMode.POWER)
+                ?new PortEnergyHandler(extensions.output(),()->isLiveServerMachine()&&allowsPort(side,MachinePortMode.POWER)):null;
         if (!kind().processes() || IndustrialStructure.isIndustrial(kind()) || PreparationTier.manual(kind())
                 || !allowsPort(side, MachinePortMode.POWER)) return null;
         return new PortEnergyHandler(energy, () -> isLiveServerMachine() && allowsPort(side, MachinePortMode.POWER));
@@ -330,8 +339,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (chunk != null) ChunkRevisions.touch(chunk);
     }
     /** Visual authority only: a module never owns an inventory, energy buffer or persistent association. */
-    public boolean isModuleWorking(BlockPos modulePosition) {
-        return isLiveServerMachine() && structure.moduleWorking(modulePosition, work.processedThisTick);
+    public boolean isModuleVisuallyWorking(BlockPos modulePosition) {
+        return isLiveServerMachine() && structure.moduleWorking(modulePosition, activity.showing(level.getGameTime(), 8));
     }
     @Override public void setRemoved() {
         resetProgress();
@@ -454,6 +463,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public ItemStack visibleProcessOutputItem() { return visuals.processOutput(); }
     public int visualProgress() { return visuals.progress(); }
     public int visualDuration() { return visuals.duration(); }
+    /** Accepted manual work, independent of batch resets; client presentation only, never persisted. */
+    public int visualCrankSequence() { return visualCrankSequence; }
 
     private void publishProcessVisuals() {
         if (isLiveServerMachine() && visuals.publishProcess(work.processedThisTick, work.progress, work.duration, level.getGameTime())) sendClientUpdate();
@@ -487,12 +498,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public boolean preparationMixing() { return PreparationTier.isPreparation(kind()) && work.preparationMixing; }
     @Override public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
-        tag.putInt("port_visuals", sides.visuals());
+        tag.putInt("port_visuals", sides.visuals(kind()));
         visuals.write(tag, kind());
         if (cellSlot() >= 0) { tag.putBoolean("cell_present", hasVisibleCell()); tag.putInt("cell_mask", visibleCellMask()); tag.putInt("cell_tiers", bays.visibleTiers()); }
         if (kind() == MachineKind.DRIVE) tag.putInt("cell_statuses", Transaction.getCurrentOpenedTransaction() == null
                 ? bays.visibleStatuses() : Math.max(0, publishedCellStatuses));
         if (PreparationTier.isPreparation(kind())) { tag.putInt("preparation_stage", work.preparationStage); tag.putBoolean("preparation_mixing", work.preparationMixing); }
+        if (kind() == MachineKind.HAND_PREPARATOR) tag.putInt("visual_crank_sequence", visualCrankSequence);
         structure.write(tag);
         return tag;
     }
@@ -500,7 +512,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket.create(this);
     }
     @Override public void handleUpdateTag(ValueInput input) {
-        sides.readVisuals(input.getIntOr("port_visuals", 0));
+        int shownPorts = sides.visuals(kind());
+        sides.readVisuals(kind(), input.getIntOr("port_visuals", shownPorts));
+        if (sides.visuals(kind()) != shownPorts && level != null && level.isClientSide()) {
+            // The plates are part of the chunk mesh: publish the new roles and rebuild this block's section.
+            requestModelDataUpdate();
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
+        }
         visuals.read(input, kind());
         if (cellSlot() >= 0) {
             visibleCell = input.getBooleanOr("cell_present", false);
@@ -512,6 +530,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             work.preparationStage = Math.clamp(input.getIntOr("preparation_stage", -1), -1, 2);
             work.preparationMixing = input.getBooleanOr("preparation_mixing", false);
         }
+        if (kind() == MachineKind.HAND_PREPARATOR) visualCrankSequence = input.getIntOr("visual_crank_sequence", visualCrankSequence);
         structure.read(input);
     }
     @Override public void onDataPacket(net.minecraft.network.Connection connection, ValueInput input) { handleUpdateTag(input); }
@@ -652,10 +671,11 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             // readable cell; a Terminal lights its screen and a Network Interface its lens while their matter
             // network is ready. Each is one coarse flag in the block state.
             int cellStatuses = kind() == MachineKind.DRIVE ? bays.visibleStatuses() : 0;
+            if (work.processedThisTick) activity.worked(level.getGameTime());
             boolean shownActive = switch (kind()) {
                 case DRIVE -> CellStatus.anyReadable(cellStatuses);
                 case TERMINAL, NETWORK_INTERFACE -> networkOnline;
-                default -> work.processedThisTick;
+                default -> activity.showing(level.getGameTime(), kind().generator() ? 20 : 8);
             };
             if (!isRemoved() && state.getValue(MachineBlock.ACTIVE) != shownActive) {
                 level.setBlock(worldPosition, state.setValue(MachineBlock.ACTIVE, shownActive), Block.UPDATE_CLIENTS);
@@ -666,7 +686,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 sendClientUpdate();
             }
             publishProcessVisuals();
-            structure.publishActivity(work.processedThisTick && isLiveServerMachine() && industrialStructureReady());
+            structure.publishActivity(shownActive && isLiveServerMachine() && industrialStructureReady());
             publishItemVisuals();
             if (kind() == MachineKind.DRIVE && cellStatuses != publishedCellStatuses) {
                 publishedCellStatuses = cellStatuses;
@@ -699,7 +719,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             if (!operation.canFinish()) return false;
             operation.finish().run(); resetProgress();
         }
-        setChanged(); publishProcessVisuals(); return true;
+        visualCrankSequence++;
+        setChanged(); publishProcessVisuals(); sendClientUpdate(); return true;
     }
     private void tickManualPreparation(ChemistryRegistry registry) {
         if (level.getGameTime() < manualActiveUntil) {

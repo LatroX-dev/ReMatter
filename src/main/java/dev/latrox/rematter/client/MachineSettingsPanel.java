@@ -6,6 +6,7 @@ import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSettings;
 import dev.latrox.rematter.content.MachineSnapshot;
+import dev.latrox.rematter.content.PortSides;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.network.MachineConfigurationPayload;
 import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
@@ -42,10 +43,9 @@ final class MachineSettingsPanel {
     private final int left, top, width;
     private final EnumMap<Section, List<AbstractWidget>> groups = new EnumMap<>(Section.class);
     private final EnumMap<Section, PanelButton> tabs = new EnumMap<>(Section.class);
-    private final EnumMap<MachinePortMode.Side, PanelButton> sides = new EnumMap<>(MachinePortMode.Side.class);
+    private SideDiagram diagram;
     private final List<AbstractWidget> widgets = new ArrayList<>();
     private Section section = Section.SIDES;
-    private MachinePortMode.Side shownSide = MachinePortMode.Side.FRONT;
     private List<MachineSnapshot.Amount> products = List.of();
     private List<String> gases = List.of();
     private MachineSettings lastServerSettings;
@@ -63,7 +63,7 @@ final class MachineSettingsPanel {
     }
 
     void initWidgets() {
-        widgets.clear(); tabs.clear(); sides.clear(); groups.values().forEach(List::clear);
+        widgets.clear(); tabs.clear(); groups.values().forEach(List::clear);
         for (var value : Section.values()) {
             var tab = button(tr("settings.section." + value.name().toLowerCase(java.util.Locale.ROOT)),
                     left, top, 18, 16, b -> setSection(value));
@@ -71,14 +71,14 @@ final class MachineSettingsPanel {
             tab.iconOnly=true;tab.icon = switch(value){case SIDES -> UiIcon.SIDES;case PRODUCTION -> UiIcon.TARGET;case ACCESS -> UiIcon.ACCESS;};
             tab.selected = value == section; tabs.put(value, tab);
         }
-        for (var side : MachinePortMode.Side.values()) {
-            int[] position = sidePosition(side);
-            var face = grouped(Section.SIDES, button(side.label(),
-                    left + position[0], top + CONTENT_Y + position[1], 20, 18, b -> {
-                        shownSide = side; sendMenu(MachineMenu.CYCLE_PORT + side.ordinal());
-                    }));
-            face.side = side; sides.put(side, face);
-        }
+        // The sides are a diagram of their own: it decides per side whether there is anything to click.
+        diagram = new SideDiagram(new SideDiagram.Host() {
+            @Override public SideDiagram.Look look(MachinePortMode.Side side) { return sideLook(side); }
+            @Override public void step(MachinePortMode.Side side, boolean forward) {
+                sendMenu((forward ? MachineMenu.CYCLE_PORT : MachineMenu.CYCLE_PORT_BACK) + side.ordinal());
+            }
+            @Override public boolean editable() { return canEdit(); }
+        }, font, left, top + CONTENT_Y, widget -> { widgets.add(widget); addWidget.accept(widget); });
         target = new EditBox(font, left, top + 34, width - 28, 18, tr("stock_target"));
         target.setMaxLength(13); target.setValue("0"); target.setFilter(value -> value.matches("[0-9]*"));
         target.setTextColor(UiPalette.TEXT); target.setHint(Component.literal("0"));
@@ -185,10 +185,7 @@ final class MachineSettingsPanel {
             if(index>=0){tab.setX(left+index*28);tab.setWidth(24);}
             for (var widget : groups.get(value)) { widget.visible = visible && section == value; widget.active = widget.visible && canEdit(); }
         }
-        for (var entry : sides.entrySet()) {
-            var side = entry.getKey(); var face = entry.getValue();
-            face.setTooltip(Tooltip.create(tr("settings.side_hint", side.label(), menu.portMode(side).label())));
-        }
+        diagram.update(visible && section == Section.SIDES);
         boolean productionEdit = visible && section == Section.PRODUCTION && canEdit() && settingsReady() && !menu.snapshot().networkJobs();
         target.active = productionEdit; apply.active = productionEdit;
         product.active = productionEdit && !physical() && products.size() > 1;
@@ -272,12 +269,18 @@ final class MachineSettingsPanel {
         if (!visible) return;
         ScreenChrome.text(g,font,tr("settings.section."+section.name().toLowerCase(java.util.Locale.ROOT)).getString(),left+88,top+5,width-88,UiPalette.TEXT);
         if (section == Section.SIDES) {
-            var hovered = sides.entrySet().stream().filter(e -> e.getValue().isHoveredOrFocused()).map(java.util.Map.Entry::getKey).findFirst().orElse(shownSide);
-            ScreenChrome.text(g,font,hovered.label().getString(),left+90,top+27,width-90,UiPalette.TEXT);
-            ScreenChrome.icon(g,UiIcon.port(menu.portMode(hovered)),left+88,top+36,menu.portMode(hovered).color());
-            ScreenChrome.twoLines(g, font, menu.portMode(hovered).label().getString(), left + 106, top + 40, width - 106, menu.portMode(hovered).color());
-            ScreenChrome.icon(g,UiIcon.HELP,left+88,top+63,UiPalette.MUTED);
-            ScreenChrome.twoLines(g, font, tr("settings.sides_help").getString(), left + 106, top + 67, width - 106, UiPalette.MUTED);
+            // Below the diagram: the side under the pointer, or the one changed last, in words.
+            var side = diagram.shown(); var closed = PortSides.closed(menu.kind(), side); var mode = menu.portMode(side);
+            int y = top + CONTENT_Y + SideDiagram.HEIGHT + 2;
+            if (closed != null) {
+                ScreenChrome.icon(g, UiIcon.LOCKED, left, y - 3, UiPalette.MUTED);
+                ScreenChrome.text(g, font, closedName(closed).getString(), left + 18, y + 1, width - 18, UiPalette.MUTED);
+                ScreenChrome.twoLines(g, font, closedHint(closed).getString(), left, y + 12, width, UiPalette.MUTED);
+            } else {
+                ScreenChrome.icon(g, UiIcon.port(mode), left, y - 3, mode.color());
+                ScreenChrome.text(g, font, tr("settings.side_state", side.label(), mode.label()).getString(), left + 18, y + 1, width - 18, mode.color());
+                ScreenChrome.twoLines(g, font, mode.meaning().getString(), left, y + 12, width, UiPalette.MUTED);
+            }
         } else if (section == Section.PRODUCTION) {
             Component label = error.getString().isEmpty() ? tr("stock_target") : error;
             ScreenChrome.text(g,font,label.getString(),left,top+23,width,error.getString().isEmpty()?UiPalette.MUTED:UiPalette.WARNING);
@@ -295,26 +298,30 @@ final class MachineSettingsPanel {
     private <T extends AbstractWidget> T grouped(Section group, T widget) { groups.get(group).add(widget); return widget; }
     private void register(AbstractWidget widget, Section group) { widgets.add(widget); groups.get(group).add(widget); addWidget.accept(widget); }
     private static Component tr(String key, Object... args) { return Component.translatable("screen.rematter." + key, args); }
-    private static int[] sidePosition(MachinePortMode.Side side) {
-        return switch (side) {
-            case TOP -> new int[]{35, 0}; case LEFT -> new int[]{13, 20}; case FRONT -> new int[]{35, 20};
-            case RIGHT -> new int[]{57, 20}; case BOTTOM -> new int[]{35, 40}; case BACK -> new int[]{57, 40};
-        };
+    private static Component closedName(PortSides.Closed closed) {
+        return Component.translatable("port.rematter.closed." + closed.name().toLowerCase(java.util.Locale.ROOT));
+    }
+    private static Component closedHint(PortSides.Closed closed) {
+        return Component.translatable("port.rematter.closed_hint." + closed.name().toLowerCase(java.util.Locale.ROOT));
+    }
+    /** What the block shows on this side, and the words for it. */
+    private SideDiagram.Look sideLook(MachinePortMode.Side side) {
+        var closed = PortSides.closed(menu.kind(), side);
+        if (closed != null) return new SideDiagram.Look(closed == PortSides.Closed.OPEN_TOP ? SideDiagram.Face.OPEN : SideDiagram.Face.PLAIN,
+                UiPalette.MUTED, null, true, closedName(closed).copy().append("\n").append(closedHint(closed)));
+        var mode = menu.portMode(side);
+        return new SideDiagram.Look(mode == MachinePortMode.DISABLED ? SideDiagram.Face.PLAIN : SideDiagram.Face.PLATE, mode.ring(), null, false,
+                tr("settings.side_hint", side.label(), mode.label(), mode.meaning()));
     }
 
     static final class PanelButton extends Button {
         private final Font font; private final MachineMenu menu;
-        private MachinePortMode.Side side;
         private boolean selected, iconOnly;
         private UiIcon icon;
         PanelButton(Builder builder, Font font, MachineMenu menu) { super(builder); this.font = font; this.menu = menu; }
         @Override protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
             int x = getX(), y = getY(), w = getWidth(), h = getHeight();
             ScreenChrome.raised(g, x, y, w, h, isHoveredOrFocused() || selected, active);
-            if (side != null) {
-                ScreenChrome.icon(g,UiIcon.port(menu.portMode(side)),x+(w-16)/2,y+(h-16)/2,active?menu.portMode(side).color():UiPalette.MUTED);
-                return;
-            }
             if (selected) g.fill(x + 1, y + 3, x + 3, y + h - 3, UiPalette.machineAccent(menu.kind()));
             int color=active?UiPalette.TEXT:UiPalette.MUTED;
             if(iconOnly) {

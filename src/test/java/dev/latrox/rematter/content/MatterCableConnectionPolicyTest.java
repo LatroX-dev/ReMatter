@@ -8,17 +8,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MatterCableConnectionPolicyTest {
-    @Test void rotatedMachinesRejectFrontAndTopCablesAndTerminalOnlyUsesBack() {
+    @Test void rotatedMachinesRejectFrontAndOpenTopAndTerminalOnlyUsesBack() {
         for (var front : Direction.Plane.HORIZONTAL) for (var face : Direction.values()) {
+            // A cable and a directly neighbouring device follow the same table: the front is never a connection.
             assertEquals(face != front && face != Direction.UP,
-                    MatterCableConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, true));
-            assertTrue(MatterCableConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face, false));
-            for (boolean cable : new boolean[]{true, false}) {
-                assertEquals(face == front.getOpposite(),
-                        MatterCableConnectionPolicy.acceptsMachine(MachineKind.TERMINAL, front, face, cable));
-                assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_PREPARATOR, front, face, cable));
-                assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_REACTOR, front, face, cable));
-            }
+                    MatterCableConnectionPolicy.acceptsMachine(MachineKind.DECOMPOSER, front, face));
+            assertEquals(face != front && (face != Direction.UP || PortSides.SEALED_TOP != PortSides.SealedTop.CLOSED),
+                    MatterCableConnectionPolicy.acceptsMachine(MachineKind.DRIVE, front, face));
+            assertEquals(face == front.getOpposite(),
+                    MatterCableConnectionPolicy.acceptsMachine(MachineKind.TERMINAL, front, face));
+            assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_PREPARATOR, front, face));
+            assertFalse(MatterCableConnectionPolicy.acceptsMachine(MachineKind.INDUSTRIAL_REACTOR, front, face));
         }
     }
 

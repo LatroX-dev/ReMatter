@@ -9,8 +9,9 @@ class MachineRendererDetailTest {
     @Test void bakedDevicesNeedNoProcessMotionOrShownItems() {
         assertEquals(MachineRenderer.Detail.NONE, MachineRenderer.Detail.of(MachineKind.TERMINAL));
         assertEquals(MachineRenderer.Detail.NONE, MachineRenderer.Detail.of(MachineKind.NETWORK_INTERFACE));
-        assertEquals(MachineRenderer.Detail.NONE, MachineRenderer.Detail.of(MachineKind.REACTOR));
-        assertTrue(ConfigurablePorts.supports(MachineKind.REACTOR), "The baked reactor still draws its configured port rings");
+        assertEquals(MachineRenderer.Detail.MECHANISM, MachineRenderer.Detail.of(MachineKind.REACTOR));
+        // Port plates are block models now; the renderer draws nothing for a device without moving parts.
+        assertEquals(MachineRenderer.Detail.NONE, MachineRenderer.Detail.of(MachineKind.PRIMAL_CONVERTER));
     }
 
     @Test void onlyTheDriveExtractsCellBaysAndOnlyItemShowingKindsExtractItems() {

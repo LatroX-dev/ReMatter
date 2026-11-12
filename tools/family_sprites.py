@@ -115,6 +115,13 @@ def reactor_casing():
     return sprite
 
 
+def reactor_casing_port():
+    """The structure plating with the seat of a port plate, for a connected side of a device in that casing."""
+    sprite = reactor_casing()
+    port_plate(sprite, shallow=True)
+    return sprite
+
+
 def reactor_glass_pane():
     sprite = Sprite(fill=CLEAR)
     sprite.ring(0, 0, 32, 32, SEAM)
@@ -424,6 +431,7 @@ def sprites():
         'casing_inner': flat(SEAM),
         'status_off': flat(SEAM),
         'reactor_casing': reactor_casing(),
+        'reactor_casing_port': reactor_casing_port(),
         'reactor_glass_pane': reactor_glass_pane(),
         'drive_front': drive_front(),
         'drive_bay': drive_bay(),
@@ -453,7 +461,7 @@ def sprites():
     result.update(reactor_sprites(Sprite))
     for name in ('blue', 'green', 'amber'):
         result['led_' + name] = flat(LED[name])
-    for name in ('violet', 'blue', 'ice', 'copper', 'leaf', 'amber', 'ember'):
+    for name in ('violet', 'ice', 'copper', 'leaf', 'amber', 'ember'):
         result['light_' + name] = flat(RGB[name])
     result['light_blue_standby'] = flat(scale(RGB['blue'], STANDBY))
     for mode, color in PORT_MODES.items():
@@ -464,6 +472,12 @@ def sprites():
         result[device + '_front'] = controller_front(device)
         result[device + '_display'] = controller_display(device, False)
         result[device + '_display_active'] = controller_display(device, True)
+    from work_sprites import strip,activity_bar,terminal_screen as terminal_frames,interface_light,controller_display as controller_frames
+    result['activity_on']=strip(activity_bar(f) for f in range(16))
+    result['terminal_screen_active']=strip(terminal_frames(f) for f in range(16))
+    result['interface_light_active']=strip(interface_light(f) for f in range(16))
+    for device in ('industrial_reactor','industrial_preparator'):
+        result[device+'_display_active']=strip(controller_frames(device,f) for f in range(16))
     return result
 
 
@@ -475,3 +489,6 @@ for name in ('drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cel
 # Active sight windows are animated only in the active model.
 from reactor_showpiece import REACTOR_ANIMATIONS
 ANIMATIONS.update(REACTOR_ANIMATIONS)
+
+for name,frametime in {'activity_on':5,'terminal_screen_active':5,'interface_light_active':2,'industrial_reactor_display_active':4,'industrial_preparator_display_active':4,**{'bench_'+device+'_work_active':2 if device in ('decomposer','material_preparator') else 3 if device=='sinter_furnace' else 4 for device in ('analyzer','decomposer','material_synthesizer','material_preparator','sinter_furnace')}}.items():
+    ANIMATIONS[name]={'animation':{'frametime':frametime,'interpolate':True}}

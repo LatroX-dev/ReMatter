@@ -19,6 +19,8 @@ item_ids:
 
 Your [sand-to-glass starter line](copper.md) already uses a **Matter Drive**. Add item transport for continuous production, then more Drives when you need capacity. Each Drive holds up to six individually removable Cells in two columns of three. Its populated front bays match the Contents slots, and connected machines share all readable Cells.
 
+Attach transport to the sides, back or bottom. Device fronts and open workbench tops never connect. A sealed device's top starts **Disabled**; enable it in **Settings → Sides** when needed. Disabled faces are plain casing, with no socket. The side diagram labels each face and shows its role: left-click cycles forward; right-click or Shift-click cycles backward. Energy Cubes are the exception with six configurable faces; a Matter Terminal connects only at its back. Industrial controllers use separate Machine Ports.
+
 <RecipeFor id="rematter:matter_drive" />
 
 ## 1. Keep the Cell in storage

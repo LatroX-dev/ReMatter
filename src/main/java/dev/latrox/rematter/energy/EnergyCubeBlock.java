@@ -26,15 +26,20 @@ import org.jspecify.annotations.Nullable;
 public final class EnergyCubeBlock extends Block implements EntityBlock {
     public static final EnumProperty<Direction> FACING=BlockStateProperties.HORIZONTAL_FACING;
     public static final IntegerProperty CHARGE=IntegerProperty.create("charge",0,8);
+    public enum Flow implements net.minecraft.util.StringRepresentable {
+        NONE, IN, OUT;
+        @Override public String getSerializedName(){return name().toLowerCase(java.util.Locale.ROOT);}
+    }
+    public static final EnumProperty<Flow> FLOW=EnumProperty.create("flow",Flow.class);
     private final EnergyCubeTier tier;
     private final MapCodec<EnergyCubeBlock> codec;
     public EnergyCubeBlock(EnergyCubeTier tier,Properties properties){
         super(properties);this.tier=tier;codec=simpleCodec(p->new EnergyCubeBlock(tier,p));
-        registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(CHARGE,0));
+        registerDefaultState(stateDefinition.any().setValue(FACING,Direction.NORTH).setValue(CHARGE,0).setValue(FLOW,Flow.NONE));
     }
     public EnergyCubeTier tier(){return tier;}
     @Override protected MapCodec<? extends Block> codec(){return codec;}
-    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder){builder.add(FACING,CHARGE);}
+    @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block,BlockState> builder){builder.add(FACING,CHARGE,FLOW);}
     @Override public @Nullable BlockState getStateForPlacement(BlockPlaceContext context){return defaultBlockState().setValue(FACING,context.getHorizontalDirection().getOpposite());}
     @Override protected BlockState rotate(BlockState state,Rotation rotation){return state.setValue(FACING,rotation.rotate(state.getValue(FACING)));}
     @Override protected BlockState mirror(BlockState state,Mirror mirror){return rotate(state,mirror.getRotation(state.getValue(FACING)));}

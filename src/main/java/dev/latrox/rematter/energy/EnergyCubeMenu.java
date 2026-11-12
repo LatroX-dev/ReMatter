@@ -51,8 +51,10 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
     public void accept(EnergyCubePayload payload){if(payload.containerId()==containerId&&payload.tier()==tier.ordinal())received=payload;}
     @Override public boolean stillValid(Player player){return cube==null||cube.stillValid(player);}
     @Override public boolean clickMenuButton(Player player,int action){
-        if(cube==null||player.containerMenu!=this||player.isSpectator()||action<0||action>=MachinePortMode.Side.values().length||!stillValid(player))return false;
-        boolean changed=cube.cycleSide(player,MachinePortMode.Side.values()[action]);
+        // Six ids step a side forward, the six after them step it backward.
+        int sides=MachinePortMode.Side.values().length;
+        if(cube==null||player.containerMenu!=this||player.isSpectator()||action<0||action>=2*sides||!stillValid(player))return false;
+        boolean changed=cube.cycleSide(player,MachinePortMode.Side.values()[action%sides],action<sides);
         if(changed){nextUpdate=0;broadcastChanges();}return changed;
     }
     @Override public ItemStack quickMoveStack(Player player,int index){

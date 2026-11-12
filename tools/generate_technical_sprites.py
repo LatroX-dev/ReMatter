@@ -201,38 +201,11 @@ def netherite_sheath():
     return d
 
 
-def matrix_cluster():
-    d = Drawing()
-    # Four pale prisms locked into an iron ferrule. Rhedon and Virel tint the catches.
-    rim = [(2, 21), (8, 16.8), (22, 16.8), (29, 21.1), (26, 25), (7, 25)]
-    d.polygon([(2, 21), (7, 25), (26, 25), (29, 21.1), (28.3, 26.2),
-               (25, 28.8), (7.6, 28.8), (3.1, 25.8)], 'body', width=.83)
-    d.polygon(rim, 'steel', width=.78)
-    prisms = (
-        ((22.1, 3.5), (17.8, 6.5), (17.7, 17.9), (22.3, 20.5), (26, 17.2), (26.1, 6.7), (22.3, 8.4)),
-        ((7.2, 9.4), (3.3, 13.2), (4.6, 21.8), (9, 24), (12.3, 20.2), (11.9, 11.6), (8.5, 14.1)),
-        ((24, 8.9), (20, 11.9), (18.8, 21.7), (23.7, 24.4), (27.9, 21.1), (28.4, 12.2), (24.5, 14.1)),
-        ((15.4, 2.7), (10.8, 6.9), (11.4, 22.3), (16.3, 25.8), (21.1, 22.4), (20.8, 6.8), (16.2, 8.9)),
-    )
-    for tip, upper_left, foot_left, foot, foot_right, upper_right, ridge in prisms:
-        d.polygon([tip, upper_left, foot_left, foot, foot_right, upper_right], 'glass', width=.72)
-        d.polygon([upper_left, ridge, foot, foot_left], 'glass', width=.42)
-        d.polygon([ridge, upper_right, foot_right, foot], 'edge', width=.42)
-        d.polygon([tip, upper_right, ridge, upper_left], '#dfe9e8', width=.38)
-        d.line([(upper_left[0] + .8, upper_left[1] + 1.4), (foot_left[0] + .8, foot_left[1] - 1.7)],
-               '#f0f5f1', .5)
-    d.polygon([(4.2, 22.1), (7.7, 23.8), (11.1, 23.8), (11.1, 26.6), (7.8, 26.6), (4.5, 24.7)],
-              'rhedon', width=.58)
-    d.polygon([(21.8, 23.8), (25, 23.8), (27.4, 21.7), (27.1, 24.9), (24.9, 26.6), (21.8, 26.6)],
-              'virelite', width=.58)
-    d.line([(8.6, 27.6), (23.9, 27.6)], 'edge', .55)
-    return d
-
-
 def main():
+    # The Matrix Cluster is a crystal illustration and belongs to generate_illustrated_icons.py.
     for draw in (machine_frame, structural_bars, control_circuit, optical_circuit,
                  speed_upgrade, efficiency_upgrade, automation_pattern,
-                 diamond_lattice, ender_conductor, netherite_sheath, matrix_cluster):
+                 diamond_lattice, ender_conductor, netherite_sheath):
         draw().write(draw.__name__)
 
 

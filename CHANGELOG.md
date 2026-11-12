@@ -2,6 +2,11 @@
 
 ## 0.7.0
 
+- Unify device connection rules across cables, hoppers, capabilities and side settings. Fronts and open workbench tops stay closed; sealed tops start Disabled. Disabled faces show plain casing, with connection plates baked into the world model. Name the side controls and support backward cycling.
+- Replace the Primal Converter's cycling target control with a searchable list showing symbols, prices and research requirements. Show its receiving Drive and Cell bay, and require room for a complete output batch before taking payment.
+- Smooth work motion independently of recipe update packets. Add mechanism-specific bench motion, continuous industrial fields and module pulses, eased waiting states and charging/discharging Cube flow.
+- Redraw the Matrix Cluster as four clear Matrix Crystals grown from one root, matching the illustrated component icons.
+- Respect Energy Cube sides in vanilla hopper transfers, reject stale generator power handles after side changes, and close AE2 node queries and sided Refined Storage providers on unavailable faces.
 - Save research payments on Windows through supported file handles, and keep energy rollback safe while a transaction is closing. Preserve paid progress, Cell receipts and hidden Discovery outcomes across recovery.
 - Keep Energy Cubes and Cell Transfer Stations usable after chunk and world reloads. Separate Minecraft's chunk metadata from device data while retaining protection for genuinely unknown payloads.
 - Add a Cell Transfer Station with three source and three target slots, searchable substance selection and a separate Primal option. Move only what fits while preserving exact quantities, phases, unknown substances and Cell identities.

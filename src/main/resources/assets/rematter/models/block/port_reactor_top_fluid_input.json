@@ -1,0 +1,8 @@
+{
+  "parent": "rematter:block/port_plate_top",
+  "textures": {
+    "particle": "rematter:block/reactor_casing_port",
+    "face": "rematter:block/reactor_casing_port",
+    "ring": "rematter:block/machine_port_fluid_input"
+  }
+}

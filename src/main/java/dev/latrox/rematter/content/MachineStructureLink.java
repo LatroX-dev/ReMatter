@@ -19,7 +19,6 @@ final class MachineStructureLink {
     private List<IndustrialStructure.Port> ports = List.of();
     private List<IndustrialStructure.Module> modules = List.of();
     private boolean publishedWorking;
-    private long lastWorkTick = Long.MIN_VALUE;
 
     MachineStructureLink(MachineBlockEntity machine) { this.machine = machine; }
 
@@ -69,9 +68,8 @@ final class MachineStructureLink {
     }
 
     /** Visual authority only: a module never owns an inventory, energy buffer or persistent association. */
-    boolean moduleWorking(BlockPos modulePosition, boolean processedThisTick) {
-        var level = machine.getLevel();
-        if (!industrial() || !processedThisTick || lastWorkTick < level.getGameTime() - 1) return false;
+    boolean moduleWorking(BlockPos modulePosition, boolean visuallyActive) {
+        if (!industrial() || !visuallyActive) return false;
         var formation = IndustrialStructure.inspect(machine);
         return formation.formed() && formation.hasModuleAt(modulePosition);
     }
@@ -79,7 +77,6 @@ final class MachineStructureLink {
     void publishActivity(boolean active) {
         if (!industrial()) return;
         long gameTime = machine.getLevel().getGameTime();
-        if (active) lastWorkTick = gameTime;
         // Rebind reloaded/replaced module BEs even if their positions and the controller's work state stayed identical.
         // The module setter writes blockstate/update data only when its visible state actually changes.
         if (active || publishedWorking || gameTime % 20 == 0) {
@@ -89,7 +86,6 @@ final class MachineStructureLink {
     }
 
     void removed() {
-        lastWorkTick = Long.MIN_VALUE;
         clearModules();
     }
 

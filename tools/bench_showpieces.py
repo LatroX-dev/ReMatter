@@ -92,4 +92,9 @@ def bench_sprites(Sprite):
     tone=c if active else scale(c,.38);sprite=Sprite(fill=tone)
     for y in range(1,32,4):sprite.row(y,0,32,lighten(tone,.22))
     result['bench_'+device+('_work_active' if active else '_work')]=sprite
+ from work_sprites import strip,flow_sheet,breath_sheet,heat_sheet
+ for device in DEVICES:
+  if not WORK[device]:continue
+  painter=(lambda f:heat_sheet(f)) if device=='sinter_furnace' else (lambda f,c=color(device):flow_sheet(c,f)) if device in ('decomposer','material_preparator') else (lambda f,c=color(device):breath_sheet(c,f))
+  result['bench_'+device+'_work_active']=strip(painter(f) for f in range(16))
  return result
