@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -126,14 +127,30 @@ final class ResearchAuthority {
         } catch (RuntimeException invalid) { throw new IOException("Invalid research authority document", invalid); }
     }
     static void writeState(Path path, JsonObject state) throws IOException {
+        writeState(path, state, ResearchAuthority::forceDirectory);
+    }
+    @FunctionalInterface
+    interface DirectorySync { void force(Path directory) throws IOException; }
+    static void writeState(Path path, JsonObject state, DirectorySync directorySync) throws IOException {
         var envelope = new JsonObject(); envelope.addProperty("schema", 1);
         envelope.addProperty("sha256", ResearchCatalogue.hash(state.toString())); envelope.add("state", state);
         var bytes = StandardCharsets.UTF_8.encode(envelope.toString()); var temporary = path.resolveSibling(path.getFileName() + ".pending");
         Files.createDirectories(path.getParent());
-        try (var channel = FileChannel.open(temporary, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+        try (var channel = FileChannel.open(temporary, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE, StandardOpenOption.SYNC)) {
             while (bytes.hasRemaining()) channel.write(bytes); channel.force(true);
         }
         Files.move(temporary, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        try (var directory = FileChannel.open(path.getParent(), StandardOpenOption.READ)) { directory.force(true); }
+        // Force the published regular file through a writable handle on every platform.
+        // In OpenJDK's Windows provider SYNC also enables FILE_FLAG_WRITE_THROUGH.
+        try (var published = FileChannel.open(path, StandardOpenOption.WRITE)) { published.force(true); }
+        directorySync.force(path.getParent());
+    }
+    static void forceDirectory(Path directory) throws IOException {
+        // OpenJDK's default Windows provider cannot open directory FileChannels. Its
+        // atomic rename plus file forcing does not promise POSIX directory-fsync
+        // power-loss durability. Other providers retain the strict directory flush;
+        // real write, force and atomic-replacement failures are never ignored here.
+        if (directory.getFileSystem() == FileSystems.getDefault() && "\\".equals(directory.getFileSystem().getSeparator())) return;
+        try (var channel = FileChannel.open(directory, StandardOpenOption.READ)) { channel.force(true); }
     }
 }

@@ -37,6 +37,7 @@ public final class ResearchRuntimeGameTests {
         TESTS.put("research_runtime_exhausted_pool_refunds_once", ResearchRuntimeGameTests::refund);
         TESTS.put("research_runtime_converter_claim_and_cell_watermark", ResearchRuntimeGameTests::converter);
         TESTS.put("research_runtime_physical_checkpoint_and_energy_debt", ResearchRuntimeGameTests::checkpointDebt);
+        TESTS.put("research_runtime_post_publication_failure_recovers_payment", ResearchRuntimeGameTests::postPublicationFailure);
         TESTS.put("research_runtime_malformed_financial_ids_preserved", ResearchRuntimeGameTests::malformedIdentity);
     }
     private ResearchRuntimeGameTests() {}
@@ -226,6 +227,52 @@ public final class ResearchRuntimeGameTests {
             assertTrue(h, primal(r.machine) == afterPrimal && session(r, r.machine).paidSteps() == 1, "Stale payment cell was charged twice or rolled back");
             assertTrue(h, session(r, r.machine).elapsedTicks() == paid.elapsedTicks() + 1, "Reload changed paid progress or rerolled the operation");
         } catch (java.io.IOException problem) { throw new IllegalStateException("Physical payment checkpoint readback failed", problem); }
+        h.succeed();
+    }
+    private static void postPublicationFailure(GameTestHelper h){
+        var r=rig(h,MachineKind.ANALYZER);fuel(r.machine,64_000,true);
+        var ledger=ResearchService.ledger(r.server());ledger.overrideDiscovery(r.uuid(),true);
+        assertTrue(h,action(r.machine,MachineActionPayload.Action.DISCOVER,"",3),"Discovery III fixture did not start");
+        var initial=session(r,r.machine);var beforeLedger=ledger.toJson();
+        var beforeCell=r.machine.getItem(MachineCellAccess.PRIMAL_SLOT).get(PrimalCellData.TYPE.get()).copyTag();
+        var beforeMachine=r.machine.saveCustomOnly(h.getLevel().registryAccess());
+        long beforeEnergy=r.machine.energy().getAmountAsLong();
+        try(var fault=ResearchAuthorityIoFault.install(r.server())){
+            RuntimeException failure=null;
+            try{tick(h,r.machine);}catch(RuntimeException problem){failure=problem;}
+            assertTrue(h,failure!=null&&ResearchAuthorityIoFault.MESSAGE.equals(failure.getMessage()),"The real post-publication error did not reach the caller");
+            assertTrue(h,failure.getSuppressed().length==0,"FE rollback added a transaction-closing exception");
+            assertTrue(h,beforeLedger.equals(ledger.toJson()),"Failed payment changed in-memory authority/session state");
+            assertTrue(h,r.machine.energy().getAmountAsLong()==beforeEnergy,"Failed payment did not roll back physical FE");
+            var afterMachine=r.machine.saveCustomOnly(h.getLevel().registryAccess());
+            assertTrue(h,beforeMachine.getLongOr("energy_receipt_revision",0)==afterMachine.getLongOr("energy_receipt_revision",-1)
+                    &&beforeMachine.getLongOr("partial_energy_debt",0)==afterMachine.getLongOr("partial_energy_debt",-1),
+                    "Failed payment restored FE without restoring its receipt watermark and partial debt");
+            assertTrue(h,beforeCell.equals(r.machine.getItem(MachineCellAccess.PRIMAL_SLOT).get(PrimalCellData.TYPE.get()).copyTag()),
+                    "Failed payment changed physical Primal identity, amount, revision or receipts");
+            assertTrue(h,session(r,r.machine).paidSteps()==0,"Aborted payment remained paid in the in-memory session");
+            var durable=fault.publishedState();
+            var published=new ResearchSessions(durable,ResearchData.current(),0,new Random(99)).session(r.context(),initial.id()).orElseThrow();
+            assertTrue(h,published.paidSteps()==1&&published.elapsedTicks()==1&&published.resultFamily().isEmpty(),
+                    "Already published authority lost the first paid hidden Discovery step");
+            var stale=IdentityCheckpointReader.blockEntity(h.getLevel(),r.machine.getBlockPos()).orElseThrow();
+            var machineId=UUID.fromString(stale.getStringOr("extension_id",""));
+            var cellId=UUID.fromString(beforeCell.getStringOr("cell_id",""));
+            assertTrue(h,durable.changesForCell(cellId).size()==1&&durable.outstandingEnergy(machineId,Map.of()).values().stream().mapToLong(Long::longValue).sum()==600_000,
+                    "Published Cell/FE journals do not describe exactly one real payment");
+            // Startup selects the newer durable ledger; the checkpointed controller and Cell can still be old.
+            fault.recoverPublishedState();reload(r.machine,stale);tick(h,r.machine);
+            var resumed=session(r,r.machine);
+            assertTrue(h,resumed.id().equals(initial.id())&&resumed.paidSteps()==1&&resumed.elapsedTicks()==2,
+                    "Recovered authority rerolled or repaid the existing Discovery step");
+            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-600_000,
+                    "Authority-new/controller-old restart did not settle exactly4kPrimal/600kFE");
+            tick(h,r.machine);
+            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-600_000
+                    &&ResearchService.cellChanges(r.server(),cellId).size()==1&&ResearchService.energyChanges(r.server(),machineId).size()==1,
+                    "Recovered paid step replayed its resource debit");
+            action(r.machine,MachineActionPayload.Action.RESEARCH_PAUSE,"",0);
+        }catch(java.io.IOException problem){throw new IllegalStateException("Published payment recovery readback failed",problem);}
         h.succeed();
     }
 }

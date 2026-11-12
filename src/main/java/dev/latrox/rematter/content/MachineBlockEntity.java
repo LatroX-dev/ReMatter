@@ -459,7 +459,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (isLiveServerMachine() && visuals.publishProcess(work.processedThisTick, work.progress, work.duration, level.getGameTime())) sendClientUpdate();
     }
     private boolean itemVisualsStable() {
-        return !loadingItemVisuals && !committingOwnedState && Transaction.getCurrentOpenedTransaction() == null;
+        // Energy restoration also marks the machine dirty while a transaction is closing.
+        return !loadingItemVisuals && !committingOwnedState && Transaction.getLifecycle() == Transaction.Lifecycle.NONE;
     }
     private void publishItemVisuals() {
         if (!MachineVisuals.showsItems(kind()) || !itemVisualsStable() || !isLiveServerMachine()) return;
