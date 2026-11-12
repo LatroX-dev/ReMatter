@@ -4,11 +4,11 @@ An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover subst
 
 **[Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry) inspired me to create ReMatter.** I wanted to bring that chemistry-workshop idea to newer Minecraft versions and give it my own twist. [Alchemistry's official file list](https://www.curseforge.com/minecraft/mc-mods/alchemistry/files/all) currently reaches Minecraft 1.21.5 and lists no build for my **Minecraft 26.1.2 / NeoForge** target (checked 12 November 2026).
 
-I built ReMatter around exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. In the 0.7 development line, I am adding material research, hidden endgame Discovery and modular industry. I want learning what can be made, collecting the matter, and building the equipment to be separate parts of progression.
+I built ReMatter around exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. In the 0.7 development line, I am adding material research, hidden endgame Discovery, modular industry and internal power generation with Crystal Generators. I am also adding tiered Energy Cubes to buffer FE and charge equipment, plus a direct way to move substances between Cells. I want learning what can be made, collecting the matter, and building the equipment to be separate parts of progression.
 
 Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
 
-**Development build.** Build from source for testing; no mod-platform release is available yet. Processing needs an external FE source. ReMatter does not include a generator. Other Minecraft versions and loaders are not currently supported.
+**Development build.** Build from source for testing; no mod-platform release is available yet. The 0.7 development line adds internal power generation and storage. Other Minecraft versions and loaders are not currently supported.
 
 ## What the crystal does
 
