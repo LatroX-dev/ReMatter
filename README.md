@@ -2,9 +2,9 @@
 
 An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover substances from materials, carry them in a reusable Matter Cell, and assemble the materials you need.
 
-**Inspired by [Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry), with our own twist.** We wanted to bring that chemistry-workshop idea to newer Minecraft versions and develop it in our own direction. [Alchemistry's official file list](https://www.curseforge.com/minecraft/mc-mods/alchemistry/files/all) currently reaches Minecraft 1.21.5 and lists no build for our **Minecraft 26.1.2 / NeoForge** target (checked 12 November 2026).
+**[Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry) inspired me to create ReMatter.** I wanted to bring that chemistry-workshop idea to newer Minecraft versions and give it my own twist. [Alchemistry's official file list](https://www.curseforge.com/minecraft/mc-mods/alchemistry/files/all) currently reaches Minecraft 1.21.5 and lists no build for my **Minecraft 26.1.2 / NeoForge** target (checked 12 November 2026).
 
-ReMatter centres the workshop on exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. Its 0.7 development line adds material research, hidden endgame Discovery and modular industry: learning what can be made, collecting the matter, and building the equipment are separate parts of progression.
+I built ReMatter around exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. In the 0.7 development line, I am adding material research, hidden endgame Discovery and modular industry. I want learning what can be made, collecting the matter, and building the equipment to be separate parts of progression.
 
 Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
 
