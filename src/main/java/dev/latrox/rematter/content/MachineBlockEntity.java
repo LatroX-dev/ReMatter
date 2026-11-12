@@ -84,7 +84,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
     };
     private NonNullList<ItemStack> items = NonNullList.withSize(3, ItemStack.EMPTY);
-    private final MachineCellBays bays = new MachineCellBays(kind(), this::stack);
+    private final MachineCellBays bays = new MachineCellBays(kind(), this::stack,this::touchObservations);
     private final MachineStorageSession storageSession = new MachineStorageSession();
     private final MachineSideConfig sides = new MachineSideConfig();
     private final MachineWork work = new MachineWork();

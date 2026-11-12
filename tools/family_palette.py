@@ -83,6 +83,14 @@ CABLE_TIERS = {
     'resonant_matter_cable': {'stripe': rgb('#be8fbb'), 'width': 4, 'dashed': True},
 }
 
+# An Energy Cube is built with this cable and inherits only its tier band, never its recipe-crystal identity.
+ENERGY_CABLE_TIERS = {
+    'energy_cube': 'matter_cable',
+    'reinforced_energy_cube': 'reinforced_matter_cable',
+    'resonant_energy_cube': 'resonant_matter_cable',
+}
+
+
 # Machine Port modes in the order of the block state property.
 PORT_MODES = {
     'automatic': PORT_AUTOMATIC,

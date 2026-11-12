@@ -2,6 +2,7 @@ package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.energy.*;
+import dev.latrox.rematter.celltransfer.*;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import java.util.EnumMap;
 import java.util.List;
@@ -59,6 +60,9 @@ public final class ModContent {
             ITEMS.registerItem(kind.id(), properties -> new IndustrialModuleItem(block.get(),properties.useBlockDescriptionPrefix()));
         }
     }
+    public static final DeferredBlock<CellTransferStationBlock> CELL_TRANSFER_STATION=BLOCKS.registerBlock("cell_transfer_station",CellTransferStationBlock::new,
+            p->p.mapColor(MapColor.METAL).strength(4.0F,12.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<CellTransferStationItem> CELL_TRANSFER_STATION_ITEM=ITEMS.registerItem("cell_transfer_station",p->new CellTransferStationItem(CELL_TRANSFER_STATION.get(),p.useBlockDescriptionPrefix()));
     public static final DeferredBlock<MatterCableBlock> MATTER_CABLE = BLOCKS.registerBlock("matter_cable", MatterCableBlock::new,
             p -> p.mapColor(MapColor.COLOR_ORANGE).strength(2.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<MatterCableBlock> REINFORCED_MATTER_CABLE = BLOCKS.registerBlock("reinforced_matter_cable",
@@ -126,6 +130,9 @@ public final class ModContent {
     public static final DeferredItem<Item> CELL_RACK = ITEMS.registerSimpleItem("cell_rack");
     public static final DeferredItem<MatterRecoveryItem> RECOVERED_MATTER = ITEMS.registerItem("recovered_matter", MatterRecoveryItem::new);
     public static final DeferredItem<TutorialBookItem> GUIDE = ITEMS.registerItem("guide", TutorialBookItem::new);
+    public static final Supplier<BlockEntityType<CellTransferStationBlockEntity>> CELL_TRANSFER_STATION_ENTITY=BLOCK_ENTITIES.register("cell_transfer_station",
+            ()->new BlockEntityType<>(CellTransferStationBlockEntity::new,false,CELL_TRANSFER_STATION.get()));
+    public static final Supplier<MenuType<CellTransferMenu>> CELL_TRANSFER_MENU=MENUS.register("cell_transfer_station",()->IMenuTypeExtension.create(CellTransferMenu::new));
     public static final Supplier<BlockEntityType<EnergyCubeBlockEntity>> ENERGY_CUBE_ENTITY=BLOCK_ENTITIES.register("energy_cube",
             ()->new BlockEntityType<>(EnergyCubeBlockEntity::new,false,ENERGY_CUBES.values().stream().map(Supplier::get).toArray(Block[]::new)));
     public static final Supplier<MenuType<EnergyCubeMenu>> ENERGY_CUBE_MENU=MENUS.register("energy_cube",
@@ -143,6 +150,7 @@ public final class ModContent {
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
                     .displayItems((parameters, output) -> {
                         MACHINES.forEach((kind, block) -> output.accept(block.get()));
+                        output.accept(CELL_TRANSFER_STATION_ITEM.get());
                         ENERGY_CUBES.values().forEach(block->output.accept(block.get()));
                         output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
@@ -202,6 +210,7 @@ public final class ModContent {
         TABS.register(bus);
         CableOwners.TYPES.register(bus);
         MatterCellData.register(bus);
+        CellPartitionData.register(bus);
         dev.latrox.rematter.content.preparation.PreparationRecipes.register(bus);
         bus.addListener(ModContent::registerCapabilities);
         bus.addListener(MachineSnapshot::register);

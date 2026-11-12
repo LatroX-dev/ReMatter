@@ -5,6 +5,7 @@ navigation:
   parent: index.md
   position: 3
 item_ids:
+  - rematter:cell_transfer_station
   - rematter:matter_drive
   - rematter:matrix_cluster
   - rematter:matter_cell_256k
@@ -64,11 +65,21 @@ On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and c
 
 Hoppers do not select recipes or request synthesis jobs. **Run nonstop** supplies the continuing requests. **Stop repeat** stops continuous production. **Pause** keeps the current order and **Resume** continues it; changing the product cancels the old request.
 
-## Move between Cells
+## Sort and transfer Cells
 
-Remove both Cells from their machines and place them in your player inventory. Carry the **source Matter Cell on the inventory cursor**, then **right-click a destination Matter Cell**. The destination accepts only what fits; every remaining quantity stays in the source. This works between ordinary Cell tiers and preserves solid, liquid and gas phases. Valid stored substances keep their quantities even if their definitions are currently unavailable.
+The **Cell Transfer Station** holds **three source Cells on the left and three targets on the right**. Choose **All substances** or **Selected substances**. In the selection view, search by name, stable ID or formula and click substance badges. Each badge is a substance and phase, so liquid water and water vapor can be selected separately. Hover controls for their complete names and explanations.
 
-Primal Cells already use the same gesture for their own reserve. Ordinary matter and Primal Matter remain separate. An unreadable Cell stays protected, and transferring stock grants no research knowledge.
+Press **Transfer** to move the selected contents into compatible targets. The preview shows the quantities that can move; hover it for exact ordinary and Primal amounts and the last transfer. Only what fits moves, and sources keep every remainder. Target Cell partitions also apply. The Station tries targets with the narrowest whitelist first, then unrestricted Cells; ties keep slot order. **All** includes Primal Matter; in Selected mode, enable its separate toggle if wanted. Ordinary Cells never receive Primal Matter. Unreadable data remains protected, and transferring teaches no research.
+
+<RecipeFor id="rematter:cell_transfer_station" />
+
+## Configure what a Cell stores
+
+Select the numbered button under any ordinary Cell to open its **Cell partitions** view. Search the catalogue and click badges to whitelist the desired substance/phase pairs. These are ghost filters, so you do not need an inventory item for the substance and no resources are consumed. **Partition to contents** copies exactly the types currently stored in that Cell. **Accept any substance** removes the restriction; an empty whitelist accepts nothing.
+
+The partition is saved on the Cell and works after moving it into a **Matter Drive**, including connected processor outputs and Primal Converter credits. Filters affect future insertion. Existing quantities remain safe and extractable even if their types no longer match the whitelist. Unknown stored substances keep their IDs and quantities. Primal Cells have a fixed resource and need no substance whitelist.
+
+Primal Cells also retain their inventory gesture for loading Shards or ore and moving their separate reserve. Ordinary substance transfers use the Station.
 
 ## Larger Cells
 

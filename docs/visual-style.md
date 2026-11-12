@@ -59,7 +59,7 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 | --- | --- | --- | --- | --- |
 | Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `industrial_preparator`, `grinding_unit`, `separation_unit`, `mixing_basin` |
 | Copper | `#dc894f` | copper dust | decomposition | `decomposer` |
-| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal` |
+| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station` |
 | Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer` |
 | Ice | `#d7d1bc` | Silith | analysis | `analyzer` |
 | Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube` |
@@ -83,7 +83,7 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 - *Status* has the four LED colours below: separate values, used only for small lamps and status icons.
 - *Port mode.* The ring of a port uses seven of the hues as the legend of its mode (`PORT_MODES`): on the Machine Port and on a configured side of a machine, and only there.
 - *Primal Matter* has the signature below.
-- *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The stripe of the Matter Cable is its copper conductor and is the one documented use of the crystal value for the metal.
+- *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The Matter Cable's copper-conductor stripe and the matching band on the Energy Cube crafted with that cable are the documented uses of the crystal value for the metal.
 
 ### Status colours
 
@@ -106,6 +106,17 @@ A status colour never decorates and never tells tiers apart. A tier is a bar len
 | Matter Cable | `CABLE_TIERS['matter_cable']['stripe']` | `#dc894f` | 2 texels, solid: the copper conductor |
 | Reinforced Matter Cable | `CABLE_TIERS['reinforced_matter_cable']['stripe']` | `#54bfac` | 4 texels, solid |
 | Resonant Matter Cable | `CABLE_TIERS['resonant_matter_cable']['stripe']` | `#be8fbb` | 4 texels, dashed |
+
+Each Energy Cube contains the matching cable in its independent recipe and inherits that cable's exact stripe on its four identical casing sides and connector seats. This is a material tier band, separate from status colours. The Basic Cube's copper stripe is the documented exception to the rule that a crystal hue requires that crystal: its cable supplies the copper conductor. Every Cube still wears its own recipe's Ember hue on the energy core and a casing identity plate, including at zero charge; the cable band never replaces that identity.
+
+<!-- check:energy-cable-tiers -->
+| Energy Cube | Cable ingredient | Hex |
+| --- | --- | --- |
+| `energy_cube` | `matter_cable` | `#dc894f` |
+| `reinforced_energy_cube` | `reinforced_matter_cable` | `#54bfac` |
+| `resonant_energy_cube` | `resonant_matter_cable` | `#be8fbb` |
+
+`ENERGY_PORT_STYLE` selects a compact 6 px, trimmed 7 px or recommended balanced 8 px square seat. All are centered at the block-face center and accept the native cable's 6 px flange. `ENERGY_CUBE_LOOK` independently selects the recommended recessed core, closed capacitor cabinet or cartridge rack. All three retain the same four-way casing and port layout within the 16-box network casing budget.
 
 ### The Primal signature
 
@@ -200,6 +211,7 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 | `generate_energy_assets.py` | the three Energy Cube tiers, charge0–8 core models, independent recipes, loot and recipe-book advancements |
 | `generate_module_assets.py` | the five industrial modules |
 | `generate_cell_models.py` | Cell Housing, Matter Cells and Primal Cells |
+| `generate_cell_transfer_assets.py` | unpowered Cell Transfer Station, three empty source and three target bays, independent recipe, loot and recipe-book advancement |
 | `generate_primal_assets.py` | Primal Ores, Primal Shard, Primal Crystal, Discovery Lens, Entangled Link |
 | `generate_gui_assets.py` | GUI frames and icons |
 | `generate_technical_sprites.py`, `generate_storage_sprites.py` | component, upgrade and guide icons from `artwork/components/` |

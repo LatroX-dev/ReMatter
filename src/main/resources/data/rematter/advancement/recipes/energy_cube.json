@@ -7,14 +7,6 @@
         "items": [
           {
             "items": [
-              "minecraft:copper_ingot"
-            ],
-            "count": {
-              "min": 2
-            }
-          },
-          {
-            "items": [
               "rematter:ember_matrix_crystal"
             ],
             "count": {
@@ -27,6 +19,14 @@
             ],
             "count": {
               "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:matter_cable"
+            ],
+            "count": {
+              "min": 2
             }
           },
           {

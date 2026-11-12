@@ -2,9 +2,9 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "rematter:block/casing_plain",
-    "front": "rematter:block/energy_cube_front",
+    "side": "rematter:block/energy_cube_side",
     "plain": "rematter:block/casing_plain",
-    "port": "rematter:block/casing_port",
+    "socket": "rematter:block/energy_cube_socket",
     "inner": "rematter:block/casing_inner"
   },
   "elements": [
@@ -17,31 +17,31 @@
       ],
       "to": [
         16,
-        3,
+        2,
         16
       ],
       "faces": {
         "north": {
-          "texture": "#front",
+          "texture": "#side",
           "cullface": "north"
         },
         "south": {
-          "texture": "#port",
+          "texture": "#side",
           "cullface": "south"
         },
         "east": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "east"
         },
         "west": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "west"
         },
         "up": {
-          "texture": "#inner"
+          "texture": "#plain"
         },
         "down": {
-          "texture": "#port",
+          "texture": "#inner",
           "cullface": "down"
         }
       }
@@ -60,19 +60,19 @@
       ],
       "faces": {
         "north": {
-          "texture": "#front",
+          "texture": "#side",
           "cullface": "north"
         },
         "south": {
-          "texture": "#port",
+          "texture": "#side",
           "cullface": "south"
         },
         "east": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "east"
         },
         "west": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "west"
         },
         "up": {
@@ -85,37 +85,15 @@
       }
     },
     {
-      "name": "rear_panel",
-      "from": [
-        2,
-        3,
-        14
-      ],
-      "to": [
-        14,
-        14,
-        16
-      ],
-      "faces": {
-        "north": {
-          "texture": "#inner"
-        },
-        "south": {
-          "texture": "#port",
-          "cullface": "south"
-        }
-      }
-    },
-    {
       "name": "core_foot",
       "from": [
         7,
-        3,
+        2,
         7
       ],
       "to": [
         9,
-        4,
+        3,
         9
       ],
       "faces": {
@@ -137,7 +115,7 @@
       "name": "core_head",
       "from": [
         7,
-        12,
+        13,
         7
       ],
       "to": [
@@ -164,7 +142,7 @@
       "name": "post_0_0",
       "from": [
         0,
-        3,
+        2,
         0
       ],
       "to": [
@@ -174,7 +152,7 @@
       ],
       "faces": {
         "north": {
-          "texture": "#front",
+          "texture": "#side",
           "cullface": "north"
         },
         "south": {
@@ -184,7 +162,7 @@
           "texture": "#inner"
         },
         "west": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "west"
         }
       }
@@ -193,7 +171,7 @@
       "name": "post_0_14",
       "from": [
         0,
-        3,
+        2,
         14
       ],
       "to": [
@@ -206,11 +184,14 @@
           "texture": "#inner"
         },
         "south": {
-          "texture": "#port",
+          "texture": "#side",
           "cullface": "south"
         },
+        "east": {
+          "texture": "#inner"
+        },
         "west": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "west"
         }
       }
@@ -219,7 +200,7 @@
       "name": "post_14_0",
       "from": [
         14,
-        3,
+        2,
         0
       ],
       "to": [
@@ -229,14 +210,14 @@
       ],
       "faces": {
         "north": {
-          "texture": "#front",
+          "texture": "#side",
           "cullface": "north"
         },
         "south": {
           "texture": "#inner"
         },
         "east": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "east"
         },
         "west": {
@@ -248,7 +229,7 @@
       "name": "post_14_14",
       "from": [
         14,
-        3,
+        2,
         14
       ],
       "to": [
@@ -261,12 +242,283 @@
           "texture": "#inner"
         },
         "south": {
-          "texture": "#port",
+          "texture": "#side",
           "cullface": "south"
         },
         "east": {
-          "texture": "#plain",
+          "texture": "#side",
           "cullface": "east"
+        },
+        "west": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "socket_north",
+      "from": [
+        4,
+        4,
+        0
+      ],
+      "to": [
+        12,
+        12,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#socket",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "rail_north",
+      "from": [
+        2,
+        7,
+        1
+      ],
+      "to": [
+        14,
+        9,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#plain"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "socket_east",
+      "from": [
+        15,
+        4,
+        4
+      ],
+      "to": [
+        16,
+        12,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#socket",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "rail_east",
+      "from": [
+        14,
+        7,
+        2
+      ],
+      "to": [
+        15,
+        9,
+        14
+      ],
+      "faces": {
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#plain"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "socket_south",
+      "from": [
+        4,
+        4,
+        15
+      ],
+      "to": [
+        12,
+        12,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#socket",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "rail_south",
+      "from": [
+        2,
+        7,
+        14
+      ],
+      "to": [
+        14,
+        9,
+        15
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#plain"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "socket_west",
+      "from": [
+        0,
+        4,
+        4
+      ],
+      "to": [
+        1,
+        12,
+        12
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#socket",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "rail_west",
+      "from": [
+        1,
+        7,
+        2
+      ],
+      "to": [
+        2,
+        9,
+        14
+      ],
+      "faces": {
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#plain"
+        },
+        "down": {
+          "texture": "#inner"
         }
       }
     }

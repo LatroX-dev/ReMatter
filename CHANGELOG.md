@@ -2,7 +2,9 @@
 
 ## 0.7.0
 
-- Move stored substances directly between ordinary Cells from the inventory: carry the source and right-click the destination. Move only what fits, preserving phases, unknown substances, identities and the untransferred remainder.
+- Add a Cell Transfer Station with three source and three target slots, searchable substance selection and a separate Primal option. Move only what fits while preserving exact quantities, phases, unknown substances and Cell identities.
+- Add persistent ordinary Cell partitions, configurable by substance and phase or copied from current contents. Drives, processors, converter credits and transfers respect insertion filters; previously stored contents remain extractable.
+- Give Energy Cubes four identical horizontal sockets and charge displays, with tier accents matching Basic, Reinforced and Resonant cables.
 
 - Add Energy Cubes with 4M/32M/256M FE buffers, configurable input/output sides and 1/2/4 item-charging slots. Every output and charging slot shares the tier transfer budget. Carried cubes preserve their energy and inventory.
 - Use compact icon controls with complete hover descriptions; display full text and substance formulas without shortened labels.

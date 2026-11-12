@@ -14,9 +14,11 @@ public final class ClientSetup {
     @SubscribeEvent public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModContent.MACHINE_MENU.get(), MachineScreen::new);
         event.register(ModContent.ENERGY_CUBE_MENU.get(),EnergyCubeScreen::new);
+        event.register(ModContent.CELL_TRANSFER_MENU.get(),CellTransferScreen::new);
     }
     @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);
+        event.registerBlockEntityRenderer(ModContent.CELL_TRANSFER_STATION_ENTITY.get(),CellTransferStationRenderer::new);
         event.registerBlockEntityRenderer(ModContent.INDUSTRIAL_MODULE_ENTITY.get(), IndustrialModuleRenderer::new);
     }
     @SubscribeEvent public static void registerLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {

@@ -4,14 +4,15 @@
   "pattern": [
     "LEL",
     "OFO",
-    "VEV"
+    "VKV"
   ],
   "key": {
     "L": "rematter:lumivex_ingot",
     "E": "rematter:ember_matrix_crystal",
     "O": "rematter:optical_circuit",
     "F": "rematter:machine_frame",
-    "V": "rematter:ender_conductor"
+    "V": "rematter:ender_conductor",
+    "K": "rematter:reinforced_matter_cable"
   },
   "result": {
     "id": "rematter:reinforced_energy_cube",

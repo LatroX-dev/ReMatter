@@ -10,7 +10,7 @@
               "rematter:ember_matrix_crystal"
             ],
             "count": {
-              "min": 2
+              "min": 1
             }
           },
           {
@@ -43,6 +43,14 @@
             ],
             "count": {
               "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:reinforced_matter_cable"
+            ],
+            "count": {
+              "min": 1
             }
           }
         ]

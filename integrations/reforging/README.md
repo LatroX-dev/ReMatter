@@ -50,6 +50,10 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:primal_converter`
 - `rematter:crystal_generator`
 - `rematter:industrial_crystal_generator`
+- `rematter:energy_cube`
+- `rematter:reinforced_energy_cube`
+- `rematter:resonant_energy_cube`
+- `rematter:cell_transfer_station`
 
 The exclusions cover empty and filled variants of those exact items. The `reforging:rematter/stateful_machines` tag lists them. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
 

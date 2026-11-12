@@ -9,12 +9,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.SlotAccess;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickAction;
-import net.minecraft.world.inventory.Slot;
-import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /** One portable, exact substance inventory. A cell contains resources, not recipe permissions. */
 public final class MatterCellItem extends Item {
@@ -27,8 +21,10 @@ public final class MatterCellItem extends Item {
     public long capacity() { return capacity; }
     public Optional<MatterInventory> open(ItemStack stack) {
         if (stack.getItem() != this || stack.getCount() != 1) return Optional.empty();
-        var data = stack.get(MatterCellData.TYPE.get());
-        return data == null ? Optional.of(new MatterInventory(capacity, MatterCellData.MAX_TYPES)) : data.open(capacity);
+        var partition=CellPartitionData.read(stack);if(partition.isEmpty())return Optional.empty();
+        var data=stack.get(MatterCellData.TYPE.get());
+        return data==null?Optional.of(new MatterInventory(capacity,MatterCellData.MAX_TYPES,partition.get())):
+                data.resolve(capacity).map(state->MatterInventory.restore(new MatterInventory.Snapshot(capacity,state.contents()),MatterCellData.MAX_TYPES,partition.get()));
     }
     @Override public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
                                           Consumer<Component> tooltip, TooltipFlag flags) {
@@ -48,22 +44,11 @@ public final class MatterCellItem extends Item {
         tooltip.accept(Component.translatable("item.rematter.matter_cell.light",
                 Component.translatable("cell_status.rematter."+status.name().toLowerCase(java.util.Locale.ROOT))));
         tooltip.accept(Component.translatable("item.rematter.matter_cell.transfer_hint"));
+        var partition=CellPartitionData.read(stack).orElseThrow();
+        tooltip.accept(Component.translatable(partition.restricted()?"item.rematter.matter_cell.partition_only":"item.rematter.matter_cell.partition_any",partition.allowed().size()));
         var registry=ChemistryText.catalogue(context.level());
         rows.stream().limit(3).forEach(row -> tooltip.accept(ChemistryText.row(registry,row.key(),row.quantity())));
         if(rows.size()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",rows.size()-3));
-    }
-    @Override public boolean overrideOtherStackedOnMe(ItemStack stack,ItemStack other,Slot slot,ClickAction action,Player player,SlotAccess carried){
-        if(action!=ClickAction.SECONDARY||!(other.getItem() instanceof MatterCellItem))return false;
-        // A recognized gesture also consumes a no-op, so a full or locked cell never falls through to a vanilla swap.
-        if(player.level() instanceof ServerLevel level&&!player.isSpectator()&&Transaction.getCurrentOpenedTransaction()==null){
-            try(var tx=Transaction.openRoot()){
-                long moved=MatterCellTransfers.move(level,other,stack,carried::get,slot::getItem,
-                        ()->!player.isSpectator()&&slot.container==player.getInventory()
-                                &&slot.allowModification(player)&&slot.mayPlace(stack),tx);
-                if(moved>0){tx.commit();slot.setChanged();}
-            }
-        }
-        return true;
     }
 
 }

@@ -4,14 +4,14 @@
   "pattern": [
     "NEN",
     "DFD",
-    "OGO"
+    "KGK"
   ],
   "key": {
     "N": "rematter:netherite_sheath",
     "E": "rematter:ember_matrix_crystal",
     "D": "rematter:diamond_lattice",
     "F": "rematter:machine_frame",
-    "O": "rematter:optical_circuit",
+    "K": "rematter:resonant_matter_cable",
     "G": "rematter:matrix_cluster"
   },
   "result": {

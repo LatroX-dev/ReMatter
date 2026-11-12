@@ -21,6 +21,7 @@ public final class MachineProtection {
                 &&!CableOwners.canRemove(level,event.getPos(),event.getPlayer())) {
             event.setCanceled(true);event.setNotifyClient(true);
         }
+        if(event.getLevel().getBlockEntity(event.getPos()) instanceof dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity station&&!station.canRemove(event.getPlayer())) {event.setCanceled(true);event.setNotifyClient(true);}
         if(event.getLevel().getBlockEntity(event.getPos()) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!cube.canRemove(event.getPlayer())) {event.setCanceled(true);event.setNotifyClient(true);}
         if (event.getLevel().getBlockEntity(event.getPos()) instanceof MachineBlockEntity machine
                 && (!machine.canRemove(event.getPlayer()) || !machine.canRemoveCell())) {
@@ -38,6 +39,7 @@ public final class MachineProtection {
     private static boolean withstandsExplosion(ServerLevel level, BlockPos pos) {
         if(level.getBlockState(pos).getBlock() instanceof MatterCableBlock&&CableOwners.owner(level,pos)!=null)return true;
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine && machine.networkOwner() != null) return true;
+        if(level.getBlockEntity(pos) instanceof dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity station&&station.owner()!=null)return true;
         if(level.getBlockEntity(pos) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&cube.owner()!=null)return true;
         return shellPart(level.getBlockState(pos)) && !IndustrialStructure.controllersUsing(level, pos).isEmpty();
     }

@@ -33,6 +33,7 @@ public final class ItemGuidance {
         add(items, "industrial_preparator", Role.PREPARATION, "industrial_preparator");
         add(items, "sinter_furnace", Role.HEAT, "sinter_furnace");
         add(items, "matter_drive", Role.STORAGE, "drive");
+        add(items, "cell_transfer_station", Role.STORAGE, "cell_transfer");
         add(items, "matter_terminal", Role.STORAGE, "terminal");
         add(items, "network_interface", Role.LINK, "interface");
         add(items, "primal_converter", Role.REACTION, "converter");

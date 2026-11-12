@@ -44,7 +44,10 @@ public final class MachineReadiness {
         for (var input : inputs.entrySet()) {
             if (store.amount(input.getKey()) < input.getValue()) return "missing_matter";
         }
-        if (!store.canApply(inputs, outputs)) return store.hasTypeSpace(inputs, outputs) ? "storage_full" : "storage_types_full";
+        if(!store.canApply(inputs,outputs)) {
+            if(outputs.keySet().stream().anyMatch(key->store.members().stream().noneMatch(member->member.accepts(key))))return "storage_filtered";
+            return store.hasTypeSpace(inputs,outputs)?"storage_full":"storage_types_full";
+        }
         return "ready";
     }
 

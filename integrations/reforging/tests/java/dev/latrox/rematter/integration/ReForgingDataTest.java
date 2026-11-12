@@ -139,6 +139,7 @@ class ReForgingDataTest {
         }
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
         Arrays.stream(dev.latrox.rematter.energy.EnergyCubeTier.values()).forEach(tier->expected.add("rematter:"+tier.id()));
+        expected.add("rematter:cell_transfer_station");
         expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:recovered_matter", "rematter:automation_pattern"));
         assertEquals(expected, actual);
         JsonObject primal = read("data/reforging/tags/item/rematter/primal_items.json");

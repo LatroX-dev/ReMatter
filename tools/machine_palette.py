@@ -11,6 +11,7 @@ FAMILY = {
     "sinter_furnace": "ember",
     "matter_drive": "mint",
     "matter_terminal": "mint",
+    "cell_transfer_station": "mint",
     "network_interface": "blue",
     "energy_cube": "ember",
     "reinforced_energy_cube": "ember",

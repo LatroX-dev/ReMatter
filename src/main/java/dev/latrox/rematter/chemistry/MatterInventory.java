@@ -20,6 +20,8 @@ public final class MatterInventory implements MatterStore {
     private long total;
     private long revision;
     private final int maximumTypes;
+    private final java.util.function.Predicate<SubstanceKey> acceptance;
+    private final java.util.function.BooleanSupplier binding;
     private final TreeMap<SubstanceKey, Long> contents = new TreeMap<>();
 
     public MatterInventory(long capacity) {
@@ -27,6 +29,18 @@ public final class MatterInventory implements MatterStore {
     }
 
     public MatterInventory(long capacity, int maximumTypes) {
+        this(capacity,maximumTypes,key->true);
+    }
+
+    public MatterInventory(long capacity,int maximumTypes,java.util.function.Predicate<SubstanceKey> acceptance) {
+        this(capacity,maximumTypes,acceptance,()->true);
+    }
+
+    /** A mounted resource may lose its physical owner independently from the substances it accepts. */
+    public MatterInventory(long capacity,int maximumTypes,java.util.function.Predicate<SubstanceKey> acceptance,
+                           java.util.function.BooleanSupplier binding) {
+        this.acceptance=Objects.requireNonNull(acceptance);
+        this.binding=Objects.requireNonNull(binding);
         if (capacity <= 0) {
             throw new IllegalArgumentException("Capacity must be positive");
         }
@@ -36,6 +50,8 @@ public final class MatterInventory implements MatterStore {
     }
 
     public int maximumTypes() { return maximumTypes; }
+    /** A physical Cell policy limits insertions, never existing contents or withdrawals. */
+    public boolean accepts(SubstanceKey key){return binding.getAsBoolean()&&!ReservedSubstances.reserved(key)&&acceptance.test(key);}
     @Override public List<MatterInventory> members() { return List.of(this); }
     public int typeCount() { synchronized (MUTATION_LOCK) { return contents.size(); } }
     /** Changes with every committed change to quantities or capacity, and never repeats. */
@@ -66,7 +82,9 @@ public final class MatterInventory implements MatterStore {
     public long amount(SubstanceKey key) {
         Objects.requireNonNull(key, "key");
         synchronized (MUTATION_LOCK) {
-            return contents.getOrDefault(key, 0L);
+            // A planner must not repeatedly select an obsolete owner whose extract() cannot make progress.
+            // snapshot() still exposes its raw committed cache for the safe handover/rollback paths.
+            return binding.getAsBoolean()?contents.getOrDefault(key, 0L):0;
         }
     }
 
@@ -80,7 +98,7 @@ public final class MatterInventory implements MatterStore {
     public long insert(SubstanceKey key, long maximum) {
         Objects.requireNonNull(key, "key");
         requireNonNegative(maximum);
-        if (ReservedSubstances.reserved(key)) return 0;
+        if (!accepts(key)) return 0;
         synchronized (MUTATION_LOCK) {
             if (!hasTypeSpaceLocked(Map.of(), Map.of(key, 1L))) return 0;
             long accepted = Math.min(maximum, capacity - total);
@@ -98,6 +116,7 @@ public final class MatterInventory implements MatterStore {
         requireNonNegative(maximum);
         if (ReservedSubstances.reserved(key)) return 0;
         synchronized (MUTATION_LOCK) {
+            if(!binding.getAsBoolean())return 0;
             long extracted = Math.min(maximum, contents.getOrDefault(key, 0L));
             if (extracted > 0) {
                 subtract(key, extracted);
@@ -143,7 +162,7 @@ public final class MatterInventory implements MatterStore {
             return 0;
         }
         synchronized (MUTATION_LOCK) {
-            if (!destination.hasTypeSpaceLocked(Map.of(), Map.of(key, 1L))) return 0;
+            if (!binding.getAsBoolean()||!destination.accepts(key)||!destination.hasTypeSpaceLocked(Map.of(), Map.of(key, 1L))) return 0;
             long moved = Math.min(Math.min(maximum, contents.getOrDefault(key, 0L)), destination.capacity - destination.total);
             if (moved == 0) {
                 return 0;
@@ -171,8 +190,15 @@ public final class MatterInventory implements MatterStore {
      * Missing substance definitions are deliberately preserved by ID and phase.
      */
     public static MatterInventory restore(Snapshot snapshot, int maximumTypes) {
+        return restore(snapshot,maximumTypes,key->true);
+    }
+    public static MatterInventory restore(Snapshot snapshot,int maximumTypes,java.util.function.Predicate<SubstanceKey> acceptance) {
+        return restore(snapshot,maximumTypes,acceptance,()->true);
+    }
+    public static MatterInventory restore(Snapshot snapshot,int maximumTypes,java.util.function.Predicate<SubstanceKey> acceptance,
+                                          java.util.function.BooleanSupplier binding) {
         Objects.requireNonNull(snapshot, "snapshot");
-        MatterInventory restored = new MatterInventory(snapshot.capacity(), maximumTypes);
+        MatterInventory restored = new MatterInventory(snapshot.capacity(),maximumTypes,acceptance,binding);
         if (snapshot.contents().size() > maximumTypes) throw new IllegalArgumentException("Saved matter exceeds type capacity");
         synchronized (MUTATION_LOCK) {
             for (SubstanceStack stack : snapshot.contents()) {
@@ -196,7 +222,7 @@ public final class MatterInventory implements MatterStore {
      * state is ever applied, and unknown definitions remain untouched.
      */
     public void restoreInPlace(Snapshot snapshot) {
-        MatterInventory restored = restore(snapshot, maximumTypes);
+        MatterInventory restored = restore(snapshot,maximumTypes,acceptance,binding);
         synchronized (MUTATION_LOCK) {
             replaceWithValidated(restored);
         }
@@ -216,7 +242,7 @@ public final class MatterInventory implements MatterStore {
     /** A detached working copy for planning. Its state is already valid, so it needs no second validation. */
     MatterInventory planningCopy() {
         synchronized (MUTATION_LOCK) {
-            var copy = new MatterInventory(capacity, maximumTypes);
+            var copy = new MatterInventory(capacity,maximumTypes,acceptance,binding);
             copy.total = total;
             copy.contents.putAll(contents);
             return copy;
@@ -231,6 +257,7 @@ public final class MatterInventory implements MatterStore {
     }
 
     private boolean canApplyLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        if(!binding.getAsBoolean())return false;
         if (inputs.keySet().stream().anyMatch(ReservedSubstances::reserved) || outputs.keySet().stream().anyMatch(ReservedSubstances::reserved)) return false;
         for (Map.Entry<SubstanceKey, Long> input : inputs.entrySet()) {
             if (contents.getOrDefault(input.getKey(), 0L) < input.getValue()) {
@@ -242,7 +269,9 @@ public final class MatterInventory implements MatterStore {
     }
 
     private boolean hasTypeSpaceLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        if(!binding.getAsBoolean())return false;
         if (inputs.keySet().stream().anyMatch(ReservedSubstances::reserved) || outputs.keySet().stream().anyMatch(ReservedSubstances::reserved)) return false;
+        if(outputs.keySet().stream().anyMatch(key->!accepts(key)))return false;
         if (maximumTypes == Integer.MAX_VALUE) return true;
         var types = new HashSet<SubstanceKey>();
         contents.forEach((key, amount) -> { if (amount > inputs.getOrDefault(key, 0L)) types.add(key); });

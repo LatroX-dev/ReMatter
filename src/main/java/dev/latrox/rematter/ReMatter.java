@@ -33,6 +33,7 @@ public final class ReMatter {
         modBus.addListener(dev.latrox.rematter.network.ResearchLearnedPayload::register);
         modBus.addListener(CatalogSync::register);
         modBus.addListener(dev.latrox.rematter.network.EnergyCubePayload::register);
+        modBus.addListener(dev.latrox.rematter.network.CellTransferConfigPayload::register);
         modBus.addListener(MatterCablePulsePayload::register);
         modBus.addListener(ReleaseHeldOrderPayload::register);
         modBus.addListener(SelectProcessPayload::register);

@@ -17,6 +17,9 @@ final class MatterCellMount {
     private MatterInventory inventory;
     private long writtenRevision;
     private @Nullable MatterCellData written;
+    private @Nullable CellPartitionData partition;
+    private long generation;
+    private boolean quantityConflict;
     private UUID cellId;
     private long creditRevision;
     private record State(MatterInventory.Snapshot inventory,UUID cellId,long creditRevision,MatterCellData component){}
@@ -26,19 +29,58 @@ final class MatterCellMount {
     };
 
     void mount(ItemStack stack) {
+        var previous=inventory;
+        long binding=++generation;
         this.stack = stack;
-        this.inventory = stack.getItem() instanceof MatterCellItem cell ? cell.open(stack).orElse(null) : null;
+        quantityConflict=false;
+        partition=stack.get(CellPartitionData.TYPE.get());
         written = stack.get(MatterCellData.TYPE.get());
         var resolved=written==null||!(stack.getItem() instanceof MatterCellItem cell)?Optional.<MatterCellData.State>empty():written.resolve(cell.capacity());
         cellId=resolved.map(MatterCellData.State::cellId).orElse(null);creditRevision=resolved.map(MatterCellData.State::creditRevision).orElse(0L);
+        var policy=CellPartitionData.read(stack);
+        inventory=null;
+        if(stack.getItem() instanceof MatterCellItem cell&&policy.isPresent()&&(written==null||resolved.isPresent())
+                &&stack.get(CellPartitionData.TYPE.get())==partition&&stack.get(MatterCellData.TYPE.get())==written){
+            var contents=resolved.map(MatterCellData.State::contents).orElse(List.of());
+            inventory=MatterInventory.restore(new MatterInventory.Snapshot(cell.capacity(),contents),MatterCellData.MAX_TYPES,
+                    policy.get(),()->generation==binding&&this.stack==stack&&bindingCurrent());
+        }
         writtenRevision = inventory == null ? 0 : written!=null&&resolved.isPresent()&&!MatterCellData.from(resolved.get()).equals(written)?-1:inventory.revision();
+        retire(previous);
     }
-    boolean readable(ItemStack current) { return current == stack && !stack.isEmpty() && stack.getCount() == 1 && inventory != null; }
-    MatterInventory inventory() { return inventory; }
-    boolean canRemove() { return Transaction.getCurrentOpenedTransaction() == null; }
+    private boolean bindingCurrent(){
+        return !quantityConflict&&inventory!=null&&!stack.isEmpty()&&stack.getCount()==1
+                &&stack.get(CellPartitionData.TYPE.get())==partition&&stack.get(MatterCellData.TYPE.get())==written;
+    }
+    /** A policy may change in-place. Only an unchanged quantity component permits an automatic handover. */
+    void refresh(){
+        if(quantityConflict||Transaction.getLifecycle()!=Transaction.Lifecycle.NONE)return;
+        if(stack.get(MatterCellData.TYPE.get())!=written){
+            // A competing quantity writer is ambiguous, especially while this cache has committed dirty stock.
+            // Keep its raw component untouched and require an explicit physical remount to resolve ownership.
+            quantityConflict=true;++generation;retire(inventory);inventory=null;return;
+        }
+        if(stack.get(CellPartitionData.TYPE.get())!=partition){
+            flushCommitted();
+            mount(stack);
+        }
+    }
+    private static void retire(@Nullable MatterInventory previous){
+        // Persisted contents have one new current owner. Old network/insert/withdraw handles cannot spend a copy.
+        if(previous!=null)previous.restoreInPlace(new MatterInventory.Snapshot(previous.capacity(),List.of()));
+    }
+    boolean readable(ItemStack current) { refresh();return current == stack&&bindingCurrent(); }
+    @Nullable MatterInventory inventory() { return bindingCurrent()?inventory:null; }
+    boolean canRemove() { return Transaction.getLifecycle()==Transaction.Lifecycle.NONE; }
     void flush() {
-        if (inventory == null || stack.isEmpty() || Transaction.getCurrentOpenedTransaction() != null) return;
-        // Unchanged contents are not serialised again, unless something replaced the item's component meanwhile.
+        refresh();
+        if(!bindingCurrent()||Transaction.getLifecycle()!=Transaction.Lifecycle.NONE)return;
+        flushCommitted();
+    }
+    private void flushCommitted(){
+        if(inventory==null||stack.isEmpty()||stack.getCount()!=1||Transaction.getLifecycle()!=Transaction.Lifecycle.NONE
+                ||stack.get(MatterCellData.TYPE.get())!=written)return;
+        // Only this cache's committed quantities are handed over; an external raw replacement is never overwritten.
         long revision = inventory.revision();
         var current = stack.get(MatterCellData.TYPE.get());
         if (revision == writtenRevision && current == written) return;
@@ -50,7 +92,7 @@ final class MatterCellMount {
         writtenRevision = revision;
     }
     Optional<UUID> establishIdentity(){
-        if(inventory==null||!readable(stack)||Transaction.getCurrentOpenedTransaction()!=null)return Optional.empty();
+        if(inventory==null||!readable(stack)||Transaction.getLifecycle()!=Transaction.Lifecycle.NONE)return Optional.empty();
         if(cellId==null)cellId=UUID.randomUUID();
         var data=MatterCellData.from(inventory,cellId,creditRevision);if(!data.equals(stack.get(MatterCellData.TYPE.get())))stack.set(MatterCellData.TYPE.get(),data);
         written=stack.get(MatterCellData.TYPE.get());writtenRevision=inventory.revision();return Optional.of(cellId);

@@ -92,6 +92,10 @@
     {
       "id": "rematter:resonant_energy_cube",
       "required": false
+    },
+    {
+      "id": "rematter:cell_transfer_station",
+      "required": false
     }
   ]
 }

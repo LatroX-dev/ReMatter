@@ -11,7 +11,7 @@ item_ids:
 ---
 # Store power and charge items
 
-An Energy Cube keeps FE available between generation and use. Its recessed core and segmented charge display show its reserve. The three tiers share the same Ember crystal identity; ivory marks distinguish their tiers.
+An Energy Cube keeps FE available between generation and use. Its recessed core and segmented charge display show its reserve. The three tiers share the same Ember crystal identity; copper, turquoise and mauve bands match their Matter Cable tiers. Four identical horizontal ports accept the same centered cable connector on every side.
 
 | Cube | Stored energy | Shared transfer limit | Charging slots |
 | --- | --- | --- | --- |

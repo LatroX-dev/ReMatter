@@ -13,12 +13,13 @@ import net.minecraft.world.item.ItemStack;
 final class MachineCellBays {
     private final MachineKind kind;
     private final IntFunction<ItemStack> slots;
-    private final MatterCellRack cells = new MatterCellRack();
-    private final MatterInventory unavailable = new MatterInventory(1);
+    private final MatterCellRack cells;
+    private final MatterInventory unavailable = new MatterInventory(1,1,key->false);
 
-    MachineCellBays(MachineKind kind, IntFunction<ItemStack> slots) {
+    MachineCellBays(MachineKind kind, IntFunction<ItemStack> slots,Runnable membershipChanged) {
         this.kind = kind;
         this.slots = slots;
+        cells=new MatterCellRack(membershipChanged);
     }
 
     int count() { return MachineCellAccess.bayCount(kind); }

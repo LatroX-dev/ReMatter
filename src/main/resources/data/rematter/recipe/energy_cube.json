@@ -3,13 +3,13 @@
   "category": "misc",
   "pattern": [
     "RER",
-    "CFC",
+    "KFK",
     "RVR"
   ],
   "key": {
     "R": "rematter:rhevon_ingot",
     "E": "rematter:ember_matrix_crystal",
-    "C": "minecraft:copper_ingot",
+    "K": "rematter:matter_cable",
     "F": "rematter:machine_frame",
     "V": "rematter:virelite_ceramic"
   },

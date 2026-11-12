@@ -160,6 +160,7 @@ public final class MatterNetworkInventory implements MatterStore {
                         decisions.add(choice);alternatives.add(candidates.size());
                         int member = candidates.get(choice);
                         long extracted = copies.edit(member).extract(input.getKey(),remaining);
+                        if(extracted==0)return null; // A binding may disappear after candidate selection; never retry without progress.
                         remaining -= extracted;
                         if (withdrawn != null && extracted > 0) withdrawn[member] = true;
                     }

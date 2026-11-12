@@ -34,7 +34,7 @@ class LanguageKeysTest {
         }
         var used=new java.util.HashSet<>(literals);
         for(String prefix:prefixes)for(String literal:literals)used.add(prefix+literal);
-        var dynamic=Set.of("screen.rematter.energy_cube.mode.","screen.rematter.backend_","screen.rematter.filter_","screen.rematter.source_","screen.rematter.help_structure","screen.rematter.settings.section.","screen.rematter.settings.section_hint.","screen.rematter.research.tab.","screen.rematter.research.tab_hint.","screen.rematter.research.state.","screen.rematter.research.help.","screen.rematter.research.learning.");
+        var dynamic=Set.of("screen.rematter.transfer.status.","screen.rematter.energy_cube.mode.","screen.rematter.backend_","screen.rematter.filter_","screen.rematter.source_","screen.rematter.help_structure","screen.rematter.settings.section.","screen.rematter.settings.section_hint.","screen.rematter.research.tab.","screen.rematter.research.tab_hint.","screen.rematter.research.state.","screen.rematter.research.help.","screen.rematter.research.learning.");
         var unused=englishKeys().stream().filter(k->k.startsWith("screen.rematter.")&&!used.contains(k)
                 &&dynamic.stream().noneMatch(k::startsWith)).sorted().toList();
         assertEquals(List.of(),unused,"Unreferenced screen translations");
@@ -66,6 +66,12 @@ class LanguageKeysTest {
         var expected = IntStream.rangeClosed(1, TutorialBookItem.PAGE_COUNT).mapToObj(page -> "guide.rematter.page." + page)
                 .collect(Collectors.toSet());
         assertEquals(expected, pages);
+    }
+
+    @Test void everyCellTransferStatusIsTranslated() throws IOException {
+        var keys=englishKeys();
+        for(var status:dev.latrox.rematter.network.CellTransferPayload.STATUSES)
+            org.junit.jupiter.api.Assertions.assertTrue(keys.contains("screen.rematter.transfer.status."+status),status);
     }
 
     private static Set<String> englishKeys() throws IOException {

@@ -30,7 +30,7 @@ final class MatterOutputAllocator {
                     // Existing types first avoids needless fragmentation; bounded alternatives fix conflicts.
                     for(int pass=0;pass<2;pass++) for(int c=0;c<count;c++) {
                         boolean present=existing.get(c).get(k);
-                        if((pass==0)!=present || freeSpace[c]==0 || !present&&freeTypes[c]==0 || forbidden.get(k*count+c)) continue;
+                        if(!cells.get(c).accepts(key) || (pass==0)!=present || freeSpace[c]==0 || !present&&freeTypes[c]==0 || forbidden.get(k*count+c)) continue;
                         var edge=flow.add(k,keys.size()+c,Math.min(amount,freeSpace[c]));
                         links.add(new Link(k,c,edge,present));
                     }

@@ -108,6 +108,7 @@ EXCEPTIONS = {
     'hue_role': {
         'machine_port': {'*': 'the ring of a port is the legend of its port mode'},
         'matter_cable': {'copper': 'the stripe is the copper conductor of the cable: copper ingots are in its recipe'},
+        'energy_cube': {'copper': 'its matching Matter Cable ingredient supplies the case and port tier band; the core and identity plate remain Ember'},
     },
     # Java file -> {literal: reason} for colour literals outside the palette class
     'java_colour': {
@@ -1530,6 +1531,36 @@ def check_hues(tree, problems, palette, guide, java):
                                  'status colours')
 
 
+def check_energy_tier_bands(tree, problems, palette, guide):
+    """A Cube's cable band has material provenance, while its crystal keeps its own identity."""
+    # This mapping is a material relationship, not another copy of the tier colours.
+    from family_palette import ENERGY_CABLE_TIERS
+    registered = set(tree.items) | set(tree.blockstates)
+    present = {cube: cable for cube, cable in ENERGY_CABLE_TIERS.items() if cube in registered}
+    if not present:
+        return
+    header, rows = guide.tables.get('energy-cable-tiers', ([], []))
+    documented = {row[0].strip(' `'): (row[1].strip(' `'), hex_rgb(HEX.search(row[2]).group(1)))
+                  for row in rows if len(row) == 3 and HEX.search(row[2])}
+    for cube, cable in present.items():
+        expected = palette.named.get(f'CABLE_TIERS.{cable}.stripe')
+        if documented.get(cube) != (cable, expected):
+            problems.add('S5 cable tier', 'docs/visual-style.md', f'{cube} lacks its matching {cable} tier-band row',
+                         'document the cable ingredient and its exact palette stripe in the marked energy-cable-tiers table')
+        recipes = [(path, slots) for path, slots, results, apart in tree.recipes.entries
+                   if f'{NAMESPACE}:{cube}' in results and not apart]
+        if not recipes:
+            problems.add('S5 cable tier', f'items/{cube}.json', f'{cube} has no recipe establishing its cable-tier material',
+                         'give the Cube an independent recipe requiring its matching cable')
+        for path, slots in recipes:
+            if not any(ids and set(ids) == {f'{NAMESPACE}:{cable}'} and count > 0 for ids, count in slots):
+                problems.add('S5 cable tier', f'data/{NAMESPACE}/{path}', f'{cube} has no required {cable} ingredient',
+                             'craft each tier independently with its matching cable; the tier band follows that material')
+        if expected is None or tree.shown(cube)[0].get(expected, 0) < ACCENT_TEXELS:
+            problems.add('S5 cable tier', f'items/{cube}.json', f'{cube} does not show its exact cable-tier stripe',
+                         'draw the case and port bands from the matching CABLE_TIERS stripe and regenerate')
+
+
 def check_recipe_hues(tree, problems, palette, guide):
     """S5: the result of a recipe wears the hue of every coloured Matrix Crystal in it, and no other crystal's."""
     hues = {name: entry['rgb'] for name, entry in guide.crystals.items()} or dict(palette.crystals)
@@ -1671,6 +1702,7 @@ def run(tree, palette, guide, java):
     check_natural_blocks(tree, problems)
     check_hues(tree, problems, palette, guide, java)
     check_recipe_hues(tree, problems, palette, guide)
+    check_energy_tier_bands(tree, problems, palette, guide)
     check_java(tree, problems, java)
     return problems
 
