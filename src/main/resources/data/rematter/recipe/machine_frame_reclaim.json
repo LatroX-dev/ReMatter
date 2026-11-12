@@ -1,0 +1,27 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:machine_frame",
+  "primary_count": 4,
+  "energy": 4000,
+  "ticks": 120,
+  "minimum_tier": 2,
+  "results": [
+    {
+      "id": "rematter:structural_bars",
+      "count": 4
+    },
+    {
+      "id": "minecraft:iron_ingot",
+      "count": 4
+    },
+    {
+      "id": "rematter:matrix_blend",
+      "count": 1
+    }
+  ],
+  "min_precision": 4,
+  "steps": [
+    "separate"
+  ],
+  "network_recipe": false
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "type": "electrolysis",
+  "inputs": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 1500
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:aluminum",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 1500
+    }
+  ],
+  "energy": 256000,
+  "ticks": 600,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": false,
+    "product": "rematter:aluminum"
+  }
+}

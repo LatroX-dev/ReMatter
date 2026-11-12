@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.one_way.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.one_way.description"
+    },
+    "icon": {
+      "id": "rematter:primal_converter"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ],
+  "parent": "rematter:progression/something_older"
+}

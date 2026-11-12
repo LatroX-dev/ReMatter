@@ -11,6 +11,11 @@ final class MatterCableConnectionPolicy {
         return !IndustrialStructure.isIndustrial(kind) && (!cable || side != front && side != Direction.UP);
     }
 
+    /** A connected arm ends in a device flange unless it continues into another cable. */
+    static boolean deviceArm(boolean connected, boolean neighborIsCable) {
+        return connected && !neighborIsCable;
+    }
+
     /** The cable's direction towards the port is opposite the port's outward world direction. */
     static boolean acceptsPort(boolean formed, Direction outward, Direction towardsPort) {
         return formed && outward == towardsPort.getOpposite();

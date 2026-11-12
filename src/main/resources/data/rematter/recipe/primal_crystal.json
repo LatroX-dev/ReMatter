@@ -1,0 +1,18 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:primal_shard",
+  "primary_count": 4,
+  "secondary": "rematter:matrix_crystal",
+  "energy": 256000,
+  "ticks": 9600,
+  "minimum_tier": 2,
+  "result": {
+    "id": "rematter:primal_crystal",
+    "count": 1
+  },
+  "min_precision": 4,
+  "steps": [
+    "mix"
+  ],
+  "network_recipe": false
+}

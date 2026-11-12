@@ -313,7 +313,8 @@
     },
     {
       "when": {
-        "north": "true"
+        "north": "true",
+        "north_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm"
@@ -321,7 +322,17 @@
     },
     {
       "when": {
-        "east": "true"
+        "north": "true",
+        "north_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device"
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "east_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm",
@@ -330,7 +341,18 @@
     },
     {
       "when": {
-        "south": "true"
+        "east": "true",
+        "east_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "south_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm",
@@ -339,7 +361,18 @@
     },
     {
       "when": {
-        "west": "true"
+        "south": "true",
+        "south_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "west_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm",
@@ -348,7 +381,18 @@
     },
     {
       "when": {
-        "up": "true"
+        "west": "true",
+        "west_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "up_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm",
@@ -357,10 +401,31 @@
     },
     {
       "when": {
-        "down": "true"
+        "up": "true",
+        "up_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "down_device": "false"
       },
       "apply": {
         "model": "rematter:block/resonant_matter_cable_arm",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "down_device": "true"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_matter_cable_arm_device",
         "x": 90
       }
     }

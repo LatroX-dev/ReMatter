@@ -169,6 +169,11 @@ final class MachineSnapshots {
         MachineKind kind = machine.kind();
         var operations = machine.operations();
         if (PreparationTier.isPreparation(kind)) {
+            if(machine.assayMode()){
+                var sample=machine.stack(0);var plan=dev.latrox.rematter.content.preparation.AssayPlan.create(registry,sample,!sample.isEmpty()&&machine.knownMaterial(MachineOperations.itemId(sample))).orElse(null);
+                if(plan==null)return MachineSnapshot.Preview.EMPTY;
+                return preview(machine,registry,null,MachineSnapshot.ITEM_SOURCE+plan.itemId(),Map.of(),Map.of(),machine.cost(plan.energy()),plan.ticks(),"item",plan.itemId(),1);
+            }
             var holder = operations.preparationRecipe(); if (holder == null) return MachineSnapshot.Preview.EMPTY;
             var recipe = holder.value(); var result = recipe.result();
             return preview(machine, registry, null, holder.id().identifier().toString(), Map.of(), Map.of(),
@@ -182,8 +187,8 @@ final class MachineSnapshots {
                 boolean inspect = kind == MachineKind.ANALYZER;
                 Map<SubstanceKey, Long> outputs = inspect && !machine.analysis().matches(id, true, profile) ? Map.of() : profile.matter();
                 return preview(machine, registry, store, MachineSnapshot.ITEM_SOURCE + id, Map.of(), outputs,
-                        machine.cost(inspect ? MachineOperations.ANALYSIS_ENERGY : profile.decompositionEnergy()),
-                        inspect ? MachineOperations.ANALYSIS_TICKS : profile.ticks(),
+                        inspect&&machine.knownMaterial(id)?0:machine.cost(inspect?dev.latrox.rematter.research.ResearchService.analysisEnergy(profile):profile.decompositionEnergy()),
+                        inspect?(machine.knownMaterial(id)?0:dev.latrox.rematter.research.ResearchService.analysisTicks(profile)):profile.ticks(),
                         inspect ? "analysis" : "matter", inspect ? id : "", inspect ? 1 : 0);
             }
             if (kind == MachineKind.DECOMPOSER) {

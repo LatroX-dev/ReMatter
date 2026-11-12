@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Diamond",
+  "items": [
+    "alltheores:diamond_dust",
+    "appflux:diamond_dust",
+    "ftbic:diamond_dust",
+    "infinity_nexus_mod:diamond_dust",
+    "mekanism:dust_diamond",
+    "minecraft:deepslate_diamond_ore",
+    "minecraft:diamond",
+    "minecraft:diamond_block",
+    "minecraft:diamond_ore",
+    "rematter:diamond_powder"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": ""
+}

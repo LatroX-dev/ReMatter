@@ -67,6 +67,12 @@ public final class ChunkRevisions {
         if (!(chunk instanceof Tracked tracked)) throw new IllegalStateException("Required industrial chunk revision hook is missing");
         tracked.rematter$touchChunkRevision();
     }
+    /** Invalidates topology after an owned endpoint changes without a blockstate mutation. Never loads a chunk. */
+    public static void touchLoaded(ServerLevel level, net.minecraft.core.BlockPos position) {
+        if (!level.getServer().isSameThread()) throw new IllegalStateException("Topology changes require the server thread");
+        var chunk = level.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4);
+        if (chunk != null) touch(chunk);
+    }
     public static long epoch() { return EPOCH.get(); }
 
     /**

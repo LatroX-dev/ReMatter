@@ -26,6 +26,25 @@ class ReForgingDataTest {
     private static final Path DATAPACK = Path.of("integrations/reforging/datapack");
 
     @Test
+    void nativeBeeDupeAndQuestObtainabilityTagsAreNarrowAndAdditive() throws Exception {
+        var bee = readFile(DATAPACK.resolve("data/productivebees/tags/block/dupe_blacklist.json"));
+        assertFalse(bee.get("replace").getAsBoolean());
+        var actual = new HashSet<String>();
+        for (var element : bee.getAsJsonArray("values")) {
+            var entry = element.getAsJsonObject();
+            assertFalse(entry.get("required").getAsBoolean());
+            assertTrue(actual.add(entry.get("id").getAsString()));
+        }
+        assertEquals(Set.of("rematter:deepslate_primal_ore", "rematter:nether_primal_ore", "rematter:end_primal_ore"), actual);
+        var quest = readFile(DATAPACK.resolve("data/embersquesting/tags/item/obtainable.json"));
+        assertFalse(quest.get("replace").getAsBoolean());
+        assertEquals(1, quest.getAsJsonArray("values").size());
+        var entry = quest.getAsJsonArray("values").get(0).getAsJsonObject();
+        assertEquals("rematter:parallel_upgrade", entry.get("id").getAsString());
+        assertFalse(entry.get("required").getAsBoolean());
+    }
+
+    @Test
     void crystallineQuartzHasTheSameElementBalanceButASeparateIdentity() throws Exception {
         ChemistryRegistry registry = integration();
         assertNotEquals(BuiltinChemistry.SILICA, CRYSTAL);
@@ -121,12 +140,20 @@ class ReForgingDataTest {
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
         expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:recovered_matter", "rematter:automation_pattern"));
         assertEquals(expected, actual);
-        assertEquals(22, actual.size());
+        JsonObject primal = read("data/reforging/tags/item/rematter/primal_items.json");
+        assertFalse(primal.get("replace").getAsBoolean());
+        Set<String> primalIds = new HashSet<>();
+        for (var value : primal.getAsJsonArray("values")) {
+            var entry = value.getAsJsonObject(); assertFalse(entry.get("required").getAsBoolean());
+            assertTrue(primalIds.add(entry.get("id").getAsString()));
+        }
+        assertEquals(dev.latrox.rematter.chemistry.ReservedSubstances.primalItems(), primalIds);
         for (String tag : Set.of("cant_be_scanned", "cant_be_disintegrated", "skip_calculation")) {
             JsonObject rule = read("data/replication/tags/item/" + tag + ".json");
             assertFalse(rule.get("replace").getAsBoolean());
-            assertEquals(1, rule.getAsJsonArray("values").size());
+            assertEquals(2, rule.getAsJsonArray("values").size());
             assertEquals("#reforging:rematter/stateful_machines", rule.getAsJsonArray("values").get(0).getAsString());
+            assertEquals("#reforging:rematter/primal_items", rule.getAsJsonArray("values").get(1).getAsString());
         }
     }
 
@@ -171,9 +198,9 @@ class ReForgingDataTest {
     @Test
     void existingEnergyRoutesRemainLossyAtMaximumReMatterEfficiency() throws Exception {
         ChemistryRegistry registry = integration();
-        long hydrogenCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().energy(),MachineKind.ELECTROLYZER);
+        long hydrogenCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().energy(),MachineKind.REACTOR);
         assertTrue(hydrogenCost > 2_000, "1,000 hydrogen units return 2,000 FE in the target gas generator");
-        long evaporationCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy(),MachineKind.THERMAL_PROCESSOR,MachineKind.INDUSTRIAL_REACTOR);
+        long evaporationCost = minimumCost(registry.recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy(),MachineKind.REACTOR,MachineKind.INDUSTRIAL_REACTOR);
         assertTrue(evaporationCost > 11_580, "Conservative upper bound for 1,000 steam in the target turbines");
         var stone = registry.profile("minecraft:stone").orElseThrow();
         var blending = registry.recipe(SubstanceId.parse("rematter:mineral_blending")).orElseThrow();
@@ -183,7 +210,7 @@ class ReForgingDataTest {
         assertEquals(blending.outputs(), melting.inputs());
         assertEquals(melting.outputs(), lava.matter());
         long lavaCost = minimumCost(stone.decompositionEnergy(),MachineKind.DECOMPOSER) + minimumCost(blending.energy(),MachineKind.REACTOR,MachineKind.INDUSTRIAL_REACTOR)
-                + minimumCost(melting.energy(),MachineKind.THERMAL_PROCESSOR,MachineKind.INDUSTRIAL_REACTOR) + minimumCost(lava.synthesisEnergy(),MachineKind.SYNTHESIZER);
+                + minimumCost(melting.energy(),MachineKind.REACTOR,MachineKind.INDUSTRIAL_REACTOR) + minimumCost(lava.synthesisEnergy(),MachineKind.SYNTHESIZER);
         assertTrue(lavaCost > 100_000, "A target Magmator returns 100,000 FE per 1,000 mB lava");
     }
 

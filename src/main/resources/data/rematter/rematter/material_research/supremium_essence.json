@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Supremium Essence",
+  "items": [
+    "mysticalagriculture:supremium_block",
+    "mysticalagriculture:supremium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:supremium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

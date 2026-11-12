@@ -10,6 +10,8 @@ import dev.latrox.rematter.content.preparation.PreparationRecipe;
 import dev.latrox.rematter.content.preparation.PreparationRecipes;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.content.preparation.PreparationWork;
+import dev.latrox.rematter.content.preparation.PreparationInventoryPlan;
+import dev.latrox.rematter.content.preparation.AssayPlan;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.TreeMap;
@@ -63,7 +65,7 @@ final class MachineOperations {
     private @Nullable Operation operation(ChemistryRegistry registry,boolean enforceAccess) {
         restriction="";
         MachineKind kind = machine.kind();
-        if (PreparationTier.isPreparation(kind)) return preparation();
+        if (PreparationTier.isPreparation(kind)) return machine.assayMode()?assay(registry):preparation();
         if (kind == MachineKind.ANALYZER || kind == MachineKind.DECOMPOSER) return sample(registry, kind);
         var choice = machine.selectedChoice();
         if (choice == null) return null;
@@ -77,24 +79,44 @@ final class MachineOperations {
                             && machine.getLevel().canSeeSky(airIntake())), () -> {});
         }
         var recipe = registry.recipe(SubstanceId.parse(choice.id())).orElse(null);
-        if (recipe == null || !MachineRouting.supports(kind,recipe.type())) return null;
+        if (recipe == null || !MachineRouting.supports(kind,recipe)) return null;
+        if(enforceAccess&&!machine.allowsProcess(recipe)) {restriction=recipe.minField()>0?"requires_field":"requires_research";return null;}
         if(enforceAccess&&!machine.progressAllows(recipe.requiresAdvancement())) { restriction="requires_advancement";return null; }
         return new Operation(choice.id(), recipe.inputs(), recipe.outputs(), machine.cost(recipe.energy()), recipe.ticks(),
-                () -> machine.progressAllows(recipe.requiresAdvancement()), () -> {});
+                () -> machine.progressAllows(recipe.requiresAdvancement())&&machine.allowsProcess(recipe), () -> machine.learnProcess(recipe.inputs(),recipe.outputs()));
     }
 
+    private boolean preparationRolesReady() { return !machine.recoverySlot(3)&&!machine.recoverySlot(4); }
+
     private @Nullable Operation preparation() {
-        var holder = preparationRecipe(); if (holder == null) return null;
-        var recipe = holder.value(); var result = recipe.result();
-        if (recipe != lastPreparationRecipe) { machine.resetProgress(); lastPreparationRecipe = recipe; }
-        return new Operation(holder.id().identifier().toString(), Map.of(), Map.of(), preparationCost(recipe), recipe.ticks(),
-                () -> recipe.matches(preparationInput(), machine.getLevel()) && fitsOutput(result),
-                () -> {
-                    machine.stack(0).shrink(recipe.primaryCount());
-                    if (recipe.secondary().isPresent()) machine.stack(3).shrink(recipe.secondaryCount());
-                    if (recipe.tertiary().isPresent()) machine.stack(4).shrink(recipe.tertiaryCount());
-                    putOutput(result);
-                }, result);
+        var holder=preparationRecipe();if(holder==null)return null;
+        var recipe=holder.value();var result=recipe.result();
+        if(recipe!=lastPreparationRecipe){machine.resetProgress();lastPreparationRecipe=recipe;}
+        return new Operation(holder.id().identifier().toString(),Map.of(),Map.of(),preparationCost(recipe),recipe.ticks(),
+                ()->machine.preparationPermits(recipe)&&preparationRolesReady()
+                        &&PreparationInventoryPlan.simulate(recipe,machine::stack,machine.getMaxStackSize()).isPresent(),
+                ()->{
+                    if(!machine.preparationPermits(recipe)||!preparationRolesReady())throw new IllegalStateException("Preparation access changed during batch commit");
+                    var plan=PreparationInventoryPlan.simulate(recipe,machine::stack,machine.getMaxStackSize()).orElseThrow(()->new IllegalStateException("Preparation slots changed during batch commit"));
+                    if(!plan.commit(machine::stack,machine::putStack))throw new IllegalStateException("Preparation inventory changed during batch commit");
+                    machine.addRecoveryOutputs(plan.recoveryMask());
+                },result);
+    }
+
+    private @Nullable Operation assay(ChemistryRegistry registry) {
+        lastPreparationRecipe=null;
+        if(machine.kind()!=MachineKind.INDUSTRIAL_PREPARATOR||!preparationRolesReady())return null;
+        var input=machine.stack(0);if(input.isEmpty())return null;
+        var plan=AssayPlan.create(registry,input,machine.knownMaterial(itemId(input))).orElse(null);if(plan==null)return null;
+        var result=plan.sample();
+        return new Operation("rematter:assay/"+plan.itemId().replace(':','/')+":"+plan.energy(),Map.of(),Map.of(),machine.cost(plan.energy()),plan.ticks(),
+                ()->machine.assayMode()&&preparationRolesReady()&&machine.stack(3).isEmpty()&&machine.stack(4).isEmpty()&&plan.matches(machine.stack(0))&&fitsOutput(result),
+                ()->{
+                    if(!machine.assayMode()||!preparationRolesReady()||!machine.stack(3).isEmpty()||!machine.stack(4).isEmpty()||!plan.matches(machine.stack(0))||!fitsOutput(result))
+                        throw new IllegalStateException("Assay inputs or destination changed during batch commit");
+                    machine.stack(0).shrink(1);putOutput(result);
+                    machine.learnMaterial(plan.itemId(),dev.latrox.rematter.research.LearningPath.ASSAY);
+                },result);
     }
 
     private @Nullable Operation sample(ChemistryRegistry registry, MachineKind kind) {
@@ -105,10 +127,10 @@ final class MachineOperations {
             int requiredItems = analyze ? 1 : profile.itemCount();
             if (input.getCount() < requiredItems) return null;
             return new Operation(MachineSnapshot.ITEM_SOURCE + itemId(input) + ":" + requiredItems, Map.of(), analyze ? Map.of() : profile.matter(),
-                    machine.cost(analyze ? ANALYSIS_ENERGY : profile.decompositionEnergy()), analyze ? ANALYSIS_TICKS : profile.ticks(),
+                    machine.cost(analyze ? Math.multiplyExact(2,profile.decompositionEnergy()) : profile.decompositionEnergy()), analyze ? Math.multiplyExact(4,profile.ticks()) : profile.ticks(),
                     () -> machine.stack(0).getCount() >= requiredItems && machine.stack(0).getItem() == input.getItem()
                             && machine.stack(0).getComponentsPatch().isEmpty(),
-                    () -> { if (analyze) machine.completeAnalysis(profile); else machine.stack(0).shrink(requiredItems); },
+                    () -> { if(analyze)machine.completeAnalysis(profile);else machine.stack(0).shrink(requiredItems);machine.learnMaterial(profile.itemId(),analyze?dev.latrox.rematter.research.LearningPath.ANALYSIS:dev.latrox.rematter.research.LearningPath.DECOMPOSITION); },
                     analyze ? input : ItemStack.EMPTY);
         }
         if (kind != MachineKind.DECOMPOSER) return null;
@@ -119,13 +141,14 @@ final class MachineOperations {
         return new Operation(MachineChoices.fluidChoiceId(conversion.fluidId()), Map.of(), conversion.matter(),
                 machine.cost(conversion.decompositionEnergy()), conversion.ticks(),
                 () -> fluids.getResource(0).equals(fluid) && fluids.getAmountAsLong(0) >= conversion.amount(),
-                () -> fluids.set(0, fluid, (int) fluids.getAmountAsLong(0) - conversion.amount()));
+                () -> {fluids.set(0,fluid,(int)fluids.getAmountAsLong(0)-conversion.amount());machine.learnMaterial(conversion.fluidId(),dev.latrox.rematter.research.LearningPath.DECOMPOSITION);});
     }
 
     private @Nullable Operation synthesis(ChemistryRegistry registry, MachineChoices.Choice choice,boolean enforceAccess) {
         String target=choice.id().startsWith(MachineChoices.FLUID_PREFIX)?choice.id().substring(MachineChoices.FLUID_PREFIX.length()):choice.id();
         var requirement=registry.synthesisPolicy().requirement(target);
         if(!registry.synthesisPolicy().allowsMachine(target,machine.kind().id()))return null;
+        if(enforceAccess&&!machine.researchAllows(target)){restriction="requires_research";return null;}
         if(enforceAccess&&machine.crystallizationTier()<requirement.tier()) {restriction="requires_pressure";return null;}
         if(enforceAccess&&!machine.progressAllows(requirement.advancement())) {restriction="requires_advancement";return null;}
         var conversion = choice.id().startsWith(MachineChoices.FLUID_PREFIX)
@@ -136,7 +159,7 @@ final class MachineOperations {
             var resource = FluidResource.of(BuiltInRegistries.FLUID.getValue(Identifier.parse(conversion.fluidId())));
             return new Operation(choice.id(), conversion.matter(), Map.of(),
                     machine.cost(conversion.synthesisEnergy()), conversion.ticks(),
-                    () -> (fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource))
+                    () -> machine.researchAllows(target)&&(fluids.getResource(0).isEmpty() || fluids.getResource(0).equals(resource))
                             && fluids.getAmountAsLong(0) <= MachineBlockEntity.TANK_CAPACITY - conversion.amount(),
                     () -> fluids.set(0, resource, (int) fluids.getAmountAsLong(0) + conversion.amount()));
         }
@@ -148,7 +171,7 @@ final class MachineOperations {
         if (profile == null || output == null) return null;
         var result = new ItemStack(output, profile.itemCount());
         return new Operation(choice.id() + ":" + profile.itemCount(), profile.matter(), Map.of(), machine.cost(profile.synthesisEnergy()),
-                profile.ticks(), () -> fitsOutput(result), () -> putOutput(result), result);
+                profile.ticks(), () -> machine.researchAllows(target)&&fitsOutput(result), () -> putOutput(result), result);
     }
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation) {
@@ -157,6 +180,7 @@ final class MachineOperations {
                 && dev.latrox.rematter.ReMatter.chemistry().environmentSources().stream().anyMatch(source -> source.id().toString().equals(operation.signature()))
                 && !operation.canFinish())return "requires_open_air";
         if (PreparationTier.isPreparation(machine.kind())) {
+            if(!preparationRolesReady())return "output_blocked";
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);
             return PreparationWork.readiness(!primary.isEmpty(), !secondary.isEmpty(), mixingPreparation(),
                     primary.getComponentsPatch().isEmpty() && secondary.getComponentsPatch().isEmpty() && tertiary.getComponentsPatch().isEmpty(),
@@ -168,7 +192,16 @@ final class MachineOperations {
     String inputStatus(ChemistryRegistry registry) {
         if(!restriction.isEmpty())return restriction;
         MachineKind kind = machine.kind();
-        if (PreparationTier.isPreparation(kind)) return preparationInputStatus(kind);
+        if (PreparationTier.isPreparation(kind)) {
+            if(!preparationRolesReady())return "output_blocked";
+            if(machine.assayMode()){
+                var input=machine.stack(0);
+                if(input.isEmpty())return "insert_sample";
+                if(!input.getComponentsPatch().isEmpty())return "unsupported_components";
+                return profile(registry,input)==null?"unsupported_input":"output_blocked";
+            }
+            return preparationInputStatus(kind);
+        }
         if (machine.supportsBatchControl()) return "choose_process";
         ItemStack input = machine.stack(0);
         if (!input.isEmpty()) {
@@ -202,6 +235,9 @@ final class MachineOperations {
             String process = kind == MachineKind.SINTER_FURNACE ? PreparationRecipe.SINTERING : PreparationRecipe.PREPARATION;
             return candidates.stream().anyMatch(e -> e.process().equals(process)) ? "preparation_tier" : "preparation_process";
         }
+        var capable=eligible.stream().filter(e->machine.preparationPermits(e.recipe())).toList();
+        if(capable.isEmpty())return "requires_precision";
+        eligible=capable;
         if (eligible.stream().allMatch(e -> e.recipe().secondary().isEmpty()) && !secondary.isEmpty()) return "secondary_slot_occupied";
         if (eligible.stream().allMatch(e -> e.recipe().tertiary().isEmpty()) && !tertiary.isEmpty()) return "tertiary_slot_occupied";
         if (secondary.isEmpty() && eligible.stream().allMatch(e -> e.recipe().secondary().isPresent())) return "secondary_input";
@@ -214,17 +250,22 @@ final class MachineOperations {
     /** Recipe-side slot acceptance for inputs; slot roles are checked by the machine. */
     boolean acceptsInput(int index, ItemStack stack, ChemistryRegistry registry) {
         if (!(machine.getLevel() instanceof ServerLevel server)) return false;
-        return MachineInputPolicy.accepts(machine.kind(), index, stack, preparationInput(), registry,
-                PreparationRecipes.serverCatalogue(server).entries());
+        if(PreparationTier.isPreparation(machine.kind())){
+            if(!preparationRolesReady()||machine.recoverySlot(index))return false;
+            if(machine.assayMode())return index==0&&!stack.isEmpty()&&stack.getComponentsPatch().isEmpty()&&profile(registry,stack)!=null;
+            return MachineInputPolicy.accepts(machine.kind(),index,stack,preparationInput(),registry,
+                    PreparationRecipes.serverCatalogue(server).entries().stream().filter(entry->machine.preparationPermits(entry.recipe())).toList());
+        }
+        return MachineInputPolicy.accepts(machine.kind(),index,stack,preparationInput(),registry,PreparationRecipes.serverCatalogue(server).entries());
     }
 
     @Nullable RecipeHolder<PreparationRecipe> preparationRecipe() {
         if (!(machine.getLevel() instanceof ServerLevel server) || !PreparationRecipes.serverCatalogue(server).valid()) return null;
-        MachineKind kind = machine.kind();
+        if(machine.assayMode()||!preparationRolesReady())return null;
         // Preserve the server's recipe priority, skipping recipes unavailable to this machine tier.
         return server.getServer().getRecipeManager().recipeMap()
                 .getRecipesFor(PreparationRecipes.TYPE.get(), preparationInput(), server)
-                .filter(holder -> PreparationTier.permits(kind, holder.value().minimumTier(), holder.value().process())).findFirst().orElse(null);
+                .filter(holder -> machine.preparationPermits(holder.value())).findFirst().orElse(null);
     }
 
     long preparationCost(PreparationRecipe recipe) {
@@ -267,7 +308,10 @@ final class MachineOperations {
     /** Limit physical inputs and output slots independently of virtual stock reservations. */
     long physicalLimit(Operation operation) {
         if(PreparationTier.isPreparation(machine.kind())) {
+            if(!preparationRolesReady())return 0;
+            if(machine.assayMode())return operation.canFinish()?1:0;
             var holder=preparationRecipe();if(holder==null)return 0;var recipe=holder.value();
+            if(recipe.results().size()>1)return PreparationInventoryPlan.simulate(recipe,machine::stack,machine.getMaxStackSize()).isPresent()?1:0;
             long limit=machine.stack(0).getCount()/recipe.primaryCount();
             if(recipe.secondary().isPresent())limit=Math.min(limit,machine.stack(3).getCount()/recipe.secondaryCount());
             if(recipe.tertiary().isPresent())limit=Math.min(limit,machine.stack(4).getCount()/recipe.tertiaryCount());
@@ -275,6 +319,8 @@ final class MachineOperations {
             if(!current.isEmpty()&&!ItemStack.isSameItemSameComponents(current,result))return 0;
             long target=machine.targetActive()?machine.settings().target():0;
             long room=Math.min(result.getMaxStackSize()-current.getCount(),target>0?Math.max(0,target-current.getCount()):Long.MAX_VALUE);
+            if(machine.kind()==MachineKind.INDUSTRIAL_PREPARATOR)
+                limit=Math.min(limit,IndustrialStructure.inspect(machine).performance().jobCapacity(recipe.steps()));
             return Math.min(limit,room/result.getCount());
         }
         if(machine.kind().synthesis()) {

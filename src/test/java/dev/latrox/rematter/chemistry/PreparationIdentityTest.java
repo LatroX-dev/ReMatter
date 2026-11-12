@@ -1,5 +1,7 @@
 package dev.latrox.rematter.chemistry;
 
+import java.nio.file.Path;
+
 import com.google.gson.JsonObject;
 import org.junit.jupiter.api.Test;
 
@@ -28,24 +30,47 @@ class PreparationIdentityTest {
     void everyProfiledPreparationResultKeepsTheExactSubstancesOfItsIngredients() throws IOException {
         List<JsonObject> recipes = preparations();
         Map<String, JsonObject> producers = new HashMap<>();
-        for (JsonObject recipe : recipes) producers.putIfAbsent(recipe.getAsJsonObject("result").get("id").getAsString(), recipe);
+        for (JsonObject recipe : recipes) if(recipe.has("result"))producers.putIfAbsent(recipe.getAsJsonObject("result").get("id").getAsString(),recipe);
         int checked = 0;
         for (JsonObject recipe : recipes) {
-            String result = recipe.getAsJsonObject("result").get("id").getAsString();
-            var profile = REGISTRY.profile(result);
-            if (profile.isEmpty()) continue;
-            long count = recipe.getAsJsonObject("result").get("count").getAsLong();
-            assertEquals(ingredients(recipe, producers), ChemistryFixtures.matterFor(profile.orElseThrow(), count), result);
-            checked++;
+            var results=recipe.has("results")?recipe.getAsJsonArray("results"):new com.google.gson.JsonArray();
+            if(recipe.has("result"))results.add(recipe.get("result"));
+            // A complete material vector needs every output; dedicated inverse tests cover unprofiled components.
+            if(results.asList().stream().noneMatch(entry->REGISTRY.profile(entry.getAsJsonObject().get("id").getAsString()).isPresent()))continue;
+            boolean profiled=true;Map<SubstanceKey,Long> outputs=new TreeMap<>();
+            for(var entry:results){
+                var result=entry.getAsJsonObject();String item=result.get("id").getAsString();
+                if(!hasMatter(item,producers,new java.util.HashSet<>())){profiled=false;break;}
+                long count=result.has("count")?result.get("count").getAsLong():1;
+                matter(item,producers).forEach((key,amount)->outputs.merge(key,Math.multiplyExact(amount,count),Math::addExact));
+            }
+            if(!profiled)continue;
+            assertEquals(ingredients(recipe,producers),outputs,results.toString());checked++;
         }
         assertTrue(checked >= 8, "Workshop powders, ceramics and powders keep their ingredient identities");
     }
 
     @Test
-    void renewableNaturalMaterialsCannotReachFreeAluminum() {
-        var reachable = MatterReachability.from(REGISTRY, RENEWABLE_ITEMS, RENEWABLE_FLUIDS);
+    void standaloneReductionIsExplicitAndReferencePackStillClosesFreeAluminum() {
+        var standalone=MatterReachability.from(REGISTRY,RENEWABLE_ITEMS,RENEWABLE_FLUIDS);
+        assertTrue(standalone.matter().contains(BuiltinChemistry.ALUMINA));
+        assertTrue(standalone.matter().contains(ALUMINUM),"Field4 industrial reduction is an explicit standalone route");
+        var pack=ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES,Path.of("integrations/reforging/datapack"));
+        var reachable=MatterReachability.from(pack,RENEWABLE_ITEMS,RENEWABLE_FLUIDS);
         assertTrue(reachable.matter().contains(BuiltinChemistry.ALUMINA));
-        assertFalse(reachable.matter().contains(ALUMINUM), "No reduction route releases aluminum from clay or rock");
+        assertFalse(reachable.matter().contains(ALUMINUM),"Reference-pack reduction stays disabled until its individual audit");
+    }
+
+    private static boolean hasMatter(String item,Map<String,JsonObject> producers,Set<String> seen){
+        if(REGISTRY.profile(item).isPresent())return true;
+        if(!seen.add(item))return false;
+        var source=producers.get(item);if(source==null)return false;
+        for(var slot:List.of("primary","secondary","tertiary"))if(source.has(slot)){
+            String ingredient=source.get(slot).getAsString();
+            if(ingredient.startsWith("#"))ingredient=taggedProfile(ingredient.substring(1));
+            if(!hasMatter(ingredient,producers,new java.util.HashSet<>(seen)))return false;
+        }
+        return true;
     }
 
     private static Map<SubstanceKey, Long> ingredients(JsonObject recipe, Map<String, JsonObject> producers) {

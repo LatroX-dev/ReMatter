@@ -1,34 +1,117 @@
 {
-  "variants": {
-    "facing=north,active=false": {
-      "model": "rematter:block/industrial_preparator"
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator"
+      }
     },
-    "facing=north,active=true": {
-      "model": "rematter:block/industrial_preparator_active"
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator",
+        "y": 90
+      }
     },
-    "facing=east,active=false": {
-      "model": "rematter:block/industrial_preparator",
-      "y": 90
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator",
+        "y": 180
+      }
     },
-    "facing=east,active=true": {
-      "model": "rematter:block/industrial_preparator_active",
-      "y": 90
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator",
+        "y": 270
+      }
     },
-    "facing=south,active=false": {
-      "model": "rematter:block/industrial_preparator",
-      "y": 180
+    {
+      "when": {
+        "facing": "north",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_idle_parts"
+      }
     },
-    "facing=south,active=true": {
-      "model": "rematter:block/industrial_preparator_active",
-      "y": 180
+    {
+      "when": {
+        "facing": "east",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_idle_parts",
+        "y": 90
+      }
     },
-    "facing=west,active=false": {
-      "model": "rematter:block/industrial_preparator",
-      "y": 270
+    {
+      "when": {
+        "facing": "south",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_idle_parts",
+        "y": 180
+      }
     },
-    "facing=west,active=true": {
-      "model": "rematter:block/industrial_preparator_active",
-      "y": 270
+    {
+      "when": {
+        "facing": "west",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_idle_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_active_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_active_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_active_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/industrial_preparator_active_parts",
+        "y": 270
+      }
     }
-  }
+  ]
 }

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Boron",
+  "items": [
+    "colossal_reactors:boron_block",
+    "colossal_reactors:boron_dust",
+    "colossal_reactors:boron_ingot",
+    "colossal_reactors:boron_ore",
+    "colossal_reactors:boron_raw",
+    "colossal_reactors:deep_boron_ore",
+    "colossal_reactors:raw_boron_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:boron",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

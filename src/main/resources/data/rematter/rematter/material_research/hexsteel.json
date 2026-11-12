@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Hexsteel",
+  "items": [
+    "hextale:hexsteel_block",
+    "hextale:hexsteel_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:hextech",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

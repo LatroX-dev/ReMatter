@@ -1,0 +1,134 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "cable": "rematter:block/matter_cable"
+  },
+  "elements": [
+    {
+      "name": "flange",
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cable",
+          "uv": [
+            10,
+            4,
+            16,
+            10
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#cable",
+          "uv": [
+            10,
+            4,
+            16,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            10,
+            0,
+            12
+          ],
+          "rotation": 90
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            12,
+            0,
+            10
+          ],
+          "rotation": 90
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            10,
+            6,
+            12
+          ]
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            12,
+            6,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "shaft",
+      "from": [
+        6,
+        6,
+        2
+      ],
+      "to": [
+        10,
+        10,
+        6
+      ],
+      "faces": {
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            0,
+            2,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            2,
+            0,
+            6,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            2,
+            4,
+            6,
+            0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            4,
+            2,
+            0
+          ],
+          "rotation": 90
+        }
+      }
+    }
+  ]
+}

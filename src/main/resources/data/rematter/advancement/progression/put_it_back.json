@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.put_it_back.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.put_it_back.description"
+    },
+    "icon": {
+      "id": "rematter:material_synthesizer"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ],
+  "parent": "rematter:progression/first_lesson"
+}

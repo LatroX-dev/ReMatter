@@ -54,3 +54,6 @@ local.properties
 *.7z
 *.tar
 *.tar.gz
+
+# Local agent tool configuration
+.codex/

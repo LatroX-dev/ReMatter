@@ -1,14 +1,12 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "particle": "rematter:block/graphite",
-    "conductor": "rematter:block/machine_amber",
-    "shield": "rematter:block/cable_sleeve_lumivex",
-    "trace": "rematter:block/resonant_matter_cable_traces",
-    "junction": "rematter:block/resonant_matter_cable_contacts"
+    "particle": "rematter:block/resonant_matter_cable",
+    "cable": "rematter:block/resonant_matter_cable"
   },
   "elements": [
     {
+      "name": "run",
       "from": [
         6,
         6,
@@ -17,168 +15,66 @@
       "to": [
         10,
         10,
-        6
-      ],
-      "faces": {
-        "east": {
-          "texture": "#trace",
-          "uv": [
-            10,
-            0,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#trace",
-          "uv": [
-            0,
-            0,
-            6,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#trace",
-          "uv": [
-            0,
-            0,
-            6,
-            16
-          ],
-          "rotation": 90
-        },
-        "down": {
-          "texture": "#trace",
-          "uv": [
-            10,
-            0,
-            16,
-            16
-          ],
-          "rotation": 90
-        },
-        "north": {
-          "texture": "#junction",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        }
-      }
-    },
-    {
-      "from": [
-        6,
-        6,
-        6
-      ],
-      "to": [
-        10,
-        10,
-        10
-      ],
-      "faces": {
-        "east": {
-          "texture": "#trace",
-          "uv": [
-            6,
-            0,
-            10,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#trace",
-          "uv": [
-            6,
-            0,
-            10,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#trace",
-          "uv": [
-            6,
-            0,
-            10,
-            16
-          ],
-          "rotation": 90
-        },
-        "down": {
-          "texture": "#trace",
-          "uv": [
-            6,
-            0,
-            10,
-            16
-          ],
-          "rotation": 90
-        }
-      }
-    },
-    {
-      "from": [
-        6,
-        6,
-        10
-      ],
-      "to": [
-        10,
-        10,
         16
       ],
       "faces": {
-        "east": {
-          "texture": "#trace",
+        "north": {
+          "texture": "#cable",
           "uv": [
             0,
+            4,
+            4,
+            8
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#cable",
+          "uv": [
             0,
-            6,
-            16
+            4,
+            4,
+            8
+          ],
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            16,
+            0,
+            0,
+            4
           ]
         },
         "west": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
-            10,
+            0,
             0,
             16,
-            16
+            4
           ]
         },
         "up": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
             0,
-            0,
-            6,
-            16
+            4,
+            16,
+            0
           ],
-          "rotation": 270
+          "rotation": 90
         },
         "down": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
-            10,
-            0,
             16,
-            16
+            4,
+            0,
+            0
           ],
-          "rotation": 270
-        },
-        "south": {
-          "texture": "#junction",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
+          "rotation": 90
         }
       }
     }

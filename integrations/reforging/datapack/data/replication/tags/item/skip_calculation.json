@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "#reforging:rematter/stateful_machines"
+    "#reforging:rematter/stateful_machines",
+    "#reforging:rematter/primal_items"
   ]
 }

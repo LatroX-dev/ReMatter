@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Quicksilver",
+  "items": [
+    "jaopca:storage_blocks.quicksilver",
+    "thaumaturge:nugget_quicksilver",
+    "thaumaturge:quicksilver"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:mercury",
+      "phase": "liquid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

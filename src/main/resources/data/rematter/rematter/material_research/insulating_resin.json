@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Insulating Resin",
+  "items": [
+    "appflux:harden_insulating_resin",
+    "jaopca:storage_blocks.insulating_resin"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

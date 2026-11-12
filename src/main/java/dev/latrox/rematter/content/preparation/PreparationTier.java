@@ -10,9 +10,10 @@ public final class PreparationTier {
     public static boolean industrial(MachineKind kind){return kind==MachineKind.INDUSTRIAL_PREPARATOR;}
     public static boolean permits(MachineKind kind,int minimumTier){return permits(kind,minimumTier,PreparationRecipe.PREPARATION);}
     public static boolean permits(MachineKind kind,int minimumTier,String process){
-        if(!isPreparation(kind)||minimumTier<0||minimumTier>1)return false;
-        if(PreparationRecipe.SINTERING.equals(process))return kind==MachineKind.SINTER_FURNACE;
-        return PreparationRecipe.PREPARATION.equals(process)&&kind!=MachineKind.SINTER_FURNACE&&(!manual(kind)||minimumTier==0);
+        if(!isPreparation(kind)||minimumTier<0||minimumTier>2)return false;
+        if(PreparationRecipe.SINTERING.equals(process))return kind==MachineKind.SINTER_FURNACE&&minimumTier<2;
+        return PreparationRecipe.PREPARATION.equals(process)&&kind!=MachineKind.SINTER_FURNACE
+                &&(minimumTier<2||industrial(kind))&&(!manual(kind)||minimumTier==0);
     }
     public static int speed(MachineKind kind){return industrial(kind)?4:1;}
     public static int energyMultiplier(MachineKind kind){return manual(kind)?0:industrial(kind)?2:1;}

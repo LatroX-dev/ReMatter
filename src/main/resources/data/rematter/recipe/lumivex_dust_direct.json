@@ -1,0 +1,19 @@
+{
+  "type": "rematter:preparation",
+  "primary": "#c:ingots/copper",
+  "primary_count": 3,
+  "secondary": "#c:ingots/gold",
+  "tertiary": "minecraft:glowstone_dust",
+  "energy": 26000,
+  "ticks": 400,
+  "minimum_tier": 2,
+  "result": {
+    "id": "rematter:lumivex_dust",
+    "count": 4
+  },
+  "min_precision": 1,
+  "steps": [
+    "grind",
+    "mix"
+  ]
+}

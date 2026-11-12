@@ -8,7 +8,7 @@ item_ids:
 ---
 # A Cell of material, a choice of products
 
-Start by turning **sand into stored silica, then glass**. First make the crystal medium with a Hand Preparator and furnace. Then connect a Decomposer, a Matter Drive and a Synthesizer. Put one reusable Matter Cell in the Drive and supply external FE to the processors.
+Start by turning **sand into stored silica, then glass**. Make the crystal medium with a Hand Preparator and furnace. Connect a Decomposer, Matter Drive and Synthesizer, insert an ordinary Cell in the Drive and provide FE. Decomposing Sand teaches its material family; then synthesize an explicitly approved form, such as Glass.
 
 1. [Craft the starter kit](setup.md).
 2. [Make your first glass](copper.md).
@@ -17,9 +17,9 @@ Start by turning **sand into stored silica, then glass**. First make the crystal
 5. [Make powders, alloys and ceramic](metallurgy.md).
 6. [Color crystals and make advanced components](advanced.md).
 
-The Cell holds your ingredients. The Synthesizer's product list tells you what you can make from them; knowing a recipe does not supply its material.
+The Cell holds real ingredients. Research is another permission, never a source of material. The Synthesizer lists explicitly approved forms and their research status. Unknown forms remain visible so you can plan a learning path.
 
-An Analyzer, Terminal, AE2 and Refined Storage are optional. The Drive gives both starter machines access to the same Cell.
+An Analyzer is optional when you learn through decomposition. Terminal, AE2 and Refined Storage are also optional. Later, read [Research](analyzer.md), [Primal Cells](primal.md), [Discovery](discovery.md), [Hardware](hardware.md), [Cable budgets](throughput.md), [Crystal power](generation.md) and [Entangled Links](links.md).
 
 <SubPages />
 
@@ -31,13 +31,13 @@ Use the book to return here. **Sneak-use** opens the basic vanilla book, which a
 
 ## Read the controls
 
-Hover a symbol to see its full name and explanation. The side tabs open **Process** or **Contents**, **Upgrades**, and **Configuration**. The triangle starts or resumes work; the two bars pause it. The lightning symbol shows exact FE on hover. Ingredient and output markers explain their slots, while the recipe name and current status stay visible.
+Hover a symbol to see its full name and explanation. The side tabs open **Machine** or **Contents**, and **Settings**. Terminal also has **Machines**; Analyzer has **Research**. Upgrade slots stay on the main machine view. The triangle starts or resumes work; the two bars pause it. The lightning symbol shows exact FE on hover. Ingredient and output markers explain their slots, while the recipe name and current status stay visible.
 
-In **Configuration**, hover the automation and network symbols before switching them on. Their small On/Off labels show the current setting. Hover the Speed and Efficiency symbols in **Upgrades** for their effects.
+In **Settings**, choose Sides, Production or Access. Hover automation and network-job controls before enabling them. The preview is separate from the actual output slot; its icon does not contain a free item.
 
 ## What the crystal means
 
-A Matrix Crystal is a reusable material holder, inspired by selective binding in porous structures. Its universal storage ability here is fictional. It does not create elements or supply energy.
+A Matrix Crystal installed in a device is a reusable material holder, inspired by selective binding in porous structures. Its universal storage ability is fictional. A loose crystal deliberately inserted into an enabled generator is consumed for FE; installed crystals are not consumed per operation.
 
 The Cell's contents are actual quantities, not an item pattern or a research unlock. Read [Materials and the matrix](materials.md) after your first batch.
 

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "name": "Cinnabar",
+  "items": [
+    "alltheores:cinnabar",
+    "alltheores:cinnabar_block",
+    "alltheores:cinnabar_dust",
+    "alltheores:cinnabar_ore",
+    "alltheores:deepslate_cinnabar_ore",
+    "alltheores:end_cinnabar_ore",
+    "alltheores:nether_cinnabar_ore",
+    "alltheores:other_cinnabar_ore",
+    "thaumaturge:deepslate_ore_cinnabar",
+    "thaumaturge:ore_cinnabar",
+    "thaumaturge:raw_cinnabar"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinnabar",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

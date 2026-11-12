@@ -1,6 +1,0 @@
-{
-  "parent": "rematter:block/sinter_furnace_socket_back",
-  "textures": {
-    "teal": "rematter:block/machine_ember"
-  }
-}

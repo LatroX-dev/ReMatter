@@ -8,12 +8,16 @@ from pathlib import Path
 
 
 MACHINE_TAG = Path(__file__).parent / "datapack/data/reforging/tags/item/rematter/stateful_machines.json"
+PRIMAL_TAG = Path(__file__).parent / "datapack/data/reforging/tags/item/rematter/primal_items.json"
 
 
 def protected_items():
-    with MACHINE_TAG.open(encoding="utf-8") as stream:
-        tag = json.load(stream)
-    return tuple(entry["id"] for entry in tag["values"])
+    protected = []
+    for path in (MACHINE_TAG, PRIMAL_TAG):
+        with path.open(encoding="utf-8") as stream:
+            tag = json.load(stream)
+        protected.extend(entry["id"] for entry in tag["values"])
+    return tuple(dict.fromkeys(protected))
 
 
 def merge_exclusions(document):

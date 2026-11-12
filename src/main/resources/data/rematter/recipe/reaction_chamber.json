@@ -10,7 +10,7 @@
     "G": "rematter:reactor_glass",
     "D": "rematter:diamond_lattice",
     "V": "rematter:virelite_ceramic",
-    "M": "rematter:matrix_cluster",
+    "M": "rematter:violet_matrix_crystal",
     "F": "rematter:machine_frame",
     "O": "rematter:optical_circuit"
   },

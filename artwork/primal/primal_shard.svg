@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<linearGradient id="glint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="0.6" stop-color="#e7dcff"/><stop offset="1" stop-color="#c9b6ff"/></linearGradient>
+<linearGradient id="lit" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ddd0ff"/><stop offset="0.4" stop-color="#ae8eff"/><stop offset="1" stop-color="#9a72ff"/></linearGradient>
+<linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a680ff"/><stop offset="0.5" stop-color="#8a5cff"/><stop offset="1" stop-color="#6f43e8"/></linearGradient>
+<linearGradient id="shade" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d40e2"/><stop offset="0.55" stop-color="#4c24b2"/><stop offset="1" stop-color="#371a86"/></linearGradient>
+<linearGradient id="dark" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4c24b2"/><stop offset="1" stop-color="#2a1368"/></linearGradient>
+<linearGradient id="prism" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5cc8ff"/><stop offset="0.42" stop-color="#5cc8ff" stop-opacity="0"/><stop offset="0.58" stop-color="#ff6ad5" stop-opacity="0"/><stop offset="1" stop-color="#ff6ad5"/></linearGradient>
+<radialGradient id="core"><stop offset="0" stop-color="#ffffff"/><stop offset="0.42" stop-color="#ffffff"/><stop offset="0.7" stop-color="#efe6ff" stop-opacity="0.85"/><stop offset="1" stop-color="#ae8eff" stop-opacity="0"/></radialGradient>
+<clipPath id="raw"><polygon points="103,14 112,37 91,78 77,104 63,96 53,115 37,103 24,111 21,88 45,52 79,23" fill="#000"/></clipPath>
+<clipPath id="chip"><polygon points="90,91 109,76 115,94 101,114 85,110" fill="#000"/></clipPath>
+</defs>
+<polygon points="90,91 109,76 115,94 101,114 85,110" fill="#1e1546" stroke="#1e1546" stroke-width="10" stroke-linejoin="round"/>
+<polygon points="90,91 109,76 99,97 85,110" fill="url(#body)"/>
+<polygon points="109,76 115,94 101,114 85,110 99,97" fill="url(#shade)"/>
+<polygon points="90,91 109,76 115,94 101,114 85,110" fill="none" stroke="url(#prism)" stroke-width="9" stroke-linejoin="round" clip-path="url(#chip)"/>
+<polyline points="109,76 99,97 85,110" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/>
+<polygon points="103,14 112,37 91,78 77,104 63,96 53,115 37,103 24,111 21,88 45,52 79,23" fill="#1e1546" stroke="#1e1546" stroke-width="10" stroke-linejoin="round"/>
+<polygon points="103,14 79,23 45,52 21,88 39,95 57,85" fill="url(#lit)"/>
+<polygon points="103,14 112,37 91,78 77,104 63,96 57,85" fill="url(#body)"/>
+<polygon points="112,37 91,78 77,104 88,70" fill="url(#shade)"/>
+<polygon points="21,88 24,111 37,103 39,95" fill="url(#shade)"/>
+<polygon points="39,95 37,103 53,115 63,96 57,85" fill="url(#dark)"/>
+<ellipse cx="78" cy="55" rx="9" ry="44" transform="rotate(38 78 55)" fill="url(#core)"/>
+<polygon points="98,24 101,30 64,84 57,91 53,86 59,76" fill="#ffffff"/>
+<polygon points="103,14 112,37 91,78 77,104 63,96 53,115 37,103 24,111 21,88 45,52 79,23" fill="none" stroke="url(#prism)" stroke-width="9" stroke-linejoin="round" clip-path="url(#raw)"/>
+<polyline points="103,14 57,85 39,95" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/>
+<polyline points="57,85 63,96" fill="none" stroke="#2a1368" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/>
+<polyline points="103,14 88,70 77,104" fill="none" stroke="#2a1368" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+<polyline points="39,95 37,103" fill="none" stroke="#2a1368" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+<polygon points="74,33 79,35 52,69 48,65" fill="#ffffff" opacity=".55"/>
+<polygon points="40,71 44,74 33,88 30,85" fill="#ffffff" opacity=".4"/>
+</svg>

@@ -177,8 +177,13 @@ class WorkshopMaterialsTest {
         assertFallback(oritech, List.of("alltheores:diamond_dust", "ftbmaterials:diamond_dust"));
     }
 
-    @Test void onlyAlloyRecyclingIsExcludedFromAutomaticNetworkPatterns() throws Exception {
+    @Test void inverseAndPrimalWorkshopRecipesStayOutOfAutomaticNetworkPatterns() throws Exception {
         Set<String> recycling = Set.of("rhevon_dust_from_ingot", "lumivex_dust_from_ingot");
+        Set<String> excluded = Set.of("rhevon_dust_from_ingot","lumivex_dust_from_ingot",
+                "rhevon_dust_separation","lumivex_dust_separation","cell_rack_reclaim","machine_frame_reclaim",
+                "ice_matrix_crystal_reclaim","copper_matrix_crystal_reclaim","leaf_matrix_crystal_reclaim","violet_matrix_crystal_reclaim",
+                "amber_matrix_crystal_reclaim","ember_matrix_crystal_reclaim","blue_matrix_crystal_reclaim","mint_matrix_crystal_reclaim",
+                "primal_crystal","discovery_lens");
         Path recipes = DATA.resolve("rematter/recipe");
         try (var files = Files.walk(recipes)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
@@ -186,7 +191,16 @@ class WorkshopMaterialsTest {
                 if (!recipe.get("type").getAsString().equals("rematter:preparation")) continue;
                 String id = recipes.relativize(file).toString().replace('\\', '/').replaceFirst("\\.json$", "");
                 boolean exported = !recipe.has("network_recipe") || recipe.get("network_recipe").getAsBoolean();
-                assertEquals(!recycling.contains(id), exported, id);
+                assertEquals(!excluded.contains(id), exported, id);
+                int tier=recipe.has("minimum_tier")?recipe.get("minimum_tier").getAsInt():0;
+                assertTrue(tier>=0&&tier<=2,id);
+                if(recipe.has("min_precision"))assertEquals(2,tier,"Precision belongs to the industrial tier: "+id);
+                if(recipe.has("results")){
+                    assertEquals(2,tier,id);assertFalse(recipe.has("result")||recipe.has("secondary")||recipe.has("tertiary"),id);
+                    var outputs=recipe.getAsJsonArray("results");assertTrue(outputs.size()>=1&&outputs.size()<=3,id);
+                    assertEquals(List.of("separate"),recipe.getAsJsonArray("steps").asList().stream().map(e->e.getAsString()).toList());
+                    for(var entry:outputs){var result=entry.getAsJsonObject();assertEquals(Set.of("id","count"),result.keySet(),id);assertTrue(result.get("count").getAsInt()>=1&&result.get("count").getAsInt()<=64,id);}
+                }else assertTrue(recipe.has("result"),id);
             }
         }
         for (String id : recycling) {

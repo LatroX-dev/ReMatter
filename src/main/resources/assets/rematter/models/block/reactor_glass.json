@@ -1,29 +1,12 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "ceramic": "rematter:block/ceramic",
-    "graphite": "rematter:block/graphite",
-    "brushed_steel": "rematter:block/brushed_steel",
-    "copper_trim": "rematter:block/copper_trim",
-    "frame": "rematter:block/frame",
-    "rubber": "rematter:block/rubber",
-    "hazard": "rematter:block/hazard",
-    "port_matter": "rematter:block/port_matter",
-    "port_energy": "rematter:block/port_energy",
-    "vent": "rematter:block/vent",
-    "panel": "rematter:block/panel",
-    "keyboard": "rematter:block/keyboard",
-    "vessel": "rematter:block/vessel",
-    "screen": "rematter:block/display_idle",
-    "status": "rematter:block/indicator_idle",
-    "wood": "rematter:block/bench_wood",
-    "particle": "rematter:block/graphite",
-    "teal": "rematter:block/reaction_chamber_crystal",
-    "housing": "rematter:block/frame",
-    "glass": "rematter:block/reactor_glass"
+    "particle": "rematter:block/reactor_glass_pane",
+    "all": "rematter:block/reactor_glass_pane"
   },
   "elements": [
     {
+      "name": "body",
       "from": [
         0,
         0,
@@ -36,63 +19,27 @@
       ],
       "faces": {
         "north": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "north"
         },
         "south": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "south"
         },
         "east": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "east"
         },
         "west": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "west"
         },
         "up": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "up"
         },
         "down": {
-          "texture": "#glass",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "down"
         }
       }

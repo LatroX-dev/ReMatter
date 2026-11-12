@@ -100,6 +100,7 @@ public final class IndustrialStructure {
         public int moduleCount() { return formed ? (int) modules.stream().filter(m -> m.kind == IndustrialModuleKind.GRINDING_UNIT || m.kind == IndustrialModuleKind.REACTION_CHAMBER).count() : 0; }
         public IndustrialPerformance performance() { return performance; }
         public int baseWorkRate(MachineKind kind) { return performance.workRate(kind); }
+        public int laneRoom(MachineKind kind) { return formed && shape != null ? IndustrialStructure.laneRoom(kind, shape.height()) : 0; }
         public String layoutFingerprint() { return layoutFingerprint; }
         static Formation invalid(@Nullable Shape shape,String diagnostic) { return new Formation(false,shape,List.of(),List.of(),diagnostic); }
     }
@@ -151,6 +152,11 @@ public final class IndustrialStructure {
     public static int height(MachineKind kind) {
         return switch (kind) { case INDUSTRIAL_PREPARATOR -> 5; case INDUSTRIAL_REACTOR -> 4;
             default -> throw new IllegalArgumentException("Not an industrial controller"); };
+    }
+    /** Extra outer height permits extra workers; it never multiplies a single recipe. */
+    public static int laneRoom(MachineKind kind, int outerHeight) {
+        int minimum = height(kind);
+        return outerHeight < minimum ? 0 : Math.min(4, 1 + outerHeight - minimum);
     }
     public static List<Cell> layout(Shape shape) {
         var cells = new ArrayList<Cell>(shape.width * shape.height * shape.depth);

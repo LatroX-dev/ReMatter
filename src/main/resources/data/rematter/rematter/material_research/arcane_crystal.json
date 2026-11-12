@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Arcane Crystal",
+  "items": [
+    "forbidden_arcanus:arcane_crystal",
+    "forbidden_arcanus:arcane_crystal_block",
+    "forbidden_arcanus:arcane_crystal_dust",
+    "forbidden_arcanus:arcane_crystal_ore",
+    "forbidden_arcanus:deepslate_arcane_crystal_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcane_crystal",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": ""
+}

@@ -14,10 +14,6 @@
       "required": false
     },
     {
-      "id": "rematter:electrolyzer",
-      "required": false
-    },
-    {
       "id": "rematter:chemical_reactor",
       "required": false
     },
@@ -74,19 +70,15 @@
       "required": false
     },
     {
-      "id": "rematter:separator",
+      "id": "rematter:primal_converter",
       "required": false
     },
     {
-      "id": "rematter:thermal_processor",
+      "id": "rematter:crystal_generator",
       "required": false
     },
     {
-      "id": "rematter:crystallizer",
-      "required": false
-    },
-    {
-      "id": "rematter:air_separator",
+      "id": "rematter:industrial_crystal_generator",
       "required": false
     }
   ]

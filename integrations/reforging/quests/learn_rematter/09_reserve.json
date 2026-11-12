@@ -1,9 +1,10 @@
 {
   "title": "Scale a Measured Reserve",
   "description": [
-    "Choose a useful process and set Production settings to a target divisible by its complete batch yield. Processes count one substance and phase in connected ReMatter stock. Physical outputs count only their local buffer, not a chest or AE2/RS stock.",
-    "Industrial chambers accept up to three Parallel Upgrades for four concurrent batches. Each reserves its full inputs, FE and output space, and pays its complete effective FE price. Parallel, Speed and Efficiency share one slot. All savings together cap at 25%.",
-    "Use Locate missing part on an invalid controller to find its first diagnosed block. After closing the menu, the outline remains briefly. Test a full output, power interruption and repair before leaving the line unattended."
+    "Choose a useful process and set Production settings to a target divisible by its complete batch yield. Processes count one substance and phase in connected ReMatter stock. Physical outputs count only their local buffer, not chest or AE2/RS stock.",
+    "Industrial Speed, Efficiency and Parallel have separate slots. Up to three Parallel Upgrades enable four lanes only when chamber height and module capacity also support them. Each lane pays its full FE. A Reaction Chamber supplies 16,000 input units; a Preparation Chamber supplies job capacity. Hardware raises Field or Precision, not an energy discount. Savings together cap at 25%.",
+    "All lanes share their controller's single matter budget: 128 / 1,024 / 8,192 units per tick on the best usable cable route. Extra equal ports do not add speed. Native FE input shares 2,048 / 16,384 / 131,072 FE per tick and the same absolute controller limit as foreign power.",
+    "Use Locate missing part to diagnose an invalid chamber. Test a full output, power interruption and repair before leaving the line unattended. Primal Cells are separate reserves: ordinary jobs never consume them. The Primal Converter runs only an explicitly confirmed finite conversion."
   ],
   "icon": "rematter:parallel_upgrade",
   "x": 7.2,

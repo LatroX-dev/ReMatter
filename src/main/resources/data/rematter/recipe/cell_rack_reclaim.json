@@ -1,0 +1,27 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:cell_rack",
+  "primary_count": 2,
+  "energy": 4000,
+  "ticks": 120,
+  "minimum_tier": 2,
+  "results": [
+    {
+      "id": "rematter:structural_bars",
+      "count": 6
+    },
+    {
+      "id": "rematter:control_circuit",
+      "count": 2
+    },
+    {
+      "id": "rematter:silith",
+      "count": 1
+    }
+  ],
+  "min_precision": 4,
+  "steps": [
+    "separate"
+  ],
+  "network_recipe": false
+}

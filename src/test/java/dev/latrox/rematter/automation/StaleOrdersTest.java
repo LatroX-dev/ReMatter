@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StaleOrdersTest {
     private static final Resource WATER=Resource.matter(BuiltinChemistry.WATER), HYDROGEN=Resource.matter(BuiltinChemistry.HYDROGEN);
-    private static final Recipe ORIGINAL=AutomationRecipeCatalogue.recipe("rematter:automation/process/rematter/electrolysis","electrolyzer",
+    private static final Recipe ORIGINAL=AutomationRecipeCatalogue.recipe("rematter:automation/process/rematter/electrolysis","chemical_reactor",
             Map.of(WATER,1000L),Map.of(HYDROGEN,1000L),4000,20);
 
     @Test void aVanishedRecipeRefundsTheExactTransferredInputsAfterTheGracePeriod() {

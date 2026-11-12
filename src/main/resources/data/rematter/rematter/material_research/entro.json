@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Entro",
+  "items": [
+    "extendedae:entro_block",
+    "extendedae:entro_crystal",
+    "extendedae:entro_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:entro",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,10 +1,7 @@
 {
   "parent": "rematter:block/matter_cable_geometry_arm",
   "textures": {
-    "particle": "rematter:block/graphite",
-    "conductor": "rematter:block/machine_amber",
-    "shield": "rematter:block/cable_sleeve_lumivex",
-    "trace": "rematter:block/resonant_matter_cable_traces",
-    "junction": "rematter:block/resonant_matter_cable_contacts"
+    "particle": "rematter:block/resonant_matter_cable",
+    "cable": "rematter:block/resonant_matter_cable"
   }
 }

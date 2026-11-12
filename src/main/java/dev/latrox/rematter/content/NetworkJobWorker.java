@@ -24,7 +24,7 @@ final class NetworkJobWorker {
     boolean readyClaim() {
         var order=currentOrder();if(order==null||!machine.acceptsNetworkWork())return false;
         var recipe=order.recipe();
-        return machine.crystallizationTier()>=recipe.requiredTier()&&machine.progressAllows(recipe.requiresAdvancement())
+        return MachineAutomationRecipes.supports(machine,recipe)
                 &&machine.energy().getAmountAsLong()>=machine.cost(baseEnergy(recipe.energy()));
     }
     boolean has(MachineAutomationHost host, UUID order) { return lease.matches(host, order); }
@@ -35,14 +35,14 @@ final class NetworkJobWorker {
         if (lease.current().isPresent() || !machine.acceptsNetworkWork() || !host.active()) return false;
         var topology = machine.matterNetwork(true);
         if (!topology.ready() || !topology.interfaces().contains(host.machine()) || !lease.tryAcquire(host, order)) return false;
-        machine.resetProgress(); assignedTopology = topology; signature = "";
+        machine.resetProgressRetainingTransfer(); assignedTopology = topology; signature = "";
         return true;
     }
 
     void release(MachineAutomationHost host, UUID order) {
         if (!lease.release(host, order)) return;
         assignedTopology = null; signature = ""; parallelBatches=0;
-        machine.resetProgress(); machine.work().processedThisTick = false;
+        machine.resetProgressRetainingTransfer(); machine.work().processedThisTick = false;
     }
 
     void release() {
@@ -83,6 +83,7 @@ final class NetworkJobWorker {
             release(claim); work.status = "storage_changed"; return;
         }
         var recipe = order.recipe();
+        if(!MachineAutomationRecipes.supports(machine,recipe)){host.cancelRestricted(orderId,machine);work.status="requires_research";return;}
         if(!machine.progressAllows(recipe.requiresAdvancement())) {host.cancelRestricted(orderId,machine);work.status="requires_advancement";return;}
         if(machine.crystallizationTier()<recipe.requiredTier()) {release(claim);work.status="requires_pressure";return;}
         long required = machine.cost(baseEnergy(recipe.energy()));
@@ -92,8 +93,16 @@ final class NetworkJobWorker {
         if (!signature.isEmpty() && !signature.equals(current)) { release(claim); work.status = "network_controlled"; return; }
         signature = current;
         var energy = machine.energy();
-        if(parallelBatches==0)parallelBatches=(int)Math.min(Math.min(machine.parallelCapacity(),order.remainingBatches()),energy.getAmountAsLong()/Math.max(1,required));
+        if(parallelBatches==0){
+            int capacity=MachineAutomationRecipes.capacity(machine,recipe,machine.parallelCapacity());
+            var inputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();recipe.inputs().forEach((key,amount)->{if(key.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)inputs.put(key.matterKey(),amount);});
+            capacity=machine.capacityForInputs(inputs,capacity);
+            parallelBatches=(int)Math.min(Math.min(capacity,order.remainingBatches()),energy.getAmountAsLong()/Math.max(1,required));
+        }
         if (parallelBatches==0||energy.getAmountAsLong() < required*parallelBatches) { work.status = "insufficient_energy"; return; }
+        var inMatter=recipe.inputs().entrySet().stream().filter(e->e.getKey().kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER).map(java.util.Map.Entry::getValue).toList();
+        var outMatter=recipe.outputs().entrySet().stream().filter(e->e.getKey().kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER).map(java.util.Map.Entry::getValue).toList();
+        boolean transferred=machine.advanceNetworkTransfer(orderId+":"+recipe.revision(),ControllerThroughput.units(inMatter,outMatter,parallelBatches));
         if (!host.advance(orderId, machine, speed)) { release(claim); work.status = "network_controlled"; return; }
         order = host.order(orderId, machine);
         if (order == null) { release(claim); work.status = "network_controlled"; return; }
@@ -103,6 +112,7 @@ final class NetworkJobWorker {
         work.preparationStage = preparation ? PreparationWork.stage(work.progress, work.duration) : -1;
         work.preparationMixing = preparation && recipe.inputs().values().stream().mapToLong(Long::longValue).sum() > 1;
         work.status = preparation ? PreparationWork.stageName(work.preparationStage, work.preparationMixing, machine.kind() == MachineKind.SINTER_FURNACE) : "working";
+        if(work.progress>=work.duration&&!transferred){work.status="cable_limited";return;}
         if (work.progress >= work.duration) {
             var fresh = machine.matterNetwork(true);
             if (!fresh.ready() || !assignedTopology.sameTopology(fresh) || !machine.acceptsNetworkWork() || energy.getAmountAsLong() < required) {
@@ -115,8 +125,24 @@ final class NetworkJobWorker {
                 var finishing=host.order(orderId,machine);
                 if(finishing==null||!host.complete(orderId,machine)) {release(claim);work.status="network_controlled";return;}
                 energy.set((int)(energy.getAmountAsLong()-required));
+                machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.HANDS_OFF);
+                if(machine.kind().synthesis()) {
+                    machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.PUT_IT_BACK);
+                    if(recipe.requiredTier()>1)machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.PROPER_TOOLS);
+                }
+                if(machine.kind()==MachineKind.INDUSTRIAL_REACTOR)
+                    dev.latrox.rematter.ReMatter.chemistry().processes().stream()
+                            .filter(process->dev.latrox.rematter.automation.AutomationRecipeCatalogue.id("process",process.id().toString()).equals(recipe.id())
+                                    &&process.requiresKnownOutputs()&&process.type()==dev.latrox.rematter.chemistry.ProcessType.CRYSTALLIZATION)
+                            .findFirst().ifPresent(process->machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.GROWN_NOT_MINED));
+                if(machine.kind()==MachineKind.DECOMPOSER)for(var input:recipe.inputs().keySet())if(input.kind()!=dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)machine.learnMaterial(input.id(),dev.latrox.rematter.research.LearningPath.DECOMPOSITION);
+                if(machine.kind()==MachineKind.REACTOR||machine.kind()==MachineKind.INDUSTRIAL_REACTOR){
+                    var inputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();var outputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();
+                    recipe.inputs().forEach((k,v)->{if(k.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)inputs.put(k.matterKey(),v);});recipe.outputs().forEach((k,v)->{if(k.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)outputs.put(k.matterKey(),v);});machine.learnProcess(inputs,outputs);
+                }
                 if(finishing.remainingBatches()==1)lease.completed(host,orderId,host.backend());
             }
+            machine.completeNetworkTransfer();
             parallelBatches=0;host.changed(); work.progress = 0; work.duration = 0;
         }
         machine.setChanged();

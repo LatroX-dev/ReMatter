@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Thaumium",
+  "items": [
+    "thaumaturge:ingot_thaumium",
+    "thaumaturge:metal_thaumium",
+    "thaumaturge:nugget_thaumium"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

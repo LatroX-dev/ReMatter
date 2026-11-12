@@ -1,0 +1,10 @@
+{
+  "parent": "rematter:block/primal_ore",
+  "textures": {
+    "particle": "minecraft:block/deepslate",
+    "host_side": "minecraft:block/deepslate",
+    "host_end": "minecraft:block/deepslate_top",
+    "socket": "rematter:block/deepslate_primal_ore_socket",
+    "glow": "rematter:block/primal_ore_glow"
+  }
+}

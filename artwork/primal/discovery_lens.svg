@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+<defs>
+<linearGradient id="graphite" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#98a2ab"/><stop offset="0.32" stop-color="#59626c"/><stop offset="0.68" stop-color="#373d45"/><stop offset="1" stop-color="#2b2f35"/></linearGradient>
+<linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#49515a"/><stop offset="1" stop-color="#22262c"/></linearGradient>
+<linearGradient id="steel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1f3f0"/><stop offset="0.45" stop-color="#9aa6ab"/><stop offset="1" stop-color="#56626a"/></linearGradient>
+<radialGradient id="glass" cx=".46" cy=".44" r=".62"><stop offset="0" stop-color="#ffffff"/><stop offset="0.2" stop-color="#efe6ff"/><stop offset="0.46" stop-color="#ae8eff"/><stop offset="0.74" stop-color="#8a5cff"/><stop offset="1" stop-color="#4c24b2"/></radialGradient>
+<linearGradient id="prism" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5cc8ff"/><stop offset="0.38" stop-color="#5cc8ff" stop-opacity="0"/><stop offset="0.62" stop-color="#ff6ad5" stop-opacity="0"/><stop offset="1" stop-color="#ff6ad5"/></linearGradient>
+<clipPath id="pane"><ellipse cx="60" cy="58" rx="28" ry="26.5" transform="rotate(-18 60 58)"/></clipPath>
+</defs>
+<rect x="-9" y="36" width="18" height="30" rx="5" transform="translate(64 62) rotate(-45)" fill="url(#steel)" stroke="#161b22" stroke-width="5"/>
+<circle cx="104.5" cy="102.5" r="3.6" fill="#0a0d11" stroke="#161b22" stroke-width="1.2"/>
+<ellipse cx="67" cy="67" rx="44" ry="42" transform="rotate(-18 60 58)" fill="url(#wall)" stroke="#161b22" stroke-width="5"/>
+<ellipse cx="60" cy="58" rx="44" ry="42" transform="rotate(-18 60 58)" fill="url(#graphite)" stroke="#161b22" stroke-width="5"/>
+<ellipse cx="60" cy="58" rx="40.6" ry="38.6" transform="rotate(-18 60 58)" fill="none" stroke="#c3ccce" stroke-width="1.6" stroke-dasharray="118 400" stroke-dashoffset="-128" stroke-linecap="round" opacity=".8"/>
+<g><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-128 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-114 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-100 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-86 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-72 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-58 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-44 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-30 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-16 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(-2 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(12 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/><line x1="60" y1="17" x2="60" y2="21" transform="rotate(26 60 58)" stroke="#c3ccce" stroke-width="1.5" stroke-linecap="round" opacity=".75"/></g>
+<ellipse cx="60" cy="58" rx="34.5" ry="32.5" transform="rotate(-18 60 58)" fill="url(#steel)" stroke="#161b22" stroke-width="2.6"/>
+<ellipse cx="60" cy="58" rx="29.5" ry="28" transform="rotate(-18 60 58)" fill="#0a0d11" stroke="#161b22" stroke-width="1.6"/>
+<ellipse cx="60" cy="58" rx="28" ry="26.5" transform="rotate(-18 60 58)" fill="url(#glass)"/>
+<g clip-path="url(#pane)">
+<polygon points="58,39 67,47 68,64 61,77 52,68 51,51" fill="#efe6ff" opacity=".55"/>
+<polygon points="58,44 64,50 64.5,63 60.5,72 55,65 54.5,53" fill="#ffffff"/>
+<ellipse cx="60" cy="58" rx="26" ry="24.5" transform="rotate(-18 60 58)" fill="none" stroke="url(#prism)" stroke-width="5"/>
+<path d="M38 48 Q44 33 60 31 Q48 37 43 51 Z" fill="#ffffff" opacity=".8"/>
+<path d="M74 82 Q82 77 85 67 Q84 78 77 84 Z" fill="#ffffff" opacity=".35"/>
+</g>
+<g><rect x="-5" y="-39.5" width="10" height="11" rx="2" transform="translate(60 58) rotate(-58)" fill="url(#steel)" stroke="#161b22" stroke-width="2"/><rect x="-5" y="-39.5" width="10" height="11" rx="2" transform="translate(60 58) rotate(62)" fill="url(#steel)" stroke="#161b22" stroke-width="2"/><rect x="-5" y="-39.5" width="10" height="11" rx="2" transform="translate(60 58) rotate(182)" fill="url(#steel)" stroke="#161b22" stroke-width="2"/></g>
+</svg>

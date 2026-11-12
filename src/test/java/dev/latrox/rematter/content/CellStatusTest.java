@@ -14,4 +14,17 @@ class CellStatusTest {
         assertEquals(CellStatus.FULL,CellStatus.of(true,true,256,64000,256,256));
         assertEquals(CellStatus.LOCKED,CellStatus.decode(7));
     }
+
+    @Test void aDriveIsActiveWhileAnyBayHoldsAReadableCell() {
+        assertFalse(CellStatus.anyReadable(0),"No cells");
+        for(var status:CellStatus.values()) {
+            boolean readable=status==CellStatus.EMPTY||status==CellStatus.STORED||status==CellStatus.FULL;
+            assertEquals(readable,status.readable(),status.name());
+            for(int bay=0;bay<6;bay++)assertEquals(readable,CellStatus.anyReadable(status.ordinal()<<bay*3),status+" in bay "+bay);
+        }
+        int locked=CellStatus.LOCKED.ordinal();
+        assertFalse(CellStatus.anyReadable(locked|locked<<3|locked<<15),"Only unreadable cells");
+        assertTrue(CellStatus.anyReadable(locked|CellStatus.STORED.ordinal()<<15),"One readable cell among unreadable ones");
+        assertFalse(CellStatus.anyReadable(7<<6),"An unknown status value counts as unreadable");
+    }
 }

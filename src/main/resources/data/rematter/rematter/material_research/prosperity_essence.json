@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Prosperity Essence",
+  "items": [
+    "mysticalagradditions:end_prosperity_ore",
+    "mysticalagradditions:nether_prosperity_ore",
+    "mysticalagriculture:deepslate_prosperity_ore",
+    "mysticalagriculture:prosperity_block",
+    "mysticalagriculture:prosperity_ore",
+    "mysticalagriculture:prosperity_shard"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

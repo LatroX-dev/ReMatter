@@ -124,11 +124,11 @@ This **5 wide × 3 deep × 6 high** example uses **46 Casings, 29 Glass, 2 Ports
 
 After formation, sneak-use the outside face of each Machine Port with an empty hand to set its mode. Supply FE at the **Power** Port and connect the **Matter** Port to a Matter Drive network. Keep at least one readable Cell in the Drive.
 
-Select a permitted reaction and request a batch. Missing stock or FE waits safely. Use the controller's structure symbol for module counts, speed and energy savings.
+Select a permitted reaction and request a batch. Missing stock or FE waits safely. Inspect the controller's Field, input process room, speed, efficiency and active-job values.
 
 ## Expand the working field
 
-Each **Reaction Focus adds 2× ordinary reaction speed** before upgrades. A 200-tick recipe takes 100 ticks with one Focus, 50 with two. Extra **Field Stabilizers** save FE with diminishing returns: two give 6%, three give 10%.
+Each **Reaction Focus adds 16,000 u of simultaneous input room**. Each **Field Stabilizer adds Field**; advanced procedures require Field 4 or 8. Neither fitting adds a global speed bonus or an FE discount. See [Hardware and upgrades](hardware.md).
 
 Inputs and outputs stay exact; each controller runs one batch, or up to four with Parallel Upgrades. Empty chamber space adds no throughput. Pause before moving parts: a broken shell restarts the unfinished batch once the chamber forms again.
 
@@ -138,4 +138,4 @@ The formed chamber's Casing, Glass, Ports and fittings can only be broken by pla
 
 Open the controller and use **Locate missing part** when a diagnostic offers a position. Close the menu to see the marked outline in the world; it remains for five seconds. The tooltip names the expected part, coordinates and floor/ceiling mounting. Correct that block and reopen the controller to find the next error. Full ghost-block previews are not included.
 
-Use up to three **Parallel Upgrades** for four concurrent, fully paid batches. Speed, Efficiency and Parallel compete for the same slot. All energy savings together stop at 25%.
+Up to three **Parallel Upgrades** permit four fully paid jobs when chamber height and process room allow them. Speed, Efficiency and Parallel have separate industrial slots. All jobs share [one controller transfer budget](throughput.md); extra cables and ports do not add rates.

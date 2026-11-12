@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Coal",
+  "items": [
+    "enderio:powdered_coal",
+    "ftbic:coal_dust",
+    "mekanism:dust_coal",
+    "minecraft:coal",
+    "minecraft:coal_block",
+    "minecraft:coal_ore",
+    "minecraft:deepslate_coal_ore",
+    "oritech:coal_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:coal",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

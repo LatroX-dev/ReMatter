@@ -1,8 +1,9 @@
 {
-  "title": "Build the Crystal Workshop",
+  "title": "Learn Before You Grow",
   "description": [
-    "The Material Synthesizer makes approved crystal-family products and their equivalent dust, nugget and block forms. Use your existing Synthesizer; another dedicated crystal machine is not required.",
-    "Every diamond form requires a Pressure Module in the Material Synthesizer upgrade slot. That rule also applies to native crafting patterns. Machine parts, equipment, wires, plates and circuits keep their normal recipes."
+    "Analysis keeps a sample and costs twice its decomposition FE and four times its time. Decomposition consumes it while teaching its material family. Already known samples need no paid analysis. Research belongs to the owner and current team; knowing a family never bypasses the synthesis allowlist.",
+    "The Material Synthesizer makes approved known crystal forms. Diamond also requires a Pressure Module. Industrial Reactor growth needs Field 4 or 8 and a known product. These new growth routes stay disabled in this reference integration pending separate pack balance approval.",
+    "The Analyzer Research tab offers Derive from known constituent substances. Discovery is much later: earn 32 families, both industrial milestones, a Discovery Lens and enough paid Primal steps. Its random locked family stays hidden until the complete research finishes."
   ],
   "icon": "rematter:material_synthesizer",
   "x": 0.0,

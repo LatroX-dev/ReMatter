@@ -1,11 +1,12 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "casing": "rematter:block/reactor_casing",
-    "particle": "rematter:block/reactor_casing"
+    "particle": "rematter:block/reactor_casing",
+    "all": "rematter:block/reactor_casing"
   },
   "elements": [
     {
+      "name": "body",
       "from": [
         0,
         0,
@@ -18,63 +19,27 @@
       ],
       "faces": {
         "north": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "north"
         },
         "south": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "south"
         },
         "east": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "east"
         },
         "west": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "west"
         },
         "up": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "up"
         },
         "down": {
-          "texture": "#casing",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#all",
           "cullface": "down"
         }
       }

@@ -1,16 +1,15 @@
 {
+  "parent": "minecraft:block/block",
   "textures": {
-    "ceramic": "rematter:block/ceramic",
-    "graphite": "rematter:block/graphite",
-    "brushed_steel": "rematter:block/brushed_steel",
-    "copper_trim": "rematter:block/copper_trim",
-    "rubber": "rematter:block/rubber",
-    "reaction_chamber_crystal": "rematter:block/machine_amber",
-    "housing": "rematter:block/frame",
-    "particle": "rematter:block/graphite"
+    "particle": "rematter:block/module_mount_top",
+    "body": "rematter:block/module_field_coil",
+    "mount": "rematter:block/module_mount",
+    "port": "rematter:block/casing_port",
+    "seat": "rematter:block/module_mount_top"
   },
   "elements": [
     {
+      "name": "mount_plate",
       "from": [
         0,
         0,
@@ -18,1071 +17,554 @@
       ],
       "to": [
         16,
-        1.25,
+        2,
         16
       ],
       "faces": {
         "north": {
-          "texture": "#housing"
+          "texture": "#mount",
+          "uv": [
+            0,
+            10,
+            16,
+            12
+          ],
+          "cullface": "north"
         },
         "south": {
-          "texture": "#housing"
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "cullface": "south"
         },
         "east": {
-          "texture": "#housing"
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "cullface": "east"
         },
         "west": {
-          "texture": "#housing"
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            16,
+            14
+          ],
+          "cullface": "west"
         },
         "up": {
-          "texture": "#housing"
+          "texture": "#seat",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
         },
         "down": {
-          "texture": "#housing"
+          "texture": "#port",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "down"
         }
       }
     },
     {
-      "from": [
-        0.35,
-        1.25,
-        0.35
-      ],
-      "to": [
-        15.65,
-        1.8,
-        15.65
-      ],
-      "faces": {
-        "north": {
-          "texture": "#graphite"
-        },
-        "south": {
-          "texture": "#graphite"
-        },
-        "east": {
-          "texture": "#graphite"
-        },
-        "west": {
-          "texture": "#graphite"
-        },
-        "up": {
-          "texture": "#graphite"
-        },
-        "down": {
-          "texture": "#graphite"
-        }
-      }
-    },
-    {
-      "from": [
-        7.7,
-        1.8,
-        0
-      ],
-      "to": [
-        8.3,
-        1.94,
-        4.2
-      ],
-      "faces": {
-        "north": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "south": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "east": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "west": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "up": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "down": {
-          "texture": "#reaction_chamber_crystal"
-        }
-      }
-    },
-    {
-      "from": [
-        0,
-        1.8,
-        7.7
-      ],
-      "to": [
-        4.2,
-        1.94,
-        8.3
-      ],
-      "faces": {
-        "north": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "south": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "east": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "west": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "up": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "down": {
-          "texture": "#reaction_chamber_crystal"
-        }
-      }
-    },
-    {
-      "from": [
-        7.7,
-        1.8,
-        11.8
-      ],
-      "to": [
-        8.3,
-        1.94,
-        16
-      ],
-      "faces": {
-        "north": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "south": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "east": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "west": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "up": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "down": {
-          "texture": "#reaction_chamber_crystal"
-        }
-      }
-    },
-    {
-      "from": [
-        11.8,
-        1.8,
-        7.7
-      ],
-      "to": [
-        16,
-        1.94,
-        8.3
-      ],
-      "faces": {
-        "north": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "south": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "east": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "west": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "up": {
-          "texture": "#reaction_chamber_crystal"
-        },
-        "down": {
-          "texture": "#reaction_chamber_crystal"
-        }
-      }
-    },
-    {
+      "name": "mount_collar",
       "from": [
         3,
-        1.8,
+        2,
         3
       ],
       "to": [
         13,
-        2.85,
+        3,
         13
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#mount",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
+            14,
+            10,
+            15
+          ]
         },
         "south": {
+          "texture": "#mount",
           "uv": [
             0,
+            14,
+            10,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
             0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
+            14,
+            10,
+            15
+          ]
         },
         "west": {
+          "texture": "#mount",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
+            14,
+            10,
+            15
+          ]
         },
         "up": {
+          "texture": "#mount",
           "uv": [
             0,
             0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#graphite"
+            10,
+            10
+          ]
         }
       }
     },
     {
+      "name": "core_foot",
       "from": [
-        3.15,
-        2.85,
-        3.15
+        6,
+        3,
+        6
       ],
       "to": [
-        12.85,
-        3.65,
-        4.65
+        10,
+        4,
+        10
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#body",
           "uv": [
-            0,
-            0,
+            12,
+            11,
             16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            12
+          ]
         },
         "south": {
+          "texture": "#body",
           "uv": [
-            0,
-            0,
+            12,
+            11,
             16,
-            16
-          ],
-          "texture": "#housing"
+            12
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            11,
+            16,
+            12
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
-            0,
-            0,
+            12,
+            11,
             16,
-            16
-          ],
-          "texture": "#housing"
+            12
+          ]
         },
         "up": {
+          "texture": "#body",
           "uv": [
+            2,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            6,
+            4
+          ]
         }
       }
     },
     {
+      "name": "pylon_left",
       "from": [
-        3.15,
-        2.85,
-        11.35
+        12,
+        3,
+        6
       ],
       "to": [
-        12.85,
-        3.65,
-        12.85
+        13,
+        7,
+        10
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#body",
           "uv": [
+            6,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            7,
+            4
+          ]
         },
         "south": {
+          "texture": "#body",
           "uv": [
+            6,
             0,
+            7,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            2,
             0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            6,
+            4
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
+            2,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            6,
+            4
+          ]
         }
       }
     },
     {
+      "name": "pylon_right",
       "from": [
-        3.15,
-        2.85,
-        4.65
+        3,
+        3,
+        6
       ],
       "to": [
-        4.65,
-        3.65,
-        11.35
+        4,
+        7,
+        10
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#body",
           "uv": [
+            6,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            7,
+            4
+          ]
         },
         "south": {
+          "texture": "#body",
           "uv": [
+            6,
             0,
+            7,
+            4
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            2,
             0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            6,
+            4
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
+            2,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            6,
+            4
+          ]
         }
       }
     },
     {
+      "name": "coil_front",
       "from": [
-        11.35,
-        2.85,
-        4.65
+        2,
+        7,
+        2
       ],
       "to": [
-        12.85,
-        3.65,
-        11.35
+        14,
+        10,
+        4
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            8,
+            12,
+            11
+          ]
         },
         "south": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            8,
+            12,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            8,
+            14,
+            11
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            12,
+            8,
+            14,
+            11
+          ]
         },
         "up": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            11,
+            12,
+            13
+          ]
         },
         "down": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#housing"
+            11,
+            12,
+            13
+          ]
         }
       }
     },
     {
+      "name": "coil_back",
       "from": [
-        3.45,
-        3.65,
-        3.45
+        2,
+        7,
+        12
       ],
       "to": [
-        5.25,
-        4.55,
-        5.25
+        14,
+        10,
+        14
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
         "north": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            8,
+            12,
+            11
+          ]
         },
         "south": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            8,
+            12,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            8,
+            14,
+            11
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            12,
+            8,
+            14,
+            11
+          ]
         },
         "up": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            11,
+            12,
+            13
+          ]
         },
         "down": {
+          "texture": "#body",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            11,
+            12,
+            13
+          ]
         }
       }
     },
     {
+      "name": "coil_left",
       "from": [
-        3.72,
-        4.55,
-        3.72
+        12,
+        7,
+        4
       ],
       "to": [
-        4.98,
-        4.84,
-        4.98
+        14,
+        10,
+        12
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
         "east": {
+          "texture": "#body",
           "uv": [
+            7,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
+            15,
+            3
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
+            7,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
+            15,
+            3
+          ]
         },
         "up": {
+          "texture": "#body",
           "uv": [
             0,
             0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
+            2,
+            8
+          ]
         },
         "down": {
+          "texture": "#body",
           "uv": [
             0,
             0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
+            2,
+            8
+          ]
         }
       }
     },
     {
+      "name": "coil_right",
       "from": [
-        3.45,
-        3.65,
-        10.75
+        2,
+        7,
+        4
       ],
       "to": [
-        5.25,
-        4.55,
-        12.55
+        4,
+        10,
+        12
       ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
       "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
         "east": {
+          "texture": "#body",
           "uv": [
+            7,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            15,
+            3
+          ]
         },
         "west": {
+          "texture": "#body",
           "uv": [
+            7,
             0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            15,
+            3
+          ]
         },
         "up": {
+          "texture": "#body",
           "uv": [
             0,
             0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
+            2,
+            8
+          ]
         },
         "down": {
+          "texture": "#body",
           "uv": [
             0,
             0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        }
-      }
-    },
-    {
-      "from": [
-        3.72,
-        4.55,
-        11.02
-      ],
-      "to": [
-        4.98,
-        4.84,
-        12.28
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        }
-      }
-    },
-    {
-      "from": [
-        10.75,
-        3.65,
-        3.45
-      ],
-      "to": [
-        12.55,
-        4.55,
-        5.25
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        }
-      }
-    },
-    {
-      "from": [
-        11.02,
-        4.55,
-        3.72
-      ],
-      "to": [
-        12.28,
-        4.84,
-        4.98
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        }
-      }
-    },
-    {
-      "from": [
-        10.75,
-        3.65,
-        10.75
-      ],
-      "to": [
-        12.55,
-        4.55,
-        12.55
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#brushed_steel"
-        }
-      }
-    },
-    {
-      "from": [
-        11.02,
-        4.55,
-        11.02
-      ],
-      "to": [
-        12.28,
-        4.84,
-        12.28
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#copper_trim"
+            2,
+            8
+          ]
         }
       }
     }

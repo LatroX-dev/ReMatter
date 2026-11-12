@@ -1,0 +1,20 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:primal_crystal",
+  "primary_count": 8,
+  "secondary": "rematter:optical_circuit",
+  "secondary_count": 2,
+  "tertiary": "rematter:diamond_lattice",
+  "energy": 256000,
+  "ticks": 9600,
+  "minimum_tier": 2,
+  "result": {
+    "id": "rematter:discovery_lens",
+    "count": 1
+  },
+  "min_precision": 4,
+  "steps": [
+    "mix"
+  ],
+  "network_recipe": false
+}

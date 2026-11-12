@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "type": "crystallization",
+  "inputs": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 8000
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 7000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 7000
+    }
+  ],
+  "energy": 512000,
+  "ticks": 1200,
+  "industrial": {
+    "min_field": 8,
+    "requires_known_outputs": true,
+    "product": "rematter:diamond"
+  }
+}

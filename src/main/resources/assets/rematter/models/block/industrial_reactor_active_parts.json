@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/industrial_reactor_display_active",
+    "display": "rematter:block/industrial_reactor_display_active",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "display",
+      "from": [
+        3,
+        8,
+        0.5
+      ],
+      "to": [
+        13,
+        13,
+        1
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#display"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

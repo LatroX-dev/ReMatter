@@ -10,13 +10,14 @@ import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
 import dev.latrox.rematter.client.ScreenChrome.Icon;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIngredient> inputs,
-                          List<EmiStack> outputs, long energy, int ticks, List<Component> notes) implements EmiRecipe {
+                          List<EmiStack> outputs, long energy, int ticks, List<Component> notes, Optional<String> researchTarget) implements EmiRecipe {
     ChemistryEmiRecipe {
         inputs = List.copyOf(inputs);
         outputs = List.copyOf(outputs);
@@ -59,7 +60,11 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         EmiWidgets.value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
         EmiWidgets.icon(widgets,Icon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
         EmiWidgets.value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
-        EmiWidgets.icon(widgets,Icon.INFO,164,footer+10,notes);
+        EmiWidgets.dynamicIcon(widgets,Icon.INFO,164,footer+10,()->{
+            var current = new java.util.ArrayList<>(notes);
+            researchTarget.ifPresent(target -> current.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));
+            return current;
+        });
     }
 
     private static Component amount(EmiIngredient ingredient) {

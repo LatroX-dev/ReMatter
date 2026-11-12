@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "crystallization",
+  "inputs": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 96000,
+  "ticks": 600,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": true,
+    "product": "rematter:crystalline_silica"
+  }
+}

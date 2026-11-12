@@ -22,6 +22,13 @@ class MatterCableConnectionPolicyTest {
         }
     }
 
+    @Test void onlyAConnectedArmThatLeavesTheCableRunEndsInADeviceFlange() {
+        assertTrue(MatterCableConnectionPolicy.deviceArm(true, false), "Machine, port or energy block");
+        assertFalse(MatterCableConnectionPolicy.deviceArm(true, true), "Another cable continues the run");
+        assertFalse(MatterCableConnectionPolicy.deviceArm(false, false), "No arm, no flange");
+        assertFalse(MatterCableConnectionPolicy.deviceArm(false, true), "A foreign cable is neither connected nor a device");
+    }
+
     @Test void unformedPortsNeverClaimAConnectionEvenWhenTheyRetainAnOldFacing() {
         for (var outward : Direction.values()) for (var towardsPort : Direction.values())
             assertFalse(MatterCableConnectionPolicy.acceptsPort(false,outward,towardsPort));

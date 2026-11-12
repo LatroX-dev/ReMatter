@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Supremium Gemstone",
+  "items": [
+    "mysticalagriculture:supremium_gemstone",
+    "mysticalagriculture:supremium_gemstone_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:supremium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

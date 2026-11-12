@@ -2,35 +2,16 @@ package dev.latrox.rematter.client;
 
 import static dev.latrox.rematter.client.UiPalette.*;
 import dev.latrox.rematter.client.ScreenChrome.Icon;
-
-import dev.latrox.rematter.chemistry.ChemistryRegistry;
-import dev.latrox.rematter.chemistry.SubstanceId;
-import dev.latrox.rematter.chemistry.SubstanceKey;
-import dev.latrox.rematter.chemistry.Phase;
-import dev.latrox.rematter.content.MachineBlockEntity;
-import dev.latrox.rematter.content.MachineCellAccess;
-import dev.latrox.rematter.content.MachineChoices;
-import dev.latrox.rematter.content.MachineKind;
-import dev.latrox.rematter.content.MachineMenu;
-import dev.latrox.rematter.content.MachinePortMode;
-import dev.latrox.rematter.content.MachineSnapshot;
-import dev.latrox.rematter.content.StockQuery;
-import dev.latrox.rematter.network.ClientChemistry;
-import dev.latrox.rematter.network.ReleaseHeldOrderPayload;
-import dev.latrox.rematter.network.StockQueryPayload;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
-import java.util.function.BooleanSupplier;
+import dev.latrox.rematter.client.ui.*;
+import dev.latrox.rematter.chemistry.*;
+import dev.latrox.rematter.content.*;
+import dev.latrox.rematter.network.*;
+import java.util.*;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -39,617 +20,288 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.lwjgl.glfw.GLFW;
 
-/** Familiar machine slots and a separate disk/quantity browser; all actions retain server validation. */
+/** Compact machine controls, a real storage list and embedded terminal devices; all writes stay server-authoritative. */
 public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
-    private static final int PANEL_WIDTH = 296;
-    private static final int PANEL_HEIGHT = 240;
-    private static final int SIDE_TAB_WIDTH = 23;
-    private static final int SIDE_TAB_HEIGHT = 22;
-    private static final int SIDE_TAB_TOP = 30;
-    private static final int SIDE_TAB_PITCH = 26;
-    private static final int CONTENT_RIGHT = 284;
-    private static final int STOCK_TOP = 73;
-    private static final int STOCK_PITCH = 20;
-    private static final int STOCK_FOOTER = 134;
-    private static final int GRID_ROWS = 3;
-    private static final int FULL_GRID_COLUMNS = 3;
-    private static final int CHIP_SIZE = 16;
-    private final List<StockButton> stockButtons = new ArrayList<>();
+    private static final int W=216,H=216;
+    private final ScrollModel stockScroll=new ScrollModel(3),deviceScroll=new ScrollModel(5);
+    private final ScrollBar stockBar=new ScrollBar(stockScroll),deviceBar=new ScrollBar(deviceScroll);
+    private final List<StockRow> stockRows=new ArrayList<>();
+    private final List<DeviceRow> deviceRows=new ArrayList<>();
+    private final List<DarkButton> filters=new ArrayList<>();
+    private final Set<String> phaseFilter=new HashSet<>();
     private EditBox search;
-    private ConsoleButton primary, choose, automation, networkJobs, backend, repeat, addBatch, previous, next;
-    private ConsoleButton terminalDevices, returnToTerminal, release;
-    private TabButton processTab, upgradesTab, configurationTab;
-    private ConsoleButton ports, productionSettings, buildHint;
-    private boolean sideTabs;
-    private int page;
-    private ChipButton favoritesChip;
-    private final List<ChipButton> phaseChips = new ArrayList<>();
-    private final Set<String> phaseFilter = new HashSet<>();
-    private boolean favoritesOnly;
+    private DarkButton machineTab,devicesTab,researchTab,settingsTab,choose,primary,repeat,pause,buildHint,back;
+    private MachineSettingsPanel settingsPanel;
+    private ResearchPanel researchPanel;
+    private PrimalConverterPanel converterPanel;
+    private boolean favoritesOnly,observing;
+    private String deviceSearch="";
+    private List<MachineSnapshot.Entry> shownEntries=List.of();
+    private List<TerminalDevicesPayload.Device> shownDevices=List.of();
+    private StockQuery sentQuery;
+    private int shownFavorites=-1;
     private MachineMenu.Stock shownStock;
     private ChemistryRegistry shownCatalogue;
     private StockFilter shownFilter;
-    private int shownFavorites = -1;
-    private List<MachineSnapshot.Entry> shownEntries = List.of();
-    private StockQuery sentQuery;
     private net.minecraft.locale.Language shownLanguage;
 
-    public MachineScreen(MachineMenu menu, Inventory inventory, Component title) {
-        super(menu, inventory, title, PANEL_WIDTH, PANEL_HEIGHT);
-    }
-    public List<Rect2i> viewerExclusionAreas() {
-        if (!sideTabs || processTab == null) return List.of();
-        var areas = new ArrayList<Rect2i>(3);
-        for (var tab : List.of(processTab, upgradesTab, configurationTab)) {
-            if (tab.visible) areas.add(new Rect2i(tab.getX(), tab.getY(), tab.getWidth(), tab.getHeight()));
-        }
-        return areas;
-    }
+    public MachineScreen(MachineMenu menu,Inventory inventory,Component title) {super(menu,inventory,title,W,H);}
+    private static Component tr(String key,Object...args){return Component.translatable("screen.rematter."+key,args);}
+    private static Component ui(String key,Object...args){return Component.translatable("screen.rematter.ui."+key,args);}
+    private boolean main(){return menu.view()==MachineMenu.View.MAIN;}
+    private boolean configuration(){return menu.view()==MachineMenu.View.CONFIGURATION;}
+    private boolean machines(){return menu.view()==MachineMenu.View.MACHINES&&menu.kind()==MachineKind.TERMINAL;}
+    private boolean passive(){return !menu.kind().processes()&&!menu.kind().generator();}
+    private boolean researching(){return menu.view()==MachineMenu.View.RESEARCH&&menu.kind()==MachineKind.ANALYZER;}
+    private boolean converter(){return menu.kind()==MachineKind.PRIMAL_CONVERTER;}
+    private boolean disk(){return menu.diskRole();}
+    private boolean terminal(){return menu.kind()==MachineKind.TERMINAL;}
+    private boolean handPreparator(){return menu.kind()==MachineKind.HAND_PREPARATOR;}
+    private boolean preparator(){return dev.latrox.rematter.content.preparation.PreparationTier.isPreparation(menu.kind());}
+    private boolean industrial(){return IndustrialStructure.isIndustrial(menu.kind());}
+    private boolean selecting(){return menu.kind().selectable();}
+    private static boolean working(String s){return List.of("working","grinding","sieving","collecting","dosing","mixing","packing","pressing","sintering","cooling").contains(s);}
+    private boolean driveRecovery(){return disk()&&java.util.stream.IntStream.of(1,2,3,4,10,11,12,13).anyMatch(i->menu.slots.get(i).hasItem());}
+    private boolean storageList(){return main()&&passive();}
+    private int stockX(){return disk()?82:8;}
+    private int stockY(){return terminal()?50:48;}
+    private int stockWidth(){return 180-stockX();}
+    private int stockCount(){return terminal()?8:3;}
+    private UUID player(){return minecraft.player==null?null:minecraft.player.getUUID();}
+    private boolean favorite(MachineSnapshot.StockKey key){return player()!=null&&StockFavorites.get().contains(player(),key);}
+    private void toggleFavorite(MachineSnapshot.Entry entry){if(player()!=null){StockFavorites.get().toggle(player(),entry.key());shownFilter=null;refresh();}}
 
-    @Override protected boolean hasClickedOutside(double mouseX, double mouseY, int x, int y) {
-        for (var area : viewerExclusionAreas()) {
-            if (mouseX >= area.getX() && mouseX < area.getX() + area.getWidth()
-                    && mouseY >= area.getY() && mouseY < area.getY() + area.getHeight()) return false;
+    @Override protected void init(){
+        super.init();leftPos=Math.max(23,leftPos);
+        String query=search==null?"":search.getValue();
+        machineTab=tab(Icon.STORAGE,ui("tab_machine"),0,MachineMenu.View.MAIN);
+        devicesTab=tab(Icon.NETWORK,ui("tab_machines"),1,MachineMenu.View.MACHINES);
+        researchTab=tab(Icon.HELP,ui("tab_research"),1,MachineMenu.View.RESEARCH);
+        settingsTab=tab(Icon.CONFIGURATION,ui("tab_settings"),2,MachineMenu.View.CONFIGURATION);
+        search=addRenderableWidget(new EditBox(font,leftPos+27,topPos+24,82,12,tr("search")));
+        search.setBordered(false);search.setTextColor(TEXT);search.setMaxLength(128);search.setValue(query);
+        search.setResponder(value->{stockScroll.setOffset(0);deviceScroll.setOffset(0);shownFilter=null;refresh();});
+        filters.clear();
+        for(int i=0;i<4;i++){
+            int index=i;var icon=new Icon[]{Icon.STAR,Icon.SOLID,Icon.LIQUID,Icon.GAS}[i];
+            var label=tr("filter_"+new String[]{"favorites","solid","liquid","gas"}[i]);
+            var b=addRenderableWidget(DarkButton.icon(icon,label,label,leftPos+116+i*18,topPos+20,16,16,button->{
+                if(index==0)favoritesOnly=!favoritesOnly;
+                else{String phase=new String[]{"","solid","liquid","gas"}[index];if(!phaseFilter.remove(phase))phaseFilter.add(phase);}
+                stockScroll.setOffset(0);shownFilter=null;refresh();
+            }));filters.add(b);
         }
-        return super.hasClickedOutside(mouseX, mouseY, x, y);
+        choose=button(ui("recipe"),tr("choose_hint"),24,20,164,b->{if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)action(MachineActionPayload.Action.ASSAY,"",0);else if(selecting())minecraft.pushGuiLayer(new ProcessSelectionScreen(menu));});
+        primary=button(tr("start"),tr("start_once_hint"),24,102,58,b->{if(menu.kind().generator()){send(2);return;}var d=MachinePrimaryAction.forSnapshot(menu.snapshot());if(d.opensRecipeSelection())minecraft.pushGuiLayer(new ProcessSelectionScreen(menu));else if(selecting()&&!menu.snapshot().networkJobs()&&validSelection())send(4);else if(d.enabled()&&d.menuAction()>=0)send(d.menuAction());});
+        repeat=button(ui("repeat_off"),tr("continuous_hint"),84,102,58,b->send(5));
+        pause=addRenderableWidget(DarkButton.icon(Icon.PAUSE,tr("pause"),tr("pause_hint"),leftPos+144,topPos+102,18,18,b->send(2)));
+        buildHint=button(ui("missing_part"),tr("locate_part_hint"),24,102,138,b->onClose());
+        back=addRenderableWidget(DarkButton.icon(Icon.BACK,tr("terminal.return"),tr("terminal.return_hint"),leftPos+171,topPos+2,17,16,b->send(MachineMenu.RETURN_TO_TERMINAL)));
+        stockRows.clear();for(int i=0;i<8;i++){var row=new StockRow();stockRows.add(addRenderableWidget(row));}
+        deviceRows.clear();for(int i=0;i<5;i++){var row=new DeviceRow();deviceRows.add(row);addRenderableWidget(row.open);addRenderableWidget(row.queue);}
+        settingsPanel=new MachineSettingsPanel(menu,minecraft,font,w->addRenderableWidget(w),this::rebuildWidgets,leftPos+8,topPos+20,180);
+        settingsPanel.initWidgets();
+        researchPanel=new ResearchPanel(menu,minecraft,font,w->addRenderableWidget(w),leftPos+8,topPos+20,200,188);researchPanel.initWidgets();
+        converterPanel=new PrimalConverterPanel(menu,minecraft,font,w->addRenderableWidget(w),leftPos+8,topPos+20,200,100);converterPanel.initWidgets();
+        refresh();if(passive()&&main())setInitialFocus(search);
     }
+    private DarkButton button(Component name,Component hint,int x,int y,int width,Button.OnPress action){return addRenderableWidget(DarkButton.create(name,hint,leftPos+x,topPos+y,width,18,action));}
+    private DarkButton tab(Icon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,name,leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
+    public void setView(MachineMenu.View view){
+        if(observing&&view!=MachineMenu.View.MACHINES){send(MachineMenu.CLOSE_TERMINAL_DEVICES);observing=false;}
+        if(view==MachineMenu.View.MACHINES&&!observing&&terminal()) {menu.resetTerminalDevices();send(MachineMenu.OPEN_TERMINAL_DEVICES);observing=true;}
+        menu.setView(view);search.setValue("");stockScroll.setOffset(0);deviceScroll.setOffset(0);refresh();
+    }
+    public List<Rect2i> viewerExclusionAreas(){var result=new ArrayList<Rect2i>();for(var tab:List.of(machineTab,devicesTab,researchTab,settingsTab))if(tab!=null&&tab.visible)result.add(new Rect2i(tab.getX(),tab.getY(),tab.getWidth(),tab.getHeight()));return result;}
+    @Override protected boolean hasClickedOutside(double mx,double my,int x,int y){for(var r:viewerExclusionAreas())if(mx>=r.getX()&&mx<r.getX()+r.getWidth()&&my>=r.getY()&&my<r.getY()+r.getHeight())return false;return super.hasClickedOutside(mx,my,x,y);}
+    private static Component lines(List<Component> values){var text=Component.empty();for(var value:values){if(!text.getSiblings().isEmpty())text.append("\n");text.append(value);}return text;}
+    private boolean validSelection(){var s=menu.snapshot();return s.selected()>=0&&!s.preview().id().isEmpty()&&s.selectedId().equals(s.preview().id())&&!s.status().equals("selection_unavailable");}
+    private void send(int action){if(minecraft.gameMode!=null)minecraft.gameMode.handleInventoryButtonClick(menu.containerId,action);}
+    private void deviceAction(TerminalDevicesPayload.Device device,TerminalDeviceActionPayload.Action action){if(device!=null)ClientPacketDistributor.sendToServer(new TerminalDeviceActionPayload(menu.containerId,device.position(),action,action==TerminalDeviceActionPayload.Action.QUEUE_BATCH?device.recipeId():""));}
+    private List<MachineSnapshot.Entry> entries(){
+        var stock=menu.stock();var catalogue=ClientChemistry.current();var language=net.minecraft.locale.Language.getInstance();
+        var filter=new StockFilter(search.getValue(),phaseFilter,favoritesOnly);int revision=StockFavorites.get().revision();
+        if(stock==shownStock&&catalogue==shownCatalogue&&filter.equals(shownFilter)&&revision==shownFavorites&&language==shownLanguage)return shownEntries;
+        var query=filter.query(player()==null?Set.of():StockFavorites.get().of(player()),catalogue.substances(),d->SubstanceNames.name(d).getString(),SubstanceLabels::iconLabel);
+        if(!query.equals(sentQuery)){sentQuery=query;ClientPacketDistributor.sendToServer(new StockQueryPayload(menu.containerId,query));}
+        shownEntries=filter.apply(stock.entries(),this::favorite,e->name(e).getString(),SubstanceLabels::iconLabel);
+        shownStock=stock;shownCatalogue=catalogue;shownFilter=filter;shownFavorites=revision;shownLanguage=language;return shownEntries;
+    }
+    private void refresh(){
+        if(search==null)return;var s=menu.snapshot();boolean ready=s.containerId()==menu.containerId;
+        for(var control:List.of(machineTab,devicesTab,researchTab,settingsTab,choose,primary,repeat,pause,buildHint,back))control.setAccent(machineAccent(menu.kind()));
 
-    @Override protected void init() {
-        super.init();
-        sideTabs = width >= PANEL_WIDTH + SIDE_TAB_WIDTH + 1;
-        if (sideTabs) leftPos = Math.max(leftPos, SIDE_TAB_WIDTH);
-        String query = search == null ? "" : search.getValue();
-        search = addRenderableWidget(new EditBox(font, leftPos + 17, topPos + 53, 262, 14, tr("search")));
-        search.setHint(tr("search").copy().withStyle(style -> style.withColor(MUTED & 0xffffff)));
-        search.setMaxLength(128);
-        search.setBordered(false);
-        search.setTextColor(TEXT);
-        search.setValue(query);
-        search.setResponder(value -> { page = 0; updateWidgets(); });
-        favoritesChip = chip(Icon.STAR, "favorites", ACCENT_BRIGHT, () -> favoritesOnly, () -> favoritesOnly = !favoritesOnly);
-        phaseChips.clear();
-        phaseChips.add(chip(Icon.SOLID, "solid", phaseColor("solid"), () -> phaseFilter.contains("solid"), () -> togglePhase("solid")));
-        phaseChips.add(chip(Icon.LIQUID, "liquid", phaseColor("liquid"), () -> phaseFilter.contains("liquid"), () -> togglePhase("liquid")));
-        phaseChips.add(chip(Icon.GAS, "gas", phaseColor("gas"), () -> phaseFilter.contains("gas"), () -> togglePhase("gas")));
+        machineTab.setMessage(ui(terminal()?"tab_storage":passive()?"tab_contents":"tab_machine"));
+        machineTab.setSelected(main());devicesTab.setSelected(machines());settingsTab.setSelected(configuration());
+        devicesTab.visible=terminal();researchTab.visible=menu.kind()==MachineKind.ANALYZER;researchTab.setSelected(researching());settingsTab.setY(topPos+18+(terminal()||menu.kind()==MachineKind.ANALYZER?2:1)*24);
+        back.visible=ready&&menu.remote();
+        boolean list=ready&&(storageList()||machines());search.visible=search.active=list;
+        search.setWidth(machines()?154:82);search.setHint(Component.literal(fitted(tr("search").getString(),search.getWidth()-2)).withStyle(style->style.withColor(MUTED&0xffffff)));search.setSuggestion(null);if(!list)search.setFocused(false);
+        for(int i=0;i<filters.size();i++){var b=filters.get(i);b.visible=b.active=ready&&storageList();b.setSelected(i==0?favoritesOnly:phaseFilter.contains(new String[]{"","solid","liquid","gas"}[i]));}
+        settingsPanel.setVisible(ready&&configuration()&&!driveRecovery());if(configuration()&&!driveRecovery())settingsPanel.tick();
+        researchPanel.setVisible(ready&&researching());if(researching())researchPanel.tick();
+        converterPanel.setVisible(ready&&main()&&converter());if(main()&&converter())converterPanel.tick();
+        var decision=MachinePrimaryAction.forSnapshot(s);boolean process=ready&&main()&&!passive();
+        choose.visible=process&&!converter()&&!menu.kind().generator();choose.active=process&&!s.networkJobs()&&(selecting()&&s.choiceCount()>0||menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR);
+        choose.setMessage(previewTitle(s));choose.setTooltip(Tooltip.create(lines(recipeDetails(s))));
+        if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)choose.setMessage(ui(extraFlag("assay")?"assay":"preparation"));
+        primary.visible=process&&!converter()&&decision.visible();primary.active=decision.enabled();primary.setMessage(tr(decision.labelKey()));
+        boolean selectable=process&&selecting()&&!s.networkJobs();
+        boolean valid=s.selected()>=0&&!s.preview().id().isEmpty()&&s.selectedId().equals(s.preview().id())&&!s.status().equals("selection_unavailable");
+        repeat.visible=selectable;repeat.active=valid;repeat.setMessage(ui(s.repeat()?"repeat_on":"repeat_off"));repeat.setSelected(s.repeat());
+        pause.visible=selectable&&(s.repeat()||s.queuedBatches()>0);pause.active=pause.visible;
+        pause.setMessage(tr(s.running()?"pause":"resume"));pause.setSelected(!s.running());
+        if(selectable&&valid){primary.setMessage(ui(s.queuedBatches()>0?"queue_one":"make_one"));primary.active=!s.repeat()&&s.queuedBatches()<64;}
+        if(menu.kind().generator()){primary.visible=main();primary.active=main();primary.setMessage(tr(s.running()?"pause":"start"));}
+        if(s.status().equals("requires_research")||s.status().equals("requires_field"))primary.active=repeat.active=false;
+        primary.setWidth(s.networkJobs()||handPreparator()||menu.kind().generator()?138:58);
+        buildHint.visible=process&&industrial()&&menu.structureHint().present();buildHint.active=buildHint.visible;
+        if(buildHint.visible)primary.visible=repeat.visible=pause.visible=false;
+        for(var row:stockRows)row.visible=row.active=false;
+        stockScroll.setVisibleRows(stockCount());
+        if(ready&&storageList()){
+            var values=entries();stockScroll.setSize(values.size());
+            for(int i=0;i<stockCount();i++){var row=stockRows.get(i);int index=stockScroll.offset()+i;row.show(index<values.size()?values.get(index):null);row.setX(leftPos+stockX());row.setY(topPos+stockY()+18*i);row.setWidth(stockWidth());row.visible=row.active=row.entry!=null;}
+            stockBar.setBounds(leftPos+183,topPos+stockY(),5,stockCount()*18);
+        }
+        if(ready&&machines()){
+            String query=search.getValue().strip().toLowerCase(Locale.ROOT);
+            shownDevices=menu.terminalDevices().devices().stream().filter(d->(Component.translatable("block.rematter."+d.kind().id()).getString()+" "+SubstanceNames.choice(d.kind(),d.recipeId()).getString()+" "+d.position().toShortString()).toLowerCase(Locale.ROOT).contains(query)).toList();
+            deviceScroll.setSize(shownDevices.size());deviceBar.setBounds(leftPos+183,topPos+42,5,150);
+        }
+        for(int i=0;i<deviceRows.size();i++){var row=deviceRows.get(i);int index=deviceScroll.offset()+i;row.show(ready&&machines()&&index<shownDevices.size()?shownDevices.get(index):null,topPos+42+i*30);}
+    }
+    @Override protected void containerTick(){super.containerTick();refresh();}
+    @Override public void onClose(){if(observing)send(MachineMenu.CLOSE_TERMINAL_DEVICES);super.onClose();}
+    @Override public boolean keyPressed(KeyEvent event){
+        if(researching()&&researchPanel.handlesKey(event))return true;
+        if(main()&&converter()&&converterPanel.handlesKey(event))return true;
+        if(configuration()&&settingsPanel.handlesKey(event))return true;
+        if(search!=null&&search.visible&&search.isFocused()&&event.key()!=GLFW.GLFW_KEY_ESCAPE&&event.key()!=GLFW.GLFW_KEY_TAB){
+            var model=machines()?deviceScroll:stockScroll;
+            if(event.key()==GLFW.GLFW_KEY_UP||event.key()==GLFW.GLFW_KEY_DOWN||event.key()==GLFW.GLFW_KEY_PAGE_UP||event.key()==GLFW.GLFW_KEY_PAGE_DOWN){model.key(event.key());refresh();return true;}
+            search.keyPressed(event);return true;
+        }
+        return super.keyPressed(event);
+    }
+    @Override public boolean mouseScrolled(double x,double y,double sx,double sy){if(researching()&&researchPanel.mouseScrolled(x,y,sx,sy))return true;if(main()&&converter()&&converterPanel.mouseScrolled(x,y,sx,sy))return true;if((storageList()||machines())&&inside(x-leftPos,y-topPos,8,40,180,terminal()?154:72)){(machines()?deviceScroll:stockScroll).wheel(sy);refresh();return true;}return super.mouseScrolled(x,y,sx,sy);}
+    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(researching()&&researchPanel.mouseClicked(event,doubleClick))return true;var bar=machines()?deviceBar:stockBar;if((machines()||storageList())&&bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}return super.mouseClicked(event,doubleClick);}
+    @Override public boolean mouseDragged(MouseButtonEvent event,double dx,double dy){if(researching()&&researchPanel.mouseDragged(event,dx,dy))return true;var bar=machines()?deviceBar:stockBar;if((machines()||storageList())&&bar.mouseDragged(event.x(),event.y())){refresh();return true;}return super.mouseDragged(event,dx,dy);}
+    @Override public boolean mouseReleased(MouseButtonEvent event){if(researching()&&researchPanel.mouseReleased(event))return true;if(stockBar.mouseReleased()||deviceBar.mouseReleased())return true;return super.mouseReleased(event);}
 
-        processTab = tab(MachineMenu.View.MAIN, 12, 84, passive() ? "tab_contents" : "tab_process");
-        upgradesTab = tab(MachineMenu.View.UPGRADES, 100, 84, "tab_upgrades");
-        configurationTab = tab(MachineMenu.View.CONFIGURATION, 188, 96, "tab_configuration");
-        buildHint=control("locate_part",166,117,118,23,b->onClose(),"locate_part_hint");
-        productionSettings = control("production_settings",12,50,188,19,b->minecraft.pushGuiLayer(new MachineSettingsScreen(menu)),"production_settings_hint");
-        ports = control("ports", 205, 50, 79, 19, b -> openPorts(), "ports_hint");
-        primary = control("start", 166, 117, 118, 23, b -> {
-            var decision = MachinePrimaryAction.forSnapshot(menu.snapshot());
-            if (!decision.enabled()) return;
-            if (decision.opensRecipeSelection()) openRecipes();
-            else if (decision.menuAction() >= 0) send(decision.menuAction());
-        }, "start_once_hint");
-        choose = control("recipe", 197, 50, 87, 19, b -> openRecipes(), "choose_hint");
-        automation = control("", 12, 104, 272, 18, b -> send(3), "automation_hint");
-        networkJobs = control("", 150, 104, 134, 18, b -> send(8), "network_jobs_hint");
-        backend = control("", 12, 126, 272, 18, b -> send(9), "backend_hint");
-        release = control("release_held", 150, 104, 134, 18, b -> openRelease(), "release_held_hint");
-        repeat = control("", 12, 126, 224, 18, b -> send(5), "continuous_hint");
-        addBatch = control("", 240, 126, 44, 18, b -> send(4), "add_batch_hint");
-        previous = control("previous_hint", 12, STOCK_FOOTER, 20, 13, b -> turnPage(-1), "previous_hint");
-        next = control("next_hint", 264, STOCK_FOOTER, 20, 13, b -> turnPage(1), "next_hint");
-        terminalDevices = control("terminal.network", 186, 5, 98, 17, b -> openTerminalDevices(), "terminal.network_hint");
-        returnToTerminal = control("terminal.return", 186, 5, 98, 17,
-                b -> send(MachineMenu.RETURN_TO_TERMINAL), "terminal.return_hint");
-        addBatch.setMessage(tr("add_batch_hint"));
-        stockButtons.clear();
-        for (int i = 0; i < FULL_GRID_COLUMNS * GRID_ROWS; i++) {
-            var button = new StockButton(Button.builder(Component.empty(), b -> {
-                var stock = (StockButton) b;
-                if (stock.entry != null) minecraft.pushGuiLayer(new StockDetailsScreen(stock.entry.id(), stock.entry.phase()));
-            }).bounds(leftPos, topPos, tilePitch() - 2, STOCK_PITCH - 2));
-            stockButtons.add(addRenderableWidget(button));
+    @Override public void extractBackground(GuiGraphicsExtractor g,int mx,int my,float partial){
+        super.extractBackground(g,mx,my,partial);
+        ScreenChrome.panel(g,leftPos,topPos,W,H);
+        g.fill(leftPos+8,topPos+17,leftPos+188,topPos+18,BORDER);g.fill(leftPos+8,topPos+17,leftPos+56,topPos+18,machineAccent(menu.kind()));
+        if(search!=null&&search.visible)ScreenChrome.inset(g,leftPos+8,topPos+20,machines()?180:104,18);
+        if(machines())for(var row:deviceRows)if(row.device!=null)ScreenChrome.inset(g,leftPos+8,row.y,174,28);
+        if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
+            if(handPreparator())ScreenChrome.icon(g,Icon.CRANK,leftPos+8,topPos+42,ACCENT);
+            else{ScreenChrome.inset(g,leftPos+8,topPos+20,12,58);int fill=(int)(54L*menu.progress().energy()/MachineBlockEntity.ENERGY_CAPACITY);g.fill(leftPos+10,topPos+76-fill,leftPos+18,topPos+76,menu.progress().energy()==0?WARNING:ACCENT);}
+            arrow(g,leftPos+94,topPos+52);
         }
-        updateWidgets();
-    }
-    private static Component tr(String key,Object...args) { return Component.translatable("screen.rematter." + key,args); }
-    private ConsoleButton control(String key, int x, int y, int width, int height, Button.OnPress action, String hint) {
-        var button = addRenderableWidget(new ConsoleButton(Button.builder(key.isEmpty() ? Component.empty() : tr(key), action)
-                .bounds(leftPos + x, topPos + y, width, height)));
-        button.explain(tr(hint));return button;
-    }
-    private TabButton tab(MachineMenu.View view, int x, int width, String key) {
-        int tabX = sideTabs ? leftPos - SIDE_TAB_WIDTH + 1 : leftPos + x;
-        int tabY = sideTabs ? SIDE_TAB_TOP + view.ordinal() * SIDE_TAB_PITCH : 25;
-        return addRenderableWidget(new TabButton(Button.builder(tr(key), b -> { menu.setView(view); page = 0; updateWidgets(); })
-                .bounds(tabX, topPos + tabY, sideTabs ? SIDE_TAB_WIDTH : width, sideTabs ? SIDE_TAB_HEIGHT : 18)
-                .tooltip(Tooltip.create(tr(key))), view));
-    }
-    private ChipButton chip(Icon icon, String filter, int color, BooleanSupplier on, Runnable toggle) {
-        var chip = addRenderableWidget(new ChipButton(Button.builder(tr("filter_" + filter), b -> {
-            toggle.run();
-            page = 0;
-            updateWidgets();
-        }).bounds(leftPos, topPos, CHIP_SIZE, CHIP_SIZE), icon, color, on));
-        chip.explain(tr(filter.equals("favorites") ? "filter_favorites_hint" : "filter_phase_hint"));
-        return chip;
-    }
-    private void togglePhase(String phase) {
-        if (!phaseFilter.remove(phase)) phaseFilter.add(phase);
-    }
-    private UUID player() { return minecraft.player == null ? null : minecraft.player.getUUID(); }
-    private boolean favorite(MachineSnapshot.StockKey key) {
-        UUID player = player();
-        return player != null && StockFavorites.get().contains(player, key);
-    }
-    private void turnPage(int step) {
-        page = Math.max(0, page + step);
-        updateWidgets();
-    }
-    private boolean main() { return menu.view() == MachineMenu.View.MAIN; }
-    private boolean configuration() { return menu.view() == MachineMenu.View.CONFIGURATION; }
-    private boolean passive() { return !menu.kind().processes(); }
-    private boolean disk() { return menu.diskRole(); }
-    private boolean handPreparator() { return menu.kind() == MachineKind.HAND_PREPARATOR; }
-    private boolean preparator() { return dev.latrox.rematter.content.preparation.PreparationTier.isPreparation(menu.kind()); }
-    private boolean groupedIngredients() { return preparator() && !menu.snapshot().networkJobs() && menu.slots.get(3).isActive(); }
-    private boolean industrial() { return menu.kind() == MachineKind.INDUSTRIAL_PREPARATOR || menu.kind() == MachineKind.INDUSTRIAL_REACTOR; }
-    private boolean selecting() { return menu.kind().selectable(); }
-    private boolean previewCard() { return main() && preparator() && !choose.visible && !outputIcon(menu.snapshot().preview()).isEmpty(); }
-    private int upgradeCards() { return menu.kind().synthesis() || industrial() ? 3 : 2; }
-    private int upgradeCardWidth() { return (272 - (upgradeCards() - 1) * 4) / upgradeCards(); }
-    private ItemStack upgradeIcon(int index) {
-        return new ItemStack(index == 0 ? dev.latrox.rematter.content.ModContent.SPEED_UPGRADE.get()
-                : index == 1 ? dev.latrox.rematter.content.ModContent.EFFICIENCY_UPGRADE.get()
-                : menu.kind().synthesis() ? dev.latrox.rematter.content.ModContent.PRESSURE_MODULE.get()
-                : dev.latrox.rematter.content.ModContent.PARALLEL_UPGRADE.get());
-    }
-    private static boolean working(String status) { return List.of("working", "grinding", "sieving", "collecting", "dosing", "mixing", "packing", "pressing", "sintering", "cooling").contains(status); }
-    private void openRecipes() { minecraft.pushGuiLayer(new ProcessSelectionScreen(menu)); }
-    private void openPorts() { minecraft.pushGuiLayer(new MachinePortSettingsScreen(menu)); }
-    private void openRelease() {
-        var orders = menu.snapshot().orders();
-        if (!orders.held().isEmpty()) minecraft.pushGuiLayer(new ReleaseConfirmScreen(orders));
-    }
-    private void openTerminalDevices() {
-        menu.resetTerminalDevices();
-        send(MachineMenu.OPEN_TERMINAL_DEVICES);
-        minecraft.pushGuiLayer(new TerminalDevicesScreen(menu));
-    }
-    private void send(int action) { if (minecraft.gameMode != null) minecraft.gameMode.handleInventoryButtonClick(menu.containerId, action); }
-    private Component statusText() {
-        var s = menu.snapshot();
-        if(buildHint!=null&&buildHint.visible&&MachinePrimaryAction.forSnapshot(s).opensRecipeSelection())
-            return StatusText.of(s.structure().diagnostic(),0,0);
-        if (s.status().equals("structure") && industrial()) return Component.translatable("status.rematter." + s.structure().diagnostic());
-        if (working(s.status())) return tr("processing");
-        return StatusText.of(s.status(), s.orders().stale(), s.orders().quarantined());
-    }
-    private static Component name(MachineSnapshot.Entry entry) { return SubstanceNames.substance(entry.id(), entry.phase(), entry.known()); }
-    private static Component name(MachineSnapshot.Amount amount) { return SubstanceNames.substance(amount.id(), amount.phase(), amount.known()); }
-    private static String label(MachineSnapshot.Amount amount) {
-        return amount.known() ? SubstanceLabels.shortLabel(amount.id(), name(amount).getString()) : name(amount).getString();
-    }
-    /** Filtered once per stock, catalogue, filter or favorite change, not on every frame. */
-    private List<MachineSnapshot.Entry> entries() {
-        var stock = menu.stock();
-        var language=net.minecraft.locale.Language.getInstance();
-        if(language!=shownLanguage) {shownLanguage=language;shownFilter=null;shownCatalogue=null;}
-        var catalogue = ClientChemistry.current();
-        var filter = new StockFilter(search == null ? "" : search.getValue(), phaseFilter, favoritesOnly);
-        int favorites = StockFavorites.get().revision();
-        if (stock == shownStock && catalogue == shownCatalogue && filter.equals(shownFilter) && favorites == shownFavorites) return shownEntries;
-        if (catalogue != shownCatalogue || !filter.equals(shownFilter) || favorites != shownFavorites) sendStockQuery(filter, catalogue);
-        shownEntries = filter.apply(stock.entries(), this::favorite, e -> name(e).getString(), SubstanceLabels::iconLabel);
-        shownStock = stock;
-        shownCatalogue = catalogue;
-        shownFilter = filter;
-        shownFavorites = favorites;
-        return shownEntries;
-    }
-    /** The server keeps search matches and favorites within its row limit; only a changed query is sent. */
-    private void sendStockQuery(StockFilter filter, ChemistryRegistry catalogue) {
-        UUID player = player();
-        var query = filter.query(player == null ? Set.of() : StockFavorites.get().of(player), catalogue.substances(),
-                definition -> SubstanceNames.name(definition).getString(), SubstanceLabels::iconLabel);
-        if (query.equals(sentQuery)) return;
-        sentQuery = query;
-        ClientPacketDistributor.sendToServer(new StockQueryPayload(menu.containerId, query));
-    }
-    private int gridColumns() { return disk() ? 2 : FULL_GRID_COLUMNS; }
-    private int gridX() { return disk() ? 111 : 12; }
-    private int tilePitch() { return (CONTENT_RIGHT + 2 - gridX()) / gridColumns(); }
-    private int perPage() { return gridColumns() * GRID_ROWS; }
-    private int pages(List<MachineSnapshot.Entry> values) { return Math.max(1, (values.size() + perPage() - 1) / perPage()); }
-    private void updateWidgets() {
-        var s = menu.snapshot(); boolean ready = s.containerId() == menu.containerId;
-        terminalDevices.visible = ready && menu.kind() == MachineKind.TERMINAL && !menu.remote();
-        returnToTerminal.visible = ready && menu.remote();
-        terminalDevices.active = returnToTerminal.active = minecraft.player != null && !minecraft.player.isSpectator();
-        var decision = MachinePrimaryAction.forSnapshot(s);
-        processTab.active = configurationTab.active = ready;
-        buildHint.visible=ready&&main()&&industrial()&&menu.structureHint().present();buildHint.active=buildHint.visible;
-        if(buildHint.visible) {var h=menu.structureHint();var mount=switch(h.orientation()) {
-            case "up" -> tr("mount_floor");case "down" -> tr("mount_ceiling");default -> tr("mount_any");
-        };buildHint.explain(tr("build_hint",Component.translatable(h.expected()),h.position().getX(),h.position().getY(),h.position().getZ(),mount));}
-        productionSettings.visible=productionSettings.active=ready&&configuration()&&menu.kind().processes()&&menu.kind()!=MachineKind.ANALYZER&&!handPreparator()&&!s.networkJobs();
-        ports.visible = ports.active = ready && configuration() && MachinePortMode.configurable(menu.kind());
-        processTab.setMessage(tr(passive() ? "tab_contents" : "tab_process"));
-        processTab.explain(processTab.getMessage());
-        upgradesTab.visible = ready && menu.supportsUpgrades();
-        upgradesTab.active = ready;
-        if (sideTabs) configurationTab.setY(topPos + SIDE_TAB_TOP + (upgradesTab.visible ? 2 : 1) * SIDE_TAB_PITCH);
-        upgradesTab.explain(tr("upgrade_hint").copy().append("\n").append(tr("upgrade_limit")).append("\n").append(tr("upgrade_effect_hint")));
-        search.visible = search.active = ready && main() && passive();
-        search.setX(leftPos + gridX() + 5);
-        var chips = new ArrayList<ChipButton>(phaseChips);
-        chips.addFirst(favoritesChip);
-        int chipsLeft = CONTENT_RIGHT - 2 - chips.size() * (CHIP_SIZE + 1);
-        search.setWidth(chipsLeft - gridX() - 9);
-        for (int i = 0; i < chips.size(); i++) {
-            var chip = chips.get(i);
-            chip.visible = chip.active = search.visible;
-            chip.setX(leftPos + chipsLeft + i * (CHIP_SIZE + 1));
-            chip.setY(topPos + 51);
-        }
-        primary.visible = ready && main() && decision.visible()&&!buildHint.visible; primary.active = ready && decision.enabled();
-        primary.setMessage(tr(decision.labelKey())); primary.explain(tr(decision.hintKey()));
-        choose.visible = ready && main() && !s.networkJobs() && selecting() && (!decision.opensRecipeSelection()||buildHint.visible); choose.active = ready && s.choiceCount() > 0;
-        automation.visible = ready && configuration(); automation.setMessage(tr(s.automation() ? "automation_on" : "automation_off"));
-        automation.explain(tr("automation_hint"));
-        repeat.visible = addBatch.visible = ready && configuration() && selecting() && !s.networkJobs();
-        boolean valid = s.selected() >= 0 && !s.preview().id().isEmpty() && s.selectedId().equals(s.preview().id()) && !s.status().equals("selection_unavailable");
-        repeat.active = valid; repeat.setMessage(tr(s.repeat() ? "stop_repeat" : "run_repeat"));
-        repeat.explain(tr("continuous_hint"));
-        addBatch.active = valid && !s.repeat() && s.queuedBatches() < 64;
-        boolean recoveringUpgrade = configuration() && menu.slots.get(2).isActive();
-        boolean canNetwork = menu.kind().supportsNetworkJobs() && !recoveringUpgrade;
-        networkJobs.visible = ready && configuration() && canNetwork;
-        networkJobs.setMessage(tr(s.networkJobs()?"network_jobs_on":"network_jobs_off"));
-        networkJobs.explain(tr("network_jobs_hint"));
-        backend.visible = ready && configuration() && menu.kind()==MachineKind.NETWORK_INTERFACE;
-        backend.setMessage(Component.translatable("screen.rematter.backend",tr(switch(s.backend()){case "ae2","rs"->"backend_"+s.backend();default->"backend_none";})));
-        backend.explain(tr("backend_hint"));
-        release.visible = ready && configuration() && menu.kind() == MachineKind.NETWORK_INTERFACE && !s.orders().held().isEmpty();
-        release.active = minecraft.player != null && !minecraft.player.isSpectator();
-        automation.setWidth(canNetwork || release.visible ? 134 : 272);
-        backend.setX(leftPos + (recoveringUpgrade ? 109 : 12));
-        backend.setWidth(recoveringUpgrade ? 175 : 272);
-        var values = entries();
-        int pageCount = pages(values);
-        page = Math.clamp(page, 0, pageCount - 1);
-        previous.visible = next.visible = ready && main() && passive() && pageCount > 1;
-        previous.active = page > 0; next.active = page + 1 < pageCount;
-        previous.setX(leftPos + gridX());
-        for (int i = 0; i < stockButtons.size(); i++) {
-            var b = stockButtons.get(i); int index = page * perPage() + i;
-            b.show(i < perPage() && index < values.size() ? values.get(index) : null);
-            b.favorite = b.entry != null && favorite(b.entry.key());
-            b.visible = b.active = ready && main() && passive() && b.entry != null;
-            b.setX(leftPos + gridX() + i % gridColumns() * tilePitch());
-            b.setY(topPos + STOCK_TOP + i / gridColumns() * STOCK_PITCH);
-            b.setWidth(tilePitch() - 2);
-        }
-    }
-    @Override protected void containerTick() {
-        super.containerTick();
-        updateWidgets();
-    }
-    @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
-        super.extractRenderState(g, mouseX, mouseY, partialTick);
-        int mx = mouseX - leftPos, my = mouseY - topPos; var s = menu.snapshot();
-        if (s.containerId() != menu.containerId) return;
-        if(main() && disk()) {
-            for(int bay=0;bay<menu.diskBayCount();bay++) {
-                var slot=menu.slots.get(menu.diskMenuSlot(bay));
-                if(inside(mx,my,slot.x,slot.y,16,16) && !slot.hasItem()) {
-                    tooltip(g,List.of(Component.translatable("screen.rematter.drive_bay",bay+1),tr("drive_bay_hint")),mouseX,mouseY);return;
-                }
-            }
-        }
-        if(overActiveSlot(mx,my))return;
-        Component marker=slotMarkerTooltip(mx,my,s);
-        if(marker!=null){g.setTooltipForNextFrame(marker,mouseX,mouseY);return;}
-        if (menu.view() == MachineMenu.View.UPGRADES) {
-            for (int i=0;i<upgradeCards();i++) if (inside(mx,my,12+i*(upgradeCardWidth()+4),55,upgradeCardWidth(),37)) {
-                tooltip(g,List.of(upgradeIcon(i).getHoverName(),tr(i==0?"speed_upgrade_hint":i==1?"efficiency_upgrade_hint":menu.kind().synthesis()?"pressure_upgrade_hint":"parallel_upgrade_hint")),mouseX,mouseY);
-                return;
-            }
-            if (inside(mx, my, 67, 105, 217, 36)) tooltip(g, List.of(tr("supported_upgrades_hint"), tr("upgrade_effect_hint")), mouseX, mouseY);
-            return;
-        }
-        if (main() && !passive()) {
-            if (previewCard() && inside(mx, my, 197, 49, 87, 21)) {
-                var lines = new ArrayList<Component>();
-                lines.add(Component.translatable("screen.rematter.result_preview_detail", menu.snapshot().preview().outputCount(), outputIcon(menu.snapshot().preview()).getHoverName()));
-                lines.add(tr("result_preview_hint"));
-                tooltip(g, lines, mouseX, mouseY);
-            } else if (inside(mx, my, 13, 74, 19, 38)) {
-                g.setTooltipForNextFrame(handPreparator() ? tr("crank_hint") : energyLine(), mouseX, mouseY);
-            } else if (inside(mx, my, 12, 114, primary.visible||buildHint.visible ? 149 : 272, 28)) {
-                var lines = new ArrayList<Component>();
-                lines.add(statusText());
-                if (industrial()) lines.addAll(structureDetails(s));
-                tooltip(g, lines, mouseX, mouseY);
-            } else if (!s.preview().id().isEmpty() && (inside(mx, my, 12, 49, choose.visible ? 179 : 272, 22)
-                    || !menu.inputRole() && inside(mx, my, 38, 73, 87, 39)
-                    || !menu.slots.get(1).isActive() && inside(mx, my, 205, 73, 79, 39))) {
-                tooltip(g, recipeDetails(s), mouseX, mouseY);
-            }
-        } else if (main() && passive()) {
-            if (inside(mx, my, gridX() + (previous.visible ? 24 : 2), STOCK_FOOTER,
-                    CONTENT_RIGHT - gridX() - (previous.visible ? 48 : 4), 13)
-                    || disk() && inside(mx, my, 12, 48, 92, 97))
-                tooltip(g, storageDetails(s), mouseX, mouseY);
-        } else if (configuration()) {
-            if (inside(mx, my, 12, 49, ports.visible ? 187 : 272, 22))
-                tooltip(g, industrial() ? structureDetails(s) : storageDetails(s), mouseX, mouseY);
-            else if (inside(mx, my, 12, 73, 272, 28) && java.util.stream.IntStream.of(0, 1, 3, 4).noneMatch(i -> menu.slots.get(i).isActive()))
-                tooltip(g, preparator() ? List.of(tr("optional_mix_hint")) : menu.kind() == MachineKind.ANALYZER ? List.of(tr("sample_kept")) : storageDetails(s), mouseX, mouseY);
-        }
-    }
-    private static boolean inside(int x,int y,int left,int top,int width,int height) { return x>=left && x<left+width && y>=top && y<top+height; }
-    private Component slotMarkerTooltip(int x, int y, MachineSnapshot s) {
-        if (!(main() && !passive() || configuration())) return null;
-        for (int i : new int[]{0, 1, 3, 4}) {
-            var slot = menu.slots.get(i);
-            if (slot.isActive() && inside(x, y, slot.x - 12, slot.y - 13, 40, 12)) {
-                Component label = slotLabel(i, s);
-                return i == 3 && groupedIngredients() ? label.copy().append("\n").append(tr("optional_mix_hint")) : label;
-            }
-        }
-        var output = menu.slots.get(1);
-        return main() && !passive() && !outputIcon(s.preview()).isEmpty() && inside(x, y, output.x - 12, output.y - 13, 40, 12)
-                ? slotLabel(1, s) : null;
-    }
-
-    private Component slotLabel(int index, MachineSnapshot snapshot) {
-        if (index == 1) return tr(snapshot.networkJobs() ? "to_network" : "output");
-        if (isDiskSlot(index)) return tr("disk_slot");
-        if (snapshot.networkJobs()) return tr("from_network");
-        if (index == 3) return tr("mix_slot");
-        if (index == 4) return tr("additive_slot");
-        return tr(menu.kind() == MachineKind.ANALYZER ? "sample" : groupedIngredients() ? "ingredients" : "input");
-    }
-
-    private boolean isDiskSlot(int index) { return index == 0 && disk(); }
-    private boolean overActiveSlot(int x,int y) { return menu.slots.stream().anyMatch(slot -> slot.isActive() && inside(x,y,slot.x,slot.y,16,16)); }
-    private void tooltip(GuiGraphicsExtractor g,List<Component> lines,int x,int y) { if(!lines.isEmpty())g.setComponentTooltipForNextFrame(font,lines,x,y); }
-    @Override public void extractBackground(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick) {
-        super.extractBackground(g, mouseX, mouseY, partialTick);
-        int x = leftPos, y = topPos;
-        ScreenChrome.panel(g, x, y, PANEL_WIDTH, PANEL_HEIGHT);
-        g.fill(x + 8, y + 23, x + 288, y + 24, BORDER);
-        g.fill(x + 8, y + 23, x + 64, y + 24, machineAccent(menu.kind()));
-        ScreenChrome.inset(g, x + 8, y + 46, 280, 102);
-        g.fill(x + 9, y + 47, x + 287, y + 147, PANEL);
-        var s = menu.snapshot();
-        if (menu.view() == MachineMenu.View.UPGRADES) {
-            for (int i=0;i<upgradeCards();i++) {
-                int cardX=12+i*(upgradeCardWidth()+4);
-                ScreenChrome.raised(g,x+cardX,y+55,upgradeCardWidth(),37,inside(mouseX-x,mouseY-y,cardX,55,upgradeCardWidth(),37),true);
-                g.fakeItem(upgradeIcon(i),x+cardX+5,y+65);
-            }
-        } else if (main() && passive() && search.visible) {
-            ScreenChrome.inset(g, x + gridX(), y + 49, CONTENT_RIGHT - gridX(), 20);
-            if (search.isFocused()) g.fill(x + gridX() + 1, y + 67, search.getX() + search.getWidth(), y + 68, ACCENT);
-            if (disk()) ScreenChrome.inset(g, x + 12, y + 49, 92, 95);
-        } else if (main() && !passive()) {
-            if (!handPreparator()) {
-                ScreenChrome.inset(g, x + 14, y + 74, 12, 34);
-                int fill = (int) Math.clamp(30L * menu.progress().energy() / MachineBlockEntity.ENERGY_CAPACITY, 0, 30);
-                g.fill(x + 16, y + 106 - fill, x + 24, y + 106, ACCENT);
-            }
-            int arrowStart = processArrowStart(), arrowEnd = 200;
-            g.fill(x + arrowStart, y + 88, x + arrowEnd, y + 94, HIGHLIGHT);
-            g.fill(x + arrowEnd - 4, y + 84, x + arrowEnd, y + 98, HIGHLIGHT);
-            g.fill(x + arrowEnd, y + 86, x + arrowEnd + 4, y + 96, HIGHLIGHT);
-            var work = menu.progress();
-            int progress = work.duration() > 0 ? (int) Math.clamp((long) (arrowEnd - arrowStart) * work.progress() / work.duration(), 0, arrowEnd - arrowStart) : 0;
-            g.fill(x + arrowStart, y + 88, x + arrowStart + progress, y + 94, ACCENT);
-            g.fill(x + 12, y + 112, x + CONTENT_RIGHT, y + 113, BORDER);
-        }
-        for(int i=0;i<menu.slots.size();i++) {
+        for(int i=0;i<menu.slots.size();i++){
             var slot=menu.slots.get(i);if(!slot.isActive())continue;
-            int color=i>=MachineMenu.FIRST_PLAYER_SLOT?SLOT_EDGE:i==2?UPGRADE:i==1?ACCENT:SLOT_EDGE;
-            if(main()&&disk()&&(i==0||i>=5&&i<10)) {
-                int bay=MachineCellAccess.bayForSlot(MachineKind.DRIVE,i);
-                if(bay<s.cells().size()&&s.cells().get(bay).installed())color=s.cells().get(bay).readable()?ACCENT:WARNING;
-            }
-            g.fill(x+slot.x-1,y+slot.y-1,x+slot.x+17,y+slot.y+17,color);
-            g.fill(x+slot.x,y+slot.y,x+slot.x+16,y+slot.y+16,RECESS);
-            g.fill(x+slot.x,y+slot.y,x+slot.x+16,y+slot.y+1,0xff0a1115);
-            g.fill(x+slot.x,y+slot.y+1,x+slot.x+1,y+slot.y+15,0xff0a1115);
-            g.fill(x+slot.x,y+slot.y+15,x+slot.x+16,y+slot.y+16,HIGHLIGHT);
-        }
-        if (previewCard()) {
-            ScreenChrome.inset(g, x + 197, y + 49, 87, 21);
-            g.fakeItem(outputIcon(s.preview()), x + 200, y + 52);
+            int edge=i>=MachineMenu.FIRST_PLAYER_SLOT?SLOT_EDGE:i==2||i==10||i==11||i==13?UPGRADE:i==12?GAS:i==1?ACCENT:SLOT_EDGE;
+            ScreenChrome.slot(g,leftPos+slot.x-1,topPos+slot.y-1);
+            g.fill(leftPos+slot.x-1,topPos+slot.y-1,leftPos+slot.x+17,topPos+slot.y,edge);
+            if(i==2&&!slot.hasItem())ScreenChrome.icon(g,Icon.UPGRADES,leftPos+slot.x+2,topPos+slot.y+2,UPGRADE);
         }
     }
-    @Override protected void extractLabels(GuiGraphicsExtractor g, int mouseX, int mouseY) {
-        int titleWidth = terminalDevices.visible || returnToTerminal.visible ? 168 : 272;
-        if (font.width(title) <= titleWidth) g.text(font, title, 12, 10, TEXT, false);
-        else ScreenChrome.twoLines(g, font, title.getString(), 12, 4, titleWidth, TEXT);
-        g.text(font, tr("inventory"), MachineMenu.PLAYER_SLOTS_X, 151, MUTED, false);
-        if (sideTabs) {
-            var selectedTab = switch (menu.view()) {
-                case MAIN -> processTab;
-                case UPGRADES -> upgradesTab;
-                case CONFIGURATION -> configurationTab;
-            };
-            ScreenChrome.icon(g, selectedTab.icon(), 12, 28, ACCENT_BRIGHT);
-            text(g, selectedTab.getMessage().getString(), 30, 30, 254, TEXT);
-        }
-        var s = menu.snapshot();
-        if (s.containerId() != menu.containerId) {
-            g.text(font, tr("loading"), 12, 54, MUTED, false);
+    private void arrow(GuiGraphicsExtractor g,int x,int y){
+        var p=menu.progress();int fill=p.duration()>0?(int)Math.clamp(24L*p.progress()/p.duration(),0,24):0;
+        for(int i=0;i<24;i++){int half=i<16?3:Math.max(0,7-(i-16));g.fill(x+i,y+8-half,x+i+1,y+9+half,i<fill?ACCENT:HIGHLIGHT);}
+    }
+    @Override protected void extractLabels(GuiGraphicsExtractor g,int mx,int my){
+        text(g,title.getString(),8,6,back.visible?155:200,TEXT);
+        if(configuration()){
+            if(driveRecovery()) {g.text(font,ui("preserved_items"),8,24,WARNING,false);int line=0;for(var part:font.split(ui("preserved_items_hint"),154)){if(line==4)break;g.text(font,part,8,76+line++*10,MUTED,false);}return;}
+            ScreenChrome.inset(g,8,130,180,78);g.text(font,ui("details"),13,136,MUTED,false);
+            var details=industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot());
+            for(int i=0;i<Math.min(5,details.size());i++)text(g,details.get(i).getString(),13,149+i*11,170,TEXT);
             return;
         }
-        if (menu.view() == MachineMenu.View.UPGRADES) {
-            upgradeLabels(g, s);
-        } else if (configuration()) {
-            configurationLabels(g, s);
-        } else if (passive()) {
-            storageLabels(g, s);
-        } else {
-            processLabels(g, s);
+        if(researching())return;
+        if(!terminal())g.text(font,tr("inventory"),18,123,MUTED,false);
+        if(machines()){drawDevices(g);return;}
+        if(!main())return;
+        if(passive()){drawStorage(g);return;}
+        if(converter())return;
+        if(menu.kind().generator()){
+            text(g,ui("generator_rate",extraNumber("generationRate")).getString(),24,73,164,ACCENT);
+            text(g,Quantities.energy(Quantities.compact(menu.progress().energy())).getString(),24,85,164,TEXT);
+            text(g,ui("generator_remaining",extraNumber("fuelRemaining")).getString(),24,92,164,MUTED);return;
         }
+        var s=menu.snapshot();var p=s.preview();
+        if(!menu.inputRole())chips(g,p.inputs(),24,42);
+        if(!menu.slots.get(1).isActive())chips(g,p.outputs(),134,42);
+        if(menu.kind()==MachineKind.ANALYZER)text(g,tr("sample_kept").getString(),24,66,90,MUTED);
+        ItemStack preview=outputIcon(p);
+        if(!preview.isEmpty()){
+            ScreenChrome.inset(g,170,42,18,18);g.fakeItem(preview,171,43);text(g,tr("result_preview").getString(),145,66,43,MUTED);
+        }
+        String cost=handPreparator()?tr("hand_powered").getString():p.id().isEmpty()?Quantities.energy(Quantities.compact(menu.progress().energy())).getString():tr("preview_cost",Quantities.compact(p.energy()),Quantities.seconds(p.ticks())).getString();
+        text(g,cost,24,81,164,MUTED);
+        String status=statusText().getString();
+        if(s.queuedBatches()>0)status+=" · "+s.queuedBatches()+" "+ui("queued").getString();else if(s.repeat())status+=" · "+ui("repeating").getString();
+        int color=working(s.status())?ACCENT:List.of("ready","idle","analyzed","analysis_complete","awaiting_request","paused").contains(s.status())?MUTED:WARNING;
+        ScreenChrome.icon(g,color==WARNING?Icon.INFO:working(s.status())?Icon.PLAY:Icon.CHECK,24,91,color);text(g,status,38,92,150,color);
     }
-
-    private int processArrowStart() { return menu.mixingRole() ? 157 : 136; }
-
-    private void processLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
-        var p = s.preview();
-        String name = previewTitle(s).getString();
-        ScreenChrome.icon(g, Icon.RECIPE, 12, 52, MUTED);
-        ScreenChrome.twoLines(g, font, name, 30, 50, choose.visible || previewCard() ? 162 : 254, TEXT);
-        if (previewCard()) {
-            text(g, tr("result_preview").getString(), 220, 55, 61, MUTED);
-        }
-        if (handPreparator()) ScreenChrome.icon(g, Icon.CRANK, 14, 87, ACCENT);
-        if (menu.inputRole()) {
-            for (int index : new int[]{0, 3, 4}) if (menu.slots.get(index).isActive()) drawSlotLabel(g, index, s);
-        } else if (p.inputs().size() == 1) {
-            var ingredient = p.inputs().getFirst();
-            ScreenChrome.twoLines(g, font, label(ingredient), 38, 75, 90,
-                    !ingredient.known() || ingredient.available() < ingredient.required() ? WARNING : TEXT);
-            text(g, matter(ingredient.required()), 38, 99, 90, MUTED);
-        } else if (!p.inputs().isEmpty()) {
-            for (int i = 0; i < Math.min(2, p.inputs().size()); i++) {
-                var ingredient = p.inputs().get(i);
-                text(g, label(ingredient), 38, 72 + i * 19, 90,
-                        !ingredient.known() || ingredient.available() < ingredient.required() ? WARNING : TEXT);
-                text(g, matter(ingredient.required()), 38, 81 + i * 19, 80, MUTED);
-            }
-            if (p.inputs().size() > 2 || !p.complete()) g.text(font, "+", 122, 100, MUTED, false);
-        } else if (selecting()) {
-            ScreenChrome.twoLines(g, font, tr("stored_resources").getString(), 38, 81, 90, MUTED);
-        }
-        if (menu.kind() == MachineKind.ANALYZER) {
-            text(g, tr("analysis_result").getString(), 208, 73, 76, MUTED);
-            if (!p.outputs().isEmpty()) {
-                text(g, Component.translatable("screen.rematter.substance_count", p.outputs().size()).getString(), 208, 85, 76, TEXT);
-                text(g, tr("sample_kept").getString(), 208, 98, 76, MUTED);
-            }
-        } else if (menu.slots.get(1).isActive() || !outputIcon(p).isEmpty()) {
-            drawSlotLabel(g, 1, s);
-            if (p.outputKind().equals("fluid"))
-                text(g, Quantities.fluid(Quantities.compact(s.fluidAmount())).getString(), 246, 89, 38, MUTED);
-        } else if (!p.outputs().isEmpty()) {
-            var output = p.outputs().getFirst();
-            ScreenChrome.twoLines(g, font, label(output), 209, 73, 75, output.known() ? TEXT : WARNING);
-            text(g, matter(output.required()), 209, 98, 65, ACCENT);
-            if (p.outputs().size() > 1 || !p.complete()) g.text(font, "+", 278, 98, MUTED, false);
-        }
-        var work = menu.progress();
-        if (work.duration() > 0) {
-            String progress = Component.translatable("screen.rematter.percent", Math.clamp(100L * work.progress() / work.duration(), 0, 100)).getString();
-            g.text(font, progress, (processArrowStart() + 200 - font.width(progress)) / 2, 100, MUTED, false);
-        }
-        String status = (s.repeat() && selecting() ? joined(statusText(), tr("continuous")) : statusText()).getString();
-        boolean activeWork = working(s.status());
-        ScreenChrome.icon(g, activeWork ? Icon.PLAY : s.status().equals("ready") ? Icon.CHECK : Icon.INFO,
-                12, 119, activeWork ? ACCENT : TEXT);
-        ScreenChrome.twoLines(g, font, status, 30, 118, primary.visible||buildHint.visible ? 129 : 254, activeWork ? ACCENT : TEXT);
+    private void chips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int x,int y){
+        for(int i=0;i<Math.min(6,values.size());i++){var a=values.get(i);int xx=x+i%3*18,yy=y+i/3*18;ScreenChrome.inset(g,xx,yy,18,18);substanceIcon(g,key(a.id(),a.phase()),xx+1,yy+1);if(a.available()<a.required())g.fill(xx,yy,xx+18,yy+1,WARNING);}
     }
+    private void drawStorage(GuiGraphicsExtractor g){
+        var s=menu.snapshot();
+        if(disk()){
+            for(int bay=0;bay<s.cells().size();bay++){var cell=s.cells().get(bay);var slot=menu.slots.get(menu.diskMenuSlot(bay));g.text(font,Integer.toString(bay+1),slot.x-8,slot.y+5,MUTED,false);int fill=cell.capacity()>0?(int)Math.clamp(16L*cell.used()/cell.capacity(),0,16):0;g.fill(slot.x,slot.y+17,slot.x+16,slot.y+19,HIGHLIGHT);g.fill(slot.x,slot.y+17,slot.x+fill,slot.y+19,cell.readable()?ACCENT:WARNING);}
+            if(extraNumber("primalCapacity")>0)text(g,ui("primal_short",Quantities.compact(extraNumber("primal"))).getString(),8,100,67,GAS);
+            text(g,Quantities.compact(s.used())+" / "+Quantities.compact(s.capacity()),8,110,67,MUTED);
+        }
+        if(terminal()){text(g,ui("substance").getString(),8,40,105,MUTED);text(g,ui("amount").getString(),126,40,48,MUTED);}
+        if(shownEntries.isEmpty())text(g,tr(menu.stock().readable()?"contents_empty":"contents_unavailable").getString(),stockX()+2,stockY()+5,stockWidth()-4,MUTED);
+        String footer=driveRecovery()?ui("extra_items").getString():ui("types",menu.stock().totalTypes()).getString();
+        if(menu.stock().truncated())footer+=" · "+ui("partial").getString();
+        if(terminal())footer+=" · "+Quantities.compact(s.used())+" / "+Quantities.compact(s.capacity())+" u";
+        text(g,footer,stockX(),terminal()?200:112,180-stockX(),menu.stock().truncated()?WARNING:MUTED);
 
-    private void drawSlotLabel(GuiGraphicsExtractor g, int index, MachineSnapshot s) {
-        var slot = menu.slots.get(index);
-        Component caption = slotLabel(index, s);
-        if (index != 1 && s.networkJobs() && !isDiskSlot(index)) caption = tr("terminal.network");
-        else if (index == 0 && groupedIngredients()) caption = tr("input");
-        String label = fitted(caption.getString(), index == 1 ? 78 : 42);
-        g.text(font, label, slot.x + 8 - font.width(label) / 2, slot.y - 12, index == 1 ? ACCENT : MUTED, false);
     }
-
-    private void upgradeLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
-        for (int i=0;i<upgradeCards();i++) text(g,tr(i==0?"speed_short":i==1?"efficiency_short":menu.kind().synthesis()?"pressure_short":"parallel_short").getString(),
-                37+i*(upgradeCardWidth()+4),69,upgradeCardWidth()-29,TEXT);
-        if (menu.slots.get(2).isActive()) {
-            ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
-            text(g, tr("upgrades").getString(), 68, 116, 210, TEXT);
-        }
-        String cost = (s.preview().id().isEmpty() ? Quantities.energy(Quantities.compact(menu.progress().energy()))
-                : Component.translatable("screen.rematter.preview_cost", Quantities.compact(s.preview().energy()), Quantities.seconds(s.preview().ticks()))).getString();
-        text(g, cost, 68, 131, 210, MUTED);
+    private void drawDevices(GuiGraphicsExtractor g){
+        if(shownDevices.isEmpty())text(g,ui("no_machines").getString(),8,48,175,MUTED);
+        for(var row:deviceRows)row.draw(g);
+        text(g,ui("devices_count",shownDevices.size(),menu.terminalDevices().total()).getString(),8,200,178,MUTED);
     }
-
-    private void configurationLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
-        String heading = tr("automation_explain").getString();
-        var v = s.structure();
-        if (industrial()) heading = (v.formed() ? Component.translatable("screen.rematter.structure_heading", v.width(), v.depth(), v.height(),
-                v.workRate(), v.energySavingPercent()) : statusText()).getString();
-        else if (menu.kind() == MachineKind.NETWORK_INTERFACE) heading = statusText().getString();
-        if (disk() && java.util.stream.IntStream.of(1, 2, 3, 4).anyMatch(i -> menu.slots.get(i).hasItem()))
-            heading = tr("drive_recovery").getString();
-        if (!productionSettings.visible) {
-            ScreenChrome.icon(g, Icon.CONFIGURATION, 12, 52, MUTED);
-            ScreenChrome.twoLines(g, font, heading, 30, 50, ports.visible ? 167 : 254, TEXT);
+    @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){
+        super.extractRenderState(g,mx,my,partial);int x=mx-leftPos,y=my-topPos;
+        if(researching()){researchPanel.extractRenderState(g,mx,my);return;}
+        if(main()&&converter())converterPanel.extractRenderState(g,mx,my);
+        if(configuration()){settingsPanel.extractRenderState(g,mx,my);if(inside(x,y,8,130,180,78))tooltip(g,industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()),mx,my);return;}
+        if(search!=null&&search.visible)ScreenChrome.icon(g,Icon.SEARCH,leftPos+11,topPos+23,MUTED);
+        if(storageList())stockBar.extractRenderState(g);else if(machines())deviceBar.extractRenderState(g);
+        if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
+            if(inside(x,y,8,20,12,58)){var lines=new ArrayList<Component>();lines.add(energyLine());addRouteDetails(lines,menu.snapshot());tooltip(g,lines,mx,my);}
+            if(inside(x,y,94,52,24,16))tooltip(g,recipeDetails(menu.snapshot()),mx,my);
+            if(inside(x,y,24,90,164,11)){var lines=new ArrayList<Component>();lines.add(statusText());lines.addAll(industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()));tooltip(g,lines,mx,my);}
+            if(inside(x,y,170,42,18,29)&&!outputIcon(menu.snapshot().preview()).isEmpty())tooltip(g,List.of(tr("result_preview_detail",menu.snapshot().preview().outputCount(),outputIcon(menu.snapshot().preview()).getHoverName()),tr("result_preview_hint")),mx,my);
+            tooltipChips(g,menu.snapshot().preview().inputs(),24,42,x,y,mx,my);
+            if(!menu.slots.get(1).isActive())tooltipChips(g,menu.snapshot().preview().outputs(),134,42,x,y,mx,my);
         }
-        boolean hasSlots = false;
-        for (int index : new int[]{0, 1, 3, 4}) {
-            if (menu.slots.get(index).isActive()) {
-                drawSlotLabel(g, index, s);
-                hasSlots = true;
-            }
-        }
-        if (!hasSlots) {
-            if (handPreparator()) {
-                ScreenChrome.icon(g, Icon.CRANK, 14, 80, ACCENT);
-                text(g, tr("hand_powered").getString(), 33, 82, 249, MUTED);
-            } else if (s.network().nodes() > 0) {
-                ScreenChrome.icon(g, Icon.NETWORK, 14, 80, ACCENT);
-                text(g, Component.translatable("screen.rematter.network_summary", s.network().nodes(), s.network().storages(), s.network().cells()).getString(),
-                        33, 82, 249, MUTED);
-            } else {
-                ScreenChrome.icon(g, passive() ? Icon.STORAGE : Icon.POWER, 14, 80, ACCENT);
-                text(g, (passive() ? capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity()))
-                        : Quantities.energy(Quantities.compact(menu.progress().energy()))).getString(), 33, 82, 249, MUTED);
-            }
-        }
-        if (menu.slots.get(2).isActive()) ScreenChrome.icon(g, Icon.UPGRADES, 24, 126, UPGRADE);
-        if (s.queuedBatches() > 0 && !repeat.visible && !backend.visible) {
-            ScreenChrome.icon(g, Icon.REPEAT, 108, 128, MUTED);
-            g.text(font, Integer.toString(s.queuedBatches()), 126, 130, MUTED, false);
-        }
+        if(main())for(int i=0;i<MachineMenu.FIRST_PLAYER_SLOT;i++){var slot=menu.slots.get(i);if(!slot.isActive()||slot.hasItem()||!inside(x,y,slot.x,slot.y,16,16))continue;
+            List<Component> lines=i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":"input"));tooltip(g,lines,mx,my);}
+        if(main()&&disk()&&inside(x,y,8,103,68,15))tooltip(g,storageDetails(menu.snapshot()),mx,my);
     }
-
-    private void storageLabels(GuiGraphicsExtractor g, MachineSnapshot s) {
-        if (disk()) {
-            long installed = s.cells().stream().filter(MachineSnapshot.CellView::installed).count();
-            text(g, Component.translatable("screen.rematter.drive_cells", installed).getString(), 18, 54, 80, TEXT);
-            capacityBar(g, s, 18, 68, 80);
-            for (int bay = 0; bay < menu.diskBayCount(); bay++) {
-                var slot = menu.slots.get(menu.diskMenuSlot(bay));
-                int labelX = slot.x + (MachineCellAccess.driveColumn(bay) == 0 ? -12 : 20);
-                g.text(font, Integer.toString(bay + 1), labelX, slot.y + 4, MUTED, false);
-            }
-        }
-        var stock = menu.stock();
-        var visibleEntries = entries();
-        if (visibleEntries.isEmpty()) {
-            String message = tr(!stock.readable() ? "contents_unavailable" : stock.entries().isEmpty() ? "empty_storage" : "no_matches").getString();
-            ScreenChrome.twoLines(g, font, message, gridX() + 5, 87, CONTENT_RIGHT - gridX() - 10, MUTED);
-        }
-        int pageCount = pages(visibleEntries);
-        var parts = new ArrayList<Component>();
-        if(sentQuery!=null&&(!sentQuery.text().isBlank()||!sentQuery.phases().isEmpty()||sentQuery.favoritesOnly()))
-            parts.add(Component.translatable("screen.rematter.stock_matches",(stock.approximate()?"≥ ":"")+stock.matchingTypes(),stock.totalTypes()));
-        // A shortened list leads the footer so the notice is never cut off.
-        if (stock.truncated()) parts.add(Component.translatable("screen.rematter.stock_truncated", stock.entries().size(), stock.totalTypes()));
-        if (!disk()) parts.add(capacity(Quantities.compact(s.used()), Quantities.compact(s.capacity())));
-        if (pageCount > 1) parts.add(Component.translatable("screen.rematter.page", Math.min(page, pageCount - 1) + 1, pageCount));
-        String footer = parts.stream().reduce(MachineScreen::joined).map(Component::getString).orElse("");
-        int notice = stock.truncated() ? ScreenChrome.ICON_SIZE + 2 : 0;
-        int start = gridX() + (previous.visible ? 24 : 2), end = CONTENT_RIGHT - (next.visible ? 24 : 2);
-        String label = fitted(footer, end - start - notice);
-        int labelX = (start + end - font.width(label) + notice) / 2;
-        if (notice > 0) ScreenChrome.icon(g, Icon.INFO, labelX - notice, STOCK_FOOTER, WARNING);
-        g.text(font, label, labelX, STOCK_FOOTER + 3, stock.complete() ? ACCENT : WARNING, false);
-    }
-
-    private static void capacityBar(GuiGraphicsExtractor g, MachineSnapshot s, int x, int y, int width) {
-        ScreenChrome.inset(g, x, y, width, 5);
-        int fill = s.capacity() > 0 ? (int) Math.clamp((width - 2) * (double) s.used() / s.capacity(), 0, width - 2) : 0;
-        if (fill > 0) g.fill(x + 1, y + 1, x + 1 + fill, y + 4, s.status().equals("unknown_schema") ? WARNING : ACCENT);
-    }
+    private boolean extraFlag(String key){return menu.extras().has(key)&&menu.extras().get(key).getAsBoolean();}
+    private long extraNumber(String key){return menu.extras().has(key)?menu.extras().get(key).getAsLong():0;}
+    private void action(MachineActionPayload.Action action,String target,long amount){ClientPacketDistributor.sendToServer(new MachineActionPayload(menu.containerId,action,target,amount));}
+    private void tooltipChips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int xx,int yy,int x,int y,int mx,int my){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,xx+i%3*18,yy+i/3*18,18,18)){var a=values.get(i);tooltip(g,List.of(name(a),SubstanceNames.phase(a.phase()),tr("preview_input",name(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available()))),mx,my);}}
+    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(menu.kind().synthesis())lines.add(tr("pressure_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
+    private Component statusText(){var s=menu.snapshot();return s.status().equals("structure")&&industrial()?Component.translatable("status.rematter."+s.structure().diagnostic()):StatusText.of(s.status(),s.orders().stale(),s.orders().quarantined());}
+    private static Component name(MachineSnapshot.Entry e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
+    private static Component name(MachineSnapshot.Amount e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
+    private static String label(MachineSnapshot.Amount a){return a.known()?SubstanceLabels.shortLabel(a.id(),name(a).getString()):name(a).getString();}
+    private static boolean inside(double x,double y,int xx,int yy,int w,int h){return x>=xx&&x<xx+w&&y>=yy&&y<yy+h;}
+    private void tooltip(GuiGraphicsExtractor g,List<Component> lines,int x,int y){if(!lines.isEmpty())g.setComponentTooltipForNextFrame(font,lines,x,y);}
     private List<Component> recipeDetails(MachineSnapshot s) {
         var p=s.preview();var lines=new ArrayList<Component>();lines.add(previewTitle(s));
         if(menu.inputRole()&&!preparator()&&s.sampleBatchSize()>1)lines.add(Component.translatable("screen.rematter.composition_batch",s.sampleBatchSize()));
@@ -691,14 +343,16 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(!v.formed()){lines.add(Component.translatable("status.rematter."+v.diagnostic()));lines.add(Component.translatable("screen.rematter.help_"+v.diagnostic()));lines.add(tr(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR?"preparation_stack":"reactor_stack"));}
         else {
             lines.add(Component.translatable("screen.rematter.structure_speed",v.workRate()));
-            lines.add(Component.translatable("screen.rematter.structure_efficiency",v.energySavingPercent()));
+            if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)lines.add(tr("structure_precision",v.separation()));
+            else {lines.add(tr("structure_field",v.coils()));lines.add(tr("structure_room",number(16_000L*v.chambers())));}
+            addRouteDetails(lines,s);
             if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR) {
-                moduleDetail(lines,"grinding_unit",v.grinding(),"module_throughput");
-                moduleDetail(lines,"mixing_basin",v.mixing(),"module_throughput");
-                moduleDetail(lines,"separation_unit",v.separation(),"module_efficiency");
+                moduleDetail(lines,"grinding_unit",v.grinding(),"module_capacity");
+                moduleDetail(lines,"mixing_basin",v.mixing(),"module_capacity");
+                moduleDetail(lines,"separation_unit",v.separation(),"module_precision");
             } else {
-                moduleDetail(lines,"reaction_chamber",v.chambers(),"module_throughput");
-                moduleDetail(lines,"field_coil",v.coils(),"module_efficiency");
+                moduleDetail(lines,"reaction_chamber",v.chambers(),"module_room");
+                moduleDetail(lines,"field_coil",v.coils(),"module_field");
             }
             lines.add(tr("structure_scaling_hint"));
         }return lines;
@@ -706,10 +360,19 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static void moduleDetail(List<Component> lines,String id,int count,String benefit) {
         lines.add(Component.translatable("screen.rematter.module_detail",count,Component.translatable("block.rematter."+id),tr(benefit)));
     }
+    private void addRouteDetails(List<Component> lines,MachineSnapshot s){
+        if(s.network().status().equals("ready")&&menu.extras().has("matterRate")){
+            long rate=extraNumber("matterRate");
+            String tier=rate>=8192?"Resonant":rate>=1024?"Reinforced":"Basic";
+            lines.add(tr("matter_route",tier,number(rate)));
+            lines.add(tr("matter_route_hint"));
+        }
+    }
     private List<Component> storageDetails(MachineSnapshot s) {
         var lines=new ArrayList<Component>();
         if(handPreparator()){lines.add(tr("hand_powered"));lines.add(tr("crank_hint"));return lines;}
         if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());
+        if(disk()&&extraNumber("primalCapacity")>0)lines.add(ui("primal_reserve",number(extraNumber("primal")),number(extraNumber("primalCapacity"))));
         lines.add(tr("source_"+s.storageSource()));lines.add(capacity(number(s.used()),number(s.capacity())));
         if(menu.kind().processes())lines.add(energyLine());
         if(disk()) {
@@ -721,6 +384,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
                         cell.readable()?Component.translatable("screen.rematter.cell_types",cell.types(),cell.maxTypes()):tr("cell_unreadable")));
             }
         }
+        addRouteDetails(lines,s);
         var n=s.network();
         if(!n.status().equals("none") && (configuration() || !disk())) {
             lines.add(Component.translatable("screen.rematter.network_summary",n.nodes(),n.storages(),n.cells()));
@@ -736,7 +400,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static Component stockTooltip(MachineSnapshot.Entry e, String label) {
         var lines = joined(Component.literal(label), SubstanceNames.phase(e.phase())).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
         if (!e.known()) lines.append("\n").append(tr("unknown_substance_hint"));
-        return lines.append("\n").append(tr("substance_details_hint"));
+        return lines.append("\n").append(Component.literal(e.id()));
     }
     private static SubstanceKey key(String id,String phase) {
         try { return new SubstanceKey(SubstanceId.parse(id),Phase.valueOf(phase.toUpperCase(Locale.ROOT))); }
@@ -757,196 +421,19 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private static Component capacity(String used,String capacity){return Component.translatable("screen.rematter.capacity",used,capacity);}
     private static MutableComponent joined(Component first,Component second){return Component.translatable("screen.rematter.joined",first,second);}
     private Component energyLine(){return Component.translatable("screen.rematter.energy_buffer",number(menu.progress().energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
-    private class ConsoleButton extends Button {
-        private Component explainedLabel, explainedHint;
-        ConsoleButton(Builder b){super(b);}
-        /** The tooltip names the control and explains it; it is rebuilt only when either text changes. */
-        void explain(Component hint) {
-            Component label=getMessage();
-            if(label.equals(explainedLabel)&&hint.equals(explainedHint))return;
-            explainedLabel=label;explainedHint=hint;
-            setTooltip(Tooltip.create(label.getString().isBlank()||label.getString().equals(hint.getString())?hint:label.copy().append("\n").append(hint)));
-        }
-        void background(GuiGraphicsExtractor g,boolean selected){ScreenChrome.raised(g,getX(),getY(),getWidth(),getHeight(),selected||isHoveredOrFocused(),active);}
-        private boolean toggled(){var s=menu.snapshot();return this==automation&&s.automation()||this==networkJobs&&s.networkJobs()||this==repeat&&s.repeat();}
-        private Icon symbol() {
-            if(this==primary)return switch(MachinePrimaryAction.forSnapshot(menu.snapshot()).action()) {
-                case PAUSE->Icon.PAUSE;case CHOOSE_RECIPE->Icon.RECIPE;case CRANK->Icon.CRANK;case LOCAL_CONTROL->Icon.BACK;
-                default->Icon.PLAY;
-            };
-            if(this==choose)return Icon.RECIPE;
-            if(this==automation)return Icon.AUTOMATION;
-            if(this==networkJobs||this==backend)return Icon.NETWORK;
-            if(this==terminalDevices)return Icon.NETWORK;
-            if(this==returnToTerminal)return Icon.BACK;
-            if(this==repeat)return Icon.REPEAT;
-            if(this==addBatch)return Icon.ADD;
-            if(this==previous)return Icon.PREVIOUS;
-            if(this==next)return Icon.NEXT;
-            return null;
-        }
-        private String visualLabel() {
-            if(this==networkJobs)return tr(toggled()?"network_jobs_short_on":"network_jobs_short_off").getString();
-            if(this==addBatch||this==previous||this==next)return "";
-            return getMessage().getString();
-        }
-        @Override protected void extractContents(GuiGraphicsExtractor g,int mx,int my,float partial){
-            background(g,toggled());Icon symbol=symbol();
-            String label=fitted(visualLabel(),getWidth()-(symbol==null?8:24));
-            int textWidth=font.width(label),contentWidth=(symbol==null?0:12)+(label.isEmpty()?0:textWidth+(symbol==null?0:6));
-            int x=getX()+(getWidth()-contentWidth)/2;
-            if(symbol!=null)ScreenChrome.icon(g,symbol,x,getY()+(getHeight()-12)/2,active?this==primary||toggled()?ACCENT_BRIGHT:TEXT:DISABLED);
-            if(!label.isEmpty())g.text(font,label,x+(symbol==null?0:18),getY()+(getHeight()-8)/2,active?TEXT:DISABLED,false);
-        }
-    }
-    private final class TabButton extends ConsoleButton {
-        private final MachineMenu.View view;
 
-        TabButton(Builder builder, MachineMenu.View view) {
-            super(builder);
-            this.view = view;
-        }
-
-        private Icon icon() {
-            return switch (view) {
-                case MAIN -> passive() ? Icon.STORAGE : Icon.PLAY;
-                case UPGRADES -> Icon.UPGRADES;
-                case CONFIGURATION -> Icon.CONFIGURATION;
-            };
-        }
-
-        @Override protected void extractContents(GuiGraphicsExtractor g, int mx, int my, float partial) {
-            boolean selected = menu.view() == view;
-            background(g, selected);
-            int color = active ? selected ? ACCENT_BRIGHT : TEXT : DISABLED;
-            if (sideTabs) {
-                ScreenChrome.icon(g, icon(), getX() + (getWidth() - ScreenChrome.ICON_SIZE) / 2,
-                        getY() + (getHeight() - ScreenChrome.ICON_SIZE) / 2, color);
-                if (selected) g.fill(getX() + getWidth() - 2, getY() + 3, getX() + getWidth(), getY() + getHeight() - 3, ACCENT);
-                return;
-            }
-            ScreenChrome.icon(g, icon(), getX() + 6, getY() + 3, color);
-            String label = fitted(getMessage().getString(), getWidth() - 26);
-            g.text(font, label, getX() + 22, getY() + 5, color, false);
-            if (selected) g.fill(getX() + 3, getY() + getHeight() - 3, getX() + getWidth() - 3, getY() + getHeight() - 2, ACCENT);
-        }
-    }
-
-    /** A toggle in the stock search row. Its icon takes the filter's colour while it is on. */
-    private final class ChipButton extends ConsoleButton {
-        private final Icon icon;
-        private final int color;
-        private final BooleanSupplier on;
-
-        ChipButton(Builder builder, Icon icon, int color, BooleanSupplier on) {
-            super(builder);
-            this.icon = icon;
-            this.color = color;
-            this.on = on;
-        }
-
-        @Override protected void extractContents(GuiGraphicsExtractor g, int mx, int my, float partial) {
-            boolean selected = on.getAsBoolean();
-            background(g, selected);
-            ScreenChrome.icon(g, icon, getX() + (getWidth() - ScreenChrome.ICON_SIZE) / 2, getY() + (getHeight() - ScreenChrome.ICON_SIZE) / 2,
-                    selected ? color : MUTED);
-        }
-    }
-
-    private final class StockButton extends ConsoleButton {
+    private final class StockRow extends Button {
         private MachineSnapshot.Entry entry;
-        private ChemistryRegistry catalogue;
-        private SubstanceKey key;
-        private String name = "", amount = "";
-        private boolean favorite;
-
-        StockButton(Builder builder) { super(builder); }
-
-        /** Names, icon key and tooltip are resolved once per shown row and catalogue. */
-        void show(MachineSnapshot.Entry value) {
-            if (java.util.Objects.equals(value, entry) && catalogue == ClientChemistry.current()) return;
-            entry = value;
-            catalogue = ClientChemistry.current();
-            if (value == null) return;
-            key = key(value.id(), value.phase());
-            name = name(value).getString();
-            amount = matter(value.amount());
-            String label = value.known() ? SubstanceLabels.shortLabel(value.id(), name) : name;
-            setMessage(Component.translatable("screen.rematter.stock_entry", label, SubstanceNames.phase(value.phase()),
-                    Quantities.matter(number(value.amount()))));
-            setTooltip(Tooltip.create(stockTooltip(value, label)));
-        }
-
-        @Override protected void extractContents(GuiGraphicsExtractor g, int mx, int my, float partial) {
-            if (entry == null) return;
-            background(g, false);
-            substanceIcon(g, key, getX() + 3, getY() + 1);
-            int left = getX() + 22;
-            int available = getWidth() - 26;
-            text(g, name, left, getY() + 1, available, entry.known() ? TEXT : WARNING);
-            text(g, amount, left, getY() + 9, available, ACCENT);
-            if (favorite) {
-                int right = getX() + getWidth() - 4;
-                g.fill(right - 3, getY() + 2, right, getY() + 3, ACCENT_BRIGHT);
-                g.fill(right - 2, getY() + 1, right - 1, getY() + 4, ACCENT_BRIGHT);
-            }
-        }
+        StockRow(){super(Button.builder(Component.empty(),b->{var row=(StockRow)b;if(row.entry!=null)toggleFavorite(row.entry);}).bounds(leftPos+8,topPos+50,174,18));}
+        void show(MachineSnapshot.Entry value){entry=value;if(value==null)return;setMessage(name(value));setTooltip(Tooltip.create(stockTooltip(value,name(value).getString()).copy().append("\n").append(ui("favorite_toggle"))));}
+        @Override protected void extractContents(GuiGraphicsExtractor g,int mx,int my,float partial){if(entry==null)return;ScreenChrome.raised(g,getX(),getY(),getWidth(),18,isHoveredOrFocused(),true);substanceIcon(g,key(entry.id(),entry.phase()),getX()+1,getY()+1);int amountWidth=Math.min(43,getWidth()/3);String amount=Quantities.compact(entry.amount());int right=getX()+getWidth()-17;g.text(font,amount,right-font.width(amount),getY()+5,ACCENT,false);text(g,name(entry).getString(),getX()+21,getY()+5,getWidth()-amountWidth-40,entry.known()?TEXT:WARNING);ScreenChrome.icon(g,Icon.STAR,getX()+getWidth()-14,getY()+3,favorite(entry.key())?ACCENT_BRIGHT:MUTED);}
     }
-    /** Quantity details are a real accessible screen, never an inventory slot or an implicit withdrawal. */
-    private final class StockDetailsScreen extends Screen {
-        private final String id,phase;private final SubstanceKey key;private int x,y;
-        private ConsoleButton favoriteButton;private MachineMenu.Stock seen;private MachineSnapshot.Entry entry;
-        StockDetailsScreen(String id,String phase){super(tr("substance_details"));this.id=id;this.phase=phase;key=key(id,phase);}
-        @Override protected void init(){x=(width-244)/2;y=(height-170)/2;
-            favoriteButton=addRenderableWidget(new ConsoleButton(Button.builder(Component.empty(),b->toggleFavorite()).bounds(x+11,y+141,140,18)));
-            addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+163,y+141,70,18).build(ConsoleButton::new));
-            refreshFavorite();}
-        /** Favorites are stored on this client for the current player; the server never sees them. */
-        private void toggleFavorite(){UUID player=player();if(player!=null&&key!=null)StockFavorites.get().toggle(player,new MachineSnapshot.StockKey(id,phase));refreshFavorite();}
-        private void refreshFavorite(){boolean on=key!=null&&favorite(new MachineSnapshot.StockKey(id,phase));
-            favoriteButton.setMessage(tr(on?"favorite_remove":"favorite_add"));favoriteButton.active=key!=null&&player()!=null;}
-        @Override public boolean isPauseScreen(){return false;}
-        @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu)onClose();}
-        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);var stock=menu.stock();
-            if(stock!=seen){seen=stock;entry=stock.entries().stream().filter(e->e.id().equals(id)&&e.phase().equals(phase)).findFirst().orElse(null);}
-            String name=entry==null?id:name(entry).getString();substanceIcon(g,key,x+11,y+12);ScreenChrome.twoLines(g,font,name,x+34,y+11,198,TEXT);
-            String symbol=SubstanceLabels.iconLabel(id);text(g,(symbol.isEmpty()?SubstanceNames.phase(phase):joined(Component.literal(symbol),SubstanceNames.phase(phase))).getString(),x+34,y+33,198,phaseColor(phase));
-            String stored=entry==null?(stock.complete()?"0":"?"):number(entry.amount());
-            ScreenChrome.twoLines(g, font, Component.translatable("screen.rematter.stock_stored", stored).getString(), x + 11, y + 50, 222, TEXT);
-            ScreenChrome.twoLines(g, font, tr("quantity_not_item").getString(), x + 11, y + 71, 222, MUTED);
-            text(g, id, x + 11, y + 92, 222, MUTED);
-            if (entry != null && !entry.known()) text(g, tr("unknown_substance_hint").getString(), x + 11, y + 126, 222, WARNING);
-            else if (!stock.complete()) text(g, Component.translatable("screen.rematter.partial_contents_hint", stock.entries().size(), stock.totalTypes()).getString(), x + 11, y + 126, 222, WARNING);
-            super.extractRenderState(g, mx, my, partial);
-        }
-    }
-    /**
-     * The explicit confirmation before a stopped delivery is released: the player sees what the order holds and where it
-     * goes. The server checks the order again and hands out only what it can.
-     */
-    private final class ReleaseConfirmScreen extends Screen {
-        private static final int SHOWN = 4;
-        private final MachineSnapshot.OrdersView orders;private final List<Component> lines = new ArrayList<>();private int x,y;
-        ReleaseConfirmScreen(MachineSnapshot.OrdersView orders){super(tr("release_title"));this.orders=orders;
-            orders.matter().forEach(m->lines.add(joined(Component.literal(label(m)),Quantities.matter(number(m.required())))));
-            orders.resources().forEach(r->lines.add(r.kind().equals("fluid")?joined(SubstanceNames.fluid(r.id()),Quantities.fluid(number(r.amount())))
-                    :Component.translatable("gui.rematter.choice.items",number(r.amount()),SubstanceNames.item(r.id()))));}
-        @Override protected void init(){x=(width-244)/2;y=(height-170)/2;
-            addRenderableWidget(Button.builder(tr("release_confirm"),b->confirm()).bounds(x+11,y+141,140,18).build(ConsoleButton::new));
-            addRenderableWidget(Button.builder(tr("back_short"),b->onClose()).bounds(x+163,y+141,70,18).build(ConsoleButton::new));}
-        private void confirm(){
-            if(minecraft.player!=null&&minecraft.player.containerMenu==menu&&menu.snapshot().orders().held().equals(orders.held()))
-                ClientPacketDistributor.sendToServer(new ReleaseHeldOrderPayload(menu.containerId,UUID.fromString(orders.held())));
-            onClose();}
-        @Override public boolean isPauseScreen(){return false;}
-        @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu||!menu.snapshot().orders().held().equals(orders.held()))onClose();}
-        @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){ScreenChrome.panel(g,x,y,244,170);
-            ScreenChrome.icon(g,Icon.INFO,x+11,y+11,WARNING);text(g,getTitle().getString(),x+30,y+13,202,TEXT);
-            ScreenChrome.twoLines(g,font,tr("release_explain").getString(),x+11,y+30,222,MUTED);
-            for(int i=0;i<Math.min(SHOWN,lines.size());i++)text(g,lines.get(i).getString(),x+11,y+56+i*12,222,TEXT);
-            int hidden=lines.size()-Math.min(SHOWN,lines.size());
-            if(hidden>0||!orders.complete())text(g,tr("release_more").getString(),x+11,y+56+SHOWN*12,222,MUTED);
-            ScreenChrome.twoLines(g,font,tr("release_warning").getString(),x+11,y+118,222,WARNING);
-            super.extractRenderState(g,mx,my,partial);}
+    private final class DeviceRow {
+        private TerminalDevicesPayload.Device device;
+        private final DarkButton open=DarkButton.icon(Icon.NEXT,ui("open"),tr("terminal.return_hint"),leftPos+161,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.OPEN));
+        private final DarkButton queue=DarkButton.icon(Icon.ADD,ui("queue_one"),tr("add_batch_hint"),leftPos+141,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.QUEUE_BATCH));
+        private int y;
+        void show(TerminalDevicesPayload.Device value,int y){device=value;this.y=y;open.visible=open.active=value!=null;queue.visible=value!=null;queue.active=value!=null&&value.canQueue();open.setY(y+3);queue.setY(y+3);if(value!=null)open.setTooltip(Tooltip.create(Component.translatable("block.rematter."+value.kind().id()).copy().append("\n").append(Component.literal(value.position().toShortString()))));}
+        void draw(GuiGraphicsExtractor g){if(device==null)return;int yy=y-topPos;String title=Component.translatable("block.rematter."+device.kind().id()).getString();text(g,title,11,yy+3,126,TEXT);String status=StatusText.of(device.status(),0,0).getString();if(device.queuedBatches()>0)status+=" · "+device.queuedBatches()+" "+ui("queued").getString();text(g,status,11,yy+14,126,working(device.status())?ACCENT:MUTED);if(device.duration()>0)g.fill(11,yy+25,11+(int)(126L*device.progress()/device.duration()),yy+26,ACCENT);}
     }
 }

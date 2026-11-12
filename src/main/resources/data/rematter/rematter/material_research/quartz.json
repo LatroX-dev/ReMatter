@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Quartz",
+  "items": [
+    "enderio:powdered_quartz",
+    "ftbic:quartz_dust",
+    "mekanism:dust_quartz",
+    "minecraft:nether_quartz_ore",
+    "minecraft:quartz",
+    "minecraft:quartz_block",
+    "oritech:quartz_dust",
+    "thaumaturge:deepslate_ore_quartz",
+    "thaumaturge:nugget_quartz",
+    "thaumaturge:ore_quartz"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": "minecraft:the_nether"
+}

@@ -3,11 +3,11 @@
   "primary": "rematter:silith",
   "secondary": "rematter:argil",
   "tertiary": "rematter:virel",
+  "energy": 8000,
+  "ticks": 160,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:virelite_blend",
     "count": 4
-  },
-  "energy": 8000,
-  "ticks": 160,
-  "minimum_tier": 1
+  }
 }

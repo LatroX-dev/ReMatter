@@ -1,0 +1,22 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:copper_matrix_crystal",
+  "energy": 2000,
+  "ticks": 90,
+  "minimum_tier": 2,
+  "results": [
+    {
+      "id": "rematter:matrix_crystal",
+      "count": 1
+    },
+    {
+      "id": "rematter:copper_dust",
+      "count": 1
+    }
+  ],
+  "min_precision": 1,
+  "steps": [
+    "separate"
+  ],
+  "network_recipe": false
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "type": "separation",
+  "inputs": [
+    {
+      "substance": "rematter:echo",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:quantium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 128000,
+  "ticks": 600,
+  "industrial": {
+    "min_field": 8,
+    "requires_known_outputs": false,
+    "product": "rematter:arcanium"
+  },
+  "required_mod": "occultism"
+}

@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Electrum",
+  "items": [
+    "alltheores:electrum_block",
+    "alltheores:electrum_dust",
+    "alltheores:electrum_ingot",
+    "alltheores:electrum_nugget",
+    "ftbic:electrum_block",
+    "ftbic:electrum_dust",
+    "ftbic:electrum_ingot",
+    "oritech:electrum",
+    "oritech:electrum_dust",
+    "oritech:electrum_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

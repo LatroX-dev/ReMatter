@@ -79,6 +79,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
 
         readDirectory(manager, "rematter/substance", (id, json) -> {
             SubstanceId key = SubstanceId.parse(id.toString());
+            requireUnreservedSubstance(key);
             if (disabled(json)) {
                 substances.remove(key);
                 return;
@@ -148,7 +149,13 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         SynthesisOutputs.validate(result, this::defaultsFor);
         MachineEnergyPolicy.requireFits(result);
         CatalogWireCodec.encode(result);
+        dev.latrox.rematter.research.ResearchData.stage(manager,result);
         return result;
+    }
+
+    /** Both replacement and disabled documents are forbidden for this code-owned resource. */
+    public static void requireUnreservedSubstance(SubstanceId id) {
+        if (ReservedSubstances.reserved(id)) throw new IllegalArgumentException("Primal Matter is reserved and cannot be overridden or disabled");
     }
 
     @Override
@@ -156,12 +163,13 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         for (var holder : recipes.getRecipes()) {
             if (holder.value() instanceof PreparationRecipe preparation) {
                 try {
-                    preparation.validateOutput(defaultsFor(preparation.outputItem()));
+                    preparation.validateOutputs(this::defaultsFor);
                 } catch (IllegalArgumentException error) {
                     throw new IllegalArgumentException("Invalid preparation result in " + holder.id().identifier(), error);
                 }
             }
         }
+        dev.latrox.rematter.research.ResearchData.publish(validated);
         current = validated;
         ReMatter.LOGGER.info("Loaded {} substances, {} material profiles, and {} chemical processes",
                 validated.substances().size(), validated.profiles().size(), validated.processes().size());

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "name": "Awakened Supremium Metal",
+  "items": [
+    "mysticalagriculture:awakened_supremium_ingot",
+    "mysticalagriculture:awakened_supremium_ingot_block",
+    "mysticalagriculture:awakened_supremium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:awakened_supremium_essence",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

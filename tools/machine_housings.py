@@ -63,7 +63,7 @@ def machine_housing(name):
     frames = []
     for direction in directions:
         # Angled vessel shells keep their authored shape; their well ends before the shell.
-        shallow_vessel = name in ('decomposer', 'electrolyzer') and direction != 'down'
+        shallow_vessel = name == 'decomposer' and direction != 'down'
         inset = 1.05 if rack else 2 if shallow_vessel else 3.5
         opening, = rotate([{'from': [5.85, 5.85, 0], 'to': [10.15, 10.15, inset]}], direction)
         elements = []

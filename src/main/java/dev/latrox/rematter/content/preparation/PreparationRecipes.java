@@ -27,6 +27,7 @@ public final class PreparationRecipes {
     private PreparationRecipes(){}
     public static void register(IEventBus bus) {
         TYPES.register(bus);SERIALIZERS.register(bus);
+        dev.latrox.rematter.content.EmptyMachineIngredient.register(bus);
         NeoForge.EVENT_BUS.addListener(PreparationCatalog::sync);
     }
     /** The validated server catalogue. Invalid data is logged once per recipe reload and never throws on a lookup. */
@@ -66,6 +67,9 @@ public final class PreparationRecipes {
         public Ingredient primary(){return recipe.primary();} public Optional<Ingredient> secondary(){return recipe.secondary();}
         public ItemStack result(){return recipe.result();} public int energy(){return recipe.energy();} public int ticks(){return recipe.ticks();}
         public int minimumTier(){return recipe.minimumTier();} public String process(){return recipe.process();}
+        public int minPrecision(){return recipe.minPrecision();}
+        public java.util.Set<PreparationStep> steps(){return recipe.steps();}
+        public List<ItemStack> results(){return recipe.results();}
         public boolean networkRecipe(){return recipe.networkRecipe();}
         public Optional<Ingredient> tertiary(){return recipe.tertiary();}
         public int primaryCount(){return recipe.primaryCount();} public int secondaryCount(){return recipe.secondaryCount();} public int tertiaryCount(){return recipe.tertiaryCount();}

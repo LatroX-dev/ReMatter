@@ -17,14 +17,21 @@ def recipe(name, data):
     write(DATA / "rematter/recipe" / (name + ".json"), data)
 
 
-def preparation(name, inputs, output, count=1, energy=4000, ticks=100, process="preparation", network_recipe=True, minimum_tier=1):
+def preparation(name, inputs, output, count=1, energy=4000, ticks=100, process="preparation", network_recipe=True, minimum_tier=1, min_precision=0, steps=None, results=None):
     data = {"type": "rematter:preparation"}
     for role, (ingredient, amount) in zip(("primary", "secondary", "tertiary"), inputs):
         data[role] = ingredient
         if amount != 1:
             data[role + "_count"] = amount
-    data.update(result={"id": "rematter:" + output, "count": count},
-                energy=energy, ticks=ticks, minimum_tier=minimum_tier)
+    data.update(energy=energy, ticks=ticks, minimum_tier=minimum_tier)
+    if results is None:
+        data["result"] = {"id": "rematter:" + output, "count": count}
+    else:
+        data["results"] = [{"id": item, "count": amount} for item, amount in results]
+    if min_precision:
+        data["min_precision"] = min_precision
+    if steps:
+        data["steps"] = steps
     if process != "preparation":
         data["process"] = process
     if not network_recipe:
@@ -79,10 +86,13 @@ def advanced_materials():
     for powder, raw, shared, blend, binder, additive, result, grind_fe, mix_fe, sinter_fe, grind_t, mix_t, sinter_t in materials:
         binder, additive = "rematter:" + binder, "rematter:" + additive
         preparation(powder, [(raw, 1)], powder, energy=grind_fe, ticks=grind_t)
-        preparation(blend, [(shared, 1), (binder, 2), (additive, 1)], blend, energy=mix_fe, ticks=mix_t)
+        preparation(blend, [(shared, 1), (binder, 2), (additive, 1)], blend, energy=mix_fe, ticks=mix_t,
+                    minimum_tier=2 if blend == "netherite_sheath_blend" else 1,
+                    min_precision=1 if blend == "netherite_sheath_blend" else 0)
         preparation(result, [("rematter:" + blend, 1)], result,
                     energy=sinter_fe, ticks=sinter_t, process="sintering")
-        recipe("compat/oritech/assembler/" + blend, optional("oritech", {
+        if blend != "netherite_sheath_blend":
+            recipe("compat/oritech/assembler/" + blend, optional("oritech", {
             "type": "oritech:assembler", "itemInputs": [shared, binder, binder, additive],
             "itemResults": [{"id": "rematter:" + blend, "count": 1}], "time": mix_t}))
         recipe("compat/oritech/foundry/" + result, optional("oritech", {
@@ -127,6 +137,52 @@ def crystal_powders():
 def workshop_dust_tag():
     materials = ("iron", "copper", "gold", "rhevon", "lumivex", "diamond", "netherite", "lapis", "amethyst", "emerald")
     tag("c", "dusts", ["#c:dusts/" + name for name in materials] + ["rematter:ender_pearl_powder"])
+
+
+def industrial_workshop():
+    # Exact direct chains: every intermediate count and FE charge is preserved.
+    for name, inputs in (
+        ("rhevon_dust_direct", [("#c:ingots/iron", 3), ("#c:ingots/copper", 1), ("minecraft:redstone", 1)]),
+        ("lumivex_dust_direct", [("#c:ingots/copper", 3), ("#c:ingots/gold", 1), ("minecraft:glowstone_dust", 1)]),
+        ("virelite_blend_direct", [("minecraft:sand", 1), ("minecraft:clay_ball", 1), ("minecraft:quartz", 1)]),
+    ):
+        preparation(name, inputs, name.removesuffix("_direct"), 4,
+                    energy=14000 if name.startswith("virelite") else 26000,
+                    ticks=260 if name.startswith("virelite") else 400,
+                    minimum_tier=2, min_precision=1, steps=["grind", "mix"])
+    for material, outputs in (
+        ("rhevon", [("rematter:iron_dust", 3), ("rematter:copper_dust", 1), ("rematter:rhedon", 1)]),
+        ("lumivex", [("rematter:copper_dust", 3), ("rematter:gold_dust", 1), ("rematter:lumin", 1)]),
+    ):
+        preparation(material+"_dust_separation", [("rematter:"+material+"_dust", 4)], None,
+                    energy=8000, ticks=160, minimum_tier=2, min_precision=1,
+                    steps=["separate"], results=outputs, network_recipe=False)
+    additives = {"ice": "rematter:silith", "copper": "rematter:copper_dust", "leaf": "rematter:emerald_dust",
+                 "violet": "rematter:amethyst_dust", "amber": "rematter:gold_dust", "ember": "minecraft:redstone",
+                 "blue": "rematter:lapis_dust", "mint": "rematter:diamond_powder"}
+    for colour, additive in additives.items():
+        preparation(colour+"_matrix_crystal_reclaim", [("rematter:"+colour+"_matrix_crystal", 1)], None,
+                    energy=2000, ticks=90, minimum_tier=2, min_precision=1, steps=["separate"],
+                    results=[("rematter:matrix_crystal", 1), (additive, 1)], network_recipe=False)
+    preparation("diamond_matrix_blend_direct", [("minecraft:diamond", 1), ("rematter:matrix_blend", 2), ("#c:ingots/gold", 1)],
+                "diamond_matrix_blend", energy=18000, ticks=230, minimum_tier=2, min_precision=4, steps=["grind", "mix"])
+    for name, amount, outputs in (
+        ("cell_rack", 2, [("rematter:structural_bars", 6), ("rematter:control_circuit", 2), ("rematter:silith", 1)]),
+        ("machine_frame", 4, [("rematter:structural_bars", 4), ("minecraft:iron_ingot", 4), ("rematter:matrix_blend", 1)]),
+    ):
+        preparation(name+"_reclaim", [("rematter:"+name, amount)], None, energy=4000, ticks=120,
+                    minimum_tier=2, min_precision=4, steps=["separate"], results=outputs, network_recipe=False)
+    preparation("parallel_upgrade", [("rematter:rhevon_ingot", 4), ("rematter:diamond_lattice", 2), ("rematter:optical_circuit", 2)],
+                "parallel_upgrade", energy=32000, ticks=400, minimum_tier=2, min_precision=4, steps=["mix"])
+    preparation("primal_crystal", [("rematter:primal_shard", 4), ("rematter:matrix_crystal", 1)], "primal_crystal",
+                energy=256000, ticks=9600, minimum_tier=2, min_precision=4, steps=["mix"], network_recipe=False)
+    preparation("discovery_lens", [("rematter:primal_crystal", 8), ("rematter:optical_circuit", 2), ("rematter:diamond_lattice", 1)],
+                "discovery_lens", energy=256000, ticks=9600, minimum_tier=2, min_precision=4, steps=["mix"], network_recipe=False)
+    recipe("material_preparator_from_hand_preparator", {
+        "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["MBM", "BHB", "C C"],
+        "key": {"M": "rematter:amber_matrix_crystal", "B": "rematter:structural_bars", "C": "rematter:control_circuit", "H": {"neoforge:ingredient_type": "rematter:empty_machine"}},
+        "result": {"id": "rematter:material_preparator", "count": 1}})
+    advancement("material_preparator_from_hand_preparator", "rematter:hand_preparator")
 
 
 def main():
@@ -193,6 +249,7 @@ def generate():
         tag("c", "dusts/" + material, [dust])
 
     tag("c", "ingots", ["#c:ingots/rhevon", "#c:ingots/lumivex"])
+    industrial_workshop()
     advanced_materials()
     crystal_powders()
     workshop_dust_tag()

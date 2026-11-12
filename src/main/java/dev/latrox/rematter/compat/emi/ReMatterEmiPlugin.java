@@ -61,7 +61,6 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     }
 
     @Override public void register(EmiRegistry registry) {
-        ModContent.MACHINES.forEach((kind, block) -> { if (kind.retiredSpecialist()) registry.removeEmiStacks(EmiStack.of(block.get())); });
         registry.addExclusionArea(MachineScreen.class, (screen, consumer) -> {
             for (var area : screen.viewerExclusionAreas())
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
@@ -102,7 +101,7 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
             entry.produced().ifPresent(resource -> outputs.add(stack(resource)));
             entry.outputs().forEach(matter -> outputs.add(new MatterEmiStack(matter.key(), matter.amount())));
             registry.addRecipe(new ChemistryEmiRecipe(categories.get(entry.category()), entry.id(), inputs, outputs,
-                    entry.energy(), entry.ticks(), entry.notes()));
+                    entry.energy(), entry.ticks(), entry.notes(), ChemistryViewer.researchTarget(entry)));
         }
     }
 

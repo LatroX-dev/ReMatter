@@ -51,7 +51,6 @@ public final class MachinePrimaryAction {
 
     private static Decision toggle(Action action, String label) { return new Decision(action, label, "pause_hint", true); }
     private static boolean selecting(MachineKind kind) {
-        return kind == MachineKind.SYNTHESIZER || kind == MachineKind.ELECTROLYZER
-                || kind == MachineKind.REACTOR || kind == MachineKind.INDUSTRIAL_REACTOR;
+        return kind.selectable();
     }
 }

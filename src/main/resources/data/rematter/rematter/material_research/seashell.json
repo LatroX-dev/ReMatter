@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Seashell",
+  "items": [
+    "ecologics:seashell",
+    "ecologics:seashell_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:seashell",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

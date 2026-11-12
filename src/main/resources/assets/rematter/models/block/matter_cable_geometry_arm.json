@@ -1,7 +1,12 @@
 {
   "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "cable": "rematter:block/matter_cable"
+  },
   "elements": [
     {
+      "name": "arm",
       "from": [
         6,
         6,
@@ -14,40 +19,40 @@
       ],
       "faces": {
         "east": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
-            10,
+            6,
             0,
-            16,
-            16
+            0,
+            4
           ]
         },
         "west": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
             0,
             0,
             6,
-            16
+            4
           ]
         },
         "up": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
             0,
-            0,
+            4,
             6,
-            16
+            0
           ],
           "rotation": 90
         },
         "down": {
-          "texture": "#trace",
+          "texture": "#cable",
           "uv": [
-            10,
+            6,
+            4,
             0,
-            16,
-            16
+            0
           ],
           "rotation": 90
         }

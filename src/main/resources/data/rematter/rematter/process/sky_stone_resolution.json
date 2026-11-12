@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "type": "separation",
+  "inputs": [
+    {
+      "substance": "rematter:sky_stone",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 128000,
+  "ticks": 600,
+  "industrial": {
+    "min_field": 8,
+    "requires_known_outputs": false,
+    "product": "rematter:iron"
+  },
+  "required_mod": "ae2"
+}

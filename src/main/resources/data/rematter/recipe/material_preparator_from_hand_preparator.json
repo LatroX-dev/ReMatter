@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MBM",
+    "BHB",
+    "C C"
+  ],
+  "key": {
+    "M": "rematter:amber_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "H": {
+      "neoforge:ingredient_type": "rematter:empty_machine"
+    }
+  },
+  "result": {
+    "id": "rematter:material_preparator",
+    "count": 1
+  }
+}

@@ -1,6 +1,19 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:item/hand_preparator"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/hand_preparator"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/hand_preparator_active_parts"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/hand_preparator_crank_item"
+      }
+    ]
   }
 }

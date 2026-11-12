@@ -62,7 +62,7 @@ final class MachineMatterNetwork {
         this.owner = owner;
         this.nodes = List.copyOf(nodes);
         this.endpoints = this.nodes.stream().filter(node -> !node.cable()).toList();
-        this.associated = this.nodes.stream().filter(node -> node.entity instanceof MachinePortBlockEntity
+        this.associated = this.nodes.stream().filter(node -> node.entity instanceof MachinePortBlockEntity || node.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity
                 || node.entity instanceof MachineBlockEntity machine && IndustrialStructure.isIndustrial(machine.kind())).toList();
         var entities = Collections.newSetFromMap(new IdentityHashMap<BlockEntity, Boolean>());
         this.nodes.stream().map(Node::entity).filter(Objects::nonNull).forEach(entities::add);
@@ -86,6 +86,24 @@ final class MachineMatterNetwork {
     @Nullable MatterNetworkInventory inventory() { return inventory; }
     void markChanged() { stores.forEach(MachineBlockEntity::setChanged); }
     boolean hasCables() { return !cablePositions.isEmpty(); }
+
+    private final Map<BlockPos,MatterCableBlock.Tier> throughputTiers=new HashMap<>();
+    MatterCableBlock.Tier throughputTier(MachineBlockEntity machine) {
+        return throughputTiers.computeIfAbsent(machine.getBlockPos(),origin->{
+            var tiers=new HashMap<BlockPos,Integer>();var neighbors=new HashMap<BlockPos,List<BlockPos>>();
+            for(var node:nodes){if(node.cable())tiers.put(node.position,node.cableTier);else if(node.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity)tiers.put(node.position,0);}
+            for(var edge:edges){neighbors.computeIfAbsent(edge.first,k->new ArrayList<>()).add(edge.second);neighbors.computeIfAbsent(edge.second,k->new ArrayList<>()).add(edge.first);}
+            var destinations=stores.stream().map(MachineBlockEntity::getBlockPos).collect(Collectors.toSet());
+            return MatterCableBlock.Tier.values()[ControllerThroughput.bestTier(origin,destinations,tiers,neighbors)];
+        });
+    }
+
+    List<MachineBlockEntity> checkpointStores(){return stores;}
+    java.util.Optional<java.util.UUID> credit(MachineBlockEntity origin,java.util.UUID operation,dev.latrox.rematter.chemistry.SubstanceKey target,long amount,net.neoforged.neoforge.transfer.transaction.TransactionContext tx){
+        if(!ready()||!current(origin,true))return java.util.Optional.empty();
+        for(var store:stores){var result=store.creditConvertedMatter(operation,target,amount,tx);if(result.isPresent())return result;}
+        return java.util.Optional.empty();
+    }
 
     /** One shortest-path tree over the already discovered loaded graph. No new chunks are queried. */
     void pulseActivity(ServerLevel level, BlockPos origin, List<MatterNetworkInventory.MemberActivity> activity) {
@@ -271,6 +289,8 @@ final class MachineMatterNetwork {
                     var formation = IndustrialStructure.inspect(machine);
                     return formation.formed() && structure.equals(formation.layoutFingerprint());
                 }
+            } else if(entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link){
+                return Objects.equals(owner,link.owner())&&localStatus.equals(dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner).map(p->Long.toString(p.asLong())).orElse(""));
             } else if (entity instanceof MachinePortBlockEntity port) {
                 return !port.isRemoved() && port.acceptsMatter() && port.controller(null) == controller && port.outward() == outward;
             }
@@ -379,6 +399,9 @@ final class MachineMatterNetwork {
                 String status = machine.kind().isStorage() ? machine.networkStorageStatus() : "";
                 result = new Node(position, state.getBlock(), -1, machine, null, null, structure, status,
                         machine.localMatterMembers());
+            } else if(entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&owner.equals(link.owner())){
+                String peer=dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner).map(p->Long.toString(p.asLong())).orElse("");
+                result=new Node(position,state.getBlock(),-1,link,null,null,"",peer,List.of());
             } else if (entity instanceof MachinePortBlockEntity port && port.acceptsMatter()) {
                 var controller = port.controller(null); Direction outward = port.outward();
                 if (controller != null && outward != null && Objects.equals(owner, controller.networkOwner()))
@@ -389,6 +412,10 @@ final class MachineMatterNetwork {
         }
 
         private List<BlockPos> neighbors(Node node) {
+            if(node.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity){
+                var result=new ArrayList<>(java.util.Arrays.stream(Direction.values()).map(node.position::relative).toList());
+                dev.latrox.rematter.primal.EntangledLinks.peer(level,node.position,owner).ifPresent(result::add);return result;
+            }
             if (node.entity instanceof MachinePortBlockEntity) return List.of(node.controller.getBlockPos(), node.position.relative(node.outward));
             if (node.entity instanceof MachineBlockEntity machine) {
                 if (IndustrialStructure.isIndustrial(machine.kind()))
@@ -399,6 +426,7 @@ final class MachineMatterNetwork {
             return java.util.Arrays.stream(Direction.values()).map(node.position::relative).toList();
         }
         private boolean acceptsFrom(Node target, Node source) {
+            if(target.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity)return target.position.distManhattan(source.position)==1||dev.latrox.rematter.primal.EntangledLinks.peer(level,target.position,owner).filter(source.position::equals).isPresent();
             if (target.entity instanceof MachinePortBlockEntity)
                 return source.position.equals(target.controller.getBlockPos()) || source.position.equals(target.position.relative(target.outward));
             if (target.entity instanceof MachineBlockEntity machine) {

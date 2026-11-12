@@ -1,6 +1,6 @@
 package dev.latrox.rematter.content;
 
-/** Installed hardware affects work and power only; it never changes recipe quantities. */
+/** Installed hardware grants capabilities and simultaneous capacity; upgrades control speed and FE. */
 public record IndustrialPerformance(int grinding, int mixing, int separation, int coils, int chambers) {
     public static final int MAX_PARTS_PER_TYPE = 2 * (IndustrialStructure.MAX_SIZE - 2) * (IndustrialStructure.MAX_SIZE - 2);
     public static final IndustrialPerformance EMPTY = new IndustrialPerformance(0, 0, 0, 0, 0);
@@ -12,23 +12,38 @@ public record IndustrialPerformance(int grinding, int mixing, int separation, in
 
     public int workRate(MachineKind kind) {
         return switch (kind) {
-            case INDUSTRIAL_PREPARATOR -> grinding > 0 && mixing > 0 && separation > 0 ? 2 * (grinding + mixing) : 0;
-            case INDUSTRIAL_REACTOR -> coils > 0 && chambers > 0 ? 2 * chambers : 0;
+            case INDUSTRIAL_PREPARATOR -> grinding > 0 && mixing > 0 && separation > 0 ? 4 : 0;
+            case INDUSTRIAL_REACTOR -> coils > 0 && chambers > 0 ? 2 : 0;
             default -> 0;
         };
     }
 
-    /** The first support is required. Additional supports asymptotically approach 25% savings. */
-    public int energySavingPercent(MachineKind kind) {
-        if (workRate(kind) == 0) return 0;
-        int supports = kind == MachineKind.INDUSTRIAL_PREPARATOR ? separation : coils;
-        return 25 * (supports - 1) / (supports + 2);
+    public int field() { return coils; }
+    public int precision() { return separation; }
+    /** Space for all simultaneous recipe inputs, with no yield or speed multiplier. */
+    public long processRoom() { return 16_000L * chambers; }
+    public boolean supportsInputUnits(long simultaneousInputs) {
+        return simultaneousInputs >= 0 && simultaneousInputs <= processRoom();
+    }
+    public int jobCapacity(java.util.Set<dev.latrox.rematter.content.preparation.PreparationStep> steps) {
+        if (steps.isEmpty()) return 0;
+        int result = MAX_PARTS_PER_TYPE;
+        for (var step : steps) result = Math.min(result, switch (step) {
+            case GRIND -> grinding;
+            case MIX -> mixing;
+            case SEPARATE -> separation;
+        });
+        return result;
     }
 
-    /** Round the FE debit upward, including tiny recipes, without multiplying a potentially huge cost. */
+    /** Hardware never discounts power. Kept as the single policy hook used by FE pricing. */
+    public int energySavingPercent(MachineKind kind) {
+        return 0;
+    }
+
+    /** Hardware leaves the exact FE debit to the controller's upgrade policy. */
     public long energyCost(MachineKind kind, long energy) {
         if (energy < 0) throw new IllegalArgumentException("Negative energy");
-        int saving = energySavingPercent(kind);
-        return energy - (energy / 100 * saving + energy % 100 * saving / 100);
+        return energy;
     }
 }

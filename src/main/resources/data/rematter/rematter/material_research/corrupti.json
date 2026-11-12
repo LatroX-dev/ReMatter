@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "name": "Corrupti",
+  "items": [
+    "forbidden_arcanus:corrupti_dust",
+    "jaopca:storage_blocks.corrupti"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcane_crystal",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

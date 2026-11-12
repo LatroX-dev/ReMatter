@@ -43,11 +43,11 @@ public enum MachinePortMode implements StringRepresentable {
     private boolean supported(MachineKind kind) {
         return switch (this) {
             case AUTOMATIC, DISABLED, MATTER -> true;
-            case ITEM_INPUT -> PreparationTier.isPreparation(kind) || kind == MachineKind.DECOMPOSER || kind == MachineKind.ANALYZER;
+            case ITEM_INPUT -> kind.generator() || kind==MachineKind.PRIMAL_CONVERTER || PreparationTier.isPreparation(kind) || kind == MachineKind.DECOMPOSER || kind == MachineKind.ANALYZER;
             case ITEM_OUTPUT -> PreparationTier.isPreparation(kind) || kind.synthesis();
             case FLUID_INPUT -> kind == MachineKind.DECOMPOSER;
             case FLUID_OUTPUT -> kind == MachineKind.DECOMPOSER || kind.synthesis();
-            case POWER -> kind.processes() && !PreparationTier.manual(kind);
+            case POWER -> (kind.generator()||kind.processes()) && !PreparationTier.manual(kind);
             case CHEMICAL -> kind.isStorage();
         };
     }

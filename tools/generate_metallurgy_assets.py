@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""Metallurgy sprite model references and the compact sintering furnace.
+"""Model/definition references for the nine independently authored metallurgy sprites.
 
-The furnace housing is the Blockbench export in models/block.
-Item textures are independently authored.
+The Sinter Furnace body and states are owned by generate_family_assets.py.
 Run with --check to verify deterministic outputs without rewriting them.
 """
 from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from connection_geometry import machine_state_assets
-from machine_housings import machine_housing
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
@@ -24,29 +21,6 @@ ITEM_NAMES = (
 )
 
 
-def box(a, b, texture, rotation=None, faces=None):
-    values = {'from': list(a), 'to': list(b), 'faces': {
-        face: {'texture': '#' + (faces or {}).get(face, texture)} for face in FACES}}
-    if rotation:
-        values['rotation'] = rotation
-    # The gold texture's centre is a calm metal surface, without the block border.
-    for value in values['faces'].values():
-        if value['texture'] == '#gold': value['uv'] = [4, 4, 12, 12]
-    return values
-
-
-def idle_prisms():
-    # The inventory model includes the same fixed-proportion dormant focusing
-    # prisms drawn by the block entity renderer, not a fictitious loaded product.
-    e=[]
-    for x in (4.4,11.6):
-        e.extend([box((x-.585,7,10.115),(x+.585,9.4,11.285),'copper'),
-                  box((x-.234,6.2,10.466),(x+.234,10.2,10.934),'copper'),
-                  box((x-.4212,6.68,10.2788),(x+.4212,9.72,11.1212),'copper',
-                      rotation={'origin':[x,8.2,10.7],'axis':'y','angle':45,'rescale':False})])
-    return e
-
-
 def outputs():
     # Standard generated-item transforms keep the illustrated face readable in
     # inventories, in the hand and when laid on a machine's work surface.
@@ -56,17 +30,7 @@ def outputs():
             'textures':{'layer0':f'rematter:item/{name}'},
         }
         yield ASSETS/f'items/{name}.json',{'model':{'type':'minecraft:model','model':f'rematter:item/{name}'}}
-    furnace = machine_housing('sinter_furnace')
-    yield ASSETS / 'models/block/sinter_furnace.json', furnace
-    yield ASSETS / 'models/block/sinter_furnace_active.json', {
-        'parent': 'rematter:block/sinter_furnace',
-        'textures': {'status': 'rematter:block/machine_ember'},
-    }
-    yield ASSETS / 'models/item/sinter_furnace.json', furnace | {'elements': furnace['elements'] + idle_prisms()}
-    yield ASSETS/'items/sinter_furnace.json',{'model':{'type':'minecraft:model','model':'rematter:item/sinter_furnace'}}
-    energy_trim = box((6.4,11.5,14.6),(9.6,13.7,14.66),'graphite',faces={'south':'energy'})
-    for path, asset in machine_state_assets('sinter_furnace', 'machine_ember', rear_trim=[energy_trim]):
-        yield ASSETS / path, asset
+    # Sinter Furnace housing/state/item models belong exclusively to generate_family_assets.py.
 
 
 def main():

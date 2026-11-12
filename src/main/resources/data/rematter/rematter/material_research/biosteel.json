@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Biosteel",
+  "items": [
+    "oritech:biosteel",
+    "oritech:biosteel_dust",
+    "oritech:biosteel_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

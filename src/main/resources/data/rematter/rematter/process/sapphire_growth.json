@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "crystallization",
+  "inputs": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:sapphire",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 96000,
+  "ticks": 600,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": true,
+    "product": "rematter:sapphire"
+  },
+  "required_mod": "alltheores"
+}

@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "name": "Zinc",
+  "items": [
+    "alltheores:deepslate_zinc_ore",
+    "alltheores:end_zinc_ore",
+    "alltheores:nether_zinc_ore",
+    "alltheores:other_zinc_ore",
+    "alltheores:raw_zinc",
+    "alltheores:raw_zinc_block",
+    "alltheores:zinc_block",
+    "alltheores:zinc_dust",
+    "alltheores:zinc_ingot",
+    "alltheores:zinc_nugget",
+    "alltheores:zinc_ore",
+    "hextale:deepslate_sphalerite_ore",
+    "hextale:raw_zinc",
+    "hextale:raw_zinc_block",
+    "hextale:sphalerite_ore",
+    "hextale:zinc_block",
+    "hextale:zinc_ingot",
+    "hextale:zinc_nugget",
+    "infinity_nexus_mod:deepslate_zinc_ore",
+    "infinity_nexus_mod:raw_zinc",
+    "infinity_nexus_mod:raw_zinc_block",
+    "infinity_nexus_mod:zinc_block",
+    "infinity_nexus_mod:zinc_dust",
+    "infinity_nexus_mod:zinc_ingot",
+    "infinity_nexus_mod:zinc_nugget",
+    "infinity_nexus_mod:zinc_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:zinc",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

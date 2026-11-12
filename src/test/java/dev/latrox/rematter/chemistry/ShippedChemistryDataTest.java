@@ -56,7 +56,7 @@ class ShippedChemistryDataTest {
         }
         for (ProcessRecipe process : registry.processes()) {
             assertAutomationRecipe(actual, expectedIds, "process", process.id().toString(),
-                    dev.latrox.rematter.content.MachineRouting.primary(process.type()).id(),
+                    dev.latrox.rematter.content.MachineRouting.primary(process).id(),
                     automationMatter(process.inputs()), automationMatter(process.outputs()), process.energy(), process.ticks());
         }
         assertEquals(expectedIds, actual.keySet(), "No missing batches or extra synthesis permissions");
@@ -223,6 +223,7 @@ class ShippedChemistryDataTest {
         }
         for (Path document : documents) {
             JsonObject json = ShippedChemistry.read(document);
+            if(root.relativize(document).getName(0).toString().equals("material_research")){assertEquals(1,json.get("schema").getAsInt());continue;}
             ChemistryDocuments.requireSchema(json);
             Path relative = root.relativize(document);
             String directory = relative.getName(0).toString();
@@ -250,6 +251,7 @@ class ShippedChemistryDataTest {
                     if (ChemistryDocuments.disabled(json)||!ChemistryDocuments.modsMet(json,mod->true)) assertTrue(disabledSynthesis.add(item), "Duplicate disabled permission");
                     else permissions.add(new OptionalPermission(dependency, item, ChemistryDocuments.synthesisCategory(json)));
                 }
+                case "crystal_fuel", "material_research" -> ChemistryDocuments.requireSchema(json);
                 default -> fail("Unexpected shipped chemistry document: " + relative);
             }
         }

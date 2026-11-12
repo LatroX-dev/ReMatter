@@ -25,10 +25,29 @@ public final class ChemistryRegistry {
         substances = Collections.unmodifiableMap(new TreeMap<>(builder.substances));
         profiles = Collections.unmodifiableMap(new TreeMap<>(builder.profiles));
         fluidProfiles = Collections.unmodifiableMap(new TreeMap<>(builder.fluidProfiles));
-        processes = Collections.unmodifiableMap(new TreeMap<>(builder.processes));
+        var liveProcesses = new TreeMap<>(builder.processes);
+        processes = Collections.unmodifiableMap(liveProcesses);
         environmentSources = Collections.unmodifiableMap(new TreeMap<>(builder.environmentSources));
         synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis, builder.synthesisRequirements);
         validate();
+        // Dependency-filtered profiles and permissions describe the items actually available to this reload.
+        boolean changed;
+        do {
+            changed=liveProcesses.values().removeIf(recipe->recipe.minField()>0&&!usefulProduct(recipe,liveProcesses));
+        } while(changed);
+    }
+
+    private boolean usefulProduct(ProcessRecipe recipe,Map<SubstanceId,ProcessRecipe> candidates) {
+        var product=recipe.product();
+        for(var entry:synthesisPolicy.entries().entrySet()){
+            var profile=profiles.get(entry.getKey());
+            if(profile!=null&&profile.matter().keySet().stream().anyMatch(key->key.id().equals(product)))return true;
+            var fluid=fluidProfiles.get(entry.getKey());
+            if(fluid!=null&&fluid.matter().keySet().stream().anyMatch(key->key.id().equals(product)))return true;
+            if(entry.getValue()==SynthesisCategory.GAS&&entry.getKey().equals(product.toString()))return true;
+        }
+        return candidates.values().stream().anyMatch(other->!other.id().equals(recipe.id())
+                &&other.inputs().keySet().stream().anyMatch(key->key.id().equals(product)));
     }
 
     public static Builder builder() {
@@ -96,6 +115,11 @@ public final class ChemistryRegistry {
             throw new IllegalArgumentException("Chemistry catalogue exceeds its supported entry limits");
         }
         for (SubstanceDefinition substance : substances.values()) {
+            if (ReservedSubstances.reserved(substance.id())) {
+                if (!substance.equals(ReservedSubstances.primalDefinition())) throw new IllegalArgumentException("Reserved Primal resource cannot be redefined");
+            } else if (substance.composition().elements().containsKey(ReservedSubstances.PRIMAL_MATTER)) {
+                throw new IllegalArgumentException("Ordinary substances cannot contain Primal Matter: " + substance.id());
+            }
             for (SubstanceId element : substance.composition().elements().keySet()) {
                 SubstanceDefinition definition = substances.get(element);
                 if (definition == null || definition.kind() != SubstanceKind.ELEMENT) {
@@ -104,12 +128,15 @@ public final class ChemistryRegistry {
             }
         }
         for (MaterialProfile profile : profiles.values()) {
+            if (ReservedSubstances.primalItem(profile.itemId())) throw new IllegalArgumentException("Primal items have no ordinary material profile: " + profile.itemId());
             elementAmounts(profile.matter());
         }
         for (FluidProfile profile : fluidProfiles.values()) {
             elementAmounts(profile.matter());
         }
         for (Map.Entry<String, SynthesisCategory> allowed : synthesisPolicy.entries().entrySet()) {
+            if (ReservedSubstances.primalItem(allowed.getKey()) || allowed.getKey().equals(ReservedSubstances.PRIMAL_MATTER.toString()))
+                throw new IllegalArgumentException("Primal resources cannot be synthesized: " + allowed.getKey());
             if ((allowed.getValue() == SynthesisCategory.RAW_MATERIAL
                     || allowed.getValue() == SynthesisCategory.NATURAL_MATERIAL)
                     && !profiles.containsKey(allowed.getKey())) {
@@ -124,6 +151,10 @@ public final class ChemistryRegistry {
             }
         }
         for (ProcessRecipe recipe : processes.values()) {
+            long inputUnits=recipe.inputs().values().stream().reduce(0L,Math::addExact);
+            long outputUnits=recipe.outputs().values().stream().reduce(0L,Math::addExact);
+            if(java.math.BigInteger.valueOf(outputUnits).compareTo(java.math.BigInteger.valueOf(inputUnits).multiply(java.math.BigInteger.valueOf(8)))>0)
+                throw new IllegalArgumentException("Process exceeds the eightfold unit bound: "+recipe.id());
             Map<SubstanceId, Long> inputElements = elementAmounts(recipe.inputs());
             Map<SubstanceId, Long> outputElements = elementAmounts(recipe.outputs());
             if (!inputElements.equals(outputElements)) {
@@ -136,6 +167,7 @@ public final class ChemistryRegistry {
     }
 
     private SubstanceDefinition requireSubstance(SubstanceKey key) {
+        if (ReservedSubstances.reserved(key)) throw new IllegalArgumentException("Primal Matter is excluded from ordinary chemistry");
         SubstanceDefinition substance = substances.get(key.id());
         if (substance == null || !substance.supports(key.phase())) {
             throw new IllegalArgumentException("Unknown substance or unsupported phase: " + key);

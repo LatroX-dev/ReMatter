@@ -1,0 +1,18 @@
+{
+  "type": "rematter:preparation",
+  "primary": "minecraft:sand",
+  "secondary": "minecraft:clay_ball",
+  "tertiary": "minecraft:quartz",
+  "energy": 14000,
+  "ticks": 260,
+  "minimum_tier": 2,
+  "result": {
+    "id": "rematter:virelite_blend",
+    "count": 4
+  },
+  "min_precision": 1,
+  "steps": [
+    "grind",
+    "mix"
+  ]
+}

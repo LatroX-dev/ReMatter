@@ -59,7 +59,7 @@ class MatterCellDataTest {
     @Test void onlyTheCurrentLayoutOpensAndAnyOtherLayoutStaysUnchanged() {
         var store=new MatterInventory(64000,512);store.insert(BuiltinChemistry.COPPER,1000);
         var current=MatterCellData.from(store).copyTag();
-        assertEquals(Set.of("schema","contents"),current.keySet());
+        assertEquals(Set.of("schema","contents","cell","credits"),current.keySet());
         assertEquals(1000,new MatterCellData(current).open(64000).orElseThrow().total());
         var extraField=current.copy();extraField.put("reservations",new ListTag());
         var kept=new MatterCellData(extraField);

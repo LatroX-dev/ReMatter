@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Emerald",
+  "items": [
+    "appflux:emerald_dust",
+    "ftbic:emerald_dust",
+    "mekanism:dust_emerald",
+    "minecraft:deepslate_emerald_ore",
+    "minecraft:emerald",
+    "minecraft:emerald_block",
+    "minecraft:emerald_ore",
+    "occultism:emerald_dust",
+    "rematter:emerald_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:emerald",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

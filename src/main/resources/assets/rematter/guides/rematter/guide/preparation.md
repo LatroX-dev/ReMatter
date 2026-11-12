@@ -172,8 +172,8 @@ Ports work only after the complete chamber forms. Connect external FE to an outw
 
 ## Add more working parts
 
-Each **Cutter and Basin adds 2× ordinary preparation speed** before upgrades. One of each gives 4×: 23 ticks for extraction or 30 for Matrix Blend. Two of each give 8×: 12 or 15 ticks. Each controller runs one batch, or up to four with Parallel Upgrades; input and output quantities stay exact.
+**Cutters provide grinding capacity, Basins provide mixing capacity, and Filters add Precision.** More modules allow more capable or simultaneous work; they do not add a second global speed multiplier. The industrial tier has a fixed base work rate before upgrades. Height, Parallel Upgrades and enough capacity for every recipe step are all required for extra lanes.
 
-Industrial preparation starts at twice the ordinary recipe FE. Extra **Phase Filters** reduce that cost with diminishing returns: two give 6% savings, three give 10%. Hover the structure symbol for counts, actual speed and energy savings.
+Industrial preparation starts at twice a recipe's declared FE. **Phase Filters do not discount it.** Speed and Efficiency use separate upgrade slots; Parallel has its own slot. Inspect actual FE, Precision, step capacity and active jobs in the controller. All jobs share the same matter-transfer budget.
 
 A larger empty shell adds no throughput. Pause before moving modules.

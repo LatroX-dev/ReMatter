@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Salt",
+  "items": [
+    "alltheores:deepslate_salt_ore",
+    "alltheores:end_salt_ore",
+    "alltheores:nether_salt_ore",
+    "alltheores:other_salt_ore",
+    "alltheores:salt_block",
+    "alltheores:salt_dust",
+    "alltheores:salt_ore",
+    "jaopca:storage_blocks.salt",
+    "mekanism:salt",
+    "nautec:salt"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:salt",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

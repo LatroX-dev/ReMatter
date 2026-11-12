@@ -111,23 +111,12 @@ public final class SubstanceIcon {
     }
 
     private static void drawSymbol(GuiGraphicsExtractor graphics, Font font, int x, int y, Style style) {
-        String first = style.first(), second = style.second();
-        int firstWidth = font.width(first);
-        int secondWidth = font.width(second);
-        int height = second.isEmpty() ? 8 : 16;
-        float scale = Math.min(1F, Math.min(14F / Math.max(1, Math.max(firstWidth, secondWidth)), 12F / height));
-
-        int top = (int) ((14 - height * scale) / 2);
-        graphics.fill(x + 1, y + top, x + 15, y + top + (int) Math.ceil(height * scale), 0xc010191d);
-        var pose = graphics.pose();
-        pose.pushMatrix();
-        try {
-            pose.translate(x + 8F, y + top).scale(scale);
-            graphics.text(font, first, -firstWidth / 2, 0, style.known() ? UiPalette.TEXT : UiPalette.WARNING, true);
-            if (!second.isEmpty()) graphics.text(font, second, -secondWidth / 2, 8, UiPalette.TEXT, true);
-        } finally {
-            pose.popMatrix();
-        }
+        // Keep the game's font on its pixel grid. Long notation is visibly abbreviated; lists and tooltips
+        // retain the complete formula instead of squeezing unreadable sub-pixel letters into the badge.
+        String label = ScreenChrome.fit(font, style.first() + style.second(), 14);
+        graphics.fill(x + 1, y + 3, x + 15, y + 12, 0xc010191d);
+        graphics.text(font, label, x + (16 - font.width(label)) / 2, y + 4,
+                style.known() ? UiPalette.TEXT : UiPalette.WARNING, false);
     }
 
     private static int formulaBreak(ToIntFunction<String> width, String formula, int fullWidth) {

@@ -36,14 +36,14 @@ Combine one plain Matrix Crystal with one ingredient in a crafting grid.
 
 | Ingredient | Crystal | Used in |
 | --- | --- | --- |
-| Gold Dust | <ItemLink id="rematter:amber_matrix_crystal" /> | Material Preparator, Industrial Preparator |
-| Copper Dust | <ItemLink id="rematter:copper_matrix_crystal" /> | Decomposer |
-| Diamond Powder | <ItemLink id="rematter:mint_matrix_crystal" /> | Matter Drive, Matter Terminal |
-| Emerald Dust | <ItemLink id="rematter:leaf_matrix_crystal" /> | Material Synthesizer |
-| Silith | <ItemLink id="rematter:ice_matrix_crystal" /> | Analyzer |
-| Redstone Dust | <ItemLink id="rematter:ember_matrix_crystal" /> | Sinter Furnace |
-| Lapis Lazuli Dust | <ItemLink id="rematter:blue_matrix_crystal" /> | Chemical Reactor, Network Interface |
-| Amethyst Dust | <ItemLink id="rematter:violet_matrix_crystal" /> | Chemical Reactor, Industrial Reactor |
+| Gold Dust | <ItemLink id="rematter:amber_matrix_crystal" /> | Preparation: Preparators and their modules |
+| Copper Dust | <ItemLink id="rematter:copper_matrix_crystal" /> | Breakdown: Decomposer |
+| Diamond Powder | <ItemLink id="rematter:mint_matrix_crystal" /> | Storage: Drive and Terminal |
+| Emerald Dust | <ItemLink id="rematter:leaf_matrix_crystal" /> | Synthesis: Material Synthesizer |
+| Silith | <ItemLink id="rematter:ice_matrix_crystal" /> | Research: Analyzer |
+| Redstone Dust | <ItemLink id="rematter:ember_matrix_crystal" /> | Heat: Sinter Furnace and generators |
+| Lapis Lazuli Dust | <ItemLink id="rematter:blue_matrix_crystal" /> | Link: Network Interface |
+| Amethyst Dust | <ItemLink id="rematter:violet_matrix_crystal" /> | Reaction: Reactors and their modules |
 
 The Hand Preparator grinds gold and copper ingots. Gems need the powered Material Preparator. Dusts from other mods with the same common tag work as well.
 

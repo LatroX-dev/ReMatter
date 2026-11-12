@@ -104,7 +104,10 @@ final class JadeClient {
                 if (accessor.showDetails() && data.getIntOr("structureColumns", 0) > 0) {
                     tooltip.add(Component.translatable("screen.rematter.structure_columns", data.getIntOr("structureColumns", 0)));
                     tooltip.add(Component.translatable("screen.rematter.structure_speed", data.getIntOr("structureRate", 0)));
-                    tooltip.add(Component.translatable("screen.rematter.structure_efficiency", data.getIntOr("structureSaving", 0)));
+                    if(data.getIntOr("coils",0)>0){
+                        tooltip.add(Component.translatable("screen.rematter.structure_field",data.getIntOr("coils",0)));
+                        tooltip.add(Component.translatable("screen.rematter.structure_room",dev.latrox.rematter.client.Quantities.number(16_000L*data.getIntOr("chambers",0))));
+                    }else tooltip.add(Component.translatable("screen.rematter.structure_precision",data.getIntOr("separation",0)));
                     String[][] modules={{"grinding","grinding_unit"},{"mixing","mixing_basin"},{"separation","separation_unit"},
                             {"coils","field_coil"},{"chambers","reaction_chamber"}};
                     for (var module : modules) {

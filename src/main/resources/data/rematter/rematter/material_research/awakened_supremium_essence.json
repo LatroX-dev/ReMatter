@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Awakened Supremium Essence",
+  "items": [
+    "mysticalagriculture:awakened_supremium_block",
+    "mysticalagriculture:awakened_supremium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:awakened_supremium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -7,7 +7,7 @@ import org.jspecify.annotations.Nullable;
 
 /** The single machine data schema. Data in any other shape is kept opaque: never interpreted, truncated or deleted. */
 final class MachineSchema {
-    static final int VERSION = 2;
+    static final int VERSION = 3;
 
     private MachineSchema() {}
 

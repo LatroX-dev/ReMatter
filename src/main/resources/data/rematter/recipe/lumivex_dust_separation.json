@@ -1,0 +1,27 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:lumivex_dust",
+  "primary_count": 4,
+  "energy": 8000,
+  "ticks": 160,
+  "minimum_tier": 2,
+  "results": [
+    {
+      "id": "rematter:copper_dust",
+      "count": 3
+    },
+    {
+      "id": "rematter:gold_dust",
+      "count": 1
+    },
+    {
+      "id": "rematter:lumin",
+      "count": 1
+    }
+  ],
+  "min_precision": 1,
+  "steps": [
+    "separate"
+  ],
+  "network_recipe": false
+}

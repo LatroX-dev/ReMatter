@@ -7,10 +7,18 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class SpecialistRoutingTest {
+    @Test void removedSpecialistsHaveNoRegistryKindsOrShippedAssetsAndCannotBeSynthesisTargets() {
+        for(String id:Set.of("electrolyzer","separator","thermal_processor","crystallizer","air_separator")) {
+            assertTrue(java.util.Arrays.stream(MachineKind.values()).noneMatch(kind->kind.id().equals(id)),id);
+            for(String folder:java.util.List.of("blockstates","items","models/block"))
+                assertNull(getClass().getResource("/assets/rematter/"+folder+"/"+id+".json"),id+" remains in "+folder);
+        }
+        assertThrows(IllegalArgumentException.class,()->new SynthesisRequirement("crystallizer",1,""));
+    }
     @Test void everyProcessHasOneCompactMachineAndOnlySupportedIndustrialAlternatives() {
         for(var process:ShippedChemistry.standalone().processes()) {
             var machines=MachineRouting.machines(process.type());assertFalse(machines.isEmpty());
-            for(var kind:MachineKind.values())assertEquals(machines.contains(kind),MachineRouting.supports(kind,process.type()) && !kind.retiredSpecialist());
+            for(var kind:MachineKind.values())assertEquals(machines.contains(kind),MachineRouting.supports(kind,process.type()));
         }
         assertTrue(MachineRouting.supports(MachineKind.REACTOR,ProcessType.PHASE_CHANGE));
         assertTrue(MachineRouting.supports(MachineKind.REACTOR,ProcessType.SEPARATION));

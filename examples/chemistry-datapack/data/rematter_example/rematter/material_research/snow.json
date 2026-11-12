@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "Snow",
+  "items": ["minecraft:snowball", "minecraft:snow_block"],
+  "substances": [{"substance": "rematter:water", "phase": "solid"}],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

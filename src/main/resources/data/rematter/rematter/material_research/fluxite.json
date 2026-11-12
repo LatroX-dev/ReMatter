@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Fluxite",
+  "items": [
+    "oritech:fluxite",
+    "oritech:fluxite_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:fluxite",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

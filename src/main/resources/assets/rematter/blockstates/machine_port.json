@@ -66,7 +66,7 @@
         "facing": "north"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active"
+        "model": "rematter:block/machine_port_automatic"
       }
     },
     {
@@ -76,7 +76,7 @@
         "facing": "east"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active",
+        "model": "rematter:block/machine_port_automatic",
         "y": 90
       }
     },
@@ -87,7 +87,7 @@
         "facing": "south"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active",
+        "model": "rematter:block/machine_port_automatic",
         "y": 180
       }
     },
@@ -98,7 +98,7 @@
         "facing": "west"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active",
+        "model": "rematter:block/machine_port_automatic",
         "y": 270
       }
     },
@@ -109,7 +109,7 @@
         "facing": "up"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active",
+        "model": "rematter:block/machine_port_automatic",
         "x": 270
       }
     },
@@ -120,7 +120,7 @@
         "facing": "down"
       },
       "apply": {
-        "model": "rematter:block/machine_port_active",
+        "model": "rematter:block/machine_port_automatic",
         "x": 90
       }
     },

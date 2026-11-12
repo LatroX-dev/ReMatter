@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Blue Ice",
+  "items": [
+    "jaopca:storage_blocks.blue_ice",
+    "minecraft:blue_ice",
+    "occultism:crushed_blue_ice"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:water",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

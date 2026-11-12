@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "Iron",
+  "items": [
+    "alltheores:iron_dust",
+    "enderio:powdered_iron",
+    "energizedpower:iron_dust",
+    "ftbic:iron_dust",
+    "infinity_nexus_mod:iron_dust",
+    "mekanism:dust_iron",
+    "minecraft:deepslate_iron_ore",
+    "minecraft:iron_block",
+    "minecraft:iron_ingot",
+    "minecraft:iron_nugget",
+    "minecraft:iron_ore",
+    "minecraft:raw_iron",
+    "minecraft:raw_iron_block",
+    "occultism:iron_dust",
+    "oritech:iron_dust",
+    "rematter:iron_dust",
+    "stellaris:moon_stone_iron_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

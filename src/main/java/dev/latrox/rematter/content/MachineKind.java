@@ -4,7 +4,6 @@ public enum MachineKind {
     ANALYZER("analyzer"),
     DECOMPOSER("decomposer"),
     SYNTHESIZER("material_synthesizer"),
-    ELECTROLYZER("electrolyzer"),
     REACTOR("chemical_reactor"),
     TERMINAL("matter_terminal"),
     INDUSTRIAL_REACTOR("industrial_reactor"),
@@ -14,20 +13,17 @@ public enum MachineKind {
     INDUSTRIAL_PREPARATOR("industrial_preparator"),
     NETWORK_INTERFACE("network_interface"),
     SINTER_FURNACE("sinter_furnace"),
-    SEPARATOR("separator"),
-    THERMAL_PROCESSOR("thermal_processor"),
-    CRYSTALLIZER("crystallizer"),
-    AIR_SEPARATOR("air_separator");
+    PRIMAL_CONVERTER("primal_converter"),
+    CRYSTAL_GENERATOR("crystal_generator"),
+    INDUSTRIAL_CRYSTAL_GENERATOR("industrial_crystal_generator");
 
     private final String id;
     MachineKind(String id) { this.id = id; }
     public String id() { return id; }
-    /** Registered for existing installations, absent from the current crafting progression. */
-    public boolean retiredSpecialist() { return this == ELECTROLYZER || this == SEPARATOR || this == THERMAL_PROCESSOR || this == CRYSTALLIZER || this == AIR_SEPARATOR; }
     public boolean isStorage() { return this == DRIVE; }
-    public boolean synthesis() { return this == SYNTHESIZER || this == CRYSTALLIZER; }
-    public boolean selectable() { return synthesis() || this == ELECTROLYZER || this == REACTOR
-            || this == INDUSTRIAL_REACTOR || this == SEPARATOR || this == THERMAL_PROCESSOR || this == AIR_SEPARATOR; }
-    public boolean processes() { return !isStorage() && this != TERMINAL && this != NETWORK_INTERFACE; }
-    public boolean supportsNetworkJobs() { return processes() && this != ANALYZER && this != HAND_PREPARATOR && this != AIR_SEPARATOR; }
+    public boolean synthesis() { return this == SYNTHESIZER; }
+    public boolean selectable() { return synthesis() || this == REACTOR || this == INDUSTRIAL_REACTOR; }
+    public boolean generator(){return this==CRYSTAL_GENERATOR||this==INDUSTRIAL_CRYSTAL_GENERATOR;}
+    public boolean processes() { return !generator() && !isStorage() && this != TERMINAL && this != NETWORK_INTERFACE; }
+    public boolean supportsNetworkJobs() { return processes() && this != PRIMAL_CONVERTER && this != ANALYZER && this != HAND_PREPARATOR; }
 }

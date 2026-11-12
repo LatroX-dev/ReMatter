@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Sulfur",
+  "items": [
+    "alltheores:deepslate_sulfur_ore",
+    "alltheores:end_sulfur_ore",
+    "alltheores:nether_sulfur_ore",
+    "alltheores:other_sulfur_ore",
+    "alltheores:sulfur_block",
+    "alltheores:sulfur_dust",
+    "alltheores:sulfur_ore",
+    "jaopca:storage_blocks.sulfur",
+    "mekanism:dust_sulfur"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

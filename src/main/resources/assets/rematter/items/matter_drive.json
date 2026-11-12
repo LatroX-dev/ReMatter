@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:block/matter_drive"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_drive"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_drive_activity_on"
+      }
+    ]
   }
 }

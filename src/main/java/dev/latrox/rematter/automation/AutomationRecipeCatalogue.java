@@ -31,7 +31,7 @@ public final class AutomationRecipeCatalogue {
                     registry.synthesisPolicy().requirement(p.fluidId()).machine(),matter,fluid,p.synthesisEnergy(),p.ticks(),registry.synthesisPolicy().requirement(p.fluidId()).advancement(),registry.synthesisPolicy().requirement(p.fluidId()).tier()));
         }
         for (var p : registry.processes()) result.add(recipe(id("process",p.id().toString()),
-                dev.latrox.rematter.content.MachineRouting.primary(p.type()).id(),matter(p.inputs()),matter(p.outputs()),p.energy(),p.ticks(),p.requiresAdvancement(),1));
+                dev.latrox.rematter.content.MachineRouting.primary(p).id(),matter(p.inputs()),matter(p.outputs()),p.energy(),p.ticks(),p.requiresAdvancement(),1,p.minField()+":"+p.requiresKnownOutputs()+":"+p.product()));
         return checked(result);
     }
     public static Map<Resource,Long> matter(Map<SubstanceKey,Long> values) {
@@ -45,7 +45,10 @@ public final class AutomationRecipeCatalogue {
         return recipe(id,worker,inputs,outputs,energy,ticks,"",1);
     }
     public static Recipe recipe(String id,String worker,Map<Resource,Long> inputs,Map<Resource,Long> outputs,long energy,int ticks,String advancement,int tier) {
-        String canonical=id+'\n'+worker+'\n'+new TreeMap<>(inputs)+'\n'+new TreeMap<>(outputs)+'\n'+energy+'\n'+ticks+'\n'+advancement+'\n'+tier;
+        return recipe(id,worker,inputs,outputs,energy,ticks,advancement,tier,"");
+    }
+    public static Recipe recipe(String id,String worker,Map<Resource,Long> inputs,Map<Resource,Long> outputs,long energy,int ticks,String advancement,int tier,String gateRevision){
+        String canonical=gateRevision+'\n'+id+'\n'+worker+'\n'+new TreeMap<>(inputs)+'\n'+new TreeMap<>(outputs)+'\n'+energy+'\n'+ticks+'\n'+advancement+'\n'+tier;
         try {return new Recipe(id,HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))),
                 worker,inputs,outputs,energy,ticks,advancement,tier);
         } catch (NoSuchAlgorithmException impossible) {throw new AssertionError(impossible);}

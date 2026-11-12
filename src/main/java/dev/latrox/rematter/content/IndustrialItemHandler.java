@@ -14,10 +14,15 @@ final class IndustrialItemHandler implements ResourceHandler<ItemResource> {
     private final BooleanSupplier input;
     private final BooleanSupplier output;
     private final int[] slots;
+    private final java.util.function.IntPredicate outputSlot;
     IndustrialItemHandler(ResourceHandler<ItemResource> delegate, BooleanSupplier allowed, boolean preparation) {
         this(delegate, allowed, allowed, preparation);
     }
     IndustrialItemHandler(ResourceHandler<ItemResource> delegate, BooleanSupplier input, BooleanSupplier output, boolean preparation) {
+        this(delegate,input,output,preparation,slot->slot==1);
+    }
+    IndustrialItemHandler(ResourceHandler<ItemResource> delegate,BooleanSupplier input,BooleanSupplier output,boolean preparation,java.util.function.IntPredicate outputSlot){
+        this.outputSlot=outputSlot;
         this.delegate = delegate;
         this.allowed = () -> input.getAsBoolean() || output.getAsBoolean();
         this.input = input;
@@ -29,13 +34,13 @@ final class IndustrialItemHandler implements ResourceHandler<ItemResource> {
     @Override public ItemResource getResource(int index) { int slot = slot(index); return allowed.getAsBoolean() ? delegate.getResource(slot) : ItemResource.EMPTY; }
     @Override public long getAmountAsLong(int index) { int slot = slot(index); return allowed.getAsBoolean() ? delegate.getAmountAsLong(slot) : 0; }
     @Override public long getCapacityAsLong(int index, ItemResource resource) { int slot = slot(index); return allowed.getAsBoolean() ? delegate.getCapacityAsLong(slot, resource) : 0; }
-    @Override public boolean isValid(int index, ItemResource resource) { int slot = slot(index); return input.getAsBoolean() && slot != 1 && delegate.isValid(slot, resource); }
+    @Override public boolean isValid(int index, ItemResource resource) { int slot = slot(index); return input.getAsBoolean() && !outputSlot.test(slot) && delegate.isValid(slot, resource); }
     @Override public int insert(int index, ItemResource resource, int amount, TransactionContext tx) {
         int slot = slot(index); TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
-        return input.getAsBoolean() && slot != 1 ? delegate.insert(slot, resource, amount, tx) : 0;
+        return input.getAsBoolean() && !outputSlot.test(slot) ? delegate.insert(slot, resource, amount, tx) : 0;
     }
     @Override public int extract(int index, ItemResource resource, int amount, TransactionContext tx) {
         int slot = slot(index); TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
-        return output.getAsBoolean() && slot == 1 ? delegate.extract(slot, resource, amount, tx) : 0;
+        return output.getAsBoolean() && outputSlot.test(slot) ? delegate.extract(slot, resource, amount, tx) : 0;
     }
 }

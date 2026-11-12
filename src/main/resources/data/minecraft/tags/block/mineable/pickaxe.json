@@ -4,7 +4,6 @@
     "rematter:analyzer",
     "rematter:decomposer",
     "rematter:material_synthesizer",
-    "rematter:electrolyzer",
     "rematter:chemical_reactor",
     "rematter:matter_terminal",
     "rematter:industrial_reactor",
@@ -18,9 +17,9 @@
     "#rematter:industrial_modules",
     "rematter:network_interface",
     "rematter:sinter_furnace",
-    "rematter:separator",
-    "rematter:thermal_processor",
-    "rematter:crystallizer",
-    "rematter:air_separator"
+    "#rematter:primal_ores",
+    "rematter:primal_converter",
+    "rematter:crystal_generator",
+    "rematter:industrial_crystal_generator"
   ]
 }

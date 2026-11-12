@@ -1,0 +1,117 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_idle_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_idle_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_idle_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_idle_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_active_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_active_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_active_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/crystal_generator_active_parts",
+        "y": 270
+      }
+    }
+  ]
+}

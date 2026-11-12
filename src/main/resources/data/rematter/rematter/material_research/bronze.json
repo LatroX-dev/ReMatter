@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "name": "Bronze",
+  "items": [
+    "alltheores:bronze_block",
+    "alltheores:bronze_dust",
+    "alltheores:bronze_ingot",
+    "alltheores:bronze_nugget",
+    "ftbic:bronze_block",
+    "ftbic:bronze_dust",
+    "ftbic:bronze_ingot",
+    "infinity_nexus_mod:bronze_block",
+    "infinity_nexus_mod:bronze_dust",
+    "infinity_nexus_mod:bronze_ingot",
+    "infinity_nexus_mod:bronze_nugget",
+    "mekanism:block_bronze",
+    "mekanism:dust_bronze",
+    "mekanism:ingot_bronze",
+    "mekanism:nugget_bronze"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

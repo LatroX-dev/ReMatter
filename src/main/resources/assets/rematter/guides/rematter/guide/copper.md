@@ -16,7 +16,7 @@ Use your [starter line](setup.md), its **64k Matter Cell in the Drive**, externa
 
 Open the Decomposer. Put sand in its material input. The adjacent Drive supplies storage through the Cell installed there.
 
-Check the storage source in **Configuration**, then return to **Process** and press the triangle whose tooltip reads **Start**.
+Check the storage source in **Settings**, then return to **Process** and press the triangle whose tooltip reads **Start**.
 
 Wait for the cutter to finish. The sand is consumed only when its full result can be stored. Open the Drive's **Contents** tab: it now contains **Silica**.
 
@@ -24,7 +24,7 @@ Wait for the cutter to finish. The sand is consumed only when its full result ca
 
 Leave the Cell installed. The touching Synthesizer can use the same silica without moving an item or Cell between machines.
 
-Open the Synthesizer's **Configuration** tab to check its connected storage, then return to **Process**. If the Cell or network changes during a batch, the machine restarts that batch by itself once the storage is valid again. Nothing is consumed before a batch completes.
+Open the Synthesizer's **Settings** tab to check its connected storage, then return to **Process**. If the Cell or network changes during a batch, the machine restarts that batch by itself once the storage is valid again. Nothing is consumed before a batch completes.
 
 ## 3. Choose and make glass
 
@@ -34,7 +34,7 @@ Open the Synthesizer's **Configuration** tab to check its connected storage, the
 4. Press **Use recipe**.
 5. Press **Start** to request one complete batch.
 
-Take **one glass** from the output when the press finishes. Use a single **Start** request for this experiment; leave **Run nonstop** under **Configuration** unused. Hover the recipe and action symbols to see their full labels.
+Take **one glass** from the output when the press finishes. Use a single **Start** request for this experiment; leave **Run nonstop** under **Settings** unused. Hover the recipe and action symbols to see their full labels.
 
 **The same sand-derived silica has become a useful building material.** The Cell remains usable; the Crystal is not spent. It is not a free-copy recipe, and does not multiply the amount of material.
 

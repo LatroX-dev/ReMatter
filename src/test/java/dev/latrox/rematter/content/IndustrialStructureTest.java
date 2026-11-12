@@ -70,7 +70,9 @@ class IndustrialStructureTest {
         var result=IndustrialStructure.inspectLayout(MachineKind.INDUSTRIAL_PREPARATOR,detected,counted);
         assertTrue(result.formed());assertEquals(49,result.moduleCount());assertEquals(98,result.modules().size());
         assertTrue(reads.get()<=729+33,"No dimension guessing or full scan per port/module");
-        assertEquals(194,result.performance().workRate(MachineKind.INDUSTRIAL_PREPARATOR));
+        assertEquals(4,result.performance().workRate(MachineKind.INDUSTRIAL_PREPARATOR));
+        assertEquals(48,result.performance().mixing());assertEquals(49,result.performance().grinding());
+        assertEquals(1,result.performance().precision());
     }
     @Test void emptyOldShellsAndShortPreparatorsPauseInsteadOfGrantingFreeCapacity() {
         for(var kind:List.of(MachineKind.INDUSTRIAL_PREPARATOR,MachineKind.INDUSTRIAL_REACTOR)) {
@@ -133,12 +135,14 @@ class IndustrialStructureTest {
         var formed = inspect(kind, shape, blocks);
         assertTrue(formed.formed()); assertEquals(1, formed.moduleCount());
         assertEquals(4, formed.performance().workRate(kind));
-        assertEquals(6, formed.performance().energySavingPercent(kind));
+        assertEquals(0, formed.performance().energySavingPercent(kind));
         assertEquals(AIR, reader(blocks).at(0, 2, 2));
         blocks.put(new Point(1, 4, 2), GRINDING_UNIT);
-        assertEquals(6, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(4, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(2,inspect(kind,shape,blocks).performance().grinding());
         blocks.put(new Point(2, 0, 2), MIXING_BASIN);
-        assertEquals(8, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(4, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(2,inspect(kind,shape,blocks).performance().mixing());
         blocks.put(new Point(0, 4, 2), AIR);
         blocks.put(new Point(0, 3, 2), GRINDING_UNIT);
         assertEquals("structure_module_position", inspect(kind, shape, blocks).diagnostic());
@@ -153,9 +157,10 @@ class IndustrialStructureTest {
         var formed = inspect(kind, shape, blocks);
         assertTrue(formed.formed()); assertEquals(1, formed.moduleCount());
         assertEquals(2, formed.performance().workRate(kind));
-        assertEquals(6, formed.performance().energySavingPercent(kind));
+        assertEquals(0, formed.performance().energySavingPercent(kind));
         blocks.put(new Point(1, 3, 2), REACTION_CHAMBER);
-        assertEquals(4, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(2, inspect(kind, shape, blocks).performance().workRate(kind));
+        assertEquals(32_000,inspect(kind,shape,blocks).performance().processRoom());
     }
     @Test void everyModuleFunctionAcceptsEitherSurfaceButNeverAnUnsupportedMiddlePosition() {
         var shape = new IndustrialStructure.Shape(5, 6, 5, 2);
@@ -191,8 +196,8 @@ class IndustrialStructureTest {
             var formed = inspect(kind, shape, blocks);
             assertTrue(formed.formed()); assertEquals(98, formed.modules().size());
             assertEquals(kind == MachineKind.INDUSTRIAL_PREPARATOR ? 96 : 97, formed.moduleCount());
-            assertEquals(194, formed.performance().workRate(kind));
-            assertEquals(970, 5 * formed.performance().workRate(kind));
+            assertEquals(kind==MachineKind.INDUSTRIAL_PREPARATOR?4:2,formed.performance().workRate(kind));
+            assertEquals(kind==MachineKind.INDUSTRIAL_PREPARATOR?20:10,5*formed.performance().workRate(kind));
             assertEquals(0, formed.performance().energySavingPercent(kind));
         }
     }

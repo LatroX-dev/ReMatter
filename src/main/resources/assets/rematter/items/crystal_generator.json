@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/crystal_generator"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/crystal_generator_active_parts"
+      }
+    ]
+  }
+}

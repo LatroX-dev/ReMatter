@@ -67,9 +67,18 @@ public final class ChemistryDocuments {
     }
 
     public static ProcessRecipe process(SubstanceId id, JsonObject json) {
+        JsonObject industrial=json.has("industrial")?object(json,"industrial"):null;
+        boolean known=false;
+        if(industrial!=null&&industrial.has("requires_known_outputs")){
+            var value=industrial.get("requires_known_outputs");
+            if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isBoolean())throw new IllegalArgumentException("Expected boolean: requires_known_outputs");
+            known=value.getAsBoolean();
+        }
         return new ProcessRecipe(id, enumValue(ProcessType.class, string(json, "type")),
                 amounts(json, "inputs"), amounts(json, "outputs"), positiveLong(json, "energy"),
-                Math.toIntExact(positiveLong(json, "ticks")), optionalString(json, "requires_advancement", ""));
+                Math.toIntExact(positiveLong(json, "ticks")), optionalString(json, "requires_advancement", ""),
+                industrial==null?0:Math.toIntExact(positiveLong(industrial,"min_field")),known,
+                industrial==null?null:SubstanceId.parse(string(industrial,"product")));
     }
 
     public static SynthesisRequirement synthesisRequirement(JsonObject json) {

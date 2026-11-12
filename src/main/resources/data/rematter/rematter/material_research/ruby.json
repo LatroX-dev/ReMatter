@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Ruby",
+  "items": [
+    "alltheores:deepslate_ruby_ore",
+    "alltheores:end_ruby_ore",
+    "alltheores:nether_ruby_ore",
+    "alltheores:other_ruby_ore",
+    "alltheores:ruby",
+    "alltheores:ruby_block",
+    "alltheores:ruby_dust",
+    "alltheores:ruby_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:ruby",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

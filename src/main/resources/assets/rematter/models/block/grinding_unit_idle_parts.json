@@ -1,0 +1,117 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_grinding_unit_work"
+  },
+  "elements": [
+    {
+      "name": "cutting_edge",
+      "from": [
+        5,
+        6,
+        7.5
+      ],
+      "to": [
+        11,
+        7,
+        8.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            14,
+            1
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            14,
+            1
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            14,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "resonator",
+      "from": [
+        6,
+        13,
+        6
+      ],
+      "to": [
+        10,
+        15,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "name": "Iesnium",
+  "items": [
+    "occultism:iesnium_block",
+    "occultism:iesnium_dust",
+    "occultism:iesnium_ingot",
+    "occultism:iesnium_nugget",
+    "occultism:iesnium_ore",
+    "occultism:raw_iesnium",
+    "occultism:raw_iesnium_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

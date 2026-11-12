@@ -52,8 +52,8 @@ public final class BatchReservations {
                 t.valid=false; iterator.remove();
             }
         }
-        if(limit<1||cost<=0||physicalLimit<1)return null;
-        long count=Math.min(Math.min(limit,energy/cost),physicalLimit);
+        if(limit<1||cost<0||physicalLimit<1)return null;
+        long count=Math.min(Math.min(limit,cost==0?Long.MAX_VALUE:energy/cost),physicalLimit);
         var held=new TreeMap<SubstanceKey,Long>(); long occupied=0;
         for(var t:claims.values())if(t.valid()&&t.topology.equals(topology)) {
             t.inputs.forEach((key,amount)->held.merge(key,Math.multiplyExact(amount,t.remaining),Math::addExact));

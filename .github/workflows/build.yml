@@ -41,6 +41,12 @@ jobs:
         run: python3 tools/generate_workshop_materials.py --check
       - name: Verify generated machine assets
         run: python3 tools/generate_visual_assets.py --check
+      - name: Verify generated machine family assets
+        run: python3 tools/generate_family_assets.py --check
+      - name: Verify generated server bench shapes
+        run: python3 tools/generate_bench_shapes.py --check
+      - name: Verify generated GUI skins
+        run: python3 tools/generate_gui_assets.py --check
       - name: Verify generated module assets
         run: python3 tools/generate_module_assets.py --check
       - name: Verify generated cell models
@@ -51,7 +57,19 @@ jobs:
         run: python3 tools/generate_advanced_material_icons.py --check
       - name: Verify generated metallurgy assets
         run: python3 tools/generate_metallurgy_assets.py --check
+      - name: Verify generated research data
+        run: python3 tools/generate_research_data.py --check
+      - name: Verify generated Primal assets
+        run: python3 tools/generate_primal_assets.py --check
+      - name: Verify generated progression assets
+        run: python3 tools/generate_progression_assets.py --check
+      - name: Verify generated player guidance
+        run: python3 tools/generate_player_guidance.py --check
       - name: Check asset integrity
         run: python3 tools/check_assets.py
+      - name: Test the visual style check
+        run: python3 tools/check_visual_style.py --selftest
+      - name: Check assets against the visual style guide
+        run: python3 tools/check_visual_style.py
       - name: Verify specialist device assets and recipes
         run: python3 tools/generate_device_assets.py --check

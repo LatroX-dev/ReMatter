@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Prudentium Essence",
+  "items": [
+    "mysticalagriculture:prudentium_block",
+    "mysticalagriculture:prudentium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prudentium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

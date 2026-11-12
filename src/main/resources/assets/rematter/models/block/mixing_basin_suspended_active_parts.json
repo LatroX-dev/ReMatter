@@ -1,0 +1,112 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_mixing_basin_work_active"
+  },
+  "elements": [
+    {
+      "name": "charge",
+      "from": [
+        3,
+        10,
+        3
+      ],
+      "to": [
+        13,
+        12,
+        13
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            10,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "stirrer_head",
+      "from": [
+        6.5,
+        3,
+        6.5
+      ],
+      "to": [
+        9.5,
+        5,
+        9.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            13,
+            3
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            13,
+            3
+          ]
+        }
+      }
+    }
+  ]
+}

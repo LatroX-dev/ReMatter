@@ -1,11 +1,11 @@
 {
   "type": "rematter:preparation",
   "primary": "minecraft:lapis_lazuli",
+  "energy": 4000,
+  "ticks": 100,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:lapis_dust",
     "count": 1
-  },
-  "energy": 4000,
-  "ticks": 100,
-  "minimum_tier": 1
+  }
 }

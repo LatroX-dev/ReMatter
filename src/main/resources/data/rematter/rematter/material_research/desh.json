@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "name": "Desh",
+  "items": [
+    "jaopca:dusts.desh",
+    "stellaris:desh_block",
+    "stellaris:desh_ingot",
+    "stellaris:moon_desh_ore",
+    "stellaris:raw_desh",
+    "stellaris:raw_desh_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

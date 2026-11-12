@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "name": "Plutonium",
+  "items": [
+    "ftbic:plutonium_dust",
+    "ftbic:plutonium_ingot",
+    "ftbic:plutonium_raw_ore",
+    "oritech:plutonium_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:plutonium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Burnt Otherrock",
+  "items": [
+    "jaopca:storage_blocks.otherrock",
+    "occultism:burnt_otherrock"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:burnt_otherrock",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

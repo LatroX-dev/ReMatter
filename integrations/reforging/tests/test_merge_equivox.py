@@ -38,7 +38,10 @@ class EquivoxMergeTest(unittest.TestCase):
         self.assertNotIn("rematter:matrix_crystal", MERGER.protected_items())
         self.assertNotIn("rematter:matter_cable", MERGER.protected_items())
         self.assertNotIn("rematter:guide", MERGER.protected_items())
-        self.assertTrue({"rematter:separator","rematter:thermal_processor","rematter:crystallizer","rematter:air_separator"}.issubset(MERGER.protected_items()))
+        self.assertTrue({"rematter:primal_shard", "rematter:deepslate_primal_ore", "rematter:nether_primal_ore", "rematter:end_primal_ore",
+                         "rematter:primal_cell_16k", "rematter:primal_cell_64k", "rematter:primal_cell_256k", "rematter:primal_crystal",
+                         "rematter:discovery_lens", "rematter:entangled_link"}.issubset(MERGER.protected_items()))
+        self.assertTrue({"rematter:separator","rematter:thermal_processor","rematter:crystallizer","rematter:air_separator","rematter:electrolyzer"}.isdisjoint(MERGER.protected_items()))
 
     def test_repeated_merge_is_idempotent_and_conflicting_duplicate_machine_values_are_zeroed(self):
         item = MERGER.protected_items()[0]

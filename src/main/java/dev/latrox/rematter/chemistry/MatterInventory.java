@@ -80,6 +80,7 @@ public final class MatterInventory implements MatterStore {
     public long insert(SubstanceKey key, long maximum) {
         Objects.requireNonNull(key, "key");
         requireNonNegative(maximum);
+        if (ReservedSubstances.reserved(key)) return 0;
         synchronized (MUTATION_LOCK) {
             if (!hasTypeSpaceLocked(Map.of(), Map.of(key, 1L))) return 0;
             long accepted = Math.min(maximum, capacity - total);
@@ -95,6 +96,7 @@ public final class MatterInventory implements MatterStore {
     public long extract(SubstanceKey key, long maximum) {
         Objects.requireNonNull(key, "key");
         requireNonNegative(maximum);
+        if (ReservedSubstances.reserved(key)) return 0;
         synchronized (MUTATION_LOCK) {
             long extracted = Math.min(maximum, contents.getOrDefault(key, 0L));
             if (extracted > 0) {
@@ -136,6 +138,7 @@ public final class MatterInventory implements MatterStore {
         Objects.requireNonNull(destination, "destination");
         Objects.requireNonNull(key, "key");
         requireNonNegative(maximum);
+        if (ReservedSubstances.reserved(key)) return 0;
         if (destination == this || maximum == 0) {
             return 0;
         }
@@ -228,6 +231,7 @@ public final class MatterInventory implements MatterStore {
     }
 
     private boolean canApplyLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        if (inputs.keySet().stream().anyMatch(ReservedSubstances::reserved) || outputs.keySet().stream().anyMatch(ReservedSubstances::reserved)) return false;
         for (Map.Entry<SubstanceKey, Long> input : inputs.entrySet()) {
             if (contents.getOrDefault(input.getKey(), 0L) < input.getValue()) {
                 return false;
@@ -238,6 +242,7 @@ public final class MatterInventory implements MatterStore {
     }
 
     private boolean hasTypeSpaceLocked(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs) {
+        if (inputs.keySet().stream().anyMatch(ReservedSubstances::reserved) || outputs.keySet().stream().anyMatch(ReservedSubstances::reserved)) return false;
         if (maximumTypes == Integer.MAX_VALUE) return true;
         var types = new HashSet<SubstanceKey>();
         contents.forEach((key, amount) -> { if (amount > inputs.getOrDefault(key, 0L)) types.add(key); });

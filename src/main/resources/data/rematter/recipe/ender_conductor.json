@@ -1,12 +1,12 @@
 {
   "type": "rematter:preparation",
   "primary": "rematter:ender_conductor_blend",
+  "energy": 16000,
+  "ticks": 240,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:ender_conductor",
     "count": 1
   },
-  "energy": 16000,
-  "ticks": 240,
-  "minimum_tier": 1,
   "process": "sintering"
 }

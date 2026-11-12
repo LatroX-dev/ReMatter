@@ -1,0 +1,180 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_separation_unit_work"
+  },
+  "elements": [
+    {
+      "name": "rod_low",
+      "from": [
+        6,
+        5,
+        6
+      ],
+      "to": [
+        10,
+        8,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "name": "rod_high",
+      "from": [
+        6,
+        9,
+        6
+      ],
+      "to": [
+        10,
+        12,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            4,
+            0,
+            8,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "name": "finial",
+      "from": [
+        6,
+        13,
+        6
+      ],
+      "to": [
+        10,
+        15,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            12,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            12,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            12,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            12,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            4
+          ]
+        }
+      }
+    }
+  ]
+}

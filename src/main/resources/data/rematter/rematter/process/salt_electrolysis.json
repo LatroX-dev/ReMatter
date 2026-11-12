@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "type": "electrolysis",
+  "inputs": [
+    {
+      "substance": "rematter:salt",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:sodium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:chlorine",
+      "phase": "gas",
+      "amount": 500
+    }
+  ],
+  "energy": 128000,
+  "ticks": 400,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": false,
+    "product": "rematter:chlorine"
+  },
+  "required_mod": "alltheores"
+}

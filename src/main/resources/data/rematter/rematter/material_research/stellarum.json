@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Stellarum",
+  "items": [
+    "infinity_nexus_mod:infinium_stellarum_block",
+    "infinity_nexus_mod:infinium_stellarum_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iridium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:quantium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

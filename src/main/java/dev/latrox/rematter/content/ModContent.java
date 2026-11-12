@@ -15,7 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.HalfTransparentBlock;
+import net.minecraft.world.level.block.TransparentBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
@@ -36,9 +36,9 @@ public final class ModContent {
     public static final Map<IndustrialModuleKind, DeferredBlock<IndustrialModuleBlock>> INDUSTRIAL_MODULES = new EnumMap<>(IndustrialModuleKind.class);
     static {
         for (MachineKind kind : MachineKind.values()) {
-            var block = BLOCKS.registerBlock(kind.id(), p -> new MachineBlock(kind, p), p -> {
+            var block = BLOCKS.registerBlock(kind.id(), p -> MachineBlock.create(kind, p), p -> {
                 p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL);
-                return IndustrialStructure.isIndustrial(kind) ? p : p.noOcclusion();
+                return MachineBlock.occludes(kind) ? p : p.noOcclusion();
             });
             MACHINES.put(kind, block);
             ITEMS.registerSimpleBlockItem(block, p -> p.stacksTo(1));
@@ -64,7 +64,8 @@ public final class ModContent {
     public static final DeferredItem<BlockItem> REINFORCED_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(REINFORCED_MATTER_CABLE);
     public static final DeferredItem<BlockItem> RESONANT_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(RESONANT_MATTER_CABLE);
     public static final DeferredItem<BlockItem> REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_CASING);
-    public static final DeferredBlock<HalfTransparentBlock> REACTOR_GLASS = BLOCKS.registerBlock("reactor_glass", HalfTransparentBlock::new,
+    // Lets light through and casts no ambient shade, like vanilla glass: the interior of a hall stays visible.
+    public static final DeferredBlock<TransparentBlock> REACTOR_GLASS = BLOCKS.registerBlock("reactor_glass", TransparentBlock::new,
             p -> p.mapColor(MapColor.NONE).strength(3.0F, 12.0F).sound(SoundType.GLASS).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<MachinePortBlock> MACHINE_PORT = BLOCKS.registerBlock("machine_port", MachinePortBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL));
@@ -128,7 +129,7 @@ public final class ModContent {
             () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.rematter"))
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
                     .displayItems((parameters, output) -> {
-                        MACHINES.forEach((kind, block) -> { if (!kind.retiredSpecialist()) output.accept(block.get()); });
+                        MACHINES.forEach((kind, block) -> output.accept(block.get()));
                         output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
                         output.accept(RESONANT_MATTER_CABLE_ITEM.get());
@@ -174,6 +175,7 @@ public final class ModContent {
                         output.accept(MATTER_CELL_64K.get());
                         output.accept(MATTER_CELL_256K.get());
                         output.accept(MATTER_CELL_1M.get());
+                        dev.latrox.rematter.primal.PrimalContent.creativeItems().forEach(output::accept);
                         output.accept(GUIDE.get());
                     }).build());
 

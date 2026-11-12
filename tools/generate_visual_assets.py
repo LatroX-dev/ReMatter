@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""Build ReMatter materials, connectors and variants of the authored machine models."""
+"""Maintain shared material/effect textures; family assets own all bench geometry and states."""
 from pathlib import Path
 import argparse
-import json
 import math
-from connection_geometry import (SOCKET_TEXTURES, machine_state_assets, reactor_socket,
-                                 write_cable_models, write_cable_textures, write_port_models)
 from machine_palette import CHASSIS, COPPER_CONTACT, MATTE_TRIM, RECESS, write_tiles
 from generated_files import GeneratedFiles
-from machine_housings import machine_housing
 from material_tiles import TILE, soft_light
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -78,9 +74,6 @@ for color, rgb in {'blue': (64,166,255), 'green': (59,224,122),
                    'amber': (255,183,53), 'red': (242,68,78)}.items():
     png(f'textures/block/cell_led_{color}.png', TILE, TILE,
         lambda x,y,rgb=rgb: rgba(rgb, round(5 * soft_light(x,y))))
-material('cable_sleeve_silith', (187, 181, 161))
-material('cable_sleeve_rhevon', (100, 85, 86))
-material('cable_sleeve_lumivex', (170, 124, 69))
 
 
 def hazard_pixel(x, y):
@@ -171,142 +164,11 @@ def wood_pixel(x, y):
     return rgba((192, 161, 113), delta)
 shaded_mask('textures/block/bench_wood.png', wood_pixel, depth=.66)
 
-TEXTURES = {name: f'rematter:block/{name}' for name in ('ceramic', 'graphite', 'brushed_steel', 'copper_trim', 'frame', 'rubber', 'hazard', 'port_matter', 'port_energy', 'vent', 'panel', 'keyboard', 'vessel')}
-TEXTURES |= {'screen': 'rematter:block/display_idle', 'status': 'rematter:block/indicator_idle', 'wood': 'rematter:block/bench_wood', 'particle': 'rematter:block/ceramic'}
-TEXTURES['teal'] = 'rematter:block/reaction_chamber_crystal'
-TEXTURES['housing'] = 'rematter:block/frame'
-TEXTURES['particle'] = 'rematter:block/graphite'
-CASING_TEXTURE = 'rematter:block/reactor_casing'
-
-def box(a, b, texture='graphite', face=None, rotation=None, shade=True):
-    faces = {d: {'texture': '#' + texture, 'uv': [0, 0, 16, 16]} for d in FACES}
-    for d, t in (face or {}).items(): faces[d] = {'texture': '#' + t, 'uv': [0, 0, 16, 16]}
-    element = {'from': list(a), 'to': list(b), 'faces': faces}
-    if rotation: element['rotation'] = {'origin': rotation[0], 'axis': rotation[1], 'angle': rotation[2], 'rescale': False}
-    if not shade:
-        element['shade'] = False
-        element['light_emission'] = 3
-    elif 'screen' in (face or {}).values():
-        element['light_emission'] = 2
-    return element
-
-
-def recessed_casing(inset, depth):
-    """A sealed casing with a flush perimeter and a shallow north-facing recess."""
-    far = 16 - inset
-    boundary = {'west': (0, 0), 'east': (0, 16), 'down': (1, 0),
-                'up': (1, 16), 'north': (2, 0), 'south': (2, 16)}
-    pieces = (
-        ((0, 0, depth), (16, 16, 16), FACES),
-        ((0, 0, 0), (inset, 16, depth), ('north', 'west', 'east', 'up', 'down')),
-        ((far, 0, 0), (16, 16, depth), ('north', 'west', 'east', 'up', 'down')),
-        ((inset, 0, 0), (far, inset, depth), ('north', 'up', 'down')),
-        ((inset, far, 0), (far, 16, depth), ('north', 'up', 'down')),
-    )
-    result = []
-    for start, end, sides in pieces:
-        # Implicit UVs project each panel onto the same casing texture.
-        faces = {side: {'texture': '#casing'} for side in sides}
-        for side, face in faces.items():
-            axis, edge = boundary[side]
-            if (start if edge == 0 else end)[axis] == edge:
-                face['cullface'] = side
-        result.append({'from': list(start), 'to': list(end), 'faces': faces})
-    return result
-
-def facet(e, x, y, z, width=1.5, height=4, material='teal'):
-    """A deliberately cut, stepped crystal; no stretched image mapped onto a box."""
-    half=width/2
-    e.extend([box((x-half,y+height*.2,z-half),(x+half,y+height*.8,z+half),material),
-              box((x-half*.72,y+height*.12,z-half*.72),(x+half*.72,y+height*.88,z+half*.72),material,
-                  rotation=([x,y+height*.5,z],'y',45)),
-              box((x-half*.4,y,z-half*.4),(x+half*.4,y+height,z+half*.4),material)])
-
-
-def hand_preparator_idle():
-    parts=[]
-    for z in (5.8,9.6):
-        for angle in (0,45):
-            parts.append(box((4,10.01,z-.99),(12,11.99,z+.99),'brushed_steel',
-                rotation=([8,11,z],'x',angle) if angle else None))
-        parts.append(box((3.4,10.75,z-.25),(12.6,11.25,z+.25),'frame'))
-    # Mesh and mixer have the exact same rigid, unpowered resting poses as the renderer.
-    for x in (3.6,12):parts.append(box((x,6.85,4.7),(x+.4,7.15,10.7),'frame'))
-    for z in (4.7,10.3):parts.append(box((4,6.85,z),(12,7.15,z+.4),'frame'))
-    for x in range(4,13):parts.append(box((x,6.94,5.1),(x+.1,7.06,10.3),'brushed_steel'))
-    for z in range(5,11):parts.append(box((4,6.94,z),(12,7.06,z+.1),'brushed_steel'))
-    parts += [box((7.8,3.7,7.6),(8.2,6.3,8),'wood'),
-        box((5,4.5,7.5),(11,4.9,8.1),'wood'),box((7.7,4.5,4.8),(8.3,4.9,10.8),'wood'),
-        box((13.4,13.3,5.8),(15.4,13.7,6.2),'frame'),box((14.95,13.28,5.78),(15.25,15,6.22),'copper_trim'),
-        box((15.25,14.65,5.75),(15.95,15.05,6.25),'wood')]
-    return parts
-
-
-# Static housings and service frames come from the Blockbench exports in artwork/machines.
-MACHINES = (
-    'hand_preparator', 'material_preparator', 'analyzer', 'decomposer',
-    'material_synthesizer', 'electrolyzer', 'chemical_reactor', 'matter_drive',
-    'matter_terminal', 'network_interface',
-    'industrial_reactor', 'industrial_preparator',
-)
-reactor_idle = []
-facet(reactor_idle, 8, 6, 8, 2.6, 5)
-idle_parts = {'hand_preparator': hand_preparator_idle(), 'chemical_reactor': reactor_idle}
-
-for name in MACHINES:
-    model = (json.loads((ROOT / f'models/block/{name}.json').read_text())
-             if name.startswith('industrial_') else machine_housing(name))
-    if not name.startswith('industrial_'):
-        json_file(f'models/block/{name}.json', model)
-    json_file(f'models/block/{name}_active.json', {
-        'parent': f'rematter:block/{name}',
-        'textures': {'screen': 'rematter:block/display_active', 'status': 'rematter:block/indicator_active'},
-    })
-    accent = None if name.startswith('industrial_') else model['textures']['teal'].split('/')[-1]
-    for path, asset in machine_state_assets(name, accent, rear_only=name == 'matter_terminal'):
-        json_file(path, asset)
-    item_model = f'rematter:block/{name}'
-    if name in idle_parts:
-        item = model | {'elements': model['elements'] + idle_parts[name]}
-        json_file(f'models/item/{name}.json', item)
-        item_model = f'rematter:item/{name}'
-    json_file(f'items/{name}.json', {'model': {'type': 'minecraft:model', 'model': item_model}})
+# All bench housings/state/item models belong exclusively to generate_family_assets.py.
 if not MODELS_ONLY:
     write_tiles(ROOT, OUTPUT.png)
 
-# One broad recessed plate, with the bevel lit on the inside of the rim.
-def reactor_casing_pixel(x, y):
-    left_top = min(x, y)
-    right_bottom = TILE - 1 - max(x, y)
-    edge = min(left_top, right_bottom)
-    corner = min(x, TILE - 1 - x) + min(y, TILE - 1 - y)
-    inset = min(edge - 11, (corner - 29) / math.sqrt(2))
-
-    if edge < 2:
-        shade = -13
-    elif inset < 0:
-        shade = 6 + .24 * soft_light(x, y)
-    elif inset < 7:
-        bevel_light = -20 if left_top <= right_bottom else 16
-        shade = bevel_light + (-8 - bevel_light) * (inset / 7)
-    else:
-        shade = -8 + .42 * soft_light(x, y)
-    return rgba(PALETTE['graphite'], round(shade))
-
-
-png('textures/block/reactor_casing.png', TILE, TILE, reactor_casing_pixel)
-casing = box((0, 0, 0), (16, 16, 16), 'casing')
-for side, face in casing['faces'].items():
-    face['cullface'] = side
-json_file('models/block/reactor_casing.json', {
-    'parent': 'minecraft:block/block',
-    'textures': {'casing': CASING_TEXTURE, 'particle': CASING_TEXTURE},
-    'elements': [casing],
-})
-write_cable_models(json_file)
-write_cable_textures(png)
-
-# The Casing supplies the structure. Glass shares its clear model with the inventory.
+# The Sinter Furnace window still uses this pane; the Reactor Glass block has its own sprite.
 def glass_pixel(x, y, rim_width, reflection_alpha):
     edge = min(x, y, TILE - 1 - x, TILE - 1 - y)
     if edge < rim_width:
@@ -319,27 +181,9 @@ def glass_pixel(x, y, rim_width, reflection_alpha):
 
 
 png('textures/block/reactor_glass.png', TILE, TILE, lambda x, y: glass_pixel(x, y, 3, 100))
-glass_textures=TEXTURES|{'glass':'rematter:block/reactor_glass'}
-e=[box((0,0,0),(16,16,16),'glass')]
-for side,face in e[0]['faces'].items():face['cullface']=side
-json_file('models/block/reactor_glass.json',{'parent':'minecraft:block/block','textures':glass_textures,'elements':e})
-json_file('blockstates/reactor_glass.json',{'variants':{'':{'model':'rematter:block/reactor_glass'}}})
-
-json_file('items/reactor_glass.json',{'model':{'type':'minecraft:model','model':'rematter:block/reactor_glass'}})
-# Configured connectors share a single socket geometry.
-json_file('models/block/machine_port.json', {
-    'parent': 'rematter:block/machine_port_active', 'textures': {'teal': 'rematter:block/socket_rim'},
-})
-json_file('models/block/machine_port_active.json', {
-    'parent': 'minecraft:block/block',
-    'textures': TEXTURES | SOCKET_TEXTURES | {'casing': CASING_TEXTURE, 'particle': CASING_TEXTURE},
-    'elements': [*recessed_casing(2.25, 2.2), *reactor_socket()],
-})
-write_port_models(json_file)
-json_file('items/machine_port.json',{'model':{'type':'minecraft:model','model':'rematter:block/machine_port'}})
 if ARGS.check:
     print(f'Verified {OUTPUT.count} visual files.')
 elif ARGS.textures_only:
-    print('Generated 128px machine, connector, cable and glass materials.')
+    print('Generated 128px machine and glass materials.')
 else:
-    print(f'Generated variants for {len(MACHINES)} machine models, and connector models.')
+    print(f'Generated variants for {len(MACHINES)} machine models.')

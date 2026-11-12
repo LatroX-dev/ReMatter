@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Silicon",
+  "items": [
+    "ae2:silicon",
+    "energizedpower:silicon",
+    "energizedpower:silicon_block",
+    "extendedae:silicon_block",
+    "ftbic:silicon_gem",
+    "oritech:silicon",
+    "oritech:silicon_block",
+    "refinedstorage:silicon"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Granite",
+  "items": [
+    "minecraft:granite"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

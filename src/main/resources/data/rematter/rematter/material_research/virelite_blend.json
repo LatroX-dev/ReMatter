@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Virelite Blend",
+  "items": [
+    "rematter:virelite_blend"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

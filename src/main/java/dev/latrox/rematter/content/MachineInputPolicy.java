@@ -22,7 +22,8 @@ public final class MachineInputPolicy {
     }
 
     public static boolean acceptsUpgrade(MachineKind kind, ItemStack stack) {
-        return kind.processes() && !PreparationTier.manual(kind) && (stack.is(ModContent.SPEED_UPGRADE.get())
+        if(IndustrialStructure.isIndustrial(kind))return stack.is(ModContent.SPEED_UPGRADE.get());
+        return kind.processes() && kind!=MachineKind.PRIMAL_CONVERTER && !PreparationTier.manual(kind) && (stack.is(ModContent.SPEED_UPGRADE.get())
                 || stack.is(ModContent.EFFICIENCY_UPGRADE.get())
                 || IndustrialStructure.isIndustrial(kind) && stack.is(ModContent.PARALLEL_UPGRADE.get())
                 || kind.synthesis() && stack.is(ModContent.PRESSURE_MODULE.get()));

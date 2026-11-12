@@ -25,7 +25,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                               String storageSource, StructureView structure, NetworkView network, boolean networkJobs,
                               String backend, OrdersView orders, List<CellView> cells) implements CustomPacketPayload {
     /** Version of the menu view payload family: this snapshot, stock changes and progress. */
-    public static final String PROTOCOL = "17";
+    public static final String PROTOCOL = "19";
     /** Prefix of a preview ID that names the item being analyzed or decomposed. */
     public static final String ITEM_SOURCE = "item:";
     public static final int MAX_CHOICE_ID_LENGTH = 520;
@@ -58,7 +58,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                 throw new IllegalArgumentException("Modules do not match their controller");
             int cores = preparation ? structure.grinding() : structure.chambers();
             var hardware = new IndustrialPerformance(structure.grinding(), structure.mixing(), structure.separation(), structure.coils(), structure.chambers());
-            if (structure.moduleCount() != cores || structure.energySavingPercent() != hardware.energySavingPercent(machineKind))
+            if (structure.moduleCount() != cores)
                 throw new IllegalArgumentException("Structure bonuses do not match its modules");
             int base = hardware.workRate(machineKind);
             if (structure.workRate() % base != 0 || structure.workRate() / base > 5)
@@ -115,12 +115,13 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
         public boolean formed() { return diagnostic.equals("ready"); }
     }
     /** One Drive bay. The client names the cell from its item ID. */
-    public record CellView(boolean installed, boolean readable, String itemId, long capacity, int types, int maxTypes) {
-        public static final CellView EMPTY = new CellView(false, false, "", 0, 0, 0);
+    public record CellView(boolean installed, boolean readable, String itemId, long used, long capacity, int types, int maxTypes) {
+        public static final CellView EMPTY = new CellView(false, false, "", 0, 0, 0, 0);
         public CellView {
             Fields.validateOptionalId(itemId);
-            if (capacity < 0 || types < 0 || maxTypes < 0 || maxTypes > MatterCellData.MAX_TYPES || types > maxTypes
-                    || readable && !installed || installed == itemId.isEmpty()) throw new IllegalArgumentException("Invalid cell view");
+            if (used < 0 || capacity < used || types < 0 || maxTypes < 0 || maxTypes > MatterCellData.MAX_TYPES || types > maxTypes
+                    || !readable && (used != 0 || types != 0) || readable && !installed || installed == itemId.isEmpty()
+                    || !installed && (capacity != 0 || maxTypes != 0)) throw new IllegalArgumentException("Invalid cell view");
         }
     }
     /** Sorting key of a stock row. */
@@ -209,7 +210,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             var orders = new OrdersView(buffer.readVarInt(), buffer.readVarInt(), buffer.readUtf(36), amounts(buffer), resources(buffer), buffer.readBoolean());
             int bayCount = count(buffer, MachineCellAccess.DRIVE_BAYS); var cells = new ArrayList<CellView>(bayCount);
             for (int i = 0; i < bayCount; i++) cells.add(new CellView(buffer.readBoolean(), buffer.readBoolean(), buffer.readUtf(MAX_SUBSTANCE_ID_LENGTH),
-                    buffer.readVarLong(), buffer.readVarInt(), buffer.readVarInt()));
+                    buffer.readVarLong(), buffer.readVarLong(), buffer.readVarInt(), buffer.readVarInt()));
             return new MachineSnapshot(container, kind, status, selected, selectedId, choiceCount, sampleBatchSize, used, capacity,
                     automation, running, fluidAmount, fluidId, repeat, queued, preview, storageSource, structure, network, networkJobs, backend, orders, cells);
         }
@@ -244,7 +245,7 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             buffer.writeVarInt(value.cells.size());
             for (var bay : value.cells) {
                 buffer.writeBoolean(bay.installed); buffer.writeBoolean(bay.readable); buffer.writeUtf(bay.itemId, MAX_SUBSTANCE_ID_LENGTH);
-                buffer.writeVarLong(bay.capacity); buffer.writeVarInt(bay.types); buffer.writeVarInt(bay.maxTypes);
+                buffer.writeVarLong(bay.used); buffer.writeVarLong(bay.capacity); buffer.writeVarInt(bay.types); buffer.writeVarInt(bay.maxTypes);
             }
         }
         private List<Amount> amounts(RegistryFriendlyByteBuf buffer) {

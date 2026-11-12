@@ -25,7 +25,12 @@ public final class ReMatter {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public ReMatter(IEventBus modBus, ModContainer container) {
+        dev.latrox.rematter.research.ResearchConfig.register(container);
         ModContent.register(modBus);
+        dev.latrox.rematter.primal.PrimalContent.register(modBus);
+        modBus.addListener(dev.latrox.rematter.network.MachineActionPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.ResearchKnowledgePayload::register);
+        modBus.addListener(dev.latrox.rematter.network.ResearchLearnedPayload::register);
         modBus.addListener(CatalogSync::register);
         modBus.addListener(MatterCablePulsePayload::register);
         modBus.addListener(ReleaseHeldOrderPayload::register);
@@ -35,6 +40,7 @@ public final class ReMatter {
         modBus.addListener(dev.latrox.rematter.network.StructureHintPayload::register);
         modBus.addListener(TerminalDeviceActionPayload::register);
         modBus.addListener(TerminalDevicesPayload::register);
+        NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.content.generation.CrystalFuelData::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);
         NeoForge.EVENT_BUS.addListener(CatalogSync::sync);
         if (ModList.get().isLoaded("ae2")) dev.latrox.rematter.compat.ae2.Ae2Compat.register(modBus);

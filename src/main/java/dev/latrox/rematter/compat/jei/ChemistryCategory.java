@@ -92,6 +92,7 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryViewer.Entry> 
             side(tooltip,recipe.produced(),recipe.outputs(),"produced");
         } else if (inside(mouseX,mouseY,160,119)) {
             recipe.notes().forEach(tooltip::add);
+            ChemistryViewer.researchTarget(recipe).ifPresent(target -> tooltip.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));
         }
     }
     private static void side(ITooltipBuilder tooltip,Optional<ChemistryViewer.Resource> resource,List<ChemistryViewer.Matter> matter,String role) {

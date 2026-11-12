@@ -10,9 +10,6 @@ item_ids:
   - rematter:matter_cell_256k
   - rematter:matter_cell_1m
   - rematter:matter_terminal
-  - rematter:matter_cable
-  - rematter:reinforced_matter_cable
-  - rematter:resonant_matter_cable
   - rematter:network_interface
   - rematter:automation_pattern
   - rematter:recovered_matter
@@ -25,7 +22,7 @@ Your [sand-to-glass starter line](copper.md) already uses a **Matter Drive**. Ad
 
 ## 1. Keep the Cell in storage
 
-Place Decomposer, Drive and Synthesizer in a touching row. Put the Cell in any of the Drive's six **Contents** slots. Check the connected stock in **Configuration** before starting work.
+Place Decomposer, Drive and Synthesizer in a touching row. Put the Cell in any of the Drive's six **Contents** slots. Check the connected stock in **Settings** before starting work.
 
 The Drive needs no FE. Both processors still need their own FE connections.
 
@@ -61,9 +58,9 @@ You can dig space below the Synthesizer for its hopper and chest.
 
 ## 3. Start continuous production
 
-Enable **Automation** in both processors' **Configuration** tabs. Hover its symbol to read the explanation; the small On/Off label shows the setting. Press **Start** on the Decomposer if it is paused.
+Enable **Automation** in both processors' **Settings** tabs. Hover its symbol to read the explanation; the small On/Off label shows the setting. Press **Start** on the Decomposer if it is paused.
 
-On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then open **Configuration** and use **Run nonstop**. Hover the circular-arrow symbol to find it. Put sand in the input chest. The line now produces glass while input, power and space remain available.
+On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then open **Settings** and use **Run nonstop**. Hover the circular-arrow symbol to find it. Put sand in the input chest. The line now produces glass while input, power and space remain available.
 
 Hoppers do not select recipes or request synthesis jobs. **Run nonstop** supplies the continuing requests. **Stop repeat** stops continuous production. **Pause** keeps the current order and **Resume** continues it; changing the product cancels the old request.
 
@@ -90,7 +87,7 @@ A network includes only your own machines; other players' machines on the same c
 
 Connect Matter Cables to eligible rear, side or bottom ports. The Matter Terminal connects at the rear. In the Terminal's network view, open connected device menus or queue a selected recipe on a compatible worker. Use separate transport for physical items and ordinary fluids.
 
-Stock views in the Terminal, Drive and Network Interface have a search field and **Solids**, **Liquids**, **Gases** and **Favorites** filters. Mark a substance as a favorite in its details; favorites are listed first. A view lists up to 512 types, matches and favorites first, and shows how many of the stored types it lists.
+Stock views in the Terminal, Drive and Network Interface have a search field and **Solids**, **Liquids**, **Gases** and **Favorites** filters. Click a substance row to toggle its favorite mark; hover for exact quantities and details. A view lists up to512 types, matches and favorites first. See [Cable and controller budgets](throughput.md) for actual rates: equal extra cables do not add throughput.
 
 <RecipeFor id="rematter:matter_cable" />
 <RecipeFor id="rematter:reinforced_matter_cable" />
@@ -101,11 +98,11 @@ Item and fluid automation cannot move Cells or upgrades. Owners can use buckets 
 
 ## AE2 and Refined Storage requests
 
-Connect a **ReMatter Network Interface** to the material network and to the chosen external system. In its **Configuration**, select the backend and turn **Automation** on. Then enable **Network jobs** on the powered workers that should accept requests. Hover each network symbol for its full label. Use a separate Interface for AE2 and Refined Storage when both share the same ReMatter installation.
+Connect a **ReMatter Network Interface** to the material network and to the chosen external system. In its **Settings**, select the backend and turn **Automation** on. Then enable **Network jobs** on the powered workers that should accept requests. Hover each network symbol for its full label. Use a separate Interface for AE2 and Refined Storage when both share the same ReMatter installation.
 
 The connected systems can request supported recipes from available workers. They still need the complete ingredients, power and output space. Substance transfers through it are limited to its owner. Every player who can use the connected AE2 or Refined Storage network can request its recipes, so keep that network private. AE2 and Refined Storage cables connect only to its **Automatic** and **Matter Network** faces, and AE2 cables placed against it by another player do not connect. The automatic alloy catalogue offers powder manufacture and ingot production; it omits reverse alloy grinding so that a request for powder does not depend on first making its own ingot. Reverse grinding remains usable in physical machines and manually encoded processing patterns.
 
-If a recipe changes, outdated jobs return their inputs to the external network. If the external network does not confirm a delivery, the Interface stops it and keeps its resources. Press **Release** in **Configuration** to receive them after a confirmation: matter arrives as <ItemLink id="rematter:recovered_matter" />, which you use on your Drive to store it again; fluids go into the Interface's tank.
+If a recipe changes, outdated jobs return their inputs to the external network. If the external network does not confirm a delivery, the Interface stops it and keeps its resources. Press **Release** in **Settings** to receive them after a confirmation: matter arrives as <ItemLink id="rematter:recovered_matter" />, which you use on your Drive to store it again; fluids go into the Interface's tank.
 
 <RecipeFor id="rematter:network_interface" />
 

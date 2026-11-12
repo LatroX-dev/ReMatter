@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.industrial_scale.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.industrial_scale.description"
+    },
+    "icon": {
+      "id": "rematter:industrial_reactor"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ],
+  "parent": "rematter:progression/proper_tools"
+}

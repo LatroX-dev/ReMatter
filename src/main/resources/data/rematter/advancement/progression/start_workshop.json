@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.start_workshop.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.start_workshop.description"
+    },
+    "icon": {
+      "id": "rematter:hand_preparator"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false,
+    "background": "minecraft:gui/advancements/backgrounds/adventure"
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ]
+}

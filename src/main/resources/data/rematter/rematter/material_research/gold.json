@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "name": "Gold",
+  "items": [
+    "alltheores:gold_dust",
+    "appgen:gold_dust",
+    "enderio:powdered_gold",
+    "energizedpower:gold_dust",
+    "ftbic:gold_dust",
+    "infinity_nexus_mod:gold_dust",
+    "mekanism:dust_gold",
+    "minecraft:deepslate_gold_ore",
+    "minecraft:gold_block",
+    "minecraft:gold_ingot",
+    "minecraft:gold_nugget",
+    "minecraft:gold_ore",
+    "minecraft:nether_gold_ore",
+    "minecraft:raw_gold",
+    "minecraft:raw_gold_block",
+    "occultism:gold_dust",
+    "oritech:gold_dust",
+    "rematter:gold_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

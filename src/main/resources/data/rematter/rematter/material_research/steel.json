@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "name": "Steel",
+  "items": [
+    "alltheores:steel_block",
+    "alltheores:steel_dust",
+    "alltheores:steel_ingot",
+    "alltheores:steel_nugget",
+    "energizedpower:steel_block",
+    "energizedpower:steel_ingot",
+    "energizedpower:steel_nugget",
+    "ftbic:steel_block",
+    "ftbic:steel_dust",
+    "ftbic:steel_ingot",
+    "infinity_nexus_mod:steel_block",
+    "infinity_nexus_mod:steel_dust",
+    "infinity_nexus_mod:steel_ingot",
+    "infinity_nexus_mod:steel_nugget",
+    "mekanism:block_steel",
+    "mekanism:dust_steel",
+    "mekanism:ingot_steel",
+    "mekanism:nugget_steel",
+    "oritech:steel",
+    "oritech:steel_dust",
+    "oritech:steel_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

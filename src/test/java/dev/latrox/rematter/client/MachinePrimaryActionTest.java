@@ -31,7 +31,7 @@ class MachinePrimaryActionTest {
         };
     }
     @Test void freshAndRemovedSelectionsOpenThePickerWithoutSendingAWorkOrder() {
-        for (var kind : List.of(MachineKind.SYNTHESIZER, MachineKind.ELECTROLYZER, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR)) {
+        for (var kind : List.of(MachineKind.SYNTHESIZER, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR)) {
             for (var state : List.of(MachineRunState.manual(), MachineRunState.automatic().pause())) {
                 var snapshot = view(kind, state, 12, -1, "", MachineSnapshot.Preview.EMPTY, "choose_process");
                 var decision = MachinePrimaryAction.forSnapshot(snapshot);
@@ -72,7 +72,7 @@ class MachinePrimaryActionTest {
         var finite = MachineRunState.manual().requestBatch().requestBatch().pause();
         var repeat = MachineRunState.automatic().pause();
         for (var state : List.of(finite, repeat)) {
-            for (var kind : List.of(MachineKind.SYNTHESIZER, MachineKind.ELECTROLYZER, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR)) {
+            for (var kind : List.of(MachineKind.SYNTHESIZER, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR)) {
                 var resume = MachinePrimaryAction.forSnapshot(selected(kind, state));
                 assertEquals(RESUME, resume.action());assertEquals(2, resume.menuAction());
                 var running = send(state, resume);

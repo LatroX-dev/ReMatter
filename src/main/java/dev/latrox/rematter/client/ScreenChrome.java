@@ -2,15 +2,25 @@ package dev.latrox.rematter.client;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import static dev.latrox.rematter.client.UiPalette.*;
 
 /** Pixel-aligned, font-independent controls shared by ReMatter screens and recipe panels. */
 public final class ScreenChrome {
     public static final int ICON_SIZE = 12;
-    private static final int LIGHT = 0xff718b90, SHADE = 0xff0a1115;
+    private static final Identifier PANEL_SKIN = skin("panel"), BUTTON_SKIN = skin("button"),
+            BUTTON_HOVER = skin("button_hover"), BUTTON_DISABLED = skin("button_disabled"),
+            INSET_SKIN = skin("inset"), SLOT_SKIN = skin("slot");
+    private static Identifier skin(String name) { return Identifier.fromNamespaceAndPath("rematter", name); }
 
     /** Original compact glyphs; every symbol fits the same twelve-pixel square. */
     public enum Icon {
+        SEARCH("..#####.../.##...##../##.....##./##.....##./.##...##../..#####.../......##../.......##./........##"),
+        CLEAR("##......##/.##....##./..##..##../...####.../....##..../...####.../..##..##../.##....##./##......##"),
+        WARNING("....##..../...####.../...####.../..##..##../..##..##../.###..###./.########./###....###/##########"),
+        HELP("..######../.##....##./......##../.....##.../....##..../....##..../........../....##..../....##...."),
+        LOCK("..######../.##....##./.##....##./##########/##......##/##..##..##/##..##..##/##......##/##########"),
         PLAY("..#......./..##....../..###...../..####..../..#####.../..######../..#####.../..####..../..###...../..##....../..#......."),
         PAUSE(".###..###./.###..###./.###..###./.###..###./.###..###./.###..###./.###..###./.###..###./.###..###./.###..###."),
         POWER(".....###../....###.../...###..../..###...../.#######../....####../....###.../...###..../..###...../..##......"),
@@ -38,8 +48,22 @@ public final class ScreenChrome {
         LIQUID("....##..../....##..../...####.../..######../.########./##########/##########/.########./..######.."),
         GAS("..##....##/.#..#..#../#....##.../........../..##....##/.#..#..#../#....##...");
 
-        private final String[] rows;
-        Icon(String pixels) { rows = pixels.split("/"); }
+        private final int[][] runs;
+        Icon(String pixels) {
+            String[] rows=pixels.split("/");
+            var spans=new java.util.ArrayList<int[]>();
+            int top=(ICON_SIZE-rows.length)/2;
+            for(int row=0;row<rows.length;row++) {
+                int left=(ICON_SIZE-rows[row].length())/2;
+                for(int column=0;column<rows[row].length();) {
+                    if(rows[row].charAt(column)!='#'){column++;continue;}
+                    int start=column;
+                    while(column<rows[row].length()&&rows[row].charAt(column)=='#')column++;
+                    spans.add(new int[]{left+start,top+row,left+column,top+row+1});
+                }
+            }
+            runs=spans.toArray(int[][]::new);
+        }
     }
 
     private ScreenChrome() {}
@@ -65,42 +89,23 @@ public final class ScreenChrome {
     }
 
     public static void icon(GuiGraphicsExtractor g, Icon icon, int x, int y, int color) {
-        int top = y + (ICON_SIZE - icon.rows.length) / 2;
-        for (int row = 0; row < icon.rows.length; row++) {
-            String pixels = icon.rows[row]; int left = x + (ICON_SIZE - pixels.length()) / 2;
-            for (int column = 0; column < pixels.length();) {
-                if (pixels.charAt(column) != '#') { column++; continue; }
-                int start = column;
-                while (column < pixels.length() && pixels.charAt(column) == '#') column++;
-                g.fill(left + start, top + row, left + column, top + row + 1, color);
-            }
-        }
+        for(int[] run:icon.runs)g.fill(x+run[0],y+run[1],x+run[2],y+run[3],color);
     }
 
     public static void panel(GuiGraphicsExtractor g, int x, int y, int width, int height) {
-        g.fill(x,y,x+width,y+height,SHADE);
-        g.fill(x+1,y+1,x+width-1,y+height-1,BACKGROUND);
-        g.fill(x+1,y+1,x+width-1,y+2,LIGHT);
-        g.fill(x+1,y+2,x+2,y+height-2,BORDER);
-        g.fill(x+2,y+2,x+width-2,y+3,HIGHLIGHT);
-        g.fill(x+width-2,y+2,x+width-1,y+height-1,RECESS);
-        g.fill(x+2,y+height-2,x+width-1,y+height-1,RECESS);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, PANEL_SKIN, x, y, width, height);
     }
 
     public static void raised(GuiGraphicsExtractor g, int x, int y, int width, int height, boolean highlighted, boolean enabled) {
-        int edge = highlighted && enabled ? ACCENT : BORDER;
-        int face = enabled ? highlighted ? SURFACE_ACTIVE : SURFACE : PANEL;
-        g.fill(x,y,x+width,y+height,SHADE);
-        g.fill(x,y,x+width-1,y+height-1,edge);
-        g.fill(x+1,y+1,x+width-2,y+height-2,face);
-        g.fill(x+1,y+1,x+width-2,y+2,enabled ? highlighted ? ACCENT : LIGHT : HIGHLIGHT);
-        g.fill(x+1,y+2,x+2,y+height-2,enabled ? HIGHLIGHT : PANEL);
-        g.fill(x+2,y+height-3,x+width-2,y+height-2,RECESS);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, !enabled ? BUTTON_DISABLED : highlighted ? BUTTON_HOVER : BUTTON_SKIN,
+                x, y, width, height);
     }
 
     public static void inset(GuiGraphicsExtractor g, int x, int y, int width, int height) {
-        g.fill(x,y,x+width,y+height,HIGHLIGHT);
-        g.fill(x,y,x+width-1,y+height-1,SHADE);
-        g.fill(x+1,y+1,x+width-1,y+height-1,RECESS);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, INSET_SKIN, x, y, width, height);
+    }
+
+    public static void slot(GuiGraphicsExtractor g, int x, int y) {
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, SLOT_SKIN, x, y, 18, 18);
     }
 }

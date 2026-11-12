@@ -2,8 +2,7 @@
   "multipart": [
     {
       "when": {
-        "facing": "north",
-        "active": "false"
+        "facing": "north"
       },
       "apply": {
         "model": "rematter:block/matter_terminal"
@@ -11,17 +10,7 @@
     },
     {
       "when": {
-        "facing": "north",
-        "active": "true"
-      },
-      "apply": {
-        "model": "rematter:block/matter_terminal_active"
-      }
-    },
-    {
-      "when": {
-        "facing": "east",
-        "active": "false"
+        "facing": "east"
       },
       "apply": {
         "model": "rematter:block/matter_terminal",
@@ -30,18 +19,7 @@
     },
     {
       "when": {
-        "facing": "east",
-        "active": "true"
-      },
-      "apply": {
-        "model": "rematter:block/matter_terminal_active",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "facing": "south",
-        "active": "false"
+        "facing": "south"
       },
       "apply": {
         "model": "rematter:block/matter_terminal",
@@ -50,18 +28,7 @@
     },
     {
       "when": {
-        "facing": "south",
-        "active": "true"
-      },
-      "apply": {
-        "model": "rematter:block/matter_terminal_active",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "facing": "west",
-        "active": "false"
+        "facing": "west"
       },
       "apply": {
         "model": "rematter:block/matter_terminal",
@@ -70,50 +37,79 @@
     },
     {
       "when": {
-        "facing": "west",
-        "active": "true"
-      },
-      "apply": {
-        "model": "rematter:block/matter_terminal_active",
-        "y": 270
-      }
-    },
-    {
-      "when": {
         "facing": "north",
-        "back_cable": "true"
+        "active": "false"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint"
+        "model": "rematter:block/matter_terminal_idle_parts"
       }
     },
     {
       "when": {
         "facing": "east",
-        "back_cable": "true"
+        "active": "false"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/matter_terminal_idle_parts",
         "y": 90
       }
     },
     {
       "when": {
         "facing": "south",
-        "back_cable": "true"
+        "active": "false"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/matter_terminal_idle_parts",
         "y": 180
       }
     },
     {
       "when": {
         "facing": "west",
-        "back_cable": "true"
+        "active": "false"
       },
       "apply": {
-        "model": "rematter:block/machine_socket_back_machine_mint",
+        "model": "rematter:block/matter_terminal_idle_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_terminal_active_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_terminal_active_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_terminal_active_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_terminal_active_parts",
         "y": 270
       }
     }

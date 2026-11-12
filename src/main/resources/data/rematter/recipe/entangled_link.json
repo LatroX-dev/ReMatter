@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CEC",
+    "DFD",
+    "CNC"
+  ],
+  "key": {
+    "C": "rematter:primal_crystal",
+    "D": "rematter:diamond_lattice",
+    "N": "rematter:netherite_sheath",
+    "E": "rematter:ender_conductor",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:entangled_link",
+    "count": 2
+  }
+}

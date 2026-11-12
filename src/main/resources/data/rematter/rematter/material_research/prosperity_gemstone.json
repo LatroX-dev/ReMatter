@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Prosperity Gemstone",
+  "items": [
+    "mysticalagriculture:prosperity_gemstone",
+    "mysticalagriculture:prosperity_gemstone_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

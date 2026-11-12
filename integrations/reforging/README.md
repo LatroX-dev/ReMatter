@@ -4,7 +4,7 @@ This optional integration applies specific rules while ReMatter, Replication, an
 
 ## Quartz
 
-Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem is synthesizable in the Crystallizer. The standalone mod disables it while Ender IO is loaded; this integration explicitly restores it together with the bonus-free milling override below. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
+Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem is synthesizable in the Material Synthesizer. The standalone mod disables it while Ender IO is loaded; this integration explicitly restores it together with the bonus-free milling override below. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
 
 Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. Virelite keeps the quartz share of its preparation batch as crystalline silica and its sand and clay shares as amorphous silica and clay, so sand and clay add no electrolysis feedstock.
 
@@ -26,18 +26,13 @@ The energy regression tests use the production pricing function across legal com
 
 ## Machines and Cells
 
-The optional `quests/learn_rematter/` chapter adds nine lessons in the pack's native Embers Questing format. Copy it to `config/embersquesting/books/main/chapters/learn_rematter/` alongside this integration. It uses existing Power Systems grouping and does not replace the book or other chapters. Tasks detect the listed items; the descriptions guide practical process checks, byproduct handling and comparing native production alternatives.
+The optional `quests/learn_rematter/` chapter adds nine lessons in the pack's native Embers Questing format. Copy it to `config/embersquesting/books/main/chapters/learn_rematter/` alongside this integration. It uses existing Power Systems grouping and does not replace the book or other chapters. Tasks detect the listed items; the descriptions guide practical process checks, byproduct handling and comparing native production alternatives. The native `embersquesting:obtainable` item tag recognizes the Parallel Upgrade made by Industrial Preparation, whose custom recipe is outside the standard crafting-result scan.
 
 These machines, Matter Cells, recovery items and automation patterns are excluded from Replication scanning, disintegration, and automatic value calculation, and receive an EMC value of zero through the separate Equivox configuration merge:
 
 - `rematter:analyzer`
 - `rematter:decomposer`
 - `rematter:material_synthesizer`
-- `rematter:separator`
-- `rematter:thermal_processor`
-- `rematter:crystallizer`
-- `rematter:air_separator`
-- `rematter:electrolyzer`
 - `rematter:chemical_reactor`
 - `rematter:matter_terminal`
 - `rematter:industrial_reactor`
@@ -52,8 +47,13 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:matter_cell_1m`
 - `rematter:recovered_matter`
 - `rematter:automation_pattern`
+- `rematter:primal_converter`
+- `rematter:crystal_generator`
+- `rematter:industrial_crystal_generator`
 
 The exclusions cover empty and filled variants of those exact items. The `reforging:rematter/stateful_machines` tag lists them. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.
+
+The separate `reforging:rematter/primal_items` tag also excludes the three Primal Ores, Primal Shard, all three Primal Cells, Primal Crystal, Discovery Lens and Entangled Link. Both tags feed the Replication deny rules and the exact-ID Equivox merge. The native Productive Bees `dupe_blacklist` block tag also rejects all three Primal Ores in its Quarry/Lumber duplication path. This additive exclusion does not prove unrelated miners, world copying or renewable sources safe; those paths require their own audit. All nine crystal fuels are disabled by this integration until that audit confirms their complete regenerative production costs.
 
 Replication's `skip_calculation` tag does not override an explicit matter-value recipe, so third-party matter-value overrides must be checked separately. Do not add these machines or Cells to Equivox's data-component whitelist: copying a machine's identity must not copy stored substances, energy, fluids, inventory, or ownership.
 

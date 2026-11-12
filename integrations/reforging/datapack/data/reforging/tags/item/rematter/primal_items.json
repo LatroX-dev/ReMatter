@@ -1,0 +1,45 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "rematter:deepslate_primal_ore",
+      "required": false
+    },
+    {
+      "id": "rematter:nether_primal_ore",
+      "required": false
+    },
+    {
+      "id": "rematter:end_primal_ore",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_shard",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_cell_16k",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_cell_64k",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_cell_256k",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:discovery_lens",
+      "required": false
+    },
+    {
+      "id": "rematter:entangled_link",
+      "required": false
+    }
+  ]
+}

@@ -13,7 +13,7 @@ The Decomposer recovers the supported constituents of its input. The Synthesizer
 
 The Matrix Crystal is an artificial crystalline composite: a reusable, ordered storage medium. It is inspired by selective binding in porous materials. Its ability to hold all ReMatter's supported substances and phases in a portable Cell is fictional.
 
-The Crystal does not provide FE or change one element into another. The Cell's metal and glass housing holds the matrix; the Crystal is not consumed for each job. The Synthesizer also uses a Crystal as part of its assembly mechanism.
+An installed Crystal does not supply FE or change one element into another. The Cell's housing holds the reusable matrix; the Crystal is not consumed for each job. A loose crystal deliberately placed in an enabled generator is consumed instead. The Synthesizer also uses a reusable Crystal in its assembly mechanism.
 
 The Hand Preparator extracts Silith from sand and Argil from clay. Mix these two fractions into Matrix Blend and heat it in a furnace to form the artificial crystalline composite. Its controlled substance binding is the fictional part of ReMatter.
 
@@ -23,7 +23,7 @@ The sieve sorts grains; it does not remove impurities or make pure chemicals. No
 
 A filled Cell contains substance quantities. It does not store a scanned item pattern or unlock a product.
 
-The Synthesizer's product list shows approved recipes. Selecting one only prepares a job. You still need every ingredient, enough FE and room for the complete output. The Analyzer supplies information; it grants no synthesis permission.
+The Synthesizer's product list shows explicitly approved recipes and their research status. Selecting one only prepares a job. You still need the owner's research, every ingredient, enough FE and output room. Analysis teaches a supported material family but never expands the synthesis allowlist.
 
 Frames, Control Circuits, Cells and machines remain assembled items. Craft them in their fixed recipe layouts. [Powders, alloys and ceramic](metallurgy.md) adds physical workshop materials for those assemblies; these are distinct from the quantities held in a Cell.
 

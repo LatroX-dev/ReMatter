@@ -42,6 +42,14 @@ public final class MachineEnergyPolicy {
         return Math.max(price, reference - reference / 4);
     }
 
+    public static long combined(long base,int speed,int efficiency){
+        if(base<0)throw new IllegalArgumentException("Negative energy");
+        long surcharge=scaled(base,installed(speed))/4;
+        long reference=base>Long.MAX_VALUE-surcharge?Long.MAX_VALUE:base+surcharge;
+        long discount=base/20*installed(efficiency);
+        return Math.max(reference-discount,reference-reference/4);
+    }
+
     /** Load-time check: rejects a catalogue containing a batch that could not fit the buffer at full speed. */
     public static void requireFits(ChemistryRegistry registry) {
         for (var profile : registry.profiles())

@@ -32,6 +32,7 @@ public final class BuiltinChemistry {
 
     public static ChemistryRegistry create() {
         ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
+        builder.addSubstance(ReservedSubstances.primalDefinition());
         element(builder, COPPER, "Cu", 1);
         element(builder, IRON, "Fe", 1);
         element(builder, GOLD, "Au", 1);

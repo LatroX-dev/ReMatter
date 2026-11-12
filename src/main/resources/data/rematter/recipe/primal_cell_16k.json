@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    " V ",
+    " H "
+  ],
+  "key": {
+    "H": "rematter:cell_housing",
+    "C": "rematter:control_circuit",
+    "V": "rematter:violet_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:primal_cell_16k",
+    "count": 1
+  }
+}

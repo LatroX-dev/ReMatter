@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Duratium",
+  "items": [
+    "oritech:duratium",
+    "oritech:duratium_dust",
+    "oritech:duratium_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:platinum",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

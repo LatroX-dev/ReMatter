@@ -1,138 +1,185 @@
 #!/usr/bin/env python3
-"""Generate the physical cartridges shared by item views and populated Drive bays.
+"""Generate the cell cartridges: Cell Housing, Matter Cells and Primal Cells as items.
 
-FIXED is deliberately identity: the Drive mounts the same complete 3D item with
-one uniform scale. The north face (minimum Z) is its front; depth points into a bay.
+A cell in the hand is the cartridge that the Matter Drive shows in a bay.
+Its front carries the very faceplate sprite the Drive draws, at the mounted
+size of 6 x 3 pixels, and its status light is the Drive's light on the same
+spot, driven by the rematter:cell_status item property. Behind the faceplate
+a narrow neck leaves the handle recess, then follows the graphite body with
+its copper contacts. The Cell Housing is the same cartridge without tier bar
+and light. A Primal Cell shows its charge through a slit in the body.
+
+The cartridge is a member of the machine family: boxes on the half-pixel
+grid, two texels per pixel, checked against slivers, intersections and
+z-fighting. The front faces north; the display transforms turn it to the
+player.
 """
 from __future__ import annotations
 import argparse
-import json
 from pathlib import Path
+
+from family_geometry import Box, GeometryError, build, check_boxes, check_composition, emitted, mapped_uv
+from generated_files import GeneratedFiles
+from hardware_sprites import (GRAPHITE_FACE, NATURAL, PRIMAL_ANIMATION, PRIMAL_FRAMES, Sheet, cartridge_side,
+                              cartridge_top, contacts, face_size, housing_face, neck, plate_back, plate_edge)
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / 'src/main/resources/assets/rematter'
-MODEL_NAMES = ('cell_housing', 'matter_cell_64k', 'matter_cell_256k', 'matter_cell_1m')
-FACES = ('north', 'south', 'east', 'west', 'up', 'down')
-TEXTURES = {
-    'shell': 'rematter:block/graphite',
-    'edge': 'rematter:block/socket_rim',
-    'dark': 'rematter:block/rubber',
-    'frame': 'rematter:block/frame',
-    'copper': 'rematter:block/copper_trim',
-    'particle': 'rematter:block/graphite',
+BLOCK = 'rematter:block/'
+ITEM = 'rematter:item/'
+# Item id -> faceplate sprite. The sprites of filled cells belong to the Matter Drive, which mounts them.
+FACES = {
+    'cell_housing': 'cell_housing_face',
+    'matter_cell_64k': 'drive_cell_64k',
+    'matter_cell_256k': 'drive_cell_256k',
+    'matter_cell_1m': 'drive_cell_1m',
+    'primal_cell_16k': 'drive_primal_cell_16k',
+    'primal_cell_64k': 'drive_primal_cell_64k',
+    'primal_cell_256k': 'drive_primal_cell_256k',
 }
-STATUS_TEXTURES = {
-    'matter_cell_64k': 'rematter:block/matter_cell_core_64k',
-    'matter_cell_256k': 'rematter:block/machine_leaf',
-    'matter_cell_1m': 'rematter:block/matter_cell_core_1m',
-}
+MODEL_NAMES = tuple(FACES)
+# Status of the item property -> light sprite, the ones the Drive shows over a bay.
+STATUS = {'empty': 'led_blue', 'stored': 'led_green', 'full': 'led_amber', 'locked': 'led_red'}
+UNLIT = 'status_off'
+BUDGET = 8
+# The cartridge at its mounted size. The faceplate is the bay opening of the Drive: 6 x 3 pixels.
+FACEPLATE = Box('faceplate', (5, 6.5, 4.5), (11, 9.5, 5.5))
+NECK = Box('neck', (6, 7, 5.5), (10, 8.5, 7))
+BODY = Box('body', (5, 6.5, 7), (11, 9.5, 11.5))
+CONTACTS = Box('contacts', (6, 7.5, 11.5), (10, 8.5, 12), step=True)
+# The light stands on the faceplate where the Drive puts it: 4.5 pixels from the right edge of the bay, 1 up.
+LIGHT = Box('status_light', (9.5, 7.5, 4), (10.5, 8.5, 4.5), emissive=True, step=True)
+# The faceplate looks at the player in a slot, in the first-person hand and out of an item frame; a carried
+# cartridge points it ahead. Hands, ground and frames show the cartridge at about its mounted size. The game
+# mirrors the right hand for the left one.
 DISPLAY = {
-    'gui': {'rotation': [25, 225, 0], 'translation': [0, 0, 0], 'scale': [.72, .72, .72]},
-    'ground': {'rotation': [0, 0, 0], 'translation': [0, 2, 0], 'scale': [.35, .35, .35]},
-    'fixed': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1, 1, 1]},
-    'thirdperson_righthand': {'rotation': [75, 45, 0], 'translation': [0, 2, 0], 'scale': [.45, .45, .45]},
-    'firstperson_righthand': {'rotation': [0, 45, 0], 'translation': [0, 0, 0], 'scale': [.5, .5, .5]},
+    'gui': {'rotation': [25, 200, 0], 'translation': [0, 0, 0], 'scale': [1.9, 1.9, 1.9]},
+    'ground': {'rotation': [0, 0, 0], 'translation': [0, 2, 0], 'scale': [.9, .9, .9]},
+    'fixed': {'rotation': [0, 0, 0], 'translation': [0, 0, 0], 'scale': [1.6, 1.6, 1.6]},
+    'thirdperson_righthand': {'rotation': [75, 0, 0], 'translation': [0, 2.5, 0], 'scale': [.8, .8, .8]},
+    'firstperson_righthand': {'rotation': [0, 165, 0], 'translation': [0, 4, 0], 'scale': [.8, .8, .8]},
+}
+PAINTERS = {
+    ('faceplate', 'south'): ('plate_back', plate_back),
+    ('faceplate', 'rim'): ('plate_edge', plate_edge),
+    ('neck', 'any'): ('neck', neck),
+    ('body', 'north'): ('body_end', GRAPHITE_FACE),
+    ('body', 'south'): ('body_end', GRAPHITE_FACE),
+    ('body', 'east'): ('body_side', cartridge_side),
+    ('body', 'west'): ('body_side', cartridge_side),
+    ('contacts', 'any'): ('contacts', contacts),
 }
 
 
-def box(a, b, material):
-    return {'from': list(a), 'to': list(b),
-            'faces': {face: {'texture': '#' + material, 'uv': [0, 0, 16, 16]} for face in FACES}}
+def is_primal(name):
+    return name.startswith('primal_cell_')
 
 
-def cell_model(name):
-    level = MODEL_NAMES.index(name)
-    textures = dict(TEXTURES)
-    if level:
-        textures['status'] = STATUS_TEXTURES[name]
-    # Exact shared bounds: x=3..13, y=5..11, z=0..16 (10 x 6 x 16).
-    parts = [
-        box((3.45, 5.25, 1.32), (12.55, 10.5, 15.35), 'shell'),
-        box((4.3, 10.5, 2.0), (11.7, 10.72, 14.65), 'frame'),
-        box((3.32, 5.65, 1.62), (3.79, 6.35, 14.95), 'edge'),
-        box((12.21, 5.65, 1.62), (12.68, 6.35, 14.95), 'edge'),
-        box((3.52, 10.48, 1.58), (4.10, 10.86, 14.92), 'edge'),
-        box((11.90, 10.48, 1.58), (12.48, 10.86, 14.92), 'edge'),
-        # End cap and recessed copper contacts at the insertion end.
-        box((3.75, 5.65, 15.18), (12.25, 10.05, 15.73), 'edge'),
-        box((4.4, 6.2, 15.70), (11.6, 9.50, 15.84), 'dark'),
-        box((4.4, 6.2, 15.82), (11.6, 6.76, 16), 'edge'),
-        box((4.4, 8.54, 15.82), (11.6, 9.50, 16), 'edge'),
-        box((4.9, 7.1, 15.82), (6.55, 8.2, 15.98), 'copper'),
-        box((7.17, 7.1, 15.82), (8.83, 8.2, 15.98), 'copper'),
-        box((9.45, 7.1, 15.82), (11.10, 8.2, 15.98), 'copper'),
-        # Reinforced faceplate with stepped corners and a recessed finger pull.
-        box((3, 5.45, .22), (4.05, 10.55, 1.61), 'edge'),
-        box((11.95, 5.45, .22), (13, 10.55, 1.61), 'edge'),
-        box((3.58, 5, .38), (12.42, 5.45, 1.57), 'shell'),
-        box((3.58, 10.55, .38), (12.42, 11, 1.57), 'shell'),
-        box((4.05, 5.45, .42), (11.95, 6.26, 1.52), 'frame'),
-        box((4.05, 8.71, .36), (11.95, 10.55, 1.52), 'frame'),
-        box((4.05, 6.26, .42), (4.65, 8.71, 1.52), 'frame'),
-        box((11.35, 6.26, .42), (11.95, 8.71, 1.52), 'frame'),
-        box((4.65, 6.26, .98), (11.35, 8.71, 1.45), 'dark'),
-        box((4.96, 6.67, .06), (5.77, 7.29, 1.02), 'edge'),
-        box((10.23, 6.67, .06), (11.04, 7.29, 1.02), 'edge'),
-        box((5.57, 6.62, 0), (10.43, 7.34, .35), 'edge'),
-        # One narrow readout in the face and another visible above the handle.
-        box((4.75, 9.10, .19), (11.25, 10.20, .46), 'dark'),
-        box((4.9, 10.68, 2.62), (11.1, 10.83, 6.85), 'dark'),
-    ]
-    first = 8 - (level * 1.59 + (level - 1) * .44) / 2
-    for index in range(level):
-        x = round(first + 2.03 * index, 3)
-        parts.append(box((x, 9.28, .10), (x + 1.59, 10.02, .23), 'status'))
-        parts.append(box((x, 10.80, 3.04), (x + 1.59, 10.91, 6.43), 'status'))
-    lamp=json.loads((ROOT/'artwork/machines/cell_status_lamp.json').read_text())
-    parts.extend(lamp['elements'])
-    textures.update(lamp['textures'])
-    return {'ambientocclusion': False, 'gui_light': 'side', 'textures': textures,
-            'elements': parts, 'display': DISPLAY}
+def has_light(name):
+    return name != 'cell_housing'
+
+
+class Cartridge:
+    """Tiles and models of the Matter or the Primal cartridge body."""
+
+    def __init__(self, primal):
+        self.primal = primal
+        self.sheet = Sheet('cell_cartridge_primal' if primal else 'cell_cartridge', 'body')
+        # All tiles are asked for before the first model is laid out.
+        build(self.boxes(True), self.skin)
+
+    @staticmethod
+    def boxes(light):
+        return [FACEPLATE, NECK, BODY, CONTACTS] + ([LIGHT] if light else [])
+
+    def skin(self, box, face):
+        if box.name == 'faceplate' and face == 'north':
+            return 'face', *mapped_uv(face, box.lo, box.hi, *NATURAL[face], (0, 0), 16)
+        if box.name == 'status_light':
+            # The light sprites are one flat colour; the centre texels stay clear of their atlas neighbours.
+            return 'light', *mapped_uv(face, box.lo, box.hi, *NATURAL[face], (7, 7), 16)
+        if box.name == 'body' and face in ('up', 'down'):
+            material, painter = 'body_top', cartridge_top(self.primal and face == 'up')
+            material += '_slit' if self.primal and face == 'up' else ''
+        else:
+            for role in (face, 'rim', 'any'):
+                if (box.name, role) in PAINTERS:
+                    material, painter = PAINTERS[box.name, role]
+                    break
+        key = (material, *face_size(box, face))
+        self.sheet.want(key, *face_size(box, face), painter)
+        return self.sheet.face(key, box, face)
+
+    def model(self, name):
+        boxes = self.boxes(has_light(name))
+        if len(boxes) > BUDGET:
+            raise GeometryError(f'{name}: {len(boxes)} boxes exceed the budget of {BUDGET}')
+        check_boxes(name, boxes)
+        elements = build(boxes, self.skin)
+        check_composition(name, emitted(boxes, elements))
+        textures = {'particle': BLOCK + self.sheet.page(0), 'face': BLOCK + FACES[name]}
+        textures.update({key: BLOCK + page for key, page in self.sheet.textures().items()})
+        if has_light(name):
+            textures['light'] = BLOCK + UNLIT
+        return {'gui_light': 'side', 'textures': textures, 'elements': elements, 'display': DISPLAY}
+
+    def sprites(self):
+        frames = PRIMAL_FRAMES if self.primal else 1
+        return self.sheet.sprites(frames=frames), PRIMAL_ANIMATION if self.primal else None
 
 
 def outputs():
+    """Models and item definitions by path. Other generators check them through this function."""
+    cartridges = {False: Cartridge(False), True: Cartridge(True)}
     for name in MODEL_NAMES:
-        model = cell_model(name)
-        validate(model)
-        yield ASSETS / f'models/item/{name}.json', model
-        colors={'empty':'blue','stored':'green','full':'amber','locked':'red'}
-        for status,color in colors.items():
+        yield ASSETS / f'models/item/{name}.json', cartridges[is_primal(name)].model(name)
+        if not has_light(name):
+            yield ASSETS / f'items/{name}.json', {'model': {'type': 'minecraft:model', 'model': ITEM + name}}
+            continue
+        for status, sprite in STATUS.items():
             yield ASSETS / f'models/item/{name}_{status}.json', {
-                'parent':f'rematter:item/{name}',
-                'textures':{'cell_led':f'rematter:block/cell_led_{color}'}}
-        item_model={'type':'minecraft:select','property':'rematter:cell_status',
-                    'cases':[{'when':status,'model':{'type':'minecraft:model','model':f'rematter:item/{name}_{status}'}}
-                             for status in colors],
-                    'fallback':{'type':'minecraft:model','model':f'rematter:item/{name}'}}
-        yield ASSETS / f'items/{name}.json', {'model':item_model}
+                'parent': ITEM + name, 'textures': {'light': BLOCK + sprite}}
+        yield ASSETS / f'items/{name}.json', {'model': {
+            'type': 'minecraft:select', 'property': 'rematter:cell_status',
+            'cases': [{'when': status, 'model': {'type': 'minecraft:model', 'model': f'{ITEM}{name}_{status}'}}
+                      for status in STATUS],
+            'fallback': {'type': 'minecraft:model', 'model': ITEM + name}}}
 
 
-def validate(model):
-    low = [min(e['from'][axis] for e in model['elements']) for axis in range(3)]
-    high = [max(e['to'][axis] for e in model['elements']) for axis in range(3)]
-    assert low == [3, 5, 0] and high == [13, 11, 16], (low, high)
-    assert model['display']['fixed'] == DISPLAY['fixed']
-    for element in model['elements']:
-        assert all(a < b for a, b in zip(element['from'], element['to']))
-        assert all(0 <= v <= 16 for v in element['from'] + element['to'])
-    for texture in set(model['textures'].values()):
-        ns, path = texture.split(':')
-        assert (ASSETS.parent / ns / 'textures' / (path + '.png')).is_file(), texture
+def sprites():
+    """Sprites this generator owns, by name, with the animation of those that have one."""
+    result = {'cell_housing_face': (housing_face(), None)}
+    for primal in (False, True):
+        art, animation = Cartridge(primal).sprites()
+        result.update({name: (sprite, animation) for name, sprite in art.items()})
+    return result
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--check', action='store_true')
-    args = parser.parse_args()
-    for path, data in outputs():
-        content = json.dumps(data, indent=2) + '\n'
-        if args.check:
-            assert path.read_text() == content, str(path)
-        else:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content)
-    print(('Verified' if args.check else 'Generated') + ' four physical cartridge models; FIXED identity, bounds 10 x 6 x 16.')
+def check_references(art):
+    """Every sprite a model names is written here or by the family generator, which owns the Drive."""
+    for path, value in outputs():
+        for texture in value.get('textures', {}).values():
+            name = texture.removeprefix(BLOCK)
+            if name not in art and not (ASSETS / f'textures/block/{name}.png').is_file():
+                raise GeometryError(f'{path.name}: sprite {texture} is neither generated here nor present')
+
+
+def generate(check):
+    art = sprites()
+    check_references(art)
+    out = GeneratedFiles(ROOT, check)
+    for name, (sprite, animation) in art.items():
+        out.png(ASSETS / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
+        if animation:
+            out.json(ASSETS / f'textures/block/{name}.png.mcmeta', animation)
+    for path, value in outputs():
+        out.json(path, value)
+    return out.count
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='compare the files instead of writing them')
+    arguments = parser.parse_args()
+    print(('Verified' if arguments.check else 'Generated') + f' {generate(arguments.check)} cell files;'
+          f' {len(MODEL_NAMES)} cartridges of at most {BUDGET} boxes passed the geometry checks.')

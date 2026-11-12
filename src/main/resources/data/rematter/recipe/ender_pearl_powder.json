@@ -1,11 +1,11 @@
 {
   "type": "rematter:preparation",
   "primary": "minecraft:ender_pearl",
+  "energy": 8000,
+  "ticks": 140,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:ender_pearl_powder",
     "count": 1
-  },
-  "energy": 8000,
-  "ticks": 140,
-  "minimum_tier": 1
+  }
 }

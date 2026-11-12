@@ -30,10 +30,10 @@ class MachineStorageSessionTest {
             assertEquals(0, MachineCellAccess.bayCount(kind));
         }
         for (var kind : new MachineKind[]{MachineKind.DECOMPOSER,MachineKind.SYNTHESIZER}) {
-            assertEquals(3,MachineCellAccess.inventorySize(kind));
+            assertEquals(MachineCellAccess.INVENTORY_SIZE,MachineCellAccess.inventorySize(kind));
         }
         assertEquals(0,MachineCellAccess.slot(MachineKind.DRIVE));
-        assertEquals(10,MachineCellAccess.inventorySize(MachineKind.DRIVE));
+        assertEquals(MachineCellAccess.INVENTORY_SIZE,MachineCellAccess.inventorySize(MachineKind.DRIVE));
     }
     @Test void sameContentsInAnotherCellCannotTakeOverAnInProgressBatch() {
         var original=new MatterInventory(64000,512);original.insert(COPPER,1000);

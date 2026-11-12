@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "name": "Dark Steel",
+  "items": [
+    "enderio:dark_steel_block",
+    "enderio:dark_steel_ingot",
+    "enderio:dark_steel_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

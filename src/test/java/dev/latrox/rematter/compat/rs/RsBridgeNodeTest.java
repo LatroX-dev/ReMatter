@@ -125,7 +125,7 @@ class RsBridgeNodeTest {
     private static final class Port implements AutomationPort {
         final UUID owner=UUID.randomUUID(),bridge=UUID.randomUUID();final MatterInventory store=new MatterInventory(64000);
         final OrderLedger ledger=new OrderLedger();boolean active=true;
-        final Recipe recipe=AutomationRecipeCatalogue.recipe("test:electrolysis","electrolyzer",Map.of(AutomationPort.Resource.matter(WATER),1000L),
+        final Recipe recipe=AutomationRecipeCatalogue.recipe("test:electrolysis","chemical_reactor",Map.of(AutomationPort.Resource.matter(WATER),1000L),
                 Map.of(Resource.matter(HYDROGEN),2000L,Resource.matter(OXYGEN),1000L),4000,20);
         Port(){store.insert(WATER,16000);}
         public UUID ownerId(){return owner;}public UUID bridgeId(){return bridge;}public boolean active(){return active;}

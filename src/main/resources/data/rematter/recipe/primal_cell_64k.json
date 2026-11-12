@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "EVE",
+    " H "
+  ],
+  "key": {
+    "H": "rematter:cell_housing",
+    "C": "rematter:optical_circuit",
+    "V": "rematter:violet_matrix_crystal",
+    "E": "rematter:ender_conductor"
+  },
+  "result": {
+    "id": "rematter:primal_cell_64k",
+    "count": 1
+  }
+}

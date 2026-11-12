@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:item/primal_cell_16k",
+  "textures": {
+    "light": "rematter:block/led_blue"
+  }
+}

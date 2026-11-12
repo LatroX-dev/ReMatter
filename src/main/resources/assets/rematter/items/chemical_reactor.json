@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:item/chemical_reactor"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/chemical_reactor"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/chemical_reactor_active_parts"
+      }
+    ]
   }
 }

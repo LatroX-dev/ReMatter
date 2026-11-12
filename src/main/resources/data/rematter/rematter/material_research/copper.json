@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "name": "Copper",
+  "items": [
+    "alltheores:copper_dust",
+    "appgen:copper_dust",
+    "enderio:powdered_copper",
+    "energizedpower:copper_dust",
+    "ftbic:copper_dust",
+    "infinity_nexus_mod:copper_dust",
+    "mekanism:dust_copper",
+    "minecraft:copper_block",
+    "minecraft:copper_ingot",
+    "minecraft:copper_nugget",
+    "minecraft:copper_ore",
+    "minecraft:deepslate_copper_ore",
+    "minecraft:raw_copper",
+    "minecraft:raw_copper_block",
+    "occultism:copper_dust",
+    "oritech:copper_dust",
+    "rematter:copper_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

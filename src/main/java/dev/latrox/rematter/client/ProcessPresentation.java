@@ -35,7 +35,7 @@ public final class ProcessPresentation {
                 .map(source -> new Product(id, name, "matter", "", source.outputs().size(), Map.of(), source.outputs(), source.energy(), source.ticks()));
         if (!kind.selectable()) return Optional.empty();
         return registry.recipe(SubstanceId.parse(id))
-                .filter(recipe -> dev.latrox.rematter.content.MachineRouting.supports(kind, recipe.type()))
+                .filter(recipe -> dev.latrox.rematter.content.MachineRouting.supports(kind, recipe))
                 .map(recipe -> new Product(id, name, "matter", "", recipe.outputs().size(),
                         recipe.inputs(), recipe.outputs(), recipe.energy(), recipe.ticks()));
     }

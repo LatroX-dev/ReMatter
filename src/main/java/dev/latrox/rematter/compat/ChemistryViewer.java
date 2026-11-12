@@ -24,6 +24,11 @@ public final class ChemistryViewer {
 
     private ChemistryViewer() {}
 
+    /** Viewer knowledge is informational. Recipe membership continues to come only from the synthesis allowlist. */
+    public static Optional<String> researchTarget(Entry entry) {
+        return entry.synthesisAllowed() ? entry.produced().or(entry::consumed).map(resource -> resource.id().toString()) : Optional.empty();
+    }
+
     public enum Category {
         DECOMPOSITION, SYNTHESIS, ELECTROLYSIS, REACTION, SEPARATION, PHASE_CHANGE, CRYSTALLIZATION, AIR_SEPARATION;
 
@@ -108,7 +113,7 @@ public final class ChemistryViewer {
             boolean allowed = registry.synthesisPolicy().allowsItem(profile.itemId());
             result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", item), Optional.empty(), Optional.of(resource),
                     Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(), allowed));
-            var synthesis=registry.synthesisPolicy().requirement(profile.itemId()).machine().equals("crystallizer")?Category.CRYSTALLIZATION:Category.SYNTHESIS;
+            var synthesis=Category.SYNTHESIS;
             if (allowed) result.add(new Entry(synthesis, recipeId(synthesis, "item", item), Optional.empty(), Optional.empty(),
                     Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true,
                     registry.synthesisPolicy().requirement(profile.itemId()).advancement(),registry.synthesisPolicy().requirement(profile.itemId()).tier()));

@@ -50,7 +50,7 @@ Smelt each <ItemLink id="rematter:matrix_blend" /> in a normal furnace to make o
 
 <RecipeFor id="rematter:matrix_crystal" />
 
-The Crystal stays in its device. It is not fuel and is not consumed each time you process material.
+The installed Crystal stays reusable and is not consumed per operation. A loose Crystal is consumed only when deliberately used as permitted generator fuel.
 
 Combine iron and Silith for <ItemLink id="rematter:structural_bars" />. Make <ItemLink id="rematter:machine_frame" /> from those Bars, iron and Matrix Blend. The <ItemLink id="rematter:control_circuit" /> uses copper, redstone, Argil and Matrix Blend. Follow the displayed grids.
 

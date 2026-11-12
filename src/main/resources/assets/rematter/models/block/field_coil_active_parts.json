@@ -1,0 +1,74 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_field_coil_work_active"
+  },
+  "elements": [
+    {
+      "name": "core",
+      "from": [
+        6.5,
+        4,
+        6.5
+      ],
+      "to": [
+        9.5,
+        14,
+        9.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            3,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            3,
+            0,
+            6,
+            3
+          ]
+        }
+      }
+    }
+  ]
+}

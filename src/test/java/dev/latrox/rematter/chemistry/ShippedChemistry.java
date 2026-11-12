@@ -51,6 +51,7 @@ public final class ShippedChemistry {
             String directory = parts[3];
             String relative = parts[4];
             SubstanceId id = SubstanceId.parse(parts[1] + ":" + relative.substring(0, relative.length() - 5));
+            if(directory.equals("material_research"))continue;
             JsonObject json = read(document.getValue());
             if (!ChemistryDocuments.modsMet(json, mods)) continue;
             ChemistryDocuments.requireSchema(json);
@@ -86,6 +87,7 @@ public final class ShippedChemistry {
                     if (disabled) sources.remove(id);
                     else sources.put(id, ChemistryDocuments.environmentSource(id, json));
                 }
+                case "crystal_fuel", "material_research" -> { /* Validated by their own closed catalogues. */ }
                 default -> throw new IllegalStateException("Unexpected chemistry directory: " + document.getKey());
             }
         }

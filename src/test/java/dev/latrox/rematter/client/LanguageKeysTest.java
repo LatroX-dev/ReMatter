@@ -20,12 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class LanguageKeysTest {
     @Test void screenKeysMustBeReferencedOrBelongToAnExplicitDynamicPrefix() throws IOException {
         var literals=new java.util.HashSet<String>();var prefixes=new java.util.HashSet<String>();
-        var string=Pattern.compile("\"([^\"\\n]+)\"");
+        var string=Pattern.compile("\"([^\"\\n]*)\"");
         try(var files=Files.walk(Path.of("src/main/java"))) {
             for(var file:files.filter(p->p.toString().endsWith(".java")).toList()) {
                 var source=Files.readString(file);var match=string.matcher(source);
                 while(match.find())literals.add(match.group(1));
-                var prefix=PREFIX.matcher(source);while(prefix.find())prefixes.add(prefix.group(1));
+                var prefix=PREFIX.matcher(source);while(prefix.find())prefixes.add(prefix.group(2));
                 if(file.getFileName().toString().equals("ProcessSelectionScreen.java")) {
                     var buttons=Pattern.compile("button\\((?:Icon\\.[A-Z_]+|null),\\s*\"([a-z0-9_]+)\"").matcher(source);
                     while(buttons.find())literals.add("screen.rematter.recipes."+buttons.group(1)+"_hint");
@@ -34,13 +34,13 @@ class LanguageKeysTest {
         }
         var used=new java.util.HashSet<>(literals);
         for(String prefix:prefixes)for(String literal:literals)used.add(prefix+literal);
-        var dynamic=Set.of("screen.rematter.backend_","screen.rematter.filter_","screen.rematter.source_","screen.rematter.help_structure");
+        var dynamic=Set.of("screen.rematter.backend_","screen.rematter.filter_","screen.rematter.source_","screen.rematter.help_structure","screen.rematter.settings.section.","screen.rematter.settings.section_hint.","screen.rematter.research.tab.","screen.rematter.research.tab_hint.","screen.rematter.research.state.","screen.rematter.research.help.","screen.rematter.research.learning.");
         var unused=englishKeys().stream().filter(k->k.startsWith("screen.rematter.")&&!used.contains(k)
                 &&dynamic.stream().noneMatch(k::startsWith)).sorted().toList();
         assertEquals(List.of(),unused,"Unreferenced screen translations");
     }
     private static final Pattern TRANSLATABLE = Pattern.compile("Component\\.translatable(?:WithFallback)?\\(\"([a-z0-9_.]+)\"\\s*[,)]");
-    private static final Pattern PREFIX = Pattern.compile("Component tr\\(String key[^)]*\\)\\s*\\{\\s*return Component\\.translatable\\(\"([a-z0-9_.]+)\"\\s*\\+\\s*key");
+    private static final Pattern PREFIX = Pattern.compile("Component (tr|ui)\\(String key[^)]*\\)\\s*\\{\\s*return Component\\.translatable\\(\"([a-z0-9_.]+)\"\\s*\\+\\s*key");
     private static final Pattern SHORT = Pattern.compile("\\btr\\(\"([a-z0-9_.]+)\"\\s*[,)]");
 
     @Test void everyLiteralKeyIsTranslated() throws IOException {
@@ -52,9 +52,10 @@ class LanguageKeysTest {
                 var literal = TRANSLATABLE.matcher(source);
                 while (literal.find()) check(keys, missing, file, literal.group(1));
                 var prefix = PREFIX.matcher(source);
-                if (!prefix.find()) continue;
-                var shortKey = SHORT.matcher(source);
-                while (shortKey.find()) check(keys, missing, file, prefix.group(1) + shortKey.group(1));
+                while (prefix.find()) {
+                    var shortKey = Pattern.compile("\\b"+prefix.group(1)+"\\(\"([a-z0-9_.]+)\"\\s*[,)]").matcher(source);
+                    while (shortKey.find()) check(keys, missing, file, prefix.group(2) + shortKey.group(1));
+                }
             }
         }
         assertEquals(List.of(), missing);

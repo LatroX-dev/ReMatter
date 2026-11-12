@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "name": "Uncured Insulating Resin",
+  "items": [
+    "appflux:insulating_resin"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

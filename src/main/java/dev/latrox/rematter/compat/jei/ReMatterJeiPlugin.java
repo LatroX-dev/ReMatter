@@ -98,9 +98,6 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     @Override public void onRuntimeAvailable(IJeiRuntime runtime) {
         if (!enabled()) return;
         this.runtime = runtime;
-        runtime.getIngredientManager().removeIngredientsAtRuntime(mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
-                ModContent.MACHINES.entrySet().stream().filter(entry -> entry.getKey().retiredSpecialist())
-                        .map(entry -> new net.minecraft.world.item.ItemStack(entry.getValue().get())).toList());
         ClientChemistry.removeListener(catalogueListener);
         ClientChemistry.addListener(catalogueListener);
         PreparationRecipes.removeClientListener(preparationListener);

@@ -11,7 +11,7 @@ item_ids:
 ---
 # Upgrades
 
-Open a processing machine's **Upgrades** side tab to reach its upgrade slot. Speed or Efficiency stacks up to **four of one type**. Parallel stacks up to **three**, only in industrial controllers. The Material Synthesizer accepts **one Pressure Module**. These choices share one slot. Hover the Speed and Efficiency symbols to compare their effects before inserting one.
+Upgrade slots stay in the main machine view. Compact processors choose Speed or Efficiency in their shared slot, up to four. The Material Synthesizer may choose one Pressure Module in that slot instead. Industrial Reactor and Preparator controllers have separate Speed, Efficiency and Parallel slots; Parallel stacks to three. Analyzer Primal payment and Discovery Lens have dedicated slots.
 
 ## Speed
 
@@ -25,14 +25,14 @@ Each <ItemLink id="rematter:efficiency_upgrade" /> reduces FE per operation by *
 
 <RecipeFor id="rematter:efficiency_upgrade" />
 
-Each Reaction Focus in an [Industrial Reactor](industrial.md) adds twice the Chemical Reactor's base speed. Upgrades scale from that base. They do not bypass its casing requirement.
+Industrial hardware provides Field, Precision, process room or step capacity. It does not add another global speed multiplier or FE discount. Upgrades never replace the formed-shell, hardware or research requirements.
 
 Changing upgrade type or count restarts an unfinished process. Inputs and energy are consumed only when the entire result can be committed. Drive, Terminal and Network Interface do not process recipes and do not benefit from these upgrades.
 
 ## Parallel industrial batches
 
-Each <ItemLink id="rematter:parallel_upgrade" /> adds one concurrent lane: one controller has **1 + N**, at most **four**. Every lane reserves a complete input, output room and its complete FE price. Lanes in the same cohort complete together, with each batch committed and paid separately. An expensive recipe may use fewer lanes because the 2,400,000-FE buffer cannot fund all four.
+Each <ItemLink id="rematter:parallel_upgrade" /> permits another concurrent lane, up to four. Height, input room and step capacity may limit useful lanes. Every batch needs complete inputs, output room and its full FE price. All active jobs share one transfer budget; extra lanes do not create extra cable throughput.
 
 <RecipeFor id="rematter:parallel_upgrade" />
 
-Efficiency and structure savings together stop at **25%** of the price before savings. The displayed batch FE uses that same capped calculation. Adding more saving modules cannot bypass the cap.
+Four Efficiency Upgrades save at most 20% before integer rounding. The absolute policy ceiling remains 25% of the price before savings; hardware adds no discount. Read the actual displayed FE rather than assuming that more modules make a recipe cheaper.

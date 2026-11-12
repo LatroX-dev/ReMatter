@@ -4,11 +4,12 @@
   "secondary": "rematter:rhevon_dust",
   "secondary_count": 2,
   "tertiary": "rematter:virelite_blend",
+  "energy": 14000,
+  "ticks": 220,
+  "minimum_tier": 2,
   "result": {
     "id": "rematter:netherite_sheath_blend",
     "count": 1
   },
-  "energy": 14000,
-  "ticks": 220,
-  "minimum_tier": 1
+  "min_precision": 1
 }

@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "name": "Vibrant Alloy",
+  "items": [
+    "enderio:vibrant_alloy_block",
+    "enderio:vibrant_alloy_ingot",
+    "enderio:vibrant_alloy_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

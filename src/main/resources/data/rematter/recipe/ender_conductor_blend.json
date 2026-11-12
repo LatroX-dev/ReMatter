@@ -4,11 +4,11 @@
   "secondary": "rematter:lumivex_dust",
   "secondary_count": 2,
   "tertiary": "rematter:copper_dust",
+  "energy": 10000,
+  "ticks": 180,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:ender_conductor_blend",
     "count": 1
-  },
-  "energy": 10000,
-  "ticks": 180,
-  "minimum_tier": 1
+  }
 }

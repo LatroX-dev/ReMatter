@@ -64,7 +64,7 @@ public final class MachineChoices {
             }
         } else if (kind.selectable()) {
             registry.processes().stream()
-                    .filter(recipe -> MachineRouting.supports(kind, recipe.type()))
+                    .filter(recipe -> MachineRouting.supports(kind, recipe))
                     .forEach(recipe -> choices.add(new Choice(recipe.id().toString(), ChemistryText.process(recipe).getString())));
             if (MachineRouting.environmentSources(kind)) registry.environmentSources().forEach(source ->
                     choices.add(new Choice(source.id().toString(), Component.translatable(source.translationKey()).getString())));

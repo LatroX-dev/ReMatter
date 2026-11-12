@@ -1,0 +1,6 @@
+{
+  "replace": false,
+  "values": [
+    {"id": "rematter:parallel_upgrade", "required": false}
+  ]
+}

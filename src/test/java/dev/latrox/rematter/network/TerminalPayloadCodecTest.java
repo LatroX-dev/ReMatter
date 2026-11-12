@@ -40,7 +40,7 @@ class TerminalPayloadCodecTest {
     }
 
     private static TerminalDevicesPayload.Device device(BlockPos position) {
-        return new TerminalDevicesPayload.Device(position, MachineKind.ELECTROLYZER, "working", RECIPE, 30, 40, 2, true);
+        return new TerminalDevicesPayload.Device(position, MachineKind.REACTOR, "working", RECIPE, 30, 40, 2, true);
     }
 
     @Test void clientRequestsRoundTripAndOnlyQueuesNameARecipe() {

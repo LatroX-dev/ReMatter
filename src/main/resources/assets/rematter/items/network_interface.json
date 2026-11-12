@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:block/network_interface"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/network_interface"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/network_interface_active_parts"
+      }
+    ]
   }
 }

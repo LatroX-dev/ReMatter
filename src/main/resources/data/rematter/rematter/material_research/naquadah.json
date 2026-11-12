@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "name": "Naquadah",
+  "items": [
+    "mekanism_extras:block_naquadah",
+    "mekanism_extras:block_raw_naquadah",
+    "mekanism_extras:dust_naquadah",
+    "mekanism_extras:end_naquadah_ore",
+    "mekanism_extras:ingot_naquadah",
+    "mekanism_extras:naquadah_ore",
+    "mekanism_extras:nugget_naquadah",
+    "mekanism_extras:raw_naquadah"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:uranium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CDC",
+    "EHE",
+    "CNC"
+  ],
+  "key": {
+    "H": "rematter:cell_housing",
+    "C": "rematter:primal_crystal",
+    "D": "rematter:diamond_lattice",
+    "N": "rematter:netherite_sheath",
+    "E": "rematter:ender_conductor"
+  },
+  "result": {
+    "id": "rematter:primal_cell_256k",
+    "count": 1
+  }
+}

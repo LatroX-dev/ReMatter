@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "name": "Nickel",
+  "items": [
+    "alltheores:deepslate_nickel_ore",
+    "alltheores:end_nickel_ore",
+    "alltheores:nether_nickel_ore",
+    "alltheores:nickel_block",
+    "alltheores:nickel_dust",
+    "alltheores:nickel_ingot",
+    "alltheores:nickel_nugget",
+    "alltheores:nickel_ore",
+    "alltheores:other_nickel_ore",
+    "alltheores:raw_nickel",
+    "alltheores:raw_nickel_block",
+    "ftbic:nickel_block",
+    "ftbic:nickel_deepslate_ore",
+    "ftbic:nickel_dust",
+    "ftbic:nickel_ingot",
+    "ftbic:nickel_raw_block",
+    "ftbic:nickel_raw_ore",
+    "ftbic:nickel_stone_ore",
+    "infinity_nexus_mod:deepslate_nickel_ore",
+    "infinity_nexus_mod:nickel_block",
+    "infinity_nexus_mod:nickel_dust",
+    "infinity_nexus_mod:nickel_ingot",
+    "infinity_nexus_mod:nickel_nugget",
+    "infinity_nexus_mod:nickel_ore",
+    "infinity_nexus_mod:raw_nickel",
+    "oritech:deepslate_nickel_ore",
+    "oritech:nickel",
+    "oritech:nickel_dust",
+    "oritech:nickel_ingot",
+    "oritech:nickel_nugget",
+    "oritech:nickel_ore",
+    "oritech:raw_nickel",
+    "oritech:raw_nickel_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

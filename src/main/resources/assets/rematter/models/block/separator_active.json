@@ -1,7 +1,0 @@
-{
-  "parent": "rematter:block/separator",
-  "textures": {
-    "screen": "rematter:block/display_active",
-    "status": "rematter:block/indicator_active"
-  }
-}

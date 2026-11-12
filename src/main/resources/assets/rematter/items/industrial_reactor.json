@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:block/industrial_reactor"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/industrial_reactor"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/industrial_reactor_active_parts"
+      }
+    ]
   }
 }

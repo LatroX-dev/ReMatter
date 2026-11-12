@@ -13,7 +13,7 @@ public final class CatalogWireCodec {
     private static final int MAX_RAW_BYTES = 16_777_216;
     private static final int MAX_RECORDS = ChemistryRegistry.MAX_SYNTHESIS_ENTRIES;
     private static final int MAX_AMOUNTS = 1_024;
-    private static final int VERSION = 4;
+    private static final int VERSION = 9;
 
     private CatalogWireCodec() {}
 
@@ -50,6 +50,7 @@ public final class CatalogWireCodec {
                 string(out, value.id().toString()); string(out, value.type().name());
                 amounts(out, value.inputs()); amounts(out, value.outputs());
                 out.writeLong(value.energy()); out.writeInt(value.ticks()); string(out, value.requiresAdvancement());
+                out.writeInt(value.minField());out.writeBoolean(value.requiresKnownOutputs());string(out,value.product()==null?"":value.product().toString());
             }
             writeCount(out, registry.environmentSources().size(), ChemistryRegistry.MAX_PROCESSES);
             for (EnvironmentSource value : registry.environmentSources()) {
@@ -115,7 +116,7 @@ public final class CatalogWireCodec {
             int processes = count(in, ChemistryRegistry.MAX_PROCESSES);
             for (int i = 0; i < processes; i++) {
                 builder.addProcess(new ProcessRecipe(SubstanceId.parse(string(in)), ProcessType.valueOf(string(in)),
-                        amounts(in), amounts(in), in.readLong(), in.readInt(), string(in)));
+                        amounts(in), amounts(in), in.readLong(), in.readInt(), string(in),in.readInt(),in.readBoolean(),optionalId(string(in))));
             }
             int sources = count(in, ChemistryRegistry.MAX_PROCESSES);
             for (int i = 0; i < sources; i++) {
@@ -135,6 +136,8 @@ public final class CatalogWireCodec {
             throw new IllegalArgumentException("Invalid chemistry catalogue", error);
         }
     }
+
+    private static SubstanceId optionalId(String id){return id.isEmpty()?null:SubstanceId.parse(id);}
 
     private static void amounts(DataOutputStream out, Map<SubstanceKey, Long> values) throws IOException {
         writeCount(out, values.size(), MAX_AMOUNTS);

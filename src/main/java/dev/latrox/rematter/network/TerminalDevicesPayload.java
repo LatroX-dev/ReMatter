@@ -20,7 +20,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
  */
 public record TerminalDevicesPayload(int containerId, boolean reset, int total, List<Device> changed, List<BlockPos> removed)
         implements CustomPacketPayload {
-    public static final String PROTOCOL = "3";
+    public static final String PROTOCOL = "4";
     public static final int MAX_DEVICES = 512;
     public static final Type<TerminalDevicesPayload> TYPE = new Type<>(
             Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "terminal_devices"));

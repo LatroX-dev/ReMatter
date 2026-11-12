@@ -122,7 +122,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Silica in the native Certus crystal state. AE2 grows and charges this crystal. Its chemistry does not grant direct conversion from Nether Quartz or amorphous silica."
+      "basis": "Silica in the native Certus crystal state. Explicit Field 4 industrial growth preserves the exact element vector and requires researched output."
     },
     "charcoal": {
       "name": "Charcoal",
@@ -273,7 +273,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Designed nominal composition for a retained material state, not a measured formula. No elemental separation, conversion to a precursor, or quality upgrade is provided. Occultism echo dust is not implicitly interchangeable with a vanilla echo shard."
+      "basis": "Designed nominal composition for a retained material state, not a measured formula. Explicit Field 8 industrial resolution conserves silica, Arcanium and Quantium. Occultism echo dust is separate from vanilla echo shards."
     },
     "ember": {
       "name": "Ember Crystal Material",
@@ -750,7 +750,7 @@
       "phases": [
         "solid"
       ],
-      "basis": "Simplified retained mixture, not a measured purity or permission to obtain its elements."
+      "basis": "Simplified retained mixture. Explicit Field 8 industrial resolution conserves silica, alumina, iron, oxygen and fictional Astrion; no implicit separation exists."
     },
     "sodium": {
       "name": "Sodium",
@@ -32707,6 +32707,329 @@
         "minecraft:overworld"
       ],
       "requires_open_air": true
+    }
+  ],
+  "processes": [
+    {
+      "id": "rematter:quartz_growth",
+      "name": "Quartz growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:crystalline_silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 96000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": true,
+        "product": "rematter:crystalline_silica"
+      }
+    },
+    {
+      "id": "rematter:amethyst_growth",
+      "name": "Amethyst growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:amethyst",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 96000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": true,
+        "product": "rematter:amethyst"
+      }
+    },
+    {
+      "id": "rematter:certus_growth",
+      "name": "Certus growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:certus_quartz",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 96000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": true,
+        "product": "rematter:certus_quartz"
+      },
+      "required_mod": "ae2"
+    },
+    {
+      "id": "rematter:ruby_growth",
+      "name": "Ruby growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:ruby",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 96000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": true,
+        "product": "rematter:ruby"
+      },
+      "required_mod": "alltheores"
+    },
+    {
+      "id": "rematter:sapphire_growth",
+      "name": "Sapphire growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:sapphire",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 96000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": true,
+        "product": "rematter:sapphire"
+      },
+      "required_mod": "alltheores"
+    },
+    {
+      "id": "rematter:alumina_reduction",
+      "name": "Alumina reduction",
+      "type": "electrolysis",
+      "inputs": [
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:carbon",
+          "phase": "solid",
+          "amount": 1500
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:aluminum",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:carbon_dioxide",
+          "phase": "gas",
+          "amount": 1500
+        }
+      ],
+      "energy": 256000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": false,
+        "product": "rematter:aluminum"
+      }
+    },
+    {
+      "id": "rematter:salt_electrolysis",
+      "name": "Salt electrolysis",
+      "type": "electrolysis",
+      "inputs": [
+        {
+          "substance": "rematter:salt",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:sodium",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:chlorine",
+          "phase": "gas",
+          "amount": 500
+        }
+      ],
+      "energy": 128000,
+      "ticks": 400,
+      "industrial": {
+        "min_field": 4,
+        "requires_known_outputs": false,
+        "product": "rematter:chlorine"
+      },
+      "required_mod": "alltheores"
+    },
+    {
+      "id": "rematter:diamond_growth",
+      "name": "Diamond growth",
+      "type": "crystallization",
+      "inputs": [
+        {
+          "substance": "rematter:carbon",
+          "phase": "solid",
+          "amount": 8000
+        },
+        {
+          "substance": "rematter:oxygen",
+          "phase": "gas",
+          "amount": 7000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:diamond",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:carbon_dioxide",
+          "phase": "gas",
+          "amount": 7000
+        }
+      ],
+      "energy": 512000,
+      "ticks": 1200,
+      "industrial": {
+        "min_field": 8,
+        "requires_known_outputs": true,
+        "product": "rematter:diamond"
+      }
+    },
+    {
+      "id": "rematter:sky_stone_resolution",
+      "name": "Sky Stone resolution",
+      "type": "separation",
+      "inputs": [
+        {
+          "substance": "rematter:sky_stone",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 4000
+        },
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:oxygen",
+          "phase": "gas",
+          "amount": 500
+        },
+        {
+          "substance": "rematter:astrion",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 128000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 8,
+        "requires_known_outputs": false,
+        "product": "rematter:iron"
+      },
+      "required_mod": "ae2"
+    },
+    {
+      "id": "rematter:echo_resolution",
+      "name": "Echo resolution",
+      "type": "separation",
+      "inputs": [
+        {
+          "substance": "rematter:echo",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "outputs": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:quantium",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "energy": 128000,
+      "ticks": 600,
+      "industrial": {
+        "min_field": 8,
+        "requires_known_outputs": false,
+        "product": "rematter:arcanium"
+      },
+      "required_mod": "occultism"
     }
   ]
 }

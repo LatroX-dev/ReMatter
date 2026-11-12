@@ -6,8 +6,6 @@ import dev.latrox.rematter.content.MachineBlock;
 import dev.latrox.rematter.content.MachineBlockEntity;
 import dev.latrox.rematter.content.MachineCellAccess;
 import dev.latrox.rematter.content.MachineKind;
-import dev.latrox.rematter.content.ModContent;
-import net.minecraft.world.item.ItemStack;
 import dev.latrox.rematter.content.IndustrialStructure;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -17,7 +15,9 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
@@ -26,6 +26,8 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.sprite.SpriteGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -34,28 +36,37 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
 
-/** Crystal instruments. Every working pose comes from server-reported process progress. */
+/**
+ * Moving parts, shown items and mounted cells. Every working pose comes from server-reported process progress,
+ * every indicator from the coarse state the server publishes.
+ */
 public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, MachineRenderState> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(Identifier.fromNamespaceAndPath("rematter", "mechanisms"), "main");
     private static final Identifier LIGHT = Identifier.fromNamespaceAndPath("rematter", "textures/entity/light.png");
     private static final Identifier CRYSTAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/reaction_chamber_crystal.png");
     private static final Map<MachineKind,Identifier> CRYSTALS = familyTextures("block");
     private static final Map<MachineKind,Identifier> SIGNALS = familyTextures("entity");
-    private static final Identifier HEATER = Identifier.fromNamespaceAndPath("rematter", "textures/block/copper_trim.png");
+    private static final Identifier BENCH_METAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/bench_metal.png");
+    private static final Identifier BENCH_SCAN = Identifier.fromNamespaceAndPath("rematter", "textures/block/bench_analyzer_work_active.png");
     private static final Identifier CONNECTOR_BODY = Identifier.fromNamespaceAndPath("rematter", "textures/block/graphite.png");
     private static final Identifier CONNECTOR_METAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/brushed_steel.png");
+    private static final int CELL_VIEW_DISTANCE = 64;
     private final Map<MachineBlockEntity,ProcessVisualMotion> motion=new WeakHashMap<>();
     private final ItemModelResolver itemModelResolver;
+    private final SpriteGetter sprites;
     private final ModelPart core, halo, trace, beam, mote, handCrank, handGrip;
-    private final ItemStack[][] cellVisuals = new ItemStack[5][dev.latrox.rematter.content.CellStatus.values().length];
-    private final ModelPart handRoller, handSieve, handMixer;
+    private final ModelPart scanStripe;
+    private final BlockPos.MutableBlockPos front = new BlockPos.MutableBlockPos();
+    private @Nullable SpriteUv driveSprites, portSprites;
 
     public MachineRenderer(BlockEntityRendererProvider.Context context) {
         itemModelResolver = context.itemModelResolver();
+        // The atlas is stitched after renderers may be constructed; sprites are looked up on first use.
+        sprites = context.sprites();
         ModelPart root = context.bakeLayer(LAYER);
         core=root.getChild("core"); halo=root.getChild("halo"); trace=root.getChild("trace");
         beam=root.getChild("beam"); mote=root.getChild("mote");
-        handRoller=root.getChild("hand_roller");handSieve=root.getChild("hand_sieve");handMixer=root.getChild("hand_mixer");
+        scanStripe=root.getChild("bench_scan");
         handCrank=root.getChild("hand_crank"); handGrip=root.getChild("hand_grip");
     }
 
@@ -80,37 +91,25 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 .addBox(-.095F,0,-.095F,.19F,1,.19F),PartPose.ZERO);
         root.addOrReplaceChild("mote",CubeListBuilder.create().texOffs(0,0)
                 .addBox(-.22F,-.22F,-.22F,.44F,.44F,.44F),PartPose.ZERO);
-        var roller=root.addOrReplaceChild("hand_roller",CubeListBuilder.create().texOffs(0,0)
-                .addBox(-4,-.99F,-.99F,8,1.98F,1.98F).addBox(-4.6F,-.25F,-.25F,9.2F,.5F,.5F),PartPose.ZERO);
-        roller.addOrReplaceChild("facets",CubeListBuilder.create().texOffs(0,0)
-                .addBox(-4,-.99F,-.99F,8,1.98F,1.98F),PartPose.rotation(Mth.PI/4,0,0));
-        var meshGrid=CubeListBuilder.create().texOffs(0,0)
-                .addBox(-4.4F,-.15F,-3, .4F,.3F,6).addBox(4,-.15F,-3,.4F,.3F,6)
-                .addBox(-4,-.15F,-3,8,.3F,.4F).addBox(-4,-.15F,2.6F,8,.3F,.4F);
-        for(int x=-4;x<=4;x++)meshGrid.addBox(x,-.06F,-2.6F,.1F,.12F,5.2F);
-        for(int z=-3;z<=2;z++)meshGrid.addBox(-4,-.06F,z+.3F,8,.12F,.1F);
-        root.addOrReplaceChild("hand_sieve",meshGrid,PartPose.ZERO);
-        root.addOrReplaceChild("hand_mixer",CubeListBuilder.create().texOffs(0,0)
-                .addBox(-.2F,-.8F,-.2F,.4F,2.6F,.4F)
-                .addBox(-3,0,-.3F,6,.4F,.6F).addBox(-.3F,0,-3,.6F,.4F,6),PartPose.ZERO);
+        // The only renderer-owned bench hardware: one scan bar and one bounded physical crank.
+        root.addOrReplaceChild("bench_scan",CubeListBuilder.create().texOffs(0,0)
+                .addBox(-4,-.25F,-.5F,8,.5F,1),PartPose.ZERO);
         root.addOrReplaceChild("hand_crank",CubeListBuilder.create().texOffs(0,0)
-                .addBox(-1.7F,-.2F,-.2F,2,.4F,.4F)
-                .texOffs(0,16).addBox(-.15F,-.22F,-.22F,.3F,1.72F,.44F),PartPose.ZERO);
+                .addBox(-.5F,-.5F,-.5F,1,2.5F,1),PartPose.ZERO);
         root.addOrReplaceChild("hand_grip",CubeListBuilder.create().texOffs(0,0)
-                .addBox(.15F,1.15F,-.25F,.7F,.4F,.5F),PartPose.ZERO);
+                .addBox(-1,2,-1,2,1,1),PartPose.ZERO);
         return LayerDefinition.create(mesh,32,32);
     }
 
     /** The extracted state that a kind's visuals read. Everything else is never extracted. */
     enum Detail {
-        NONE, MOTION, ITEMS, CELLS;
+        NONE, ITEMS, CELLS;
 
         static Detail of(MachineKind kind) {
             return switch (kind) {
-                case TERMINAL, NETWORK_INTERFACE -> NONE;
-                case ELECTROLYZER, REACTOR, SEPARATOR, THERMAL_PROCESSOR, AIR_SEPARATOR -> MOTION;
+                case TERMINAL, NETWORK_INTERFACE, REACTOR, PRIMAL_CONVERTER, CRYSTAL_GENERATOR, INDUSTRIAL_CRYSTAL_GENERATOR -> NONE;
                 case DRIVE -> CELLS;
-                case ANALYZER, DECOMPOSER, SYNTHESIZER, CRYSTALLIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
+                case ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
                         INDUSTRIAL_PREPARATOR, INDUSTRIAL_REACTOR -> ITEMS;
             };
         }
@@ -118,11 +117,16 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
 
     @Override public MachineRenderState createRenderState() { return new MachineRenderState(); }
     @Override public boolean shouldRender(MachineBlockEntity machine,Vec3 camera) {
-        return Detail.of(machine.kind()) != Detail.NONE
-                && (!IndustrialStructure.isIndustrial(machine.kind()) || machine.industrialFormed())
-                && BlockEntityRenderer.super.shouldRender(machine,camera);
+        if(ConfigurablePorts.supports(machine.kind()))
+            return Vec3.atCenterOf(machine.getBlockPos()).closerThan(camera,CELL_VIEW_DISTANCE);
+        var detail=Detail.of(machine.kind());
+        if(detail==Detail.NONE||IndustrialStructure.isIndustrial(machine.kind())&&!machine.industrialFormed())return false;
+        if(detail!=Detail.CELLS)return BlockEntityRenderer.super.shouldRender(machine,camera);
+        // Cell-only renderers can skip empty bays; configurable machines also draw their port rings above.
+        return machine.visibleCellMask()!=0&&Vec3.atCenterOf(machine.getBlockPos()).closerThan(camera,CELL_VIEW_DISTANCE);
     }
     @Override public AABB getRenderBoundingBox(MachineBlockEntity machine) {
+        if(ConfigurablePorts.supports(machine.kind()))return new AABB(machine.getBlockPos()).inflate(.5/16);
         if(!IndustrialStructure.isIndustrial(machine.kind()) || !machine.industrialFormed()) return new AABB(machine.getBlockPos());
         var facing=machine.getBlockState().getValue(MachineBlock.FACING);
         var first=machine.getBlockPos().relative(facing.getClockWise(),-machine.industrialControllerColumn()).below();
@@ -138,16 +142,34 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         state.kind=machine.kind(); state.facing=machine.getBlockState().getValue(MachineBlock.FACING);
         state.active=machine.getBlockState().getValue(MachineBlock.ACTIVE);
         var detail=Detail.of(state.kind);
-        if(detail==Detail.CELLS) {
-            state.cellMask=machine.visibleCellMask();
-            for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++) {
-                state.cellTiers[bay]=Math.clamp(machine.visibleCellTier(bay),0,4);
-                var appearance=(state.cellMask&(1<<bay))!=0?cellAppearance(state.cellTiers[bay],machine.visibleCellStatus(bay)):ItemStack.EMPTY;
-                itemModelResolver.updateForTopItem(state.cellItems[bay],appearance,ItemDisplayContext.FIXED,
-                        machine.getLevel(),null,(int)machine.getBlockPos().asLong()+bay+20);
+        if(machine.getLevel() instanceof BlockAndTintGetter view)state.cardinal=view.cardinalLighting();
+        state.sprites=null;state.portSprites=null;state.portModes=0;
+        if(ConfigurablePorts.supports(state.kind)) {
+            if(portSprites==null)portSprites=SpriteUv.resolve(sprites,ConfigurablePorts.SPRITES);
+            state.portSprites=portSprites;
+            for(int index=0;index<ConfigurablePorts.SIDES.length;index++) {
+                var side=ConfigurablePorts.SIDES[index];
+                state.portModes|=machine.portMode(side).ordinal()<<(4*side.ordinal());
+                state.portLights[index]=machine.getLevel()==null?state.lightCoords:LevelRenderer.getLightCoords(
+                        machine.getLevel(),front.setWithOffset(machine.getBlockPos(),side.world(state.facing)));
             }
         }
-        if(detail!=Detail.MOTION&&detail!=Detail.ITEMS)return;
+        if(detail==Detail.CELLS) {
+            state.cellMask=machine.visibleCellMask();
+            // Assigned whole, never accumulated: a reused render state must not keep bits of an earlier cell.
+            int tiers=0,statuses=0;
+            for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++) {
+                tiers|=Math.clamp(machine.visibleCellTier(bay),0,7)<<bay*3;
+                statuses|=machine.visibleCellStatus(bay).ordinal()<<bay*3;
+            }
+            state.cellTiers=tiers;state.cellStatuses=statuses;
+            // The bays are recessed into a closed cube; like the faces around them they are lit from in front.
+            state.frontLight=machine.getLevel()==null?state.lightCoords
+                    :LevelRenderer.getLightCoords(machine.getLevel(),front.setWithOffset(machine.getBlockPos(),state.facing));
+            if(driveSprites==null)driveSprites=SpriteUv.resolve(sprites,DriveBays.SPRITES);
+            state.sprites=driveSprites;
+        }
+        if(detail!=Detail.ITEMS)return;
         state.preparationStage=machine.preparationStage();state.preparationMixing=machine.preparationMixing();
         double time=machine.getLevel()==null?0:machine.getLevel().getGameTime()+(double)partialTick;
         state.phase=motion.computeIfAbsent(machine,key->new ProcessVisualMotion()).sample(time,machine.visualProgress(),machine.visualDuration(),state.active);
@@ -165,119 +187,39 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         itemModelResolver.updateForTopItem(state.processOutputItem,machine.visibleProcessOutputItem(),ItemDisplayContext.FIXED,machine.getLevel(),null,seed+6);
     }
 
-    private ItemStack cellAppearance(int tier,dev.latrox.rematter.content.CellStatus status) {
-        if(tier==0)return ItemStack.EMPTY;
-        // Renderer construction also runs before item components are bound during startup.
-        // Resolve stacks only when extracting an actual machine in a loaded world.
-        int color=status.ordinal();
-        if(cellVisuals[tier][color]==null) {
-            var stack=new ItemStack(switch(tier) {
-            case 1 -> ModContent.MATTER_CELL_64K.get();
-            case 2 -> ModContent.MATTER_CELL_256K.get();
-            case 3 -> ModContent.MATTER_CELL_1M.get();
-            default -> ModContent.CELL_HOUSING.get();
-            });
-            stack.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
-                    new net.minecraft.world.item.component.CustomModelData(java.util.List.of(),java.util.List.of(),
-                            java.util.List.of("rematter:cell_led/"+status.name().toLowerCase(java.util.Locale.ROOT)),java.util.List.of()));
-            cellVisuals[tier][color]=stack;
-        }
-        return cellVisuals[tier][color];
-    }
-
     @Override public void submit(MachineRenderState state,PoseStack pose,SubmitNodeCollector collector,CameraRenderState camera) {
         pose.pushPose();pose.translate(.5F,0,.5F);pose.mulPose(Axis.YP.rotationDegrees(180-state.facing.toYRot()));pose.translate(-.5F,0,-.5F);
         float p=state.phase;
         switch(state.kind) {
             case HAND_PREPARATOR -> {
-                // All movement follows actual hand-crank work. The starter has no crystal or powered field.
-                pose.pushPose();pose.translate(15.1F/16,13.5F/16,6F/16);pose.mulPose(Axis.XP.rotationDegrees(p*720));
-                part(handCrank,CONNECTOR_BODY,false,1,state,pose,collector);part(handGrip,CONNECTOR_METAL,false,1,state,pose,collector);pose.popPose();
-                float crushing=Math.min(1,p*3)*720;
-                for(int roll=0;roll<2;roll++) {
-                    pose.pushPose();pose.translate(.5F,11F/16,(roll==0?5.8F:9.6F)/16);
-                    pose.mulPose(Axis.XP.rotationDegrees(roll==0?crushing:-crushing));
-                    part(handRoller,CONNECTOR_METAL,false,1,state,pose,collector);pose.popPose();
-                }
-                float separation=state.preparationMixing?Math.clamp((p-2F/3)*3,0,1):Math.clamp((p-1F/3)*3,0,1);
-                pose.pushPose();pose.translate((8+Mth.sin(separation*Mth.TWO_PI*6)*.18F)/16,7F/16,7.7F/16);
-                part(handSieve,CONNECTOR_METAL,false,1,state,pose,collector);pose.popPose();
-                pose.pushPose();pose.translate(.5F,4.5F/16,7.8F/16);
-                pose.mulPose(Axis.YP.rotationDegrees(state.preparationMixing?Math.clamp((p-1F/3)*3,0,1)*720:0));
-                part(handMixer,CONNECTOR_METAL,false,1,state,pose,collector);pose.popPose();
-                item(state.inputItem,5.5F,12.43F,5.8F,3,2.1F,2.6F,state,pose,collector);
-                item(state.secondaryItem,10.5F,12.43F,5.8F,3,2.1F,2.6F,state,pose,collector);
-                item(state.tertiaryItem,8,12.43F,9.6F,3,2.1F,2.6F,state,pose,collector);
-                item(state.outputItem,8,3.27F,2.9F,6,2.3F,3.4F,state,pose,collector);
+                pose.pushPose();pose.translate(10.5F/16,11.5F/16,2.5F/16);pose.mulPose(Axis.ZP.rotationDegrees(p*720));
+                part(handCrank,BENCH_METAL,false,1,state,pose,collector);part(handGrip,BENCH_METAL,false,1,state,pose,collector);pose.popPose();
+                benchItems(6,9.5F,5,3,state,pose,collector);
+                item(state.outputItem,6,8.15F,2.6F,4,1.5F,2.5F,state,pose,collector);
             }
             case PREPARATOR -> {
-                float y=6;
-                halo(8,y+2.1F,7.7F,p*180,0,.83F,state,pose,collector);
-                transformItems(8,y+1.5F,7.7F,3.2F,state,pose,collector);
-                if(state.hasProcess)for(float x:new float[]{3.2F,8,12.8F})beam(x,11.8F,12,8,y+2,7.7F,state,pose,collector);
-                item(state.outputItem,8,3.57F,2.9F,6,2.5F,3.4F,state,pose,collector);
+                if(state.preparationMixing)benchItems(10.5F,10.5F,5,2.7F,state,pose,collector);
+                else benchItems(5,7.5F,5.5F,2.8F,state,pose,collector);
+                item(state.outputItem,8,6.15F,2.5F,3.5F,1.5F,2.3F,state,pose,collector);
             }
             case ANALYZER -> {
-                // A scanning hoop traverses the sample once per actual analysis.
-                float y=state.hasProcess?5.4F+5*ease(p):7.5F;
-                halo(8,y,7.5F,0,0,1,state,pose,collector);
-                floatingItem(state.inputItem,8,7.2F,7.5F,4.4F,0,state,pose,collector);
-                if(state.hasProcess)beam(8,11.6F,11.6F,8,y,7.5F,state,pose,collector);
-            }
-            case DECOMPOSER -> {
-                halo(8,6.2F,7.6F,-p*180,0,.85F,state,pose,collector);
-                transformItems(8,7,7.6F,4.3F,state,pose,collector);
-                if(state.hasProcess) {
-                    beam(8,7,7.6F,3.4F,10.6F,6.1F,state,pose,collector);
-                    beam(8,7,7.6F,12.6F,10.6F,6.1F,state,pose,collector);
-                    fragments(8,7,7.6F,3.6F,p,false,state,pose,collector);
+                floatingItem(state.inputItem,8,8.5F,5.5F,4.2F,0,state,pose,collector);
+                if(state.hasProcess){
+                    pose.pushPose();pose.translate(.5F,(6.75F+4.5F*ease(p))/16,2F/16);
+                    part(scanStripe,BENCH_SCAN,true,.8F,state,pose,collector);pose.popPose();
                 }
             }
-            case SYNTHESIZER, CRYSTALLIZER -> {
-                halo(8,6.1F,7.4F,p*180,0,.88F,state,pose,collector);
-                transformItems(8,7.6F,7.4F,4.2F,state,pose,collector);
-                if(state.hasProcess) {
-                    beam(3,9,4.2F,8,7.6F,7.4F,state,pose,collector);
-                    beam(13,9,4.2F,8,7.6F,7.4F,state,pose,collector);
-                    beam(8,13,12.4F,8,7.6F,7.4F,state,pose,collector);
-                    fragments(8,7.6F,7.4F,3.3F,p,true,state,pose,collector);
-                }
-                item(state.outputItem,8,3.92F,2.1F,5.6F,2.8F,2.4F,state,pose,collector);
-            }
-            case ELECTROLYZER, THERMAL_PROCESSOR, AIR_SEPARATOR -> {
-                for(int pole=0;pole<2;pole++) {
-                    float x=pole==0?4.3F:11.7F;
-                    float y=state.hasProcess?6+6*(pole==0?p:1-p):9;
-                    halo(x,y,7.7F,p*180*(pole==0?1:-1),0,.55F,state,pose,collector);
-                    if(state.hasProcess)beam(x,5.5F,7.7F,x,12.8F,7.7F,state,pose,collector);
-                }
-            }
-            case REACTOR, SEPARATOR -> {
-                crystal(8,8.5F,8,p*180,1,false,state,pose,collector);
-                halo(8,8.5F,8,p*90,45,1.05F,state,pose,collector);
-                if(state.hasProcess)beam(8,4.8F,8,8,13.2F,8,state,pose,collector);
+            case DECOMPOSER -> benchItems(8,8.8F,5.2F,3.5F,state,pose,collector);
+            case SYNTHESIZER -> {
+                benchItems(8,9.5F,5.5F,3.7F,state,pose,collector);
+                item(state.outputItem,8,6.15F,2.5F,5,2,2.7F,state,pose,collector);
             }
             case SINTER_FURNACE -> {
-                float heat=state.hasProcess?Math.max(.12F,Mth.sin(p*Mth.PI)):0;
-                halo(8,7.7F,8.8F,p*90,0,.78F,state,pose,collector);
-                {
-                    for(float x:new float[]{4.4F,11.6F}) {
-                        pose.pushPose();pose.translate(x/16,8.2F/16,10.7F/16);pose.scale(.45F,.8F,.45F);
-                        part(core,HEATER,heat>0,heat>0?heat:1,state,pose,collector);pose.popPose();
-                    }
-                }
-                transformItems(8,7.8F,8.8F,4.5F,state,pose,collector);
-                item(state.outputItem,8,4.18F,2.75F,6.8F,2.6F,3.1F,state,pose,collector);
+                benchItems(8,9,5.5F,3.5F,state,pose,collector);
+                item(state.outputItem,8,6.15F,2.5F,5,1.8F,2.5F,state,pose,collector);
             }
-            case DRIVE -> {
-                // Real registered item models: texture packs, tier windows and item art stay identical.
-                // Bays are numbered top-to-bottom on the left, then top-to-bottom on the right.
-                for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++)if((state.cellMask&(1<<bay))!=0) {
-                    // The local front faces north: +X is left when standing in front and looking south.
-                    float x=11.6F-MachineCellAccess.driveColumn(bay)*7.2F,y=12.1F-MachineCellAccess.driveRow(bay)*4F;
-                    mountedCell(state.cellItems[bay],x,y,.55F,state,pose,collector);
-                }
-            }
+            // Faceplates and status lights sample the block atlas like the housing around them.
+            case DRIVE -> { }
             case INDUSTRIAL_PREPARATOR,INDUSTRIAL_REACTOR -> {
                 if(state.industrialWidth>0) {
                     float x=(state.industrialWidth/2F-state.industrialColumn)*16;
@@ -294,7 +236,21 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
             }
             default -> { }
         }
+        if(state.sprites!=null||state.portSprites!=null)
+            collector.submitCustomGeometry(pose,RenderTypes.solidMovingBlock(),state);
         pose.popPose();
+    }
+
+    /** Public process items stay inside the alcove; no old crystal heads or hoops enter the new hardware. */
+    private static void benchItems(float x,float y,float z,float size,MachineRenderState state,PoseStack pose,SubmitNodeCollector collector){
+        var source=state.processInputItem.isEmpty()?state.inputItem:state.processInputItem;
+        float progress=state.phase;
+        float input=state.hasProcess?1-ease((progress-.35F)/.2F):1;
+        float output=state.hasProcess?ease((progress-.6F)/.25F):0;
+        floatingItem(source,x,y,z,size*input,0,state,pose,collector);
+        floatingItem(state.secondaryItem,x-2.2F,y-.3F,z-1,size*.4F*input,0,state,pose,collector);
+        floatingItem(state.tertiaryItem,x+2.2F,y-.3F,z-1,size*.4F*input,0,state,pose,collector);
+        floatingItem(state.processOutputItem,x,y,z,size*output,0,state,pose,collector);
     }
 
     private static float ease(float x) { x=Math.clamp(x,0,1);return x*x*(3-2*x); }
@@ -348,19 +304,6 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
             pose.scale(scale,scale,scale);part(mote,LIGHT,true,Math.max(.2F,state.drive),state,pose,collector);pose.popPose();
         }
     }
-    /** Fit the real fixed-context item uniformly in front of the socket, without distorting its art. */
-    private static void mountedCell(ItemStackRenderState item,float x,float y,float z,MachineRenderState state,PoseStack pose,SubmitNodeCollector collector) {
-        if(item.isEmpty())return;
-        var b=item.getModelBoundingBox();
-        double sx=b.getXsize(),sy=b.getYsize(),sz=b.getZsize();
-        if(!Double.isFinite(sx+sy+sz)||sx<=0||sy<=0||sz<0)return;
-        // Match the clear space between the bay rails without flattening the cartridge.
-        double scale=Math.min(5.4/sx,Math.min(2.9/sy,13.4/Math.max(sz,.00001)))/16;
-        pose.pushPose();pose.translate(x/16,y/16,z/16);pose.scale((float)scale,(float)scale,(float)scale);
-        // The model's north face is its handle; its full depth extends into the drive.
-        pose.translate(-(b.minX+b.maxX)/2,-(b.minY+b.maxY)/2,-b.minZ);
-        item.submit(pose,collector,state.lightCoords,OverlayTexture.NO_OVERLAY,0);pose.popPose();
-    }
     private static void floatingItem(ItemStackRenderState item,float x,float y,float z,float size,float yaw,MachineRenderState state,PoseStack pose,SubmitNodeCollector collector) {
         if(item.isEmpty()||size<=.001F)return;
         var bounds=item.getModelBoundingBox();double extent=Math.max(bounds.getXsize(),Math.max(bounds.getYsize(),bounds.getZsize()));
@@ -380,14 +323,12 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         var textures=new java.util.EnumMap<MachineKind,Identifier>(MachineKind.class);
         for(var kind:MachineKind.values()) {
             String family=switch(kind) {
-                case ANALYZER, AIR_SEPARATOR -> "ice";
+                case ANALYZER -> "ice";
                 case DECOMPOSER -> "copper";
                 case SYNTHESIZER -> "leaf";
-                case ELECTROLYZER,NETWORK_INTERFACE -> "blue";
-                case REACTOR,INDUSTRIAL_REACTOR,CRYSTALLIZER -> "violet";
-                case PREPARATOR,INDUSTRIAL_PREPARATOR,SEPARATOR -> "amber";
-                case SINTER_FURNACE,THERMAL_PROCESSOR -> "ember";
-                case DRIVE,TERMINAL -> "mint";
+                case INDUSTRIAL_REACTOR -> "violet";
+                case PREPARATOR,INDUSTRIAL_PREPARATOR -> "amber";
+                case SINTER_FURNACE -> "ember";
                 default -> null;
             };
             if(family!=null)textures.put(kind,Identifier.fromNamespaceAndPath("rematter","textures/"+folder+"/machine_"+family+".png"));

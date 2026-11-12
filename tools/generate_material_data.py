@@ -21,7 +21,7 @@ import re
 ROOT = Path(__file__).resolve().parents[1]
 ID = re.compile(r"[a-z0-9_.-]+:[a-z0-9_./-]+")
 DATA = ROOT / "src/main/resources/data/rematter/rematter"
-GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis", "environment_source")
+GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis", "environment_source", "process")
 FORMS = {"ingot", "dust", "nugget", "material_block", "material", "gem", "natural", "raw", "ore"}
 TEMPLATE = ROOT / "tools/data/material_coverage_template.md"
 COVERAGE = ROOT / "docs/material-coverage.md"
@@ -53,6 +53,8 @@ def batch_energy_limit():
     The machines reject a catalogue at load time when any batch exceeds it, whether or not synthesis is permitted.
     """
     policy = (MACHINE_SOURCES / "MachineEnergyPolicy.java").read_text()
+    if re.search(r"MAX_BATCH_ENERGY = [0-9_]+;", policy):
+        return java_constant("MachineEnergyPolicy.java", "MAX_BATCH_ENERGY")
     if "MAX_BATCH_ENERGY = MachineBlockEntity.ENERGY_CAPACITY / MAX_SPEED_FACTOR;" not in policy:
         raise ValueError("MachineEnergyPolicy.MAX_BATCH_ENERGY changed; update batch_energy_limit")
     if "ENERGY_CAPACITY = MatterLimits.MACHINE_ENERGY;" not in (MACHINE_SOURCES / "MachineBlockEntity.java").read_text():
@@ -258,7 +260,7 @@ def coverage_page(catalogue):
                f"and defines {len(catalogue['substances'])} substances in addition to the built-in core elements and compounds. "
                "Installing a supported mod does not imply that every item from it is supported. "
                "These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, "
-               "unless a pack explicitly overrides them. Crystal-family outputs use the Crystallizer; every diamond form requires tier 2. "
+               "unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. "
                "The CSV includes dependency conditions, required machines, tiers and advancements.")
     table = ["| Namespace | Profiles | Synthesis outputs |", "| --- | ---: | ---: |"]
     table += [f"| `{namespace}` | {profiles[namespace]} | {outputs[namespace]} |" for namespace in sorted(profiles)]
@@ -306,6 +308,19 @@ def language(names, check):
         output(language_path, current, False, set())
 
 
+def processes(catalogue, check, written, names):
+    for row in catalogue.get("processes", []):
+        namespace, path = resource_path(row["id"])
+        if namespace != "rematter" or not ID.fullmatch(row["id"]):
+            raise ValueError("Invalid industrial process id")
+        document = {"schema_version": 1, **{key: value for key, value in row.items() if key not in {"id", "name"}}}
+        output(DATA / "process" / (path + ".json"), document, check, written)
+        # Every new industrial route is closed in the reference pack until its own integration audit.
+        output(ROOT / "integrations/reforging/datapack/data/rematter/rematter/process" / (path + ".json"),
+               {"schema_version": 1, "disabled": True}, check, written)
+        names["process.rematter." + path] = row["name"]
+
+
 def generate(catalogue, check=False):
     written = set()
     names = {}
@@ -319,6 +334,7 @@ def generate(catalogue, check=False):
         if namespace != "rematter" or not source.get("renewable"):
             raise ValueError("Invalid environment source")
         output(DATA / "environment_source" / (path + ".json"), {"schema_version": 1, **source}, check, written)
+    processes(catalogue, check, written, names)
     stray_files(written, check)
     language(names, check)
     coverage(catalogue, check)

@@ -1,7 +1,12 @@
 {
   "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "cable": "rematter:block/matter_cable"
+  },
   "elements": [
     {
+      "name": "hub",
       "from": [
         5,
         5,
@@ -14,57 +19,57 @@
       ],
       "faces": {
         "north": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         },
         "south": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         },
         "east": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         },
         "west": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         },
         "up": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         },
         "down": {
-          "texture": "#junction",
+          "texture": "#cable",
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            10,
+            10
           ]
         }
       }

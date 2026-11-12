@@ -8,7 +8,7 @@ public record SynthesisRequirement(String machine, int tier, String advancement)
 
     public SynthesisRequirement {
         Objects.requireNonNull(machine); Objects.requireNonNull(advancement);
-        if (!machine.equals("material_synthesizer") && !machine.equals("crystallizer"))
+        if (!machine.equals("material_synthesizer"))
             throw new IllegalArgumentException("Unsupported synthesis machine: " + machine);
         if (tier < 1 || tier > 2)
             throw new IllegalArgumentException("Unsupported synthesis tier");

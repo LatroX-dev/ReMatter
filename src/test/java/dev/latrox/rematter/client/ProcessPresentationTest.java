@@ -51,7 +51,7 @@ class ProcessPresentationTest {
 
     @Test void processesExposeMatterOutputsOnlyOnTheMatchingMachine() {
         var registry = BuiltinChemistry.create();
-        var process = ProcessPresentation.resolve(registry, MachineKind.ELECTROLYZER, "rematter:water_electrolysis", "Water electrolysis").orElseThrow();
+        var process = ProcessPresentation.resolve(registry, MachineKind.REACTOR, "rematter:water_electrolysis", "Water electrolysis").orElseThrow();
         assertEquals("matter", process.outputKind());
         assertEquals("", process.outputId());
         assertEquals(Map.of(WATER, 1_000L), process.inputs());

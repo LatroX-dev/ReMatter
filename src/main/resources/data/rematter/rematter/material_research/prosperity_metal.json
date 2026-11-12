@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Prosperity Metal",
+  "items": [
+    "mysticalagriculture:prosperity_ingot",
+    "mysticalagriculture:prosperity_ingot_block",
+    "mysticalagriculture:prosperity_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

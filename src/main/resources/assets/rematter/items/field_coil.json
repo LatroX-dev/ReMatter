@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:item/field_coil"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/field_coil"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/field_coil_active_parts"
+      }
+    ]
   }
 }

@@ -41,7 +41,7 @@ final class MachineControl {
 
     void toggleRunning() {
         MachineKind kind = machine.kind();
-        if (PreparationTier.manual(kind) || !kind.processes() || selectionUnavailable()) return;
+        if (PreparationTier.manual(kind) || !kind.processes() && !kind.generator() || selectionUnavailable()) return;
         runState = runState.toggleRunning();
         machine.setChanged();
     }

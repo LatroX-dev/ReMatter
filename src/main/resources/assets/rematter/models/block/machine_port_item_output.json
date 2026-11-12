@@ -1,6 +1,7 @@
 {
-  "parent": "rematter:block/machine_port_active",
+  "parent": "rematter:block/machine_port",
   "textures": {
-    "teal": "rematter:block/machine_ember"
+    "particle": "rematter:block/machine_port_item_output",
+    "face": "rematter:block/machine_port_item_output"
   }
 }

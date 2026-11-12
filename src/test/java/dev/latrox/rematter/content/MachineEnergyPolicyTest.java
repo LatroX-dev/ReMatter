@@ -32,7 +32,7 @@ class MachineEnergyPolicyTest {
                     assertTrue(price>=reference-reference/4);assertTrue(price<=reference);
                 }
         var maximum=new IndustrialPerformance(0,0,0,IndustrialPerformance.MAX_PARTS_PER_TYPE-1,1);
-        assertEquals(12000,MachineEnergyPolicy.cost(16000,MachineEnergyPolicy.Upgrade.EFFICIENCY,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
+        assertEquals(12800,MachineEnergyPolicy.cost(16000,MachineEnergyPolicy.Upgrade.EFFICIENCY,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
     }
     @Test void speedUpgradesMultiplyTheBaseRateUpToTheSlotLimit() {
         assertEquals(2, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.NONE, 4));

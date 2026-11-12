@@ -38,12 +38,12 @@ class MaterialProcessingTest {
     }
     @Test void addedInputDoesNotBecomeACellOrShiftExistingMachineInventories() {
         for(var kind:new MachineKind[]{MachineKind.PREPARATOR,MachineKind.HAND_PREPARATOR,MachineKind.INDUSTRIAL_PREPARATOR,MachineKind.SINTER_FURNACE}) {
-            assertEquals(5,MachineCellAccess.inventorySize(kind));
+            assertEquals(MachineCellAccess.INVENTORY_SIZE,MachineCellAccess.inventorySize(kind));
             assertEquals(-1,MachineCellAccess.slot(kind));
         }
-        assertEquals(3,MachineCellAccess.inventorySize(MachineKind.DECOMPOSER));
+        assertEquals(MachineCellAccess.INVENTORY_SIZE,MachineCellAccess.inventorySize(MachineKind.DECOMPOSER));
         assertEquals(-1,MachineCellAccess.slot(MachineKind.DECOMPOSER));
-        assertEquals(10,MachineCellAccess.inventorySize(MachineKind.DRIVE));
+        assertEquals(MachineCellAccess.INVENTORY_SIZE,MachineCellAccess.inventorySize(MachineKind.DRIVE));
         assertEquals(0,MachineCellAccess.slot(MachineKind.DRIVE));
     }
     @Test void kilnStagesDescribeItsActualWork() {

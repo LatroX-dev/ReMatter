@@ -1,68 +1,254 @@
 {
-  "variants": {
-    "active=false,facing=north,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 0
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit"
+      }
     },
-    "active=false,facing=north,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 0
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_idle_parts"
+      }
     },
-    "active=true,facing=north,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 0
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_active_parts"
+      }
     },
-    "active=true,facing=north,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 0
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit",
+        "y": 90
+      }
     },
-    "active=false,facing=east,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 90
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_idle_parts",
+        "y": 90
+      }
     },
-    "active=false,facing=east,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 90
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_active_parts",
+        "y": 90
+      }
     },
-    "active=true,facing=east,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit",
+        "y": 180
+      }
     },
-    "active=true,facing=east,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 90
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_idle_parts",
+        "y": 180
+      }
     },
-    "active=false,facing=south,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 180
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_active_parts",
+        "y": 180
+      }
     },
-    "active=false,facing=south,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 180
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit",
+        "y": 270
+      }
     },
-    "active=true,facing=south,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 180
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_idle_parts",
+        "y": 270
+      }
     },
-    "active=true,facing=south,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 180
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_active_parts",
+        "y": 270
+      }
     },
-    "active=false,facing=west,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended"
+      }
     },
-    "active=false,facing=west,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_idle_parts"
+      }
     },
-    "active=true,facing=west,suspended=false": {
-      "model": "rematter:block/grinding_unit",
-      "y": 270
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_active_parts"
+      }
     },
-    "active=true,facing=west,suspended=true": {
-      "model": "rematter:block/grinding_unit_suspended",
-      "y": 270
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_idle_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/grinding_unit_suspended_active_parts",
+        "y": 270
+      }
     }
-  }
+  ]
 }

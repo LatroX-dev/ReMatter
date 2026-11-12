@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Prismarine Shard",
+  "items": [
+    "minecraft:prismarine",
+    "minecraft:prismarine_shard"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prismarine_shard",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

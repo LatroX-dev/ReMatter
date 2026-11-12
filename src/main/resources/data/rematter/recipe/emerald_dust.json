@@ -1,11 +1,11 @@
 {
   "type": "rematter:preparation",
   "primary": "minecraft:emerald",
+  "energy": 4000,
+  "ticks": 100,
+  "minimum_tier": 1,
   "result": {
     "id": "rematter:emerald_dust",
     "count": 1
-  },
-  "energy": 4000,
-  "ticks": 100,
-  "minimum_tier": 1
+  }
 }

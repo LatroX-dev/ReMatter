@@ -21,5 +21,7 @@ public final class MachineCellAccess {
         return -1;
     }
     public static boolean isCellSlot(MachineKind kind, int slot) { return bayForSlot(kind, slot) >= 0; }
-    public static int inventorySize(MachineKind kind) { return kind.isStorage() ? 10 : dev.latrox.rematter.content.preparation.PreparationTier.isPreparation(kind) ? 5 : 3; }
+    public static final int EFFICIENCY_SLOT=10, PARALLEL_SLOT=11, PRIMAL_SLOT=12, DISCOVERY_SLOT=13;
+    public static final int INVENTORY_SIZE=14;
+    public static int inventorySize(MachineKind kind) { return INVENTORY_SIZE; }
 }

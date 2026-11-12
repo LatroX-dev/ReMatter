@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " E ",
+    "RFR",
+    "BCB"
+  ],
+  "key": {
+    "E": "rematter:ember_matrix_crystal",
+    "R": "rematter:rhevon_ingot",
+    "F": "rematter:machine_frame",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit"
+  },
+  "result": {
+    "id": "rematter:crystal_generator",
+    "count": 1
+  }
+}

@@ -1,6 +1,49 @@
 {
-  "parent": "rematter:block/machine_port_active",
+  "parent": "minecraft:block/block",
   "textures": {
-    "teal": "rematter:block/socket_rim"
-  }
+    "particle": "rematter:block/reactor_casing",
+    "casing": "rematter:block/reactor_casing",
+    "face": "rematter:block/machine_port_unformed"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#face",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#casing",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#casing",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#casing",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
 }

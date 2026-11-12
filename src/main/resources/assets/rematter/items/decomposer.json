@@ -1,6 +1,15 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:block/decomposer"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/decomposer"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/decomposer_active_parts"
+      }
+    ]
   }
 }

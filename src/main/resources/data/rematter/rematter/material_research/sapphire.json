@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Sapphire",
+  "items": [
+    "alltheores:deepslate_sapphire_ore",
+    "alltheores:end_sapphire_ore",
+    "alltheores:nether_sapphire_ore",
+    "alltheores:other_sapphire_ore",
+    "alltheores:sapphire",
+    "alltheores:sapphire_block",
+    "alltheores:sapphire_dust",
+    "alltheores:sapphire_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:sapphire",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

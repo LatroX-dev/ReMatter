@@ -13,7 +13,7 @@ class TerminalDeviceRequestsTest {
     private static final String RECIPE = "rematter:water_electrolysis";
 
     private static TerminalDevicesPayload.Device shown(String recipe, boolean canQueue) {
-        return new TerminalDevicesPayload.Device(POSITION, MachineKind.ELECTROLYZER, "paused", recipe, 0, 0, 0, canQueue);
+        return new TerminalDevicesPayload.Device(POSITION, MachineKind.REACTOR, "paused", recipe, 0, 0, 0, canQueue);
     }
 
     @Test void onlyDevicesInTheShownListCanBeOpenedOrQueued() {
