@@ -113,6 +113,7 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
         cellButtons.forEach(b->b.setAccent(ACCENT));
         for(int i=0;i<tiles.size();i++){
             var tile=tiles.get(i);int index=scroll.offset()*COLUMNS+i;tile.key=index<filtered.size()?filtered.get(index):null;
+            tile.visible=!filtered.isEmpty();
             tile.active=(partition?cellEditable:editable())&&tile.key!=null;
             tile.selected=tile.key!=null&&(partition?spec.map(p->p.restricted()&&p.allowed().contains(tile.key)).orElse(false):!menu.selectedAll()&&menu.selection().contains(tile.key));
             if(tile.key!=null){var key=tile.key;long amount=menu.available().stream().filter(e->e.key().equals(key)).mapToLong(e->e.amount()).findFirst().orElse(0);
