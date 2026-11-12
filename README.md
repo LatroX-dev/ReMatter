@@ -10,11 +10,13 @@ Start with a **Hand Preparator** and an ordinary furnace to make the crystal med
 
 **Development build.** Build from source for testing; no mod-platform release is available yet. The 0.7 development line adds internal power generation and storage. Other Minecraft versions and loaders are not currently supported.
 
+My current 0.7 source and its full documentation are available on the [development branch](https://github.com/LatroX-dev/ReMatter/tree/overhaul-0.7.0).
+
 ## What the crystal does
 
 The Matrix Crystal is an artificial crystalline composite used as a reusable storage medium. Its inspiration is selective binding in ordered, porous materials; ReMatter's ability to hold its supported substances and phases in one portable matrix is fictional.
 
-The crystal supplies neither energy nor new elements. The Decomposer separates supported feedstock into stored quantities; the Synthesizer consumes those quantities and FE to make an approved material. A Cell carries **actual stock**, not a learned recipe or an unlimited copy of an item. The crystal remains part of the Cell and is not spent for each batch.
+A crystal installed in a machine or Cell is a reusable functional part. The Decomposer separates supported feedstock into stored quantities; the Synthesizer consumes those quantities and FE to make an explicitly approved material. Loose crystals can instead be consumed completely by a Crystal Generator in the 0.7 development line. A Cell carries **actual stock**, not a learned recipe or an unlimited copy of an item. The crystal remains part of the Cell and is not spent for each batch.
 
 The iron Machine Frame supports the machine, the copper Control Circuit controls its work, and the Cell's glass and metal housing contains the matrix. A Matrix Crystal also serves in the Synthesizer's assembly mechanism.
 
