@@ -15,7 +15,8 @@ import org.jspecify.annotations.Nullable;
 final class CellTransferData {
     static final int SCHEMA=1;
     static final Codec<Tag> TAG=Codec.PASSTHROUGH.xmap(d->d.convert(NbtOps.INSTANCE).getValue(),tag->new Dynamic<>(NbtOps.INSTANCE,tag));
-    private static final Set<String> METADATA=Set.of("id","x","y","z","components");
+    // LevelChunk adds keepPacked when persisting a block entity; it is not device payload.
+    private static final Set<String> METADATA=Set.of("id","x","y","z","components","keepPacked");
     private static final Set<String> KEYS=Set.of("schema","items","owner","all","primal_selected","selection");
     static final MapCodec<CompoundTag> RAW=new MapCodec<>(){
         public <T> Stream<T> keys(DynamicOps<T> ops){return Stream.empty();}

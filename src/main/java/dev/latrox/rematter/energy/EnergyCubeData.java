@@ -14,7 +14,8 @@ import org.jspecify.annotations.Nullable;
 /** Structural validation precedes reading any stored energy or items. Rejected data is carried unchanged. */
 final class EnergyCubeData {
     static final int SCHEMA=1;
-    private static final Set<String> METADATA=Set.of("id","x","y","z","components");
+    // LevelChunk adds keepPacked when persisting a block entity; it is not device payload.
+    private static final Set<String> METADATA=Set.of("id","x","y","z","components","keepPacked");
     private static final Set<String> KEYS=Set.of("schema","energy","items","side_modes","owner");
     static final MapCodec<CompoundTag> RAW=new MapCodec<>() {
         @Override public <T> Stream<T> keys(DynamicOps<T> ops){return Stream.empty();}

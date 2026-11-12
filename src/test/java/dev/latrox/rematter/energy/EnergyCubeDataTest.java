@@ -45,4 +45,18 @@ class EnergyCubeDataTest {
         var withMetadata=raw.copy();withMetadata.putString("id","rematter:energy_cube");withMetadata.putInt("x",17);
         assertEquals(raw,EnergyCubeData.RAW.codec().parse(NbtOps.INSTANCE,withMetadata).getOrThrow());
     }
+    @Test void chunkPackingMetadataDoesNotLockCurrentPayloadOrHideFutureFields(){
+        for(var tier:EnergyCubeTier.values())for(boolean packed:new boolean[]{false,true}){
+            var raw=valid(tier);raw.putString("owner",UUID.randomUUID().toString());
+            var disk=raw.copy();disk.putString("id","rematter:energy_cube");disk.putInt("x",17);disk.putInt("y",64);disk.putInt("z",-3);disk.putBoolean("keepPacked",packed);
+            var before=disk.copy();var decoded=EnergyCubeData.RAW.codec().parse(NbtOps.INSTANCE,disk).getOrThrow();
+            assertEquals(raw,decoded);assertEquals(before,disk);
+            assertNull(EnergyCubeData.rejection(decoded,tier,true,tier.chargingSlots()));
+            var future=new CompoundTag();future.putLong("stored",9_000_000_000L);disk.put("future_resource",future);
+            var protectedPayload=raw.copy();protectedPayload.put("future_resource",future.copy());
+            decoded=EnergyCubeData.RAW.codec().parse(NbtOps.INSTANCE,disk).getOrThrow();
+            assertEquals(protectedPayload,decoded);
+            assertNotNull(EnergyCubeData.rejection(decoded,tier,true,tier.chargingSlots()));
+        }
+    }
 }

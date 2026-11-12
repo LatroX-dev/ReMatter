@@ -2,6 +2,7 @@
 
 ## 0.7.0
 
+- Keep Energy Cubes and Cell Transfer Stations usable after chunk and world reloads. Separate Minecraft's chunk metadata from device data while retaining protection for genuinely unknown payloads.
 - Add a Cell Transfer Station with three source and three target slots, searchable substance selection and a separate Primal option. Move only what fits while preserving exact quantities, phases, unknown substances and Cell identities.
 - Add persistent ordinary Cell partitions, configurable by substance and phase or copied from current contents. Drives, processors, converter credits and transfers respect insertion filters; previously stored contents remain extractable.
 - Give Energy Cubes four identical horizontal sockets and charge displays, with tier accents matching Basic, Reinforced and Resonant cables.
