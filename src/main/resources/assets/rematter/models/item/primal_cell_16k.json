@@ -1,9 +1,9 @@
 {
   "gui_light": "side",
   "textures": {
-    "particle": "rematter:block/cell_cartridge_primal",
+    "particle": "rematter:block/cell_cartridge_primal_violet",
     "face": "rematter:block/drive_primal_cell_16k",
-    "body": "rematter:block/cell_cartridge_primal",
+    "body": "rematter:block/cell_cartridge_primal_violet",
     "light": "rematter:block/status_off"
   },
   "elements": [
@@ -32,46 +32,46 @@
         "south": {
           "texture": "#body",
           "uv": [
+            0,
+            7.5,
             6,
-            4.5,
-            12,
-            7.5
+            10.5
           ]
         },
         "east": {
           "texture": "#body",
           "uv": [
-            12,
-            0,
-            13,
-            3
+            4.5,
+            10.5,
+            5.5,
+            13.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            12,
-            0,
-            13,
-            3
+            4.5,
+            10.5,
+            5.5,
+            13.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
+            6,
             4.5,
-            7.5,
-            10.5,
-            8.5
+            12,
+            5.5
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
+            6,
             4.5,
-            7.5,
-            10.5,
-            8.5
+            12,
+            5.5
           ]
         }
       }
@@ -92,37 +92,37 @@
         "east": {
           "texture": "#body",
           "uv": [
-            13,
-            0,
-            14.5,
-            1.5
+            4,
+            13.5,
+            5.5,
+            15
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            13,
-            0,
-            14.5,
-            1.5
+            4,
+            13.5,
+            5.5,
+            15
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
-            12,
-            4.5,
-            16,
-            6
+            0,
+            13.5,
+            4,
+            15
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
-            12,
-            4.5,
-            16,
-            6
+            0,
+            13.5,
+            4,
+            15
           ]
         }
       }
@@ -162,18 +162,18 @@
           "texture": "#body",
           "uv": [
             0,
-            7.5,
+            10.5,
             4.5,
-            10.5
+            13.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
             0,
-            7.5,
+            10.5,
             4.5,
-            10.5
+            13.5
           ]
         },
         "up": {
@@ -212,46 +212,46 @@
         "south": {
           "texture": "#body",
           "uv": [
-            10.5,
-            7.5,
-            14.5,
-            8.5
+            12,
+            4.5,
+            16,
+            5.5
           ]
         },
         "east": {
           "texture": "#body",
           "uv": [
-            14.5,
-            0,
-            15,
-            1
+            5.5,
+            13.5,
+            6,
+            14.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            14.5,
-            0,
-            15,
-            1
+            5.5,
+            13.5,
+            6,
+            14.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
             0,
-            10.5,
+            15,
             4,
-            11
+            15.5
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
             0,
-            10.5,
+            15,
             4,
-            11
+            15.5
           ]
         }
       }
@@ -322,8 +322,8 @@
   "display": {
     "gui": {
       "rotation": [
-        25,
-        200,
+        30,
+        205,
         0
       ],
       "translation": [
@@ -332,9 +332,9 @@
         0
       ],
       "scale": [
-        1.9,
-        1.9,
-        1.9
+        1.8,
+        1.8,
+        1.8
       ]
     },
     "ground": {

@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """Check the shipped assets against the rules of docs/visual-style.md.
 
-The check reads the resource tree, the palette modules, the Java UI palette and the marked tables of the guide.
-It writes nothing. Every finding names the rule (S1 to S6 of the guide), the file and the fix.
+The check reads the resource tree, the recipes, the palette modules, the Java UI palette and the marked tables of
+the guide. It writes nothing. Every finding names the rule (S1 to S6 of the guide), the file and the fix.
 
     python3 tools/check_visual_style.py            check the repository
     python3 tools/check_visual_style.py --list     also print the texture inventory by asset class
+    python3 tools/check_visual_style.py --hues     also print which crystal every recipe result holds and shows
     python3 tools/check_visual_style.py --selftest run the rules against synthetic cases
 """
+from collections import Counter
 from pathlib import Path
 import argparse
 import fnmatch
+import hashlib
 import json
 import re
 import struct
@@ -37,10 +40,22 @@ FAMILY_SIZES = (16, 32)
 NATURAL_SIZE = 16
 ICON_SIZE = 128
 GUI_MAX = 32
-SPRITE_COLOURS = 16     # a pixel-art sprite with more colours than this is a gradient
+SPRITE_COLOURS = 24     # a frame of a pixel-art sprite with more colours than this is a gradient
+SPRITE_SHADES = 6       # ... and so is one with more shades of a single identity or status colour than this
 ICON_MARGIN = 4         # clear pixels on every side of an illustrated icon
 ICON_SPAN = 96          # the longer side of the drawing covers at least this many pixels
 ICON_SOFT_PIXELS = 64   # an anti-aliased drawing has at least this many partly transparent pixels
+# Closed provenance exception: these original painted illustrations predate reproducible source drawings.
+# A replacement retires its registry entry; newly added icons cannot join this set.
+ORIGINAL_PAINTED_ICONS = frozenset((
+    'amber_matrix_crystal', 'amethyst_dust', 'argil', 'blue_matrix_crystal', 'copper_dust',
+    'copper_matrix_crystal', 'diamond_matrix_blend', 'diamond_powder', 'ember_matrix_crystal', 'emerald_dust',
+    'ender_conductor_blend', 'ender_pearl_powder', 'gold_dust', 'ice_matrix_crystal', 'iron_dust', 'lapis_dust',
+    'leaf_matrix_crystal', 'lumin', 'lumivex_dust', 'lumivex_ingot', 'matrix_blend', 'matrix_crystal',
+    'mint_matrix_crystal', 'netherite_powder', 'netherite_sheath_blend', 'parallel_upgrade', 'pressure_module',
+    'rhedon', 'rhevon_dust', 'rhevon_ingot', 'silith', 'violet_matrix_crystal', 'virel', 'virelite_blend',
+    'virelite_ceramic',
+))
 OUTLINE_LUMINANCE = 96  # a silhouette pixel darker than this belongs to the dark outline
 OUTLINE_SHARE = .85
 TONE_SHARE = .2         # a tone keeps at least this share of its identity or status colour
@@ -48,13 +63,20 @@ NEAR_DUPLICATE = 16     # RGB distance below which an unlisted colour only imita
 ICON_HUE_DISTANCE = 36  # RGB distance between the body of a crystal icon and its hue that still reads as the hue
 TEXELS_PER_PIXEL = 2
 MAX_ROTATED = 2
+ACCENT_TEXELS = 4         # a hue is an accent from four texels of a sprite on: one model pixel
+ICON_ACCENT_PIXELS = 64   # ... or from 64 pixels of an illustrated icon on: one pixel of the icon at 16 px
+PRIMAL_MARGIN = 12        # degrees around the hues of the Primal table that still belong to the signature
+PRIMAL_STOPS_SHOWN = 3    # stops of the Primal spectrum that every single frame of an ore shows
+PRIMAL_STOP_SHARE = .1    # ... each on at least this share of the lit texels of the frame
 # Hardware a device shows mounted: the item is a block-style model (S4). Blocks are block-style anyway.
 MOUNTED_HARDWARE = ('cell_housing', 'matter_cell_*', 'primal_cell_*', 'grinding_unit', 'separation_unit',
                     'mixing_basin', 'field_coil', 'reaction_chamber')
 # Mounted parts that a renderer draws from sprites: the item model uses at least one of those sprites.
 RENDERER_MOUNTED = ('matter_cell_*', 'primal_cell_*')
-# The Primal signature spans cyan-blue over ultraviolet to magenta; this is its hue arc in degrees.
-PRIMAL_ARC = (185, 335)
+# Keys of a recipe that hold what it makes (result, results, output, itemResults, ...); every other item id in a
+# recipe is an ingredient.
+RESULT_KEY = re.compile(r'result|output', re.I)
+RECIPE_NOISE = ('type', 'category', 'group', 'neoforge:conditions', 'pattern', 'steps')
 
 # ----------------------------------------------------------------------------------- documented exceptions
 # Every entry carries its reason. An entry that no longer applies is reported, so these lists cannot rot.
@@ -81,9 +103,11 @@ EXCEPTIONS = {
         'textures/item/matrix_crystal.png':
             'the uncoloured base crystal is clear glass with a soft grey rim; only a crystal with a hue is opaque',
     },
-    # device -> reason its recipe holds no Matrix Crystal of its accent
-    'key_crystal': {
-        'hand_preparator': 'the crystal-free first device wears the accent of the Material Preparator it becomes',
+    # item -> {crystal or '*': the other meaning the guide gives this hue on this item}; see "When a hue is not a
+    # crystal" in the guide. Without an entry, a crystal hue on an item needs that crystal in its recipe chain.
+    'hue_role': {
+        'machine_port': {'*': 'the ring of a port is the legend of its port mode'},
+        'matter_cable': {'copper': 'the stripe is the copper conductor of the cable: copper ingots are in its recipe'},
     },
     # Java file -> {literal: reason} for colour literals outside the palette class
     'java_colour': {
@@ -340,8 +364,24 @@ class Palette:
         self.chromatic = {colour for colour in self.exact if max(colour) - min(colour) >= 40}
         self.chromatic |= set(self.crystals.values()) | set(self.primal.values())
         # The colours that carry meaning by themselves; an unlisted colour close to one of them is a copy gone astray.
-        self.identity = set(self.crystals.values()) | set(self.primal.values()) | {
+        self.identity = set(self.crystals.values()) | {
             colour for name, colour in self.named.items() if name.startswith('LED')}
+        self.signature = {}
+        self.adopt(self.primal)
+
+    def adopt(self, signature):
+        """Take Primal colours into the palette."""
+        self.signature.update(signature)
+        self.exact |= set(signature.values())
+        lit = {colour for colour in signature.values() if hue_of(colour)[1] >= .25}
+        self.chromatic |= lit
+        self.identity |= lit
+
+    def with_signature(self, signature):
+        """A copy of the palette that also holds the Primal colours as the guide states them."""
+        other = Palette(self.crystals, self.family, self.named)
+        other.adopt(signature)
+        return other
 
     @classmethod
     def load(cls, tools):
@@ -385,8 +425,9 @@ class Palette:
         return self.verdict(colour, extra) is None
 
     def nearest(self, colour):
-        names = dict(self.named)
-        names.update({f'RGB.{name}': value for name, value in self.crystals.items()})
+        names = {f'RGB.{name}': value for name, value in self.crystals.items()}
+        names.update(self.signature)
+        names.update(self.named)   # the first of two equal values wins: a crystal hue is named as the crystal
         name = min(names, key=lambda key: sum((a - b) ** 2 for a, b in zip(names[key], colour)))
         return f'{name} {rgb_hex(names[name])}'
 
@@ -427,15 +468,17 @@ class Guide:
     def __init__(self, text):
         self.tables = guide_tables(text)
         self.crystals, self.constants, self.primal, self.primal_devices = {}, {}, {}, []
+        self.primal_names, self.primal_stops = {}, []
         self.errors = []
         header, rows = self.tables.get('crystal-hues', ([], []))
-        hue, machines, modules = column(header, 'hex'), column(header, 'machine'), column(header, 'module')
+        hue = column(header, 'hex')
+        carried = [index for index in (column(header, 'carried'), column(header, 'machine'), column(header, 'module'))
+                   if index is not None]
         for row in rows:
             name, found = row[0].strip('* `').lower(), HEX.search(row[hue]) if hue is not None else None
             if name in CRYSTALS and found:
                 self.crystals[name] = {'rgb': hex_rgb(found.group(1)),
-                                       'machines': IDS.findall(row[machines]) if machines is not None else [],
-                                       'modules': IDS.findall(row[modules]) if modules is not None else []}
+                                       'carriers': [one for index in carried for one in IDS.findall(row[index])]}
         for mark, (header, rows) in self.tables.items():
             constant, hue = column(header, 'constant'), column(header, 'hex')
             for row in rows:
@@ -451,12 +494,21 @@ class Guide:
             if names[0] and names[1]:
                 self.surfaces[names[0][0]] = names[1][0]
         header, rows = self.tables.get('primal-signature', ([], []))
-        hue, devices = column(header, 'hex'), column(header, 'device')
+        hue, devices, named = column(header, 'hex'), column(header, 'device'), column(header, 'name')
+        stop, stops = column(header, 'stop'), {}
         for row in rows:
             for found in HEX.finditer(row[hue]) if hue is not None else ():
                 self.primal[row[0].strip('* `').lower()] = hex_rgb(found.group(1))
+                for constant in IDS_ANY.findall(row[named]) if named is not None else ():
+                    self.primal_names[constant] = hex_rgb(found.group(1))
+                if stop is not None and row[stop].strip().isdigit():
+                    stops[int(row[stop])] = hex_rgb(found.group(1))
             if devices is not None:
                 self.primal_devices += IDS.findall(row[devices])
+        self.primal_stops = [stops[number] for number in sorted(stops)]   # the spectrum, in its order
+        header, rows = self.tables.get('primal-devices', ([], []))
+        for row in rows:
+            self.primal_devices += IDS.findall(row[0])
         for mark in ('crystal-hues', 'neutral-palette', 'status-colours', 'primal-signature', 'gui-surfaces'):
             if mark not in self.tables:
                 self.errors.append(f'no table follows the mark <!-- check:{mark} -->')
@@ -487,6 +539,131 @@ class JavaPalette:
         return None
 
 
+class Recipes:
+    """What is crafted from what: the coloured Matrix Crystals of every recipe and of every recipe chain."""
+    ITEM = re.compile(r'[a-z0-9_.-]+:[a-z0-9_/.-]+')
+
+    def __init__(self, data):
+        self.entries = []   # (file, [(alternative ids, count)], result ids, takes a crystal apart)
+        self.tags = {}
+        tags = data / 'tags/item'
+        for path in sorted(tags.rglob('*.json')) if tags.is_dir() else ():
+            try:
+                values = json.loads(path.read_text()).get('values', [])
+            except (ValueError, AttributeError):
+                continue
+            self.tags[f'{NAMESPACE}:{path.relative_to(tags).with_suffix("").as_posix()}'] = [
+                value if isinstance(value, str) else value.get('id', '') for value in values]
+        folder = data / 'recipe'
+        for path in sorted(folder.rglob('*.json')) if folder.is_dir() else ():
+            try:
+                value = json.loads(path.read_text())
+            except ValueError:
+                continue
+            if not isinstance(value, dict):
+                continue
+            results = sorted({one for key in value if RESULT_KEY.search(key)
+                              for ids, _ in self._slots(value[key]) for one in ids})
+            slots = []
+            pattern = ''.join(value.get('pattern', [])) if isinstance(value.get('pattern'), list) else ''
+            for key, inner in value.items():
+                if RESULT_KEY.search(key) or key in RECIPE_NOISE:
+                    continue
+                if key == 'key' and isinstance(inner, dict):
+                    slots += [(self._alternatives(ingredient), pattern.count(letter))
+                              for letter, ingredient in inner.items() if pattern.count(letter)]
+                else:
+                    slots += [(ids, self._count(value, key, count)) for ids, count in self._slots(inner)]
+            slots = [slot for slot in slots if slot[0]]
+            apart = f'{NAMESPACE}:matrix_crystal' in results and any(
+                self.crystal(one) for ids, _ in slots for one in ids)
+            self.entries.append((path.relative_to(data).as_posix(), slots, results, apart))
+        self._chains = {}
+
+    @staticmethod
+    def _count(recipe, key, count):
+        number = recipe.get(key + '_count')
+        return number if isinstance(number, int) and not isinstance(number, bool) and number > 0 else count
+
+    def _alternatives(self, value):
+        """The item ids that may fill one ingredient slot."""
+        if isinstance(value, str):
+            if value.startswith('#'):
+                return self._members(value[1:])
+            return [value] if self.ITEM.fullmatch(value) else []
+        if isinstance(value, list):
+            return [one for inner in value for one in self._alternatives(inner)]
+        if isinstance(value, dict):
+            if isinstance(value.get('tag'), str):
+                return self._members(value['tag'])
+            for key in ('id', 'item'):
+                if isinstance(value.get(key), str):
+                    return [value[key]]
+        return []
+
+    def _slots(self, value):
+        """Ingredient slots below a recipe value: (ids that may fill the slot, how many of them)."""
+        if isinstance(value, str):
+            return [(self._alternatives(value), 1)]
+        if isinstance(value, list):
+            # Each entry of a list is a slot; a list inside it names the alternatives of that slot.
+            return [slot for inner in value for slot in (
+                [(self._alternatives(inner), 1)] if isinstance(inner, list) else self._slots(inner))]
+        if isinstance(value, dict):
+            if any(isinstance(value.get(key), str) for key in ('id', 'item', 'tag')):
+                count = value.get('count')
+                return [(self._alternatives(value), count if isinstance(count, int) and count > 0 else 1)]
+            return [slot for key, inner in value.items() if key not in RECIPE_NOISE for slot in self._slots(inner)]
+        return []
+
+    def _members(self, tag, seen=()):
+        found = []
+        for value in self.tags.get(tag, []) if tag not in seen else ():
+            found += self._members(value[1:], seen + (tag,)) if value.startswith('#') else [value]
+        return found
+
+    @staticmethod
+    def crystal(item):
+        """Name of the coloured Matrix Crystal an item id stands for, or None."""
+        found = re.fullmatch(rf'{NAMESPACE}:([a-z]+)_matrix_crystal', item or '')
+        return found.group(1) if found and found.group(1) in CRYSTALS else None
+
+    def direct(self, item):
+        """{crystal: (count, recipe file)} of the crystals a recipe of this item certainly holds."""
+        found = {}
+        for path, slots, results, apart in self.entries:
+            if item not in results or apart or self.crystal(item):
+                continue
+            counts = Counter()
+            for ids, count in slots:
+                names = {self.crystal(one) for one in ids}
+                if len(names) == 1 and None not in names:   # every alternative of the slot is this crystal
+                    counts[names.pop()] += count
+            for name, count in counts.items():
+                if count > found.get(name, (0, ''))[0]:
+                    found[name] = (count, path)
+        return found
+
+    def chain(self, item, seen=()):
+        """Every coloured crystal that may be in the item: in its own recipes or in those of its ingredients."""
+        if item in self._chains:
+            return self._chains[item]
+        found = set()
+        if self.crystal(item):
+            found.add(self.crystal(item))
+        for _, slots, results, apart in self.entries if item not in seen else ():
+            if item in results and not apart and not self.crystal(item):
+                for ids, _ in slots:
+                    for one in ids:
+                        found |= self.chain(one, seen + (item,))
+        if not seen:
+            self._chains[item] = found
+        return found
+
+    def results(self):
+        return sorted({result for _, _, results, apart in self.entries if not apart for result in results})
+
+
 # ----------------------------------------------------------------------------------------------- the tree
 class Tree:
     """Everything the rules read. The self-test builds small trees of its own."""
@@ -508,7 +685,8 @@ class Tree:
                         path.read_text())
                 except ValueError as error:
                     self.broken.append((path, str(error)))
-        self._images, self._flat = {}, {}
+        self._images, self._flat, self._parts, self._shown = {}, {}, {}, {}
+        self.recipes = Recipes(self.data)
         self.literals = {}
         for path in sorted(self.java.rglob('*.java')) if self.java.is_dir() else ():
             self.literals[path] = set(re.findall(r'"((?:[^"\\\n]|\\.)*)"', path.read_text()))
@@ -638,6 +816,82 @@ class Tree:
                     return True
         return False
 
+    # ---- what a model shows
+    @staticmethod
+    def default_uv(face, low, high):
+        """The part of a sprite a face shows when the model names no uv: its position on the block."""
+        (x1, y1, z1), (x2, y2, z2) = low, high
+        return {'down': (x1, 16 - z2, x2, 16 - z1), 'up': (x1, z1, x2, z2),
+                'north': (16 - x2, 16 - y2, 16 - x1, 16 - y1), 'south': (x1, 16 - y2, x2, 16 - y1),
+                'west': (z1, 16 - y2, z2, 16 - y1), 'east': (16 - z2, 16 - y2, 16 - z1, 16 - y1)}[face]
+
+    def part(self, name, rect=(0, 0, 16, 16)):
+        """Colours of a UV rectangle, counting each sampled texel once per frame."""
+        return self.parts(name, (rect,))
+
+    def parts(self, name, rectangles):
+        """Union of sampled texels: repeating a face cannot multiply an accent's size."""
+        key = (name, tuple(sorted(set(tuple(round(value * 64) for value in rect) for rect in rectangles))))
+        if key not in self._parts:
+            image, rows = self.image(name), self.image(name).pixels()
+            width, height = self.frame(name)
+            width, height = min(width, image.width) or 1, min(height, image.height) or 1
+            texels = set()
+            for rect in rectangles:
+                left, right = sorted((rect[0] * width / 16, rect[2] * width / 16))
+                top, bottom = sorted((rect[1] * height / 16, rect[3] * height / 16))
+                columns = range(max(0, int(left + 1e-6)), min(width, int(right - 1e-6) + 1))
+                lines = range(max(0, int(top + 1e-6)), min(height, int(bottom - 1e-6) + 1))
+                texels.update((x, y) for y in lines for x in columns)
+            best = Counter()
+            for frame in range(max(1, image.height // height)):
+                seen = Counter(rows[frame * height + y][x] for x, y in texels)
+                for pixel, count in seen.items():
+                    if pixel[3]:
+                        best[pixel[:3]] = max(best[pixel[:3]], count)
+            self._parts[key] = best
+        return self._parts[key]
+
+    def model_colours(self, name):
+        """Texels of every colour a model shows, as (pixel-art sprites, illustrated icons)."""
+        art, icon = Counter(), Counter()
+        textures, elements = self.model_textures(name), self.elements(name)
+        faces = []
+        if elements is None:   # a flat item, or a vanilla block shape: the whole of every texture it draws
+            drawn = {reference for key, reference in textures.items() if key != 'particle'} or set(textures.values())
+            faces = [(reference, (0, 0, 16, 16)) for reference in drawn]
+        for element in elements or ():
+            low, high = element.get('from', [0, 0, 0]), element.get('to', [16, 16, 16])
+            for face, entry in element.get('faces', {}).items():
+                if face in FACES:
+                    reference = str(entry.get('texture', ''))
+                    faces.append((textures.get(reference[1:]) if reference.startswith('#') else reference,
+                                  entry.get('uv') or self.default_uv(face, low, high)))
+        regions = {}
+        for reference, rect in faces:
+            texture = self.own_texture(reference)
+            if texture in self.textures and len(rect) == 4:
+                regions.setdefault(texture, []).append(rect)
+        for texture, rectangles in regions.items():
+            try:
+                (icon if self.texture_class(texture) == 'icon' else art).update(self.parts(texture, rectangles))
+            except (ValueError, zlib.error, struct.error, IndexError):
+                continue   # an unreadable texture is reported by the texture rules
+        return art, icon
+
+    def shown(self, ident):
+        """Colours the block and the item of a registry id show: per colour the largest count of any one model."""
+        if ident not in self._shown:
+            art, icon = Counter(), Counter()
+            models = {self.own_model(reference) for value in (self.blockstates.get(ident), self.items.get(ident))
+                      for reference in self.model_references(value)}
+            for model in sorted(model for model in models if model in self.models):
+                for total, part in zip((art, icon), self.model_colours(model)):
+                    for colour, count in part.items():
+                        total[colour] = max(total[colour], count)
+            self._shown[ident] = (art, icon)
+        return self._shown[ident]
+
 
 # ------------------------------------------------------------------------------------------------- rules
 def check_broken(tree, problems):
@@ -662,10 +916,22 @@ def check_pixel_art(tree, problems, palette, name, rule, extra=(), ink=False):
     if soft and not problems.excepted('translucent', where):
         problems.add(rule + ' alpha', where, f'{soft} partly transparent pixels in a pixel-art sprite',
                      'use alpha 0 or 255 only' + ('; only white ink may carry a second alpha level' if ink else ''))
-    if len({pixel[:3] for pixel in visible}) > SPRITE_COLOURS:
-        problems.add(rule + ' gradient', where, f'{len({pixel[:3] for pixel in visible})} colours; a sprite is hard pixel clusters, not a gradient',
-                     f'draw it with at most {SPRITE_COLOURS} palette colours')
+    rows, height = tree.image(name).pixels(), tree.frame(name)[1] or 1
+    most = shades = 0
+    for frame in range(max(1, len(rows) // height)):
+        colours = {pixel[:3] for row in rows[frame * height:(frame + 1) * height] for pixel in row if pixel[3]}
+        most = max(most, len(colours))
+        if len(colours) <= SPRITE_COLOURS:
+            mixed = [colour for colour in colours if colour not in palette.exact and colour not in extra]
+            shades = max([shades] + [sum(1 for colour in mixed if on_ramp(colour, base) or on_tone(colour, base))
+                                     for base in palette.chromatic])
+    if most > SPRITE_COLOURS:
+        problems.add(rule + ' gradient', where, f'{most} colours in one frame; a sprite is hard pixel clusters, not a '
+                     f'gradient', f'draw it with at most {SPRITE_COLOURS} palette colours')
         return
+    if shades > SPRITE_SHADES:
+        problems.add(rule + ' gradient', where, f'{shades} shades of one colour in one frame; a sprite is hard pixel '
+                     f'clusters, not a gradient', f'use at most {SPRITE_SHADES} shades of an identity or status colour')
     wrong = {}
     for pixel, count in visible.items():
         if ink and pixel[:3] == (255, 255, 255):
@@ -676,12 +942,13 @@ def check_pixel_art(tree, problems, palette, name, rule, extra=(), ink=False):
         total = sum(wrong.values())
         shown = ', '.join(f'{rgb_hex(colour)} x{count} ({palette.verdict(colour, extra)})'
                           for colour, count in sorted(wrong.items(), key=lambda item: -item[1])[:4])
-        problems.add(rule + ' palette', where, f'{total} pixels in {len(wrong)} colours outside the palette: {shown}',
+        problems.add(rule + ' palette', where, f'{total} pixels in {len(wrong)} colour{"" if len(wrong) == 1 else "s"} '
+                     f'outside the palette: {shown}',
                      'take the colour from tools/family_palette.py (a neutral as it is, an identity or status '
                      'colour also mixed with black or white) and regenerate')
 
 
-def check_textures(tree, problems, palette, gui_colours=()):
+def check_textures(tree, problems, palette, gui_colours=(), primal=(), stops=()):
     for name in tree.textures:
         where = tree.texture_path(name)
         kind = tree.texture_class(name)
@@ -710,7 +977,7 @@ def check_textures(tree, problems, palette, gui_colours=()):
                 problems.add('S2 size', where, f'{size}; an overlay of a world-generated block uses the 16 px density '
                              'of its vanilla host', 'draw the overlay 16 px wide, one 16 px frame per animation step')
                 continue
-            check_natural(tree, problems, palette, name)
+            check_natural(tree, problems, name, primal, stops)
         elif kind == 'gui':
             if image.width > GUI_MAX or image.height > GUI_MAX:
                 problems.add('S6 size', where, f'{size}; GUI sprites are pixel art at GUI scale, at most {GUI_MAX} px',
@@ -721,18 +988,53 @@ def check_textures(tree, problems, palette, gui_colours=()):
             check_icon(tree, problems, name)
 
 
-def check_natural(tree, problems, palette, name):
-    """S2: whatever glows on a world-generated block wears the Primal signature, never the hue of a crystal."""
+def primal_arc(colours):
+    """The hue arc the lit Primal colours span, in degrees, or None when they span the whole wheel."""
+    hues = sorted(hue_of(colour)[0] for colour in colours if hue_of(colour)[1] >= .25 and hue_of(colour)[2] >= .4)
+    if not hues:
+        return None
+    gaps = [((hues[(index + 1) % len(hues)] - hue) % 360 or 360, index) for index, hue in enumerate(hues)]
+    gap, index = max(gaps)
+    if gap < 60 + 2 * PRIMAL_MARGIN:
+        return None
+    return (hues[(index + 1) % len(hues)] - PRIMAL_MARGIN) % 360, (hues[index] + PRIMAL_MARGIN) % 360
+
+
+def in_arc(hue, arc):
+    return arc is None or (arc[0] <= hue <= arc[1] if arc[0] <= arc[1] else hue >= arc[0] or hue <= arc[1])
+
+
+def check_natural(tree, problems, name, primal=(), stops=()):
+    """S2: whatever glows on a world-generated block wears the Primal signature, never another hue, and a single
+    frame already shows several stops of its spectrum."""
     where = tree.texture_path(name)
-    outside = 0
-    for pixel in tree.image(name).flat():
-        hue, saturation, value = hue_of(pixel)
-        if pixel[3] and saturation >= .25 and value >= .5 and not PRIMAL_ARC[0] <= hue <= PRIMAL_ARC[1]:
-            outside += 1
-    if outside:
-        problems.add('S2 palette', where, f'{outside} bright pixels outside the Primal signature (cyan-blue over '
-                     'ultraviolet to magenta, white core)', 'draw only the socket shadow and the crystal: the host '
-                     'stone comes from the vanilla texture, the crystal from the PRIMAL colours of the palette')
+    arc = primal_arc(primal)
+    outside, rows = 0, tree.image(name).pixels()
+    height = tree.frame(name)[1] or len(rows)
+    poorest = None
+    for frame in range(max(1, len(rows) // height)):
+        seen = Counter()
+        for row in rows[frame * height:(frame + 1) * height]:
+            for pixel in row:
+                hue, saturation, value = hue_of(pixel)
+                if pixel[3] and saturation >= .25 and value >= .5:
+                    outside += not in_arc(hue, arc)
+                    if stops and in_arc(hue, arc):
+                        seen[min(range(len(stops)), key=lambda index: min(
+                            (hue - hue_of(stops[index])[0]) % 360, (hue_of(stops[index])[0] - hue) % 360))] += 1
+        lit = sum(seen.values())
+        shown = sum(1 for count in seen.values() if count >= max(2, lit * PRIMAL_STOP_SHARE))
+        if lit >= 8 and (poorest is None or shown < poorest[1]):
+            poorest = (frame, shown, lit)
+    if poorest and len(stops) >= PRIMAL_STOPS_SHOWN and poorest[1] < PRIMAL_STOPS_SHOWN:
+        problems.add('S2 spectrum', where, f'frame {poorest[0]} shows {poorest[1]} of the {len(stops)} stops of the '
+                     f'Primal spectrum on its {poorest[2]} lit texels; Primal Matter is many-coloured in every single '
+                     f'frame', f'give the crystals of the overlay different stops of the spectrum, at least '
+                     f'{PRIMAL_STOPS_SHOWN} per frame on {PRIMAL_STOP_SHARE:.0%} of the lit texels each')
+    if outside and primal:
+        problems.add('S2 palette', where, f'{outside} bright pixels outside the hues of the Primal signature '
+                     f'({arc[0]:.0f} to {arc[1]:.0f} degrees)', 'draw only the socket shadow and the crystal: the '
+                     'host stone comes from the vanilla texture, the crystal from the Primal colours of the guide')
 
 
 def check_icon(tree, problems, name):
@@ -773,6 +1075,51 @@ def check_icon(tree, problems, name):
     if dark < OUTLINE_SHARE and not problems.excepted('outline', where):
         problems.add('S3 outline', where, f'{dark:.0%} of the silhouette edge is dark; the other icons carry a '
                      'closed dark outline', 'outline the drawing in a dark shade of its own colour')
+
+
+def check_icon_sources(tree, problems):
+    """The closed set of original painted PNGs is immutable; new/changed art needs a reproducible source."""
+    registry = tree.root / 'artwork/painted-icon-sources.json'
+    try:
+        sources = json.loads(registry.read_text()) if registry.is_file() else {}
+        canonical, painters = sources.get('sha256', {}), sources.get('painters', {})
+        if not isinstance(canonical, dict) or not isinstance(painters, dict):
+            raise ValueError('sha256 and painters must be objects')
+    except (ValueError, AttributeError) as error:
+        problems.add('S3 source', tree.rel(registry), f'invalid canonical PNG registry: {error}',
+                     'restore the closed registry of original painted icons')
+        canonical, painters = {}, {}
+    drawings = {path.stem for path in (tree.root / 'artwork').rglob('*.svg')}
+    allowed = {f'src/main/resources/assets/{NAMESPACE}/textures/item/{name}.png'
+               for name in ORIGINAL_PAINTED_ICONS}
+    for key in set(canonical) - allowed:
+        problems.add('S3 source', tree.rel(registry), f'{key!r} is not an original painted icon',
+                     'create a reproducible source for new artwork instead of extending this exception')
+    for name, path in tree.textures.items():
+        if tree.texture_class(name) != 'icon':
+            continue
+        key = tree.rel(path)
+        if key in canonical:
+            if hashlib.sha256(path.read_bytes()).hexdigest() != canonical[key]:
+                problems.add('S3 source', key, 'the canonical painted PNG changed without a reproducible source',
+                             'create an SVG or deterministic painter for the changed icon and retire its registry entry')
+        elif key in painters:
+            painter = painters[key]
+            source = tree.root / painter if isinstance(painter, str) else None
+            if source is None or not source.is_relative_to(tree.tools) or source.suffix != '.py' or not source.is_file() \
+                    or '..' in source.parts:
+                problems.add('S3 source', key, f'the registered painter {painter!r} is not a tool source',
+                             'name the deterministic Python painter under tools/')
+        elif path.stem not in drawings:
+            problems.add('S3 source', key, 'the icon has no drawing or registered original painted PNG source',
+                         'create its SVG under artwork/ or register its deterministic painter')
+    for key in canonical:
+        if not isinstance(key, str) or not (tree.root / key).is_file():
+            problems.add('S3 source', tree.rel(registry), f'the canonical source {key!r} no longer exists',
+                         'remove the retired entry from the registry')
+        elif Path(key).stem in drawings:
+            problems.add('S3 source', tree.rel(registry), f'{key} now has a reproducible SVG source',
+                         'remove the retired canonical PNG entry from the registry')
 
 
 def check_animations(tree, problems):
@@ -1042,7 +1389,7 @@ def check_items(tree, problems):
                              f'write items/{found.group(1)}.json with its generator, or remove the name')
 
 
-def check_natural_blocks(tree, problems, signature=()):
+def check_natural_blocks(tree, problems):
     """S2: a block that shows a natural overlay shows its vanilla host below it and lights the overlay."""
     for name, state in tree.blockstates.items():
         models = [tree.own_model(reference) for reference in tree.model_references(state)]
@@ -1067,18 +1414,23 @@ def check_natural_blocks(tree, problems, signature=()):
         if not any(isinstance(tree.animation(texture), dict) for texture in own if texture in tree.textures):
             problems.add('S2 animation', where, 'no texture of the ore is animated',
                          'animate the overlay with a frame strip and a .png.mcmeta')
-        if signature and not any(pixel[3] and pixel[:3] in signature for texture in own if texture in tree.textures
-                                 and tree.texture_class(texture) == 'natural' for pixel in set(tree.image(texture).flat())):
-            problems.add('S2 palette', where, 'none of the Primal signature colours appears on the ore',
-                         'draw the crystal with the PRIMAL colours of the palette')
+
+
+def own_id(item):
+    """Registry path of an item id of this mod, or None."""
+    namespace, _, path = item.partition(':')
+    return path if namespace == NAMESPACE and path else None
 
 
 def check_hues(tree, problems, palette, guide, java):
+    """S5: one value per colour in the guide, the palette module and the Java palette; the recipes decide who
+    carries which crystal."""
     where_guide, where_tools = 'docs/visual-style.md', 'tools/machine_palette.py'
     where_java = 'UiPalette.java'
+    recipes = tree.recipes
     for error in guide.errors:
         problems.add('S5 guide', where_guide, error, 'restore the marked palette tables of the guide')
-    assigned = {}
+    carried = {}
     for name in CRYSTALS:
         entry = guide.crystals.get(name)
         if entry is None:
@@ -1091,38 +1443,44 @@ def check_hues(tree, problems, palette, guide, java):
         if constant is not None and constant != wanted:
             problems.add('S5 hue', where_java, f'CRYSTAL_{name.upper()} is {rgb_hex(constant)}, the guide says '
                          f'{rgb_hex(wanted)}', 'mirror the tools palette in the Java palette')
-        for device in entry['machines']:
-            assigned[device] = name
-            accent = java.accent(device)
-            if device not in java.kinds.values():
-                problems.add('S5 guide', where_guide, f'{device} in the {name} row is not a machine kind',
-                             'list the registry ids of MachineKind in the crystal table')
-            elif accent != wanted:
-                problems.add('S5 hue', where_java, f'the accent of {device} is '
-                             f'{rgb_hex(accent) if accent else "missing"}, its crystal {name} is {rgb_hex(wanted)}',
-                             'return the crystal hue of the guide from machineAccent')
-            if device in palette.family and palette.family[device] != name:
-                problems.add('S5 hue', where_tools, f'FAMILY[{device!r}] is {palette.family[device]}, the guide says '
-                             f'{name}', 'make FAMILY and the crystal table of the guide agree')
-        for device in entry['machines'] + entry['modules']:
-            recipe = tree.data / f'recipe/{device}.json'
-            if not recipe.is_file():
-                problems.add('S5 guide', where_guide, f'{device} in the {name} row has no crafting recipe',
-                             'list registry ids in the crystal table')
-            elif f'{NAMESPACE}:{name}_matrix_crystal' not in recipe.read_text() \
-                    and not problems.excepted('key_crystal', device):
-                problems.add('S5 key crystal', f'data/{NAMESPACE}/recipe/{device}.json',
-                             f'{device} wears {name} but its recipe holds no {name.title()} Matrix Crystal',
-                             'give the device the hue of the crystal in its recipe, or the recipe the crystal of its '
-                             'hue')
+        for device in entry['carriers']:
+            carried.setdefault(device, set()).add(name)
+            if name not in recipes.direct(f'{NAMESPACE}:{device}'):
+                problems.add('S5 guide', where_guide, f'{device} is in the {name} row, but no recipe of it holds '
+                             f'{"an" if name[0] in "aeiou" else "a"} {name.title()} Matrix Crystal',
+                             'list in a row exactly the results of the recipes that hold the crystal: the recipe '
+                             'decides the hue')
+    hues = {name: entry['rgb'] for name, entry in guide.crystals.items()}
+    for result in recipes.results() if guide.crystals else ():
+        device = own_id(result)
+        for name, (count, path) in sorted(recipes.direct(result).items()) if device else ():
+            if name in hues and name not in carried.get(device, ()):
+                problems.add('S5 guide', where_guide, f'{device} is crafted with {count} {name.title()} Matrix Crystal'
+                             f'{"s" if count > 1 else ""} (data/{NAMESPACE}/{path}) and is missing from the {name} row',
+                             'add it to the "Carried by" cell of the row, so the table shows who wears which hue')
     for device, name in palette.family.items():
-        if device not in assigned and device not in guide.primal_devices and guide.crystals:
-            problems.add('S5 guide', where_guide, f'{device} ({name} in FAMILY) is in no row of the crystal table',
-                         'list every machine in the crystal table')
-    for kind, device in java.kinds.items():
-        if device not in assigned and device not in guide.primal_devices and guide.crystals:
-            problems.add('S5 guide', where_guide, f'machine kind {device} is in no row of the crystal or Primal table',
-                         'give every machine a crystal, or the Primal signature')
+        held = recipes.chain(f'{NAMESPACE}:{device}')
+        if name not in held:
+            problems.add('S5 hue', where_tools, f'FAMILY[{device!r}] is {name}, its recipe holds '
+                         f'{", ".join(sorted(held)) or "no coloured crystal"}',
+                         'give the device the hue of the crystal in its recipe')
+    names = {colour: name for name, colour in hues.items()}
+    for kind, device in sorted(java.kinds.items()):
+        if device in guide.primal_devices or not hues:
+            continue
+        accent, direct = java.accent(device), recipes.direct(f'{NAMESPACE}:{device}')
+        if direct:
+            most = max(count for count, _ in direct.values())
+            wanted = sorted(name for name, (count, _) in direct.items() if count == most and name in hues)
+            if wanted and accent not in [hues[name] for name in wanted]:
+                problems.add('S5 hue', where_java, f'the accent of {device} is {rgb_hex(accent) if accent else "missing"}; '
+                             f'its recipe holds the {" and ".join(wanted)} crystal, {rgb_hex(hues[wanted[0]])}',
+                             'return the hue of the crystal in the recipe from machineAccent')
+        elif accent in names and names[accent] not in recipes.chain(f'{NAMESPACE}:{device}') \
+                and not problems.excepted('hue_role', device, names[accent]):
+            problems.add('S5 hue', where_java, f'the accent of {device} is the {names[accent]} hue {rgb_hex(accent)}, '
+                         f'but no recipe of {device} holds a Matrix Crystal', 'give the screen of a crystal-free device '
+                         'a neutral steel accent, or put the crystal into its recipe')
     for constant, wanted in guide.constants.items():
         if palette.named.get(constant) != wanted:
             actual = palette.named.get(constant)
@@ -1149,42 +1507,71 @@ def check_hues(tree, problems, palette, guide, java):
                 if wanted not in palette.primal.values():
                     problems.add('S5 primal', 'tools/family_palette.py', f'Primal {role} {rgb_hex(wanted)} of the guide '
                                  'is not among the PRIMAL colours', 'make the palette module and the guide agree')
+            for constant, wanted in guide.primal_names.items():
+                if palette.named.get(constant, wanted) != wanted:
+                    problems.add('S5 primal', 'tools/family_palette.py', f'{constant} is '
+                                 f'{rgb_hex(palette.named[constant])}, the guide says {rgb_hex(wanted)}',
+                                 'make the palette module and the guide agree')
         for device in guide.primal_devices:
             accent = java.accent(device)
-            if body and accent != body:
+            if body and device in java.kinds.values() and accent != body:
                 problems.add('S5 primal', where_java, f'the accent of {device} is '
                              f'{rgb_hex(accent) if accent else "missing"}, the Primal body colour is {rgb_hex(body)}',
                              'return the Primal body colour from machineAccent')
-        for name, colour in palette.crystals.items():
-            if colour in guide.primal.values():
-                problems.add('S5 primal', where_tools, f'crystal {name} uses a Primal signature colour',
-                             'keep the Primal signature apart from the eight crystal hues')
+        taken = {f'crystal {name}': colour for name, colour in palette.crystals.items()}
+        taken.update({name: colour for name, colour in palette.named.items() if name.startswith('LED')})
+        for role, colour in guide.primal.items():
+            if hue_of(colour)[1] < .25:
+                continue   # the white core belongs to nobody
+            for name, other in taken.items():
+                if sum((a - b) ** 2 for a, b in zip(colour, other)) < NEAR_DUPLICATE ** 2:
+                    problems.add('S5 primal', where_guide, f'Primal {role} {rgb_hex(colour)} cannot be told from {name} '
+                                 f'{rgb_hex(other)}', 'keep the Primal signature apart from the crystal hues and the '
+                                 'status colours')
 
 
-def shows(tree, device):
-    """Visible colours of every sprite the block and the item of a device show."""
-    models = [tree.own_model(reference) for value in (tree.blockstates.get(device), tree.items.get(device))
-              for reference in tree.model_references(value)]
-    colours = set()
-    for model in models:
-        for reference in tree.model_textures(model).values() if model in tree.models else ():
-            texture = tree.own_texture(reference)
-            if texture in tree.textures and tree.texture_class(texture) in ('family', 'natural'):
-                colours |= {pixel[:3] for pixel in tree.image(texture).flat() if pixel[3]}
-    return colours
-
-
-def check_accents(tree, problems, guide):
-    """S5: a device shows the hue of its crystal; a crystal icon has the hue as its body colour."""
-    wanted = {device: (name, entry['rgb']) for name, entry in guide.crystals.items()
-              for device in entry['machines'] + entry['modules']}
-    if 'body' in guide.primal:
-        wanted.update({device: ('Primal', guide.primal['body']) for device in guide.primal_devices})
-    for device, (name, hue) in sorted(wanted.items()):
-        colours = shows(tree, device)
-        if colours and not any(colour == hue or on_ramp(colour, hue) or on_tone(colour, hue) for colour in colours):
-            problems.add('S5 accent', f'blockstates/{device}.json', f'no sprite of {device} shows its {name} hue '
-                         f'{rgb_hex(hue)}', 'light its accent parts in the hue of the crystal table, from the palette')
+def check_recipe_hues(tree, problems, palette, guide):
+    """S5: the result of a recipe wears the hue of every coloured Matrix Crystal in it, and no other crystal's."""
+    hues = {name: entry['rgb'] for name, entry in guide.crystals.items()} or dict(palette.crystals)
+    recipes = tree.recipes
+    registered = sorted(set(tree.items) | set(tree.blockstates))
+    for device in registered:
+        art, icon = tree.shown(device)
+        for name, (count, path) in sorted(recipes.direct(f'{NAMESPACE}:{device}').items()):
+            hue = hues.get(name)
+            if hue is None or art.get(hue, 0) >= ACCENT_TEXELS or icon.get(hue, 0) >= ICON_ACCENT_PIXELS:
+                continue
+            found = art.get(hue, 0) + icon.get(hue, 0)
+            dimmed = sum(number for colour, number in art.items() if colour != hue and max(colour) - min(colour) >= 24
+                         and (on_ramp(colour, hue) or on_tone(colour, hue)))
+            hint = f'; {dimmed} texels are shades of it, none the hue itself' if dimmed and not found else ''
+            problems.add('S5 recipe hue', f'items/{device}.json', f'{device} is crafted with {count} {name.title()} '
+                         f'Matrix Crystal{"s" if count > 1 else ""} (data/{NAMESPACE}/{path}) but shows '
+                         f'{found or "no"} texel{"" if found == 1 else "s"} of the {name} hue {rgb_hex(hue)}{hint}',
+                         f'give it an accent in exactly {rgb_hex(hue)}: at least {ACCENT_TEXELS} texels of a sprite it '
+                         f'shows, or {ICON_ACCENT_PIXELS} pixels of its illustrated icon; or take the crystal out of '
+                         'the recipe')
+        permitted = recipes.chain(f'{NAMESPACE}:{device}')
+        foreign = [(name, art[hue]) for name, hue in sorted(hues.items())
+                   if art.get(hue, 0) >= ACCENT_TEXELS and name not in permitted
+                   and not problems.excepted('hue_role', device, name) and not problems.excepted('hue_role', device, '*')]
+        if foreign:
+            shown = ', '.join(f'{name} {rgb_hex(hues[name])} x{count}' for name, count in foreign)
+            problems.add('S5 foreign hue', f'items/{device}.json', f'{device} shows {shown}, but no recipe in its chain '
+                         f'holds {"that crystal" if len(foreign) == 1 else "those crystals"}',
+                         'draw the part in a neutral, a status colour or the copper of a contact; a crystal hue belongs '
+                         'only to what is crafted from that crystal')
+    signature = {colour for colour in guide.primal.values() if hue_of(colour)[1] >= .25 and hue_of(colour)[2] >= .4}
+    for device in registered if signature else ():
+        art = tree.shown(device)[0]
+        lit = sum(count for colour, count in art.items() if colour in signature)
+        if device in guide.primal_devices and art and lit < ACCENT_TEXELS:
+            problems.add('S5 primal', f'items/{device}.json', f'{device} is a Primal device but shows {lit or "no"} '
+                         'texels of the Primal signature', 'draw its Primal part in the colours of the Primal table')
+        elif device not in guide.primal_devices and lit >= ACCENT_TEXELS:
+            problems.add('S5 primal', f'items/{device}.json', f'{device} shows {lit} texels of the Primal signature but '
+                         'is not a Primal device', 'keep the signature to Primal Matter, or list the device in the '
+                         'Primal devices table of the guide')
     for name, entry in guide.crystals.items():
         texture = f'item/{name}_matrix_crystal'
         if texture not in tree.textures or not tree.image(texture).rgba8:
@@ -1205,15 +1592,33 @@ def check_accents(tree, problems, guide):
 
 
 JAVA_COLOUR = re.compile(r'\b0[xX](?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b')
+JAVA_FAMILY = re.compile(r'case\s+([A-Z0-9_,\s]+?)\s*->\s*"(%s)"\s*;' % '|'.join(CRYSTALS))
 
 
-def check_java(tree, problems, palette_file='UiPalette.java'):
-    """S5: colours live in the palette class. S6: a substance badge is never abbreviated."""
+def check_java(tree, problems, java=None, palette_file='UiPalette.java'):
+    """S5: colours live in the palette class, and a renderer gives a machine no other crystal than its recipe.
+    S6: a substance badge is never abbreviated."""
     for path in tree.literals:
+        if 'client' in path.parts or 'compat' in path.parts:
+            code = re.sub(r'/\*.*?\*/|//[^\n]*', '', path.read_text(), flags=re.S)
+            shortening = re.search(r'\bScreenChrome\s*\.\s*fit\s*\(|\bplainSubstrByWidth\s*\(|'
+                                   r'"(?:…|\\u2026|\.\.\.)"', code)
+            if shortening and path.name != 'SubstanceIcon.java':
+                problems.add('S6 text', tree.rel(path), 'the UI uses a truncating text helper or ellipsis suffix',
+                             'show the complete text with wrapping, scrolling or bounded scaling; compact actions '
+                             'use an icon and a full tooltip')
         if 'client' not in path.parts or path.name == palette_file:
             continue
         text = path.read_text()
         where = tree.rel(path)
+        for kinds, name in JAVA_FAMILY.findall(text) if java else ():
+            for kind in kinds.replace(' ', '').replace('\n', '').split(','):
+                device = java.kinds.get(kind)
+                if device and name not in tree.recipes.chain(f'{NAMESPACE}:{device}'):
+                    held = ', '.join(sorted(tree.recipes.chain(f'{NAMESPACE}:{device}'))) or 'no coloured crystal'
+                    problems.add('S5 hue', where, f'the renderer gives {device} the {name} crystal, its recipe holds '
+                                 f'{held}', 'take the hue of a machine from its recipe crystal, best from the one '
+                                 'accent table of the palette class')
         found = {}
         for number, line in enumerate(text.splitlines(), 1):
             code = line.split('//', 1)[0]
@@ -1224,7 +1629,8 @@ def check_java(tree, problems, palette_file='UiPalette.java'):
                 found.setdefault(key, []).append(number)
         if found:
             shown = ', '.join(f'{literal} (line {lines[0]})' for literal, lines in sorted(found.items()))
-            problems.add('S5 source', where, f'{len(found)} colour literals outside the palette class: {shown}',
+            problems.add('S5 source', where, f'{len(found)} colour literal{"" if len(found) == 1 else "s"} outside the '
+                         f'palette class: {shown}',
                          f'name the colour in {palette_file} and use the constant')
         if path.name == 'SubstanceIcon.java' and re.search(r'ScreenChrome\.fit\(|…|\\u2026|"\.\.\."', text):
             problems.add('S6 badge', where, 'the substance badge shortens its symbol with an ellipsis',
@@ -1251,15 +1657,21 @@ def gui_palette(java):
 def run(tree, palette, guide, java):
     problems = Problems()
     check_broken(tree, problems)
-    check_textures(tree, problems, palette, gui_palette(java))
+    # The Primal colours count as palette colours as the guide states them; check_hues reports a palette module
+    # that does not define them yet.
+    palette = palette.with_signature(guide.primal_names or {
+        f'Primal {role}': colour for role, colour in guide.primal.items()})
+    primal = set(palette.primal.values()) or set(guide.primal.values())
+    check_textures(tree, problems, palette, gui_palette(java), primal, guide.primal_stops)
     check_animations(tree, problems)
     _, reachable = check_references(tree, problems)
     check_geometry(tree, problems, reachable)
     check_items(tree, problems)
-    check_natural_blocks(tree, problems, set(palette.primal.values()) or set(guide.primal.values()))
+    check_icon_sources(tree, problems)
+    check_natural_blocks(tree, problems)
     check_hues(tree, problems, palette, guide, java)
-    check_accents(tree, problems, guide)
-    check_java(tree, problems)
+    check_recipe_hues(tree, problems, palette, guide)
+    check_java(tree, problems, java)
     return problems
 
 
@@ -1283,14 +1695,36 @@ def inventory(tree):
         print(f'{kind:8} {folder:12} {size:9} {len(names):3}  {" ".join(names[:6])}{" ..." if len(names) > 6 else ""}')
 
 
+def hue_report(tree, palette, guide):
+    """Who holds which crystal, and how much of each hue the block and the item show."""
+    hues = {name: entry['rgb'] for name, entry in guide.crystals.items()} or dict(palette.crystals)
+    signature = {colour for colour in guide.primal.values() if hue_of(colour)[1] >= .25 and hue_of(colour)[2] >= .4}
+    print(f'{"result":30} {"recipe holds":22} {"chain":14} shows (texels of the exact value)')
+    for device in sorted(set(tree.items) | set(tree.blockstates)):
+        direct = tree.recipes.direct(f'{NAMESPACE}:{device}')
+        chain = tree.recipes.chain(f'{NAMESPACE}:{device}') - set(direct)
+        art, icon = tree.shown(device)
+        shown = [f'{name} {art.get(hue, 0) + icon.get(hue, 0)}' for name, hue in hues.items()
+                 if art.get(hue, 0) + icon.get(hue, 0)]
+        lit = sum(count for colour, count in art.items() if colour in signature)
+        shown += [f'Primal {lit}'] if lit else []
+        if direct or shown:
+            held = ', '.join(f'{name} x{count}' for name, (count, _) in sorted(direct.items()))
+            print(f'{device:30} {held or "-":22} {", ".join(sorted(chain)) or "-":14} {", ".join(shown) or "-"}')
+
+
 # --------------------------------------------------------------------------------------------- self-test
 def selftest():
     """Synthetic trees: each case breaks one rule and must be reported under exactly that rule."""
     real = Palette.load(ROOT / 'tools')
-    primal = {'PRIMAL.core': (255, 255, 255), 'PRIMAL.body': (138, 92, 255), 'PRIMAL.cool': (92, 200, 255)}
-    palette = Palette(real.crystals, {'press': 'amber'}, {**real.named, **primal})
+    primal = {'PRIMAL.core': (255, 255, 255), 'PRIMAL.body': (138, 92, 255), 'PRIMAL.cool': (92, 200, 255),
+              'PRIMAL.warm': (255, 106, 213)}
+    stop_of = {'PRIMAL.cool': 1, 'PRIMAL.body': 2, 'PRIMAL.warm': 3}
+    palette = Palette(real.crystals, {'press': 'amber'}, {**{name: value for name, value in real.named.items()
+                                                               if not name.upper().startswith('PRIMAL')}, **primal})
     base, shade, seam = palette.named['BASE'], palette.named['SHADE'], palette.named['SEAM']
-    amber = palette.crystals['amber']
+    amber, leaf = palette.crystals['amber'], palette.crystals['leaf']
+    dim = tuple(round(channel * .57) for channel in amber)
     clear = (0, 0, 0, 0)
 
     def solid(colour, width=32, height=None):
@@ -1313,22 +1747,32 @@ def selftest():
         return rows
 
     guide_text = '\n'.join([
-        '<!-- check:crystal-hues -->', '| Crystal | Hex | Machines | Modules |', '| --- | --- | --- | --- |',
-        *(f'| {name.title()} | `{rgb_hex(palette.crystals[name])}` | {"`press`" if name == "amber" else ""} | '
-          f'{"`grinder`" if name == "amber" else ""} |' for name in CRYSTALS),
+        '<!-- check:crystal-hues -->', '| Crystal | Hex | Carried by |', '| --- | --- | --- |',
+        *(f'| {name.title()} | `{rgb_hex(palette.crystals[name])}` | {"`press`, `grinder`" if name == "amber" else ""} |'
+          for name in CRYSTALS),
         '<!-- check:neutral-palette -->', '| Role | Constant | Hex |', '| --- | --- | --- |',
         f'| base | `BASE` | {rgb_hex(base)} |',
         '<!-- check:status-colours -->', '| Status | Constant | Hex |', '| --- | --- | --- |',
         f"| blue | `LED['blue']` | {rgb_hex(palette.named['LED.blue'])} |",
         '<!-- check:gui-surfaces -->', '| Role | UiPalette | Palette constant |', '| --- | --- | --- |',
         '| panel | `PANEL` | `SHADE` |',
-        '<!-- check:primal-signature -->', '| Role | Hex | Devices |', '| --- | --- | --- |',
-        *(f'| {role.split(".")[1]} | {rgb_hex(colour)} | |' for role, colour in palette.primal.items())])
+        '<!-- check:primal-signature -->', '| Role | Name | Hex | Stop |', '| --- | --- | --- | --- |',
+        *(f'| {role.split(".")[1]} | `{role}` | {rgb_hex(colour)} | {stop_of.get(role, "")} |'
+          for role, colour in palette.primal.items()),
+        '<!-- check:primal-devices -->', '| Device | Shows |', '| --- | --- |', '| `deep_primal_ore` | crystal |'])
     kinds_text = 'public enum MachineKind {\n    PRESS("press");\n}'
 
     def java_text(colour=amber):
         return ('final class UiPalette {\n    static final int PANEL = 0xff1d2127;\n'
                 f'    static int machineAccent(MachineKind kind) {{ return switch(kind) {{ case PRESS -> 0xff{bytes(colour).hex()}; }}; }}\n}}')
+
+    def recipe_path(name):
+        return f'src/main/resources/data/{NAMESPACE}/recipe/{name}.json'
+
+    def shaped(result, pattern, **key):
+        return {'type': 'minecraft:crafting_shaped', 'pattern': pattern,
+                'key': {letter: f'{NAMESPACE}:{item}' for letter, item in key.items()},
+                'result': {'id': f'{NAMESPACE}:{result}', 'count': 1}}
 
     def build(folder, change=None):
         """A small valid tree: one block, one module item, one cell-like item, one icon item, one GUI frame."""
@@ -1362,9 +1806,11 @@ def selftest():
             'lang/en_us.json': {f'block.{NAMESPACE}.press': 'Press', f'item.{NAMESPACE}.dust': 'Dust'},
         }
         extra = {
-            'src/main/resources/data/%s/recipe/press.json' % NAMESPACE: {'key': {'A': f'{NAMESPACE}:amber_matrix_crystal'}},
-            'src/main/resources/data/%s/recipe/grinder.json' % NAMESPACE: {'key': {'A': f'{NAMESPACE}:amber_matrix_crystal'}},
+            recipe_path('press'): shaped('press', ['PAP'], A='amber_matrix_crystal', P='plate'),
+            recipe_path('grinder'): shaped('grinder', ['A'], A='amber_matrix_crystal'),
             'docs/visual-style.md': guide_text,
+            'artwork/dust.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>',
+            'artwork/amber_matrix_crystal.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>',
             'src/main/java/dev/latrox/rematter/client/UiPalette.java': java_text(),
             'src/main/java/dev/latrox/rematter/content/MachineKind.java': kinds_text,
             'src/main/java/dev/latrox/rematter/client/Screen.java':
@@ -1390,8 +1836,9 @@ def selftest():
         java = JavaPalette((root / 'src/main/java/dev/latrox/rematter/client/UiPalette.java').read_text(),
                            (root / 'src/main/java/dev/latrox/rematter/content/MachineKind.java').read_text())
         saved = {kind: dict(table) for kind, table in EXCEPTIONS.items()}
-        for kind in ('size', 'translucent', 'colour', 'outline', 'key_crystal'):
+        for kind in ('size', 'translucent', 'colour', 'outline', 'hue_role'):
             EXCEPTIONS[kind].clear()
+        EXCEPTIONS['hue_role'].update(getattr(change, 'roles', {}))
         try:
             return run(tree, palette, Guide((root / 'docs/visual-style.md').read_text()), java)
         finally:
@@ -1408,6 +1855,22 @@ def selftest():
         def change(files, extra):
             edit(files['models/block/press.json'])
         return change
+
+    def second_lamp(colour):
+        """A second lit part on the press, in another colour."""
+        def change(files, extra):
+            files['textures/block/lamp_two.png'] = solid(colour, 16)
+            files['models/block/press.json']['textures']['lamp_two'] = f'{NAMESPACE}:block/lamp_two'
+            files['models/block/press.json']['elements'].append({
+                'name': 'lamp_two', 'from': [3, 7, .5], 'to': [5, 9, 1], 'light_emission': 15,
+                'faces': {'north': {'texture': '#lamp_two', 'uv': [0, 0, 4, 4]}}})
+        return change
+
+    def documented(change, **roles):
+        def changed(files, extra):
+            change(files, extra)
+        changed.roles = roles
+        return changed
 
     def both(*changes):
         def change(files, extra):
@@ -1426,7 +1889,10 @@ def selftest():
                {'from': [0, 0, 0], 'to': [16, 16, 16], 'light_emission': 15, 'faces': {
                    face: {'texture': '#overlay', 'cullface': face} for face in FACES}}]}
     violet = (138, 92, 255, 255)
-    strip = [[violet if (x + y + frame) % 5 == 0 else clear for x in range(16)] for frame in range(4) for y in range(16)]
+    spectrum = [tuple(primal[name]) + (255,) for name in ('PRIMAL.cool', 'PRIMAL.body', 'PRIMAL.warm')]
+    strip = [[spectrum[(x // 6 + frame) % 3] if (x + y + frame) % 5 == 0 else clear for x in range(16)]
+             for frame in range(4) for y in range(16)]
+    plain = [[violet if (x + y + frame) % 5 == 0 else clear for x in range(16)] for frame in range(4) for y in range(16)]
 
     def natural(files, extra):
         files['textures/block/deep_primal_ore.png'] = strip
@@ -1449,6 +1915,18 @@ def selftest():
 
     cases = [
         ('a valid tree', None, []),
+        ('an icon without reproducible source', put('artwork/dust.svg', None, 'extra'), ['S3 source']),
+        ('a screen truncates its text', put('src/main/java/dev/latrox/rematter/client/Extra.java',
+                                           'class Extra { String label = ScreenChrome.fit(font, text, 20); }', 'extra'),
+         ['S6 text']),
+        ('a compatibility widget truncates its text', put('src/main/java/dev/latrox/rematter/compat/Extra.java',
+                                                        'class Extra { String label = font.plainSubstrByWidth(text, 20); }',
+                                                        'extra'), ['S6 text']),
+        ('a renderer uses a literal ellipsis suffix', put('src/main/java/dev/latrox/rematter/client/Extra.java',
+                                                        'class Extra { String label = text + "…"; }', 'extra'),
+         ['S6 text']),
+        ('a varargs method is not text truncation', put('src/main/java/dev/latrox/rematter/client/Extra.java',
+                                                      'class Extra { void method(String... values) {} }', 'extra'), []),
         ('a valid ore with host, animated overlay and light', natural, []),
         ('a valid cell item with the mounted sprite', cell('drive_cell'), []),
         ('128 px block texture', put('textures/block/plate.png', solid(shade, 128)), ['S1 size', 'S4 item']),
@@ -1459,6 +1937,9 @@ def selftest():
         ('colour that imitates a crystal hue', put('textures/block/plate.png', solid((231, 176, 86))), ['S1 palette']),
         ('tint of a neutral is not allowed', put('textures/block/plate.png', solid(tuple(c + 9 for c in base))), ['S1 palette']),
         ('gradient sprite', put('textures/block/plate.png', gradient), ['S1 gradient']),
+        ('gradient made of allowed shades', put('textures/block/plate.png', [[tuple(
+            round(channel * (.3 + .05 * (x // 4))) for channel in amber) + (255,) for x in range(32)] for _ in range(32)]),
+         ['S1 gradient']),
         ('soft alpha in a block sprite', put('textures/block/plate.png', [[tuple(shade) + (128,)] * 32] * 32), ['S1 alpha']),
         ('16 px item sprite', put('textures/item/dust.png', small), ['S3 size']),
         ('enlarged 16 px item sprite', put('textures/item/dust.png', enlarged), ['S3 illustrated']),
@@ -1509,8 +1990,51 @@ def selftest():
         ('GUI sprite nothing draws', put('textures/gui/sprites/icon/stop.png', [[(255, 255, 255, 255)] * 16] * 16),
          ['refs unused']),
         ('texture outside every class', put('textures/misc/thing.png', solid(base)), ['class', 'refs unused']),
-        ('block that does not show its crystal hue', put('textures/block/lamp.png', solid(shade, 16, 16) + solid(seam, 16, 16)),
-         ['S5 accent']),
+        ('block that does not show the hue of its crystal', put('textures/block/lamp.png', solid(shade, 16, 16) + solid(seam, 16, 16)),
+         ['S5 recipe hue']),
+        ('block that shows only a shade of the hue', put('textures/block/lamp.png', solid(dim, 16, 16) + solid(seam, 16, 16)),
+         ['S5 recipe hue']),
+        ('hue on a part of the sprite the model does not show', both(
+            put('textures/block/lamp.png', [[tuple(amber if x >= 8 else shade) + (255,) for x in range(16)] for _ in range(16)]),
+            put('textures/block/lamp.png.mcmeta', None)), ['S5 recipe hue']),
+        ('two crystals in the recipe, one of them shown', both(
+            put(recipe_path('press'), shaped('press', ['ALP'], A='amber_matrix_crystal', L='leaf_matrix_crystal', P='plate'), 'extra'),
+            put('docs/visual-style.md', guide_text.replace('| Leaf | `%s` |  |' % rgb_hex(leaf), '| Leaf | `%s` | `press` |' % rgb_hex(leaf)), 'extra')),
+         ['S5 recipe hue']),
+        ('two crystals in the recipe, both shown', both(
+            put(recipe_path('press'), shaped('press', ['ALP'], A='amber_matrix_crystal', L='leaf_matrix_crystal', P='plate'), 'extra'),
+            put('docs/visual-style.md', guide_text.replace('| Leaf | `%s` |  |' % rgb_hex(leaf), '| Leaf | `%s` | `press` |' % rgb_hex(leaf)), 'extra'),
+            second_lamp(leaf)), []),
+        ('hue of a crystal that is not in the recipe', second_lamp(leaf), ['S5 foreign hue']),
+        ('hue with another meaning the tool documents', documented(second_lamp(leaf), press={'leaf': 'legend'}), []),
+        ('hue inherited from an ingredient', both(
+            put(recipe_path('press'), shaped('press', ['CP'], C='core', P='plate'), 'extra'),
+            put(recipe_path('core'), shaped('core', ['A'], A='amber_matrix_crystal'), 'extra'),
+            put('docs/visual-style.md', guide_text.replace('`press`, `grinder`', '`core`, `grinder`'), 'extra')), []),
+        ('slot that takes one of two crystals', both(
+            put(recipe_path('press'), {'type': 'minecraft:crafting_shapeless', 'ingredients': [
+                [f'{NAMESPACE}:amber_matrix_crystal', f'{NAMESPACE}:leaf_matrix_crystal'], f'{NAMESPACE}:plate'],
+                'result': {'id': f'{NAMESPACE}:press'}}, 'extra'),
+            put('docs/visual-style.md', guide_text.replace('`press`, `grinder`', '`grinder`'), 'extra')), []),
+        ('recipe that takes a crystal apart', put(recipe_path('reclaim'), {
+            'type': f'{NAMESPACE}:preparation', 'primary': f'{NAMESPACE}:amber_matrix_crystal',
+            'results': [{'id': f'{NAMESPACE}:matrix_crystal', 'count': 1}, {'id': f'{NAMESPACE}:dust', 'count': 1}]}, 'extra'), []),
+        ('icon of an item crafted with a crystal, without the hue', both(
+            put(recipe_path('dust'), {'type': 'minecraft:crafting_shapeless', 'ingredients': [
+                f'{NAMESPACE}:amber_matrix_crystal', '#c:dusts/gold'], 'result': {'id': f'{NAMESPACE}:dust', 'count': 2}}, 'extra'),
+            put('docs/visual-style.md', guide_text.replace('`press`, `grinder`', '`press`, `grinder`, `dust`'), 'extra')),
+         ['S5 recipe hue']),
+        ('icon of an item crafted with a crystal, with the hue', both(
+            put(recipe_path('dust'), {'type': 'minecraft:crafting_shapeless', 'ingredients': [
+                f'{NAMESPACE}:amber_matrix_crystal', '#c:dusts/gold'], 'result': {'id': f'{NAMESPACE}:dust', 'count': 2}}, 'extra'),
+            put('docs/visual-style.md', guide_text.replace('`press`, `grinder`', '`press`, `grinder`, `dust`'), 'extra'),
+            put('textures/item/dust.png', icon(body=amber))), []),
+        ('recipe result that is missing from its row of the guide', put('docs/visual-style.md', guide_text.replace(
+            '`press`, `grinder`', '`grinder`'), 'extra'), ['S5 guide']),
+        ('Primal signature on a device that is not Primal', second_lamp(primal['PRIMAL.body']), ['S5 primal']),
+        ('Primal colour that cannot be told from a crystal hue', put('docs/visual-style.md', guide_text.replace(
+            rgb_hex(primal['PRIMAL.cool']), rgb_hex(tuple(channel - 3 for channel in palette.crystals['mint']))), 'extra'),
+         ['S5 primal', 'S5 primal']),
         ('crystal icon in its hue', both(
             put('textures/item/amber_matrix_crystal.png', icon(body=tuple(c - 6 for c in amber))),
             put('models/item/amber_matrix_crystal.json', {'parent': 'minecraft:item/generated', 'textures': {
@@ -1533,15 +2057,24 @@ def selftest():
         ('guide without its marked tables', put('docs/visual-style.md', '# Visual style\n', 'extra'), ['S5 guide'] * 5),
         ('screen surface off the casing colours', put('src/main/java/dev/latrox/rematter/client/UiPalette.java',
                                                        java_text().replace('0xff1d2127', '0xff202428'), 'extra'), ['S6 surface']),
-        ('recipe without the crystal of the accent', put('src/main/resources/data/%s/recipe/press.json' % NAMESPACE,
-                                                          {'key': {'A': f'{NAMESPACE}:leaf_matrix_crystal'}}, 'extra'),
-         ['S5 key crystal']),
+        ('device that wears a hue without a crystal in its recipe', put(
+            recipe_path('press'), shaped('press', ['PP'], P='plate'), 'extra'),
+         ['S5 foreign hue', 'S5 guide', 'S5 hue', 'S5 hue']),
+        ('device that wears another hue than the crystal in its recipe', put(
+            recipe_path('press'), shaped('press', ['LP'], L='leaf_matrix_crystal', P='plate'), 'extra'),
+         ['S5 foreign hue', 'S5 guide', 'S5 guide', 'S5 hue', 'S5 hue', 'S5 recipe hue']),
         ('colour literal outside the palette class', put('src/main/java/dev/latrox/rematter/client/Screen.java',
                                                           'class Screen { String a = "panel", b = "icon/play"; int c = 0xff56bcb3; }',
                                                           'extra'), ['S5 source']),
+        ('renderer that gives a machine another crystal than its recipe', put(
+            'src/main/java/dev/latrox/rematter/client/Renderer.java',
+            'class Renderer { String f(MachineKind k) { return switch(k) { case PRESS -> "leaf"; }; } }', 'extra'),
+         ['S5 hue']),
         ('abbreviated substance badge', put('src/main/java/dev/latrox/rematter/client/SubstanceIcon.java',
                                             'class SubstanceIcon { String s = ScreenChrome.fit(font, label, 14); }', 'extra'),
          ['S6 badge']),
+        ('ore overlay in a single colour of the spectrum', both(natural, put('textures/block/deep_primal_ore.png', plain)),
+         ['S2 spectrum']),
         ('ore overlay that is not animated', both(natural, put('textures/block/deep_primal_ore.png', strip[:16]),
                                                   put('textures/block/deep_primal_ore.png.mcmeta', None)),
          ['S2 animation']),
@@ -1552,7 +2085,7 @@ def selftest():
             'elements'][1].pop('light_emission')), ['S2 emissive']),
         ('ore overlay in the hue of the host stone', both(natural, put('textures/block/deep_primal_ore.png', [
             [(150, 110, 60, 255) if (x + y) % 5 == 0 else clear for x in range(16)] for y in range(64)])),
-         ['S2 palette', 'S2 palette']),
+         ['S2 palette', 'S5 primal']),
     ]
     failed = 0
     for title, change, expected in cases:
@@ -1581,7 +2114,49 @@ def selftest():
     if on_ramp((200, 30, 190), palette.crystals['amber']) or on_ramp((60, 60, 60), palette.crystals['ember']):
         failed += 1
         print('self-test failed: a foreign colour lies on a crystal ramp')
-    print(f'Self-test: {len(cases)} tree cases, 6 PNG filter cases, ramp cases; {failed} failed')
+    # The recipe reader: counts of a shaped pattern, counted fields, tags, alternatives and reclaim recipes.
+    with tempfile.TemporaryDirectory() as folder:
+        data = Path(folder)
+        written = {
+            'recipe/drill.json': shaped('drill', ['A A', ' B ', 'AMA'], A='amber_matrix_crystal', B='blue_matrix_crystal',
+                                        M='frame'),
+            'recipe/frame.json': {'type': f'{NAMESPACE}:preparation', 'primary': f'{NAMESPACE}:ember_matrix_crystal',
+                                  'primary_count': 3, 'secondary': '#c:rods/iron', 'steps': ['mix'],
+                                  'result': {'id': f'{NAMESPACE}:frame', 'count': 1}},
+            'recipe/any.json': {'type': 'minecraft:crafting_shapeless', 'ingredients': [f'#{NAMESPACE}:coloured'],
+                                'result': {'id': f'{NAMESPACE}:any'}},
+            'recipe/compat/back.json': {'neoforge:conditions': [{'type': 'neoforge:registered',
+                                                                 'value': f'{NAMESPACE}:mint_matrix_crystal'}],
+                                        'type': f'{NAMESPACE}:preparation', 'primary': f'{NAMESPACE}:leaf_matrix_crystal',
+                                        'results': [{'id': f'{NAMESPACE}:matrix_crystal'}, {'id': f'{NAMESPACE}:any'}]},
+            'recipe/compat/foundry.json': {'type': 'other:foundry', 'itemInputs': [f'{NAMESPACE}:violet_matrix_crystal'],
+                                           'itemResults': [{'id': f'{NAMESPACE}:cast', 'count': 2}], 'time': 60},
+            'tags/item/coloured.json': {'values': [f'{NAMESPACE}:ice_matrix_crystal', f'{NAMESPACE}:mint_matrix_crystal']},
+        }
+        for name, value in written.items():
+            (data / name).parent.mkdir(parents=True, exist_ok=True)
+            (data / name).write_text(json.dumps(value))
+        recipes = Recipes(data)
+        read = {
+            'drill direct': {name: count for name, (count, _) in recipes.direct(f'{NAMESPACE}:drill').items()},
+            'drill chain': recipes.chain(f'{NAMESPACE}:drill'),
+            'frame direct': {name: count for name, (count, _) in recipes.direct(f'{NAMESPACE}:frame').items()},
+            'any direct': recipes.direct(f'{NAMESPACE}:any'),
+            'any chain': recipes.chain(f'{NAMESPACE}:any'),
+            'cast direct': {name: count for name, (count, _) in recipes.direct(f'{NAMESPACE}:cast').items()},
+        }
+        wanted = {'drill direct': {'amber': 4, 'blue': 1}, 'drill chain': {'amber', 'blue', 'ember'},
+                  'frame direct': {'ember': 3}, 'any direct': {}, 'any chain': {'ice', 'mint'},
+                  'cast direct': {'violet': 1}}
+        for title in wanted:
+            if read[title] != wanted[title]:
+                failed += 1
+                print(f'self-test failed: recipes, {title}: expected {wanted[title]}, found {read[title]}')
+    if Tree.default_uv('north', [2, 4, 0], [6, 12, 1]) != (10, 4, 14, 12) or Tree.default_uv(
+            'up', [2, 4, 0], [6, 12, 1]) != (2, 0, 6, 1):
+        failed += 1
+        print('self-test failed: the default uv of a face is not its position on the block')
+    print(f'Self-test: {len(cases)} tree cases, 6 PNG filter cases, 6 recipe cases, ramp cases; {failed} failed')
     return 1 if failed else 0
 
 
@@ -1589,6 +2164,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--check', action='store_true', help='check without writing (the default; nothing is written)')
     parser.add_argument('--list', action='store_true', help='print the texture inventory by asset class')
+    parser.add_argument('--hues', action='store_true', help='print which crystal every recipe result holds and shows')
     parser.add_argument('--json', metavar='FILE', help='also write the findings as JSON')
     parser.add_argument('--selftest', action='store_true', help='run the rules against synthetic cases')
     parser.add_argument('--root', type=Path, default=ROOT, help='check another checkout of the repository')
@@ -1598,6 +2174,8 @@ def main():
     tree, palette, guide, java = load(arguments.root.resolve())
     if arguments.list:
         inventory(tree)
+    if arguments.hues:
+        hue_report(tree, palette, guide)
     problems = run(tree, palette, guide, java)
     check_exceptions(tree, problems)
     if arguments.json:

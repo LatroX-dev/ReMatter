@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LEL",
+    "OFO",
+    "VEV"
+  ],
+  "key": {
+    "L": "rematter:lumivex_ingot",
+    "E": "rematter:ember_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "F": "rematter:machine_frame",
+    "V": "rematter:ender_conductor"
+  },
+  "result": {
+    "id": "rematter:reinforced_energy_cube",
+    "count": 1
+  }
+}

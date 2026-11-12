@@ -20,7 +20,7 @@ final class DriveBays {
     static final float LED_X = 4.5F, LED_Y = 1, LED_SIZE = 1, LED_DEPTH = .5F;
     /** The status sprites are one flat colour; the centre texels stay clear of the neighbouring atlas entries. */
     private static final float LED_UV0 = 7, LED_UV1 = 9;
-    private static final int WHITE = 0xFFFFFFFF;
+    private static final int WHITE = UiPalette.WHITE;
 
     private DriveBays() {}
 

@@ -60,6 +60,8 @@ Combine iron and Silith for <ItemLink id="rematter:structural_bars" />. Make <It
 
 ## 3. Craft the machines and Cell
 
+A Cell is a cartridge: its front plate and tier bar match the slot in the Matter Drive. Its separate status lamp is blue when empty, green while holding matter, amber when full, and blinking red when its contents cannot be read. A crystal window shows the crystal of its recipe.
+
 Grind gold ingots in the Hand Preparator and combine the Gold Dust with two plain Crystals to make two **Amber Matrix Crystals**. Use them to craft a **Material Preparator**, then connect it to external FE. This powered machine can grind diamond and emerald.
 
 Make the colored Crystals for the other machines by combining a plain Matrix Crystal with the corresponding dust. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator. [Crystals and advanced components](advanced.md) lists every crystal color and the machines that use it.

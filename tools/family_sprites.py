@@ -194,12 +194,9 @@ def drive_cell(bar):
 
 
 def primal_drive_cell(bar):
-    sprite=drive_cell(bar)
-    violet=RGB['violet']
-    sprite.rect(0,1,4,5,scale(violet,.48))
-    sprite.row(1,1,3,IVORY);sprite.col(1,1,4,IVORY);sprite.row(3,1,3,IVORY)
-    sprite.row(1,4,11,lighten(violet,.5))
-    return sprite
+    # The mounted front and its item use the same recipe-crystal window and animated Primal rail.
+    from hardware_sprites import primal_cell_face
+    return primal_cell_face(bar, crystal='violet' if bar in (2, 4) else None)
 
 
 def led_red():
@@ -384,7 +381,8 @@ def chassis_top():
 
 def chassis_front(device):
     """Front planes of an alcove machine: cheeks, accent ledge, control strip and skirt."""
-    color = accent(device)
+    # The hand-operated bench has no Matrix Crystal in its recipe.
+    color = STEEL if device == 'hand_preparator' else accent(device)
     sprite = Sprite(fill=WELL)
     sprite.ring(0, 0, 32, 32, SEAM)
     for x, edge in ((1, (HIGHLIGHT, BASE, SHADE)), (28, (HIGHLIGHT, BASE, SHADE))):
@@ -393,7 +391,7 @@ def chassis_front(device):
     sprite.row(1, 1, 4, HIGHLIGHT)
     sprite.row(1, 28, 31, HIGHLIGHT)
     sprite.rect(4, 24, 28, 26, color)
-    sprite.row(24, 4, 28, lighten(color, .3))
+    sprite.row(24, 4, 28, TRIM if device == 'hand_preparator' else lighten(color, .3))
     sprite.rect(4, 26, 28, 30, SHADE)
     sprite.rect(5, 26, 11, 30, WELL)
     for x in (13, 16):
@@ -450,7 +448,7 @@ def sprites():
     }
     from bench_showpieces import DEVICES, bench_sprites
     result.update(bench_sprites(Sprite))
-    for device in DEVICES:result[device+'_front']=chassis_front('material_preparator' if device=='hand_preparator' else device)
+    for device in DEVICES:result[device+'_front']=chassis_front(device)
     from reactor_showpiece import reactor_sprites
     result.update(reactor_sprites(Sprite))
     for name in ('blue', 'green', 'amber'):
@@ -471,6 +469,8 @@ def sprites():
 
 # Animation metadata by sprite name.
 ANIMATIONS = {'led_red': {'animation': {'frametime': 10}}}
+for name in ('drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k'):
+    ANIMATIONS[name] = {'animation': {'frametime': 3}}
 
 # Active sight windows are animated only in the active model.
 from reactor_showpiece import REACTOR_ANIMATIONS

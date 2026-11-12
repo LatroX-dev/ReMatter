@@ -1,0 +1,390 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube"
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "0"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "0"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_0",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "0"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_0",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "0"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_0",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "1"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "1"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "1"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "1"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "2"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "2"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "2"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "2"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "3"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "3"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "3"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "3"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "4"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_4"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "4"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "4"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "4"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "5"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_5"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "5"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_5",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "5"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_5",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "5"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_5",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "6"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_6"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "6"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_6",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "6"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_6",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "6"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_6",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "7"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_7"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "7"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_7",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "7"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_7",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "7"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_7",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "charge": "8"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_8"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "charge": "8"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_8",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "charge": "8"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_8",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "charge": "8"
+      },
+      "apply": {
+        "model": "rematter:block/resonant_energy_cube_charge_8",
+        "y": 270
+      }
+    }
+  ]
+}

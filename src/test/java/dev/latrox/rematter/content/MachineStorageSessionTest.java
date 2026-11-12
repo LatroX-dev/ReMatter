@@ -9,6 +9,19 @@ import static dev.latrox.rematter.chemistry.BuiltinChemistry.COPPER;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MachineStorageSessionTest {
+    @Test void publicTierWordPreservesPrimalCodesInEveryBay() {
+        for (int bay = 0; bay < MachineCellAccess.DRIVE_BAYS; bay++) {
+            for (int tier = 0; tier < 8; tier++) {
+                int packed = 0;
+                for (int other = 0; other < MachineCellAccess.DRIVE_BAYS; other++)
+                    packed |= (other == bay ? tier : 4) << (other * 3);
+                assertEquals(tier, MachineCellAccess.decodeTier(packed, bay), "Tier " + tier + " in bay " + bay);
+            }
+        }
+        assertEquals(0, MachineCellAccess.decodeTier(-1, -1));
+        assertEquals(0, MachineCellAccess.decodeTier(-1, MachineCellAccess.DRIVE_BAYS));
+    }
+
     @Test void sixDriveBaysHaveDistinctStableIndices() {
         assertEquals(6, MachineCellAccess.bayCount(MachineKind.DRIVE));
         var slots = new java.util.HashSet<Integer>();

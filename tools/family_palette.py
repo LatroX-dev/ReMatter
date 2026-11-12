@@ -42,8 +42,8 @@ COPPER = COPPER_CONTACT
 COPPER_LIGHT = lighten(COPPER, .22)
 COPPER_DARK = scale(COPPER, .72)
 # The maker's badge sits in the floor shade of a front, so it is drawn a step brighter than a contact.
-BADGE = RGB['copper']
-BADGE_LIGHT = lighten(BADGE, .28)
+BADGE = COPPER
+BADGE_LIGHT = COPPER_LIGHT
 IVORY = rgb('#e4decc')
 # The cable jacket stays below the casing, so a cable reads as a line in front of a machine.
 JACKET = rgb('#181c22')
@@ -57,6 +57,19 @@ LED = {
 }
 # The dark phase of the blinking red light stays red, so an unreadable cell never reads as an empty bay.
 LED_RED_DIM = rgb('#a33a42')
+
+# Primal Matter has a signature apart from the Matrix Crystal recipe hues.
+PRIMAL_CORE = rgb('#ffffff')
+PRIMAL_CORE_SOFT = rgb('#efe6ff')
+PRIMAL_LIGHT = rgb('#ae8eff')
+PRIMAL_BODY = rgb('#8a5cff')
+PRIMAL_DEEP = rgb('#4c24b2')
+PRIMAL_VOID = rgb('#1c0e4a')
+PRIMAL_INK = rgb('#1e1546')
+PRIMAL_TEAL = rgb('#46e0c8')
+PRIMAL_COOL = rgb('#5cc8ff')
+PRIMAL_WARM = rgb('#ff6ad5')
+PRIMAL_GOLD = rgb('#ffb37a')
 
 ACTIVITY_ON = RGB['mint']
 ACTIVITY_OFF = rgb('#275c63')

@@ -1,6 +1,8 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.energy.*;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,14 @@ public final class ModContent {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ReMatter.MOD_ID);
     public static final Map<MachineKind, DeferredBlock<MachineBlock>> MACHINES = new EnumMap<>(MachineKind.class);
     public static final Map<IndustrialModuleKind, DeferredBlock<IndustrialModuleBlock>> INDUSTRIAL_MODULES = new EnumMap<>(IndustrialModuleKind.class);
+    public static final Map<EnergyCubeTier,DeferredBlock<EnergyCubeBlock>> ENERGY_CUBES=new EnumMap<>(EnergyCubeTier.class);
     static {
+        for(var tier:EnergyCubeTier.values()) {
+            var block=BLOCKS.registerBlock(tier.id(),p->new EnergyCubeBlock(tier,p),
+                    p->p.mapColor(MapColor.METAL).strength(4.0F,12.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
+            ENERGY_CUBES.put(tier,block);
+            ITEMS.registerItem(tier.id(),p->new EnergyCubeItem(block.get(),p.useBlockDescriptionPrefix()));
+        }
         for (MachineKind kind : MachineKind.values()) {
             var block = BLOCKS.registerBlock(kind.id(), p -> MachineBlock.create(kind, p), p -> {
                 p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL);
@@ -117,6 +126,10 @@ public final class ModContent {
     public static final DeferredItem<Item> CELL_RACK = ITEMS.registerSimpleItem("cell_rack");
     public static final DeferredItem<MatterRecoveryItem> RECOVERED_MATTER = ITEMS.registerItem("recovered_matter", MatterRecoveryItem::new);
     public static final DeferredItem<TutorialBookItem> GUIDE = ITEMS.registerItem("guide", TutorialBookItem::new);
+    public static final Supplier<BlockEntityType<EnergyCubeBlockEntity>> ENERGY_CUBE_ENTITY=BLOCK_ENTITIES.register("energy_cube",
+            ()->new BlockEntityType<>(EnergyCubeBlockEntity::new,false,ENERGY_CUBES.values().stream().map(Supplier::get).toArray(Block[]::new)));
+    public static final Supplier<MenuType<EnergyCubeMenu>> ENERGY_CUBE_MENU=MENUS.register("energy_cube",
+            ()->IMenuTypeExtension.create(EnergyCubeMenu::new));
     public static final Supplier<BlockEntityType<MachineBlockEntity>> MACHINE_ENTITY = BLOCK_ENTITIES.register("machine",
             () -> new BlockEntityType<>(MachineBlockEntity::new, false, MACHINES.values().stream().map(Supplier::get).toArray(Block[]::new)));
     public static final Supplier<MenuType<MachineMenu>> MACHINE_MENU = MENUS.register("machine",
@@ -130,6 +143,7 @@ public final class ModContent {
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
                     .displayItems((parameters, output) -> {
                         MACHINES.forEach((kind, block) -> output.accept(block.get()));
+                        ENERGY_CUBES.values().forEach(block->output.accept(block.get()));
                         output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
                         output.accept(RESONANT_MATTER_CABLE_ITEM.get());
@@ -196,6 +210,8 @@ public final class ModContent {
         event.registerBlock(Capabilities.Energy.BLOCK,
                 (level, pos, state, blockEntity, side) -> MatterCablePower.capability(level, pos, side),
                 MATTER_CABLE.get(), REINFORCED_MATTER_CABLE.get(), RESONANT_MATTER_CABLE.get());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK,ENERGY_CUBE_ENTITY.get(),EnergyCubeBlockEntity::sidedEnergy);
+        event.registerBlockEntity(Capabilities.Item.BLOCK,ENERGY_CUBE_ENTITY.get(),EnergyCubeBlockEntity::sidedItems);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedEnergy);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedItems);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedFluids);

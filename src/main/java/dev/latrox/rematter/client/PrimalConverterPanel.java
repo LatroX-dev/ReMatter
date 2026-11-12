@@ -40,22 +40,26 @@ final class PrimalConverterPanel {
     }
     void initWidgets(){
         widgets.clear();
-        previous=button(tr("previous"),tr("target_hint"),left,top,18,18,b->cycle(-1));
+        previous=icon(UiIcon.PREVIOUS,tr("previous_name"),tr("target_hint"),left,top,18,18,b->cycle(-1));
         target=button(tr("choose"),tr("target_hint"),left+22,top,width-44,18,b->cycle(1));
-        next=button(tr("next"),tr("target_hint"),left+width-18,top,18,18,b->cycle(1));
+        next=icon(UiIcon.NEXT,tr("next_name"),tr("target_hint"),left+width-18,top,18,18,b->cycle(1));
         // Source slot is at window25/43, i.e. panel17/23. Never paint or place a widget over it.
-        load=button(tr("load"),tr("load_hint"),left+42,top+23,42,18,b->send(MachineActionPayload.Action.LOAD_PRIMAL,"",0,"LOAD"));
-        minus=button(Component.literal("−"),tr("less"),left,top+height-54,18,18,b->changeAmount(-250));
-        plus=button(Component.literal("+"),tr("more"),left+width-70,top+height-54,18,18,b->changeAmount(250));
-        action=button(tr("start"),tr("start_hint"),left+width-48,top+height-54,48,18,b->{
+        load=icon(UiIcon.LOAD,tr("load"),tr("load_hint"),left+42,top+23,18,18,b->send(MachineActionPayload.Action.LOAD_PRIMAL,"",0,"LOAD"));
+        minus=icon(UiIcon.MINUS,tr("less_name"),tr("less"),left,top+height-54,18,18,b->changeAmount(-250));
+        plus=icon(UiIcon.PLUS,tr("more_name"),tr("more"),left+width-82,top+height-54,18,18,b->changeAmount(250));
+        action=button(tr("start"),tr("start_hint"),left+width-60,top+height-54,60,18,b->{
             if(converting()){confirming=false;send(MachineActionPayload.Action.CONVERT_CANCEL,"",0,"CANCEL");return;}
             if(!confirming){confirming=true;updateWidgets();return;}
             confirming=false;send(MachineActionPayload.Action.CONVERT_START,"",0,"START");
         });
+        load.setIcon(UiIcon.LOAD);action.setIcon(UiIcon.START);target.setIcon(UiIcon.TARGET);
         tick();
     }
     private DarkButton button(Component name,Component hint,int x,int y,int width,int height,net.minecraft.client.gui.components.Button.OnPress press){
-        var button=DarkButton.create(name,hint,x,y,width,height,press);widgets.add(button);addWidget.accept(button);return button;
+        var button=DarkButton.create(name,hint,x,y,width,height,press);button.setAccent(UiPalette.machineAccent(menu.kind()));widgets.add(button);addWidget.accept(button);return button;
+    }
+    private DarkButton icon(UiIcon icon,Component name,Component hint,int x,int y,int width,int height,net.minecraft.client.gui.components.Button.OnPress press){
+        var button=DarkButton.icon(icon,name,hint,x,y,width,height,press);button.setAccent(UiPalette.machineAccent(menu.kind()));widgets.add(button);addWidget.accept(button);return button;
     }
     void setVisible(boolean value){visible=value;if(!value)confirming=false;updateWidgets();}
     void tick(){
@@ -119,26 +123,34 @@ final class PrimalConverterPanel {
         boolean affordable=quote!=null&&quote.primal>0&&quote.energy>0&&quote.ticks>0&&number(extras,"primal",0)>=quote.primal;
         set(action,!awaiting&&(converting()||idle&&affordable));
         action.setMessage(converting()?tr("cancel"):confirming?tr("confirm"):pendingOutput>0?tr("pending_button"):tr("start"));
-        action.setSelected(confirming);action.setAccent(UiPalette.GAS);
+        action.setIcon(converting()?UiIcon.STOP:confirming?UiIcon.CONFIRM:pendingOutput>0?UiIcon.TIME:UiIcon.START);
+        action.setSelected(confirming);action.setAccent(UiPalette.PRIMAL);
         Component hint=converting()?tr("cancel_hint"):quote==null?tr("target_hint"):quoteTooltip(quote);
         action.setTooltip(Tooltip.create(hint));
     }
     private void set(AbstractWidget widget,boolean active){widget.visible=visible;widget.active=visible&&active;if(!visible)widget.setFocused(false);}
     void extractRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY){
         if(!visible)return;
-        label(g,number(extras,"primalCapacity",0)==0?tr("insert_cell"):tr("reserve",compact(number(extras,"primal",0)),compact(number(extras,"primalCapacity",0))),left+89,top+28,width-89,UiPalette.GAS);
-        label(g,tr("output",exact(awaiting&&pendingAction.equals("SELECT")?requestedAmount:amount)),left+22,top+height-49,width-96,UiPalette.TEXT);
+        boolean hasCell=number(extras,"primalCapacity",0)>0;
+        ScreenChrome.icon(g,UiIcon.PRIMAL,left+64,top+24,hasCell?UiPalette.PRIMAL:UiPalette.MUTED);
+        label(g,!hasCell?tr("insert_cell"):tr("reserve",compact(number(extras,"primal",0)),compact(number(extras,"primalCapacity",0))),left+80,top+28,width-80,hasCell?UiPalette.PRIMAL_LIGHT:UiPalette.MUTED);
+        label(g,tr("output",exact(awaiting&&pendingAction.equals("SELECT")?requestedAmount:amount)),left+22,top+height-49,width-106,UiPalette.TEXT);
         var quote=selectedTarget();
         if(awaiting&&pendingAction.equals("SELECT"))label(g,tr("awaiting_quote"),left,top+height-30,width,UiPalette.MUTED);
-        else if(quote!=null)label(g,tr("price",compact(quote.primal),compact(quote.energy),time(quote.ticks)),left,top+height-30,width,UiPalette.TEXT);
+        else if(quote!=null){
+            int x=left,y=top+height-30;UiIcon[] icons={UiIcon.PRIMAL,UiIcon.ENERGY,UiIcon.TIME};String[] values={compact(quote.primal),compact(quote.energy),time(quote.ticks)};
+            for(int i=0;i<icons.length;i++){ScreenChrome.icon(g,icons[i],x-2,y-4,i==0?UiPalette.PRIMAL:UiPalette.TEXT);g.text(font,values[i],x+14,y,i==0?UiPalette.PRIMAL_LIGHT:UiPalette.TEXT,false);x+=18+font.width(values[i]);}
+        }
         else label(g,tr(targets.isEmpty()?"no_targets_hint":"choose_hint"),left,top+height-30,width,UiPalette.MUTED);
         if(converting()){
             int progress=Math.max(0,menu.progress().progress()),duration=Math.max(1,menu.progress().duration());
             ScreenChrome.inset(g,left,top+height-18,width,4);int fill=(int)Math.min(width-2,(long)(width-2)*progress/duration);
-            if(fill>0)g.fill(left+1,top+height-17,left+1+fill,top+height-15,UiPalette.GAS);
+            if(fill>0)g.fill(left+1,top+height-17,left+1+fill,top+height-15,UiPalette.PRIMAL);
         }
         Component state=pendingOutput>0?tr("pending_output",exact(pendingOutput)):awaiting?tr("awaiting"):converting()?tr("running"):confirming?tr("confirm_output",exact(amount),quote==null?"":name(quote.id)):selectionRejected?tr("unavailable"):quote!=null&&number(extras,"primal",0)<quote.primal?tr("need_primal"):tr("finite");
-        label(g,state,left,top+height-11,width,pendingOutput>0||selectionRejected?UiPalette.WARNING:UiPalette.MUTED);
+        UiIcon lamp=pendingOutput>0?UiIcon.STATUS_WARNING:awaiting||confirming?UiIcon.STATUS_WAITING:converting()?UiIcon.STATUS_WORKING:selectionRejected||quote!=null&&number(extras,"primal",0)<quote.primal?UiIcon.STATUS_BLOCKED:UiIcon.STATUS_IDLE;
+        ScreenChrome.icon(g,lamp,left-2,top+height-15,-1);
+        label(g,state,left+16,top+height-11,width-16,pendingOutput>0||selectionRejected?UiPalette.WARNING:UiPalette.MUTED);
         if(inside(mouseX,mouseY,left,top+height-32,width,32)){
             var lines=new ArrayList<Component>();if(quote!=null&&!awaiting)lines.add(quoteTooltip(quote));lines.add(state);
             if(pendingOutput>0)lines.add(tr("pending_hint"));g.setComponentTooltipForNextFrame(font,lines,mouseX,mouseY);
@@ -153,7 +165,7 @@ final class PrimalConverterPanel {
     boolean mouseDragged(MouseButtonEvent event,double dx,double dy){return false;}
     boolean mouseReleased(MouseButtonEvent event){return false;}
     boolean handlesKey(KeyEvent event){if(visible&&confirming&&event.isEscape()){confirming=false;updateWidgets();return true;}return false;}
-    private void label(GuiGraphicsExtractor g,Component text,int x,int y,int width,int color){g.text(font,ScreenChrome.fit(font,text.getString(),width),x,y,color,false);}
+    private void label(GuiGraphicsExtractor g,Component text,int x,int y,int width,int color){ScreenChrome.text(g,font,text.getString(),x,y,width,color);}
     private static Component name(String id){return SubstanceNames.substance(id,"solid",true);}
     private static String exact(long value){return String.format(Locale.US,"%,d",value);}
     private static String compact(long value){if(value>=1_000_000)return decimal(value,1_000_000)+"M";if(value>=1_000)return decimal(value,1_000)+"k";return Long.toString(value);}

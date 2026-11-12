@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RER",
+    "CFC",
+    "RVR"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "E": "rematter:ember_matrix_crystal",
+    "C": "minecraft:copper_ingot",
+    "F": "rematter:machine_frame",
+    "V": "rematter:virelite_ceramic"
+  },
+  "result": {
+    "id": "rematter:energy_cube",
+    "count": 1
+  }
+}

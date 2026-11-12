@@ -9,7 +9,7 @@
       "name": "charge",
       "from": [
         3,
-        4,
+        3,
         3
       ],
       "to": [
@@ -51,55 +51,118 @@
         "north": {
           "texture": "#work",
           "uv": [
-            13,
             0,
-            16,
-            2
+            13,
+            3,
+            15
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            13,
             0,
-            16,
-            2
+            13,
+            3,
+            15
           ]
         },
         "east": {
           "texture": "#work",
           "uv": [
-            13,
             0,
-            16,
-            2
+            13,
+            3,
+            15
           ]
         },
         "west": {
           "texture": "#work",
           "uv": [
-            13,
             0,
-            16,
-            2
+            13,
+            3,
+            15
           ]
         },
         "up": {
           "texture": "#work",
           "uv": [
-            10,
             0,
-            13,
-            3
+            10,
+            3,
+            13
           ]
         },
         "down": {
           "texture": "#work",
           "uv": [
-            10,
             0,
-            13,
-            3
+            10,
+            3,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "stirrer_tip",
+      "from": [
+        7,
+        13,
+        7
+      ],
+      "to": [
+        9,
+        14,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            3,
+            10,
+            5,
+            12
           ]
         }
       }

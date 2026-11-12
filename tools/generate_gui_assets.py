@@ -113,11 +113,15 @@ def scroll_thumb(colors, active=False):
 
 
 def progress_arrow():
-    """The white process arrow. A screen draws it once as the track and once, clipped, as the filled part."""
+    """The white process arrow. A screen draws it once as the track and once, clipped, as the filled part.
+
+    Its centre line is row 8, the row of the arrow the machine screen used to draw with fills, so the
+    sprite replaces those fills at the same position.
+    """
     image = Canvas(24, MONO["."], 16)
     for x in range(24):
         half = 3 if x < 16 else 23 - x
-        image.rect(x, 7 - half, x + 1, 8 + half, MONO["#"])
+        image.rect(x, 8 - half, x + 1, 9 + half, MONO["#"])
     return image
 
 

@@ -7,14 +7,16 @@ from family_palette import BASE, SHADE, SEAM, WELL, HIGHLIGHT, STEEL, STEEL_SHAD
 from family_sprites import Sprite, sealed_frame, plinth, bolt
 from generate_family_assets import Family, sealed_body, sealed_skin, with_parts
 from generated_files import GeneratedFiles
+from machine_palette import RGB
+from hardware_sprites import PRIMAL_BODY, PRIMAL_CORE, PRIMAL_DEEP, PRIMAL_LIGHT, PRIMAL_FRAMES, PRIMAL_ANIMATION, primal_run
 from recipe_discovery import shaped_discovery
 
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / 'src/main/resources/assets/rematter'
 DATA = ROOT / 'src/main/resources/data'
 DEVICES = ('primal_converter', 'crystal_generator', 'industrial_crystal_generator')
-VIOLET = (172, 139, 217)
-AMBER = (231, 176, 86)
+VIOLET = RGB['violet']
+EMBER = RGB['ember']
 
 
 def front(name):
@@ -48,17 +50,21 @@ def front(name):
     return image
 
 
-def display(name, active):
+def display_frame(name, active, frame=0):
     image = Sprite(fill=WELL)
-    accent = VIOLET if name == 'primal_converter' else AMBER
+    accent = PRIMAL_BODY if name == 'primal_converter' else EMBER
     ink = accent if active else scale(accent, .45)
     bright = lighten(accent, .6) if active else scale(accent, .65)
     if name == 'primal_converter':
-        # The cartridge remains visible in standby, with a violet/white resource stripe.
+        # The Primal rail is separate from the static Violet recipe crystal on the front.
         image.rect(7, 8, 15, 23, STEEL_SHADE)
         image.bevel(7, 8, 15, 23, STEEL, SHADE)
-        image.rect(9, 10, 13, 21, ink)
-        image.col(10, 10, 21, bright)
+        image.rect(9, 10, 13, 21, PRIMAL_BODY)
+        image.col(9, 10, 21, PRIMAL_LIGHT)
+        image.col(12, 10, 21, PRIMAL_DEEP)
+        for y in range(10, 21):
+            image.px(10, y, primal_run(y - 10, frame))
+        image.px(10, 10 + frame % 11, PRIMAL_CORE)
         image.row(22, 8, 14, TRIM)
     else:
         centers = (10, 21) if name.startswith('industrial') else (16,)
@@ -72,6 +78,18 @@ def display(name, active):
             image.row(21, center - 4, center + 5, STEEL)
         image.row(24, 6, 26, ink)
     return image
+
+
+def display(name, active):
+    if name != 'primal_converter':
+        return display_frame(name, active)
+    strip = Sprite(32, 32 * PRIMAL_FRAMES)
+    for frame in range(PRIMAL_FRAMES):
+        image = display_frame(name, active, frame)
+        for y in range(32):
+            for x in range(32):
+                strip.px(x, y + frame * 32, image.pixel(x, y))
+    return strip
 
 
 def generate(check=False):
@@ -92,6 +110,8 @@ def generate(check=False):
     out = GeneratedFiles(ROOT, check)
     for name, sprite in art.items():
         out.png(ART / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
+        if name.startswith('primal_converter_window'):
+            out.json(ART / f'textures/block/{name}.png.mcmeta', PRIMAL_ANIMATION)
     for folder, files in (('models/block', family.models), ('blockstates', family.blockstates), ('items', family.items)):
         for name, value in files.items():
             out.json(ART / folder / f'{name}.json', value)

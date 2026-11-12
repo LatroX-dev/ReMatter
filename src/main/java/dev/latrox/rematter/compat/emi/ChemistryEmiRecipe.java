@@ -8,7 +8,7 @@ import dev.emi.emi.api.widget.WidgetHolder;
 import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
+import dev.latrox.rematter.client.UiIcon;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.client.Minecraft;
@@ -39,8 +39,8 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         });
         Component input = Component.translatable("gui.rematter.viewer.input");
         Component output = Component.translatable("gui.rematter.viewer.output");
-        EmiWidgets.icon(widgets,Icon.INPUT,0,0,List.of(input));
-        EmiWidgets.icon(widgets,Icon.OUTPUT,108,0,List.of(output));
+        EmiWidgets.icon(widgets,UiIcon.SLOT_INPUT,0,0,List.of(input));
+        EmiWidgets.icon(widgets,UiIcon.SLOT_OUTPUT,108,0,List.of(output));
         widgets.addText(input,16,2,UiPalette.TEXT,false);
         widgets.addText(output,124,2,UiPalette.TEXT,false);
         for (int index = 0; index < inputs.size(); index++) {
@@ -56,11 +56,11 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
             addAmount(widgets, product, 129, 17 + index * 20);
         }
         widgets.addFillingArrow(78, 12, (int) Math.min(Integer.MAX_VALUE, Math.max(1L, ticks) * 50L));
-        EmiWidgets.icon(widgets,Icon.POWER,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
+        EmiWidgets.icon(widgets,UiIcon.ENERGY,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
         EmiWidgets.value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
-        EmiWidgets.icon(widgets,Icon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
+        EmiWidgets.icon(widgets,UiIcon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
         EmiWidgets.value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
-        EmiWidgets.dynamicIcon(widgets,Icon.INFO,164,footer+10,()->{
+        EmiWidgets.dynamicIcon(widgets,UiIcon.INFO,164,footer+10,()->{
             var current = new java.util.ArrayList<>(notes);
             researchTarget.ifPresent(target -> current.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));
             return current;
@@ -75,8 +75,7 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
 
     private static void addAmount(WidgetHolder widgets, EmiIngredient ingredient, int x, int y) {
         Component amount = amount(ingredient);
-        String trimmed = Minecraft.getInstance().font.plainSubstrByWidth(amount.getString(), 51);
-        widgets.addText(Component.literal(trimmed), x, y, UiPalette.ACCENT_BRIGHT, false);
-        widgets.addTooltipText(List.of(amount),x,y,Minecraft.getInstance().font.width(trimmed),9);
+        EmiWidgets.value(widgets,amount.getString(),x,y,51,UiPalette.ACCENT_BRIGHT);
+        widgets.addTooltipText(List.of(amount),x,y,51,9);
     }
 }

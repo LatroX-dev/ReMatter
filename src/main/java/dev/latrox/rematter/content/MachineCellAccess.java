@@ -16,6 +16,10 @@ public final class MachineCellAccess {
     /** Bays are numbered from the top of the viewer's left column to the bottom of the right. */
     public static int driveColumn(int bay) { return bay / DRIVE_ROWS; }
     public static int driveRow(int bay) { return bay % DRIVE_ROWS; }
+    /** Three public bits per bay: absent, three Matter tiers, unreadable, then three Primal tiers. */
+    public static int decodeTier(int packed, int bay) {
+        return bay >= 0 && bay < DRIVE_BAYS ? packed >>> (bay * 3) & 7 : 0;
+    }
     public static int bayForSlot(MachineKind kind, int slot) {
         for (int bay = 0; bay < bayCount(kind); bay++) if (slotForBay(kind, bay) == slot) return bay;
         return -1;

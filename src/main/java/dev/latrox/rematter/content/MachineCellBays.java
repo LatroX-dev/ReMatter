@@ -80,7 +80,7 @@ final class MachineCellBays {
         for (int bay = 0; bay < count(); bay++) if (!stack(bay).isEmpty()) mask |= 1 << bay;
         return mask;
     }
-    /** 0 empty, 1/2/3 capacity tiers, 4 unreadable or foreign item. */
+    /** 0 absent, 1/2/3 Matter capacity tiers, 4 unreadable or foreign, 5/6/7 Primal capacity tiers. */
     int visibleTier(int bay) {
         var stack = stack(bay);
         if (stack.isEmpty()) return 0;
@@ -97,7 +97,7 @@ final class MachineCellBays {
         var stack = stack(bay);
         var mount = cells.mount(bay);
         if (stack.isEmpty()) return CellStatus.ABSENT;
-        if(stack.getItem() instanceof PrimalCellItem){var v=PrimalCells.view(stack);return CellStatus.of(true,v.readable(),v.amount(),v.capacity(),v.amount()>0?1:0,1);}
+        if(stack.getItem() instanceof PrimalCellItem){var v=PrimalCells.view(stack);return CellStatus.of(true,v.readable(),v.amount(),v.capacity(),0,1);}
         if (!mount.readable(stack)) return CellStatus.LOCKED;
         var inventory = mount.inventory();
         return CellStatus.of(true, true, inventory.total(), inventory.capacity(), inventory.typeCount(), inventory.maximumTypes());

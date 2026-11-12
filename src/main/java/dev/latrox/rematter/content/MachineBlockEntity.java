@@ -471,10 +471,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level != null && level.isClientSide()) return visibleCellMask;
         return bays.visibleMask();
     }
-    /** 0 empty, 1/2/3 capacity tiers, 4 unreadable or foreign preserved item. */
+    /** 0 absent, 1/2/3 Matter capacity tiers, 4 unreadable or foreign, 5/6/7 Primal capacity tiers. */
     public int visibleCellTier(int bay) {
         if (bay < 0 || bay >= cellBayCount()) return 0;
-        if (level != null && level.isClientSide()) return Math.min(4, visibleCellTiers >>> (bay * 3) & 7);
+        if (level != null && level.isClientSide()) return MachineCellAccess.decodeTier(visibleCellTiers, bay);
         return bays.visibleTier(bay);
     }
     public CellStatus visibleCellStatus(int bay) {

@@ -3,7 +3,7 @@ package dev.latrox.rematter.compat.jei;
 import dev.latrox.rematter.compat.PreparationDisplay;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
+import dev.latrox.rematter.client.UiIcon;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import mezz.jei.api.constants.VanillaTypes;
@@ -45,23 +45,23 @@ final class PreparationCategory implements IRecipeCategory<PreparationDisplay> {
     @Override public void draw(PreparationDisplay recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
         ScreenChrome.panel(graphics,0,0,getWidth(),getHeight());
         ScreenChrome.inset(graphics,4,48,getWidth()-8,60);
-        ScreenChrome.icon(graphics,Icon.INPUT,6,3,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.SLOT_INPUT,4,1,UiPalette.ACCENT);
         graphics.text(Minecraft.getInstance().font,Component.translatable("gui.rematter.preparation_inputs"),22,5,UiPalette.TEXT,false);
-        ScreenChrome.icon(graphics,Icon.OUTPUT,143,3,UiPalette.ACCENT);
-        ScreenChrome.icon(graphics,Icon.NEXT,105,25,UiPalette.ACCENT);
-        ScreenChrome.icon(graphics,recipe.manual()?Icon.CRANK:Icon.POWER,8,52,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.SLOT_OUTPUT,141,1,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.ARROW_RIGHT,103,23,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,recipe.manual()?UiIcon.CRANK:UiIcon.ENERGY,6,50,UiPalette.ACCENT);
         value(graphics,recipe.costValue().getString(),24,54,154,UiPalette.TEXT);
         if (!recipe.manual()) {
-            ScreenChrome.icon(graphics,Icon.TIME,8,70,UiPalette.ACCENT);
+            ScreenChrome.icon(graphics,UiIcon.TIME,6,68,UiPalette.ACCENT);
             value(graphics,recipe.timeValue().getString(),24,72,154,UiPalette.MUTED);
         }
-        ScreenChrome.icon(graphics,Icon.RECIPE,8,88,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.RECIPE,6,86,UiPalette.ACCENT);
         value(graphics,recipe.output().getHoverName().getString(),24,90,138,UiPalette.ACCENT);
-        ScreenChrome.icon(graphics,Icon.INFO,168,88,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.INFO,166,86,UiPalette.ACCENT);
     }
     private static void value(GuiGraphicsExtractor graphics,String text,int x,int y,int width,int color) {
         var font=Minecraft.getInstance().font;
-        graphics.text(font,font.plainSubstrByWidth(text,width),x,y,color,false);
+        ScreenChrome.text(graphics,font,text,x,y,width,color);
     }
     @Override public void getTooltip(ITooltipBuilder tooltip, PreparationDisplay recipe, IRecipeSlotsView slots, double mouseX, double mouseY) {
         if (inside(mouseX,mouseY,6,3)) tooltip.add(Component.translatable("gui.rematter.preparation_inputs"));

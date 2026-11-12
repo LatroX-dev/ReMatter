@@ -1,13 +1,13 @@
 {
-  "ambientocclusion": false,
+  "parent": "minecraft:block/block",
   "textures": {
-    "particle": "rematter:block/graphite",
-    "shell": "rematter:block/graphite",
-    "edge": "rematter:block/socket_rim",
+    "particle": "rematter:block/entangled_link_casing",
+    "shell": "rematter:block/entangled_link_casing",
     "eye": "rematter:block/entangled_link"
   },
   "elements": [
     {
+      "name": "lower rim",
       "from": [
         0,
         0,
@@ -20,130 +20,32 @@
       ],
       "faces": {
         "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
+          "texture": "#shell",
+          "cullface": "north"
         },
         "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
+          "texture": "#shell",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#shell",
+          "cullface": "east"
         },
         "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
+          "texture": "#shell",
+          "cullface": "west"
         },
         "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
+          "texture": "#shell"
         },
         "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
+          "texture": "#shell",
+          "cullface": "down"
         }
       }
     },
     {
-      "from": [
-        0,
-        13,
-        0
-      ],
-      "to": [
-        16,
-        16,
-        16
-      ],
-      "faces": {
-        "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#edge"
-        }
-      }
-    },
-    {
+      "name": "body",
       "from": [
         1,
         3,
@@ -156,120 +58,156 @@
       ],
       "faces": {
         "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#shell"
-        },
-        "east": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
           "texture": "#shell"
         },
         "south": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
+          "texture": "#shell"
+        },
+        "east": {
           "texture": "#shell"
         },
         "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#shell"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#shell"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
           "texture": "#shell"
         }
       }
     },
     {
+      "name": "upper rim",
       "from": [
-        3,
-        4,
-        0.95
+        0,
+        13,
+        0
       ],
       "to": [
-        13,
-        12,
-        15.05
+        16,
+        16,
+        16
       ],
       "faces": {
         "north": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#eye"
+          "texture": "#shell",
+          "cullface": "north"
         },
         "south": {
+          "texture": "#shell",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#shell",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#shell",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#shell",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#shell"
+        }
+      }
+    },
+    {
+      "name": "north lens",
+      "from": [
+        4,
+        4,
+        0.5
+      ],
+      "to": [
+        12,
+        12,
+        1
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "north": {
           "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            12,
+            12
           ],
           "texture": "#eye"
         }
       }
     },
     {
+      "name": "south lens",
       "from": [
-        0.9,
         4,
-        3
+        4,
+        15
       ],
       "to": [
-        15.1,
         12,
-        13
+        12,
+        15.5
       ],
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#eye"
+        }
+      }
+    },
+    {
+      "name": "west lens",
+      "from": [
+        0.5,
+        4,
+        4
+      ],
+      "to": [
+        1,
+        12,
+        12
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "faces": {
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#eye"
+        }
+      }
+    },
+    {
+      "name": "east lens",
+      "from": [
+        15,
+        4,
+        4
+      ],
+      "to": [
+        15.5,
+        12,
+        12
+      ],
+      "shade": false,
+      "light_emission": 15,
       "faces": {
         "east": {
           "uv": [
-            0,
-            0,
-            16,
-            16
-          ],
-          "texture": "#eye"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            16,
-            16
+            4,
+            4,
+            12,
+            12
           ],
           "texture": "#eye"
         }

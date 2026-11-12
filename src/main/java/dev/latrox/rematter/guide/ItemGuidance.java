@@ -9,7 +9,7 @@ import java.util.Optional;
 /** One player-facing pattern for every device, cable, module and coloured key crystal. */
 public final class ItemGuidance {
     public enum Role {
-        RESEARCH, BREAKDOWN, SYNTHESIS, REACTION, PREPARATION, HEAT, LINK, STORAGE;
+        RESEARCH, BREAKDOWN, SYNTHESIS, REACTION, PREPARATION, HEAT, LINK, STORAGE, POWER;
         public String key() { return "tooltip.rematter.role." + name().toLowerCase(Locale.ROOT); }
     }
     public record Hint(String key, List<Object> arguments) {
@@ -36,6 +36,7 @@ public final class ItemGuidance {
         add(items, "matter_terminal", Role.STORAGE, "terminal");
         add(items, "network_interface", Role.LINK, "interface");
         add(items, "primal_converter", Role.REACTION, "converter");
+        for(var tier:dev.latrox.rematter.energy.EnergyCubeTier.values())add(items,tier.id(),Role.POWER,"energy_cube");
         items.put("rematter:crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 1024, 64))));
         items.put("rematter:industrial_crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 1024, 256))));
         items.put("rematter:matter_cable", cable(128, 2048));

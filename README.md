@@ -2,6 +2,10 @@
 
 An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover substances from materials, carry them in a reusable Matter Cell, and assemble the materials you need.
 
+**[Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry) inspired me to create ReMatter.** I wanted to bring that chemistry-workshop idea to newer Minecraft versions and give it my own twist. [Alchemistry's official file list](https://www.curseforge.com/minecraft/mc-mods/alchemistry/files/all) currently reaches Minecraft 1.21.5 and lists no build for my **Minecraft 26.1.2 / NeoForge** target (checked 12 November 2026).
+
+I built ReMatter around exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. In the 0.7 development line, I am adding material research, hidden endgame Discovery, modular industry and internal power generation with Crystal Generators. I am also adding tiered Energy Cubes to buffer FE and charge equipment, plus a direct way to move substances between Cells. I want learning what can be made, collecting the matter, and building the equipment to be separate parts of progression.
+
 Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
 
 **Development version 0.7.0.** Build from source for testing; no mod-platform release is available yet. Powered preparation needs a starting FE source; later Crystal Generators can consume spare crystals. Other Minecraft versions and loaders are not currently supported. ReMatter uses its own numeric versions, independent of any reference pack. This first-release development line does not provide migration from earlier development schemas; unknown stored substances remain preserved.
@@ -42,6 +46,8 @@ Cells hold **64,000**, **256,000** or **1,000,000 total units**, with up to **51
 The 64k Cell uses one Matrix Crystal and a Control Circuit. The 256k Cell uses a Matrix Cluster, a Control Circuit and two Ender Conductors. The 1M Cell uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath. All tiers use a separately crafted Cell Housing and start empty.
 
 A Matter Drive holds **six individually removable Cells**, arranged in two columns of three. Two three-bay Cell Racks form its assembly. The full-block cabinet sits flush beside adjacent Drives. The front shows the inserted Cells, and connected processors use their shared contents.
+
+To move stored substances to another Cell, remove both from their machines and place them in your player inventory. **Carry the source Cell on the inventory cursor and right-click the destination Cell**. Only quantities that fit move; the source keeps the remainder. This works across ordinary Cell tiers, with liquids, gases and stored substances whose definitions are currently unavailable. Primal Cells use the same gesture for their separate reserve. Ordinary and Primal Matter stay separate; unreadable data stays protected.
 
 Each Cell has a status light: **blue** means empty, **green** means it contains matter with room available, **amber** means its quantity or substance-type capacity is full, and **red** means its contents cannot be read safely. Unreadable contents stay preserved. The same lights appear on mounted Cells, held Cells and inventory items.
 
@@ -137,6 +143,20 @@ Two **Entangled Links** can join loaded networks of the same owner within **32 b
 The Industrial Preparator offers explicit multi-output **reclaim** recipes for coloured crystals and selected workshop parts. Inputs and all outputs must fit as a complete operation. It is not general machine recycling. An empty Hand Preparator can also be crafted into a powered Material Preparator; filled, modified or unreadable portable machines are refused.
 
 The **Crystal Generator** produces up to **64 FE/t** and the **Industrial Crystal Generator** up to **256 FE/t**. Both consume a permitted loose Matrix Crystal for exactly **1,024 FE** in the standalone defaults: plain plus all eight colours have the same yield. Full output pauses intake, and unspent fuel energy remains separate from the buffer across reloads. Primal Cells and Primal Crystals are not fuel. The ReForging data pack disables all nine crystal fuels pending a pack-specific recipe audit; the standalone energy bound covers ReMatter's own recipes only.
+
+## Buffer power and charge equipment
+
+The 0.7 development line includes Energy Cubes inspired by the familiar [Mekanism cube](https://wiki.aidancbrady.com/wiki/Energy_Cube) layout, drawn in ReMatter's graphite machine family.
+
+| Energy Cube | Capacity | Shared input / output rate | Charging slots |
+| --- | --- | --- | --- |
+| Basic | 4,000,000 FE | 2,048 FE/t | 1 |
+| Reinforced | 32,000,000 FE | 16,384 FE/t | 2 |
+| Resonant | 256,000,000 FE | 131,072 FE/t | 4 |
+
+Configure each face as **Input**, **Output** or **Disabled**. The front starts as Output; the other faces start as Input. Compatible FE items charge in the dedicated slots. All outputs and charging slots share the tier's output allowance; inputs have their own shared allowance. Energy, side settings and charging items remain with the cube when it is moved. Each tier is crafted independently.
+
+Compact controls use icons with complete mouseover text. Names and formulas remain complete, while exact stored amounts are available on hover.
 
 ## Keep a useful reserve
 

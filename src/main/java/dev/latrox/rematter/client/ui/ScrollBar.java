@@ -1,11 +1,14 @@
 package dev.latrox.rematter.client.ui;
 
 import dev.latrox.rematter.client.ScreenChrome;
-import dev.latrox.rematter.client.UiPalette;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /** One draggable scrollbar shared by fixed-row lists. */
 public final class ScrollBar {
+    private static final Identifier THUMB=Identifier.fromNamespaceAndPath("rematter","scroll_thumb");
+    private static final Identifier ACTIVE_THUMB=Identifier.fromNamespaceAndPath("rematter","scroll_thumb_active");
     private final ScrollModel model;
     private int x, y, width = 5, height = 16;
     private boolean dragging;
@@ -22,8 +25,7 @@ public final class ScrollBar {
         ScreenChrome.inset(g,x,y,width,height);
         if (!model.scrollable()) return;
         int top=thumbY();
-        g.fill(x+1,top,x+width-1,top+thumbHeight(),dragging?UiPalette.ACCENT:UiPalette.BORDER);
-        g.fill(x+1,top,x+width-1,top+1,dragging?UiPalette.ACCENT_BRIGHT:UiPalette.MUTED);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED,dragging?ACTIVE_THUMB:THUMB,x+1,top,width-2,thumbHeight());
     }
     public boolean mouseClicked(double mx,double my,int button) {
         if (button!=0||!model.scrollable()||!contains(mx,my)) return false;

@@ -111,12 +111,20 @@ public final class SubstanceIcon {
     }
 
     private static void drawSymbol(GuiGraphicsExtractor graphics, Font font, int x, int y, Style style) {
-        // Keep the game's font on its pixel grid. Long notation is visibly abbreviated; lists and tooltips
-        // retain the complete formula instead of squeezing unreadable sub-pixel letters into the badge.
-        String label = ScreenChrome.fit(font, style.first() + style.second(), 14);
-        graphics.fill(x + 1, y + 3, x + 15, y + 12, 0xc010191d);
-        graphics.text(font, label, x + (16 - font.width(label)) / 2, y + 4,
-                style.known() ? UiPalette.TEXT : UiPalette.WARNING, false);
+        // Formula text is never shortened. Two rows break at an element boundary; the complete
+        // notation is scaled as one group so even a long compound stays inside its 16 px badge.
+        int widest=Math.max(font.width(style.first()),font.width(style.second()));
+        boolean twoLines=!style.second().isEmpty();
+        float scale=Math.min(twoLines?.625F:1F,14F/Math.max(1,widest));
+        int color=style.known()?UiPalette.TEXT:UiPalette.WARNING;
+        graphics.fill(x+1,y+2,x+15,y+13,UiPalette.BADGE_BACKGROUND);
+        var pose=graphics.pose();
+        pose.pushMatrix();
+        pose.translate(x+8F,y+(twoLines?2F:4F));
+        pose.scale(scale,scale);
+        graphics.text(font,style.first(),-font.width(style.first())/2,0,color,false);
+        if(twoLines)graphics.text(font,style.second(),-font.width(style.second())/2,9,color,false);
+        pose.popMatrix();
     }
 
     private static int formulaBreak(ToIntFunction<String> width, String formula, int fullWidth) {
@@ -163,11 +171,11 @@ public final class SubstanceIcon {
     private static int accent(long fingerprint, SubstanceId id, boolean fictional) {
         if (id.namespace().equals("rematter")) {
             switch (id.path()) {
-                case "iron": return 0xffadbec8;
-                case "copper": return 0xffd58c5c;
-                case "gold": return 0xffe2be55;
-                case "water": return 0xff62b5e4;
-                case "mineral_mix": return 0xffa8937c;
+                case "iron": return UiPalette.SUBSTANCE_IRON;
+                case "copper": return UiPalette.SUBSTANCE_COPPER;
+                case "gold": return UiPalette.SUBSTANCE_GOLD;
+                case "water": return UiPalette.SUBSTANCE_WATER;
+                case "mineral_mix": return UiPalette.SUBSTANCE_MINERAL;
                 default: break;
             }
         }

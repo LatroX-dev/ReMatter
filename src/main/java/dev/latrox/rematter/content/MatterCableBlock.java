@@ -99,6 +99,7 @@ public final class MatterCableBlock extends PipeBlock {
             if(owner==null)return false;
             if(neighbor.getBlock() instanceof MatterCableBlock&&!owner.equals(CableOwners.owner(server,position)))return false;
             if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!owner.equals(machine.networkOwner()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!owner.equals(cube.owner()))return false;
             if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!owner.equals(link.owner()))return false;
             if(level.getBlockEntity(position) instanceof MachinePortBlockEntity port) {
                 var controller=port.controller(null);if(controller==null||!owner.equals(controller.networkOwner()))return false;
@@ -161,7 +162,7 @@ public final class MatterCableBlock extends PipeBlock {
         refreshLoadedAround(level, pos);
     }
     /** Restores saved connection shapes without loading the neighboring chunks. */
-    static void refreshLoadedAround(ServerLevel level, BlockPos pos) {
+    public static void refreshLoadedAround(ServerLevel level, BlockPos pos) {
         refreshLoadedPipe(level, pos);
         for (Direction side : Direction.values()) refreshLoadedPipe(level, pos.relative(side));
     }

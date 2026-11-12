@@ -1,12 +1,12 @@
 # Visual style
 
-ReMatter should look like one thing: every block, item, icon and screen follows the six rules below. Read them before you add or change a texture, a model or a screen, and run the check at the end:
+ReMatter should look like one thing: every block, item, icon and screen follows the six rules below. Read them before you add or change a texture, a model, a recipe with a Matrix Crystal or a screen, and run the check at the end:
 
 ```sh
 python3 tools/check_visual_style.py
 ```
 
-The check reads the tables of this page that carry a `check:` mark, so a colour is changed here, in the palette module and in the Java palette together, or not at all.
+The check reads the tables of this page that carry a `check:` mark, the recipes and both palettes. A colour is changed here, in the palette module and in the Java palette together, or not at all.
 
 ## The six rules
 
@@ -18,13 +18,13 @@ The check reads the tables of this page that carry a `check:` mark, so a colour 
 
 **S4. Mounted hardware looks the same in the hand and in the machine.** Matter Cells, Primal Cells, the Cell Housing and the five industrial modules are block-style models built from the sprites the player sees when the part is mounted.
 
-**S5. Colour means something.** The casing is neutral graphite. The eight Matrix Crystal hues are identity colours: a machine wears the hue of the crystal in its recipe, a module the hue of its job. Status colours mean status only. Primal Matter has a signature of its own. Every colour comes from one source.
+**S5. Colour means something, and the recipe decides it.** The casing is neutral graphite. Whatever is crafted with a coloured Matrix Crystal wears exactly that crystal's hue as an accent: every crystal of the recipe, and no crystal that is not in it. Status colours mean status only. Primal Matter has a signature of its own. Every colour comes from one source.
 
-**S6. Screens use the same graphite and one icon set.** Every tab and every action has an icon, compact buttons have a tooltip, an empty slot shows what belongs in it, and a substance badge always shows the full symbol.
+**S6. Screens use the same graphite and one icon set.** Every tab and every action has an icon; compact controls use the icon alone and a full tooltip. No displayed text is shortened or cropped. An empty slot shows what belongs in it, and a substance badge always shows the full symbol.
 
 ## Palette
 
-`tools/family_palette.py` and `tools/machine_palette.py` are the source. `UiPalette.java` mirrors them for the screens. The check compares both with the tables below.
+`tools/family_palette.py` and `tools/machine_palette.py` are the source. `UiPalette.java` mirrors them for the screens. The generated, server-safe `PrimalVisualColors.java` gives Primal Cell item bars the same Body and fault colours without loading client code. The check compares the palettes with the tables below; the cell generator and tool tests also compare this item-bar mirror.
 
 A neutral is used exactly as listed. An identity or status colour may also be mixed with black or white for lit, dim and shaded states (`scale` and `lighten` in the palette module), as long as at least a fifth of the colour remains. A colour that is merely close to a listed one is a mistake: take the listed value.
 
@@ -46,25 +46,44 @@ A neutral is used exactly as listed. An identity or status colour may also be mi
 | Connector | `PORT_METAL` | `#46515b` | gunmetal body of connectors |
 | Connector dark | `PORT_DARK` | `#2d363f` | shaded edge of connectors |
 | Automatic port | `PORT_AUTOMATIC` | `#4d5a64` | ring of a port without a fixed mode |
-| Contact | `COPPER` | `#ae6f49` | electrical contacts |
+| Contact | `COPPER` | `#ae6f49` | electrical contacts, badges and other copper metal |
 | Label | `IVORY` | `#e4decc` | type plates, tier bars, dashes |
 | Cable jacket | `JACKET` | `#181c22` | cable body, a step below the casing |
 
 ### The eight crystal hues
 
-<!-- check:crystal-hues -->
-| Crystal | Hex | Stands for | Machines | Modules |
-| --- | --- | --- | --- | --- |
-| Amber | `#e3a94b` | preparation | `material_preparator`, `hand_preparator`, `industrial_preparator` | `grinding_unit`, `separation_unit`, `mixing_basin` |
-| Copper | `#dc894f` | decomposition | `decomposer` | |
-| Mint | `#57cddb` | stored matter | `matter_drive`, `matter_terminal` | |
-| Leaf | `#7dd27f` | synthesis | `material_synthesizer` | |
-| Ice | `#d7d1bc` | analysis | `analyzer` | |
-| Ember | `#ea4848` | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator` | |
-| Blue | `#6794f1` | network link | `network_interface` | |
-| Violet | `#b381e8` | reaction | `chemical_reactor`, `industrial_reactor` | `field_coil`, `reaction_chamber` |
+A Matrix Crystal takes its hue from the material it is coloured with. Whatever is then crafted with the crystal carries the hue on.
 
-The hue of a device is the hue of the Matrix Crystal in its crafting recipe, and at least one of its sprites shows it. The check reads the recipes, the sprites and `machineAccent` in `UiPalette.java` against this table. The item icon of a crystal has this hue as its body colour. On a Machine Port the crystal hues double as the legend of the port mode, and only there.
+<!-- check:crystal-hues -->
+| Crystal | Hex | Coloured with | Stands for | Carried by |
+| --- | --- | --- | --- | --- |
+| Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `industrial_preparator`, `grinding_unit`, `separation_unit`, `mixing_basin` |
+| Copper | `#dc894f` | copper dust | decomposition | `decomposer` |
+| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal` |
+| Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer` |
+| Ice | `#d7d1bc` | Silith | analysis | `analyzer` |
+| Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube` |
+| Blue | `#6794f1` | lapis dust | network link | `network_interface` |
+| Violet | `#b381e8` | amethyst dust | reaction | `chemical_reactor`, `industrial_reactor`, `field_coil`, `reaction_chamber`, `primal_converter`, `primal_cell_16k`, `primal_cell_64k` |
+
+"Carried by" lists the result of every recipe that holds the crystal. The check reads the recipes and reports a row that is out of date.
+
+**The recipe rule.**
+
+- If a coloured Matrix Crystal is an ingredient, the result shows that crystal's hue in exactly the value of the table: at least four texels (one model pixel) of a sprite the block or its item shows, or 64 pixels of an illustrated icon. The lit state counts. A darker shade alone does not: a dim part may be a shade, but somewhere the hue itself appears.
+- A recipe with two different crystals gives a result with both hues.
+- Something crafted from a part that already carries a hue may keep that hue; it does not have to.
+- A recipe that takes a crystal apart again returns the clear crystal and its pigment. Nothing keeps the hue.
+- No crystal in the recipe chain means no crystal hue: the part is drawn in neutrals. Decoration never borrows one of the eight values.
+- The screen of a machine uses the hue of its crystal as its accent. A machine without a crystal has a neutral accent.
+- Choose the crystal of a new recipe by what it stands for. Then the hue follows from the recipe, and a player who sees a green part knows a Leaf crystal went into it.
+
+**When a hue is not a crystal.** These are the only other meanings, and each has its own values or its own place:
+
+- *Status* has the four LED colours below: separate values, used only for small lamps and status icons.
+- *Port mode.* The ring of a port uses seven of the hues as the legend of its mode (`PORT_MODES`): on the Machine Port and on a configured side of a machine, and only there.
+- *Primal Matter* has the signature below.
+- *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The stripe of the Matter Cable is its copper conductor and is the one documented use of the crystal value for the metal.
 
 ### Status colours
 
@@ -84,22 +103,41 @@ A status colour never decorates and never tells tiers apart. A tier is a bar len
 <!-- check:cable-tiers -->
 | Cable | Constant | Hex | Stripe |
 | --- | --- | --- | --- |
-| Matter Cable | `CABLE_TIERS['matter_cable']['stripe']` | `#dc894f` | 2 texels, solid |
+| Matter Cable | `CABLE_TIERS['matter_cable']['stripe']` | `#dc894f` | 2 texels, solid: the copper conductor |
 | Reinforced Matter Cable | `CABLE_TIERS['reinforced_matter_cable']['stripe']` | `#54bfac` | 4 texels, solid |
 | Resonant Matter Cable | `CABLE_TIERS['resonant_matter_cable']['stripe']` | `#be8fbb` | 4 texels, dashed |
 
 ### The Primal signature
 
-<!-- check:primal-signature -->
-| Role | Hex | Use | Devices |
-| --- | --- | --- | --- |
-| Core | `#ffffff` | white-hot centre | |
-| Glow | `#efe6ff` | halo around the core | |
-| Body | `#8a5cff` | ultraviolet body, accent of Primal screens | `primal_converter` |
-| Cool | `#5cc8ff` | one end of the shimmer, cyan-blue | |
-| Warm | `#ff6ad5` | other end of the shimmer, magenta | |
+Primal Matter is the one thing in the mod that is many-coloured. It is prismatic ultraviolet: a white-hot core in an ultraviolet body, and a spectrum of five stops that shows in the crystals and travels through them.
 
-Primal Matter is prismatic ultraviolet: a white core in an ultraviolet body, with a shimmer that travels between the cool and the warm end. It is animated wherever it is lit. It is none of the eight hues and must not be mistaken for the static, pastel Violet crystal of the reactors, so Primal parts never use `#b381e8` and reactors never use the signature.
+<!-- check:primal-signature -->
+| Role | Name | Hex | Stop | Use |
+| --- | --- | --- | --- | --- |
+| Core | `PRIMAL_CORE` | `#ffffff` | | white-hot centre of every Primal crystal |
+| Glow | `PRIMAL_CORE_SOFT` | `#efe6ff` | | halo around the core |
+| Light | `PRIMAL_LIGHT` | `#ae8eff` | | facet turned to the light; Primal text on screens |
+| Body | `PRIMAL_BODY` | `#8a5cff` | 3 | ultraviolet body; the flat Primal accent of screens |
+| Deep | `PRIMAL_DEEP` | `#4c24b2` | | facet in shade |
+| Void | `PRIMAL_VOID` | `#1c0e4a` | | inside of a hollow |
+| Ink | `PRIMAL_INK` | `#1e1546` | | contour of the illustrated Primal icons |
+| Teal | `PRIMAL_TEAL` | `#46e0c8` | 1 | spectrum |
+| Cool | `PRIMAL_COOL` | `#5cc8ff` | 2 | spectrum |
+| Warm | `PRIMAL_WARM` | `#ff6ad5` | 4 | spectrum |
+| Gold | `PRIMAL_GOLD` | `#ffb37a` | 5 | spectrum |
+
+- The spectrum runs teal, cool, body, warm, gold and back the same way. It never jumps from gold to teal.
+- In the world Primal Matter is never one flat colour. An ore shows at least three stops in every single frame, each crystal with its white core, and the animation moves the hues along the spectrum.
+- A single stop is never "the Primal colour". Where a screen needs one flat value it is Body for fills, edges and icon tints and Light for text.
+- The signature belongs to Primal Matter alone. A reactor never uses it, and a Primal part uses Violet `#b381e8` only when a Violet crystal is in its recipe; then the crystal is a flat, static part beside the animated signature, so the two cannot be mistaken for each other.
+
+<!-- check:primal-devices -->
+| Primal device | Shows the signature in |
+| --- | --- |
+| `deepslate_primal_ore`, `nether_primal_ore`, `end_primal_ore` | the crystals of the overlay |
+| `primal_cell_16k`, `primal_cell_64k`, `primal_cell_256k` | the rail of the cartridge and the faceplate in the Drive |
+| `primal_converter` | the window of the front; Body is its screen accent |
+| `entangled_link` | the lens on each side |
 
 ## Blocks and models (S1)
 
@@ -107,14 +145,14 @@ Primal Matter is prismatic ultraviolet: a white core in an ultraviolet body, wit
 - **Grid.** Every box corner is a multiple of 0.5 px. A feature that stands alone is at least 1 px in two of its dimensions; 0.5 px is only the depth of a step or an inset.
 - **Geometry or texture?** Geometry carries the silhouette and real depth: the casing, an alcove, a bay, a showpiece, a light that stands proud. Everything else is drawn into the sprite: bolts, seams, vents, labels, keys. If a detail would need a box thinner than 1 px, it is a texture detail.
 - **Faces.** Only visible faces are written. No two faces lie in the same plane, face the same way and overlap. An outer face on the block boundary carries its `cullface`. A showpiece holds at most two rotated boxes; housings hold none.
-- **Sprites.** At most 16 colours, alpha 0 or 255. Light comes from the top left: a lit edge on top and left, a shaded edge on the right and bottom, one texel wide.
-- **Lights and screens.** A lit part has `light_emission` 15 and no shading, so it keeps its brightness between other blocks. Switching a machine on swaps the sprite of its lit parts and nothing else.
+- **Sprites.** Palette values only, at most 24 colours in a frame and at most six shades of one hue; alpha 0 or 255. Light comes from the top left: a lit edge on top and left, a shaded edge on the right and bottom, one texel wide.
+- **Lights and screens.** `textures/entity/effect_light.png` is a white tint mask for renderer effects; its white is technical ink, not a Primal identity accent. A lit part has `light_emission` 15 and no shading, so it keeps its brightness between other blocks. Switching a machine on swaps the sprite of its lit parts and nothing else.
 - **Animation.** A vertical strip of square frames with a `.png.mcmeta` beside it. Hard steps for pixel art (the red blink, the reactor liquid); `interpolate` only for glows. Every frame keeps the same transparent pixels.
 - **Never by hand.** A generator writes the sprites, models, block states and item definitions. To change one, change the generator and run it.
 
 ## Natural blocks (S2)
 
-The model of an ore names the host texture of the vanilla block (`minecraft:block/deepslate`, `minecraft:block/netherrack`, `minecraft:block/end_stone`) and puts the mod's overlay on the same faces. Overlay textures are 16 px wide and named `*primal_ore*`. They hold the socket shadow and the crystal, never a copy of the stone. The crystal uses the Primal signature, at least one overlay layer is animated, and the lit layer has `light_emission`.
+The model of an ore stacks three boxes of the full block, like the vanilla grass block: the host, a socket and the glow. The host names the texture of the vanilla block (`minecraft:block/deepslate`, `minecraft:block/netherrack`, `minecraft:block/end_stone`). The socket and the glow are the mod's overlays: 16 px wide, named `*primal_ore*`, never a copy of the stone. The socket is lit by the world, so its dark outline does not glow. The glow layer carries the Primal signature, is animated and has `light_emission`. This is the one place where faces share a plane on purpose.
 
 ## Item icons (S3)
 
@@ -122,7 +160,8 @@ The model of an ore names the host texture of the vanilla block (`minecraft:bloc
 - **Outline.** A closed outline 3 to 5 px wide in a dark shade of the object's own colour, anti-aliased against the background.
 - **Shading.** Flat facets in three to five steps of one colour, a soft highlight toward the upper left, the darkest facet at the lower right. No texture noise, no photographic gradients.
 - **View.** Three-quarter view from the upper left, as if the object lay on a table in front of you.
-- **Source.** An SVG under `artwork/` rendered by its tool, or a deterministic painter. A hand-edited PNG without a source cannot be reproduced.
+- **Hue.** An item crafted with a coloured crystal has one flat facet or inlay in exactly the crystal's value.
+- **Source.** New and changed icons use an SVG under `artwork/` rendered by its tool, or a deterministic painter. The original painted PNGs are canonical artwork sources recorded by SHA-256 in `artwork/painted-icon-sources.json`; this closed set is preserved byte for byte until an icon gets a reproducible replacement. The exception concerns provenance only: canvas, outline, colour and shading rules still apply. A new or changed hand-edited PNG without a source cannot be reproduced.
 - **References.** Crystals: `amber_matrix_crystal`. Powders: `gold_dust`. Ingots: `rhevon_ingot`. Circuits: `control_circuit`. Upgrades: `speed_upgrade`. Frames: `machine_frame`.
 
 A crystal with a hue is opaque and its body is the hue of the table above. Only the uncoloured Matrix Crystal is clear.
@@ -135,8 +174,9 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 
 - **Surfaces.** Panels, buttons, insets and slots are nine-slice sprites in the casing colours of the table below. Device colour appears in the title strip and in accents.
 - **Icons.** 16 x 16 sprites in `textures/gui/sprites/icon/`, drawn in white ink with one lighter tone and tinted when drawn, so one sprite serves every state. Status lamps are the only icons with baked colours, and those are the status colours.
-- **Buttons.** A primary action is an icon and a label. A compact button is an icon alone and must have a tooltip. A tab has an icon.
+- **Buttons.** A primary action may pair an icon with a full label. Compact controls, tabs and secondary actions use the icon alone with a complete tooltip naming the action and explaining it. Accessible names remain complete.
 - **Slots.** An empty slot shows a ghost icon of what belongs in it.
+- **Text.** Show every name, formula and hint without truncation. Quantities may use standard compact units such as k and M; their exact values remain available on hover. Reflow or wrap text, scroll an overflowing list, or scale a bounded single-line readout without dropping characters. Never append an ellipsis or clip displayed information. The same rule covers JEI and EMI views.
 - **Substance badges.** A badge shows the complete symbol of the substance. A long formula breaks into two lines at an element; it is never cut with an ellipsis.
 - **Colours in code.** Every colour of a screen or renderer is a constant of `UiPalette.java`. Other client classes hold no colour literals.
 
@@ -157,6 +197,7 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 | --- | --- |
 | `generate_family_assets.py` | sprites, models, block states and items of the Matter Drive, Terminal, Network Interface, Machine Port, cables, Reactor Casing and Glass, both industrial controllers, the Chemical Reactor and the six benches |
 | `generate_progression_assets.py` | Primal Converter and both Crystal Generators |
+| `generate_energy_assets.py` | the three Energy Cube tiers, charge0–8 core models, independent recipes, loot and recipe-book advancements |
 | `generate_module_assets.py` | the five industrial modules |
 | `generate_cell_models.py` | Cell Housing, Matter Cells and Primal Cells |
 | `generate_primal_assets.py` | Primal Ores, Primal Shard, Primal Crystal, Discovery Lens, Entangled Link |
@@ -175,11 +216,13 @@ python3 tools/check_assets.py
 
 ## Adding something new
 
-**A block.** 1. Choose its crystal: the hue of the Matrix Crystal in its recipe. Add the block to the crystal table above, to `FAMILY` in `tools/machine_palette.py` and to `machineAccent`. 2. Describe its boxes and sprites in the generator of its family; reuse the casing sprites and the sealed or alcove body. 3. Give it an idle and an active state that differ only in lit parts. 4. Run the generator, the generator's `--check` and the style check.
+**A block.** 1. Write its recipe first. The Matrix Crystal in it is its hue; choose the crystal by what it stands for. 2. Add the block to "Carried by" in the crystal table, to `FAMILY` in `tools/machine_palette.py` and, for a machine, to `machineAccent`. 3. Describe its boxes and sprites in the generator of its family; reuse the casing sprites and the sealed or alcove body. Draw the accent parts in the crystal's value. 4. Give it an idle and an active state that differ only in lit parts. 5. Run the generator, the generator's `--check` and the style check.
 
-**A material, component or tool item.** 1. Draw the icon as an SVG in `artwork/` in the style of the reference icons, or extend a painter. 2. Render it to `textures/item/` at 128 x 128. 3. Add the item to the generator that writes item models and definitions. 4. Run the style check; it verifies size, canvas use, anti-aliasing and outline.
+**A material, component or tool item.** 1. Draw the icon as an SVG in `artwork/` in the style of the reference icons, or extend a painter. 2. Render it to `textures/item/` at 128 x 128. 3. Add the item to the generator that writes item models and definitions. 4. If its recipe holds a coloured crystal, give the drawing a facet in the crystal's value and add the item to the crystal table. 5. Run the style check; it verifies size, canvas use, anti-aliasing, outline and hue.
 
-**A module or another mounted part.** 1. Decide what the player sees when it is mounted and draw those sprites first. 2. Build the item from the same boxes and sprites. 3. Give its crystal the hue of its job and list the module in the crystal table. 4. Put the same crystal into its recipe.
+**A module or another mounted part.** 1. Decide what the player sees when it is mounted and draw those sprites first. 2. Build the item from the same boxes and sprites. 3. Put the crystal of its job into its recipe, show that crystal on the part and list the part in the crystal table.
+
+**A recipe change.** Adding, removing or swapping a coloured crystal changes how the result looks. Change the sprites and the crystal table in the same change.
 
 **A GUI icon.** 1. Draw it in the icon generator as a 16 x 16 white-ink glyph on the pixel grid, with strokes of the same weight as the existing set. 2. Reference it from the screen with a tint from `UiPalette`. 3. Add a tooltip if the button has no label.
 
@@ -194,9 +237,10 @@ python3 tools/check_assets.py
 - [ ] New block sprites are 32 x 32 or 16 x 16, in palette colours, lit from the top left.
 - [ ] New geometry is on the half-pixel grid and small detail is in the sprite.
 - [ ] A new item is either an illustrated 128 px icon or a block-style model, not a small sprite.
-- [ ] Colour carries its meaning: crystal hue for identity, status colours for status, the Primal signature for Primal, and nothing else.
+- [ ] Every coloured crystal of a recipe shows on its result in the exact value, and nothing wears a crystal hue without the crystal.
+- [ ] Colour carries its meaning: crystal hue for what the recipe holds, status colours for status, the Primal signature for Primal, and nothing else.
 - [ ] Lit parts are emissive, animations loop, and the item of a machine shows it switched on.
 - [ ] Every new button and tab has an icon; an icon-only button has a tooltip; empty slots have a ghost.
-- [ ] Substance badges show full symbols.
+- [ ] Compact controls use icons with full tooltips; all displayed text and substance symbols remain complete.
 - [ ] Seen in the game next to an older block and an older icon, the new one belongs to the same set.
 - [ ] Where the choice is a matter of taste, the change shows two or three alternatives with a recommendation, and switching between them is one constant.

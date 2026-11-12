@@ -27,6 +27,8 @@ Primal Matter is a rare one-way resource, never a replacement silently pulled in
 
 Mine with iron tools or better. One ore drops **one Shard**; Fortune adds none. Silk Touch keeps one ore block. Either source loads exactly **1,000 u**, with no ore-processing bonus. Existing chunks are not refilled. Search time and actual find rates depend on terrain; different dimensions are not promised identical yields.
 
+A Primal Cell has a moving Primal rail on its cartridge and mounted faceplate, beside its status lamp. The 16k and 64k recipes also show a separate static Violet crystal window; the 256k recipe does not use that crystal.
+
 ## Load and transfer
 
 <RecipeFor id="rematter:primal_cell_16k" />

@@ -24,37 +24,37 @@
         "north": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "east": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "west": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         }
       }
@@ -78,37 +78,37 @@
         "north": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "east": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         },
         "west": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            3
+            4,
+            4,
+            7
           ]
         }
       }
@@ -132,37 +132,37 @@
         "north": {
           "texture": "#work",
           "uv": [
-            8,
             0,
-            12,
-            2
+            7,
+            4,
+            9
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            8,
             0,
-            12,
-            2
+            7,
+            4,
+            9
           ]
         },
         "east": {
           "texture": "#work",
           "uv": [
-            8,
             0,
-            12,
-            2
+            7,
+            4,
+            9
           ]
         },
         "west": {
           "texture": "#work",
           "uv": [
-            8,
             0,
-            12,
-            2
+            7,
+            4,
+            9
           ]
         },
         "up": {
@@ -173,6 +173,70 @@
             4,
             4
           ]
+        }
+      }
+    },
+    {
+      "name": "finial_tip",
+      "from": [
+        7,
+        15,
+        7
+      ],
+      "to": [
+        9,
+        16,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            2,
+            9,
+            4,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            2,
+            9,
+            4,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            2,
+            9,
+            4,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            2,
+            9,
+            4,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            9,
+            2,
+            11
+          ],
+          "cullface": "up"
         }
       }
     }

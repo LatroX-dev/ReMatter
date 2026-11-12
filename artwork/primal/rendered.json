@@ -1,14 +1,14 @@
 {
   "primal_shard": {
-    "drawing": "7b9d7a4323220edff9cf142dcec2c0d2d783acb20b46886713f660c6fe2929cb",
-    "sprite": "67f00e649fec927d9bff5744e033d7cd27b946c336d13e0d913b12ae290fccc8"
+    "drawing": "5fba6021e283da21ad783a65396f5fb9e79d7a36f620653336973af9ecabb942",
+    "sprite": "bb857f76a198acc329b456cfc2ded63b1d6436838ab3376439bf21a4b0208b8e"
   },
   "primal_crystal": {
-    "drawing": "5713cb08b3b33e22a2cd65f1f01205362654688ff8251b7c40d5c89c81ee62ad",
-    "sprite": "e74627c53b5983efacd78c0448f4a6cbe7e26295ef7d6b89f18c49cf7cee2a26"
+    "drawing": "2f683c071533163da7b257aabf10484d4d6028aa9a538b2049e62672a274ecdf",
+    "sprite": "4f522a5e0f00d4a2ddf74fad989676ba101e24963b5e3f4ae22c2fcee48a85f2"
   },
   "discovery_lens": {
-    "drawing": "006900603a63256734ad8babac87dc59ab32cd6bb350904be771438e68912f7d",
-    "sprite": "5af90851d48457ee27c9baa5225a43542ded568612a186bafb64bea4c16f9392"
+    "drawing": "749b209a3eacae48dbdaf9049a67db73178cc03d54f731298ac129d80d5ac1df",
+    "sprite": "2ccc5e7375cf2a34970bbb3a10593663fbd3c6087f889734f3b1fd91635b157f"
   }
 }

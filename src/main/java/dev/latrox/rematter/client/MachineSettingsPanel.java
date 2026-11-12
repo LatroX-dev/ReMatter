@@ -68,22 +68,23 @@ final class MachineSettingsPanel {
             var tab = button(tr("settings.section." + value.name().toLowerCase(java.util.Locale.ROOT)),
                     left, top, 18, 16, b -> setSection(value));
             tab.setTooltip(Tooltip.create(tr("settings.section_hint." + value.name().toLowerCase(java.util.Locale.ROOT))));
+            tab.iconOnly=true;tab.icon = switch(value){case SIDES -> UiIcon.SIDES;case PRODUCTION -> UiIcon.TARGET;case ACCESS -> UiIcon.ACCESS;};
             tab.selected = value == section; tabs.put(value, tab);
         }
         for (var side : MachinePortMode.Side.values()) {
             int[] position = sidePosition(side);
-            var face = grouped(Section.SIDES, button(Component.literal(faceLetter(side)),
+            var face = grouped(Section.SIDES, button(side.label(),
                     left + position[0], top + CONTENT_Y + position[1], 20, 18, b -> {
                         shownSide = side; sendMenu(MachineMenu.CYCLE_PORT + side.ordinal());
                     }));
             face.side = side; sides.put(side, face);
         }
-        target = new EditBox(font, left, top + 34, width - 66, 18, tr("stock_target"));
+        target = new EditBox(font, left, top + 34, width - 28, 18, tr("stock_target"));
         target.setMaxLength(13); target.setValue("0"); target.setFilter(value -> value.matches("[0-9]*"));
         target.setTextColor(UiPalette.TEXT); target.setHint(Component.literal("0"));
         target.setResponder(value -> { if (!updating) { dirty = true; error = Component.empty(); } });
         register(target, Section.PRODUCTION);
-        apply = grouped(Section.PRODUCTION, button(tr("apply"), left + width - 62, top + 34, 62, 18, b -> saveTarget()));
+        apply = grouped(Section.PRODUCTION, button(tr("apply"), left + width - 24, top + 34, 24, 18, b -> saveTarget()));
         product = grouped(Section.PRODUCTION, button(Component.empty(), left, top + 56, width, 18, b -> {
             if (!products.isEmpty()) { productIndex = (productIndex + 1) % products.size(); dirty = true; error = Component.empty(); updateWidgets(); }
         }));
@@ -96,6 +97,9 @@ final class MachineSettingsPanel {
         backend = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(9)));
         release = grouped(Section.ACCESS, button(tr("settings.recover"), left, top + CONTENT_Y + ROW * 2, width, 18,
                 b -> minecraft.pushGuiLayer(new ReleaseConfirmation(menu, menu.snapshot().orders()))));
+        apply.icon=UiIcon.CONFIRM;apply.iconOnly=true;product.icon=UiIcon.TARGET;gasCycle.icon=UiIcon.NEXT;gasCycle.iconOnly=true;
+        gasCycle.setMessage(tr("settings.gas_next"));
+        vent.icon=UiIcon.VENT;automation.icon=UiIcon.HOPPER;jobs.icon=UiIcon.EXCHANGE;backend.icon=UiIcon.NETWORK_OFFLINE;release.icon=UiIcon.EJECT;
         tick();
     }
 
@@ -178,10 +182,7 @@ final class MachineSettingsPanel {
         for (var value : Section.values()) {
             var tab = tabs.get(value); int index = available.indexOf(value);
             tab.visible = visible && index >= 0; tab.active = tab.visible; tab.selected = section == value;
-            if (index >= 0) {
-                if(available.size()==3){tab.setX(left+new int[]{0,53,124}[index]);tab.setWidth(new int[]{50,68,56}[index]);}
-                else{tab.setX(left + index * (tabWidth + 3));tab.setWidth(tabWidth);}
-            }
+            if(index>=0){tab.setX(left+index*28);tab.setWidth(24);}
             for (var widget : groups.get(value)) { widget.visible = visible && section == value; widget.active = widget.visible && canEdit(); }
         }
         for (var entry : sides.entrySet()) {
@@ -220,6 +221,7 @@ final class MachineSettingsPanel {
         backend.setMessage(tr("settings.bridge", tr(switch (menu.snapshot().backend()) {
             case "ae2" -> "backend_ae2"; case "rs" -> "backend_rs"; default -> "backend_none";
         })));
+        backend.icon=StatusText.icon(menu.snapshot().status(),menu.kind())==UiIcon.NETWORK_ONLINE?UiIcon.NETWORK_ONLINE:UiIcon.NETWORK_OFFLINE;
         backend.setTooltip(Tooltip.create(tr("backend_hint")));
         release.visible = access && menu.kind() == MachineKind.NETWORK_INTERFACE;
         release.active = release.visible && canEdit() && !menu.snapshot().orders().held().isEmpty();
@@ -268,15 +270,17 @@ final class MachineSettingsPanel {
 
     void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         if (!visible) return;
+        ScreenChrome.text(g,font,tr("settings.section."+section.name().toLowerCase(java.util.Locale.ROOT)).getString(),left+88,top+5,width-88,UiPalette.TEXT);
         if (section == Section.SIDES) {
             var hovered = sides.entrySet().stream().filter(e -> e.getValue().isHoveredOrFocused()).map(java.util.Map.Entry::getKey).findFirst().orElse(shownSide);
-            g.text(font, ScreenChrome.fit(font, hovered.label().getString(), width - 90), left + 90, top + 27, UiPalette.TEXT, false);
-            ScreenChrome.twoLines(g, font, menu.portMode(hovered).label().getString(), left + 90, top + 40, width - 90, menu.portMode(hovered).color());
-            ScreenChrome.twoLines(g, font, tr("settings.sides_help").getString(), left + 90, top + 67, width - 90, UiPalette.MUTED);
+            ScreenChrome.text(g,font,hovered.label().getString(),left+90,top+27,width-90,UiPalette.TEXT);
+            ScreenChrome.icon(g,UiIcon.port(menu.portMode(hovered)),left+88,top+36,menu.portMode(hovered).color());
+            ScreenChrome.twoLines(g, font, menu.portMode(hovered).label().getString(), left + 106, top + 40, width - 106, menu.portMode(hovered).color());
+            ScreenChrome.icon(g,UiIcon.HELP,left+88,top+63,UiPalette.MUTED);
+            ScreenChrome.twoLines(g, font, tr("settings.sides_help").getString(), left + 106, top + 67, width - 106, UiPalette.MUTED);
         } else if (section == Section.PRODUCTION) {
             Component label = error.getString().isEmpty() ? tr("stock_target") : error;
-            g.text(font, ScreenChrome.fit(font, label.getString(), width), left, top + 23,
-                    error.getString().isEmpty() ? UiPalette.MUTED : UiPalette.WARNING, false);
+            ScreenChrome.text(g,font,label.getString(),left,top+23,width,error.getString().isEmpty()?UiPalette.MUTED:UiPalette.WARNING);
             if (gases.isEmpty()) g.text(font, tr("no_gas_outputs"), left, top + 83, UiPalette.MUTED, false);
         } else if (section == Section.ACCESS && !jobs.visible && !backend.visible) {
             ScreenChrome.twoLines(g, font, tr(IndustrialStructure.isIndustrial(menu.kind())
@@ -291,9 +295,6 @@ final class MachineSettingsPanel {
     private <T extends AbstractWidget> T grouped(Section group, T widget) { groups.get(group).add(widget); return widget; }
     private void register(AbstractWidget widget, Section group) { widgets.add(widget); groups.get(group).add(widget); addWidget.accept(widget); }
     private static Component tr(String key, Object... args) { return Component.translatable("screen.rematter." + key, args); }
-    private static String faceLetter(MachinePortMode.Side side) {
-        return switch (side) { case FRONT -> "F"; case RIGHT -> "R"; case BACK -> "B"; case LEFT -> "L"; case TOP -> "T"; case BOTTOM -> "D"; };
-    }
     private static int[] sidePosition(MachinePortMode.Side side) {
         return switch (side) {
             case TOP -> new int[]{35, 0}; case LEFT -> new int[]{13, 20}; case FRONT -> new int[]{35, 20};
@@ -304,16 +305,27 @@ final class MachineSettingsPanel {
     static final class PanelButton extends Button {
         private final Font font; private final MachineMenu menu;
         private MachinePortMode.Side side;
-        private boolean selected;
+        private boolean selected, iconOnly;
+        private UiIcon icon;
         PanelButton(Builder builder, Font font, MachineMenu menu) { super(builder); this.font = font; this.menu = menu; }
         @Override protected void extractContents(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
             int x = getX(), y = getY(), w = getWidth(), h = getHeight();
             ScreenChrome.raised(g, x, y, w, h, isHoveredOrFocused() || selected, active);
             if (side != null) {
-                int color = menu.portMode(side).color(); g.fill(x + 2, y + h - 4, x + w - 2, y + h - 2, color);
-            } else if (selected) g.fill(x + 1, y + 3, x + 3, y + h - 3, UiPalette.machineAccent(menu.kind()));
-            String label = ScreenChrome.fit(font, getMessage().getString(), w - 8);
-            g.text(font, label, x + (w - font.width(label)) / 2, y + (h - 8) / 2 - (side == null ? 0 : 1), active ? UiPalette.TEXT : UiPalette.MUTED, false);
+                ScreenChrome.icon(g,UiIcon.port(menu.portMode(side)),x+(w-16)/2,y+(h-16)/2,active?menu.portMode(side).color():UiPalette.MUTED);
+                return;
+            }
+            if (selected) g.fill(x + 1, y + 3, x + 3, y + h - 3, UiPalette.machineAccent(menu.kind()));
+            int color=active?UiPalette.TEXT:UiPalette.MUTED;
+            if(iconOnly) {
+                ScreenChrome.icon(g,icon,x+(w-16)/2,y+(h-16)/2,color);
+                return;
+            }
+            String label=getMessage().getString();
+            int labelWidth=Math.min(font.width(label),w-(icon==null?8:18));
+            int gx=x+(w-labelWidth-(icon==null?0:16))/2;
+            if(icon!=null)ScreenChrome.icon(g,icon,gx-2,y+(h-16)/2,selected&&active?UiPalette.machineAccent(menu.kind()):color);
+            ScreenChrome.text(g,font,label,gx+(icon==null?0:16),y+(h-8)/2,labelWidth,color);
         }
     }
 
@@ -323,18 +335,20 @@ final class MachineSettingsPanel {
         VentConfirmation(MachineMenu menu, String gas, Runnable accept) { super(tr("vent_title")); this.menu = menu; this.gas = gas; this.accept = accept; }
         @Override protected void init() {
             x = (width - 196) / 2; y = (height - 142) / 2;
-            addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_YES, b -> { if (current()) accept.run(); onClose(); })
+            var yes=addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_YES, b -> { if (current()) accept.run(); onClose(); })
                     .bounds(x + 8, y + 116, 86, 18), font, menu));
-            addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_CANCEL, b -> onClose())
+            var cancel=addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_CANCEL, b -> onClose())
                     .bounds(x + 102, y + 116, 86, 18), font, menu));
+            yes.icon=UiIcon.CONFIRM;cancel.icon=UiIcon.CANCEL;
         }
         private boolean current() { return minecraft.player != null && minecraft.player.containerMenu == menu; }
         @Override public void tick() { if (!current()) onClose(); }
         @Override public boolean isPauseScreen() { return false; }
         @Override public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
             ScreenChrome.panel(g, x, y, 196, 142);
-            g.text(font, ScreenChrome.fit(font, title.getString(), 180), x + 8, y + 9, UiPalette.TEXT, false);
-            g.text(font, ScreenChrome.fit(font, SubstanceNames.substance(gas, "gas", true).getString(), 180), x + 8, y + 25, UiPalette.GAS, false);
+            ScreenChrome.icon(g,UiIcon.WARNING,x+6,y+5,UiPalette.WARNING);
+            ScreenChrome.text(g,font,title.getString(),x+24,y+9,164,UiPalette.TEXT);
+            ScreenChrome.text(g,font,SubstanceNames.substance(gas,"gas",true).getString(),x+8,y+25,180,UiPalette.GAS);
             int line = 0; for (var text : font.split(tr("settings.vent_warning"), 180)) {
                 if (line == 6) break; g.text(font, text, x + 8, y + 43 + line++ * 10, UiPalette.WARNING, false);
             }
@@ -357,8 +371,9 @@ final class MachineSettingsPanel {
         }
         @Override protected void init() {
             x = (width - 196) / 2; y = (height - 184) / 2;
-            addRenderableWidget(new PanelButton(Button.builder(tr("release_confirm"), b -> confirm()).bounds(x + 8, y + 158, 112, 18), font, menu));
-            addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_CANCEL, b -> onClose()).bounds(x + 124, y + 158, 64, 18), font, menu));
+            var confirm=addRenderableWidget(new PanelButton(Button.builder(tr("release_confirm"), b -> confirm()).bounds(x + 8, y + 158, 112, 18), font, menu));
+            var cancel=addRenderableWidget(new PanelButton(Button.builder(CommonComponents.GUI_CANCEL, b -> onClose()).bounds(x + 124, y + 158, 64, 18), font, menu));
+            confirm.icon=UiIcon.EJECT;cancel.icon=UiIcon.CANCEL;
         }
         private boolean current() { return minecraft.player != null && minecraft.player.containerMenu == menu && menu.snapshot().orders().held().equals(order.held()); }
         private void confirm() {
@@ -370,9 +385,10 @@ final class MachineSettingsPanel {
         @Override public boolean isPauseScreen() { return false; }
         @Override public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
             ScreenChrome.panel(g, x, y, 196, 184);
-            g.text(font, ScreenChrome.fit(font, title.getString(), 180), x + 8, y + 9, UiPalette.TEXT, false);
+            ScreenChrome.icon(g,UiIcon.WARNING,x+6,y+5,UiPalette.WARNING);
+            ScreenChrome.text(g,font,title.getString(),x+24,y+9,164,UiPalette.TEXT);
             ScreenChrome.twoLines(g, font, tr("release_explain").getString(), x + 8, y + 28, 180, UiPalette.MUTED);
-            for (int i = 0; i < Math.min(SHOWN, lines.size()); i++) g.text(font, ScreenChrome.fit(font, lines.get(i).getString(), 180), x + 8, y + 54 + i * 12, UiPalette.TEXT, false);
+            for (int i = 0; i < Math.min(SHOWN, lines.size()); i++) ScreenChrome.text(g,font,lines.get(i).getString(),x+8,y+54+i*12,180,UiPalette.TEXT);
             if (lines.size() > SHOWN || !order.complete()) g.text(font, tr("release_more"), x + 8, y + 94, UiPalette.MUTED, false);
             int line = 0; for (var text : font.split(tr("release_warning"), 180)) {
                 if (line == 5) break; g.text(font, text, x + 8, y + 106 + line++ * 10, UiPalette.WARNING, false);

@@ -23,19 +23,57 @@ public final class UiPalette {
     public static final int LIQUID = 0xff7bbde5;
     public static final int GAS = 0xffc5a8e5;
 
+    public static final int GHOST = 0x99adbec0;
+    public static final int PRIMAL = 0xff8a5cff;
+    public static final int PRIMAL_LIGHT = 0xffae8eff;
+    public static final int PRIMAL_GHOST = 0x998a5cff;
+    public static final int PRESSURE_GHOST = 0xccefb47d;
+    public static final int AMBER = 0xffe3a94b;
+    public static final int VIOLET = 0xffb381e8;
+    public static final int EMBER = 0xffea4848;
+    public static final int CABLE_BASIC = 0xdc894f;
+    public static final int CABLE_REINFORCED = 0x54bfac;
+    public static final int CABLE_RESONANT = 0xbe8fbb;
+    public static final int ENERGY_GLINT = 0xe4decc;
+    public static final int WHITE = 0xffffffff;
+    public static final int STRUCTURE_HINT = 0xffffb45c;
+    public static final int BADGE_BACKGROUND = 0xc00a0d11;
+    public static final int SUBSTANCE_IRON = 0xffadbec8;
+    public static final int SUBSTANCE_COPPER = 0xffd58c5c;
+    public static final int SUBSTANCE_GOLD = 0xffe2be55;
+    public static final int SUBSTANCE_WATER = 0xff62b5e4;
+    public static final int SUBSTANCE_MINERAL = 0xffa8937c;
+
     public static int machineAccent(MachineKind kind) {
         return switch(kind) {
             case ANALYZER -> 0xffd7d1bc;
             case DECOMPOSER -> 0xffdc894f;
             case SYNTHESIZER -> 0xff7dd27f;
             case NETWORK_INTERFACE -> 0xff6794f1;
-            case PRIMAL_CONVERTER -> 0xffc5a8e5;
-            case CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR -> 0xffe3a94b;
+            case PRIMAL_CONVERTER -> PRIMAL;
+            case CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR -> EMBER;
             case REACTOR,INDUSTRIAL_REACTOR -> 0xffb381e8;
-            case PREPARATOR,INDUSTRIAL_PREPARATOR,HAND_PREPARATOR -> 0xffe3a94b;
+            case PREPARATOR,INDUSTRIAL_PREPARATOR -> AMBER;
+            case HAND_PREPARATOR -> MUTED;
             case SINTER_FURNACE -> 0xffea4848;
             case DRIVE,TERMINAL -> 0xff57cddb;
         };
+    }
+
+    public static int moduleAccent(dev.latrox.rematter.content.IndustrialModuleKind kind) {
+        return switch(kind) {
+            case GRINDING_UNIT,SEPARATION_UNIT,MIXING_BASIN -> AMBER;
+            case FIELD_COIL,REACTION_CHAMBER -> VIOLET;
+        };
+    }
+    public static int modulePulse(dev.latrox.rematter.content.IndustrialModuleKind kind) {
+        int hue=moduleAccent(kind);
+        int r=((hue>>16)&255),g=((hue>>8)&255),b=hue&255;
+        return 255<<24 | Math.round(r+(255-r)*.45F)<<16 | Math.round(g+(255-g)*.45F)<<8 | Math.round(b+(255-b)*.45F);
+    }
+    public static int brightness(float brightness) {
+        int value=(int)(255*Math.clamp(brightness,0,1));
+        return 255<<24|value<<16|value<<8|value;
     }
 
     private UiPalette() {}

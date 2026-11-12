@@ -9,6 +9,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.SlotAccess;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickAction;
+import net.minecraft.world.inventory.Slot;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /** One portable, exact substance inventory. A cell contains resources, not recipe permissions. */
 public final class MatterCellItem extends Item {
@@ -41,8 +47,23 @@ public final class MatterCellItem extends Item {
         var status=CellStatus.of(true,true,total,capacity,rows.size(),MatterCellData.MAX_TYPES);
         tooltip.accept(Component.translatable("item.rematter.matter_cell.light",
                 Component.translatable("cell_status.rematter."+status.name().toLowerCase(java.util.Locale.ROOT))));
+        tooltip.accept(Component.translatable("item.rematter.matter_cell.transfer_hint"));
         var registry=ChemistryText.catalogue(context.level());
         rows.stream().limit(3).forEach(row -> tooltip.accept(ChemistryText.row(registry,row.key(),row.quantity())));
         if(rows.size()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",rows.size()-3));
     }
+    @Override public boolean overrideOtherStackedOnMe(ItemStack stack,ItemStack other,Slot slot,ClickAction action,Player player,SlotAccess carried){
+        if(action!=ClickAction.SECONDARY||!(other.getItem() instanceof MatterCellItem))return false;
+        // A recognized gesture also consumes a no-op, so a full or locked cell never falls through to a vanilla swap.
+        if(player.level() instanceof ServerLevel level&&!player.isSpectator()&&Transaction.getCurrentOpenedTransaction()==null){
+            try(var tx=Transaction.openRoot()){
+                long moved=MatterCellTransfers.move(level,other,stack,carried::get,slot::getItem,
+                        ()->!player.isSpectator()&&slot.container==player.getInventory()
+                                &&slot.allowModification(player)&&slot.mayPlace(stack),tx);
+                if(moved>0){tx.commit();slot.setChanged();}
+            }
+        }
+        return true;
+    }
+
 }

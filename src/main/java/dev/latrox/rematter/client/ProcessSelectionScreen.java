@@ -1,7 +1,6 @@
 package dev.latrox.rematter.client;
 
 import dev.latrox.rematter.chemistry.*;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
 import dev.latrox.rematter.client.ui.DarkButton;
 import dev.latrox.rematter.client.ui.ScrollBar;
 import dev.latrox.rematter.client.ui.ScrollModel;
@@ -76,15 +75,15 @@ public final class ProcessSelectionScreen extends Screen {
         results.setVisibleRows(Math.max(1,(footerY-resultsTop-6)/RESULT_PITCH));
         materials.setVisibleRows(Math.max(1,(footerY-ingredientTop-30)/MATERIAL_PITCH));
         String query=search==null?"":search.getValue();
-        search=addRenderableWidget(new EditBox(font,resultsX+4,top+25,resultsWidth-26,12,tr("search")));
+        search=addRenderableWidget(new EditBox(font,resultsX+18,top+25,resultsWidth-40,12,tr("search")));
         search.setMaxLength(128);search.setBordered(false);search.setTextColor(PAPER);
-        search.setHint(Component.literal(ScreenChrome.fit(font,tr("search").getString(),search.getWidth()-2)).withStyle(style->style.withColor(MUTED&0xffffff)));
+        search.setHint(tr("search").copy().withStyle(style->style.withColor(MUTED&0xffffff)));
         search.setValue(query);search.setResponder(value->{results.reset();filter();});
-        clear=addRenderableWidget(DarkButton.icon(Icon.CLEAR,tr("clear_search"),tr("clear_search_hint"),
+        clear=addRenderableWidget(DarkButton.icon(UiIcon.CLEAR,tr("clear_search"),tr("clear_search_hint"),
                 resultsX+resultsWidth-18,top+20,18,18,b->{search.setValue("");setFocused(search);}));
         if(menu.kind().synthesis()){
-            knownTab=addRenderableWidget(DarkButton.create(tr("known"),tr("known_hint"),resultsX,top+42,(resultsWidth-3)/2,16,b->{showLocked=false;results.reset();filter();}));
-            lockedTab=addRenderableWidget(DarkButton.create(tr("locked"),tr("locked_hint"),resultsX+(resultsWidth+3)/2,top+42,resultsWidth-(resultsWidth+3)/2,16,b->{showLocked=true;results.reset();filter();}));
+            knownTab=addRenderableWidget(DarkButton.icon(UiIcon.UNLOCKED,tr("known"),tr("known_hint"),resultsX,top+42,18,16,b->{showLocked=false;results.reset();filter();}));
+            lockedTab=addRenderableWidget(DarkButton.icon(UiIcon.LOCKED,tr("locked"),tr("locked_hint"),resultsX+22,top+42,18,16,b->{showLocked=true;results.reset();filter();}));
         }
         resultButtons.clear();
         for(int row=0;row<results.visibleRows();row++) {
@@ -92,8 +91,8 @@ public final class ProcessSelectionScreen extends Screen {
             resultButtons.add(addRenderableWidget(new ProductButton(Button.builder(Component.empty(),b->focusResult(index))
                     .bounds(resultsX,resultsTop+row*RESULT_PITCH,resultsWidth-7,RESULT_PITCH))));
         }
-        confirm=addRenderableWidget(DarkButton.create(tr("use"),tr("use_hint"),detailX,footerY,detailWidth-52,18,b->selectFocused()));
-        addRenderableWidget(DarkButton.create(tr("close"),tr("close_hint"),detailX+detailWidth-48,footerY,48,18,b->onClose()));
+        confirm=addRenderableWidget(DarkButton.labelIcon(UiIcon.CONFIRM,tr("use"),tr("use_hint"),detailX,footerY,detailWidth-52,18,b->selectFocused()));
+        addRenderableWidget(DarkButton.labelIcon(UiIcon.CANCEL,tr("close"),tr("close_hint"),detailX+detailWidth-48,footerY,48,18,b->onClose()));
         confirm.setAccent(accent);clear.setAccent(accent);
         resultBar.setBounds(resultsX+resultsWidth-5,resultsTop,5,results.visibleRows()*RESULT_PITCH);
         materialBar.setBounds(detailX+detailWidth-5,ingredientTop,5,materials.visibleRows()*MATERIAL_PITCH);
@@ -228,29 +227,32 @@ public final class ProcessSelectionScreen extends Screen {
         ScreenChrome.panel(g,left,top,panelWidth,panelHeight);
         g.fill(left+8,top+17,left+panelWidth-8,top+18,UiPalette.BORDER);
         g.fill(left+8,top+17,left+56,top+18,UiPalette.machineAccent(menu.kind()));
-        ScreenChrome.icon(g,Icon.RECIPE,left+8,top+3,accent);
-        g.text(font,ScreenChrome.fit(font,title.getString(),panelWidth-32),left+24,top+5,PAPER,false);
+        ScreenChrome.icon(g,UiIcon.RECIPE,left+6,top+1,accent);
+        ScreenChrome.text(g,font,title.getString(),left+24,top+5,panelWidth-32,PAPER);
         ScreenChrome.inset(g,resultsX,top+20,resultsWidth,18);
+        ScreenChrome.icon(g,UiIcon.SEARCH,resultsX+1,top+21,MUTED);
         ScreenChrome.inset(g,detailX,top+20,detailWidth,footerY-top-24);
+        if(menu.kind().synthesis())ScreenChrome.text(g,font,tr(showLocked?"locked":"known").getString(),resultsX+46,top+46,resultsWidth-48,MUTED);
         resultBar.extractRenderState(g);
         if(filtered.isEmpty())ScreenChrome.twoLines(g,font,tr(menu.kind().synthesis()&&!showLocked?"no_known":"no_matches").getString(),resultsX+3,resultsTop+5,resultsWidth-10,MUTED);
         String count=(filtered.size()==1?tr("count_one"):tr("count",filtered.size())).getString();
-        g.text(font,ScreenChrome.fit(font,count,resultsWidth),resultsX,top+panelHeight-11,MUTED,false);
+        ScreenChrome.text(g,font,count,resultsX,top+panelHeight-11,resultsWidth,MUTED);
         drawDetails(g,mouseX,mouseY);
         super.extractRenderState(g,mouseX,mouseY,partialTick);
-        if(search.getValue().isEmpty()&&search.isFocused())g.text(font,ScreenChrome.fit(font,tr("search").getString(),search.getWidth()-2),search.getX()+2,search.getY(),MUTED,false);
+        if(search.getValue().isEmpty()&&search.isFocused())ScreenChrome.text(g,font,tr("search").getString(),search.getX()+2,search.getY(),search.getWidth()-2,MUTED);
     }
     private void drawDetails(GuiGraphicsExtractor g,int mouseX,int mouseY) {
         var product=focused();
         if(product==null) {
-            ScreenChrome.twoLines(g,font,tr("select_hint").getString(),detailX+5,top+28,detailWidth-10,MUTED);return;
+            ScreenChrome.icon(g,UiIcon.HELP,detailX+3,top+24,MUTED);
+            ScreenChrome.twoLines(g,font,tr("select_hint").getString(),detailX+21,top+28,detailWidth-26,MUTED);return;
         }
         boolean selected=product.id().equals(menu.snapshot().selectedId());
         var preview=menu.snapshot().preview();boolean effective=selected&&preview.id().equals(product.id());
         long energy=effective?preview.energy():product.energy();int ticks=effective?preview.ticks():product.ticks();
         drawProductIcon(g,product,detailX+4,top+24);
         ScreenChrome.twoLines(g,font,productLabel(product),detailX+24,top+23,detailWidth-28,PAPER);
-        g.text(font,ScreenChrome.fit(font,tr("materials").getString(),detailWidth-12),detailX+4,top+44,MUTED,false);
+        ScreenChrome.text(g,font,tr("materials").getString(),detailX+4,top+44,detailWidth-12,MUTED);
         if(inside(mouseX,mouseY,detailX,top+43,detailWidth,11))
             g.setComponentTooltipForNextFrame(font,List.of(tr("materials_hint"),tr("material_scroll_hint")),mouseX,mouseY);
         if(inside(mouseX,mouseY,detailX,top+20,detailWidth,31)) {
@@ -263,11 +265,19 @@ public final class ProcessSelectionScreen extends Screen {
             drawMaterial(g,entries.get(materials.offset()+row),ingredientTop+row*MATERIAL_PITCH,mouseX,mouseY);
         materialBar.extractRenderState(g);
         int costY=footerY-29;
-        String cost=tr("summary",Quantities.energy(Quantities.compact(energy)),Quantities.duration(ticks)).getString();
-        g.text(font,ScreenChrome.fit(font,cost,detailWidth-8),detailX+4,costY,PAPER,false);
+        ScreenChrome.icon(g,UiIcon.ENERGY,detailX+2,costY-4,PAPER);
+        g.text(font,Quantities.compact(energy),detailX+18,costY,PAPER,false);
+        int timeX=detailX+detailWidth/2;ScreenChrome.icon(g,UiIcon.TIME,timeX-2,costY-4,PAPER);
+        ScreenChrome.text(g,font,Quantities.duration(ticks).getString(),timeX+14,costY,detailX+detailWidth-timeX-18,PAPER);
         var requirements=requirements(product);
         Component note=requirements.isEmpty()?perBatch(product):requirements.getFirst();
-        g.text(font,ScreenChrome.fit(font,note.getString(),detailWidth-8),detailX+4,costY+11,requirements.isEmpty()?MUTED:UiPalette.WARNING,false);
+        if(requirements.isEmpty())ScreenChrome.text(g,font,note.getString(),detailX+4,costY+12,detailWidth-8,MUTED);
+        else {
+            boolean pressure=note.equals(Component.translatable("gui.rematter.viewer.pressure_required"));
+            ScreenChrome.icon(g,pressure?UiIcon.SLOT_PRESSURE:UiIcon.LOCKED,detailX+2,costY+8,UiPalette.WARNING);
+            String text=pressure?Component.translatable("item.rematter.pressure_module").getString():note.getString();
+            ScreenChrome.text(g,font,text,detailX+20,costY+12,detailWidth-24,UiPalette.WARNING);
+        }
         if(inside(mouseX,mouseY,detailX,costY,detailWidth,20)) {
             var tooltip=new ArrayList<Component>(List.of(tr("cost",Quantities.energy(Quantities.number(energy)),Quantities.duration(ticks)),perBatch(product)));
             tooltip.addAll(requirements);g.setComponentTooltipForNextFrame(font,tooltip,mouseX,mouseY);
@@ -277,13 +287,13 @@ public final class ProcessSelectionScreen extends Screen {
         int color=phaseColor(material.phase());
         g.fill(detailX+3,y,detailX+detailWidth-7,y+MATERIAL_PITCH-1,UiPalette.PANEL);
         if(material.key()!=null)SubstanceIcon.draw(g,detailX+4,y+2,material.key());
-        else ScreenChrome.icon(g,Icon.INFO,detailX+6,y+4,color);
+        else ScreenChrome.icon(g,UiIcon.UNKNOWN,detailX+4,y+2,color);
         String name=(material.output()?"+ ":"")+material.label();
-        g.text(font,ScreenChrome.fit(font,name,detailWidth-32),detailX+23,y+1,material.known()?PAPER:UiPalette.WARNING,false);
+        ScreenChrome.text(g,font,name,detailX+23,y+1,detailWidth-32,material.known()?PAPER:UiPalette.WARNING);
         String available=material.available().isPresent()?Quantities.compact(material.available().getAsLong()):"?";
         Component quantities=material.output()?tr("yield",Quantities.compact(material.required())):tr("needed_available",Quantities.compact(material.required()),available);
         int amountColor=material.output()?color:material.available().isEmpty()?MUTED:material.available().getAsLong()>=material.required()?accent:UiPalette.WARNING;
-        g.text(font,ScreenChrome.fit(font,quantities.getString(),detailWidth-32),detailX+23,y+11,amountColor,false);
+        ScreenChrome.text(g,font,quantities.getString(),detailX+23,y+11,detailWidth-32,amountColor);
         if(inside(mouseX,mouseY,detailX+3,y,detailWidth-10,MATERIAL_PITCH-1)) {
             var tooltip=new ArrayList<Component>();
             tooltip.add(Component.translatable("gui.rematter.viewer.substance_phase",material.label(),SubstanceNames.phase(material.phase())));
@@ -405,7 +415,7 @@ public final class ProcessSelectionScreen extends Screen {
         else {
             var key = product.outputs().keySet().stream().sorted().findFirst().orElse(null);
             if(key!=null) SubstanceIcon.draw(graphics,x,y,key);
-            else ScreenChrome.icon(graphics,Icon.INFO,x+2,y+2,accent);
+            else ScreenChrome.icon(graphics,UiIcon.UNKNOWN,x,y,accent);
         }
     }
 
@@ -431,10 +441,10 @@ public final class ProcessSelectionScreen extends Screen {
             ScreenChrome.raised(g,getX(),getY(),getWidth(),getHeight(),product.id().equals(focusedId)||isHoveredOrFocused(),active);
             drawProductIcon(g,product,getX()+1,getY()+1);
             boolean unlocked=known(product);
-            if(!unlocked)ScreenChrome.icon(g,Icon.LOCK,getX()+2,getY()+3,UiPalette.DISABLED);
+            if(!unlocked)ScreenChrome.icon(g,UiIcon.LOCKED,getX(),getY()+1,UiPalette.DISABLED);
             boolean chosen=product.id().equals(menu.snapshot().selectedId());
             if(chosen)g.fill(getX()+getWidth()-3,getY()+3,getX()+getWidth()-1,getY()+getHeight()-3,accent);
-            g.text(font,ScreenChrome.fit(font,label,getWidth()-23),getX()+20,getY()+5,unlocked?PAPER:UiPalette.DISABLED,false);
+            ScreenChrome.text(g,font,label,getX()+20,getY()+5,getWidth()-23,unlocked?PAPER:UiPalette.DISABLED);
         }
     }
 }

@@ -61,19 +61,61 @@ public final class IndustrialModuleBlock extends Block implements EntityBlock {
         return (state.getValue(SUSPENDED) ? suspendedShapes : shapes).get(state.getValue(FACING));
     }
     private static VoxelShape outline(IndustrialModuleKind kind, boolean suspended) {
-        VoxelShape socket = mountedBox(suspended, 0, 0, 0, 16, 2.5, 16);
-        // All functions share the same fitting; the ceiling is its exact vertical mirror.
-        VoxelShape body = Shapes.or(
-                mountedBox(suspended, 2.7, 2.5, 2.7, 13.3, 4.8, 13.3),
-                mountedBox(suspended, 4.2, 3.6, 6.7, 5.5, 7, 9.3),
-                mountedBox(suspended, 10.5, 3.6, 6.7, 11.8, 7, 9.3),
-                mountedBox(suspended, 6.7, 3.6, 4.2, 9.3, 7, 5.5),
-                mountedBox(suspended, 6.7, 3.6, 10.5, 9.3, 7, 11.8),
-                mountedBox(suspended, 2.7, 4, 2.7, 13.3, 13.4, 13.3),
-                mountedBox(suspended, 6.2, 2.35, 1.8, 9.8, 5.15, 2.2),
-                mountedBox(suspended, 6.2, 2.35, 13.8, 9.8, 5.15, 14.2));
-        return Shapes.or(socket, body);
+        return Shapes.or(
+                mountedBox(suspended, 0, 0, 0, 16, 2, 16),
+                mountedBox(suspended, 3, 2, 3, 13, 3, 13),
+                switch(kind) {
+                    case GRINDING_UNIT -> Shapes.or(
+                            mountedBox(suspended, 5, 3, 6, 11, 5, 10),
+                            mountedBox(suspended, 11, 3, 6, 13, 11, 10),
+                            mountedBox(suspended, 3, 3, 6, 5, 11, 10),
+                            mountedBox(suspended, 3, 11, 5, 13, 13, 11),
+                            mountedBox(suspended, 5, 7, 7.5, 11, 11, 8.5),
+                            mountedBox(suspended, 5, 6, 7.5, 11, 7, 8.5),
+                            mountedBox(suspended, 6, 13, 6, 10, 15, 10),
+                            mountedBox(suspended, 7, 15, 7, 9, 16, 9));
+                    case SEPARATION_UNIT -> Shapes.or(
+                            mountedBox(suspended, 6, 3, 6, 10, 4, 10),
+                            mountedBox(suspended, 3, 4, 3, 13, 5, 13),
+                            mountedBox(suspended, 3, 8, 3, 13, 9, 13),
+                            mountedBox(suspended, 3, 12, 3, 13, 13, 13),
+                            mountedBox(suspended, 6, 5, 6, 10, 8, 10),
+                            mountedBox(suspended, 6, 9, 6, 10, 12, 10),
+                            mountedBox(suspended, 6, 13, 6, 10, 15, 10),
+                            mountedBox(suspended, 7, 15, 7, 9, 16, 9));
+                    case MIXING_BASIN -> Shapes.or(
+                            mountedBox(suspended, 2, 3, 2, 14, 8, 3),
+                            mountedBox(suspended, 2, 3, 13, 14, 8, 14),
+                            mountedBox(suspended, 13, 3, 3, 14, 8, 13),
+                            mountedBox(suspended, 2, 3, 3, 3, 8, 13),
+                            mountedBox(suspended, 4, 6, 7.5, 12, 7, 8.5),
+                            mountedBox(suspended, 7, 7, 7, 9, 11, 9),
+                            mountedBox(suspended, 3, 3, 3, 13, 6, 13),
+                            mountedBox(suspended, 6.5, 11, 6.5, 9.5, 13, 9.5),
+                            mountedBox(suspended, 7, 13, 7, 9, 14, 9));
+                    case FIELD_COIL -> Shapes.or(
+                            mountedBox(suspended, 6, 3, 6, 10, 4, 10),
+                            mountedBox(suspended, 12, 3, 6, 13, 7, 10),
+                            mountedBox(suspended, 3, 3, 6, 4, 7, 10),
+                            mountedBox(suspended, 2, 7, 2, 14, 10, 4),
+                            mountedBox(suspended, 2, 7, 12, 14, 10, 14),
+                            mountedBox(suspended, 12, 7, 4, 14, 10, 12),
+                            mountedBox(suspended, 2, 7, 4, 4, 10, 12),
+                            mountedBox(suspended, 6.5, 4, 6.5, 9.5, 14, 9.5),
+                            mountedBox(suspended, 7, 14, 7, 9, 15, 9));
+                    case REACTION_CHAMBER -> Shapes.or(
+                            mountedBox(suspended, 7, 3, 7, 9, 5, 9),
+                            mountedBox(suspended, 3, 5, 6.5, 13, 6, 9.5),
+                            mountedBox(suspended, 12, 6, 6.5, 13, 11, 9.5),
+                            mountedBox(suspended, 3, 6, 6.5, 4, 11, 9.5),
+                            mountedBox(suspended, 6, 6, 7, 10, 7, 9),
+                            mountedBox(suspended, 4, 7, 7, 12, 12, 9),
+                            mountedBox(suspended, 6, 12, 7, 10, 13, 9),
+                            mountedBox(suspended, 6, 8, 6.5, 10, 11, 7),
+                            mountedBox(suspended, 6, 8, 9, 10, 11, 9.5));
+                });
     }
+
     private static VoxelShape mountedBox(boolean suspended, double x1, double y1, double z1, double x2, double y2, double z2) {
         return box(x1, suspended ? 16-y2 : y1, z1, x2, suspended ? 16-y1 : y2, z2);
     }

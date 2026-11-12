@@ -3,6 +3,8 @@ package dev.latrox.rematter.client;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import dev.latrox.rematter.content.*;
+import dev.latrox.rematter.primal.PrimalCellItem;
+import dev.latrox.rematter.primal.PrimalCells;
 import java.util.Locale;
 import java.util.WeakHashMap;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -29,6 +31,10 @@ public final class CellStatusProperty implements SelectItemModelProperty<String>
         event.register(Identifier.fromNamespaceAndPath("rematter","cell_status"),TYPE);
     }
     @Override public String get(ItemStack stack,@Nullable ClientLevel level,@Nullable LivingEntity owner,int seed,ItemDisplayContext context) {
+        if(stack.getItem() instanceof PrimalCellItem) {
+            var view=PrimalCells.view(stack);
+            return name(CellStatus.of(view.installed(),view.readable(),view.amount(),view.capacity(),0,1));
+        }
         if(!(stack.getItem() instanceof MatterCellItem))return "unlit";
         var data=stack.get(MatterCellData.TYPE.get());
         var previous=cache.get(stack);

@@ -42,14 +42,14 @@ import org.jspecify.annotations.Nullable;
  */
 public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEntity, MachineRenderState> {
     public static final ModelLayerLocation LAYER = new ModelLayerLocation(Identifier.fromNamespaceAndPath("rematter", "mechanisms"), "main");
-    private static final Identifier LIGHT = Identifier.fromNamespaceAndPath("rematter", "textures/entity/light.png");
-    private static final Identifier CRYSTAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/reaction_chamber_crystal.png");
+    private static final Identifier LIGHT = Identifier.fromNamespaceAndPath("rematter", "textures/entity/effect_light.png");
+    private static final Identifier CRYSTAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/effect_violet.png");
     private static final Map<MachineKind,Identifier> CRYSTALS = familyTextures("block");
-    private static final Map<MachineKind,Identifier> SIGNALS = familyTextures("entity");
+    private static final Map<MachineKind,Identifier> SIGNALS = familyTextures("block");
     private static final Identifier BENCH_METAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/bench_metal.png");
     private static final Identifier BENCH_SCAN = Identifier.fromNamespaceAndPath("rematter", "textures/block/bench_analyzer_work_active.png");
-    private static final Identifier CONNECTOR_BODY = Identifier.fromNamespaceAndPath("rematter", "textures/block/graphite.png");
-    private static final Identifier CONNECTOR_METAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/brushed_steel.png");
+    private static final Identifier CONNECTOR_BODY = Identifier.fromNamespaceAndPath("rematter", "textures/block/casing_plain.png");
+    private static final Identifier CONNECTOR_METAL = Identifier.fromNamespaceAndPath("rematter", "textures/block/bench_metal.png");
     private static final int CELL_VIEW_DISTANCE = 64;
     private final Map<MachineBlockEntity,ProcessVisualMotion> motion=new WeakHashMap<>();
     private final ItemModelResolver itemModelResolver;
@@ -316,7 +316,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
     private static void part(ModelPart part,Identifier texture,boolean glow,float brightness,MachineRenderState state,PoseStack pose,SubmitNodeCollector collector) {
         if(texture.equals(CRYSTAL))texture=CRYSTALS.getOrDefault(state.kind,texture);
         else if(texture.equals(LIGHT))texture=SIGNALS.getOrDefault(state.kind,texture);
-        int value=(int)(255*Math.clamp(brightness,0,1));int tint=glow?0xff000000|value<<16|value<<8|value:-1;
+        int tint=glow?UiPalette.brightness(brightness):UiPalette.WHITE;
         collector.submitModelPart(part,pose,RenderTypes.entitySolid(texture),glow?15_728_880:state.lightCoords,OverlayTexture.NO_OVERLAY,null,tint,state.breakProgress);
     }
     private static Map<MachineKind,Identifier> familyTextures(String folder) {
@@ -331,7 +331,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 case SINTER_FURNACE -> "ember";
                 default -> null;
             };
-            if(family!=null)textures.put(kind,Identifier.fromNamespaceAndPath("rematter","textures/"+folder+"/machine_"+family+".png"));
+            if(family!=null)textures.put(kind,Identifier.fromNamespaceAndPath("rematter","textures/"+folder+"/effect_"+family+".png"));
         }
         return Map.copyOf(textures);
     }

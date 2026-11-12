@@ -1,7 +1,7 @@
 package dev.latrox.rematter.client;
 
 import static dev.latrox.rematter.client.UiPalette.*;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
+import net.minecraft.client.renderer.RenderPipelines;
 import dev.latrox.rematter.client.ui.*;
 import dev.latrox.rematter.chemistry.*;
 import dev.latrox.rematter.content.*;
@@ -62,6 +62,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private boolean preparator(){return dev.latrox.rematter.content.preparation.PreparationTier.isPreparation(menu.kind());}
     private boolean industrial(){return IndustrialStructure.isIndustrial(menu.kind());}
     private boolean selecting(){return menu.kind().selectable();}
+    private int accent(){return machineAccent(menu.kind());}
     private static boolean working(String s){return List.of("working","grinding","sieving","collecting","dosing","mixing","packing","pressing","sintering","cooling").contains(s);}
     private boolean driveRecovery(){return disk()&&java.util.stream.IntStream.of(1,2,3,4,10,11,12,13).anyMatch(i->menu.slots.get(i).hasItem());}
     private boolean storageList(){return main()&&passive();}
@@ -76,29 +77,29 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     @Override protected void init(){
         super.init();leftPos=Math.max(23,leftPos);
         String query=search==null?"":search.getValue();
-        machineTab=tab(Icon.STORAGE,ui("tab_machine"),0,MachineMenu.View.MAIN);
-        devicesTab=tab(Icon.NETWORK,ui("tab_machines"),1,MachineMenu.View.MACHINES);
-        researchTab=tab(Icon.HELP,ui("tab_research"),1,MachineMenu.View.RESEARCH);
-        settingsTab=tab(Icon.CONFIGURATION,ui("tab_settings"),2,MachineMenu.View.CONFIGURATION);
+        machineTab=tab(UiIcon.MACHINE,ui("tab_machine"),0,MachineMenu.View.MAIN);
+        devicesTab=tab(UiIcon.DEVICES,ui("tab_machines"),1,MachineMenu.View.MACHINES);
+        researchTab=tab(UiIcon.RESEARCH,ui("tab_research"),1,MachineMenu.View.RESEARCH);
+        settingsTab=tab(UiIcon.SETTINGS,ui("tab_settings"),2,MachineMenu.View.CONFIGURATION);
         search=addRenderableWidget(new EditBox(font,leftPos+27,topPos+24,82,12,tr("search")));
         search.setBordered(false);search.setTextColor(TEXT);search.setMaxLength(128);search.setValue(query);
         search.setResponder(value->{stockScroll.setOffset(0);deviceScroll.setOffset(0);shownFilter=null;refresh();});
         filters.clear();
         for(int i=0;i<4;i++){
-            int index=i;var icon=new Icon[]{Icon.STAR,Icon.SOLID,Icon.LIQUID,Icon.GAS}[i];
+            int index=i;var icon=new UiIcon[]{UiIcon.STAR,UiIcon.SOLID,UiIcon.LIQUID,UiIcon.GAS}[i];
             var label=tr("filter_"+new String[]{"favorites","solid","liquid","gas"}[i]);
-            var b=addRenderableWidget(DarkButton.icon(icon,label,label,leftPos+116+i*18,topPos+20,16,16,button->{
+            var b=addRenderableWidget(DarkButton.icon(icon,label,tr("filter_"+new String[]{"favorites","solid","liquid","gas"}[i]+"_hint"),leftPos+116+i*18,topPos+20,16,16,button->{
                 if(index==0)favoritesOnly=!favoritesOnly;
                 else{String phase=new String[]{"","solid","liquid","gas"}[index];if(!phaseFilter.remove(phase))phaseFilter.add(phase);}
                 stockScroll.setOffset(0);shownFilter=null;refresh();
-            }));filters.add(b);
+            }));b.setAccent(accent());filters.add(b);
         }
         choose=button(ui("recipe"),tr("choose_hint"),24,20,164,b->{if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)action(MachineActionPayload.Action.ASSAY,"",0);else if(selecting())minecraft.pushGuiLayer(new ProcessSelectionScreen(menu));});
         primary=button(tr("start"),tr("start_once_hint"),24,102,58,b->{if(menu.kind().generator()){send(2);return;}var d=MachinePrimaryAction.forSnapshot(menu.snapshot());if(d.opensRecipeSelection())minecraft.pushGuiLayer(new ProcessSelectionScreen(menu));else if(selecting()&&!menu.snapshot().networkJobs()&&validSelection())send(4);else if(d.enabled()&&d.menuAction()>=0)send(d.menuAction());});
-        repeat=button(ui("repeat_off"),tr("continuous_hint"),84,102,58,b->send(5));
-        pause=addRenderableWidget(DarkButton.icon(Icon.PAUSE,tr("pause"),tr("pause_hint"),leftPos+144,topPos+102,18,18,b->send(2)));
+        repeat=addRenderableWidget(DarkButton.icon(UiIcon.LOOP_OFF,ui("repeat_off"),tr("continuous_hint"),leftPos+86,topPos+102,18,18,b->send(5)));
+        pause=addRenderableWidget(DarkButton.icon(UiIcon.PAUSE,tr("pause"),tr("pause_hint"),leftPos+108,topPos+102,18,18,b->send(2)));
         buildHint=button(ui("missing_part"),tr("locate_part_hint"),24,102,138,b->onClose());
-        back=addRenderableWidget(DarkButton.icon(Icon.BACK,tr("terminal.return"),tr("terminal.return_hint"),leftPos+171,topPos+2,17,16,b->send(MachineMenu.RETURN_TO_TERMINAL)));
+        back=addRenderableWidget(DarkButton.icon(UiIcon.BACK,tr("terminal.return"),tr("terminal.return_hint"),leftPos+171,topPos+2,17,16,b->send(MachineMenu.RETURN_TO_TERMINAL)));
         stockRows.clear();for(int i=0;i<8;i++){var row=new StockRow();stockRows.add(addRenderableWidget(row));}
         deviceRows.clear();for(int i=0;i<5;i++){var row=new DeviceRow();deviceRows.add(row);addRenderableWidget(row.open);addRenderableWidget(row.queue);}
         settingsPanel=new MachineSettingsPanel(menu,minecraft,font,w->addRenderableWidget(w),this::rebuildWidgets,leftPos+8,topPos+20,180);
@@ -107,8 +108,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         converterPanel=new PrimalConverterPanel(menu,minecraft,font,w->addRenderableWidget(w),leftPos+8,topPos+20,200,100);converterPanel.initWidgets();
         refresh();if(passive()&&main())setInitialFocus(search);
     }
-    private DarkButton button(Component name,Component hint,int x,int y,int width,Button.OnPress action){return addRenderableWidget(DarkButton.create(name,hint,leftPos+x,topPos+y,width,18,action));}
-    private DarkButton tab(Icon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,name,leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
+    private DarkButton button(Component name,Component hint,int x,int y,int width,Button.OnPress action){return addRenderableWidget(DarkButton.labelIcon(UiIcon.START,name,hint,leftPos+x,topPos+y,width,18,action));}
+    private DarkButton tab(UiIcon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,ui(switch(view){case MAIN->"tab_machine_hint";case MACHINES->"tab_machines_hint";case RESEARCH->"tab_research_hint";case CONFIGURATION->"tab_settings_hint";}),leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
     public void setView(MachineMenu.View view){
         if(observing&&view!=MachineMenu.View.MACHINES){send(MachineMenu.CLOSE_TERMINAL_DEVICES);observing=false;}
         if(view==MachineMenu.View.MACHINES&&!observing&&terminal()) {menu.resetTerminalDevices();send(MachineMenu.OPEN_TERMINAL_DEVICES);observing=true;}
@@ -134,29 +135,41 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         for(var control:List.of(machineTab,devicesTab,researchTab,settingsTab,choose,primary,repeat,pause,buildHint,back))control.setAccent(machineAccent(menu.kind()));
 
         machineTab.setMessage(ui(terminal()?"tab_storage":passive()?"tab_contents":"tab_machine"));
+        machineTab.setIcon(passive()?UiIcon.STOCK:UiIcon.MACHINE);
+        machineTab.setTooltip(Tooltip.create(machineTab.getMessage().copy().append("\n").append(ui(terminal()?"tab_storage_hint":passive()?"tab_contents_hint":"tab_machine_hint"))));
         machineTab.setSelected(main());devicesTab.setSelected(machines());settingsTab.setSelected(configuration());
         devicesTab.visible=terminal();researchTab.visible=menu.kind()==MachineKind.ANALYZER;researchTab.setSelected(researching());settingsTab.setY(topPos+18+(terminal()||menu.kind()==MachineKind.ANALYZER?2:1)*24);
         back.visible=ready&&menu.remote();
         boolean list=ready&&(storageList()||machines());search.visible=search.active=list;
-        search.setWidth(machines()?154:82);search.setHint(Component.literal(fitted(tr("search").getString(),search.getWidth()-2)).withStyle(style->style.withColor(MUTED&0xffffff)));search.setSuggestion(null);if(!list)search.setFocused(false);
+        search.setWidth(machines()?154:82);search.setHint(tr("ui.search_short").copy().withStyle(style->style.withColor(MUTED&0xffffff)));search.setSuggestion(null);if(!list)search.setFocused(false);
         for(int i=0;i<filters.size();i++){var b=filters.get(i);b.visible=b.active=ready&&storageList();b.setSelected(i==0?favoritesOnly:phaseFilter.contains(new String[]{"","solid","liquid","gas"}[i]));}
         settingsPanel.setVisible(ready&&configuration()&&!driveRecovery());if(configuration()&&!driveRecovery())settingsPanel.tick();
         researchPanel.setVisible(ready&&researching());if(researching())researchPanel.tick();
         converterPanel.setVisible(ready&&main()&&converter());if(main()&&converter())converterPanel.tick();
         var decision=MachinePrimaryAction.forSnapshot(s);boolean process=ready&&main()&&!passive();
         choose.visible=process&&!converter()&&!menu.kind().generator();choose.active=process&&!s.networkJobs()&&(selecting()&&s.choiceCount()>0||menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR);
+        choose.setIcon(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR&&extraFlag("assay")?UiIcon.ANALYSE:UiIcon.RECIPE);
         choose.setMessage(previewTitle(s));choose.setTooltip(Tooltip.create(lines(recipeDetails(s))));
         if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)choose.setMessage(ui(extraFlag("assay")?"assay":"preparation"));
         primary.visible=process&&!converter()&&decision.visible();primary.active=decision.enabled();primary.setMessage(tr(decision.labelKey()));
+        primary.setIcon(switch(decision.action()) {
+            case CHOOSE_RECIPE -> UiIcon.RECIPE; case MAKE_ONCE -> UiIcon.MAKE_ONE;
+            case START -> menu.kind()==MachineKind.ANALYZER?UiIcon.ANALYSE:UiIcon.START;
+            case PAUSE -> UiIcon.PAUSE; case RESUME -> UiIcon.RESUME;
+            case CRANK -> UiIcon.CRANK; case LOCAL_CONTROL -> UiIcon.MANUAL; case NONE -> UiIcon.START;
+        });
+        if(decision.opensRecipeSelection())primary.setMessage(ui("choose"));
+        if(decision.visible())primary.setTooltip(Tooltip.create(tr(decision.labelKey()).copy().append("\n").append(tr(decision.hintKey()))));
         boolean selectable=process&&selecting()&&!s.networkJobs();
         boolean valid=s.selected()>=0&&!s.preview().id().isEmpty()&&s.selectedId().equals(s.preview().id())&&!s.status().equals("selection_unavailable");
-        repeat.visible=selectable;repeat.active=valid;repeat.setMessage(ui(s.repeat()?"repeat_on":"repeat_off"));repeat.setSelected(s.repeat());
+        repeat.visible=selectable;repeat.active=valid;repeat.setMessage(ui("loop"));repeat.setIcon(s.repeat()?UiIcon.LOOP:UiIcon.LOOP_OFF);repeat.setTooltip(Tooltip.create(ui(s.repeat()?"repeat_on":"repeat_off").copy().append("\n").append(tr("continuous_hint"))));repeat.setSelected(s.repeat());
         pause.visible=selectable&&(s.repeat()||s.queuedBatches()>0);pause.active=pause.visible;
-        pause.setMessage(tr(s.running()?"pause":"resume"));pause.setSelected(!s.running());
-        if(selectable&&valid){primary.setMessage(ui(s.queuedBatches()>0?"queue_one":"make_one"));primary.active=!s.repeat()&&s.queuedBatches()<64;}
-        if(menu.kind().generator()){primary.visible=main();primary.active=main();primary.setMessage(tr(s.running()?"pause":"start"));}
+        pause.setMessage(tr(s.running()?"pause":"resume"));pause.setIcon(s.running()?UiIcon.PAUSE:UiIcon.RESUME);pause.setTooltip(Tooltip.create(pause.getMessage().copy().append("\n").append(tr("pause_hint"))));pause.setSelected(!s.running());
+        if(selectable&&valid){primary.setMessage(ui(s.queuedBatches()>0?"add_one":"make_one"));primary.setIcon(s.queuedBatches()>0?UiIcon.QUEUE_ADD:UiIcon.MAKE_ONE);primary.active=!s.repeat()&&s.queuedBatches()<64;primary.setTooltip(Tooltip.create(primary.getMessage().copy().append("\n").append(tr(s.queuedBatches()>0?"add_batch_hint":"start_once_hint"))));}
+        if(menu.kind().generator()){primary.visible=main();primary.active=main();primary.setMessage(tr(s.running()?"pause":"start"));primary.setIcon(s.running()?UiIcon.PAUSE:UiIcon.START);}
         if(s.status().equals("requires_research")||s.status().equals("requires_field"))primary.active=repeat.active=false;
         primary.setWidth(s.networkJobs()||handPreparator()||menu.kind().generator()?138:58);
+        buildHint.setIcon(UiIcon.LOCATE);
         buildHint.visible=process&&industrial()&&menu.structureHint().present();buildHint.active=buildHint.visible;
         if(buildHint.visible)primary.visible=repeat.visible=pause.visible=false;
         for(var row:stockRows)row.visible=row.active=false;
@@ -198,29 +211,47 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(search!=null&&search.visible)ScreenChrome.inset(g,leftPos+8,topPos+20,machines()?180:104,18);
         if(machines())for(var row:deviceRows)if(row.device!=null)ScreenChrome.inset(g,leftPos+8,row.y,174,28);
         if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
-            if(handPreparator())ScreenChrome.icon(g,Icon.CRANK,leftPos+8,topPos+42,ACCENT);
-            else{ScreenChrome.inset(g,leftPos+8,topPos+20,12,58);int fill=(int)(54L*menu.progress().energy()/MachineBlockEntity.ENERGY_CAPACITY);g.fill(leftPos+10,topPos+76-fill,leftPos+18,topPos+76,menu.progress().energy()==0?WARNING:ACCENT);}
+            if(handPreparator())ScreenChrome.icon(g,UiIcon.CRANK,leftPos+6,topPos+40,MUTED);
+            else{ScreenChrome.inset(g,leftPos+8,topPos+20,12,58);int fill=(int)(54L*menu.progress().energy()/MachineBlockEntity.ENERGY_CAPACITY);g.fill(leftPos+10,topPos+76-fill,leftPos+18,topPos+76,menu.progress().energy()==0?WARNING:accent());}
             arrow(g,leftPos+94,topPos+52);
         }
         for(int i=0;i<menu.slots.size();i++){
             var slot=menu.slots.get(i);if(!slot.isActive())continue;
-            int edge=i>=MachineMenu.FIRST_PLAYER_SLOT?SLOT_EDGE:i==2||i==10||i==11||i==13?UPGRADE:i==12?GAS:i==1?ACCENT:SLOT_EDGE;
+            int edge=i>=MachineMenu.FIRST_PLAYER_SLOT?SLOT_EDGE:i==2||i==10||i==11||i==13?UPGRADE:i==12?PRIMAL:i==1?accent():SLOT_EDGE;
             ScreenChrome.slot(g,leftPos+slot.x-1,topPos+slot.y-1);
             g.fill(leftPos+slot.x-1,topPos+slot.y-1,leftPos+slot.x+17,topPos+slot.y,edge);
-            if(i==2&&!slot.hasItem())ScreenChrome.icon(g,Icon.UPGRADES,leftPos+slot.x+2,topPos+slot.y+2,UPGRADE);
+            if(i<MachineMenu.FIRST_PLAYER_SLOT&&!slot.hasItem()) {
+                var ghost=slotGhost(i);
+                if(ghost!=null)ScreenChrome.icon(g,ghost,leftPos+slot.x,topPos+slot.y,
+                        i==12?PRIMAL_GHOST:i==2&&ghost==UiIcon.SLOT_PRESSURE?PRESSURE_GHOST:GHOST);
+            }
         }
     }
+    private UiIcon slotGhost(int slot) {
+        if(disk())return UiIcon.SLOT_CELL;
+        return switch(slot) {
+            case 0 -> menu.kind()==MachineKind.ANALYZER?UiIcon.SLOT_SAMPLE:menu.kind().generator()?UiIcon.SLOT_FUEL:converter()?UiIcon.SLOT_SHARD:UiIcon.SLOT_INPUT;
+            case 1 -> UiIcon.SLOT_OUTPUT;
+            case 2 -> industrial()?UiIcon.SLOT_SPEED:menu.snapshot().status().equals("requires_pressure")?UiIcon.SLOT_PRESSURE:UiIcon.SLOT_UPGRADE;
+            case 3 -> UiIcon.SLOT_MIX; case 4 -> UiIcon.SLOT_ADDITIVE;
+            case 10 -> UiIcon.SLOT_EFFICIENCY; case 11 -> UiIcon.SLOT_PARALLEL;
+            case 12 -> UiIcon.SLOT_PRIMAL_CELL; case 13 -> UiIcon.SLOT_LENS;
+            default -> null;
+        };
+    }
+    private static final Identifier PROGRESS_ARROW=Identifier.fromNamespaceAndPath("rematter","progress_arrow");
     private void arrow(GuiGraphicsExtractor g,int x,int y){
         var p=menu.progress();int fill=p.duration()>0?(int)Math.clamp(24L*p.progress()/p.duration(),0,24):0;
-        for(int i=0;i<24;i++){int half=i<16?3:Math.max(0,7-(i-16));g.fill(x+i,y+8-half,x+i+1,y+9+half,i<fill?ACCENT:HIGHLIGHT);}
+        g.blitSprite(RenderPipelines.GUI_TEXTURED,PROGRESS_ARROW,x,y,24,16,HIGHLIGHT);
+        if(fill>0)g.blitSprite(RenderPipelines.GUI_TEXTURED,PROGRESS_ARROW,24,16,0,0,x,y,fill,16,machineAccent(menu.kind()));
     }
     @Override protected void extractLabels(GuiGraphicsExtractor g,int mx,int my){
         text(g,title.getString(),8,6,back.visible?155:200,TEXT);
         if(configuration()){
-            if(driveRecovery()) {g.text(font,ui("preserved_items"),8,24,WARNING,false);int line=0;for(var part:font.split(ui("preserved_items_hint"),154)){if(line==4)break;g.text(font,part,8,76+line++*10,MUTED,false);}return;}
-            ScreenChrome.inset(g,8,130,180,78);g.text(font,ui("details"),13,136,MUTED,false);
+            if(driveRecovery()) {ScreenChrome.icon(g,UiIcon.WARNING,8,20,WARNING);g.text(font,ui("preserved_items"),24,24,WARNING,false);int line=0;for(var part:font.split(ui("preserved_items_hint"),154)){if(line==4)break;g.text(font,part,8,76+line++*10,MUTED,false);}return;}
+            ScreenChrome.inset(g,8,130,180,78);ScreenChrome.icon(g,UiIcon.INFO,11,132,MUTED);g.text(font,ui("details"),29,136,MUTED,false);
             var details=industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot());
-            for(int i=0;i<Math.min(5,details.size());i++)text(g,details.get(i).getString(),13,149+i*11,170,TEXT);
+            for(int i=0;i<Math.min(5,details.size());i++){if(i==4)ScreenChrome.twoLines(g,font,details.get(i).getString(),13,187,170,TEXT);else text(g,details.get(i).getString(),13,147+i*10,170,TEXT);}
             return;
         }
         if(researching())return;
@@ -230,9 +261,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(passive()){drawStorage(g);return;}
         if(converter())return;
         if(menu.kind().generator()){
-            text(g,ui("generator_rate",extraNumber("generationRate")).getString(),24,73,164,ACCENT);
-            text(g,Quantities.energy(Quantities.compact(menu.progress().energy())).getString(),24,85,164,TEXT);
-            text(g,ui("generator_remaining",extraNumber("fuelRemaining")).getString(),24,92,164,MUTED);return;
+            ScreenChrome.icon(g,UiIcon.ENERGY,22,62,accent());text(g,ui("generator_rate",extraNumber("generationRate")).getString(),38,66,150,accent());
+            text(g,Quantities.energy(Quantities.compact(menu.progress().energy())).getString(),38,78,150,TEXT);
+            ScreenChrome.icon(g,UiIcon.FUEL,22,86,MUTED);text(g,ui("generator_remaining",extraNumber("fuelRemaining")).getString(),38,90,150,MUTED);return;
         }
         var s=menu.snapshot();var p=s.preview();
         if(!menu.inputRole())chips(g,p.inputs(),24,42);
@@ -240,14 +271,19 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         if(menu.kind()==MachineKind.ANALYZER)text(g,tr("sample_kept").getString(),24,66,90,MUTED);
         ItemStack preview=outputIcon(p);
         if(!preview.isEmpty()){
-            ScreenChrome.inset(g,170,42,18,18);g.fakeItem(preview,171,43);text(g,tr("result_preview").getString(),145,66,43,MUTED);
+            ScreenChrome.inset(g,170,42,18,18);g.fakeItem(preview,171,43);ScreenChrome.icon(g,UiIcon.PREVIEW,171,61,MUTED);
         }
-        String cost=handPreparator()?tr("hand_powered").getString():p.id().isEmpty()?Quantities.energy(Quantities.compact(menu.progress().energy())).getString():tr("preview_cost",Quantities.compact(p.energy()),Quantities.seconds(p.ticks())).getString();
-        text(g,cost,24,81,164,MUTED);
+        ScreenChrome.icon(g,handPreparator()?UiIcon.CRANK:UiIcon.ENERGY,22,76,MUTED);
+        String energy=handPreparator()?tr("hand_powered").getString():Quantities.energy(Quantities.compact(p.id().isEmpty()?menu.progress().energy():p.energy())).getString();
+        text(g,energy,38,80,144,MUTED);
+        if(!handPreparator()&&!p.id().isEmpty()) {
+            int xx=40+font.width(energy);
+            ScreenChrome.icon(g,UiIcon.TIME,xx,76,MUTED);text(g,Quantities.seconds(p.ticks()),xx+16,80,188-xx-16,MUTED);
+        }
         String status=statusText().getString();
         if(s.queuedBatches()>0)status+=" · "+s.queuedBatches()+" "+ui("queued").getString();else if(s.repeat())status+=" · "+ui("repeating").getString();
-        int color=working(s.status())?ACCENT:List.of("ready","idle","analyzed","analysis_complete","awaiting_request","paused").contains(s.status())?MUTED:WARNING;
-        ScreenChrome.icon(g,color==WARNING?Icon.INFO:working(s.status())?Icon.PLAY:Icon.CHECK,24,91,color);text(g,status,38,92,150,color);
+        int color=working(s.status())?accent():List.of("ready","idle","analyzed","analysis_complete","awaiting_request","paused").contains(s.status())?MUTED:WARNING;
+        ScreenChrome.icon(g,StatusText.icon(s.status(),menu.kind()),22,88,-1);text(g,status,38,92,150,color);
     }
     private void chips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int x,int y){
         for(int i=0;i<Math.min(6,values.size());i++){var a=values.get(i);int xx=x+i%3*18,yy=y+i/3*18;ScreenChrome.inset(g,xx,yy,18,18);substanceIcon(g,key(a.id(),a.phase()),xx+1,yy+1);if(a.available()<a.required())g.fill(xx,yy,xx+18,yy+1,WARNING);}
@@ -255,47 +291,50 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void drawStorage(GuiGraphicsExtractor g){
         var s=menu.snapshot();
         if(disk()){
-            for(int bay=0;bay<s.cells().size();bay++){var cell=s.cells().get(bay);var slot=menu.slots.get(menu.diskMenuSlot(bay));g.text(font,Integer.toString(bay+1),slot.x-8,slot.y+5,MUTED,false);int fill=cell.capacity()>0?(int)Math.clamp(16L*cell.used()/cell.capacity(),0,16):0;g.fill(slot.x,slot.y+17,slot.x+16,slot.y+19,HIGHLIGHT);g.fill(slot.x,slot.y+17,slot.x+fill,slot.y+19,cell.readable()?ACCENT:WARNING);}
-            if(extraNumber("primalCapacity")>0)text(g,ui("primal_short",Quantities.compact(extraNumber("primal"))).getString(),8,100,67,GAS);
+            for(int bay=0;bay<s.cells().size();bay++){var cell=s.cells().get(bay);var slot=menu.slots.get(menu.diskMenuSlot(bay));g.text(font,Integer.toString(bay+1),slot.x-8,slot.y+5,MUTED,false);int fill=cell.capacity()>0?(int)Math.clamp(16L*cell.used()/cell.capacity(),0,16):0;g.fill(slot.x,slot.y+17,slot.x+16,slot.y+19,HIGHLIGHT);g.fill(slot.x,slot.y+17,slot.x+fill,slot.y+19,cell.readable()?accent():WARNING);}
+            if(extraNumber("primalCapacity")>0){ScreenChrome.icon(g,UiIcon.PRIMAL,6,96,PRIMAL);text(g,Quantities.compact(extraNumber("primal")),22,100,53,PRIMAL_LIGHT);};
             text(g,Quantities.compact(s.used())+" / "+Quantities.compact(s.capacity()),8,110,67,MUTED);
         }
         if(terminal()){text(g,ui("substance").getString(),8,40,105,MUTED);text(g,ui("amount").getString(),126,40,48,MUTED);}
-        if(shownEntries.isEmpty())text(g,tr(menu.stock().readable()?"contents_empty":"contents_unavailable").getString(),stockX()+2,stockY()+5,stockWidth()-4,MUTED);
+        if(shownEntries.isEmpty()){
+            if(!menu.stock().readable())ScreenChrome.icon(g,UiIcon.WARNING,stockX(),stockY()+1,WARNING);
+            text(g,tr(menu.stock().readable()?"contents_empty":"contents_unavailable").getString(),stockX()+(menu.stock().readable()?2:18),stockY()+5,stockWidth()-(menu.stock().readable()?4:20),MUTED);
+        }
         String footer=driveRecovery()?ui("extra_items").getString():ui("types",menu.stock().totalTypes()).getString();
         if(menu.stock().truncated())footer+=" · "+ui("partial").getString();
         if(terminal())footer+=" · "+Quantities.compact(s.used())+" / "+Quantities.compact(s.capacity())+" u";
-        text(g,footer,stockX(),terminal()?200:112,180-stockX(),menu.stock().truncated()?WARNING:MUTED);
+        ScreenChrome.icon(g,menu.stock().truncated()?UiIcon.WARNING:UiIcon.STOCK,stockX()-2,(terminal()?200:112)-4,menu.stock().truncated()?WARNING:MUTED);text(g,footer,stockX()+14,terminal()?200:112,166-stockX(),menu.stock().truncated()?WARNING:MUTED);
 
     }
     private void drawDevices(GuiGraphicsExtractor g){
         if(shownDevices.isEmpty())text(g,ui("no_machines").getString(),8,48,175,MUTED);
         for(var row:deviceRows)row.draw(g);
-        text(g,ui("devices_count",shownDevices.size(),menu.terminalDevices().total()).getString(),8,200,178,MUTED);
+        ScreenChrome.icon(g,menu.snapshot().network().status().equals("ready")?UiIcon.NETWORK_ONLINE:UiIcon.NETWORK_OFFLINE,6,196,-1);text(g,ui("devices_count",shownDevices.size(),menu.terminalDevices().total()).getString(),22,200,164,MUTED);
     }
     @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float partial){
         super.extractRenderState(g,mx,my,partial);int x=mx-leftPos,y=my-topPos;
         if(researching()){researchPanel.extractRenderState(g,mx,my);return;}
         if(main()&&converter())converterPanel.extractRenderState(g,mx,my);
         if(configuration()){settingsPanel.extractRenderState(g,mx,my);if(inside(x,y,8,130,180,78))tooltip(g,industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()),mx,my);return;}
-        if(search!=null&&search.visible)ScreenChrome.icon(g,Icon.SEARCH,leftPos+11,topPos+23,MUTED);
+        if(search!=null&&search.visible)ScreenChrome.icon(g,UiIcon.SEARCH,leftPos+9,topPos+21,MUTED);
         if(storageList())stockBar.extractRenderState(g);else if(machines())deviceBar.extractRenderState(g);
         if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
             if(inside(x,y,8,20,12,58)){var lines=new ArrayList<Component>();lines.add(energyLine());addRouteDetails(lines,menu.snapshot());tooltip(g,lines,mx,my);}
             if(inside(x,y,94,52,24,16))tooltip(g,recipeDetails(menu.snapshot()),mx,my);
             if(inside(x,y,24,90,164,11)){var lines=new ArrayList<Component>();lines.add(statusText());lines.addAll(industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()));tooltip(g,lines,mx,my);}
-            if(inside(x,y,170,42,18,29)&&!outputIcon(menu.snapshot().preview()).isEmpty())tooltip(g,List.of(tr("result_preview_detail",menu.snapshot().preview().outputCount(),outputIcon(menu.snapshot().preview()).getHoverName()),tr("result_preview_hint")),mx,my);
+            if(inside(x,y,170,42,18,34)&&!outputIcon(menu.snapshot().preview()).isEmpty())tooltip(g,List.of(tr("result_preview_detail",menu.snapshot().preview().outputCount(),outputIcon(menu.snapshot().preview()).getHoverName()),tr("result_preview_hint")),mx,my);
             tooltipChips(g,menu.snapshot().preview().inputs(),24,42,x,y,mx,my);
             if(!menu.slots.get(1).isActive())tooltipChips(g,menu.snapshot().preview().outputs(),134,42,x,y,mx,my);
         }
         if(main())for(int i=0;i<MachineMenu.FIRST_PLAYER_SLOT;i++){var slot=menu.slots.get(i);if(!slot.isActive()||slot.hasItem()||!inside(x,y,slot.x,slot.y,16,16))continue;
-            List<Component> lines=i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":"input"));tooltip(g,lines,mx,my);}
+            List<Component> lines=i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":menu.kind().generator()?"fuel_slot":converter()?"primal_source_slot":"input"));tooltip(g,lines,mx,my);}
         if(main()&&disk()&&inside(x,y,8,103,68,15))tooltip(g,storageDetails(menu.snapshot()),mx,my);
     }
     private boolean extraFlag(String key){return menu.extras().has(key)&&menu.extras().get(key).getAsBoolean();}
     private long extraNumber(String key){return menu.extras().has(key)?menu.extras().get(key).getAsLong():0;}
     private void action(MachineActionPayload.Action action,String target,long amount){ClientPacketDistributor.sendToServer(new MachineActionPayload(menu.containerId,action,target,amount));}
     private void tooltipChips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int xx,int yy,int x,int y,int mx,int my){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,xx+i%3*18,yy+i/3*18,18,18)){var a=values.get(i);tooltip(g,List.of(name(a),SubstanceNames.phase(a.phase()),tr("preview_input",name(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available()))),mx,my);}}
-    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(menu.kind().synthesis())lines.add(tr("pressure_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
+    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(industrial()?ui("speed"):tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(menu.kind().synthesis())lines.add(tr("pressure_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
     private Component statusText(){var s=menu.snapshot();return s.status().equals("structure")&&industrial()?Component.translatable("status.rematter."+s.structure().diagnostic()):StatusText.of(s.status(),s.orders().stale(),s.orders().quarantined());}
     private static Component name(MachineSnapshot.Entry e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
     private static Component name(MachineSnapshot.Amount e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
@@ -408,13 +447,10 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     }
     private static void substanceIcon(GuiGraphicsExtractor g,SubstanceKey key,int x,int y) {
         if(key!=null)SubstanceIcon.draw(g,x,y,key);
-        else ScreenChrome.icon(g,Icon.INFO,x+2,y+2,MUTED);
+        else ScreenChrome.icon(g,UiIcon.UNKNOWN,x,y,MUTED);
     }
     private static int phaseColor(String phase) {return switch(phase){case "liquid"->LIQUID;case "gas"->GAS;default->WARNING;};}
-    private String fitted(String value,int width) {
-        return ScreenChrome.fit(font,value,width);
-    }
-    private void text(GuiGraphicsExtractor g,String v,int x,int y,int width,int color){g.text(font,fitted(v,width),x,y,color,false);}
+    private void text(GuiGraphicsExtractor g,String v,int x,int y,int width,int color){ScreenChrome.text(g,font,v,x,y,width,color);}
     private ItemStack outputIcon(MachineSnapshot.Preview p){try{Identifier id=Identifier.parse(p.outputId());if(p.outputKind().equals("item")&&BuiltInRegistries.ITEM.containsKey(id))return new ItemStack(BuiltInRegistries.ITEM.getValue(id));if(p.outputKind().equals("fluid")&&BuiltInRegistries.FLUID.containsKey(id))return new ItemStack(BuiltInRegistries.FLUID.getValue(id).getBucket());}catch(RuntimeException ignored){}return ItemStack.EMPTY;}
     private static String number(long v){return Quantities.number(v);}
     private static String matter(long v){return Quantities.matter(Quantities.compact(v)).getString();}
@@ -426,14 +462,14 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         private MachineSnapshot.Entry entry;
         StockRow(){super(Button.builder(Component.empty(),b->{var row=(StockRow)b;if(row.entry!=null)toggleFavorite(row.entry);}).bounds(leftPos+8,topPos+50,174,18));}
         void show(MachineSnapshot.Entry value){entry=value;if(value==null)return;setMessage(name(value));setTooltip(Tooltip.create(stockTooltip(value,name(value).getString()).copy().append("\n").append(ui("favorite_toggle"))));}
-        @Override protected void extractContents(GuiGraphicsExtractor g,int mx,int my,float partial){if(entry==null)return;ScreenChrome.raised(g,getX(),getY(),getWidth(),18,isHoveredOrFocused(),true);substanceIcon(g,key(entry.id(),entry.phase()),getX()+1,getY()+1);int amountWidth=Math.min(43,getWidth()/3);String amount=Quantities.compact(entry.amount());int right=getX()+getWidth()-17;g.text(font,amount,right-font.width(amount),getY()+5,ACCENT,false);text(g,name(entry).getString(),getX()+21,getY()+5,getWidth()-amountWidth-40,entry.known()?TEXT:WARNING);ScreenChrome.icon(g,Icon.STAR,getX()+getWidth()-14,getY()+3,favorite(entry.key())?ACCENT_BRIGHT:MUTED);}
+        @Override protected void extractContents(GuiGraphicsExtractor g,int mx,int my,float partial){if(entry==null)return;ScreenChrome.raised(g,getX(),getY(),getWidth(),18,isHoveredOrFocused(),true);substanceIcon(g,key(entry.id(),entry.phase()),getX()+1,getY()+1);int amountWidth=Math.min(43,getWidth()/3);String amount=Quantities.compact(entry.amount());int right=getX()+getWidth()-17;g.text(font,amount,right-font.width(amount),getY()+5,accent(),false);if(font.width(name(entry))<=getWidth()-amountWidth-40)text(g,name(entry).getString(),getX()+21,getY()+5,getWidth()-amountWidth-40,entry.known()?TEXT:WARNING);ScreenChrome.icon(g,favorite(entry.key())?UiIcon.STAR:UiIcon.STAR_OUTLINE,getX()+getWidth()-16,getY()+1,favorite(entry.key())?accent():MUTED);}
     }
     private final class DeviceRow {
         private TerminalDevicesPayload.Device device;
-        private final DarkButton open=DarkButton.icon(Icon.NEXT,ui("open"),tr("terminal.return_hint"),leftPos+161,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.OPEN));
-        private final DarkButton queue=DarkButton.icon(Icon.ADD,ui("queue_one"),tr("add_batch_hint"),leftPos+141,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.QUEUE_BATCH));
+        private final DarkButton open=DarkButton.icon(UiIcon.OPEN,ui("open"),tr("terminal.return_hint"),leftPos+161,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.OPEN));
+        private final DarkButton queue=DarkButton.icon(UiIcon.QUEUE_ADD,ui("queue_one"),tr("add_batch_hint"),leftPos+141,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.QUEUE_BATCH));
         private int y;
-        void show(TerminalDevicesPayload.Device value,int y){device=value;this.y=y;open.visible=open.active=value!=null;queue.visible=value!=null;queue.active=value!=null&&value.canQueue();open.setY(y+3);queue.setY(y+3);if(value!=null)open.setTooltip(Tooltip.create(Component.translatable("block.rematter."+value.kind().id()).copy().append("\n").append(Component.literal(value.position().toShortString()))));}
-        void draw(GuiGraphicsExtractor g){if(device==null)return;int yy=y-topPos;String title=Component.translatable("block.rematter."+device.kind().id()).getString();text(g,title,11,yy+3,126,TEXT);String status=StatusText.of(device.status(),0,0).getString();if(device.queuedBatches()>0)status+=" · "+device.queuedBatches()+" "+ui("queued").getString();text(g,status,11,yy+14,126,working(device.status())?ACCENT:MUTED);if(device.duration()>0)g.fill(11,yy+25,11+(int)(126L*device.progress()/device.duration()),yy+26,ACCENT);}
+        void show(TerminalDevicesPayload.Device value,int y){device=value;this.y=y;open.visible=open.active=value!=null;queue.visible=value!=null;queue.active=value!=null&&value.canQueue();open.setY(y+3);queue.setY(y+3);if(value!=null)open.setTooltip(Tooltip.create(Component.translatable("block.rematter."+value.kind().id()).copy().append("\n").append(Component.literal(value.position().toShortString())).append("\n").append(ui("open_hint"))));}
+        void draw(GuiGraphicsExtractor g){if(device==null)return;int yy=y-topPos;String title=Component.translatable("block.rematter."+device.kind().id()).getString();ScreenChrome.icon(g,StatusText.icon(device.status(),device.kind()),9,yy+6,-1);text(g,title,27,yy+3,110,TEXT);String status=StatusText.of(device.status(),0,0).getString();if(device.queuedBatches()>0)status+=" · "+device.queuedBatches()+" "+ui("queued").getString();text(g,status,27,yy+15,110,working(device.status())?machineAccent(device.kind()):MUTED);if(device.duration()>0)g.fill(11,yy+25,11+(int)(126L*device.progress()/device.duration()),yy+26,machineAccent(device.kind()));}
     }
 }

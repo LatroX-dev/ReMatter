@@ -24,27 +24,27 @@
         "north": {
           "texture": "#work",
           "uv": [
-            8,
+            4,
             0,
-            14,
+            10,
             1
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            8,
+            4,
             0,
-            14,
+            10,
             1
           ]
         },
         "down": {
           "texture": "#work",
           "uv": [
-            8,
+            4,
             0,
-            14,
+            10,
             1
           ]
         }
@@ -69,37 +69,37 @@
         "north": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            2
+            4,
+            4,
+            6
           ]
         },
         "south": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            2
+            4,
+            4,
+            6
           ]
         },
         "east": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            2
+            4,
+            4,
+            6
           ]
         },
         "west": {
           "texture": "#work",
           "uv": [
-            4,
             0,
-            8,
-            2
+            4,
+            4,
+            6
           ]
         },
         "up": {
@@ -110,6 +110,70 @@
             4,
             4
           ]
+        }
+      }
+    },
+    {
+      "name": "resonator_tip",
+      "from": [
+        7,
+        15,
+        7
+      ],
+      "to": [
+        9,
+        16,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            2,
+            6,
+            4,
+            7
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            2,
+            6,
+            4,
+            7
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            2,
+            6,
+            4,
+            7
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            2,
+            6,
+            4,
+            7
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            2,
+            8
+          ],
+          "cullface": "up"
         }
       }
     }

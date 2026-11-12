@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Generate the Primal Ore, Primal item and Entangled Link assets with their loot, recipes and world generation.
 
-Primal Matter has its own colour signature, apart from the eight Matrix Crystal hues: a white-hot core, an
-ultraviolet body and a shimmer that travels between cyan-blue and magenta. PRIMAL holds these colours.
+Primal Matter has its own colour signature, apart from the eight Matrix Crystal hues: a white-hot core in
+crystals that wear a spectrum from teal over cyan-blue, ultraviolet and magenta to rose-gold, with ultraviolet
+shadows. PRIMAL holds these colours and SPECTRUM their order. PRIMAL_LOOK selects how much of the spectrum
+shows: "spectrum" gives every crystal of a cluster its own place in it, "aurora" keeps all crystals ultraviolet
+with a shimmer between cyan-blue and magenta.
 
 A Primal Ore is layered like the vanilla grass block. Three boxes of the same size carry the host stone, which
 is the vanilla texture referenced at run time, a socket layer lit by the world, and an animated crystal layer at
@@ -24,6 +27,11 @@ import struct
 from check_assets import strip_ancillary_chunks
 from generated_files import GeneratedFiles
 from recipe_discovery import shaped_discovery
+from family_geometry import Box, build, check_boxes
+from family_sprites import Sprite, casing
+from family_palette import (BASE, HIGHLIGHT, PORT_DARK, PORT_LIGHT, PORT_METAL, SEAM, SHADE, WELL,
+                            PRIMAL_CORE, PRIMAL_CORE_SOFT, PRIMAL_LIGHT, PRIMAL_BODY, PRIMAL_DEEP,
+                            PRIMAL_VOID, PRIMAL_INK, PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_WARM, PRIMAL_GOLD)
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "src/main/resources"
@@ -33,17 +41,19 @@ DRAWINGS = ROOT / "artwork/primal"
 FACES = ("north", "east", "south", "west", "up", "down")
 
 # The Primal signature. None of these is one of the eight Matrix Crystal hues.
-PRIMAL = {
-    "core": "#ffffff",       # white-hot centre
-    "core_soft": "#efe6ff",  # its halo
-    "light": "#ae8eff",      # facet turned to the light
-    "body": "#8a5cff",       # ultraviolet
-    "deep": "#4c24b2",       # facet in shade
-    "void": "#1c0e4a",       # inside of a hollow
-    "cool": "#5cc8ff",       # the shimmer travels between this cyan-blue
-    "warm": "#ff6ad5",       # and this magenta
-    "ink": "#1e1546",        # contour of the item icons
-}
+PRIMAL = {name: "#" + bytes(colour).hex() for name, colour in {
+    "core": PRIMAL_CORE, "core_soft": PRIMAL_CORE_SOFT, "light": PRIMAL_LIGHT, "body": PRIMAL_BODY,
+    "deep": PRIMAL_DEEP, "void": PRIMAL_VOID, "ink": PRIMAL_INK, "teal": PRIMAL_TEAL,
+    "cool": PRIMAL_COOL, "warm": PRIMAL_WARM, "gold": PRIMAL_GOLD,
+}.items()}
+
+# The spectrum from its cool to its warm end. A place in it is a number from 0 (teal) to 1 (rose-gold).
+SPECTRUM = ("teal", "cool", "body", "warm", "gold")
+# "spectrum": the crystals of a cluster stand at different places of the spectrum and drift along it.
+# "aurora": every crystal is ultraviolet; only its prismatic edges turn between cyan-blue and magenta.
+PRIMAL_LOOKS = ("spectrum", "aurora")
+# The look that is written. Run the generator again after changing it; the item icons then need CairoSVG.
+PRIMAL_LOOK = "spectrum"
 
 # Dimension, replaced block, biome tag, height range, host textures and the socket colour that reads on the host.
 ORES = {
@@ -59,6 +69,8 @@ ORES = {
 #   w core, c core halo, l lit facet, b body, d shaded facet, v hollow, e prismatic edge,
 #   k socket without a crystal (a crack), . host stone.
 # Every texel next to a crystal becomes socket by itself. "sparkles" are crystal tips that flash once per loop.
+# "places" gives every crystal texel its home in the spectrum for the look "spectrum", one digit per texel:
+#   0 teal, 2 cyan-blue, 4 ultraviolet, 6 magenta, 8 rose-gold, odd digits halfway between their neighbours.
 ORE_DESIGNS = {
     "A": {"title": "Shard cluster", "sparkles": ((4, 4), (14, 3)), "rows": (
         "................",
@@ -76,6 +88,22 @@ ORE_DESIGNS = {
         "..d..bd....cbe..",
         "..........lbd...",
         "..........bd....",
+        "................"), "places": (
+        "................",
+        ".........2......",
+        "........22......",
+        "........222...0.",
+        "....4..2333..00.",
+        "...44...333.000.",
+        "...444..33..00..",
+        "..4444..3.......",
+        "..4444..........",
+        "..4444.6........",
+        ".4444.66........",
+        "..45.666....7...",
+        "..5..66....888..",
+        "..........888...",
+        "..........88....",
         "................")},
     "B": {"title": "Vein", "sparkles": ((10, 5), (5, 10)), "rows": (
         "................",
@@ -92,6 +120,22 @@ ORE_DESIGNS = {
         "..lbddd..dbbl...",
         ".bd........dbce.",
         ".d............bd",
+        "................",
+        "................"), "places": (
+        "................",
+        ".............0..",
+        "............0...",
+        "...........1....",
+        ".........122....",
+        ".........222....",
+        ".........233....",
+        ".........334....",
+        "........444.....",
+        "....66.444......",
+        "...66654455.....",
+        "..66666..5566...",
+        ".66........6778.",
+        ".6............88",
         "................",
         "................")},
     "C": {"title": "Geode eye", "sparkles": ((6, 7), (8, 8)), "rows": (
@@ -110,6 +154,22 @@ ORE_DESIGNS = {
         "..k.............",
         ".k..............",
         "................",
+        "................"), "places": (
+        "................",
+        "................",
+        "................",
+        "................",
+        "......3445......",
+        "....22664066....",
+        "..114466404477..",
+        ".04444644044448.",
+        ".04444448444448.",
+        "..114424844477..",
+        "....22248066....",
+        "......3445......",
+        "................",
+        "................",
+        "................",
         "................")},
 }
 # The design that is written. "A", "B" or "C"; run the generator again after changing it.
@@ -126,8 +186,6 @@ CELLS = ("primal_cell_16k", "primal_cell_64k", "primal_cell_256k")
 # Sprites of earlier versions that no model uses any more: the flat ore faces and the old Primal Cell cores.
 # The Primal Cell items are cartridges of generate_cell_models.py; this generator keeps only their recipes.
 RETIRED = tuple(f"textures/block/{name}.png" for name in ORES) + tuple(f"textures/block/{name}_core.png" for name in CELLS)
-
-VIOLET, WHITE = (153, 113, 208, 255), (235, 225, 255, 255)
 
 
 def rgb(value):
@@ -148,49 +206,114 @@ def noise(x, y):
 
 ROLE_COLOURS = {"w": "core", "c": "core_soft", "l": "light", "b": "body", "d": "deep", "v": "void"}
 NEIGHBOURS = ((1, 0), (-1, 0), (0, 1), (0, -1))
+# Look "spectrum", in shares of the whole spectrum: how far a crystal drifts from its home, how much later a
+# crystal at the warm end swings than one at the cool end (in loops), and how far a lit facet leans toward the
+# nearer end of the spectrum and a shaded one toward the ultraviolet middle.
+ORE_DRIFT = .1
+ORE_DRIFT_LAG = .5
+ORE_FACET_LEAN = .05
+# How far a lit facet is lifted toward white, how much of its crystal's colour the halo of a core takes, and
+# how far the crest of light lifts a crystal toward white.
+ORE_FACET_LIGHT, ORE_HALO_TINT, ORE_CREST = .2, .45, .32
+
+
+def spectrum(place):
+    """Colour at a place of the spectrum, 0 (teal) to 1 (rose-gold)."""
+    scaled = min(1.0, max(0.0, place)) * (len(SPECTRUM) - 1)
+    index = min(int(scaled), len(SPECTRUM) - 2)
+    return mix(rgb(PRIMAL[SPECTRUM[index]]), rgb(PRIMAL[SPECTRUM[index + 1]]), scaled - index)
+
+
+def in_shade(colour):
+    """A facet turned away from the light: every Primal shadow is ultraviolet, as deep is to body."""
+    return tuple(round(channel * deep / body)
+                 for channel, deep, body in zip(colour, rgb(PRIMAL["deep"]), rgb(PRIMAL["body"])))
 
 
 def ore_layers(design=None):
     """Crystal texels with their role and the socket texels of a design."""
-    return _ore_layers(design or ORE_DESIGN)
+    return _ore_layers(design or ORE_DESIGN)[:2]
+
+
+def ore_places(design=None):
+    """Home of every crystal texel in the spectrum, 0 to 1."""
+    return _ore_layers(design or ORE_DESIGN)[2]
 
 
 @functools.lru_cache(maxsize=None)
 def _ore_layers(design):
-    rows = ORE_DESIGNS[design]["rows"]
-    if len(rows) != 16 or any(len(row) != 16 for row in rows):
+    rows, places = ORE_DESIGNS[design]["rows"], ORE_DESIGNS[design]["places"]
+    if any(len(grid) != 16 or any(len(row) != 16 for row in grid) for grid in (rows, places)):
         raise ValueError("An ore design is 16 rows of 16 texels")
     glow = {(x, y): role for y, row in enumerate(rows) for x, role in enumerate(row) if role in "wclbdve"}
     socket = {(x, y) for y, row in enumerate(rows) for x, role in enumerate(row) if role == "k"}
     unknown = {role for row in rows for role in row} - set("wclbdvek.")
     if unknown:
         raise ValueError(f"Unknown texel role in an ore design: {sorted(unknown)}")
+    home = {(x, y): int(place) / 8 for y, row in enumerate(places) for x, place in enumerate(row) if place in "012345678"}
+    if set(home) != set(glow) or any(place not in "012345678." for row in places for place in row):
+        raise ValueError(f"Ore design {design}: every crystal texel needs one place from 0 to 8, and no other texel")
     for x, y in glow:
         socket.update((x + dx, y + dy) for dx, dy in NEIGHBOURS
                       if 0 <= x + dx < 16 and 0 <= y + dy < 16 and (x + dx, y + dy) not in glow)
-    return glow, socket
+    return glow, socket, home
 
 
-def glow_colour(design, x, y, frame):
+def drift(home, frame):
+    """Place of a crystal in one frame: it swings once per loop around its home and never leaves the spectrum.
+
+    Crystals with different homes swing out of step, so the colours of a cluster move like a slow wave.
+    """
+    low, high = max(0.0, home - ORE_DRIFT), min(1.0, home + ORE_DRIFT)
+    return low + (high - low) * (.5 + .5 * math.sin(2 * math.pi * (frame / ORE_FRAMES - home * ORE_DRIFT_LAG)))
+
+
+def glow_colour(design, x, y, frame, look=None):
     """Colour of one crystal texel in one frame, or None for a texel without crystal.
 
     A soft crest of light crosses the face diagonally once per loop. Its phase continues across the edge of the
-    texture, so the light runs on through neighbouring ore blocks. Prismatic edges turn from cyan-blue to
-    magenta and back as it passes, and each sparkle tip flashes once, half a loop away from the crest.
+    texture, so the light runs on through neighbouring ore blocks. Each sparkle tip flashes once, half a loop
+    away from the crest. In the look "spectrum" every crystal wears the colour of its place in the spectrum,
+    drifts slowly around it and keeps a white core and an ultraviolet shadow; its prismatic edges run through
+    the whole spectrum. In the look "aurora" all crystals are ultraviolet and the edges turn from cyan-blue to
+    magenta and back.
     """
+    design, look = design or ORE_DESIGN, look or PRIMAL_LOOK
     glow, _ = ore_layers(design)
     role = glow.get((x, y))
     if role is None:
         return None
     phase = ((x + y) / 16 - frame / ORE_FRAMES) % 1
     crest = max(0.0, (math.cos(2 * math.pi * phase) - .4) / .6) ** 2
-    if role == "e":
-        colour = mix(rgb(PRIMAL["cool"]), rgb(PRIMAL["warm"]), .5 - .5 * math.cos(2 * math.pi * (phase + .25)))
+    lift = .45
+    if look == "aurora":
+        if role == "e":
+            colour = mix(rgb(PRIMAL["cool"]), rgb(PRIMAL["warm"]), .5 - .5 * math.cos(2 * math.pi * (phase + .25)))
+        else:
+            colour = rgb(PRIMAL[ROLE_COLOURS[role]])
+    elif look == "spectrum":
+        lift = ORE_CREST
+        home = ore_places(design)[(x, y)]
+        place, lean = drift(home, frame), ORE_FACET_LEAN if home > .5 else -ORE_FACET_LEAN
+        if role == "w":
+            colour = rgb(PRIMAL["core"])
+        elif role == "v":
+            colour = rgb(PRIMAL["void"])
+        elif role == "c":
+            colour = mix(rgb(PRIMAL["core"]), spectrum(place + lean), ORE_HALO_TINT)
+        elif role == "l":
+            colour = mix(spectrum(place + lean), rgb(PRIMAL["core"]), ORE_FACET_LIGHT)
+        elif role == "b":
+            colour = spectrum(place)
+        elif role == "d":
+            colour = in_shade(spectrum(place - lean))
+        else:
+            colour = spectrum(.5 - .5 * math.cos(2 * math.pi * (phase + .25)))
     else:
-        colour = rgb(PRIMAL[ROLE_COLOURS[role]])
-    colour = mix(colour, rgb(PRIMAL["core"]), (.18 if role == "v" else .45) * crest)
+        raise ValueError(f"Unknown Primal look: {look}")
+    colour = mix(colour, rgb(PRIMAL["core"]), (.18 if role == "v" else lift) * crest)
     flash = 0.0
-    for tip_x, tip_y in ORE_DESIGNS[design or ORE_DESIGN]["sparkles"]:
+    for tip_x, tip_y in ORE_DESIGNS[design]["sparkles"]:
         distance = abs(x - tip_x) + abs(y - tip_y)
         if distance <= 1:
             away = (frame - (tip_x + tip_y + ORE_FRAMES // 2)) % ORE_FRAMES
@@ -199,10 +322,10 @@ def glow_colour(design, x, y, frame):
     return mix(colour, rgb(PRIMAL["core"]), flash)
 
 
-def glow_strip(design=None):
+def glow_strip(design=None, look=None):
     """Pixel function of the animated crystal layer: the frames below each other, alpha only 0 or 255."""
     def pixel(x, y):
-        colour = glow_colour(design, x, y % 16, y // 16)
+        colour = glow_colour(design, x, y % 16, y // 16, look)
         return (0, 0, 0, 0) if colour is None else colour + (255,)
     return pixel
 
@@ -287,23 +410,63 @@ def radial(name, stops, **attributes):
     return f'<radialGradient id="{name}"{extra}>{body}</radialGradient>'
 
 
+def hexa(colour):
+    return "#%02x%02x%02x" % tuple(colour)
+
+
+# Tones of an illustrated facet: how far a spectrum colour is lifted toward white, or that it lies in shade.
+FACET_TONES = {"glint": .74, "lit": .36, "body": 0, "shade": None, "dark": None}
+# The spectrum laid across a drawing: the ultraviolet holds the middle, the ends stay short.
+SWEEP = ((0, "teal"), (.2, "cool"), (.43, "body"), (.6, "body"), (.82, "warm"), (1, "gold"))
+# A facet in shade leans this far toward the ultraviolet middle before it is darkened, so no shadow turns brown.
+SHADE_LEAN = .125
+
+
+def facet_tone(key, tone):
+    place = SPECTRUM.index(key) / (len(SPECTRUM) - 1)
+    lift = FACET_TONES[tone]
+    if lift is None:
+        shaded = in_shade(spectrum(place + (SHADE_LEAN if place < .5 else -SHADE_LEAN if place > .5 else 0)))
+        return shaded if tone == "shade" else mix(shaded, rgb(PRIMAL["void"]), .42)
+    return mix(spectrum(place), rgb(PRIMAL["core"]), lift)
+
+
+def sweep(name, tone, start, end, stops=SWEEP):
+    """One tone of the whole spectrum, laid from start to end in the coordinates of the drawing."""
+    body = "".join(f'<stop offset="{offset:g}" stop-color="{hexa(facet_tone(key, tone))}"/>' for offset, key in stops)
+    return (f'<linearGradient id="{name}" gradientUnits="userSpaceOnUse" x1="{start[0]:g}" y1="{start[1]:g}" '
+            f'x2="{end[0]:g}" y2="{end[1]:g}">{body}</linearGradient>')
+
+
 def svg(definitions, parts):
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">\n<defs>\n'
             + "\n".join(definitions) + "\n</defs>\n" + "\n".join(parts) + "\n</svg>\n")
 
 
-def crystal_gradients():
-    """Facet fills shared by the shard and the cut crystal, lit from the upper left."""
+def crystal_gradients(look, start=None, end=None):
+    """Facet fills shared by the shard and the cut crystal, lit from the upper left.
+
+    In the look "spectrum" every tone is the whole spectrum laid from start (cool) to end (warm), so a facet
+    takes its hue from where it lies and its tone from how it faces the light.
+    """
     p = PRIMAL
-    return [
-        gradient("glint", ((0, "#ffffff"), (.6, "#e7dcff"), (1, "#c9b6ff"))),
-        gradient("lit", ((0, "#ddd0ff"), (.4, p["light"]), (1, "#9a72ff"))),
-        gradient("body", ((0, "#a680ff"), (.5, p["body"]), (1, "#6f43e8"))),
-        gradient("shade", ((0, "#6d40e2"), (.55, p["deep"]), (1, "#371a86"))),
-        gradient("dark", ((0, p["deep"]), (1, "#2a1368"))),
-        # The prismatic rim: cyan-blue where the light enters, magenta where it leaves.
-        gradient("prism", ((0, p["cool"]), (.42, p["cool"], 0), (.58, p["warm"], 0), (1, p["warm"]))),
-        radial("core", ((0, p["core"]), (.42, p["core"]), (.7, p["core_soft"], .85), (1, p["light"], 0))),
+    core = radial("core", ((0, p["core"]), (.42, p["core"]), (.7, p["core_soft"], .85), (1, p["light"], 0)))
+    if look == "aurora":
+        return [
+            gradient("glint", ((0, "#ffffff"), (.6, "#e7dcff"), (1, "#c9b6ff"))),
+            gradient("lit", ((0, "#ddd0ff"), (.4, p["light"]), (1, "#9a72ff"))),
+            gradient("body", ((0, "#a680ff"), (.5, p["body"]), (1, "#6f43e8"))),
+            gradient("shade", ((0, "#6d40e2"), (.55, p["deep"]), (1, "#371a86"))),
+            gradient("dark", ((0, p["deep"]), (1, "#2a1368"))),
+            # The prismatic rim: cyan-blue where the light enters, magenta where it leaves.
+            gradient("prism", ((0, p["cool"]), (.42, p["cool"], 0), (.58, p["warm"], 0), (1, p["warm"]))),
+            core,
+        ]
+    return [sweep(tone, tone, start, end) for tone in FACET_TONES] + [
+        # The prismatic rim: teal where the light enters, rose-gold where it leaves.
+        gradient("prism", ((0, p["teal"]), (.2, p["cool"]), (.42, p["cool"], 0), (.58, p["warm"], 0),
+                           (.8, p["warm"]), (1, p["gold"]))),
+        core,
     ]
 
 
@@ -316,8 +479,9 @@ def rim(name, outline):
     return below, clip, above
 
 
-def primal_crystal_svg():
+def primal_crystal_svg(look=None):
     """The refined form: a cut, double-terminated prism with the white-hot core standing inside."""
+    look = look or PRIMAL_LOOK
     apex, base = (64, 12), (66, 116)
     left_top, ridge_top, edge_top, right_top = (31, 38), (50, 47), (85, 45), (97, 36)
     left_low, ridge_low, edge_low, right_low = (31, 90), (50, 99), (85, 97), (97, 88)
@@ -349,11 +513,17 @@ def primal_crystal_svg():
         polygon(((36.5, 47), (42, 49.5), (42, 80), (36.5, 77.5)), "#ffffff", opacity=".6"),
         polygon(((60, 21), (47, 40), (52.5, 42.5)), "#ffffff", opacity=".75"),
         "</g>"]
-    return svg(crystal_gradients() + [clip], parts)
+    return svg(crystal_gradients(look, (38, 14), (86, 104)) + [clip], parts)
 
 
-def primal_shard_svg():
-    """The raw form: a broken sliver of the ore's crystal with a splinter, the core laid open along its ridge."""
+def primal_shard_svg(look=None):
+    """The raw form: a broken sliver of the ore's crystal with a splinter, the core laid open along its ridge.
+
+    In the look "spectrum" the sliver runs from a cool tip to a warm break, and the splinter is rose-gold,
+    like the small crystals of the ore.
+    """
+    look = look or PRIMAL_LOOK
+    chip_body, chip_shade = ("body", "shade") if look == "aurora" else ("chip", "chip_shade")
     tip, shoulder, flank, heel = (103, 14), (112, 37), (91, 78), (77, 104)
     notch, spike, chip, jag = (63, 96), (53, 115), (37, 103), (24, 111)
     low, side, brow = (21, 88), (45, 52), (79, 23)
@@ -365,8 +535,8 @@ def primal_shard_svg():
     below_splinter, clip_splinter, above_splinter = rim("chip", splinter)
     parts = [
         below_splinter,
-        polygon((splinter[0], splinter[1], seam, splinter[4]), "url(#body)"),
-        polygon((splinter[1], splinter[2], splinter[3], splinter[4], seam), "url(#shade)"),
+        polygon((splinter[0], splinter[1], seam, splinter[4]), f"url(#{chip_body})"),
+        polygon((splinter[1], splinter[2], splinter[3], splinter[4], seam), f"url(#{chip_shade})"),
         above_splinter,
         line((splinter[1], seam, splinter[4]), "#ffffff", 1.3, opacity=".6"),
         below,
@@ -387,11 +557,21 @@ def primal_shard_svg():
         polygon(((74, 33), (79, 35), (52, 69), (48, 65)), "#ffffff", opacity=".55"),
         polygon(((40, 71), (44, 74), (33, 88), (30, 85)), "#ffffff", opacity=".4"),
     ]
-    return svg(crystal_gradients() + [clip, clip_splinter], parts)
+    definitions = crystal_gradients(look, (104, 20), (30, 106))
+    if look != "aurora":
+        # The splinter is a rose-gold crystal of its own: a pale gold face to the light, rose on the far side.
+        definitions += [sweep("chip", "lit", (92, 80), (100, 112), ((0, "gold"), (1, "gold"))),
+                        sweep("chip_shade", "body", (108, 78), (98, 114), ((0, "gold"), (.35, "gold"), (1, "warm")))]
+    return svg(definitions + [clip, clip_splinter], parts)
 
 
-def discovery_lens_svg():
-    """A precision optic: a Primal core behind glass in a steel bezel and a graphite mount with one lug."""
+def discovery_lens_svg(look=None):
+    """A precision optic: a Primal core behind glass in a steel bezel and a graphite mount with one lug.
+
+    In the look "spectrum" the glass splits the light of the core: a cool fringe on the side of the light, a
+    warm one on the far side, and the whole spectrum around the rim of the pane.
+    """
+    look = look or PRIMAL_LOOK
     p = PRIMAL
     ink = "#161b22"
     tilt = 'transform="rotate(-18 60 58)"'
@@ -401,9 +581,22 @@ def discovery_lens_svg():
         gradient("steel", ((0, "#f1f3f0"), (.45, "#9aa6ab"), (1, "#56626a"))),
         radial("glass", ((0, p["core"]), (.2, p["core_soft"]), (.46, p["light"]), (.74, p["body"]),
                          (1, p["deep"])), cx=".46", cy=".44", r=".62"),
-        gradient("prism", ((0, p["cool"]), (.38, p["cool"], 0), (.62, p["warm"], 0), (1, p["warm"]))),
+        gradient("prism", ((0, p["cool"]), (.38, p["cool"], 0), (.62, p["warm"], 0), (1, p["warm"]))
+                 if look == "aurora" else
+                 ((0, p["teal"]), (.2, p["cool"]), (.4, p["cool"], 0), (.6, p["warm"], 0), (.8, p["warm"]), (1, p["gold"]))),
         '<clipPath id="pane"><ellipse cx="60" cy="58" rx="28" ry="26.5" ' + tilt + "/></clipPath>",
     ]
+    core = ((58, 44), (64, 50), (64.5, 63), (60.5, 72), (55, 65), (54.5, 53))
+    wide = ((58, 39), (67, 47), (68, 64), (61, 77), (52, 68), (51, 51))
+    if look == "aurora":
+        halo = [polygon(wide, p["core_soft"], opacity=".55")]
+    else:
+        # Thin fringes beside the halo: teal and cyan-blue toward the light, magenta and rose-gold away from it.
+        halo = [polygon([(x - 4, y - 2.5) for x, y in wide], p["teal"]),
+                polygon([(x + 4, y + 2.5) for x, y in wide], p["gold"]),
+                polygon([(x - 2, y - 1.25) for x, y in wide], p["cool"]),
+                polygon([(x + 2, y + 1.25) for x, y in wide], p["warm"]),
+                polygon(wide, p["core_soft"])]
     clamps = "".join(
         f'<rect x="-5" y="-39.5" width="10" height="11" rx="2" transform="translate(60 58) rotate({angle})" '
         f'fill="url(#steel)" stroke="{ink}" stroke-width="2"/>' for angle in (-58, 62, 182))
@@ -426,8 +619,8 @@ def discovery_lens_svg():
         f'<ellipse cx="60" cy="58" rx="28" ry="26.5" {tilt} fill="url(#glass)"/>',
         '<g clip-path="url(#pane)">',
         # The Primal core behind the glass.
-        polygon(((58, 39), (67, 47), (68, 64), (61, 77), (52, 68), (51, 51)), p["core_soft"], opacity=".55"),
-        polygon(((58, 44), (64, 50), (64.5, 63), (60.5, 72), (55, 65), (54.5, 53)), p["core"]),
+        *halo,
+        polygon(core, p["core"]),
         f'<ellipse cx="60" cy="58" rx="26" ry="24.5" {tilt} fill="none" stroke="url(#prism)" stroke-width="5"/>',
         # The reflection of the glass.
         '<path d="M38 48 Q44 33 60 31 Q48 37 43 51 Z" fill="#ffffff" opacity=".8"/>',
@@ -486,18 +679,51 @@ def write_icons(out):
 # Entangled Link, recipes and tags
 # ---------------------------------------------------------------------------------------------------------
 
-def cuboid(low, high, texture, faces=FACES):
-    return {"from": low, "to": high, "faces": {face: {"uv": [0, 0, 16, 16], "texture": "#" + texture} for face in faces}}
+def link_sprites():
+    """Neutral family casing and a separate animated Primal lens, both at two texels per pixel."""
+    shell = casing()
+    shell.row(5, 2, 30, SHADE)
+    shell.row(26, 2, 30, HIGHLIGHT)
+    for x in (4, 26):
+        shell.rect(x, 3, x + 2, 5, PORT_LIGHT)
+        shell.rect(x, 27, x + 2, 29, PORT_DARK)
+    lens = Sprite(32, 32 * ORE_FRAMES, fill=(0, 0, 0, 0))
+    for frame in range(ORE_FRAMES):
+        for y in range(8, 24):
+            for x in range(8, 24):
+                distance = (x - 15.5) ** 2 + (y - 15.5) ** 2
+                colour = WELL if distance > 56 else PORT_METAL if distance > 42 else PRIMAL_VOID
+                if distance <= 30:
+                    colour = (PRIMAL_CORE if distance < 4 else PRIMAL_CORE_SOFT if distance < 9
+                              else PRIMAL_LIGHT if x + y < 29 else PRIMAL_BODY if x + y < 36 else PRIMAL_DEEP)
+                    if 14 <= distance <= 30 and (x + y - frame) % ORE_FRAMES < 3:
+                        colour = rgb(PRIMAL[SPECTRUM[round((frame / 7 if frame < 8 else (15 - frame) / 7) * 4)]])
+                lens.px(x, y + frame * 32, colour)
+    return shell, lens
 
 
 def write_devices(out):
-    out.png(ART / "textures/block/entangled_link.png", 16, 16,
-            lambda x, y: WHITE if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 5 else VIOLET if 13 <= (x - 7.5) ** 2 + (y - 7.5) ** 2 <= 27 else (43 + noise(x, y), 46 + noise(x, y), 54 + noise(x, y), 255))
-    out.json(ART / "models/block/entangled_link.json", {"ambientocclusion": False, "textures": {"particle": "rematter:block/graphite", "shell": "rematter:block/graphite",
-        "edge": "rematter:block/socket_rim", "eye": "rematter:block/entangled_link"}, "elements": [
-        cuboid([0, 0, 0], [16, 3, 16], "edge"), cuboid([0, 13, 0], [16, 16, 16], "edge"),
-        cuboid([1, 3, 1], [15, 13, 15], "shell"), cuboid([3, 4, .95], [13, 12, 15.05], "eye", ("north", "south")),
-        cuboid([.9, 4, 3], [15.1, 12, 13], "eye", ("east", "west"))]})
+    shell, lens = link_sprites()
+    out.png(ART / "textures/block/entangled_link_casing.png", shell.width, shell.height, shell.pixel)
+    out.png(ART / "textures/block/entangled_link.png", lens.width, lens.height, lens.pixel)
+    out.json(ART / "textures/block/entangled_link.png.mcmeta",
+             {"animation": {"frametime": ORE_FRAME_TICKS}})
+    boxes = [Box("lower rim", [0, 0, 0], [16, 3, 16]),
+             Box("body", [1, 3, 1], [15, 13, 15]),
+             Box("upper rim", [0, 13, 0], [16, 16, 16])]
+    check_boxes("entangled_link", boxes)
+    elements = build(boxes, lambda box, face: "shell")
+    # The four half-pixel lens steps stand in front of the casing, never coplanar with it.
+    for face, lo, hi in (("north", [4, 4, .5], [12, 12, 1]),
+                         ("south", [4, 4, 15], [12, 12, 15.5]),
+                         ("west", [.5, 4, 4], [1, 12, 12]),
+                         ("east", [15, 4, 4], [15.5, 12, 12])):
+        elements.append({"name": face + " lens", "from": lo, "to": hi, "shade": False,
+                         "light_emission": 15, "faces": {face: {"uv": [4, 4, 12, 12], "texture": "#eye"}}})
+    out.json(ART / "models/block/entangled_link.json", {"parent": "minecraft:block/block",
+             "textures": {"particle": "rematter:block/entangled_link_casing",
+                          "shell": "rematter:block/entangled_link_casing", "eye": "rematter:block/entangled_link"},
+             "elements": elements})
     out.json(ART / "blockstates/entangled_link.json", {"variants": {"": {"model": "rematter:block/entangled_link"}}})
     out.json(ART / "items/entangled_link.json", {"model": {"type": "minecraft:model", "model": "rematter:block/entangled_link"}})
     out.json(DATA / "rematter/loot_table/blocks/entangled_link.json", {"type": "minecraft:block", "pools": [{"rolls": 1, "conditions": [{"condition": "minecraft:survives_explosion"}],

@@ -4,7 +4,7 @@ import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.client.SubstanceNames;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
+import dev.latrox.rematter.client.UiIcon;
 import dev.latrox.rematter.compat.ChemistryViewer;
 import java.util.List;
 import java.util.Optional;
@@ -66,16 +66,16 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryViewer.Entry> 
         ScreenChrome.panel(graphics,0,0,getWidth(),getHeight());
         ScreenChrome.inset(graphics,4,99,getWidth()-8,37);
         var font=Minecraft.getInstance().font;
-        ScreenChrome.icon(graphics,Icon.INPUT,6,3,UiPalette.ACCENT);
-        ScreenChrome.icon(graphics,Icon.OUTPUT,103,3,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.SLOT_INPUT,4,1,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.SLOT_OUTPUT,101,1,UiPalette.ACCENT);
         graphics.text(font,Component.translatable("gui.rematter.viewer.input"),22,5,UiPalette.TEXT,false);
         graphics.text(font,Component.translatable("gui.rematter.viewer.output"),119,5,UiPalette.TEXT,false);
-        ScreenChrome.icon(graphics,Icon.NEXT,83,29,UiPalette.ACCENT);
-        ScreenChrome.icon(graphics,Icon.POWER,6,101,UiPalette.ACCENT);
-        graphics.text(font,font.plainSubstrByWidth(Quantities.energy(Quantities.number(recipe.energy())).getString(),148),22,103,UiPalette.TEXT,false);
-        ScreenChrome.icon(graphics,Icon.TIME,6,119,UiPalette.ACCENT);
-        graphics.text(font,font.plainSubstrByWidth(Quantities.ticks(Quantities.number(recipe.ticks())).getString(),132),22,121,UiPalette.MUTED,false);
-        ScreenChrome.icon(graphics,Icon.INFO,160,119,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.ARROW_RIGHT,81,27,UiPalette.ACCENT);
+        ScreenChrome.icon(graphics,UiIcon.ENERGY,4,99,UiPalette.ACCENT);
+        ScreenChrome.text(graphics,font,Quantities.energy(Quantities.number(recipe.energy())).getString(),22,103,148,UiPalette.TEXT);
+        ScreenChrome.icon(graphics,UiIcon.TIME,4,117,UiPalette.ACCENT);
+        ScreenChrome.text(graphics,font,Quantities.ticks(Quantities.number(recipe.ticks())).getString(),22,121,132,UiPalette.MUTED);
+        ScreenChrome.icon(graphics,UiIcon.INFO,158,117,UiPalette.ACCENT);
     }
 
     @Override

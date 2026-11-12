@@ -36,6 +36,16 @@ class SubstanceIconTest {
         assertEquals(style, SubstanceIcon.compute(BuiltinChemistry.create(), SILICA, WIDTH));
     }
 
+    @Test void everyCatalogueFormulaRetainsItsCompleteNotation() {
+        var registry=BuiltinChemistry.create();
+        for(var definition:registry.substances())for(var phase:definition.phases()){
+            var style=SubstanceIcon.compute(registry,new SubstanceKey(definition.id(),phase),WIDTH);
+            assertEquals(SubstanceLabels.iconLabel(definition),style.first()+style.second(),definition.id().toString());
+            assertFalse((style.first()+style.second()).contains("…"));
+            if(!style.second().isEmpty())assertTrue(style.second().charAt(0)=='('||Character.isUpperCase(style.second().charAt(0)),definition.id().toString());
+        }
+    }
+
     @Test void stylesAreReusedUntilTheCatalogueChanges() {
         ClientChemistry.accept(BuiltinChemistry.create());
         var first = SubstanceIcon.style(WATER, WIDTH);

@@ -22,7 +22,7 @@ public final class PrimalCellItem extends Item {
     public long capacity() { return capacity; }
     @Override public boolean isBarVisible(ItemStack stack) { return true; }
     @Override public int getBarWidth(ItemStack stack) { var view = PrimalCells.view(stack); return view.readable() ? (int)(13L * view.amount() / capacity) : 13; }
-    @Override public int getBarColor(ItemStack stack) { return PrimalCells.view(stack).readable() ? 0xc5a9f3 : 0xcb637b; }
+    @Override public int getBarColor(ItemStack stack) { return PrimalCells.view(stack).readable() ? PrimalVisualColors.BODY : PrimalVisualColors.FAULT; }
     @Override public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         var view = PrimalCells.view(stack);
         tooltip.accept(Component.translatable(view.readable() ? "item.rematter.primal_cell.usage" : "item.rematter.primal_cell.locked", view.amount(), capacity));

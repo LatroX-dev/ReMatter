@@ -50,8 +50,8 @@ public final class ClientStructureHints {
                 int u=(axis+1)%3,v=(axis+2)%3;
                 if(first==1)a[u]=b[u]=high[u];if(second==1)a[v]=b[v]=high[v];b[axis]=high[axis];
                 var normal=new Vector3f(b[0]-a[0],b[1]-a[1],b[2]-a[2]).normalize();
-                vertices.addVertex(pose,a[0],a[1],a[2]).setColor(0xffffb45c).setNormal(pose,normal).setLineWidth(2);
-                vertices.addVertex(pose,b[0],b[1],b[2]).setColor(0xffffb45c).setNormal(pose,normal).setLineWidth(2);
+                vertices.addVertex(pose,a[0],a[1],a[2]).setColor(UiPalette.STRUCTURE_HINT).setNormal(pose,normal).setLineWidth(2);
+                vertices.addVertex(pose,b[0],b[1],b[2]).setColor(UiPalette.STRUCTURE_HINT).setNormal(pose,normal).setLineWidth(2);
             }
         });
     }

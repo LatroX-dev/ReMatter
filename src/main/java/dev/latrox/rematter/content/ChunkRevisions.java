@@ -82,6 +82,7 @@ public final class ChunkRevisions {
      */
     public static boolean structural(BlockState previous, BlockState next) {
         if (previous.getBlock() != next.getBlock()) return true;
+        if(next.getBlock() instanceof dev.latrox.rematter.energy.EnergyCubeBlock)return previous.getValue(dev.latrox.rematter.energy.EnergyCubeBlock.FACING)!=next.getValue(dev.latrox.rematter.energy.EnergyCubeBlock.FACING);
         if (next.getBlock() instanceof MachineBlock) return previous.getValue(MachineBlock.FACING) != next.getValue(MachineBlock.FACING);
         if (next.getBlock() instanceof MachinePortBlock) {
             return previous.getValue(MachinePortBlock.FACING) != next.getValue(MachinePortBlock.FACING)

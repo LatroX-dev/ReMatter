@@ -8,7 +8,7 @@ import dev.emi.emi.api.widget.WidgetHolder;
 import dev.latrox.rematter.compat.PreparationDisplay;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.ScreenChrome;
-import dev.latrox.rematter.client.ScreenChrome.Icon;
+import dev.latrox.rematter.client.UiIcon;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.network.chat.Component;
@@ -37,23 +37,23 @@ record PreparationEmiRecipe(EmiRecipeCategory category, PreparationDisplay displ
             ScreenChrome.panel(graphics,0,0,getDisplayWidth(),getDisplayHeight());
             ScreenChrome.inset(graphics,4,48,getDisplayWidth()-8,60);
         });
-        EmiWidgets.icon(widgets,Icon.INPUT,6,3,List.of(Component.translatable("gui.rematter.preparation_inputs")));
+        EmiWidgets.icon(widgets,UiIcon.SLOT_INPUT,6,3,List.of(Component.translatable("gui.rematter.preparation_inputs")));
         widgets.addText(Component.translatable("gui.rematter.preparation_inputs"),22,5,UiPalette.TEXT,false);
-        EmiWidgets.icon(widgets,Icon.OUTPUT,143,3,List.of(Component.translatable("gui.rematter.viewer.output")));
+        EmiWidgets.icon(widgets,UiIcon.SLOT_OUTPUT,143,3,List.of(Component.translatable("gui.rematter.viewer.output")));
         for (int i = 0; i < inputs.size(); i++) widgets.addSlot(inputs.get(i),6+i*34,21);
         widgets.addSlot(outputs.getFirst(),143,21).recipeContext(this);
         // Manual work has no elapsed-time promise or automatically filling arrow.
-        if (display.manual()) EmiWidgets.icon(widgets,Icon.NEXT,105,25,List.of(display.note()));
+        if (display.manual()) EmiWidgets.icon(widgets,UiIcon.ARROW_RIGHT,105,25,List.of(display.note()));
         else widgets.addFillingArrow(98,21,Math.toIntExact(Math.max(1L,display.ticks())*50));
-        EmiWidgets.icon(widgets,display.manual()?Icon.CRANK:Icon.POWER,8,52,List.of(display.cost()));
+        EmiWidgets.icon(widgets,display.manual()?UiIcon.CRANK:UiIcon.ENERGY,8,52,List.of(display.cost()));
         EmiWidgets.value(widgets,display.costValue().getString(),24,54,154,UiPalette.TEXT);
         if (!display.manual()) {
-            EmiWidgets.icon(widgets,Icon.TIME,8,70,List.of(display.cost()));
+            EmiWidgets.icon(widgets,UiIcon.TIME,8,70,List.of(display.cost()));
             EmiWidgets.value(widgets,display.timeValue().getString(),24,72,154,UiPalette.MUTED);
         }
-        EmiWidgets.icon(widgets,Icon.RECIPE,8,88,List.of(display.output().getHoverName()));
+        EmiWidgets.icon(widgets,UiIcon.RECIPE,8,88,List.of(display.output().getHoverName()));
         EmiWidgets.value(widgets,display.output().getHoverName().getString(),24,90,138,UiPalette.ACCENT);
-        EmiWidgets.icon(widgets,Icon.INFO,168,88,List.of(display.note(),display.inputsNote(),
+        EmiWidgets.icon(widgets,UiIcon.INFO,168,88,List.of(display.note(),display.inputsNote(),
                 Component.translatable("gui.rematter.preparation_plain_inputs")));
     }
 }

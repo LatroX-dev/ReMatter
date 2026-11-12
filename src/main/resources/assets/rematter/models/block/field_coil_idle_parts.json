@@ -60,10 +60,73 @@
         "up": {
           "texture": "#work",
           "uv": [
-            3,
             0,
-            6,
-            3
+            10,
+            3,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "core_tip",
+      "from": [
+        7,
+        14,
+        7
+      ],
+      "to": [
+        9,
+        15,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            15,
+            2,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            2,
+            15
           ]
         }
       }

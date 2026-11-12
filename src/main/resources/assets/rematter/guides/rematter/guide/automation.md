@@ -64,6 +64,12 @@ On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and c
 
 Hoppers do not select recipes or request synthesis jobs. **Run nonstop** supplies the continuing requests. **Stop repeat** stops continuous production. **Pause** keeps the current order and **Resume** continues it; changing the product cancels the old request.
 
+## Move between Cells
+
+Remove both Cells from their machines and place them in your player inventory. Carry the **source Matter Cell on the inventory cursor**, then **right-click a destination Matter Cell**. The destination accepts only what fits; every remaining quantity stays in the source. This works between ordinary Cell tiers and preserves solid, liquid and gas phases. Valid stored substances keep their quantities even if their definitions are currently unavailable.
+
+Primal Cells already use the same gesture for their own reserve. Ordinary matter and Primal Matter remain separate. An unreadable Cell stays protected, and transferring stock grants no research knowledge.
+
 ## Larger Cells
 
 A 64k Cell holds **64,000 units** and uses a Matrix Crystal and a Control Circuit. A 256k Cell holds **256,000 units** and uses a Matrix Cluster, a Control Circuit and two Ender Conductors. A 1M Cell holds **1,000,000 units** and uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath.

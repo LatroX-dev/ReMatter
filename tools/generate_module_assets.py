@@ -16,10 +16,9 @@ from pathlib import Path
 import argparse
 
 from family_geometry import ROTATION, Box, GeometryError, build, check_boxes, check_composition, emitted, mapped_uv
-from generated_files import GeneratedFiles
-from hardware_sprites import (DARK_FACE, GUNMETAL_FACE, NATURAL, STEEL_FACE, STEEL_PLAIN, Sheet, blade, coil,
+from hardware_sprites import (DARK_FACE, GUNMETAL_FACE, NATURAL, STEEL_FACE, STEEL_PLAIN, OwnedFiles, Sheet, blade, coil,
                               collar_side, collar_top, crystal, cutting_edge, face_size, liquid, membrane,
-                              mount_front, mount_side, mount_top, module_hue, well)
+                              module_crystal, module_hue, mount_front, mount_side, mount_top, well)
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
@@ -50,13 +49,12 @@ BODY = {
         ('membrane_mid', (3, 8, 3), (13, 9, 13), 'membrane', {}),
         ('membrane_high', (3, 12, 3), (13, 13, 13), 'membrane', {}),
     ),
-    # Confluence Basin: an open basin with a stirrer.
+    # Confluence Basin: an open basin with a stirrer. Its walls stand on the flange, which is its floor.
     'mixing_basin': (
-        ('basin_floor', (2, 3, 2), (14, 4, 14), 'dark', {}),
-        ('wall_front', (2, 4, 2), (14, 8, 3), 'plain', {'south': 'well'}),
-        ('wall_back', (2, 4, 13), (14, 8, 14), 'plain', {'north': 'well'}),
-        ('wall_left', (13, 4, 3), (14, 8, 13), 'plain', {'west': 'well'}),
-        ('wall_right', (2, 4, 3), (3, 8, 13), 'plain', {'east': 'well'}),
+        ('wall_front', (2, 3, 2), (14, 8, 3), 'plain', {'south': 'well'}),
+        ('wall_back', (2, 3, 13), (14, 8, 14), 'plain', {'north': 'well'}),
+        ('wall_left', (13, 3, 3), (14, 8, 13), 'plain', {'west': 'well'}),
+        ('wall_right', (2, 3, 3), (3, 8, 13), 'plain', {'east': 'well'}),
         ('paddle', (4, 6, 7.5), (12, 7, 8.5), 'plain', {}),
         ('shaft', (7, 7, 7), (9, 11, 9), 'plain', {}),
     ),
@@ -78,23 +76,28 @@ BODY = {
         ('arm_right', (3, 6, 6.5), (4, 11, 9.5), 'plain', {}),
     ),
 }
-# Working parts as (name, from, to, material). They change sprite and glow with the block state.
+# Working parts as (name, from, to, material). They change sprite and glow with the block state. A crystal that
+# stands free ends in a stepped tip, so it reads as a cut stone and not as a block of its colour.
 WORK = {
     'grinding_unit': (
         ('cutting_edge', (5, 6, 7.5), (11, 7, 8.5), 'edge'),
         ('resonator', (6, 13, 6), (10, 15, 10), 'crystal'),
+        ('resonator_tip', (7, 15, 7), (9, 16, 9), 'crystal'),
     ),
     'separation_unit': (
         ('rod_low', (6, 5, 6), (10, 8, 10), 'crystal'),
         ('rod_high', (6, 9, 6), (10, 12, 10), 'crystal'),
         ('finial', (6, 13, 6), (10, 15, 10), 'crystal'),
+        ('finial_tip', (7, 15, 7), (9, 16, 9), 'crystal'),
     ),
     'mixing_basin': (
-        ('charge', (3, 4, 3), (13, 6, 13), 'liquid'),
+        ('charge', (3, 3, 3), (13, 6, 13), 'liquid'),
         ('stirrer_head', (6.5, 11, 6.5), (9.5, 13, 9.5), 'crystal'),
+        ('stirrer_tip', (7, 13, 7), (9, 14, 9), 'crystal'),
     ),
     'field_coil': (
         ('core', (6.5, 4, 6.5), (9.5, 14, 9.5), 'crystal'),
+        ('core_tip', (7, 14, 7), (9, 15, 9), 'crystal'),
     ),
     'reaction_chamber': (
         ('lens_low', (6, 6, 7), (10, 7, 9), 'crystal'),
@@ -168,7 +171,11 @@ class Module:
                 if floor_face in ('up', 'down'):
                     return ('seat' if floor_face == 'up' else 'port',
                             *mapped_uv(face, box.lo, box.hi, *NATURAL[face], (0, 0)))
-                return self.mount.face('plate_front' if face == 'north' else 'plate_side', box, face)
+                if face == 'north':
+                    # The front edge carries the hue of the module, so it is a tile of the module's own sprite.
+                    self.sheet.want('plate_front', *face_size(box, face), mount_front(module_hue(self.name)))
+                    return self.sheet.face('plate_front', box, face)
+                return self.mount.face('plate_side', box, face)
             if box.name == 'mount_collar':
                 return self.mount.face('collar_top' if floor_face in ('up', 'down') else 'collar_side', box, face)
             material, other = self.materials[box.name]
@@ -233,10 +240,9 @@ class Module:
 
 
 def mount_sheet():
-    """Tiles of the common mount. Every module asks for the same four, so they share one sprite."""
+    """Tiles of the common mount. Every module asks for the same three, so they share one sprite."""
     sheet = Sheet('module_mount', 'mount')
     sheet.want('plate_side', 32, 4, mount_side)
-    sheet.want('plate_front', 32, 4, mount_front)
     sheet.want('collar_side', 20, 2, collar_side)
     sheet.want('collar_top', 20, 20, collar_top)
     return sheet
@@ -260,42 +266,33 @@ def check_references(modules, art):
             raise GeometryError(f'{name}: module sprites are opaque')
 
 
+# Shaped recipes. CRYSTAL stands for the Matrix Crystal of the module, which is also the hue its sprites show.
+CRYSTAL = object()
 RECIPES = {
-    'grinding_unit': (['DMD', 'RBR', 'VFV'], {'D': 'rematter:diamond_lattice', 'M': 'rematter:amber_matrix_crystal', 'R': 'rematter:rhevon_ingot', 'B': 'rematter:structural_bars', 'V': 'rematter:virelite_ceramic', 'F': 'rematter:machine_frame'}),
-    'separation_unit': (['VMV', 'DOD', 'RFR'], {'V': 'rematter:virelite_ceramic', 'M': 'rematter:amber_matrix_crystal', 'D': 'rematter:diamond_lattice', 'O': 'rematter:optical_circuit', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
-    'mixing_basin': (['M M', 'VMV', 'RFR'], {'M': 'rematter:amber_matrix_crystal', 'V': 'rematter:virelite_ceramic', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
-    'field_coil': (['CLC', 'CMC', 'FQF'], {'C': 'rematter:copper_dust', 'L': 'rematter:lumivex_ingot', 'M': 'rematter:violet_matrix_crystal', 'Q': 'rematter:control_circuit', 'F': 'rematter:machine_frame'}),
-    'reaction_chamber': (['GDG', 'VMV', 'FOF'], {'G': 'rematter:reactor_glass', 'D': 'rematter:diamond_lattice', 'V': 'rematter:virelite_ceramic', 'M': 'rematter:violet_matrix_crystal', 'F': 'rematter:machine_frame', 'O': 'rematter:optical_circuit'}),
+    'grinding_unit': (['DMD', 'RBR', 'VFV'], {'D': 'rematter:diamond_lattice', 'M': CRYSTAL, 'R': 'rematter:rhevon_ingot', 'B': 'rematter:structural_bars', 'V': 'rematter:virelite_ceramic', 'F': 'rematter:machine_frame'}),
+    'separation_unit': (['VMV', 'DOD', 'RFR'], {'V': 'rematter:virelite_ceramic', 'M': CRYSTAL, 'D': 'rematter:diamond_lattice', 'O': 'rematter:optical_circuit', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
+    'mixing_basin': (['M M', 'VMV', 'RFR'], {'M': CRYSTAL, 'V': 'rematter:virelite_ceramic', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
+    'field_coil': (['CLC', 'CMC', 'FQF'], {'C': 'rematter:copper_dust', 'L': 'rematter:lumivex_ingot', 'M': CRYSTAL, 'Q': 'rematter:control_circuit', 'F': 'rematter:machine_frame'}),
+    'reaction_chamber': (['GDG', 'VMV', 'FOF'], {'G': 'rematter:reactor_glass', 'D': 'rematter:diamond_lattice', 'V': 'rematter:virelite_ceramic', 'M': CRYSTAL, 'F': 'rematter:machine_frame', 'O': 'rematter:optical_circuit'}),
 }
 
 
+def recipe(name):
+    pattern, key = RECIPES[name]
+    crystal = f'rematter:{module_crystal(name)}_matrix_crystal'
+    return pattern, {symbol: crystal if item is CRYSTAL else item for symbol, item in key.items()}
+
+
 def data_files():
-    """Loot tables, recipes, discovery advancements and the block tag; none of them depends on the look."""
+    """Loot tables, recipes, discovery advancements and the block tag. Only the crystal of a recipe follows the look."""
     for name in NAMES:
         yield RES / f'data/rematter/loot_table/blocks/{name}.json', {'type': 'minecraft:block', 'pools': [{'rolls': 1, 'entries': [{'type': 'minecraft:item', 'name': 'rematter:' + name}], 'conditions': [{'condition': 'minecraft:survives_explosion'}]}]}
-    for name, (pattern, key) in RECIPES.items():
+    for name in RECIPES:
+        pattern, key = recipe(name)
         yield RES / f'data/rematter/recipe/{name}.json', {'type': 'minecraft:crafting_shaped', 'category': 'misc', 'pattern': pattern, 'key': key, 'result': {'id': 'rematter:' + name, 'count': 1}}
         yield RES / f'data/rematter/advancement/recipes/{name}.json', {'parent': 'minecraft:recipes/root', 'criteria': {'has_material': {'trigger': 'minecraft:inventory_changed', 'conditions': {'items': [{'items': ['rematter:machine_frame']}]}}, 'has_recipe': {'trigger': 'minecraft:recipe_unlocked', 'conditions': {'recipe': 'rematter:' + name}}}, 'requirements': [['has_material', 'has_recipe']], 'rewards': {'recipes': ['rematter:' + name]}}
     # The vanilla mineable tag references this private-to-the-mod grouping once.
     yield RES / 'data/rematter/tags/block/industrial_modules.json', {'replace': False, 'values': ['rematter:' + name for name in NAMES]}
-
-
-# Two 128-pixel textures of the old look still have a reader each: the block entity renderer draws its runtime
-# crystals with matrix_cluster_core, and four retired socket models name reaction_chamber_crystal. They are
-# written byte for byte until those readers are gone, so nothing shows a missing texture; then both lines go.
-def legacy_textures(out):
-    import math
-    from material_tiles import TILE, crystal_pixel
-
-    def cluster_core(x, y):
-        blush = max(0, 1 - math.hypot((x / (TILE - 1) - .66) / .64, (y / (TILE - 1) - .75) / .62))
-        ivory = (205, 198, 184)
-        rhedon = (176, 98, 96)
-        color = tuple(round(base + (accent - base) * .58 * blush) for base, accent in zip(ivory, rhedon))
-        return crystal_pixel(color, x, y)
-    out.png(ASSETS / 'textures/block/reaction_chamber_crystal.png', TILE, TILE,
-            lambda x, y: crystal_pixel((83, 185, 181), x, y))
-    out.png(ASSETS / 'textures/block/matrix_cluster_core.png', TILE, TILE, cluster_core)
 
 
 def generate(check, models=True, textures=True, data=True):
@@ -306,19 +303,22 @@ def generate(check, models=True, textures=True, data=True):
     for module in modules:
         art.update(module.sprites())
     check_references(modules, art)
-    out = GeneratedFiles(ROOT, check)
+    out = OwnedFiles(ROOT, check)
     if textures:
         for name, (sprite, animation) in art.items():
             out.png(ASSETS / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
             if animation:
                 out.json(ASSETS / f'textures/block/{name}.png.mcmeta', animation)
-        legacy_textures(out)
+        out.sweep(ASSETS / 'textures/block', ['module_*.png', 'module_*.png.mcmeta'])
     if models:
         for module in modules:
             for name, model in module.models.items():
                 out.json(ASSETS / f'models/block/{name}.json', model)
             out.json(ASSETS / f'blockstates/{module.name}.json', module.blockstate())
             out.json(ASSETS / f'items/{module.name}.json', module.item())
+        # A module has no item model of its own: its item shows the block models.
+        out.sweep(ASSETS / 'models', [f'{folder}/{name}{rest}.json' for name in NAMES
+                                      for folder, rest in (('block', ''), ('block', '_*'), ('item', ''))])
     if data:
         for path, value in data_files():
             out.json(path, value)

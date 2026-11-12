@@ -71,10 +71,10 @@ public final class ClientMatterCablePulses {
 
     private static void glint(Minecraft minecraft, ClientLevel level, Vec3 start, Vec3 target,
             MatterCableBlock cable, int ticks, boolean energy) {
-        int color = energy ? 0xfff4d6 : switch (cable.tier()) {
-            case BASIC -> 0x83fff0;
-            case REINFORCED -> 0xffcb70;
-            case RESONANT -> 0xdeb4ff;
+        int color = energy ? UiPalette.ENERGY_GLINT : switch (cable.tier()) {
+            case BASIC -> UiPalette.CABLE_BASIC;
+            case REINFORCED -> UiPalette.CABLE_REINFORCED;
+            case RESONANT -> UiPalette.CABLE_RESONANT;
         };
         minecraft.particleEngine.add(new Glint(level, start, target, ticks, color, energy ? .037F : .054F,
                 minecraft.getAtlasManager().get(GLINT)));

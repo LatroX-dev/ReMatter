@@ -2,6 +2,11 @@
 
 ## 0.7.0
 
+- Move stored substances directly between ordinary Cells from the inventory: carry the source and right-click the destination. Move only what fits, preserving phases, unknown substances, identities and the untransferred remainder.
+
+- Add Energy Cubes with 4M/32M/256M FE buffers, configurable input/output sides and 1/2/4 item-charging slots. Every output and charging slot shares the tier transfer budget. Carried cubes preserve their energy and inventory.
+- Use compact icon controls with complete hover descriptions; display full text and substance formulas without shortened labels.
+
 - Add server-authoritative material research through decomposition, retained-sample analysis, industrial Assay and paid Derive. Knowledge complements the explicit synthesis allowlist; imports grant no knowledge.
 - Add optional endgame Discovery with tiered hidden candidates, saved payment steps, pause/resume and claimable Primal refunds. JEI and EMI display research status without hiding recipes.
 - Add dimension-specific Primal Ores in new terrain, separate 16k/64k/256k Primal Cells, Primal Crystal, Discovery Lens and a finite one-way Primal Converter with curated known-element targets.
@@ -10,6 +15,7 @@
 - Give cables real matter and FE budgets. Separate industrial Field, Precision and working capacity from Speed, Efficiency and Parallel Upgrades; add balanced Field 4/8 procedures and explicit multi-output reclaim.
 - Add a native crafting upgrade from an empty Hand Preparator, rejecting filled, modified or unreadable machine contents.
 - Rebuild machine controls around Machine, Settings and Research tabs, embedded Terminal device access, scrollable stock, finite orders and Loop controls. Keep Preview separate from finished output.
+- Match industrial module crystals and their mount tabs to their recipes: Amber for preparation, Violet for reaction. Give Cell items the mounted cartridge faceplate, a recipe-crystal window and a live status light, with a separate animated Primal rail on Primal Cells.
 - Refresh the graphite machine family, twin-column Chemical Reactor, recessed connections, functional bench mechanisms and resource-pack GUI skins. Remove the five retired specialist devices and route their supported chemistry through reactors and the Synthesizer.
 - Expand both guides and add ten optional advancements awarded by completed actions. Update the reference integration to ReForging 0.10.0; ReMatter keeps its own version numbering.
 

@@ -1,6 +1,8 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.energy.EnergyCubeBlock;
+import dev.latrox.rematter.energy.EnergyCubeBlockEntity;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.primal.EntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinks;
@@ -91,6 +93,7 @@ public final class MatterCablePower {
     private static @Nullable UUID owner(ServerLevel level, BlockPos position) {
         var entity = level.getBlockEntity(position);
         if (entity instanceof MachineBlockEntity machine) return machine.networkOwner();
+        if (entity instanceof EnergyCubeBlockEntity cube) return cube.owner();
         if (entity instanceof MachinePortBlockEntity port) {
             var controller = port.controller(null);
             return controller == null ? null : controller.networkOwner();
@@ -169,6 +172,7 @@ public final class MatterCablePower {
                 if (component.endpoints == null) return 0;
                 UUID cableOwner=component.owner;
                 if(cableOwner==null)return 0;
+                if(incomingChunk.getBlockEntity(adjacent) instanceof EnergyCubeBlockEntity cube&&!cableOwner.equals(cube.owner()))return 0;
                 var routes=component.routes(origin);
                 var candidates = new ArrayList<Candidate<Endpoint>>();
                 for (var endpoint : component.endpoints.active()) {
@@ -452,7 +456,7 @@ public final class MatterCablePower {
                     if(transport(next)){
                         edge(position,next);
                         if(cables.add(next)){if(cables.size()>MachineMatterNetwork.SCAN_BUDGET)return result(cables,null);queue.add(next);}
-                    }else if((state.getBlock() instanceof MachineBlock||state.getBlock() instanceof MachinePortBlock)
+                    }else if((state.getBlock() instanceof MachineBlock||state.getBlock() instanceof MachinePortBlock||state.getBlock() instanceof EnergyCubeBlock)
                             &&allowsEndpoint(state,direction.getOpposite())){
                         ends.computeIfAbsent(next,ignored->new ArrayList<>()).add(new EndpointSide(position,direction.getOpposite()));
                     }

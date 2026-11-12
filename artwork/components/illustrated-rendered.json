@@ -1,0 +1,14 @@
+{
+  "ice_matrix_crystal": {
+    "svg": "4cc251222b6461ac8dd0f3c46403df8560e231797e6d48f857e0cdf6c4761b98",
+    "png": "70b816bafcdc53923df3a3bcd501558ea64f65dbefd324fb6e8879f19dd3ea73"
+  },
+  "pressure_module": {
+    "svg": "dbd1f960c2220e79d3c3e55cad03f70589dfb74fabf7f4160ef33078b2e9fb72",
+    "png": "7abbb4261904ff9cc97fda5e72779d82915a328530cbb580fe80d41e754e50d8"
+  },
+  "parallel_upgrade": {
+    "svg": "69b862696f429295ce227ac6b96a17bf31b6e61310fddc899c5dbb028c314018",
+    "png": "461993038fda556b1b3f0696837d1d83bab37e3153b88655ac61f5caa8128bb7"
+  }
+}

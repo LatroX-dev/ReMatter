@@ -19,7 +19,7 @@ Start by turning **sand into stored silica, then glass**. Make the crystal mediu
 
 The Cell holds real ingredients. Research is another permission, never a source of material. The Synthesizer lists explicitly approved forms and their research status. Unknown forms remain visible so you can plan a learning path.
 
-An Analyzer is optional when you learn through decomposition. Terminal, AE2 and Refined Storage are also optional. Later, read [Research](analyzer.md), [Primal Cells](primal.md), [Discovery](discovery.md), [Hardware](hardware.md), [Cable budgets](throughput.md), [Crystal power](generation.md) and [Entangled Links](links.md).
+An Analyzer is optional when you learn through decomposition. Terminal, AE2 and Refined Storage are also optional. Later, read [Research](analyzer.md), [Primal Cells](primal.md), [Discovery](discovery.md), [Hardware](hardware.md), [Cable budgets](throughput.md), [Crystal power](generation.md), [Energy Cubes](energy.md) and [Entangled Links](links.md).
 
 <SubPages />
 

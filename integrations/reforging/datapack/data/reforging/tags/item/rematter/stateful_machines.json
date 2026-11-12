@@ -80,6 +80,18 @@
     {
       "id": "rematter:industrial_crystal_generator",
       "required": false
+    },
+    {
+      "id": "rematter:energy_cube",
+      "required": false
+    },
+    {
+      "id": "rematter:reinforced_energy_cube",
+      "required": false
+    },
+    {
+      "id": "rematter:resonant_energy_cube",
+      "required": false
     }
   ]
 }

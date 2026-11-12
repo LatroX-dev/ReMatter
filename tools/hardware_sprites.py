@@ -8,7 +8,8 @@ the Sheet packs the tiles of one device into 32 x 32 sprites, so no face is
 ever stretched and equal faces share one tile.
 """
 from family_geometry import mapped_uv
-from family_palette import (BADGE, BADGE_LIGHT, BASE, COPPER, COPPER_DARK, COPPER_LIGHT, HIGHLIGHT, IVORY, PORT_DARK, PORT_LIGHT,
+from generated_files import GeneratedFiles
+from family_palette import (BASE, COPPER, COPPER_DARK, COPPER_LIGHT, HIGHLIGHT, IVORY, PORT_DARK, PORT_LIGHT,
                             PORT_METAL, SEAM, SHADE, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, lighten, rgb, scale)
 from family_sprites import Sprite, bolt, casing, drive_cell
 from machine_palette import RGB
@@ -19,15 +20,15 @@ NATURAL = {'north': ('-x', '-y'), 'south': ('+x', '-y'), 'west': ('+z', '-y'), '
 SIZE = 32
 
 # ----------------------------------------------------------------------------- identity colours
-# The crystal of a module has the hue of its job. Three assignments are drawn; switching is one line here,
-# followed by a regeneration.
+# A crafted part wears the hue of the Matrix Crystal in its recipe. For a module this table is that crystal: the
+# recipe takes it from here and the sprites take its hue from here, so the two cannot drift apart. Three
+# assignments are drawn; switching is one line here, followed by a regeneration of the module files.
 MODULE_HUE_PRESETS = {
-    # The job as the controller names it: preparation is amber, reaction is violet. This is the Matrix Crystal
-    # of the module's recipe, so the crystal a player crafts in is the crystal the module shows.
+    # The crystal of the controller the module plugs into: preparation is amber, reaction is violet.
     'recipe': {'grinding_unit': 'amber', 'separation_unit': 'amber', 'mixing_basin': 'amber',
                'field_coil': 'violet', 'reaction_chamber': 'violet'},
-    # The job as the workshop bench that does it by hand: Decomposer copper, Analyzer ice, Material Synthesizer
-    # leaf, Network Interface blue, Chemical Reactor violet. Honest only when the recipes take these crystals.
+    # The crystal of the workshop bench that does the same job by hand: Decomposer copper, Analyzer ice, Material
+    # Synthesizer leaf, Network Interface blue, Chemical Reactor violet. Every module then has a hue of its own.
     'job': {'grinding_unit': 'copper', 'separation_unit': 'ice', 'mixing_basin': 'leaf',
             'field_coil': 'blue', 'reaction_chamber': 'violet'},
     # As 'job', but mixing stays with the Preparator's amber.
@@ -37,29 +38,56 @@ MODULE_HUE_PRESETS = {
 MODULE_HUE_PRESET = 'recipe'
 
 
+def module_crystal(name, preset=None):
+    """Name of the Matrix Crystal hue a module is crafted with and shows."""
+    return MODULE_HUE_PRESETS[preset or MODULE_HUE_PRESET][name]
+
+
 def module_hue(name, preset=None):
-    return RGB[MODULE_HUE_PRESETS[preset or MODULE_HUE_PRESET][name]]
+    return RGB[module_crystal(name, preset)]
 
 
-# Primal Matter is none of the eight hues: a white-hot core in ultraviolet, with a shimmer that travels between
-# cyan-blue and magenta. The pastel Violet crystal of the reactors is a different colour and never animated.
-PRIMAL_CORE = rgb('#ffffff')
-PRIMAL_HOT = rgb('#efe6ff')
-PRIMAL_BODY = rgb('#8a5cff')
-PRIMAL_CYAN = rgb('#5cc8ff')
-PRIMAL_MAGENTA = rgb('#ff6ad5')
-# The shaded step of the same ultraviolet, as the Primal Ore and the Primal items use it; not another violet.
-PRIMAL_DEEP = rgb('#4c24b2')
-PRIMAL_FRAMES = 8
+# Shared with the ore, Primal Converter and GUI palette; this module only controls hardware animation.
+from family_palette import (PRIMAL_CORE, PRIMAL_CORE_SOFT, PRIMAL_LIGHT, PRIMAL_BODY, PRIMAL_DEEP,
+                            PRIMAL_VOID, PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_WARM, PRIMAL_GOLD)
+PRIMAL_SPECTRUM = (PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_BODY, PRIMAL_WARM, PRIMAL_GOLD)
+PRIMAL_FRAMES = 16
 PRIMAL_ANIMATION = {'animation': {'frametime': 3}}
-# One prismatic glint, three texels long, that runs through the ultraviolet once per cycle.
-PRIMAL_GLINT = (PRIMAL_CYAN, PRIMAL_HOT, PRIMAL_MAGENTA)
+# The travelling light on hardware: the spectrum from its cool to its warm end around a white core, five texels
+# long. It leads with teal and is followed by eleven texels of plain ultraviolet, so the body colour prevails.
+PRIMAL_GLINT = (PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_CORE_SOFT, PRIMAL_WARM, PRIMAL_GOLD)
 
 
-def primal_run(position, frame):
-    """Colour of a texel on a Primal run: the glint enters at position 0 and leaves at the far end."""
+def primal_run(position, frame, rest=PRIMAL_BODY):
+    """Colour of a texel on a Primal run: the light enters at position 0 and leaves at the far end."""
     step = (frame - position) % PRIMAL_FRAMES
-    return PRIMAL_GLINT[step] if step < len(PRIMAL_GLINT) else PRIMAL_BODY
+    return PRIMAL_GLINT[step] if step < len(PRIMAL_GLINT) else rest
+
+
+# ----------------------------------------------------------------------------- files
+class OwnedFiles(GeneratedFiles):
+    """Generated files of a generator that owns whole name patterns.
+
+    A design that needs one sprite or model less would leave the old file behind, still packed into the game.
+    After a run, sweep() removes every file of the owned patterns that the run did not write; with --check it
+    reports such a file instead.
+    """
+
+    def __init__(self, root, check):
+        super().__init__(root, check)
+        self.written = set()
+
+    def bytes(self, path, content):
+        self.written.add(path)
+        super().bytes(path, content)
+
+    def sweep(self, folder, patterns):
+        stale = sorted({path for pattern in patterns for path in folder.glob(pattern) if path not in self.written})
+        for path in stale:
+            if self.check:
+                raise ValueError(f'Stale generated file: {path.relative_to(self.root)}')
+            path.unlink()
+        return stale
 
 
 # ----------------------------------------------------------------------------- tiles
@@ -78,7 +106,7 @@ class Sheet:
 
     def want(self, key, width, height, painter):
         width, height = round(width), round(height)
-        if width > SIZE or height > SIZE:
+        if not 1 <= width <= SIZE or not 1 <= height <= SIZE:
             raise ValueError(f'{self.name}: tile {key} of {width} x {height} leaves the sprite')
         known = self.tiles.get(key)
         if known and known[:2] != (width, height):
@@ -86,33 +114,44 @@ class Sheet:
         self.tiles[key] = (width, height, painter)
         self.places = None
 
+    # Orders in which the tiles are placed. The first one that needs the fewest sprites is used.
+    ORDERS = (lambda width, height: (-height, -width), lambda width, height: (-width, -height),
+              lambda width, height: (-width * height, -height), lambda width, height: (-max(width, height), -height))
+
     def pack(self):
-        """Shelves, tallest tiles first. The order depends on nothing but the tiles."""
-        pages, places = [], {}
-        for key in sorted(self.tiles, key=lambda item: (-self.tiles[item][1], -self.tiles[item][0], repr(item))):
-            width, height, _ = self.tiles[key]
-            for index, shelves in enumerate(pages):
-                spot = self._fit(shelves, width, height)
-                if spot:
-                    places[key] = (index, *spot)
-                    break
-            else:
-                pages.append([[0, height, width]])
-                places[key] = (len(pages) - 1, 0, 0)
-        self.places, self.count = places, len(pages)
+        """Place every tile into the free rectangle it fills best. The result depends on nothing but the tiles."""
+        best = None
+        for order in self.ORDERS:
+            pages, places = [], {}
+            for key in sorted(self.tiles, key=lambda item: (*order(*self.tiles[item][:2]), repr(item))):
+                width, height, _ = self.tiles[key]
+                for index, free in enumerate(pages):
+                    spot = self._fit(free, width, height)
+                    if spot:
+                        places[key] = (index, *spot)
+                        break
+                else:
+                    pages.append([(0, 0, SIZE, SIZE)])
+                    places[key] = (len(pages) - 1, *self._fit(pages[-1], width, height))
+            if best is None or len(pages) < best[1]:
+                best = places, len(pages)
+        self.places, self.count = best
 
     @staticmethod
-    def _fit(shelves, width, height):
-        for shelf in shelves:
-            top, tall, used = shelf
-            if height <= tall and used + width <= SIZE:
-                shelf[2] += width
-                return used, top
-        top = shelves[-1][0] + shelves[-1][1]
-        if top + height <= SIZE:
-            shelves.append([top, height, width])
-            return 0, top
-        return None
+    def _fit(free, width, height):
+        """Take the tile's place out of the free rectangles of a sprite: the one with the least room to spare."""
+        fitting = [(w * h - width * height, y, x, index) for index, (x, y, w, h) in enumerate(free)
+                   if width <= w and height <= h]
+        if not fitting:
+            return None
+        x, y, w, h = free.pop(min(fitting)[3])
+        # What is left of the rectangle is cut once; the longer cut keeps the larger piece whole.
+        if w - width >= h - height:
+            rest = [(x + width, y, w - width, h), (x, y + height, width, h - height)]
+        else:
+            rest = [(x + width, y, w - width, height), (x, y + height, w, h - height)]
+        free += [piece for piece in rest if piece[2] and piece[3]]
+        return x, y
 
     def spot(self, key):
         if self.places is None:
@@ -195,10 +234,14 @@ def well(sprite, x, y, w, h, look):
 
 
 def tones(hue, active):
-    """Body, lit facet, shaded facet and glint of a crystal. At rest it keeps its hue without shining."""
+    """Body, lit facet, shaded facet and glint of a crystal.
+
+    At work the body is the hue itself and the lit facet is brighter. At rest the crystal does not shine, but its
+    lit facet still is the hue, so a part always shows the exact colour of the crystal it was crafted with.
+    """
     if active:
         return hue, lighten(hue, .45), scale(hue, .66), lighten(hue, .8)
-    return scale(hue, .66), scale(hue, .86), scale(hue, .44), hue
+    return scale(hue, .72), hue, scale(hue, .48), lighten(hue, .45)
 
 
 def crystal(hue):
@@ -264,8 +307,9 @@ def blade(inverted):
         for row in rows[-3:]:
             sprite.row(row, x, x + w, TRIM)
         sprite.row(rows[-3], x, x + w, STEEL_SHADE)
-        for u in (2, w - 4):
-            sprite.rect(x + u, min(rows[2], rows[3]), x + u + 2, max(rows[2], rows[3]) + 1, STEEL_DEEP)
+        # A row of rivets holds the blade. Two large bolts over the bright edge would read as a face.
+        for u in range(1, w - 1, 3):
+            sprite.px(x + u, rows[3], STEEL_DEEP)
     return paint
 
 
@@ -340,11 +384,14 @@ def mount_side(sprite, x, y, w, h, look):
             sprite.row(y + 1, left, left + 4, PORT_LIGHT)
 
 
-def mount_front(sprite, x, y, w, h, look):
-    """The front edge of the plate carries the maker's badge of every machine front."""
-    mount_side(sprite, x, y, w, h, look)
-    sprite.rect(x + 13, y + 1, x + 19, y + h - 1, BADGE)
-    sprite.row(y + 1, x + 13, x + 19, BADGE_LIGHT)
+def mount_front(hue):
+    """The front edge of the plate carries the accent ledge of the benches in small: a tab in the hue of the
+    module's crystal, which shows the exact colour whether the module works or rests."""
+    def paint(sprite, x, y, w, h, look):
+        mount_side(sprite, x, y, w, h, look)
+        sprite.rect(x + 13, y + 1, x + 19, y + h - 1, hue)
+        sprite.row(y + 1, x + 13, x + 19, lighten(hue, .3))
+    return paint
 
 
 def collar_side(sprite, x, y, w, h, look):
@@ -377,16 +424,23 @@ def housing_face():
     return drive_cell(0)
 
 
-# How a Primal Cell tells its tier. The bar keeps the lengths of the Matter Cells.
-PRIMAL_FACE_STYLES = ('slot', 'bar', 'pastel')
-PRIMAL_FACE_STYLE = 'slot'
+# How a Primal Cell tells in a bay what it is. Every style keeps the plate, the grip slot and the bar lengths of
+# the Matter Cells, so the two kinds stay one family; the status light keeps the status colours.
+#   'slot'    the tier bar is a Primal run and the grip slot is deep ultraviolet, so the smallest cell is
+#             recognised without reading its bar
+#   'crystal' as 'slot', but a cell that was crafted around a coloured Matrix Crystal shows that hue in the slot
+#   'bar'     nothing but the bar changes
+#   'pastel'  the faceplate of 0.7.0, tinted with the Violet crystal hue
+PRIMAL_FACE_STYLES = ('slot', 'crystal', 'bar', 'pastel')
+PRIMAL_FACE_STYLE = 'crystal'
+# Faceplate texels: the grip slot is row 2 and the tier bar row 4, both from column 5.
+FACE_SLOT, FACE_BAR, FACE_LEFT, FACE_RIGHT = 2, 4, 5, 11
 
 
-def primal_cell_face(bar, style=None):
+def primal_cell_face(bar, style=None, crystal=None):
     """Faceplate of a Primal Cell in a bay: the cell faceplate with the Primal signature in place of the ivory bar.
 
-    'slot' also fills the grip slot with deep ultraviolet, so the smallest cell is recognised without its bar;
-    'bar' changes nothing but the bar; 'pastel' is the faceplate of 0.7.0 and uses the Violet crystal hue.
+    crystal names the coloured Matrix Crystal of the cell's recipe, if it has one; only 'crystal' draws it.
     """
     style = style or PRIMAL_FACE_STYLE
     if style == 'pastel':
@@ -401,38 +455,86 @@ def primal_cell_face(bar, style=None):
     plate = drive_cell(0)
     sprite = Sprite(16, 16 * PRIMAL_FRAMES, fill=STEEL)
     for frame in range(PRIMAL_FRAMES):
+        top = 16 * frame
         for y in range(16):
             for x in range(16):
-                sprite.px(x, y + 16 * frame, plate.pixel(x, y))
-        if style == 'slot':
-            sprite.row(2 + 16 * frame, 5, 11, PRIMAL_DEEP)
+                sprite.px(x, y + top, plate.pixel(x, y))
+        if style in ('slot', 'crystal'):
+            slot = RGB[crystal] if style == 'crystal' and crystal else PRIMAL_DEEP
+            sprite.row(FACE_SLOT + top, FACE_LEFT, FACE_RIGHT, slot)
         for position in range(bar):
-            sprite.px(5 + position, 4 + 16 * frame, primal_run(position, frame))
+            sprite.px(FACE_LEFT + position, FACE_BAR + top, primal_run(position, frame))
     return sprite
 
 
-def cartridge_top(primal):
-    """Top and bottom of the cartridge body. A Primal Cell shows its charge through a slit."""
+def facets(sprite, x, y, w, h, light, body, dark, glint=None):
+    """A cut stone seen through a window: three flat facets down the diagonal from the lit top left."""
+    for v in range(h):
+        for u in range(w):
+            along = ((u + .5) / w + (v + .5) / h) / 2
+            sprite.px(x + u, y + v, light if along < .34 else body if along < .7 else dark)
+    if glint and w >= 4 and h >= 3:
+        sprite.px(x + 1, y + 1, glint)
+
+
+def cartridge_top(core):
+    """Top of the cartridge body: a window over the storage crystal the cell was crafted around.
+
+    core is None for the empty socket of a Cell Housing, 'matrix' for the clear Matrix Crystal of a Matter Cell,
+    'primal' for a Primal Crystal, or the name of a coloured Matrix Crystal.
+    """
     def paint(sprite, x, y, w, h, look):
         GRAPHITE_FACE(sprite, x, y, w, h, look)
-        if w >= 6 and h >= 6:
-            sprite.rect(x + 2, y + 2, x + w - 2, y + h - 2, SHADE)
-            sprite.row(y + 2, x + 2, x + w - 2, SEAM)
-            if primal:
-                for position in range(h - 4):
-                    colour = primal_run(position, look.get('frame', 0))
-                    sprite.rect(x + w // 2 - 1, y + 2 + position, x + w // 2 + 1, y + 3 + position, colour)
-            else:
-                sprite.rect(x + w // 2 - 1, y + 3, x + w // 2 + 1, y + h - 3, STEEL_DEEP)
+        if w < 8 or h < 7:
+            return
+        sprite.rect(x + 1, y + 1, x + w - 1, y + h - 1, SEAM)
+        left, top, wide, tall = x + 2, y + 2, w - 4, h - 4
+        if core is None:
+            sprite.rect(left, top, left + wide, top + tall, WELL)
+            sprite.row(top + tall - 1, left, left + wide, SHADE)
+            sprite.col(left + wide - 1, top, top + tall, SHADE)
+        elif core == 'matrix':
+            facets(sprite, left, top, wide, tall, IVORY, TRIM, STEEL)
+        elif core == 'primal':
+            frame = look.get('frame', 0)
+            facets(sprite, left, top, wide, tall, PRIMAL_LIGHT, PRIMAL_BODY, PRIMAL_DEEP)
+            sprite.rect(left + wide // 2 - 1, top + tall // 2, left + wide // 2 + 1, top + tall // 2 + 1,
+                        PRIMAL_CORE_SOFT)
+            sprite.px(left + wide // 2 - 1, top + tall // 2, PRIMAL_CORE)
+            # The light crosses the stone in the first half of the loop; the second half is calm ultraviolet.
+            head = frame * (wide + tall - 1 + len(PRIMAL_GLINT)) // (PRIMAL_FRAMES // 2)
+            for v in range(tall):
+                for u in range(wide):
+                    step = head - (u + v)
+                    if frame < PRIMAL_FRAMES // 2 and 0 <= step < len(PRIMAL_GLINT):
+                        sprite.px(left + u, top + v, PRIMAL_GLINT[step])
+        else:
+            body, light, dark, glint = tones(RGB[core], True)
+            facets(sprite, left, top, wide, tall, light, body, dark, glint)
     return paint
 
 
-def cartridge_side(sprite, x, y, w, h, look):
-    """Flank of the cartridge body with the guide rail that runs into the bay."""
+def cartridge_bottom(sprite, x, y, w, h, look):
+    """Underside of the cartridge body: a closed plate."""
     GRAPHITE_FACE(sprite, x, y, w, h, look)
-    if w >= 6 and h >= 4:
-        sprite.row(y + h // 2 - 1, x + 1, x + w - 1, STEEL_SHADE)
-        sprite.row(y + h // 2, x + 1, x + w - 1, SEAM)
+    if w >= 6 and h >= 6:
+        sprite.rect(x + 2, y + 2, x + w - 2, y + h - 2, SHADE)
+        sprite.row(y + 2, x + 2, x + w - 2, SEAM)
+
+
+def cartridge_side(primal):
+    """Flank of the cartridge body with the guide rail that runs into the bay. On a Primal Cell the rail is lit."""
+    def paint(sprite, x, y, w, h, look):
+        GRAPHITE_FACE(sprite, x, y, w, h, look)
+        if w < 6 or h < 4:
+            return
+        rail = y + h // 2 - 1
+        sprite.row(rail, x + 1, x + w - 1, STEEL_SHADE)
+        sprite.row(rail + 1, x + 1, x + w - 1, SEAM)
+        if primal:
+            for position in range(w - 2):
+                sprite.px(x + 1 + position, rail, primal_run(position, look.get('frame', 0)))
+    return paint
 
 
 def plate_edge(sprite, x, y, w, h, look):

@@ -15,6 +15,8 @@ navigation:
 | Confluence Basin / Mixing Basin | Adds capacity for mixing steps |
 | Phase Filter / Separation Unit | Adds Precision for separation and fine workshop recipes |
 
+The crystal and the small tab on a module mount show the crystal used to craft it: **Amber** for Cutters, Filters and Basins, **Violet** for Stabilizers and Foci. The item in your hand uses the same mechanism and sprites as the installed module.
+
 Hardware does not add another global Speed multiplier or an FE discount. Extra room never multiplies recipe output. The menu separates Field, Precision, room, speed, efficiency and active jobs.
 
 Minimum outer height is 4 for Reactor,5 for Preparator. Each additional layer permits another lane, up to 4. **Parallel Upgrades and enough hardware are also required.** Simultaneous Reactor inputs must fit its room; preparation jobs need capacity for every step they use.

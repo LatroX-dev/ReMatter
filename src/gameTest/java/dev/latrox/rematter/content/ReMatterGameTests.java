@@ -50,6 +50,7 @@ public final class ReMatterGameTests {
         TESTS.put("preparation_slots_require_one_compatible_recipe",ReMatterGameTests::inputFiltering);
         TESTS.put("industrial_reactor_air_inlet_is_above_roof",ReMatterGameTests::industrialAir);
         TESTS.put("cell_led_tracks_committed_storage",ReMatterGameTests::cellLed);
+        TESTS.put("primal_drive_lamps_and_tiers_follow_quantity",ReMatterGameTests::primalDriveLamps);
         TESTS.put("cable_device_arms_follow_neighbours",ReMatterGameTests::deviceArms);
         TESTS.put("drive_activity_follows_readable_cells",ReMatterGameTests::driveActivity);
         TESTS.put("network_devices_light_while_their_network_is_ready",ReMatterGameTests::networkLights);
@@ -715,6 +716,38 @@ public final class ReMatterGameTests {
         MachineProgression.capture(player);
         h.assertTrue(MachineProgression.allows(h.getLevel(),owner,requirement),"Pre-existing award was not captured at first login");
         h.assertTrue(!MachineProgression.allows(h.getLevel(),owner,"test:missing"),"Missing definition granted access");h.succeed();
+    }
+    private static void primalDriveLamps(GameTestHelper h) {
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);
+        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
+        var items=new dev.latrox.rematter.primal.PrimalCellItem[]{
+                dev.latrox.rematter.primal.PrimalContent.PRIMAL_CELL_16K.get(),
+                dev.latrox.rematter.primal.PrimalContent.PRIMAL_CELL_64K.get(),
+                dev.latrox.rematter.primal.PrimalContent.PRIMAL_CELL_256K.get()};
+        var expected=new CellStatus[]{CellStatus.EMPTY,CellStatus.STORED,CellStatus.FULL,CellStatus.LOCKED,CellStatus.LOCKED};
+        for(int state=0;state<expected.length;state++)for(int tier=0;tier<items.length;tier++) {
+            var stack=new ItemStack(items[tier]);
+            if(state>0){
+                var data=dev.latrox.rematter.primal.PrimalCellData.from(new dev.latrox.rematter.primal.PrimalCellData.State(
+                        UUID.randomUUID(),state==2?items[tier].capacity():items[tier].capacity()/2,0,Map.of()));
+                if(state==3){var raw=data.copyTag();raw.putInt("schema",99);data=new dev.latrox.rematter.primal.PrimalCellData(raw);}
+                stack.set(dev.latrox.rematter.primal.PrimalCellData.TYPE.get(),data);
+            }
+            int bay=state%2==0?tier:tier+3;
+            drive.setItem(drive.cellSlotForBay(bay),stack);
+            // Normal placement rejects count2; simulate corrupt/foreign stored data after mounting instead.
+            if(state==4)stack.setCount(2);
+            var before=stack.getComponentsPatch();int count=stack.getCount();
+            var packet=drive.getUpdateTag(h.getLevel().registryAccess());
+            int wantedTier=state<3?tier+5:4;
+            h.assertTrue(drive.visibleCellTier(bay)==wantedTier,"Wrong Primal tier for state "+state+", tier "+tier);
+            h.assertTrue(drive.visibleCellStatus(bay)==expected[state],"Wrong Primal lamp for state "+state+", tier "+tier);
+            h.assertTrue((packet.getIntOr("cell_tiers",0)>>>bay*3&7)==wantedTier,"Public update lost Primal tier bits");
+            h.assertTrue((packet.getIntOr("cell_statuses",0)>>>bay*3&7)==expected[state].ordinal(),"Public update lost Primal lamp state");
+            h.assertTrue(count==stack.getCount()&&before.equals(stack.getComponentsPatch()),"Rendering state read changed Primal contents");
+            h.assertTrue(!packet.toString().contains("cell_id")&&!packet.toString().contains("primal_matter"),"Public lamp update leaked private resource data");
+        }
+        h.succeed();
     }
     private static void cellLed(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);

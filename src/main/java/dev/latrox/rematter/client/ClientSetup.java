@@ -13,6 +13,7 @@ public final class ClientSetup {
     private ClientSetup() {}
     @SubscribeEvent public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModContent.MACHINE_MENU.get(), MachineScreen::new);
+        event.register(ModContent.ENERGY_CUBE_MENU.get(),EnergyCubeScreen::new);
     }
     @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);
