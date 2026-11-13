@@ -1076,7 +1076,7 @@
   "screen.rematter.substance.kind.mixture": "Mixture",
   "screen.rematter.substance.identity": "ID: %s",
   "screen.rematter.substance.details_hint": "Right-click for formula, composition and recipe links.",
-  "screen.rematter.substance.viewer_keys": "Recipes: %s · Uses: %s (outside text fields)",
+  "screen.rematter.substance.viewer_keys": "Keyboard recipes: %s · Uses: %s (outside text fields)",
   "screen.rematter.substance.formula": "Formula or symbol: %s",
   "screen.rematter.substance.not_defined": "Not defined",
   "screen.rematter.substance.phases": "Defined phases: %s",
@@ -1092,5 +1092,8 @@
   "screen.rematter.substance.back": "Back",
   "screen.rematter.substance.back_hint": "Return to the machine without changing any selection.",
   "screen.rematter.substance.no_viewer": "Install or enable EMI for recipe links.",
-  "guide.rematter.page.76": "Substance details\n\nHover matter for its\nexact amount, phase\nand type. Right-click\nfor its formula and\ncomposition. Scroll\nthe details to read all.\n\nWith EMI, use the\nrecipe and use keys,\nor the two link icons.\nThese views never\nunlock research."
+  "guide.rematter.page.76": "Substance details\n\nHover matter for its\nexact amount, phase\nand type. Right-click\nfor its formula and\ncomposition. Scroll\nthe details to read all.\n\nWith EMI, use the\nrecipe and use keys,\nor the two link icons.\nThese views never\nunlock research.",
+  "screen.rematter.substance.viewer_recipes_key": "Keyboard recipes: %s (outside text fields)",
+  "screen.rematter.substance.viewer_uses_key": "Keyboard uses: %s (outside text fields)",
+  "screen.rematter.substance.viewer_buttons": "EMI recipes and uses are available through the buttons in substance details."
 }

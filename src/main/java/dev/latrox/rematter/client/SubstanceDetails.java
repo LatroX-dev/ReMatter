@@ -6,6 +6,7 @@ import dev.latrox.rematter.compat.SubstanceInformation;
 import dev.latrox.rematter.network.ClientChemistry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -19,8 +20,8 @@ public final class SubstanceDetails {
     /** Installed by the native viewer plugin only when that viewer is present. */
     public interface Viewer {
         boolean available();
-        Component recipesKey();
-        Component usesKey();
+        Optional<Component> recipesKey();
+        Optional<Component> usesKey();
         void recipes(Hover value);
         void uses(Hover value);
     }
@@ -41,7 +42,13 @@ public final class SubstanceDetails {
         if (info.definition().isEmpty()) lines.add(Component.translatable("screen.rematter.unknown_substance_hint"));
         lines.add(tr("identity", hover.key().id().toString()));
         if (detailsAction) lines.add(tr("details_hint"));
-        if (detailsAction && viewerAvailable()) lines.add(tr("viewer_keys", viewer.recipesKey(), viewer.usesKey()));
+        if (detailsAction && viewerAvailable()) {
+            var recipes = viewer.recipesKey(); var uses = viewer.usesKey();
+            if (recipes.isPresent() && uses.isPresent()) lines.add(tr("viewer_keys", recipes.get(), uses.get()));
+            else if (recipes.isPresent()) lines.add(tr("viewer_recipes_key", recipes.get()));
+            else if (uses.isPresent()) lines.add(tr("viewer_uses_key", uses.get()));
+            else lines.add(tr("viewer_buttons"));
+        }
         return lines;
     }
 

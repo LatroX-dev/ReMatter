@@ -81,8 +81,8 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     @Override public void register(EmiRegistry registry) {
         SubstanceDetails.installViewer(new SubstanceDetails.Viewer() {
             @Override public boolean available() { return dev.emi.emi.config.EmiConfig.enabled; }
-            @Override public Component recipesKey() { return dev.emi.emi.config.EmiConfig.viewRecipes.getBindText(); }
-            @Override public Component usesKey() { return dev.emi.emi.config.EmiConfig.viewUses.getBindText(); }
+            @Override public java.util.Optional<Component> recipesKey() { return keyboardBindingText(dev.emi.emi.config.EmiConfig.viewRecipes); }
+            @Override public java.util.Optional<Component> usesKey() { return keyboardBindingText(dev.emi.emi.config.EmiConfig.viewUses); }
             @Override public void recipes(SubstanceDetails.Hover value) { showMatter(value, false); }
             @Override public void uses(SubstanceDetails.Hover value) { showMatter(value, true); }
         });
@@ -142,6 +142,18 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
     private static MatterEmiStack matterStack(SubstanceDetails.Hover value) {
         // A ghost filter has zero stored units; recipe lookup still asks about one formula unit of the same phase.
         return new MatterEmiStack(value.key(), Math.max(1, value.amount()));
+    }
+    /** SEMI's generic label prefers mouse binds; these rows deliberately reserve both mouse buttons. */
+    private static java.util.Optional<Component> keyboardBindingText(dev.emi.emi.input.EmiBind binding) {
+        var keys = binding.boundKeys.stream().filter(key -> !key.isUnbound()
+                && key.key().getType() != com.mojang.blaze3d.platform.InputConstants.Type.MOUSE).toList();
+        if (keys.isEmpty()) return java.util.Optional.empty();
+        var label = Component.empty();
+        for (var key : keys) {
+            if (!label.getSiblings().isEmpty()) label.append(" / ");
+            label.append(key.getKeyText(net.minecraft.ChatFormatting.RESET));
+        }
+        return java.util.Optional.of(label.withStyle(style -> style.withColor(dev.latrox.rematter.client.UiPalette.MUTED & 0xffffff)));
     }
     private static Bounds substanceBounds(SubstanceHoverProvider screen) {
         var area = screen.substancePanelBounds();
