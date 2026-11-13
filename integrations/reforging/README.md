@@ -10,7 +10,7 @@ Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine
 
 The integration adds no crystallization reaction. Sand, separated minerals, silicon, and oxygen therefore cannot become crystalline silica through the included chemistry recipes. This keeps the quartz recovery cycle available without turning sand into an inexpensive quartz source. A future crystallization recipe requires its own progression and balance review.
 
-Silica electrolysis uses this crystalline quartz feedstock in ReForging instead of amorphous silica. Its silicon and oxygen outputs, 64,000 FE cost and 400-tick duration are unchanged. Ordinary sand and separated amorphous silica cannot feed this process. This prevents a sand → silicon → EMC → sand loop when silicon material recovery is available; silicon obtained through the pack's normal routes can still be recovered.
+Silica electrolysis uses this crystalline quartz feedstock in ReForging instead of amorphous silica. Its silicon and oxygen outputs, 64,000 FE cost are preserved; its duration is now 1,600 work ticks, matching the slower standalone production balance. Ordinary sand and separated amorphous silica cannot feed this process. This prevents a sand → silicon → EMC → sand loop when silicon material recovery is available; silicon obtained through the pack's normal routes can still be recovered.
 
 The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exactly one quartz dust, with grinding-ball output bonuses disabled. Its energy cost remains 2,400 FE. This closes a pre-existing gem → extra dust → gem loop that also works through other mods. Quartz-ore processing and its bonuses are unchanged. KubeJS can still unify the output to the pack's canonical quartz dust.
 

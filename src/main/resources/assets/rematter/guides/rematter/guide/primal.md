@@ -49,9 +49,9 @@ One complete output batch must fit a single readable ordinary Cell whose substan
 
 | Target class | Primal for 1,000 u result | Base FE / duration |
 | --- | --- | --- |
-| Common | 1,000 u | 64,000 FE /20 seconds |
-| Scarce | 2,000 u | 96,000 FE /25 seconds |
-| Invented | 4,000 u | 128,000 FE /30 seconds |
+| Common | 1,000 u | 64,000 FE /80 seconds |
+| Scarce | 2,000 u | 96,000 FE /100 seconds |
+| Invented | 4,000 u | 128,000 FE /120 seconds |
 
 Choose multiples of 250 u. Read exact output and price in the window; splitting does not improve the rate. There is no Repeat mode, external crafting pattern or automatic missing-ingredient replacement. Ordinary material never converts back into Primal.
 

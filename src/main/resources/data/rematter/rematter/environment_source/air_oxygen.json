@@ -10,7 +10,7 @@
     }
   ],
   "energy": 16000,
-  "ticks": 200,
+  "ticks": 800,
   "dimensions": [
     "minecraft:overworld"
   ],

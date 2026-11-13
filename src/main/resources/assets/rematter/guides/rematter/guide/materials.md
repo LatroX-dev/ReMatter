@@ -15,7 +15,7 @@ The Matrix Crystal is an artificial crystalline composite: a reusable, ordered s
 
 An installed Crystal does not supply FE or change one element into another. The Cell's housing holds the reusable matrix; the Crystal is not consumed for each job. A loose crystal deliberately placed in an enabled generator is consumed instead. The Synthesizer also uses a reusable Crystal in its assembly mechanism.
 
-The Hand Preparator extracts Silith from sand and Argil from clay. Mix these two fractions into Matrix Blend and heat it in a furnace to form the artificial crystalline composite. Its controlled substance binding is the fictional part of ReMatter.
+The Hand Preparator extracts Silith from sand and Argil from clay. Mix these two fractions into Matrix Blend, then process the blend in a Preparator to form the artificial crystalline composite. Its controlled substance binding is the fictional part of ReMatter.
 
 The sieve sorts grains; it does not remove impurities or make pure chemicals. No added water or fluid connection is needed. [Powered preparation](preparation.md) supplies Rhedon, Virel and Lumin for larger matrix assemblies. These five fractions are crafted intermediates, not a collection of separate atom items.
 

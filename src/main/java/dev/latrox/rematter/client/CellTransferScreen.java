@@ -22,7 +22,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Ghost substance filters edit server-owned selections; the six physical Cells remain ordinary menu slots. */
-public final class CellTransferScreen extends AbstractContainerScreen<CellTransferMenu> {
+public final class CellTransferScreen extends AbstractContainerScreen<CellTransferMenu> implements SubstanceHoverProvider {
     private static final int COLUMNS=18,ROWS=2,GRID_X=18,GRID_Y=96,PITCH=18;
     private static final int ACCENT=UiPalette.machineAccent(MachineKind.DRIVE);
     private final ScrollModel scroll=new ScrollModel(ROWS);
@@ -118,7 +118,7 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
             tile.selected=tile.key!=null&&(partition?spec.map(p->p.restricted()&&p.allowed().contains(tile.key)).orElse(false):!menu.selectedAll()&&menu.selection().contains(tile.key));
             if(tile.key!=null){var key=tile.key;long amount=menu.available().stream().filter(e->e.key().equals(key)).mapToLong(e->e.amount()).findFirst().orElse(0);
                 var name=SubstanceNames.labelled(key);tile.setMessage(name);
-                tile.setTooltip(Tooltip.create(name.copy().append("\n").append(SubstanceNames.phase(key.phase())).append(" · "+key.id()+"\n")
+                tile.setTooltip(Tooltip.create(SubstanceDetails.joined(SubstanceDetails.tooltip(new SubstanceDetails.Hover(key,amount),true)).append("\n")
                         .append(partition?tr(tile.selected?"remove_filter":"add_filter"):tr("available",Quantities.number(amount))).append("\n").append(tr(partition?"ghost_hint":"toggle_hint"))));
             }else{tile.setMessage(Component.empty());tile.setTooltip(null);}
         }
@@ -154,7 +154,15 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
         for(int i=0;i<6;i++){var slot=menu.getSlot(i);if(!slot.hasItem()&&x>=slot.x&&x<slot.x+16&&y>=slot.y&&y<slot.y+16)g.setComponentTooltipForNextFrame(font,List.of(slotName(i),tr(i<3?"source_hint":"target_hint")),mx,my);}
     }
     @Override public boolean mouseScrolled(double x,double y,double dx,double dy){if(x>=leftPos+GRID_X&&x<leftPos+351&&y>=topPos+GRID_Y&&y<topPos+GRID_Y+ROWS*PITCH){scroll.wheel(dy);refresh();return true;}return super.mouseScrolled(x,y,dx,dy);}
-    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}return super.mouseClicked(event,doubleClick);}
+    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(event.button()==1){var hovered=substanceAt(event.x(),event.y());if(hovered.isPresent()){SubstanceDetails.open(hovered.get(),ACCENT);return true;}}if(bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}return super.mouseClicked(event,doubleClick);}
+    @Override public Optional<SubstanceDetails.Hover> substanceAt(double x,double y){
+        for(var tile:tiles)if(tile.visible&&tile.key!=null&&x>=tile.getX()&&x<tile.getX()+tile.getWidth()&&y>=tile.getY()&&y<tile.getY()+tile.getHeight()){
+            long amount=menu.available().stream().filter(entry->entry.key().equals(tile.key)).mapToLong(entry->entry.amount()).findFirst().orElse(0);
+            return Optional.of(new SubstanceDetails.Hover(tile.key,amount));
+        }
+        return Optional.empty();
+    }
+    @Override public net.minecraft.client.renderer.Rect2i substancePanelBounds(){return new net.minecraft.client.renderer.Rect2i(leftPos,topPos,imageWidth,imageHeight);}
     @Override public boolean mouseDragged(MouseButtonEvent event,double dx,double dy){if(bar.mouseDragged(event.x(),event.y())){refresh();return true;}return super.mouseDragged(event,dx,dy);}
     @Override public boolean mouseReleased(MouseButtonEvent event){boolean changed=bar.mouseReleased();return super.mouseReleased(event)||changed;}
     @Override public boolean keyPressed(KeyEvent event){if(search.canConsumeInput()&&!event.isEscape()){if(search.keyPressed(event))return true;if(event.key()!=258)return true;}return super.keyPressed(event);}

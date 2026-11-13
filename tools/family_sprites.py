@@ -7,11 +7,14 @@ the origin at the top left, and ranges exclude their end.
 """
 from family_palette import (ACTIVITY_OFF, ACTIVITY_ON, BADGE, BADGE_LIGHT, BASE, CABLE_TIERS, COPPER, COPPER_DARK,
                             COPPER_LIGHT, HIGHLIGHT, IVORY, JACKET, LED, LED_RED_DIM, PORT_MODES, PORT_UNFORMED,
-                            PORT_AUTOMATIC, PORT_DARK, PORT_LIGHT, PORT_METAL,
+                            PORT_AUTOMATIC, PORT_AUTOMATIC_COLORS, PORT_DARK, PORT_LIGHT, PORT_METAL,
                             SEAM, SHADE, STANDBY, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, accent, lighten, scale)
 from machine_palette import RGB
 
 CLEAR = (0, 0, 0, 0)
+# A static seven-role legend: broad perimeter segments are recommended; checker and paired bands are alternatives.
+PORT_AUTOMATIC_STYLES = ('segments', 'checker', 'paired_bands')
+PORT_AUTOMATIC_STYLE = 'segments'
 
 
 class Sprite:
@@ -268,7 +271,22 @@ def interface_front():
     return sprite
 
 
-def machine_port(color, contact=True):
+def automatic_ring_color(x, y, style=PORT_AUTOMATIC_STYLE):
+    if style not in PORT_AUTOMATIC_STYLES:
+        raise ValueError('Unknown Automatic ring style: ' + style)
+    if style == 'checker':
+        index = (x // 2 + y // 2) % len(PORT_AUTOMATIC_COLORS)
+    elif style == 'paired_bands':
+        index = ((x + y) // 4) % len(PORT_AUTOMATIC_COLORS)
+    else:
+        # Clockwise perimeter; the two-texel width uses the same position on each edge.
+        position = (x - 4 if y < 6 else 24 + y - 4 if x >= 26
+                    else 48 + 27 - x if y >= 26 else 72 + 27 - y)
+        index = min(6, position * len(PORT_AUTOMATIC_COLORS) // 96)
+    return PORT_AUTOMATIC_COLORS[index]
+
+
+def machine_port(color, contact=True, automatic_style=PORT_AUTOMATIC_STYLE):
     sprite = casing()
     light, dark = ((PORT_LIGHT, PORT_DARK) if color == PORT_AUTOMATIC
                    else (lighten(color, .28), scale(color, .68)))
@@ -278,6 +296,12 @@ def machine_port(color, contact=True):
     for x, y, width, height in ((14, 6, 4, 2), (14, 24, 4, 2), (6, 14, 2, 4), (24, 14, 2, 4)):
         sprite.rect(x, y, x + width, y + height, color)
     port_plate(sprite, contact=contact)
+    if color == PORT_AUTOMATIC:
+        # Only the functional ring is multicoloured; neutral gunmetal, well and copper contacts retain their roles.
+        for y in range(4, 28):
+            for x in range(4, 28):
+                if x < 6 or x >= 26 or y < 6 or y >= 26:
+                    sprite.px(x, y, automatic_ring_color(x, y, automatic_style))
     return sprite
 
 

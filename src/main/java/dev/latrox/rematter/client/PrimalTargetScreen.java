@@ -20,7 +20,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 /** Search a complete explicit conversion allowlist; unreached research stays visible and cannot be selected. */
-public final class PrimalTargetScreen extends Screen {
+public final class PrimalTargetScreen extends SubstanceScreenLayer {
     private static final int ROW=28;
     private final MachineMenu menu;
     private final Consumer<String> select;
@@ -38,6 +38,7 @@ public final class PrimalTargetScreen extends Screen {
     public PrimalTargetScreen(MachineMenu menu,Consumer<String> select){super(tr("choose"));this.menu=menu;this.select=select;focused=PrimalConverterView.text(menu.extras(),"conversionTarget","");}
     private static Component tr(String key,Object...args){return Component.translatable("screen.rematter.converter."+key,args);}
     @Override protected void init(){
+        rememberLayout();
         panelWidth=Math.min(320,width-12);panelHeight=Math.min(224,height-12);left=(width-panelWidth)/2;top=(height-panelHeight)/2;
         listTop=top+45;footer=top+panelHeight-25;scroll.setVisibleRows(Math.max(1,(footer-listTop-5)/ROW));
         String query=search==null?"":search.getValue();
@@ -66,7 +67,7 @@ public final class PrimalTargetScreen extends Screen {
         for(int row=0;row<rows.size();row++){
             var button=rows.get(row);int index=scroll.offset()+row;button.target=index<filtered.size()?filtered.get(index):null;
             button.visible=button.active=button.target!=null;
-            if(button.target!=null){var t=button.target;button.setMessage(Component.literal(label(t.id())));button.setTooltip(Tooltip.create(Component.literal(label(t.id())).append("\n").append(ratio(t)).append("\n").append(t.known()?tr("known_target"):tr("locked_target",name(t.id())))));}
+            if(button.target!=null){var t=button.target;button.setMessage(Component.literal(label(t.id())));button.setTooltip(Tooltip.create(SubstanceDetails.joined(SubstanceDetails.tooltip(hover(t),true)).append("\n").append(ratio(t)).append("\n").append(t.known()?tr("known_target"):tr("locked_target",name(t.id())))));}
         }
         var selected=focused();confirm.active=selected!=null&&selected.known()&&!PrimalConverterView.flag(menu.extras(),"converting",false);
         clear.visible=!search.getValue().isEmpty();
@@ -76,7 +77,11 @@ public final class PrimalTargetScreen extends Screen {
     @Override public void tick(){if(minecraft.player==null||minecraft.player.containerMenu!=menu){onClose();return;}if(source!=menu.extras()||language!=net.minecraft.locale.Language.getInstance())reload();}
     @Override public boolean isPauseScreen(){return false;}
     @Override public boolean mouseScrolled(double x,double y,double dx,double dy){if(inside(x,y,left+8,listTop,panelWidth-16,scroll.visibleRows()*ROW)){scroll.wheel(dy);refresh();return true;}return super.mouseScrolled(x,y,dx,dy);}
-    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}boolean result=super.mouseClicked(event,doubleClick);if(result&&doubleClick&&event.button()==0&&inside(event.x(),event.y(),left+8,listTop,panelWidth-22,scroll.visibleRows()*ROW))choose();return result;}
+    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(event.button()==1){var hovered=substanceAt(event.x(),event.y());if(hovered.isPresent()){SubstanceDetails.open(hovered.get(),UiPalette.PRIMAL);return true;}}if(bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}boolean result=super.mouseClicked(event,doubleClick);if(result&&doubleClick&&event.button()==0&&inside(event.x(),event.y(),left+8,listTop,panelWidth-22,scroll.visibleRows()*ROW))choose();return result;}
+    private static SubstanceDetails.Hover hover(PrimalConverterView.Target target){return new SubstanceDetails.Hover(dev.latrox.rematter.chemistry.SubstanceKey.of(target.id(),dev.latrox.rematter.chemistry.Phase.SOLID),1);}
+    @Override public java.util.Optional<SubstanceDetails.Hover> substanceAt(double x,double y){for(var row:rows)if(row.visible&&row.target!=null&&inside(x,y,row.getX(),row.getY(),row.getWidth(),row.getHeight()))return java.util.Optional.of(hover(row.target));return java.util.Optional.empty();}
+    @Override public net.minecraft.client.renderer.Rect2i substancePanelBounds(){return new net.minecraft.client.renderer.Rect2i(left,top,panelWidth,panelHeight);}
+    @Override public int substanceAccent(){return UiPalette.PRIMAL;}
     @Override public boolean mouseDragged(MouseButtonEvent event,double dx,double dy){if(bar.mouseDragged(event.x(),event.y())){refresh();return true;}return super.mouseDragged(event,dx,dy);}
     @Override public boolean mouseReleased(MouseButtonEvent event){return super.mouseReleased(event)|bar.mouseReleased();}
     @Override public boolean keyPressed(KeyEvent event){

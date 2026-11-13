@@ -5,7 +5,7 @@
   "secondary": "#c:ingots/gold",
   "tertiary": "minecraft:glowstone_dust",
   "energy": 26000,
-  "ticks": 400,
+  "ticks": 1600,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:lumivex_dust",

@@ -341,13 +341,17 @@ public final class PortSideGameTests {
             try (var tx = Transaction.openRoot()) {
                 h.assertTrue(output != null && output.extract(100, tx) == 100, "The front of a cube is not its output");
             }
-            // The published roles are what the plates show: a disabled side loses its seat, the others keep theirs.
-            h.assertTrue(cube.getModelData().get(PortSides.PLATES) == 0, "A new cube does not show a seat on every side");
+            // Direction is visual data too; it never changes the three persistent transfer modes.
+            int initial = cube.getModelData().get(PortSides.PLATES);
+            for (var side : Side.values())
+                h.assertTrue(PortSides.appearance(initial, side) == (side == Side.FRONT ? PortAppearance.ENERGY_OUTPUT : PortAppearance.ENERGY_INPUT),
+                        "A new cube does not show the actual direction of " + side);
             for (int step = 0; step < 3 && cube.sideMode(Side.LEFT) != EnergyCubeSideMode.DISABLED; step++)
                 h.assertTrue(cube.cycleSide(owner, Side.LEFT), "The owner could not configure the cube");
             int shown = cube.getModelData().get(PortSides.PLATES);
             for (var side : Side.values())
-                h.assertTrue(PortSides.unpack(shown, side) == (side == Side.LEFT ? MachinePortMode.DISABLED : MachinePortMode.AUTOMATIC),
+                h.assertTrue(PortSides.appearance(shown, side) == (side == Side.LEFT ? PortAppearance.DISABLED
+                                : side == Side.FRONT ? PortAppearance.ENERGY_OUTPUT : PortAppearance.ENERGY_INPUT),
                         "The cube shows the wrong plate on its " + side);
             h.assertTrue(cube.getUpdateTag(h.getLevel().registryAccess()).getIntOr("side_modes", -1) == cube.packedSideModes(),
                     "The cube does not publish its side roles");
@@ -357,6 +361,21 @@ public final class PortSideGameTests {
             h.assertTrue(client.getModelData().get(PortSides.PLATES) == shown, "The client draws other seats than the server published");
             h.assertTrue(h.getLevel().getCapability(Capabilities.Energy.BLOCK, pos, Side.LEFT.world(front)) == null,
                     "A disabled cube side still exposes FE");
+            int stored = cube.packedSideModes();
+            for (var side : Side.values()) for (int step = 0; step < 3; step++) {
+                h.assertTrue(cube.cycleSide(owner, side), "Cube direction cannot be changed on " + side);
+                var expected = switch (cube.sideMode(side)) {
+                    case INPUT -> PortAppearance.ENERGY_INPUT;
+                    case OUTPUT -> PortAppearance.ENERGY_OUTPUT;
+                    case DISABLED -> PortAppearance.DISABLED;
+                };
+                client.handleUpdateTag(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING,
+                        h.getLevel().registryAccess(), cube.getUpdateTag(h.getLevel().registryAccess())));
+                h.assertTrue(PortSides.appearance(client.getModelData().get(PortSides.PLATES), side) == expected,
+                        "The client did not receive the actual " + side + " direction");
+            }
+            h.assertTrue(cube.packedSideModes() == stored && cube.energy() == 1_000,
+                    "A full direction cycle changed saved roles or stored FE");
             h.setBlock(relative, Blocks.AIR);
         }
         h.succeed();

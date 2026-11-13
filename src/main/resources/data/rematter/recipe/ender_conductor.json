@@ -2,7 +2,7 @@
   "type": "rematter:preparation",
   "primary": "rematter:ender_conductor_blend",
   "energy": 16000,
-  "ticks": 240,
+  "ticks": 960,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:ender_conductor",

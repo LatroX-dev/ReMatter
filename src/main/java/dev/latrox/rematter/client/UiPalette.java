@@ -33,6 +33,12 @@ public final class UiPalette {
     public static final int AMBER = 0xffe3a94b;
     public static final int VIOLET = 0xffb381e8;
     public static final int EMBER = 0xffea4848;
+    /** Functional port legends, independent of a device's recipe identity and cable tier. */
+    public static final int PORT_ENERGY_INPUT = 0xff6794f1;
+    public static final int PORT_ENERGY_OUTPUT = 0xffea4848;
+    public static final int[] PORT_AUTOMATIC_COLORS = {
+        0xffdc894f, 0xffea4848, 0xff6794f1, 0xffb381e8, 0xffe3a94b, 0xff57cddb, 0xff7dd27f
+    };
     public static final int CABLE_BASIC = 0xdc894f;
     public static final int CABLE_REINFORCED = 0x54bfac;
     public static final int CABLE_RESONANT = 0xbe8fbb;

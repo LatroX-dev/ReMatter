@@ -24,7 +24,7 @@ public final class PortSides {
     /** Why a side carries no connection; the settings screen names the reason. */
     public enum Closed { FRONT, OPEN_TOP, CLOSED_TOP, BACK_ONLY, STRUCTURE }
 
-    /** Roles of all six sides as drawn: four bits per side, the ordinal of its {@link MachinePortMode}. */
+    /** Appearance of all six sides: four bits per side, the ordinal of its {@link PortAppearance}. */
     public static final ModelProperty<Integer> PLATES = new ModelProperty<>();
 
     private PortSides() {}
@@ -58,5 +58,13 @@ public final class PortSides {
     }
     public static MachinePortMode unpack(int packed, Side side) {
         return MachinePortMode.byIndex(packed >>> (4 * side.ordinal()) & 15);
+    }
+    public static int packAppearances(java.util.function.Function<Side, PortAppearance> appearances) {
+        int packed = 0;
+        for (Side side : Side.values()) packed |= appearances.apply(side).ordinal() << (4 * side.ordinal());
+        return packed;
+    }
+    public static PortAppearance appearance(int packed, Side side) {
+        return PortAppearance.byIndex(packed >>> (4 * side.ordinal()) & 15);
     }
 }

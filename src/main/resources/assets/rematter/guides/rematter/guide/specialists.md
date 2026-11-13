@@ -39,7 +39,7 @@ Use the **Material Synthesizer** for explicitly approved crystal-family products
 
 ## Air oxygen
 
-Choose **Air oxygen** in either reactor. A batch extracts **200 stored oxygen units** for **16,000 base FE** over **200 ticks** in the **Overworld**. Compact reactors require an air block directly above and an unobstructed sky. An industrial chamber takes air above the front edge of its roof. Blocking that inlet pauses production without spending FE. Connected Cell storage is required.
+Choose **Air oxygen** in either reactor. A batch extracts **200 stored oxygen units** for **16,000 base FE** over **800 ticks** in the **Overworld**. Compact reactors require an air block directly above and an unobstructed sky. An industrial chamber takes air above the front edge of its roof. Blocking that inlet pauses production without spending FE. Connected Cell storage is required.
 
 Oxygen can feed Mekanism's Purification Chamber through a Drive with Automation enabled and a Pressurized Tube. Nitrogen waits for a useful supported consumer. Renewable air remains an explicit environmental source with power and storage costs.
 

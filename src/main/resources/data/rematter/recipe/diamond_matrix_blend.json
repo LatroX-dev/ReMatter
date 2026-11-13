@@ -5,7 +5,7 @@
   "secondary_count": 2,
   "tertiary": "rematter:gold_dust",
   "energy": 8000,
-  "ticks": 160,
+  "ticks": 640,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:diamond_matrix_blend",

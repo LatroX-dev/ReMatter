@@ -44,6 +44,20 @@ class PortSidesTest {
         for (var side : Side.values()) assertEquals(MachinePortMode.values()[side.ordinal() + 2], PortSides.unpack(packed, side));
     }
 
+    @Test void presentationPreservesMachineRolesAndAddsCubeDirectionsWithoutAddingTransferRoles() {
+        for (var role : MachinePortMode.values()) {
+            int packed = PortSides.pack(side -> role);
+            for (var side : Side.values()) assertEquals(PortAppearance.of(role), PortSides.appearance(packed, side));
+        }
+        for (var appearance : PortAppearance.values()) {
+            int packed = PortSides.packAppearances(side -> appearance);
+            for (var side : Side.values()) assertEquals(appearance, PortSides.appearance(packed, side));
+        }
+        assertEquals(PortAppearance.DISABLED, PortSides.appearance(15, Side.FRONT));
+        assertEquals(MachinePortMode.DISABLED, PortSides.unpack(PortSides.packAppearances(side -> PortAppearance.ENERGY_INPUT), Side.FRONT));
+        assertTrue(PortAppearance.values().length <= 16, "appearance data uses four bits per side");
+    }
+
     /** What the block can show equals what the table allows: a plate model per supported role, and nothing else. */
     @Test void generatedBlockStatesDrawExactlyTheConnectableSides() throws Exception {
         for (var kind : MachineKind.values()) {

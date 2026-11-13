@@ -24,7 +24,7 @@ class WorkshopMaterialsTest {
             assertEquals("rematter:" + powder(family), mix.getAsJsonObject("result").get("id").getAsString());
             assertEquals(4, mix.getAsJsonObject("result").get("count").getAsInt());
             assertEquals(8000, mix.get("energy").getAsInt());
-            assertEquals(160, mix.get("ticks").getAsInt());
+            assertEquals(640, mix.get("ticks").getAsInt());
             assertTrue(mix.has("secondary") && mix.has("tertiary"));
             assertEquals(family.equals("virelite") ? 1 : 3, count(mix, "primary"));
             assertEquals(1, count(mix, "secondary"));
@@ -37,7 +37,7 @@ class WorkshopMaterialsTest {
             assertFalse(heat.has("secondary") || heat.has("tertiary"));
             assertEquals(1, count(heat, "primary"));
             assertEquals(12000, heat.get("energy").getAsInt());
-            assertEquals(200, heat.get("ticks").getAsInt());
+            assertEquals(800, heat.get("ticks").getAsInt());
             assertEquals("rematter:" + product(family), heat.getAsJsonObject("result").get("id").getAsString());
             assertEquals(1, heat.getAsJsonObject("result").get("count").getAsInt());
         }

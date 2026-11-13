@@ -7,6 +7,7 @@ from generated_files import GeneratedFiles
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "src/main/resources/data"
 OUTPUT = GeneratedFiles(ROOT, False)
+PRODUCTION_TIME_FACTOR = 4
 
 
 def write(path, data):
@@ -14,6 +15,10 @@ def write(path, data):
 
 
 def recipe(name, data):
+    # Keep the relative work of the reviewed chains, with a slower production pace.
+    # Other mods retain their native timing; only ReMatter processing is balanced here.
+    if data["type"] == "rematter:preparation":
+        data = dict(data, ticks=data["ticks"] * PRODUCTION_TIME_FACTOR)
     write(DATA / "rematter/recipe" / (name + ".json"), data)
 
 
@@ -134,6 +139,21 @@ def crystal_powders():
         tag("c", "dusts/" + name, ["rematter:" + powder])
 
 
+def matrix_crystals():
+    # Hand preparation bootstraps Amber and Ember before any powered equipment.
+    preparation("matrix_crystal", [("rematter:matrix_blend", 1)], "matrix_crystal",
+                ticks=160, minimum_tier=0)
+    advancement("matrix_crystal", "rematter:matrix_blend")
+    additives = {"ice": "rematter:silith", "copper": "#c:dusts/copper", "leaf": "#c:dusts/emerald",
+                 "violet": "#c:dusts/amethyst", "amber": "#c:dusts/gold", "ember": "minecraft:redstone",
+                 "blue": "#c:dusts/lapis", "mint": "#c:dusts/diamond"}
+    for colour, additive in additives.items():
+        preparation(colour + "_matrix_crystal", [("rematter:matrix_crystal", 1), (additive, 1)],
+                    colour + "_matrix_crystal", ticks=160,
+                    minimum_tier=0 if colour in {"ice", "copper", "amber", "ember"} else 1,
+                    steps=["mix"])
+
+
 def workshop_dust_tag():
     materials = ("iron", "copper", "gold", "rhevon", "lumivex", "diamond", "netherite", "lapis", "amethyst", "emerald")
     tag("c", "dusts", ["#c:dusts/" + name for name in materials] + ["rematter:ender_pearl_powder"])
@@ -252,6 +272,7 @@ def generate():
     industrial_workshop()
     advanced_materials()
     crystal_powders()
+    matrix_crystals()
     workshop_dust_tag()
     tag("rematter", "workshop_powders", ["rematter:rhevon_dust", "rematter:lumivex_dust", "rematter:virelite_blend"])
     tag("rematter", "technical_ceramics", ["rematter:virelite_ceramic"])

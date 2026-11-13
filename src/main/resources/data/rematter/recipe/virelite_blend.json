@@ -4,7 +4,7 @@
   "secondary": "rematter:argil",
   "tertiary": "rematter:virel",
   "energy": 8000,
-  "ticks": 160,
+  "ticks": 640,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:virelite_blend",

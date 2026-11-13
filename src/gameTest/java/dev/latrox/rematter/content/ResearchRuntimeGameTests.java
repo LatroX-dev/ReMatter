@@ -196,7 +196,7 @@ public final class ResearchRuntimeGameTests {
     private static void converter(GameTestHelper h) {
         var r = rig(h, MachineKind.PRIMAL_CONVERTER); fuel(r.machine, 16_000, false); ResearchService.adminGrant(r.server(), r.uuid(), "rematter:iron");
         assertTrue(h, action(r.machine, MachineActionPayload.Action.CONVERT_SELECT, "rematter:iron", 1_000) && action(r.machine, MachineActionPayload.Action.CONVERT_START, "", 0), "Converter request rejected");
-        ticks(h, 400, r.machine);
+        ticks(h, PrimalPricing.quote(ReMatter.chemistry(), BuiltinChemistry.IRON, 1_000, id -> id.equals(BuiltinChemistry.IRON.id())).ticks(), r.machine);
         var claims = r.machine.extensions().view().getAsJsonArray("conversionClaims"); assertTrue(h, claims.size() == 1, "Converter did not create exactly one result owner");
         var claimId = UUID.fromString(claims.get(0).getAsJsonObject().get("id").getAsString()); var machineId = UUID.fromString(claims.get(0).getAsJsonObject().get("machine").getAsString());
         assertTrue(h, primal(r.machine) == 15_000 && r.machine.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - 64_000, "Converter payment was not exact");
@@ -252,7 +252,7 @@ public final class ResearchRuntimeGameTests {
         var ready=r.machine.extensions().view().getAsJsonObject("conversionDestination");
         assertTrue(h,ready.get("status").getAsString().equals("ready")&&ready.get("bay").getAsInt()==2&&ready.get("free").getAsLong()==1_000,"Preview did not name the first actual fitting ordinary bay");
         assertTrue(h,ready.get("x").getAsInt()==r.drive.getBlockPos().getX()&&ready.get("z").getAsInt()==r.drive.getBlockPos().getZ(),"Preview named a different storage position");
-        ticks(h,401,r.machine);
+        ticks(h,PrimalPricing.quote(ReMatter.chemistry(),BuiltinChemistry.IRON,1_000,id->id.equals(BuiltinChemistry.IRON.id())).ticks()+1,r.machine);
         assertTrue(h,members.get(0).amount(BuiltinChemistry.IRON)==1_000&&members.get(1).amount(BuiltinChemistry.IRON)==0,"Actual credit did not follow the displayed first-fit bay");
         assertTrue(h,primal(r.machine)==15_000,"Destination recovery changed the one-time Primal price");h.succeed();
     }

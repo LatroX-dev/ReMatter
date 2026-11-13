@@ -14,7 +14,7 @@ TOOLS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS))
 import generate_energy_assets as energy
 import check_visual_style as style
-from family_palette import COPPER, COPPER_LIGHT, COPPER_DARK
+from family_palette import COPPER, COPPER_LIGHT, COPPER_DARK, ENERGY_PORT_MODES
 import port_plates
 from generate_family_assets import Family
 
@@ -104,9 +104,9 @@ def resolve_model(family, name):
     return {'textures':table,'elements':elements}
 
 
-def side_models(family, name, disabled=()):
+def side_models(family, name, disabled=(), mode='energy_input'):
     entry=family.blockstates[name]['multipart'][4]['apply']
-    return [resolve_model(family,entry['sides'][side]['disabled' if side in disabled else 'automatic'].removeprefix('rematter:block/'))
+    return [resolve_model(family,entry['sides'][side]['disabled' if side in disabled else mode].removeprefix('rematter:block/'))
             for side in energy.SOCKET_SIDES]
 
 
@@ -125,10 +125,10 @@ class EnergyCubeGeometryTests(unittest.TestCase):
             for port_style in energy.ENERGY_PORT_SIZES:
                 family, _ = energy.assets(look, port_style)
                 for name in energy.TIERS:
-                    for charge,flow,connected in ((c,f,on) for c in range(9) for f in ('none','in','out') for on in (True,False)):
-                        with self.subTest(look=look,port=port_style,tier=name,charge=charge,flow=flow,seats=connected):
+                    for charge,flow,mode in ((c,f,m) for c in range(9) for f in ('none','in','out') for m in ('energy_input','energy_output','disabled')):
+                        with self.subTest(look=look,port=port_style,tier=name,charge=charge,flow=flow,mode=mode):
                             models=[family.models[name],charge_model(family,name,charge,flow)]
-                            models+=side_models(family,name,() if connected else energy.SOCKET_SIDES)
+                            models+=side_models(family,name,energy.SOCKET_SIDES if mode=='disabled' else (),mode)
                             elements = [element for model in models for element in model['elements']]
                             self.assertEqual(geometry(elements), geometry(elements, 1), 'quarter-turn changes the physical shape')
                             expected = Counter(side_quads(models, 'north'))
@@ -183,7 +183,8 @@ class EnergyCubeGeometryTests(unittest.TestCase):
                                 'common housing retains an outer face that would overlap a blank panel')
             for local in ('top','bottom'):
                 self.assertEqual(entry['sides'][local]['disabled'],f'rematter:block/port_plain_{local}_disabled')
-                self.assertEqual(entry['sides'][local]['automatic'],f'rematter:block/{name}_port_{local}')
+                for mode in ENERGY_PORT_MODES:
+                    self.assertEqual(entry['sides'][local][mode],f'rematter:block/{name}_port_{local}_{mode}')
 
     def test_mixed_blank_and_connected_compositions_cover_every_direction_charge_and_flow(self):
         family,_=energy.assets()

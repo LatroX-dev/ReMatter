@@ -40,7 +40,7 @@ Take **one glass** from the output when the press finishes. Use a single **Start
 
 ## What the numbers mean
 
-With default recipes and no upgrades, one sand produces **1,000 solid silica units** using **8,000 FE** over **100 ticks**. One glass consumes those **1,000 units**, plus **16,000 FE** over **100 ticks**.
+With default recipes and no upgrades, one sand produces **1,000 solid silica units** using **8,000 FE** over **400 ticks**. One glass consumes those **1,000 units**, plus **16,000 FE** over **400 ticks**.
 
 The Cell stores these quantities without separate silica inventory items. One batch of nuggets or fluid can have a different item count or volume; **Start requests the displayed complete batch**.
 

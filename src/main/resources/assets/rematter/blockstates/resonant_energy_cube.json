@@ -42,37 +42,43 @@
       "apply": {
         "type": "rematter:port_plates",
         "default": {
-          "front": "automatic",
-          "left": "automatic",
-          "back": "automatic",
-          "right": "automatic",
-          "top": "automatic",
-          "bottom": "automatic"
+          "front": "energy_output",
+          "left": "energy_input",
+          "back": "energy_input",
+          "right": "energy_input",
+          "top": "energy_input",
+          "bottom": "energy_input"
         },
         "sides": {
           "front": {
             "disabled": "rematter:block/energy_cube_port_front_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_front"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_front_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_front_energy_output"
           },
           "left": {
             "disabled": "rematter:block/port_plain_left_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_left"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_left_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_left_energy_output"
           },
           "back": {
             "disabled": "rematter:block/port_plain_back_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_back"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_back_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_back_energy_output"
           },
           "right": {
             "disabled": "rematter:block/port_plain_right_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_right"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_right_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_right_energy_output"
           },
           "top": {
             "disabled": "rematter:block/port_plain_top_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_top"
+            "energy_input": "rematter:block/resonant_energy_cube_port_top_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_top_energy_output"
           },
           "bottom": {
             "disabled": "rematter:block/port_plain_bottom_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_bottom"
+            "energy_input": "rematter:block/resonant_energy_cube_port_bottom_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_bottom_energy_output"
           }
         }
       }
@@ -85,37 +91,43 @@
         "type": "rematter:port_plates",
         "y": 90,
         "default": {
-          "front": "automatic",
-          "left": "automatic",
-          "back": "automatic",
-          "right": "automatic",
-          "top": "automatic",
-          "bottom": "automatic"
+          "front": "energy_output",
+          "left": "energy_input",
+          "back": "energy_input",
+          "right": "energy_input",
+          "top": "energy_input",
+          "bottom": "energy_input"
         },
         "sides": {
           "front": {
             "disabled": "rematter:block/energy_cube_port_front_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_front"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_front_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_front_energy_output"
           },
           "left": {
             "disabled": "rematter:block/port_plain_left_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_left"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_left_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_left_energy_output"
           },
           "back": {
             "disabled": "rematter:block/port_plain_back_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_back"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_back_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_back_energy_output"
           },
           "right": {
             "disabled": "rematter:block/port_plain_right_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_right"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_right_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_right_energy_output"
           },
           "top": {
             "disabled": "rematter:block/port_plain_top_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_top"
+            "energy_input": "rematter:block/resonant_energy_cube_port_top_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_top_energy_output"
           },
           "bottom": {
             "disabled": "rematter:block/port_plain_bottom_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_bottom"
+            "energy_input": "rematter:block/resonant_energy_cube_port_bottom_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_bottom_energy_output"
           }
         }
       }
@@ -128,37 +140,43 @@
         "type": "rematter:port_plates",
         "y": 180,
         "default": {
-          "front": "automatic",
-          "left": "automatic",
-          "back": "automatic",
-          "right": "automatic",
-          "top": "automatic",
-          "bottom": "automatic"
+          "front": "energy_output",
+          "left": "energy_input",
+          "back": "energy_input",
+          "right": "energy_input",
+          "top": "energy_input",
+          "bottom": "energy_input"
         },
         "sides": {
           "front": {
             "disabled": "rematter:block/energy_cube_port_front_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_front"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_front_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_front_energy_output"
           },
           "left": {
             "disabled": "rematter:block/port_plain_left_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_left"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_left_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_left_energy_output"
           },
           "back": {
             "disabled": "rematter:block/port_plain_back_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_back"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_back_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_back_energy_output"
           },
           "right": {
             "disabled": "rematter:block/port_plain_right_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_right"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_right_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_right_energy_output"
           },
           "top": {
             "disabled": "rematter:block/port_plain_top_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_top"
+            "energy_input": "rematter:block/resonant_energy_cube_port_top_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_top_energy_output"
           },
           "bottom": {
             "disabled": "rematter:block/port_plain_bottom_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_bottom"
+            "energy_input": "rematter:block/resonant_energy_cube_port_bottom_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_bottom_energy_output"
           }
         }
       }
@@ -171,37 +189,43 @@
         "type": "rematter:port_plates",
         "y": 270,
         "default": {
-          "front": "automatic",
-          "left": "automatic",
-          "back": "automatic",
-          "right": "automatic",
-          "top": "automatic",
-          "bottom": "automatic"
+          "front": "energy_output",
+          "left": "energy_input",
+          "back": "energy_input",
+          "right": "energy_input",
+          "top": "energy_input",
+          "bottom": "energy_input"
         },
         "sides": {
           "front": {
             "disabled": "rematter:block/energy_cube_port_front_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_front"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_front_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_front_energy_output"
           },
           "left": {
             "disabled": "rematter:block/port_plain_left_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_left"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_left_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_left_energy_output"
           },
           "back": {
             "disabled": "rematter:block/port_plain_back_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_back"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_back_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_back_energy_output"
           },
           "right": {
             "disabled": "rematter:block/port_plain_right_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_socket_right"
+            "energy_input": "rematter:block/resonant_energy_cube_socket_right_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_socket_right_energy_output"
           },
           "top": {
             "disabled": "rematter:block/port_plain_top_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_top"
+            "energy_input": "rematter:block/resonant_energy_cube_port_top_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_top_energy_output"
           },
           "bottom": {
             "disabled": "rematter:block/port_plain_bottom_disabled",
-            "automatic": "rematter:block/resonant_energy_cube_port_bottom"
+            "energy_input": "rematter:block/resonant_energy_cube_port_bottom_energy_input",
+            "energy_output": "rematter:block/resonant_energy_cube_port_bottom_energy_output"
           }
         }
       }

@@ -23,7 +23,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 /** Compact machine controls, a real storage list and embedded terminal devices; all writes stay server-authoritative. */
-public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
+public final class MachineScreen extends AbstractContainerScreen<MachineMenu> implements SubstanceHoverProvider {
     private static final int W=216,H=216;
     private final ScrollModel stockScroll=new ScrollModel(3),deviceScroll=new ScrollModel(5);
     private final ScrollBar stockBar=new ScrollBar(stockScroll),deviceBar=new ScrollBar(deviceScroll);
@@ -46,6 +46,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private ChemistryRegistry shownCatalogue;
     private StockFilter shownFilter;
     private net.minecraft.locale.Language shownLanguage;
+    private int layoutWidth=-1,layoutHeight=-1;
 
     public MachineScreen(MachineMenu menu,Inventory inventory,Component title) {super(menu,inventory,title,W,H);}
     private static Component tr(String key,Object...args){return Component.translatable("screen.rematter."+key,args);}
@@ -75,6 +76,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private void toggleFavorite(MachineSnapshot.Entry entry){if(player()!=null){StockFavorites.get().toggle(player(),entry.key());shownFilter=null;refresh();}}
 
     @Override protected void init(){
+        layoutWidth=width;layoutHeight=height;
         super.init();leftPos=Math.max(23,leftPos);
         String query=search==null?"":search.getValue();
         machineTab=tab(UiIcon.MACHINE,ui("tab_machine"),0,MachineMenu.View.MAIN);
@@ -108,6 +110,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         converterPanel=new PrimalConverterPanel(menu,minecraft,font,w->addRenderableWidget(w),leftPos+8,topPos+20,200,100);converterPanel.initWidgets();
         refresh();if(passive()&&main())setInitialFocus(search);
     }
+    /** Native recipe viewers return this same screen; retain its exact focus, filters and scroll at the same size. */
+    @Override protected void repositionElements(){if(layoutWidth!=width||layoutHeight!=height)super.repositionElements();}
     private DarkButton button(Component name,Component hint,int x,int y,int width,Button.OnPress action){return addRenderableWidget(DarkButton.labelIcon(UiIcon.START,name,hint,leftPos+x,topPos+y,width,18,action));}
     private DarkButton tab(UiIcon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,ui(switch(view){case MAIN->"tab_machine_hint";case MACHINES->"tab_machines_hint";case RESEARCH->"tab_research_hint";case CONFIGURATION->"tab_settings_hint";}),leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
     public void setView(MachineMenu.View view){
@@ -200,7 +204,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return super.keyPressed(event);
     }
     @Override public boolean mouseScrolled(double x,double y,double sx,double sy){if(researching()&&researchPanel.mouseScrolled(x,y,sx,sy))return true;if(main()&&converter()&&converterPanel.mouseScrolled(x,y,sx,sy))return true;if((storageList()||machines())&&inside(x-leftPos,y-topPos,8,40,180,terminal()?154:72)){(machines()?deviceScroll:stockScroll).wheel(sy);refresh();return true;}return super.mouseScrolled(x,y,sx,sy);}
-    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(researching()&&researchPanel.mouseClicked(event,doubleClick))return true;var bar=machines()?deviceBar:stockBar;if((machines()||storageList())&&bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}return super.mouseClicked(event,doubleClick);}
+    @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick){if(event.button()==1){var hovered=substanceAt(event.x(),event.y());if(hovered.isPresent()){SubstanceDetails.open(hovered.get(),accent());return true;}}if(researching()&&researchPanel.mouseClicked(event,doubleClick))return true;var bar=machines()?deviceBar:stockBar;if((machines()||storageList())&&bar.mouseClicked(event.x(),event.y(),event.button())){refresh();return true;}return super.mouseClicked(event,doubleClick);}
     @Override public boolean mouseDragged(MouseButtonEvent event,double dx,double dy){if(researching()&&researchPanel.mouseDragged(event,dx,dy))return true;var bar=machines()?deviceBar:stockBar;if((machines()||storageList())&&bar.mouseDragged(event.x(),event.y())){refresh();return true;}return super.mouseDragged(event,dx,dy);}
     @Override public boolean mouseReleased(MouseButtonEvent event){if(researching()&&researchPanel.mouseReleased(event))return true;if(stockBar.mouseReleased()||deviceBar.mouseReleased())return true;return super.mouseReleased(event);}
 
@@ -251,7 +255,13 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
             if(driveRecovery()) {ScreenChrome.icon(g,UiIcon.WARNING,8,20,WARNING);g.text(font,ui("preserved_items"),24,24,WARNING,false);int line=0;for(var part:font.split(ui("preserved_items_hint"),154)){if(line==4)break;g.text(font,part,8,76+line++*10,MUTED,false);}return;}
             ScreenChrome.inset(g,8,130,180,78);ScreenChrome.icon(g,UiIcon.INFO,11,132,MUTED);g.text(font,ui("details"),29,136,MUTED,false);
             var details=industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot());
-            for(int i=0;i<Math.min(5,details.size());i++){if(i==4)ScreenChrome.twoLines(g,font,details.get(i).getString(),13,187,170,TEXT);else text(g,details.get(i).getString(),13,147+i*10,170,TEXT);}
+            // This is an overview; the existing panel hover exposes every detail. Keep each shown entry whole
+            // and at the normal font size instead of shrinking a long route explanation into a thin line.
+            int row=0;
+            for(var detail:details){
+                var wrapped=font.split(detail,170);if(wrapped.size()>6-row)continue;
+                for(var line:wrapped)g.text(font,line,13,147+row++*10,TEXT,false);
+            }
             return;
         }
         if(researching())return;
@@ -333,7 +343,18 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private boolean extraFlag(String key){return menu.extras().has(key)&&menu.extras().get(key).getAsBoolean();}
     private long extraNumber(String key){return menu.extras().has(key)?menu.extras().get(key).getAsLong():0;}
     private void action(MachineActionPayload.Action action,String target,long amount){ClientPacketDistributor.sendToServer(new MachineActionPayload(menu.containerId,action,target,amount));}
-    private void tooltipChips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int xx,int yy,int x,int y,int mx,int my){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,xx+i%3*18,yy+i/3*18,18,18)){var a=values.get(i);tooltip(g,List.of(name(a),SubstanceNames.phase(a.phase()),tr("preview_input",name(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available()))),mx,my);}}
+    private void tooltipChips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int xx,int yy,int x,int y,int mx,int my){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,xx+i%3*18,yy+i/3*18,18,18)){var a=values.get(i);var key=key(a.id(),a.phase());var lines=key==null?new ArrayList<Component>():new ArrayList<>(SubstanceDetails.tooltip(new SubstanceDetails.Hover(key,a.required()),true));lines.add(tr("preview_input",name(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available())));tooltip(g,lines,mx,my);}}
+    @Override public Optional<SubstanceDetails.Hover> substanceAt(double x,double y){
+        if(storageList())for(var row:stockRows)if(row.visible&&row.entry!=null&&inside(x,y,row.getX(),row.getY(),row.getWidth(),row.getHeight())){var key=key(row.entry.id(),row.entry.phase());if(key!=null)return Optional.of(new SubstanceDetails.Hover(key,row.entry.amount()));}
+        if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
+            var input=chipAt(menu.snapshot().preview().inputs(),24,42,x-leftPos,y-topPos);if(input.isPresent())return input;
+            if(!menu.slots.get(1).isActive())return chipAt(menu.snapshot().preview().outputs(),134,42,x-leftPos,y-topPos);
+        }
+        return Optional.empty();
+    }
+    private static Optional<SubstanceDetails.Hover> chipAt(List<MachineSnapshot.Amount> values,int left,int top,double x,double y){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,left+i%3*18,top+i/3*18,18,18)){var a=values.get(i);var key=key(a.id(),a.phase());if(key!=null)return Optional.of(new SubstanceDetails.Hover(key,a.required()));}return Optional.empty();}
+    @Override public Rect2i substancePanelBounds(){return new Rect2i(leftPos,topPos,imageWidth,imageHeight);}
+    @Override public int substanceAccent(){return accent();}
     private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(industrial()?ui("speed"):tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(menu.kind().synthesis())lines.add(tr("pressure_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
     private Component statusText(){var s=menu.snapshot();return s.status().equals("structure")&&industrial()?Component.translatable("status.rematter."+s.structure().diagnostic()):StatusText.of(s.status(),s.orders().stale(),s.orders().quarantined());}
     private static Component name(MachineSnapshot.Entry e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
@@ -344,7 +365,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
     private List<Component> recipeDetails(MachineSnapshot s) {
         var p=s.preview();var lines=new ArrayList<Component>();lines.add(previewTitle(s));
         if(menu.inputRole()&&!preparator()&&s.sampleBatchSize()>1)lines.add(Component.translatable("screen.rematter.composition_batch",s.sampleBatchSize()));
-        lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+19)/20)
+        lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+dev.latrox.rematter.content.preparation.PreparationWork.CRANK_WORK-1)/dev.latrox.rematter.content.preparation.PreparationWork.CRANK_WORK)
                 :Component.translatable("screen.rematter.preview_cost",number(p.energy()),Quantities.seconds(p.ticks())));
         for(var a:p.inputs())lines.add(Component.translatable("screen.rematter.preview_input",label(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available())));
         for(var a:p.outputs())lines.add(Component.translatable("screen.rematter.preview_output",label(a),SubstanceNames.phase(a.phase()),number(a.required())));
@@ -437,9 +458,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> {
         return lines;
     }
     private static Component stockTooltip(MachineSnapshot.Entry e, String label) {
-        var lines = joined(Component.literal(label), SubstanceNames.phase(e.phase())).append("\n").append(Component.translatable("screen.rematter.stock_stored", number(e.amount())));
-        if (!e.known()) lines.append("\n").append(tr("unknown_substance_hint"));
-        return lines.append("\n").append(Component.literal(e.id()));
+        var key=key(e.id(),e.phase());
+        return key==null?Component.literal(label+"\n"+e.id()):SubstanceDetails.joined(SubstanceDetails.tooltip(new SubstanceDetails.Hover(key,e.amount()),true));
     }
     private static SubstanceKey key(String id,String phase) {
         try { return new SubstanceKey(SubstanceId.parse(id),Phase.valueOf(phase.toUpperCase(Locale.ROOT))); }

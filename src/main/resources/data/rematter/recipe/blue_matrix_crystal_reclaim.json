@@ -2,7 +2,7 @@
   "type": "rematter:preparation",
   "primary": "rematter:blue_matrix_crystal",
   "energy": 2000,
-  "ticks": 90,
+  "ticks": 360,
   "minimum_tier": 2,
   "results": [
     {

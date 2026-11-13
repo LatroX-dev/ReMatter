@@ -2,7 +2,7 @@
   "type": "rematter:preparation",
   "primary": "#c:ingots/rhevon",
   "energy": 4000,
-  "ticks": 100,
+  "ticks": 400,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:rhevon_dust",

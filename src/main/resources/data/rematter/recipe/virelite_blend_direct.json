@@ -4,7 +4,7 @@
   "secondary": "minecraft:clay_ball",
   "tertiary": "minecraft:quartz",
   "energy": 14000,
-  "ticks": 260,
+  "ticks": 1040,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:virelite_blend",

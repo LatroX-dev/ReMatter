@@ -57,7 +57,11 @@ public final class MatterReachability {
                             ? tags.getOrDefault(ingredient.substring(1), Set.of()).stream().anyMatch(items::contains)
                             : items.contains(ingredient);
                 });
-                if (available) changed |= items.add(recipe.getAsJsonObject("result").get("id").getAsString());
+                if (available) {
+                    if (recipe.has("result")) changed |= items.add(recipe.getAsJsonObject("result").get("id").getAsString());
+                    if (recipe.has("results")) for (var result : recipe.getAsJsonArray("results"))
+                        changed |= items.add(result.getAsJsonObject().get("id").getAsString());
+                }
             }
         }
         return new Reachable(items, fluids, matter);

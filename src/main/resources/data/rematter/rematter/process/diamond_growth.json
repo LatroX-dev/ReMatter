@@ -26,7 +26,7 @@
     }
   ],
   "energy": 512000,
-  "ticks": 1200,
+  "ticks": 4800,
   "industrial": {
     "min_field": 8,
     "requires_known_outputs": true,

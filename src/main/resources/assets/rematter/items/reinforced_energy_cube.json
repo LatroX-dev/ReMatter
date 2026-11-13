@@ -12,27 +12,27 @@
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_socket_front"
+        "model": "rematter:block/reinforced_energy_cube_socket_front_energy_output"
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_socket_left"
+        "model": "rematter:block/reinforced_energy_cube_socket_left_energy_input"
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_socket_back"
+        "model": "rematter:block/reinforced_energy_cube_socket_back_energy_input"
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_socket_right"
+        "model": "rematter:block/reinforced_energy_cube_socket_right_energy_input"
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_port_top"
+        "model": "rematter:block/reinforced_energy_cube_port_top_energy_input"
       },
       {
         "type": "minecraft:model",
-        "model": "rematter:block/reinforced_energy_cube_port_bottom"
+        "model": "rematter:block/reinforced_energy_cube_port_bottom_energy_input"
       }
     ]
   }

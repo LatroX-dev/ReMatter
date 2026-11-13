@@ -6,7 +6,7 @@ An industrial chemistry mod for Minecraft **26.1.2** and NeoForge. Recover subst
 
 I built ReMatter around exact quantities of solids, liquids and gases, reusable Matter Cells, and explicitly permitted material outputs. In the 0.7 development line, I am adding material research, hidden endgame Discovery, modular industry and internal power generation with Crystal Generators. I am also adding tiered Energy Cubes to buffer FE and charge equipment, plus a Cell Transfer Station to sort substances and configure what each Cell should store. I want learning what can be made, collecting the matter, and building the equipment to be separate parts of progression.
 
-Start with a **Hand Preparator** and an ordinary furnace to make the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
+Start with a **Hand Preparator** to form the crystal medium. Build a powered **Material Preparator** for the crystal variants used in a **Decomposer**, **Matter Drive** and **Material Synthesizer**. Connect those three machines and put a **64k Matter Cell** in any Drive bay.
 
 **Development version 0.7.0.** Build from source for testing; no mod-platform release is available yet. Powered preparation needs a starting FE source; later Crystal Generators can consume spare crystals. Other Minecraft versions and loaders are not currently supported. ReMatter uses its own numeric versions, independent of any reference pack. This first-release development line does not provide migration from earlier development schemas; unknown stored substances remain preserved.
 
@@ -20,8 +20,8 @@ The iron Machine Frame supports the machine, the copper Control Circuit controls
 
 ## Your first glass
 
-1. **Prepare the matrix by hand.** Craft a Hand Preparator from two flint, five iron ingots and two copper ingots. Crank sand to extract Silith and a clay ball to extract Argil. Put Silith in the primary input and Argil in the second input to make four Matrix Blend. Smelt the Blend in an ordinary furnace to make Matrix Crystals.
-2. **Build powered preparation.** Grind gold by hand to make Gold Dust and combine it with Matrix Crystals for the Material Preparator's two Amber Matrix Crystals. The ReMatter Guide shows the crafting grids for Structural Bars, Machine Frames and Control Circuits.
+1. **Prepare the matrix by hand.** Craft a Hand Preparator from two flint, five iron ingots and two copper ingots. Crank sand to extract Silith and a clay ball to extract Argil. Put Silith in the primary input and Argil in the second input to make four Matrix Blend. Process each Blend in the Hand Preparator to form a Matrix Crystal.
+2. **Build powered preparation.** Grind gold by hand to make Gold Dust and mix it with Matrix Crystals in the Hand Preparator for the Material Preparator's two Amber Matrix Crystals. The ReMatter Guide shows the crafting grids for Structural Bars, Machine Frames and Control Circuits.
 3. **Craft the starter kit.** Use Copper, Mint and Leaf Matrix Crystals for the Decomposer, Matter Drive and Material Synthesizer, respectively. The powered Material Preparator grinds diamond and emerald for the Mint and Leaf variants. Build a Cell Housing from Structural Bars and glass, then stack a Control Circuit, a plain Matrix Crystal and the Housing to make a **64k Matter Cell**.
 4. **Connect the three blocks.** Place Decomposer → Drive → Synthesizer in a touching row. Supply FE to both processors. The Drive needs no power.
 5. **Store sand.** Insert the Cell in any Drive bay and put sand in the Decomposer's input. Press **Start** if it is paused. Open the Drive after processing to see the stored silica.
@@ -67,7 +67,7 @@ Matter work counts the full input and output quantities of each committed batch.
 
 The lowest cable tier in a network sets its node limit, counting machines and the cables on the routes between them: **256** for Matter Cable, **384** for Reinforced and **512** for Resonant. Cables belong to their placer. Foreign and unowned cables do not connect to your network. Your cable branches that reach none of your machines do not count toward the routed node limit. A network that outgrows its weakest cable leaves that tier, and whatever only it reaches, out of the network; the stronger part keeps working. A cable system larger than the 4,096-block exploration budget reports that the network is too large. Work waits while part of a network is in an unloaded chunk.
 
-Connect a Matter Terminal at its back to inspect **Storage**, open connected devices from **Machines**, and queue supported production batches. Processing devices use **Machine** and **Settings** tabs; the Analyzer also has **Research**. Expected results appear in a separate **Preview**, beside the real output slot. Stock views in the Terminal, Drives and Network Interfaces have a search field, **Solids**, **Liquids** and **Gases** filters, and **Favorites**. Favorites are stored on each player's client in `config/rematter/stock_favorites.json`, up to 256 per player. A view lists up to 512 types: matches and favorites come first, and a notice shows how many of the stored types are listed.
+Connect a Matter Terminal at its back to inspect **Storage**, open connected devices from **Machines**, and queue supported production batches. Processing devices use **Machine** and **Settings** tabs; the Analyzer also has **Research**. Expected results appear in a separate **Preview**, beside the real output slot. Stock views in the Terminal, Drives and Network Interfaces have a search field, **Solids**, **Liquids** and **Gases** filters, and **Favorites**. Hover a substance to see its exact quantity, phase and identity. Right-click it for a scrollable formula/composition view; with EMI installed, use its recipe/use key bindings (R/U by default) or the details icons. Left-click keeps its usual favorite, filter or selection action. Favorites are stored on each player's client in `config/rematter/stock_favorites.json`, up to 256 per player. A view lists up to 512 types: matches and favorites come first, and a notice shows how many of the stored types are listed.
 
 A stored substance whose definition is missing, for example after a data pack is removed, stays in its Cell with its ID and amount. It is shown as **Unknown substance (ID, phase)** and cannot be processed until its definition returns.
 
@@ -83,7 +83,7 @@ The five named fractions are physical intermediate materials for the matrix tech
 | Nether quartz | Virel | Matrix Clusters and Virelite ceramic |
 | Glowstone dust | Lumin | Lumivex alloy for Optical Circuits |
 
-The Hand Preparator supports Silith, Argil and their mixture. The powered **Material Preparator** also extracts the other three fractions. Give it external FE; it performs the grinding, sieving and mixing stages automatically. The sieve sorts grains; these fictional fractions are not claims of chemically pure elements.
+The Hand Preparator supports Silith, Argil, their mixture, Copper/Gold Dust, clear Matrix Crystals and the Amber, Ember, Copper and Ice variants. The powered **Material Preparator** also extracts the other three fractions. Give it external FE; it performs the grinding, sieving and mixing stages automatically. The sieve sorts grains; these fictional fractions are not claims of chemically pure elements.
 
 Powered preparation also grinds iron, copper and gold into Dusts and mixes **three counted inputs** into Rhevon Powder, Lumivex Powder or Virelite Powder. The **Sinter Furnace** presses and heats each powder into its finished ingot or ceramic piece. Rhevon reinforces the preparation modules, Lumivex conducts the field in Stabilizers and Optical Circuits, and Virelite insulates Reaction Foci and Resonance Cutters. Alloy powders can also use an ordinary furnace or blast furnace; grinding an ingot returns the same powder, one for one. Optional Mekanism Crusher and Oritech Pulverizer/Foundry recipes provide matching processing routes. The guide and recipe viewers show the exact inputs, quantities and FE costs.
 
@@ -94,6 +94,8 @@ Later machines need three advanced components, each mixed as a blend in the Mate
 | Diamond Lattice | Diamond Powder, two Matrix Blend, Gold Dust | Analyzer, Chemical Reactor, upgrades, Optical Circuits |
 | Ender Conductor | Ender Pearl Powder, two Lumivex Powder, Copper Dust | Larger Cells, Terminal, Network Interface, Machine Ports |
 | Netherite Sheath | Netherite Powder, two Rhevon Powder, Virelite Powder | 1M Cell, Industrial Reactor, Resonant Matter Cable |
+
+Plain Matrix Crystals and their eight coloured variants are made exclusively in a Preparator, using the normal ingredient slots. Plain, Amber, Ember, Copper and Ice variants allow hand preparation; the other colours require powered preparation. Primal Crystals retain their Precision-gated Industrial Preparator route.
 
 The eight coloured Matrix Crystals identify functional roles: Ice for Research, Copper for Breakdown, Leaf for Synthesis, Violet for Reaction, Amber for Preparation, Ember for Heat, Blue for Link and Mint for Storage. Reactors and their modules use Violet; preparation modules use Amber. Installed keys are reusable. Crystal Generator fuel is a separate, consumptive use.
 
@@ -107,6 +109,8 @@ Build the edges and corners from Reactor Casing. The Industrial Reactor also use
 | Industrial Reactor | Field Stabilizers and Reaction Foci | Stabilizers provide Field; each Focus provides 16,000 u of simultaneous input room |
 
 Fit at least one of every required part directly on the inside floor or under the ceiling; all matching types work on either mounting plane. Clicking a support's top or bottom face automatically orients the fitting; sideways and unsupported placement are rejected. Keep the middle clear. **Empty space adds no capacity.** Special procedures require Field 4 or 8; fine preparation and reclamation require their stated Precision.
+
+Default production times are four times their previous values, with the same per-batch ingredients, outputs and FE. A typical 400-work-tick preparation takes 20 seconds in a compact machine, 5 seconds at the industrial base rate, or 1 second in a fully Speed-upgraded Industrial Preparator. Hand preparation retains its crank count; one crank supplies 80 work units. Generator FE/t and research-session times are unchanged.
 
 Hardware does not multiply global speed or discount FE. Industrial Preparation has a fixed 4× base work rate and twice the declared recipe FE; the Industrial Reactor has a fixed 2× work rate at the original recipe FE. Both controllers have separate **Speed, Efficiency and Parallel** slots. Four Speed Upgrades give five times the base work rate and double base FE. Four Efficiency Upgrades save 20% of base FE before rounding; the absolute saving cap is 25%. Up to three Parallel Upgrades allow four concurrent batches when chamber height, step capacity and input room support them. Each batch retains its exact inputs, outputs and full effective FE charge.
 
@@ -124,7 +128,7 @@ Open an invalid controller and use **Missing part**. Its outline marks the first
 
 The [material coverage table](docs/material-coverage.md) lists supported profiles and exclusions. **1,000 units is a convention for defined basic forms; the complete batch profile is authoritative.** Silicon uses 250 units per item; water and lava use one unit per mB. Block and nugget ratios follow reviewed recipes rather than a universal mass scale. Small forms use complete batches without rounded fractions. Capacity counts units, not mass.
 
-Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, smelt Crystals and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions. Nether Quartz gems and obsidian are recovery-only **while Ender IO is loaded**. The ReForging integration restores them together with bonus-free native grinding recipes.
+Synthesized outputs require an explicit material permission. Frames, Circuits, Cells, machines, tools, armor, plates, wires and gears keep their normal crafting paths. Use the preparation chain for the five fractions and Matrix Blend, form and colour Matrix Crystals in a Preparator and assemble Clusters; these intermediates do not gain chemistry conversion or synthesis permissions. Nether Quartz gems and obsidian are recovery-only **while Ender IO is loaded**. The ReForging integration restores them together with bonus-free native grinding recipes.
 
 ## Research and Primal Matter
 

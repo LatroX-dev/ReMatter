@@ -10,7 +10,7 @@ empty inventory items show charge0. Side I/O behaviour belongs to the server ene
 from pathlib import Path
 import argparse
 from family_geometry import AXIS, FACES, OUTWARD, Box, mapped_uv, turned_parts
-from family_palette import (BASE, CABLE_TIERS, COPPER, COPPER_DARK, COPPER_LIGHT, ENERGY_CABLE_TIERS, HIGHLIGHT, IVORY,
+from family_palette import (BASE, CABLE_TIERS, COPPER, COPPER_DARK, COPPER_LIGHT, ENERGY_CABLE_TIERS, ENERGY_PORT_MODES, HIGHLIGHT, IVORY,
                             PORT_DARK, PORT_LIGHT, PORT_METAL, SEAM, SHADE, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, scale, lighten)
 from family_sprites import Sprite, casing_plain, sealed_frame, plinth, bolt, port_plate
 from generate_family_assets import Family, HORIZONTAL, ROTATION, MODEL, NATURAL
@@ -52,7 +52,7 @@ def side(tier, look, cable):
     return image
 
 
-def socket(cable, width):
+def socket(cable, width, mode='energy_input'):
     image = Sprite(16, fill=PORT_DARK)
     inset = (16 - width * 2) // 2
     # A port face samples precisely its physical footprint at two texels per model pixel.
@@ -63,17 +63,29 @@ def socket(cable, width):
         image.ring(inset, inset, end, end, SEAM)
         image.bevel(inset + 1, inset + 1, end - 1, end - 1, PORT_LIGHT, PORT_METAL)
         image.rect(inset + 2, inset + 2, end - 2, end - 2, WELL)
+    # The cable-tier material stays on the seat's outer rim, clear of the direction legend inside it.
     stripe = CABLE_TIERS[cable]['stripe']
-    image.row(inset + 2, inset + 2, end - 2, stripe)
-    image.col(inset + 2, inset + 2, end - 2, stripe)
+    image.row(inset, inset, end, stripe)
+    color = ENERGY_PORT_MODES[mode]
+    image.ring(inset + 2, inset + 2, end - 2, end - 2, color)
+    # Opposite arrows at the top of the seat: toward the contact for input, away from it for output.
+    image.rect(5, 2, 11, 6, WELL)
+    if mode == 'energy_input':
+        image.rect(7, 2, 9, 4, color)
+        image.row(4, 6, 10, color)
+        image.row(5, 7, 9, color)
+    else:
+        image.row(2, 7, 9, color)
+        image.row(3, 6, 10, color)
+        image.rect(7, 4, 9, 6, color)
     image.rect(6, 6, 10, 10, COPPER)
     image.bevel(6, 6, 10, 10, COPPER_LIGHT, COPPER_DARK)
     return image
 
 
-def cap(cable, width):
+def cap(cable, width, mode='energy_input'):
     """Top and bottom of a cube whose side is a connection: the plain casing with the same seat, flush."""
-    image, seat = casing_plain(), socket(cable, width)
+    image, seat = casing_plain(), socket(cable, width, mode)
     for y in range(16):
         for x in range(16):
             image.px(8 + x, 8 + y, seat.pixel(x, y))
@@ -169,14 +181,14 @@ def boundary_slabs(body, face):
     return slabs
 
 
-def horizontal_plate(family, name, local, socket, body, port_style):
+def horizontal_plate(family, name, local, socket, body, port_style, mode):
     """An enabled horizontal side owns its socket and every outer housing face on that side."""
     face=port_plates.FACE[local];slabs=boundary_slabs(body,face)
     skin=socket_skin(port_style)
     def texture(box, side):
         return 'side' if box.name.startswith('port_face_cube_') else skin(box,side)
     skip=[(box.name,side) for box in slabs for side in FACES if side!=face]
-    return family.model(name+'_socket_'+local,'network',{'side':name+'_side','socket':name+'_socket','inner':'casing_inner'},
+    return family.model(name+'_socket_'+local+'_'+mode,'network',{'side':name+'_side','socket':name+'_socket_'+mode,'inner':'casing_inner'},
                         slabs+[socket],texture,context=body+[socket],skip=skip,particle='casing_plain')
 
 
@@ -215,8 +227,9 @@ def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
     for name, tier in TIERS.items():
         cable = ENERGY_CABLE_TIERS[name]
         art[name + '_side'] = side(tier, look, cable)
-        art[name + '_socket'] = socket(cable, ENERGY_PORT_SIZES[port_style])
-        art[name + '_cap'] = cap(cable, ENERGY_PORT_SIZES[port_style])
+        for mode in ENERGY_PORT_MODES:
+            art[name + '_socket_' + mode] = socket(cable, ENERGY_PORT_SIZES[port_style], mode)
+            art[name + '_cap_' + mode] = cap(cable, ENERGY_PORT_SIZES[port_style], mode)
         textures = {'inner': 'casing_inner'}
         drawn = family.model(name, 'network', textures, body, body_skin, context=body + source_parts,
                              particle='casing_plain', omit=FACES)
@@ -225,18 +238,21 @@ def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
         ports = {'type': port_plates.TYPE, 'default': {}, 'sides': {}}
         plates={};blank_horizontal={}
         for local, box in sockets.items():
-            seat_name=f'{name}_socket_{local}'
-            plates[local]=horizontal_plate(family,name,local,box,body,port_style)
-            ports['sides'][local]={'disabled':MODEL+disabled_horizontal_model(local),'automatic':MODEL+seat_name}
+            ports['sides'][local]={'disabled':MODEL+disabled_horizontal_model(local)}
+            for mode in ENERGY_PORT_MODES:
+                drawn_plate=horizontal_plate(family,name,local,box,body,port_style,mode)
+                plates[local]=drawn_plate  # Both direction appearances have exactly the same geometry.
+                ports['sides'][local][mode]=MODEL+f'{name}_socket_{local}_{mode}'
             blank_horizontal[local]=[(port_plates.face_slab(local),(port_plates.FACE[local],))]
         blank = []
         for local in ('top', 'bottom'):
-            seat_name = f'{name}_port_{local}'
-            family.child(seat_name, 'port_side_' + local, {'face': name + '_cap'})
-            ports['sides'][local] = {'disabled': MODEL + port_plates.blank_model('plain', local),
-                                     'automatic': MODEL + seat_name}
+            ports['sides'][local] = {'disabled': MODEL + port_plates.blank_model('plain', local)}
+            for mode in ENERGY_PORT_MODES:
+                seat_name = f'{name}_port_{local}_{mode}'
+                family.child(seat_name, 'port_side_' + local, {'face': name + '_cap_' + mode})
+                ports['sides'][local][mode] = MODEL + seat_name
             blank.append((port_plates.face_slab(local), (port_plates.FACE[local],)))
-        ports['default'] = dict.fromkeys(ports['sides'], 'automatic')
+        ports['default'] = {side: 'energy_output' if side == 'front' else 'energy_input' for side in ports['sides']}
         state = [{'when': {'facing': facing}, 'apply': {'model': MODEL + name, **ROTATION[facing]}} for facing in HORIZONTAL]
         state += [{'when': {'facing': facing}, 'apply': {'type': ports['type'], **ROTATION[facing],
                                                          'default': ports['default'], 'sides': ports['sides']}}
@@ -283,7 +299,7 @@ def generate(check=False):
         out.json(DATA / f'loot_table/blocks/{name}.json', {'type': 'minecraft:block', 'pools': [{'rolls': 1,
                  'entries': [{'type': 'minecraft:item', 'name': 'rematter:' + name}],
                  'conditions': [{'condition': 'minecraft:survives_explosion'}]}]})
-    out.sweep(ART / 'textures/block', ['energy_core_charge_*.png','energy_core_charge_*.png.mcmeta'] + [f'{name}{suffix}.png' for name in TIERS for suffix in ('_front', '_side', '_socket', '_cap')])
+    out.sweep(ART / 'textures/block', ['energy_core_charge_*.png','energy_core_charge_*.png.mcmeta'] + [f'{name}{suffix}.png' for name in TIERS for suffix in ('_front', '_side', '_socket', '_socket_*', '_cap', '_cap_*')])
     out.sweep(ART / 'models/block', [f'{name}{pattern}.json' for name in TIERS for pattern in ('_charge_*', '_socket_*', '_port_*')])
     print(f"{'Verified' if check else 'Generated'} {out.count} energy cube files; {len(family.compositions)} charge compositions checked ({ENERGY_CUBE_LOOK})")
 

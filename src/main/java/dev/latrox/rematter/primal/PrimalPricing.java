@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 public final class PrimalPricing {
     public static final long MINIMUM_OUTPUT = 250, REFERENCE_OUTPUT = 1000;
     public enum Grade {
-        COMMON(1, 64000, 400), SCARCE(2, 96000, 500), INVENTED(4, 128000, 600);
+        COMMON(1, 64000, 1600), SCARCE(2, 96000, 2000), INVENTED(4, 128000, 2400);
         public final long primalPerUnit, energy; public final int ticks;
         Grade(long primalPerUnit, long energy, int ticks) { this.primalPerUnit = primalPerUnit; this.energy = energy; this.ticks = ticks; }
     }

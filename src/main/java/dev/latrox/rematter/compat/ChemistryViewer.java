@@ -165,8 +165,7 @@ public final class ChemistryViewer {
     }
 
     public static List<Component> matterTooltip(SubstanceKey key, long amount) {
-        var lines = matterLines(key);
-        lines.add(Component.translatable("gui.rematter.viewer.matter_units", Quantities.number(amount)));
+        var lines = new ArrayList<>(dev.latrox.rematter.client.SubstanceDetails.tooltip(new dev.latrox.rematter.client.SubstanceDetails.Hover(key, amount), false));
         lines.add(Component.translatable("gui.rematter.viewer.stored_substance"));
         return lines;
     }

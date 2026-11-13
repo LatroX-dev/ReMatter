@@ -16,7 +16,7 @@ There are two inexpensive targeted ways to learn a supported material family. **
 3. Complete the analysis and inspect its composition.
 4. Take the same sample back. The earned research notice confirms the newly learned family.
 
-A new Sand analysis has a base cost of **16,000 FE and 400 ticks** before upgrades. Other profiles use twice their decomposition FE and four times their profile duration. An already known material needs no paid research again. Ordinary sample analysis needs no Drive or Matter Cell.
+A new Sand analysis has a base cost of **16,000 FE and 1,600 ticks** before upgrades. Other profiles use twice their decomposition FE and four times their profile duration. An already known material needs no paid research again. Ordinary sample analysis needs no Drive or Matter Cell.
 
 <RecipeFor id="rematter:analyzer" />
 

@@ -308,7 +308,7 @@ final class MachineSettingsPanel {
     private SideDiagram.Look sideLook(MachinePortMode.Side side) {
         var closed = PortSides.closed(menu.kind(), side);
         if (closed != null) return new SideDiagram.Look(closed == PortSides.Closed.OPEN_TOP ? SideDiagram.Face.OPEN : SideDiagram.Face.PLAIN,
-                UiPalette.MUTED, null, true, closedName(closed).copy().append("\n").append(closedHint(closed)));
+                UiPalette.MUTED, null, true, side.label().copy().append("\n").append(closedName(closed)).append("\n").append(closedHint(closed)));
         var mode = menu.portMode(side);
         return new SideDiagram.Look(mode == MachinePortMode.DISABLED ? SideDiagram.Face.PLAIN : SideDiagram.Face.PLATE, mode.ring(), null, false,
                 tr("settings.side_hint", side.label(), mode.label(), mode.meaning()));

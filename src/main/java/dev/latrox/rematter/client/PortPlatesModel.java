@@ -4,7 +4,7 @@ import com.mojang.math.Quadrant;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.latrox.rematter.content.MachinePortMode;
+import dev.latrox.rematter.content.PortAppearance;
 import dev.latrox.rematter.content.MachinePortMode.Side;
 import dev.latrox.rematter.content.PortSides;
 import java.util.List;
@@ -32,7 +32,7 @@ import org.jspecify.annotations.Nullable;
 public final class PortPlatesModel implements DynamicBlockStateModel {
     public static final Identifier ID = Identifier.fromNamespaceAndPath("rematter", "port_plates");
     private static final Side[] SIDES = Side.values();
-    private static final int ROLES = MachinePortMode.values().length;
+    private static final int ROLES = PortAppearance.values().length;
     /** One baked model per side and role; null where the block state lists no model for a side. */
     private final @Nullable BlockStateModelPart[] parts;
     private final int initial;
@@ -60,7 +60,7 @@ public final class PortPlatesModel implements DynamicBlockStateModel {
             List<BlockStateModelPart> output) {
         int roles = roles(level, pos);
         for (Side side : SIDES) {
-            var part = parts[side.ordinal() * ROLES + PortSides.unpack(roles, side).ordinal()];
+            var part = parts[side.ordinal() * ROLES + PortSides.appearance(roles, side).ordinal()];
             if (part != null) output.add(part);
         }
     }
@@ -76,12 +76,12 @@ public final class PortPlatesModel implements DynamicBlockStateModel {
      * {@code disabled}, the plain face. A side without a {@code disabled} model adds a part to a face the body
      * draws itself, as the seats of an Energy Cube do. {@code default} holds the roles of an unconfigured device.
      */
-    public record Unbaked(Quadrant y, Map<Side, MachinePortMode> initial, Map<Side, Map<MachinePortMode, Identifier>> sides)
+    public record Unbaked(Quadrant y, Map<Side, PortAppearance> initial, Map<Side, Map<PortAppearance, Identifier>> sides)
             implements CustomUnbakedBlockStateModel {
         public static final MapCodec<Unbaked> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Quadrant.CODEC.optionalFieldOf("y", Quadrant.R0).forGetter(Unbaked::y),
-                Codec.unboundedMap(Side.CODEC, MachinePortMode.CODEC).fieldOf("default").forGetter(Unbaked::initial),
-                Codec.unboundedMap(Side.CODEC, Codec.unboundedMap(MachinePortMode.CODEC, Identifier.CODEC))
+                Codec.unboundedMap(Side.CODEC, PortAppearance.CODEC).fieldOf("default").forGetter(Unbaked::initial),
+                Codec.unboundedMap(Side.CODEC, Codec.unboundedMap(PortAppearance.CODEC, Identifier.CODEC))
                         .fieldOf("sides").forGetter(Unbaked::sides)).apply(instance, Unbaked::new));
 
         @Override public MapCodec<Unbaked> codec() { return MAP_CODEC; }
@@ -92,12 +92,12 @@ public final class PortPlatesModel implements DynamicBlockStateModel {
             var parts = new BlockStateModelPart[SIDES.length * ROLES];
             for (var entry : sides.entrySet()) {
                 var models = entry.getValue();
-                for (MachinePortMode role : MachinePortMode.values()) {
-                    var model = models.getOrDefault(role, models.get(MachinePortMode.DISABLED));
+                for (PortAppearance role : PortAppearance.values()) {
+                    var model = models.getOrDefault(role, models.get(PortAppearance.DISABLED));
                     if (model != null) parts[entry.getKey().ordinal() * ROLES + role.ordinal()] = new Variant(model).withYRot(y).bake(baker);
                 }
             }
-            return new PortPlatesModel(parts, PortSides.pack(side -> initial.getOrDefault(side, MachinePortMode.DISABLED)));
+            return new PortPlatesModel(parts, PortSides.packAppearances(side -> initial.getOrDefault(side, PortAppearance.DISABLED)));
         }
     }
 }

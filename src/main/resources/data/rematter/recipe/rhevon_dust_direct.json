@@ -5,7 +5,7 @@
   "secondary": "#c:ingots/copper",
   "tertiary": "minecraft:redstone",
   "energy": 26000,
-  "ticks": 400,
+  "ticks": 1600,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:rhevon_dust",

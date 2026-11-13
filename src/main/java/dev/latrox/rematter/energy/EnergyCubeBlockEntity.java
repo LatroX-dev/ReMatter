@@ -101,10 +101,13 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         }
     }
     @Override public void onDataPacket(net.minecraft.network.Connection connection,ValueInput input){handleUpdateTag(input);}
-    /** A seat is drawn on every side that is not disabled; input and output share one seat by design. */
+    /** Direction selects only the seat's appearance; the server's side modes still authorize every transfer. */
     @Override public net.neoforged.neoforge.model.data.ModelData getModelData(){
-        return net.neoforged.neoforge.model.data.ModelData.of(PortSides.PLATES,PortSides.pack(side->
-                sideMode(side)==EnergyCubeSideMode.DISABLED?MachinePortMode.DISABLED:MachinePortMode.AUTOMATIC));
+        return net.neoforged.neoforge.model.data.ModelData.of(PortSides.PLATES,PortSides.packAppearances(side->switch(sideMode(side)){
+            case INPUT->PortAppearance.ENERGY_INPUT;
+            case OUTPUT->PortAppearance.ENERGY_OUTPUT;
+            case DISABLED->PortAppearance.DISABLED;
+        }));
     }
     private void touchTopology(){
         if(level instanceof ServerLevel server){

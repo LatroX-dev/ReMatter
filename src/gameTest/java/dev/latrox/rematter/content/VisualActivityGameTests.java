@@ -48,7 +48,7 @@ public final class VisualActivityGameTests {
         var environment = event.registerEnvironment(id("visual_activity_environment"));
         TESTS.forEach((name, test) -> event.registerTest(id(name), new FunctionGameTestInstance(
                 ResourceKey.create(Registries.TEST_FUNCTION, id(name)),
-                new TestData<>(environment, id("empty"), 300, 0, true, Rotation.NONE, false, 1, 1, true, 2))));
+                new TestData<>(environment, id("empty"), name.equals("module_visual_job_clears_after_a_real_paid_batch") ? 1200 : 300, 0, true, Rotation.NONE, false, 1, 1, true, 2))));
     }
     private static MachineBlockEntity machine(GameTestHelper h, BlockPos pos, MachineKind kind, Player owner) {
         h.setBlock(pos, ModContent.MACHINES.get(kind).get());
@@ -180,7 +180,8 @@ public final class VisualActivityGameTests {
                     "Visual module hold paid or consumed the paused batch");
             controller.toggleRunning();
         });
-        h.runAtTickTime(200, () -> {
+        int workTicks = Math.ceilDiv(dev.latrox.rematter.ReMatter.chemistry().recipe(dev.latrox.rematter.chemistry.SubstanceId.parse("rematter:water_freezing")).orElseThrow().ticks(), controller.speed());
+        h.runAtTickTime(25 + workTicks + 20, () -> {
             h.assertTrue(module.visualWorkDuration() == 0 && module.visualWorkProgress() == 0
                     && !module.getBlockState().getValue(IndustrialModuleBlock.ACTIVE), "Idle formed module kept a loaded job");
             h.assertTrue(drive.matterStore().amount(dev.latrox.rematter.chemistry.BuiltinChemistry.ICE) == 1000L

@@ -6,7 +6,7 @@
   "secondary_count": 2,
   "tertiary": "rematter:diamond_lattice",
   "energy": 256000,
-  "ticks": 9600,
+  "ticks": 38400,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:discovery_lens",

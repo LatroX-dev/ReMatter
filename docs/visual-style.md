@@ -45,7 +45,7 @@ A neutral is used exactly as listed. An identity or status colour may also be mi
 | Connector light | `PORT_LIGHT` | `#64727e` | lit edge of a plug seat, hub or flange |
 | Connector | `PORT_METAL` | `#46515b` | gunmetal body of connectors |
 | Connector dark | `PORT_DARK` | `#2d363f` | shaded edge of connectors |
-| Automatic port | `PORT_AUTOMATIC` | `#4d5a64` | ring of a port without a fixed mode |
+| Automatic port base | `PORT_AUTOMATIC` | `#4d5a64` | neutral seat and fallback of the seven-colour Automatic legend |
 | Contact | `COPPER` | `#ae6f49` | electrical contacts, badges and other copper metal |
 | Label | `IVORY` | `#e4decc` | type plates, tier bars, dashes |
 | Cable jacket | `JACKET` | `#181c22` | cable body, a step below the casing |
@@ -81,7 +81,7 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 **When a hue is not a crystal.** These are the only other meanings, and each has its own values or its own place:
 
 - *Status* has the four LED colours below: separate values, used only for small lamps and status icons.
-- *Port mode.* The ring of a port uses seven of the hues as the legend of its mode (`PORT_MODES`): on the Machine Port and on a configured side of a machine, and only there.
+- *Port mode.* The ring of a port uses seven of the hues as the legend of its mode (`PORT_MODES`): on the Machine Port and on a configured side of a machine, and only there. Automatic shows all seven roles in a static segmented ring, with no Primal hues or travelling spectrum. The same functional exception gives Energy Cube ports Blue for input and Ember for output, accompanied by arrows toward or away from the contact. These colours describe direction, never tier or charge.
 - *Primal Matter* has the signature below.
 - *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The Matter Cable's copper-conductor stripe and the matching band on the Energy Cube crafted with that cable are the documented uses of the crystal value for the metal.
 
@@ -118,9 +118,19 @@ Each Energy Cube contains the matching cable in its independent recipe and inher
 
 `ENERGY_PORT_STYLE` selects a compact 6 px, trimmed 7 px or recommended balanced 8 px square seat. All are centered at the block-face center and accept the native cable's 6 px flange. `ENERGY_CUBE_LOOK` independently selects the recommended recessed core, closed capacitor cabinet or cartridge rack. All three retain the same four-way casing and port layout within the 16-box network casing budget.
 
+The cable-tier band stays on the seat's outer rim and the casing. Inside it the functional direction ring uses the following shared values; the arrow points into the copper contact for input and away from it for output. Identically configured horizontal faces remain identical. A disabled face is still unbroken casing.
+
+<!-- check:energy-port-directions -->
+| Direction | Constant | Hex | Shape |
+| --- | --- | --- | --- |
+| Input | `PORT_ENERGY_INPUT` | `#6794f1` | arrow toward the contact |
+| Output | `PORT_ENERGY_OUTPUT` | `#ea4848` | arrow away from the contact |
+
+`PORT_AUTOMATIC_STYLE` selects the recommended broad `segments`, compact `checker`, or `paired_bands` legend. Every alternative uses the same seven existing role colours; the static segmented ring is easiest to read at a distance. It changes no port permission.
+
 ### The Primal signature
 
-Primal Matter is the one thing in the mod that is many-coloured. It is prismatic ultraviolet: a white-hot core in an ultraviolet body, and a spectrum of five stops that shows in the crystals and travels through them.
+Primal Matter has the mod's animated prismatic signature. It is ultraviolet: a white-hot core in an ultraviolet body, and a spectrum of five stops that shows in the crystals and travels through them. Static functional port legends remain separate from this signature.
 
 <!-- check:primal-signature -->
 | Role | Name | Hex | Stop | Use |
@@ -179,7 +189,7 @@ Where a cable, a pipe, a hopper or a neighbouring device can attach is one table
 
 - **The front is never a connection.** Nothing attaches to it, nothing is exposed on it and it cannot be configured. The three Energy Cubes are the one exception: their four sides are identical by design, the front included.
 - **Only a closed face can be a connection.** The top of a bench is its open working area, so it never is. On a sealed device the top is a connection that starts Disabled: the owner enables it where a hopper or a cable from above is wanted. `PortSides.SEALED_TOP` is the one switch for this: `OPT_IN` (recommended), `CONNECTION` (the top starts Automatic like the other sides) or `CLOSED`. The generators read it.
-- **A connection face shows a port plate only while enabled.** Disabled connection faces are plain casing: no seat, ring, well or Cube charge window. Permanently unavailable faces retain their device's front or open working area, without connector hardware. An enabled connection shows the plate: the seat on the casing and a ring that stands half a pixel proud of it. Automatic wears the neutral ring, a specific role the ring of its role in the colours of the Machine Port.
+- **A connection face shows a port plate only while enabled.** Disabled connection faces are plain casing: no seat, ring, well or Cube charge window. Permanently unavailable faces retain their device's front or open working area, without connector hardware. An enabled connection shows the plate: the seat on the casing and a ring that stands half a pixel proud of it. Automatic wears all seven role colours in static segments; a specific role wears only its own colour. Energy Cubes have Blue input and Ember output rings with opposite direction arrows, separate from their cable-tier bands.
 - **The plate is a block model.** The body of a device leaves its closed sides out; a block state entry of the type `rematter:port_plates` lists, per side and role, the model that draws the side, and the game picks one by the roles the device publishes. Plates are part of the chunk mesh: they do not pop in with distance, and no renderer draws them. The ring is the only geometry of the family outside the block; a solid neighbour hides it.
 - **The screen shows the block.** The side diagram of a settings screen names the six sides around the front. A side that can never be a connection is sunk, cannot be clicked and says why. A connection is a control: a left click steps its role forward, a right click or Shift steps it back, and its glyph is the plate of the block in the same ring colour.
 
@@ -193,7 +203,7 @@ Where a cable, a pipe, a hopper or a neighbouring device can attach is one table
 | `industrial_reactor`, `industrial_preparator` | none: a structure connects through its Machine Ports | all six |
 | `cell_transfer_station` | none: it is operated by hand | all six |
 
-The check compares this table with the block states, the ring colours of `MachinePortMode.java` with `PORT_MODES`, and reports a body model that still draws a face of its port plates.
+The check compares this table with the block states, the ring colours of `MachinePortMode.java` with `PORT_MODES`, the seven-colour Automatic legend and Cube direction colours with both palettes, and reports a body model that still draws a face of its port plates. `PortAppearance` is a rendering discriminator only: saved roles and transfer permissions remain separate.
 
 ## Natural blocks (S2)
 
@@ -224,6 +234,8 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 - **Text.** Show every name, formula and hint without truncation. Quantities may use standard compact units such as k and M; their exact values remain available on hover. Reflow or wrap text, scroll an overflowing list, or scale a bounded single-line readout without dropping characters. Never append an ellipsis or clip displayed information. The same rule covers JEI and EMI views.
 - **Substance badges.** A badge shows the complete symbol of the substance. A long formula breaks into two lines at an element; it is never cut with an ellipsis.
 - **Colours in code.** Every colour of a screen or renderer is a constant of `UiPalette.java`. Other client classes hold no colour literals.
+
+The side controls use a compact unfolded face net around the front, with complete side and mode names on hover and in narration. `SideDiagram.LAYOUT` selects recommended `FACE_NET`, the two-row `COMPACT_GRID`, or a `STRIP`; all retain the same reserved screen area and the same forward/backward role controls. Automatic repeats the block's seven-colour ring, and Cube input/output use the same Blue/Ember direction colours and opposite arrows.
 
 <!-- check:gui-surfaces -->
 | Screen surface | `UiPalette` | Palette constant |

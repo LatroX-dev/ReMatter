@@ -5,7 +5,7 @@
   "secondary": "#c:dusts/copper",
   "tertiary": "rematter:rhedon",
   "energy": 8000,
-  "ticks": 160,
+  "ticks": 640,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:rhevon_dust",

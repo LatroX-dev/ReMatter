@@ -2,7 +2,7 @@
   "type": "rematter:preparation",
   "primary": "rematter:virelite_blend",
   "energy": 12000,
-  "ticks": 200,
+  "ticks": 800,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:virelite_ceramic",

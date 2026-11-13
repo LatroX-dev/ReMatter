@@ -4,9 +4,7 @@ import dev.latrox.rematter.client.ui.DarkButton;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.energy.EnergyCubeMenu;
 import dev.latrox.rematter.energy.EnergyCubeSideMode;
-import dev.latrox.rematter.energy.EnergyCubeTier;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,7 +27,7 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         diagram=new SideDiagram(new SideDiagram.Host() {
             @Override public SideDiagram.Look look(MachinePortMode.Side side) {
                 var mode=menu.sideMode(side);
-                return new SideDiagram.Look(mode==EnergyCubeSideMode.DISABLED?SideDiagram.Face.PLAIN:SideDiagram.Face.PLATE,tierBand(),modeIcon(mode),false,
+                return new SideDiagram.Look(mode==EnergyCubeSideMode.DISABLED?SideDiagram.Face.PLAIN:SideDiagram.Face.PLATE,modeColor(mode),modeIcon(mode),false,
                         tr("side_tooltip",side.label(),mode.label(),mode.meaning()));
             }
             @Override public void step(MachinePortMode.Side side,boolean forward) {
@@ -45,10 +43,6 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         storageTab.setAccent(UiPalette.EMBER);settingsTab.setAccent(UiPalette.EMBER);
         storageTab.setSelected(!settings);settingsTab.setSelected(settings);
         diagram.update(settings);
-    }
-    /** The band of the seats on the block: the stripe of the Matter Cable of this tier. */
-    private int tierBand(){
-        return UiPalette.WHITE&0xff000000|switch(menu.tier()){case BASIC->UiPalette.CABLE_BASIC;case REINFORCED->UiPalette.CABLE_REINFORCED;case RESONANT->UiPalette.CABLE_RESONANT;};
     }
     @Override protected void containerTick(){super.containerTick();refresh();}
     @Override public void extractBackground(GuiGraphicsExtractor g,int mx,int my,float partial) {
@@ -71,7 +65,7 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         ScreenChrome.text(g,font,title.getString(),8,6,200,UiPalette.TEXT);
         if(settings) {
             var side=diagram.shown();var mode=menu.sideMode(side);int y=24+SideDiagram.HEIGHT+2;
-            ScreenChrome.icon(g,modeIcon(mode),18,y-3,mode==EnergyCubeSideMode.DISABLED?UiPalette.MUTED:tierBand());
+            ScreenChrome.icon(g,modeIcon(mode),18,y-3,modeColor(mode));
             ScreenChrome.text(g,font,tr("side_state",side.label(),mode.label()).getString(),36,y+1,162,mode==EnergyCubeSideMode.DISABLED?UiPalette.MUTED:UiPalette.TEXT);
             ScreenChrome.twoLines(g,font,mode.meaning().getString(),18,y+12,180,UiPalette.MUTED);
         } else {
@@ -96,5 +90,5 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         if(!settings&&x>=16&&x<200&&y>=98&&y<115)g.setComponentTooltipForNextFrame(font,java.util.List.of(tr("charging_hint"),tr("rate_hint",Quantities.number(menu.transferRate()))),mx,my);
     }
     private static UiIcon modeIcon(EnergyCubeSideMode mode){return switch(mode){case INPUT->UiIcon.SLOT_INPUT;case OUTPUT->UiIcon.SLOT_OUTPUT;case DISABLED->UiIcon.DISABLED;};}
-    private static Component modeText(EnergyCubeSideMode mode){return mode.label();}
+    private static int modeColor(EnergyCubeSideMode mode){return switch(mode){case INPUT->UiPalette.PORT_ENERGY_INPUT;case OUTPUT->UiPalette.PORT_ENERGY_OUTPUT;case DISABLED->UiPalette.MUTED;};}
 }

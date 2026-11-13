@@ -1,0 +1,127 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "side": "rematter:block/energy_cube_side",
+    "socket": "rematter:block/energy_cube_socket_energy_output",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "port_face_cube_plinth_north",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "name": "port_face_cube_cap_north",
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "name": "port_face_cube_post_0_0_north",
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "name": "port_face_cube_post_14_0_north",
+      "from": [
+        14,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        0.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "name": "socket_north",
+      "from": [
+        4,
+        4,
+        0
+      ],
+      "to": [
+        12,
+        12,
+        1
+      ],
+      "faces": {
+        "north": {
+          "texture": "#socket",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

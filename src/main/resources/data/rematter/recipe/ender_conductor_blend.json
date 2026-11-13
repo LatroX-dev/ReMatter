@@ -5,7 +5,7 @@
   "secondary_count": 2,
   "tertiary": "rematter:copper_dust",
   "energy": 10000,
-  "ticks": 180,
+  "ticks": 720,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:ender_conductor_blend",

@@ -3,7 +3,7 @@
   "primary": "rematter:cell_rack",
   "primary_count": 2,
   "energy": 4000,
-  "ticks": 120,
+  "ticks": 480,
   "minimum_tier": 2,
   "results": [
     {

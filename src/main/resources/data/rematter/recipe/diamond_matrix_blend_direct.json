@@ -5,7 +5,7 @@
   "secondary_count": 2,
   "tertiary": "#c:ingots/gold",
   "energy": 18000,
-  "ticks": 230,
+  "ticks": 920,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:diamond_matrix_blend",

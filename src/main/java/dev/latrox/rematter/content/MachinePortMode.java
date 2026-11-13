@@ -23,7 +23,7 @@ public enum MachinePortMode implements StringRepresentable {
     private final int ring, text;
     MachinePortMode(int ring) { this(ring, ring); }
     MachinePortMode(int ring, int text) { this.ring = ring; this.text = text; }
-    /** The colour of the ring on the block and in the side diagram. */
+    /** A fixed role's ring colour; Automatic uses this neutral fallback underneath its seven-colour legend. */
     public int ring() { return 0xff000000 | ring; }
     /** A readable tint of the role for labels and icons; the two neutral roles are too dark to read as text. */
     public int color() { return 0xff000000 | text; }

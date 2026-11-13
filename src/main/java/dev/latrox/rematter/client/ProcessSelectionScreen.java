@@ -34,7 +34,7 @@ import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** One searchable, scrollable recipe list and its complete material preview. Selection sends only a recipe ID. */
-public final class ProcessSelectionScreen extends Screen {
+public final class ProcessSelectionScreen extends SubstanceScreenLayer {
     private static final int PAPER=UiPalette.TEXT,MUTED=UiPalette.MUTED;
     private static final int RESULT_PITCH=18,MATERIAL_PITCH=22;
     private final MachineMenu menu;
@@ -66,6 +66,7 @@ public final class ProcessSelectionScreen extends Screen {
     private static Component tr(String key,Object... args){return Component.translatable("screen.rematter.recipes."+key,args);}
 
     @Override protected void init() {
+        rememberLayout();
         panelWidth=Math.min(UiMetrics.PICKER_WIDTH,width-12);
         panelHeight=Math.min(UiMetrics.PICKER_HEIGHT,height-12);
         left=(width-panelWidth)/2;top=(height-panelHeight)/2;
@@ -167,6 +168,7 @@ public final class ProcessSelectionScreen extends Screen {
         return super.mouseScrolled(x,y,dx,dy);
     }
     @Override public boolean mouseClicked(MouseButtonEvent event,boolean doubleClick) {
+        if(event.button()==1){var hovered=substanceAt(event.x(),event.y());if(hovered.isPresent()){SubstanceDetails.open(hovered.get(),accent);return true;}}
         if(resultBar.mouseClicked(event.x(),event.y(),event.button())){materialsFocused=false;lastClickedId="";refreshResults();return true;}
         if(materialBar.mouseClicked(event.x(),event.y(),event.button())){materialsFocused=true;setFocused(null);lastClickedId="";return true;}
         materialsFocused=inside(event.x(),event.y(),detailX,ingredientTop,detailWidth,materials.visibleRows()*MATERIAL_PITCH);
@@ -295,15 +297,22 @@ public final class ProcessSelectionScreen extends Screen {
         int amountColor=material.output()?color:material.available().isEmpty()?MUTED:material.available().getAsLong()>=material.required()?accent:UiPalette.WARNING;
         ScreenChrome.text(g,font,quantities.getString(),detailX+23,y+11,detailWidth-32,amountColor);
         if(inside(mouseX,mouseY,detailX+3,y,detailWidth-10,MATERIAL_PITCH-1)) {
-            var tooltip=new ArrayList<Component>();
-            tooltip.add(Component.translatable("gui.rematter.viewer.substance_phase",material.label(),SubstanceNames.phase(material.phase())));
-            tooltip.add(Component.literal(material.id()));
+            var tooltip=material.key()==null?new ArrayList<Component>():new ArrayList<>(SubstanceDetails.tooltip(new SubstanceDetails.Hover(material.key(),material.required()),true));
             tooltip.add(tr(material.output()?"produces":"needs",Quantities.matter(Quantities.number(material.required()))));
             if(!material.output())tooltip.add(material.available().isPresent()?tr("available",Quantities.matter(Quantities.number(material.available().getAsLong()))):tr("available_unknown"));
-            if(!material.known())tooltip.add(Component.translatable("screen.rematter.unknown_substance_hint"));
             g.setComponentTooltipForNextFrame(font,tooltip,mouseX,mouseY);
         }
     }
+    @Override public java.util.Optional<SubstanceDetails.Hover> substanceAt(double x,double y){
+        if(!inside(x,y,detailX+3,ingredientTop,detailWidth-10,materials.visibleRows()*MATERIAL_PITCH))return java.util.Optional.empty();
+        var product=focused();if(product==null)return java.util.Optional.empty();
+        var preview=menu.snapshot().preview();boolean effective=product.id().equals(menu.snapshot().selectedId())&&preview.id().equals(product.id())&&preview.complete();
+        var values=materialRows(product,effective);int index=materials.offset()+(int)((y-ingredientTop)/MATERIAL_PITCH);
+        if(index>=values.size())return java.util.Optional.empty();var value=values.get(index);
+        return value.key()==null?java.util.Optional.empty():java.util.Optional.of(new SubstanceDetails.Hover(value.key(),value.required()));
+    }
+    @Override public net.minecraft.client.renderer.Rect2i substancePanelBounds(){return new net.minecraft.client.renderer.Rect2i(left,top,panelWidth,panelHeight);}
+    @Override public int substanceAccent(){return accent;}
     private static boolean inside(double mx,double my,int x,int y,int width,int height){return mx>=x&&mx<x+width&&my>=y&&my<y+height;}
 
     private boolean known(ProcessPresentation.Product product){

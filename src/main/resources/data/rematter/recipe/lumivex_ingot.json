@@ -2,7 +2,7 @@
   "type": "rematter:preparation",
   "primary": "#c:dusts/lumivex",
   "energy": 12000,
-  "ticks": 200,
+  "ticks": 800,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:lumivex_ingot",

@@ -67,13 +67,13 @@ class StarterProgressionTest {
         }
     }
 
-    @Test void matrixBootstrapUsesDryPreparationThenHeatAndDoesNotInventChemistry() throws Exception {
+    @Test void matrixBootstrapUsesOnlyPreparationAndDoesNotInventChemistry() throws Exception {
         var blend = recipe("matrix_blend");
         assertEquals("rematter:preparation", blend.get("type").getAsString());
         assertEquals(List.of("rematter:silith", "rematter:argil"), ingredients(blend));
         assertEquals(0, blend.get("minimum_tier").getAsInt());
         assertEquals(4000, blend.get("energy").getAsInt());
-        assertEquals(120, blend.get("ticks").getAsInt());
+        assertEquals(480, blend.get("ticks").getAsInt());
         assertEquals(4, blend.getAsJsonObject("result").get("count").getAsInt());
         assertNull(getClass().getClassLoader().getResource("data/rematter/advancement/recipes/matrix_blend.json"),
                 "A machine process must not advertise an obsolete crafting-table recipe");
@@ -82,12 +82,16 @@ class StarterProgressionTest {
                 "rematter:structural_bars"), preparatorInputs);
         assertTrue(ingredients(recipe("hand_preparator")).stream().noneMatch(id -> id.startsWith("rematter:")),
                 "Manual preparation must work before the first crystal can be produced");
-        var smelt = recipe("matrix_crystal_from_smelting");
-        assertEquals("minecraft:smelting", smelt.get("type").getAsString());
-        assertEquals(List.of("rematter:matrix_blend"), ingredients(smelt));
-        assertEquals("rematter:matrix_crystal", smelt.getAsJsonObject("result").get("id").getAsString());
-        assertEquals(1, smelt.getAsJsonObject("result").get("count").getAsInt());
-        assertEquals(200, smelt.get("cookingtime").getAsInt());
+        var crystal = recipe("matrix_crystal");
+        assertEquals("rematter:preparation", crystal.get("type").getAsString());
+        assertEquals(List.of("rematter:matrix_blend"), ingredients(crystal));
+        assertEquals(0, crystal.get("minimum_tier").getAsInt(), "The first core must be hand-preparable");
+        assertEquals(4000, crystal.get("energy").getAsInt());
+        assertEquals(640, crystal.get("ticks").getAsInt());
+        assertEquals("rematter:matrix_crystal", crystal.getAsJsonObject("result").get("id").getAsString());
+        assertEquals(1, crystal.getAsJsonObject("result").get("count").getAsInt());
+        for (String retired : List.of("recipe/", "advancement/recipes/"))
+            assertNull(getClass().getClassLoader().getResource("data/rematter/" + retired + "matrix_crystal_from_smelting.json"));
         var cluster = ingredientCounts(recipe("matrix_cluster"));
         assertEquals(4, cluster.get("rematter:matrix_crystal"));
         assertTrue(cluster.keySet().containsAll(Set.of("rematter:rhedon", "rematter:virel")));
@@ -106,7 +110,7 @@ class StarterProgressionTest {
             assertFalse(extraction.has("secondary"));
             assertEquals(i < 2 ? 0 : 1, extraction.get("minimum_tier").getAsInt());
             assertEquals(2000, extraction.get("energy").getAsInt());
-            assertEquals(90, extraction.get("ticks").getAsInt());
+            assertEquals(360, extraction.get("ticks").getAsInt());
             assertEquals("rematter:" + names.get(i), extraction.getAsJsonObject("result").get("id").getAsString());
             assertEquals(1, extraction.getAsJsonObject("result").get("count").getAsInt());
         }
@@ -190,7 +194,7 @@ class StarterProgressionTest {
         assertTrue(leaves.stream().allMatch(id->id.startsWith("minecraft:")||id.startsWith("#minecraft:")));
     }
 
-    @Test void allCraftingAndStarterSmeltingRecipesAreDiscoverableInTheVanillaRecipeBook() throws Exception {
+    @Test void allCraftingRecipesAreDiscoverableAndStarterPreparationsKeepTheirUnlockIds() throws Exception {
         var root = getClass().getClassLoader().getResource("data/rematter/recipe");
         assertNotNull(root);
         Path recipeRoot = Path.of(root.toURI());
@@ -213,7 +217,8 @@ class StarterProgressionTest {
                 "matter_cable", "reinforced_matter_cable", "resonant_matter_cable", "speed_upgrade", "efficiency_upgrade")));
         for (String retired : Set.of("electrolyzer", "separator", "thermal_processor", "crystallizer", "air_separator"))
             assertFalse(names.contains(retired), "Retired specialist reappeared in crafting: " + retired);
-        names.add("matrix_crystal_from_smelting");
+        names.addAll(List.of("matrix_crystal", "ice_matrix_crystal", "copper_matrix_crystal", "amber_matrix_crystal",
+                "ember_matrix_crystal", "blue_matrix_crystal", "violet_matrix_crystal", "leaf_matrix_crystal", "mint_matrix_crystal"));
         for (String name : names) {
             var advancement = json("data/rematter/advancement/recipes/" + name + ".json");
             assertEquals("rematter:" + name, advancement.getAsJsonObject("rewards").getAsJsonArray("recipes").get(0).getAsString());
@@ -245,7 +250,7 @@ class StarterProgressionTest {
         if (item.startsWith("minecraft:") || item.startsWith("#minecraft:")) { leaves.add(item); return; }
         assertTrue(item.startsWith("rematter:"), "Foreign dependency in starter route: " + item);
         assertTrue(visiting.add(item), "Starter recipe cycle: " + item);
-        String name = item.equals("rematter:matrix_crystal") ? "matrix_crystal_from_smelting" : item.substring(9);
+        String name = item.substring(9);
         for (String ingredient : ingredients(recipe(name))) expand(ingredient, visiting, leaves);
         visiting.remove(item);
     }

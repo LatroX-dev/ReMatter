@@ -7,7 +7,7 @@
   "tertiary": "rematter:optical_circuit",
   "tertiary_count": 2,
   "energy": 32000,
-  "ticks": 400,
+  "ticks": 1600,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:parallel_upgrade",

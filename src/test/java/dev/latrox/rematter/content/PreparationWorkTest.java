@@ -53,8 +53,8 @@ class PreparationWorkTest {
         assertTrue(PreparationTier.permits(MachineKind.HAND_PREPARATOR,0));
         assertFalse(PreparationTier.permits(MachineKind.HAND_PREPARATOR,1));
         assertEquals(0,PreparationTier.energyMultiplier(MachineKind.HAND_PREPARATOR));
-        assertEquals(5,(90+PreparationWork.CRANK_WORK-1)/PreparationWork.CRANK_WORK);
-        assertEquals(6,(120+PreparationWork.CRANK_WORK-1)/PreparationWork.CRANK_WORK);
+        assertEquals(5,(360+PreparationWork.CRANK_WORK-1)/PreparationWork.CRANK_WORK);
+        assertEquals(6,(480+PreparationWork.CRANK_WORK-1)/PreparationWork.CRANK_WORK);
         assertEquals(5,PreparationWork.CRANK_COOLDOWN);
         assertEquals("ready",PreparationWork.readiness(true,false,false,true,true,true,0,0));
     }

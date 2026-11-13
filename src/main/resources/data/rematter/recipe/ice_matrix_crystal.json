@@ -1,12 +1,15 @@
 {
-  "type": "minecraft:crafting_shapeless",
-  "category": "misc",
-  "ingredients": [
-    "rematter:matrix_crystal",
-    "rematter:silith"
-  ],
+  "type": "rematter:preparation",
+  "primary": "rematter:matrix_crystal",
+  "secondary": "rematter:silith",
+  "energy": 4000,
+  "ticks": 640,
+  "minimum_tier": 0,
   "result": {
     "id": "rematter:ice_matrix_crystal",
     "count": 1
-  }
+  },
+  "steps": [
+    "mix"
+  ]
 }

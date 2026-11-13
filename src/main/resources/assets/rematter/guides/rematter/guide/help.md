@@ -35,6 +35,12 @@ Compare needed and available quantities and phases. A partial batch waits: nine 
 
 For fluids, empty the Decomposer's item input and supply a complete fluid batch. The optional Analyzer needs a supported, unmodified sample and FE, but no storage.
 
+## Inspect stored substances
+
+Hover a substance badge or stock row for its full name, exact quantity, phase, type and stable ID. **Right-click** opens a read-only, scrollable view of its formula, defined phases and element counts. Mixtures show their defined simplified composition. Primal Matter remains separate and stays exclusively in Primal Cells.
+
+With EMI installed and enabled, use its configured **Show recipes** and **Show uses** keys over the substance, or the two link icons in its details. Move focus out of a search field before using viewer shortcuts. Left-click still toggles a stock favourite or Cell filter. Recipe viewing never unlocks research or changes the machine selection.
+
 ## Unknown substances
 
 A row named **Unknown substance** with an ID and phase belongs to a substance whose definition is missing on this server, for example after a data pack was removed. The stock stays in its Cell but cannot be processed or sent to AE2 or Refined Storage until the definition returns.

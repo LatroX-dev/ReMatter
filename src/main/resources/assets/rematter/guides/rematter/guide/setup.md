@@ -21,7 +21,7 @@ Plan an early midgame workshop with iron, copper, redstone, gold, sand, clay, gl
 
 # Make the matrix by hand
 
-The first Hand Preparator needs no FE, Circuit, Crystal, Cell, Drive or Analyzer. A furnace completes its crystal feedstock.
+The first Hand Preparator needs no FE, Circuit, Crystal, Cell, Drive or Analyzer. It also forms the plain Matrix Crystals and the early colored crystals.
 
 ## 1. Build the Hand Preparator
 
@@ -31,12 +31,10 @@ Craft a **Hand Preparator** from **two flint, five iron ingots and two copper in
 
 <GameScene zoom="4" interactive={true}>
   <Block x="0" y="1" id="rematter:hand_preparator" />
-  <Block x="2" y="1" id="minecraft:furnace" />
   <BlockAnnotation x="0" y="1" color="#e6b676">Hand Preparator: insert feedstock and press Crank. No FE required.</BlockAnnotation>
-  <BlockAnnotation x="2" y="1" color="#f7bb56">Furnace: smelt Matrix Blend into Matrix Crystal with ordinary fuel.</BlockAnnotation>
 </GameScene>
 
-## 2. Extract, mix and heat
+## 2. Extract, mix and form
 
 Put **one sand** in the left input, leave the other ingredient slots empty and press the **Crank** symbol until the batch yields **one Silith**. Collect it. Repeat with **one clay ball** to obtain **one Argil**.
 
@@ -46,7 +44,7 @@ Now put **one Silith in the primary input and one Argil in the second input**. C
 
 No added water or fluid connection is needed. Grinding and sieving prepare the grains; they do not turn the feedstock into chemically pure elements.
 
-Smelt each <ItemLink id="rematter:matrix_blend" /> in a normal furnace to make one <ItemLink id="rematter:matrix_crystal" />. Make nine Crystals for the starter line. The Cell uses one plain Crystal, and the four machines use eight colored variants.
+Process each <ItemLink id="rematter:matrix_blend" /> in the Hand Preparator to make one <ItemLink id="rematter:matrix_crystal" />. Make nine Crystals for the starter line. The Cell uses one plain Crystal, and the four machines use eight colored variants.
 
 <RecipeFor id="rematter:matrix_crystal" />
 
@@ -62,9 +60,9 @@ Combine iron and Silith for <ItemLink id="rematter:structural_bars" />. Make <It
 
 A Cell is a cartridge: its front plate and tier bar match the slot in the Matter Drive. Its separate status lamp is blue when empty, green while holding matter, amber when full, and blinking red when its contents cannot be read. A crystal window shows the crystal of its recipe.
 
-Grind gold ingots in the Hand Preparator and combine the Gold Dust with two plain Crystals to make two **Amber Matrix Crystals**. Use them to craft a **Material Preparator**, then connect it to external FE. This powered machine can grind diamond and emerald.
+Grind gold ingots in the Hand Preparator. Mix one Gold Dust with one plain Crystal in the Preparator to make one **Amber Matrix Crystal**; repeat for the second crystal. Use them to craft a **Material Preparator**, then connect it to external FE. This powered machine can grind diamond and emerald.
 
-Make the colored Crystals for the other machines by combining a plain Matrix Crystal with the corresponding dust. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator. [Crystals and advanced components](advanced.md) lists every crystal color and the machines that use it.
+Make the colored Crystals for the other machines by mixing a plain Matrix Crystal with the corresponding dust in a Preparator. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator. [Crystals and advanced components](advanced.md) lists every crystal color and the machines that use it.
 
 Make a **Cell Housing** from Structural Bars and glass. Stack **Control Circuit → Matrix Crystal → Cell Housing**, top to bottom, to make the 64k Cell. Make **Cell Racks** from Structural Bars, Control Circuits and Silith. Each Rack has three bays, and the Drive uses two Racks.
 

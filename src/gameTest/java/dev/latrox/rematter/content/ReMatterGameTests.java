@@ -88,7 +88,7 @@ public final class ReMatterGameTests {
         var environment=event.registerEnvironment(id("empty"));
         TESTS.forEach((name,function)->event.registerTest(id(name),new FunctionGameTestInstance(
                 ResourceKey.create(Registries.TEST_FUNCTION,id(name)),
-                new TestData<>(environment,id("empty"),1200,0,true,Rotation.NONE,false,1,1,true,2))));
+                new TestData<>(environment,id("empty"),name.equals("stock_target_counts_other_producers")||name.equals("air_source_requires_sky")?2000:1200,0,true,Rotation.NONE,false,1,1,true,2))));
     }
     private record Rig(MachineBlockEntity drive,MachineBlockEntity machine,net.minecraft.world.entity.player.Player owner) {}
     private static Rig rig(GameTestHelper h,MachineKind kind) {
@@ -132,7 +132,7 @@ public final class ReMatterGameTests {
         var r=rig(h,MachineKind.SYNTHESIZER);put(r,Map.of(BuiltinChemistry.SILICA,1000L));
         h.assertTrue(!r.machine.configure(r.owner,new MachineSettings(65,"","",Set.of())),"Impossible output target accepted");
         r.machine.setItem(1,new ItemStack(Items.GLASS,64));r.machine.selectRecipe("minecraft:glass");r.machine.requestBatch();
-        h.runAtTickTime(160,()-> {
+        h.runAtTickTime(ReMatter.chemistry().profile("minecraft:glass").orElseThrow().ticks()+60,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.SILICA)==1000,"A full output consumed matter");
             h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"A full output consumed FE");h.succeed();
         });
@@ -140,7 +140,7 @@ public final class ReMatterGameTests {
     private static void noPower(GameTestHelper h) {
         var r=rig(h,MachineKind.SYNTHESIZER);put(r,Map.of(BuiltinChemistry.SILICA,1000L));
         r.machine.energy().set(0);r.machine.selectRecipe("minecraft:glass");r.machine.requestBatch();
-        h.runAtTickTime(140,()-> {
+        h.runAtTickTime(ReMatter.chemistry().profile("minecraft:glass").orElseThrow().ticks()+40,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.SILICA)==1000,"No-power operation consumed matter");
             h.assertTrue(r.machine.getItem(1).isEmpty(),"No-power operation produced output");
             r.machine.energy().set(16000);
@@ -150,7 +150,7 @@ public final class ReMatterGameTests {
     private static void crystalTier(GameTestHelper h) {
         var r=rig(h,MachineKind.SYNTHESIZER);put(r,Map.of(SubstanceKey.of("rematter:diamond",Phase.SOLID),1000L));
         h.assertTrue(r.machine.selectRecipe("minecraft:diamond"),"Diamond recipe unavailable");r.machine.requestBatch();
-        h.runAtTickTime(160,()-> {
+        h.runAtTickTime(ReMatter.chemistry().profile("minecraft:diamond").orElseThrow().ticks()+60,()-> {
             h.assertTrue(r.machine.getItem(1).isEmpty(),"Tier one created a diamond");
             h.assertTrue(!r.machine.canPlaceItem(2,new ItemStack(ModContent.PARALLEL_UPGRADE.get())),"Compact machine accepted industrial parallel upgrade");
             r.machine.setItem(2,new ItemStack(ModContent.PRESSURE_MODULE.get()));
@@ -176,13 +176,14 @@ public final class ReMatterGameTests {
         h.assertTrue(r.machine.configure(r.owner,setting)&&other.configure(r.owner,setting),"Target rejected");
         var locked=place(h,new BlockPos(2,2,3),MachineKind.SYNTHESIZER,r.owner);locked.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
         locked.selectRecipe("minecraft:diamond");locked.requestBatch();
-        h.runAtTickTime(700,()-> {
+        int cycle=ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_synthesis")).orElseThrow().ticks();
+        h.runAtTickTime(cycle+40,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==2000,"Multiple producers overshot or missed target");
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.HYDROGEN)==4000,"Wrong target consumption");
             h.assertTrue(r.machine.configure(r.owner,MachineSettings.DEFAULT),"Target could not be disabled");
             h.assertTrue(!r.machine.runState().running(),"Disabling a target changed into unbounded production");
         });
-        h.runAtTickTime(1000,()-> {h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==2000,"Disabled target kept producing");h.succeed();});
+        h.runAtTickTime(2*cycle+80,()-> {h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==2000,"Disabled target kept producing");h.succeed();});
     }
     private static void unknown(GameTestHelper h) {
         var r=rig(h,MachineKind.DECOMPOSER);var unknown=SubstanceKey.of("test:missing",Phase.GAS);
@@ -223,7 +224,7 @@ public final class ReMatterGameTests {
     private static void air(GameTestHelper h) {
         var r=rig(h,MachineKind.REACTOR);h.setBlock(3,3,2,Blocks.STONE);
         r.machine.selectRecipe("rematter:air_oxygen");r.machine.requestBatch();
-        h.runAtTickTime(250,()-> {
+        h.runAtTickTime(ReMatter.chemistry().environmentSource(SubstanceId.parse("rematter:air_oxygen")).orElseThrow().ticks()+50,()-> {
             h.assertTrue(r.drive.matterStore().total()==0,"Blocked air source produced gas");h.setBlock(3,3,2,Blocks.AIR);
         });
         h.succeedWhen(()->h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.OXYGEN)==200,"Air source did not resume"));
@@ -233,7 +234,7 @@ public final class ReMatterGameTests {
         r.machine.selectRecipe("minecraft:glass");r.machine.requestBatch();
         var cell=r.drive.getItem(0).copy();
         h.runAtTickTime(20,()->r.drive.setItem(0,ItemStack.EMPTY));
-        h.runAtTickTime(170,()-> {
+        h.runAtTickTime(ReMatter.chemistry().profile("minecraft:glass").orElseThrow().ticks()+70,()-> {
             h.assertTrue(r.machine.getItem(1).isEmpty(),"Disconnected storage produced output");
             h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Disconnected work consumed FE");
             r.drive.setItem(0,cell);
@@ -278,7 +279,8 @@ public final class ReMatterGameTests {
         long debit=4*controller.cost(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy());
         h.runAtTickTime(10,()->h.assertTrue(controller.parallelRunning()==4,"Four lanes were not reserved together"));
         h.runAtTickTime(20,()->h.setBlock(3,1,3,Blocks.AIR));
-        h.runAtTickTime(40,()-> {
+        int cycle=Math.ceilDiv(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().ticks(),controller.speed());
+        h.runAtTickTime(cycle+40,()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.WATER)==4000,"Broken chamber consumed reserved inputs");
             h.assertTrue(controller.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Broken chamber consumed FE");
             h.assertTrue(IndustrialStructure.inspect(controller).mismatch()!=null,"Broken chamber lacks a construction hint");
@@ -709,7 +711,8 @@ public final class ReMatterGameTests {
         reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);reactor.selectRecipe("rematter:air_oxygen");reactor.requestBatch();
         var inlet=origin.above(shape.height()-1);
         h.runAtTickTime(10,()->h.getLevel().setBlock(inlet,Blocks.STONE.defaultBlockState(),3));
-        h.runAtTickTime(60,()-> {
+        int blockedUntil=Math.ceilDiv(ReMatter.chemistry().environmentSource(SubstanceId.parse("rematter:air_oxygen")).orElseThrow().ticks(),reactor.speed())+40;
+        h.runAtTickTime(blockedUntil,()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==0,"Blocked industrial air inlet produced gas");
             h.assertTrue(reactor.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Blocked industrial air inlet spent FE");
             h.getLevel().setBlock(inlet,Blocks.AIR.defaultBlockState(),3);
@@ -722,7 +725,7 @@ public final class ReMatterGameTests {
     private static void byproduct(GameTestHelper h) {
         var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.CARBON,63000L));
         r.machine.selectRecipe("rematter:water_electrolysis");r.machine.requestBatch();
-        h.runAtTickTime(250,()-> {
+        h.runAtTickTime(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().ticks()+50,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==1000,"A full byproduct consumed water");
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.HYDROGEN)==0,"A partial batch escaped");
             h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"A full byproduct consumed FE");h.succeed();

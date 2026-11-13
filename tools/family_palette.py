@@ -103,6 +103,12 @@ PORT_MODES = {
     'chemical': RGB['leaf'],
     'disabled': SEAM,
 }
+# Automatic is a static legend of every explicit role, not an animated Primal signature.
+PORT_AUTOMATIC_COLORS = tuple(color for mode, color in PORT_MODES.items() if mode not in ('automatic', 'disabled'))
+# Direction is a functional marking; it does not replace the Cube's Ember core or inherited cable-tier band.
+PORT_ENERGY_INPUT = RGB['blue']
+PORT_ENERGY_OUTPUT = RGB['ember']
+ENERGY_PORT_MODES = {'energy_input': PORT_ENERGY_INPUT, 'energy_output': PORT_ENERGY_OUTPUT}
 PORT_UNFORMED = SHADE
 
 

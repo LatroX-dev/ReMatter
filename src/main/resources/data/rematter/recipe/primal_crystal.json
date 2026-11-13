@@ -4,7 +4,7 @@
   "primary_count": 4,
   "secondary": "rematter:matrix_crystal",
   "energy": 256000,
-  "ticks": 9600,
+  "ticks": 38400,
   "minimum_tier": 2,
   "result": {
     "id": "rematter:primal_crystal",

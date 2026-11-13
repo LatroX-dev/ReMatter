@@ -109,7 +109,6 @@ EXCEPTIONS = {
     'hue_role': {
         'machine_port': {'*': 'the ring of a port is the legend of its port mode'},
         'matter_cable': {'copper': 'the stripe is the copper conductor of the cable: copper ingots are in its recipe'},
-        'energy_cube': {'copper': 'its matching Matter Cable ingredient supplies the case and port tier band; the core and identity plate remain Ember'},
     },
     # Java file -> {literal: reason} for colour literals outside the palette class
     'java_colour': {
@@ -526,6 +525,8 @@ class JavaPalette:
 
     def __init__(self, palette_source, kinds_source):
         self.constants = {name: hex_rgb(value[2:]) for name, value in self.CONSTANT.findall(palette_source)}
+        self.arrays = {name: tuple(hex_rgb(value[2:]) for value in re.findall(r'0x([0-9a-fA-F]{8})', values))
+                       for name, values in re.findall(r'int\[\]\s+(\w+)\s*=\s*\{([^}]+)\}', palette_source)}
         self.accents = {}
         for names, value in self.CASE.findall(palette_source):
             colour = hex_rgb(value[4:]) if value.startswith('0x') else self.constants.get(value)
@@ -902,18 +903,22 @@ class Tree:
                 continue   # an unreadable texture is reported by the texture rules
         return art, icon
 
-    def shown(self, ident):
+    def shown(self, ident, *, identity=False):
         """Colours the block and the item of a registry id show: per colour the largest count of any one model."""
-        if ident not in self._shown:
+        key = (ident, identity)
+        if key not in self._shown:
             art, icon = Counter(), Counter()
             models = {self.own_model(reference) for value in (self.blockstates.get(ident), self.items.get(ident))
                       for reference in self.model_references(value)}
+            if identity:
+                # An item's default plates share the block's functional legend; they are not recipe accents.
+                models -= {self.own_model(reference) for reference in self.port_references(self.blockstates.get(ident))}
             for model in sorted(model for model in models if model in self.models):
                 for total, part in zip((art, icon), self.model_colours(model)):
                     for colour, count in part.items():
                         total[colour] = max(total[colour], count)
-            self._shown[ident] = (art, icon)
-        return self._shown[ident]
+            self._shown[key] = (art, icon)
+        return self._shown[key]
 
 
 # ------------------------------------------------------------------------------------------------- rules
@@ -1598,7 +1603,7 @@ def check_recipe_hues(tree, problems, palette, guide):
     recipes = tree.recipes
     registered = sorted(set(tree.items) | set(tree.blockstates))
     for device in registered:
-        art, icon = tree.shown(device)
+        art, icon = tree.shown(device, identity=True)
         for name, (count, path) in sorted(recipes.direct(f'{NAMESPACE}:{device}').items()):
             hue = hues.get(name)
             if hue is None or art.get(hue, 0) >= ACCENT_TEXELS or icon.get(hue, 0) >= ICON_ACCENT_PIXELS:
@@ -1741,6 +1746,53 @@ def check_ports(tree, problems, palette, guide):
                          'screen share the PORT_MODES of tools/family_palette.py')
 
 
+def check_port_legends(tree, problems, palette, guide, java):
+    """Functional legends share exact role values across baked geometry, model data and the compact side UI."""
+    automatic = 'block/machine_port_automatic'
+    roles = tuple(value for name, value in palette.named.items()
+                  if name.startswith('PORT_MODES.') and name.split('.', 1)[1] not in ('automatic', 'disabled'))
+    if automatic in tree.textures:
+        image = tree.image(automatic)
+        if image.width == image.height == 32:
+            ring = Counter(tuple(image.pixels()[y][x][:3]) for y in range(4, 28) for x in range(4, 28)
+                           if x < 6 or x >= 26 or y < 6 or y >= 26)
+            if set(ring) != set(roles) or any(ring[colour] < ACCENT_TEXELS for colour in roles):
+                problems.add('ports automatic', tree.texture_path(automatic),
+                             'the Automatic ring does not show all seven exact role colours',
+                             'draw the static legend from PORT_AUTOMATIC_COLORS; keep Primal hues out of it')
+        if java.arrays.get('PORT_AUTOMATIC_COLORS') != roles:
+            problems.add('ports colour', 'UiPalette.java', 'the Automatic legend differs from the seven PORT_MODES',
+                         'mirror the ordered seven-role palette in PORT_AUTOMATIC_COLORS')
+    from family_palette import ENERGY_CABLE_TIERS
+    cubes = set(ENERGY_CABLE_TIERS) & set(tree.blockstates)
+    if not cubes:
+        return
+    if 'energy-port-directions' not in guide.tables:
+        problems.add('ports direction', 'docs/visual-style.md', 'Cube direction colours are not documented',
+                     'add the marked energy-port-directions table with both shared palette constants')
+    for role in ('energy_input', 'energy_output'):
+        name = 'PORT_' + role.upper()
+        wanted = palette.named.get(name)
+        if wanted is None or java.constants.get(name) != wanted or guide.constants.get(name) != wanted:
+            problems.add('ports direction', 'UiPalette.java', f'{name} differs between the guide and palettes',
+                         'use the shared Blue input / Ember output legend in the guide, Python and Java')
+    for cube in sorted(cubes):
+        for entry in tree.port_entries(tree.blockstates[cube]):
+            for side, models in entry['sides'].items():
+                if set(models) != {'disabled', 'energy_input', 'energy_output'}:
+                    problems.add('ports direction', f'blockstates/{cube}.json', f'{side} lacks distinct input/output appearances',
+                                 'map the three existing Cube side modes to disabled, energy_input and energy_output')
+                    continue
+                for role in ('energy_input', 'energy_output'):
+                    model = tree.own_model(models[role])
+                    if model not in tree.models:
+                        continue
+                    wanted = palette.named.get('PORT_' + role.upper())
+                    if tree.model_colours(model)[0].get(wanted, 0) < ACCENT_TEXELS:
+                        problems.add('ports direction', f'models/{model}.json', f'the {role} seat does not show its direction colour',
+                                     'select the matching direction sprite from the actual Cube side mode')
+
+
 JAVA_COLOUR = re.compile(r'\b0[xX](?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6})\b')
 JAVA_FAMILY = re.compile(r'case\s+([A-Z0-9_,\s]+?)\s*->\s*"(%s)"\s*;' % '|'.join(CRYSTALS))
 
@@ -1823,6 +1875,7 @@ def run(tree, palette, guide, java):
     check_recipe_hues(tree, problems, palette, guide)
     check_energy_tier_bands(tree, problems, palette, guide)
     check_ports(tree, problems, palette, guide)
+    check_port_legends(tree, problems, palette, guide, java)
     check_java(tree, problems, java)
     return problems
 

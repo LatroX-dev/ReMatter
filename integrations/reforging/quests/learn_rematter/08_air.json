@@ -1,7 +1,7 @@
 {
   "title": "Give Oxygen a Consumer",
   "description": [
-    "Place an Chemical Reactor in the Overworld, with an air block above and open sky. It makes 200 stored oxygen units for 16,000 base FE over 200 ticks. It needs a readable Cell and output space.",
+    "Place an Chemical Reactor in the Overworld, with an air block above and open sky. It makes 200 stored oxygen units for 16,000 base FE over 800 ticks. It needs a readable Cell and output space.",
     "Enable Automation on the Matter Drive, connect a Mekanism Pressurized Tube, and supply oxygen to a Purification Chamber. This provides a practical consumer without a hydrogen surplus. No unused nitrogen byproduct is generated."
   ],
   "icon": "rematter:chemical_reactor",

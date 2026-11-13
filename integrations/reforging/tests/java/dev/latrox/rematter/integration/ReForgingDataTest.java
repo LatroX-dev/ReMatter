@@ -115,7 +115,7 @@ class ReForgingDataTest {
         assertEquals(Map.of(CRYSTAL, 1_000L), electrolysis.inputs());
         assertEquals(Map.of(BuiltinChemistry.SILICON, 1_000L, BuiltinChemistry.OXYGEN, 1_000L), electrolysis.outputs());
         assertEquals(64_000, electrolysis.energy());
-        assertEquals(400, electrolysis.ticks());
+        assertEquals(1600, electrolysis.ticks());
         assertEquals(registry.elementAmounts(electrolysis.inputs()), registry.elementAmounts(electrolysis.outputs()));
         var reachable = MatterReachability.from(registry, Set.of("minecraft:sand", "minecraft:clay_ball", "minecraft:dirt",
                 "minecraft:stone", "minecraft:cobblestone"), Set.of("minecraft:water", "minecraft:lava"));

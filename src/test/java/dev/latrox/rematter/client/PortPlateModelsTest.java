@@ -3,6 +3,7 @@ package dev.latrox.rematter.client;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.latrox.rematter.content.MachinePortMode;
+import dev.latrox.rematter.content.PortAppearance;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -44,6 +45,25 @@ class PortPlateModelsTest {
                 var textures = read("port_" + casing + "_" + side + "_" + role.getSerializedName()).getAsJsonObject("textures");
                 assertEquals("rematter:block/machine_port_" + role.getSerializedName(), textures.get("ring").getAsString());
                 assertTrue(textures.get("face").getAsString().endsWith("casing_port"), "a connection shows the painted seat");
+            }
+        }
+    }
+
+    @Test void cubeBlockStatesDecodeEveryDirectionAndShowTheActualInitialModes() throws Exception {
+        for (String cube : List.of("energy_cube", "reinforced_energy_cube", "resonant_energy_cube")) {
+            var state = JsonParser.parseString(Files.readString(MODELS.getParent().getParent().resolve("blockstates/" + cube + ".json"))).getAsJsonObject();
+            for (var part : state.getAsJsonArray("multipart")) {
+                var entry = part.getAsJsonObject().getAsJsonObject("apply");
+                if (!entry.has("type")) continue;
+                for (var side : entry.getAsJsonObject("sides").entrySet()) {
+                    var models = side.getValue().getAsJsonObject();
+                    assertEquals(java.util.Set.of("disabled", "energy_input", "energy_output"), models.keySet());
+                    for (var role : models.keySet())
+                        assertEquals(role, PortAppearance.valueOf(role.toUpperCase(java.util.Locale.ROOT)).getSerializedName());
+                    assertEquals(side.getKey().equals("front") ? "energy_output" : "energy_input",
+                            entry.getAsJsonObject("default").get(side.getKey()).getAsString());
+                    assertNotEquals(models.get("energy_input"), models.get("energy_output"));
+                }
             }
         }
     }
