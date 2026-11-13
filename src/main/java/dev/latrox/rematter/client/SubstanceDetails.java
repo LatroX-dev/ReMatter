@@ -68,9 +68,9 @@ public final class SubstanceDetails {
             lines.add(tr(definition.kind() == dev.latrox.rematter.chemistry.SubstanceKind.MIXTURE ? "composition_mixture" : "composition"));
             for (var element : info.elements()) {
                 Component name = element.definition().map(SubstanceNames::name).orElseGet(() -> Component.literal(element.id().toString()));
-                Component symbol = element.definition().filter(value -> !value.symbol().isBlank())
-                        .<Component>map(value -> Component.literal(value.symbol())).orElseGet(() -> Component.literal(element.id().toString()));
-                lines.add(tr("element", symbol, name, Quantities.number(element.count())));
+                // An element's stored gas may carry a molecular symbol (H₂, O₂). The composition
+                // already supplies atomic counts, so name the element without reusing that symbol.
+                lines.add(tr("element", name, Quantities.number(element.count())));
             }
         });
         lines.add(tr("read_only"));

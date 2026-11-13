@@ -1082,7 +1082,7 @@
   "screen.rematter.substance.phases": "Defined phases: %s",
   "screen.rematter.substance.composition": "Element counts per formula unit:",
   "screen.rematter.substance.composition_mixture": "Simplified mixture composition per unit:",
-  "screen.rematter.substance.element": "%s — %s × %s",
+  "screen.rematter.substance.element": "%s × %s",
   "screen.rematter.substance.primal_storage": "Primal Matter stays exclusively in Primal Cells. It is separate from ordinary chemistry.",
   "screen.rematter.substance.read_only": "Information only. Viewing recipes does not unlock research or produce matter.",
   "screen.rematter.substance.recipes": "Show recipes",

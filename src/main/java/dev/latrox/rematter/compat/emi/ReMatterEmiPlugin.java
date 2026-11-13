@@ -196,17 +196,20 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
 
     /** Run before SEMI's global key handler so a normal Screen layer retains its real container context. */
     private static void layerKeyPressed(net.neoforged.neoforge.client.event.ScreenEvent.KeyPressed.Pre event) {
-        if (!(event.getScreen() instanceof SubstanceScreenLayer) || !SubstanceDetails.viewerAvailable() || EmiApi.isSearchFocused()) return;
+        if (!(event.getScreen() instanceof SubstanceScreenLayer layer) || !SubstanceDetails.viewerAvailable() || EmiApi.isSearchFocused()) return;
         if (event.getScreen().getFocused() instanceof net.minecraft.client.gui.components.EditBox text && text.canConsumeInput()) return;
         var key = event.getKeyEvent();
         boolean recipes = dev.emi.emi.config.EmiConfig.viewRecipes.matchesKey(key.key(), key.scancode());
         boolean uses = dev.emi.emi.config.EmiConfig.viewUses.matchesKey(key.key(), key.scancode());
         if (!recipes && !uses) return;
-        var interaction = EmiApi.getHoveredStack(true);
-        var stacks = interaction.getStack().getEmiStacks();
-        if (stacks.size() != 1 || !(stacks.getFirst() instanceof MatterEmiStack stack) || !(stack.getKey() instanceof dev.latrox.rematter.chemistry.SubstanceKey substance)) return;
+        var minecraft = Minecraft.getInstance();
+        // SEMI invalidates its mouse cache on normal Screen layers. Use the same public scaled
+        // MouseHandler coordinates as Minecraft's input path, including window/display scaling.
+        var hover = layer.substanceAt(minecraft.mouseHandler.getScaledXPos(minecraft.getWindow()),
+                minecraft.mouseHandler.getScaledYPos(minecraft.getWindow()));
+        if (hover.isEmpty()) return;
         event.setCanceled(true);
-        showMatter(new SubstanceDetails.Hover(substance, stack.getAmount()), !recipes && uses);
+        showMatter(hover.get(), !recipes && uses);
     }
 
     private static EmiStack stack(ChemistryViewer.Resource resource) {
