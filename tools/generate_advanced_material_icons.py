@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate inventory models for the authored workshop and crystal sprites."""
+"""Generate inventory models for the material and crystal sprites."""
 
 import argparse
 import json

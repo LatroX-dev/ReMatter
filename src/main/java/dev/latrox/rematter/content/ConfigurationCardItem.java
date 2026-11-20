@@ -14,7 +14,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Universal workshop configuration card: pairs Entangled Links and copies/pastes Machine and Energy Cube setups. */
+/** Configuration card: pairs Entangled Links and copies/pastes Machine and Energy Cube setups. */
 public final class ConfigurationCardItem extends Item {
     public ConfigurationCardItem(Properties properties) {
         super(properties.stacksTo(1));

@@ -4,7 +4,7 @@
 Owns the sprites, block models, block states and item definitions of the
 Matter Drive, Matter Terminal, Network Interface, Machine Port, the three
 Matter Cables, Reactor Casing, Reactor Glass, both industrial controllers and
-the Chemical Reactor and the six workshop benches. Every model is a short list of boxes on a half-pixel
+the Chemical Reactor and the six processing machines. Every model is a short list of boxes on a half-pixel
 grid; only faces that can be seen are written, faces on the block boundary
 carry a cullface, and sprites sit at two texels per pixel. Generation fails
 when a model would flicker or break one of the family rules.
@@ -429,7 +429,7 @@ def chemical_processor(family):
     if REACTOR_LIQUID=='renderer':family.blockstates['chemical_processor']['multipart'] += [{'when':{'facing':f},'apply':{'model':MODEL+'chemical_processor_glass_cores',**ROTATION[f]}} for f in HORIZONTAL]
 
 
-# --------------------------------------------------------------------------- Six workshop benches
+# --------------------------------------------------------------------------- Six processing machines
 def bench(family,name):
     show=bench_boxes(name);work=bench_work(name)
     check_showpiece(name,show+work)

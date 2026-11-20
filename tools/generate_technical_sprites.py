@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Draw workshop components from reproducible vector geometry.
+"""Draw machine components from reproducible vector geometry.
 
 The shared projection keeps every edge aligned. Broad silhouettes and a single
 central feature distinguish the components at Minecraft inventory scale.

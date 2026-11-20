@@ -126,7 +126,7 @@ final class StarterWorkshopGameTest {
         var item = stock.entrySet().stream()
                 .filter(entry -> entry.getValue() >= count && ingredient.test(new ItemStack(entry.getKey())))
                 .map(Map.Entry::getKey).findFirst()
-                .orElseThrow(() -> new IllegalStateException("Workshop cannot supply " + count + " of " + ingredient));
+                .orElseThrow(() -> new IllegalStateException("Missing ingredient: " + count + " of " + ingredient));
         return take(item, count);
     }
 

@@ -15,7 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-/** Precision workshop wrench with explicit Ports, Rotate and Dismantle modes switched via Sneak + Right-Click. */
+/** Precision wrench with explicit Ports, Rotate and Dismantle modes switched via Sneak + Right-Click. */
 public final class MatterWrenchItem extends Item {
     public MatterWrenchItem(Properties properties) {
         super(properties.stacksTo(1));

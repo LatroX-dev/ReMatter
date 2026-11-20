@@ -1,4 +1,4 @@
-"""Six low-part workshop mechanisms inside the approved full-block alcove.
+"""Six low-part machine mechanisms inside the approved full-block alcove.
 
 All shipping boxes stay on the half-pixel grid. Drawn front faces belong to
 one material; real items and the small mechanical crank remain renderer-owned.

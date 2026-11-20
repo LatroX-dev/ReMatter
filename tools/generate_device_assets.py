@@ -254,7 +254,7 @@ def generate(check):
         out.json(ASSETS / f"models/item/{name}.json", {"parent": "minecraft:item/generated", "textures": {"layer0": f"rematter:item/{name}"}})
         out.json(ASSETS / f"items/{name}.json", {"model": {"type": "minecraft:model", "model": f"rematter:item/{name}"}})
         if name == "parallel_upgrade":
-            continue  # Its recipe belongs to the industrial workshop generator.
+            continue  # Its recipe belongs to the industrial recipe generator.
         if name == "pressure_module":
             recipe(out, name, ["RLR", "OCO", "RLR"], {
                 "R": "rematter:rhevon_ingot", "L": "rematter:diamond_lattice",

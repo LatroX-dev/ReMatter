@@ -27,7 +27,7 @@ MODULE_HUE_PRESETS = {
     # The crystal of the controller the module plugs into: preparation is amber, reaction is violet.
     'recipe': {'grinding_unit': 'amber', 'separation_unit': 'amber', 'mixing_basin': 'amber',
                'field_coil': 'violet', 'reaction_chamber': 'violet'},
-    # The crystal of the workshop bench that does the same job by hand: Decomposer copper, Analyzer ice, Material
+    # The crystal of the processing machine that does the same job by hand: Decomposer copper, Analyzer ice, Material
     # Synthesizer leaf, Network Interface blue, Chemical Reactor violet. Every module then has a hue of its own.
     'job': {'grinding_unit': 'copper', 'separation_unit': 'ice', 'mixing_basin': 'leaf',
             'field_coil': 'blue', 'reaction_chamber': 'violet'},

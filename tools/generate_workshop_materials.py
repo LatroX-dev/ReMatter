@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate physical workshop recipes and explicit optional machine integrations."""
+"""Generate preparation and sintering recipes and explicit optional machine integrations."""
 from pathlib import Path
 import argparse
 from generated_files import GeneratedFiles
@@ -212,7 +212,7 @@ def main():
     args = parser.parse_args()
     OUTPUT = GeneratedFiles(ROOT, args.check)
     generate()
-    print(f'{"Verified" if args.check else "Generated"} {OUTPUT.count} workshop files.')
+    print(f'{"Verified" if args.check else "Generated"} {OUTPUT.count} recipe and material files.')
 
 
 def generate():

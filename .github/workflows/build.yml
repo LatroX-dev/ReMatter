@@ -134,7 +134,7 @@ jobs:
         run: ./gradlew runGameTestServer --no-daemon
       - name: Verify curated material data matches generated resources
         run: python3 tools/generate_material_data.py --check
-      - name: Verify generated workshop materials
+      - name: Verify preparation and sintering recipes
         run: python3 tools/generate_workshop_materials.py --check
       - name: Verify generated machine assets
         run: python3 tools/generate_visual_assets.py --check
