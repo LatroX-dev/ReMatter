@@ -107,40 +107,43 @@ public final class OverhaulExpansionGameTests {
         collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
         h.assertTrue(collector.selectRecipe("rematter:air_oxygen"), "Atmospheric Collector should select air_oxygen");
 
-        // Block sky directly above collector: open-air source must pause without spending any FE.
-        h.setBlock(collectorRel.above(2), Blocks.STONE);
-        collector.requestBatch();
-
-        h.runAtTickTime(40, () -> {
-            var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
-            h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 0L, "Roofed open-air collector must not harvest oxygen");
-            h.assertTrue(collector.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY,
-                    "Roofed open-air collector must not spend FE");
-            // Clear sky so real server ticks propagate sky light and run at 2x speed (400 ticks) and half base FE (8,000 FE).
-            h.setBlock(collectorRel.above(2), Blocks.AIR);
-        });
-
-        h.runAtTickTime(470, () -> {
-            var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
-            long expectedEnergyAfterAir = MachineBlockEntity.ENERGY_CAPACITY - 8_000L;
-            h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 200L,
-                    "Expected 200 OXYGEN from 1 air_oxygen batch, got " + inv.amount(BuiltinChemistry.OXYGEN));
-            h.assertTrue(collector.energy().getAmountAsLong() == expectedEnergyAfterAir,
-                    "Expected 8,000 FE spent (half of 16,000 base), remaining=" + collector.energy().getAmountAsLong());
-
-            // Subterranean source (cavern_vapor) works even when roofed over!
-            h.setBlock(collectorRel.above(2), Blocks.STONE);
-            collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
-            h.assertTrue(collector.selectRecipe("rematter:cavern_vapor"), "Collector should select cavern_vapor");
-            collector.requestBatch();
-        });
-
-        h.succeedWhen(() -> {
-            var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
-            h.assertTrue(inv.amount(BuiltinChemistry.STEAM) == 250L,
-                    "Expected 250 STEAM from roofed cavern_vapor batch, got " + inv.amount(BuiltinChemistry.STEAM)
-                            + " status=" + collector.snapshot(0).status());
-        });
+        // The skylight engine runs off-thread. Start each phase after the intake sees the roof change.
+        var intake = h.absolutePos(collectorRel.above());
+        var roof = collectorRel.above(2);
+        h.setBlock(roof, Blocks.STONE);
+        h.startSequence()
+                .thenWaitUntil(() -> h.assertFalse(h.getLevel().canSeeSky(intake), "Waiting for the roof to block skylight"))
+                .thenExecute(() -> h.assertTrue(collector.requestBatch(), "Queue the open-air batch"))
+                .thenExecuteAfter(40, () -> {
+                    var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 0L, "Roofed collector must not harvest oxygen");
+                    h.assertTrue(collector.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY,
+                            "Roofed collector must not spend FE");
+                    h.setBlock(roof, Blocks.AIR);
+                })
+                .thenWaitUntil(() -> h.assertTrue(h.getLevel().canSeeSky(intake), "Waiting for skylight at the intake"))
+                .thenWaitUntil(() -> h.assertTrue(collector.work().progress > 0, "Waiting for the oxygen batch to start"))
+                .thenExecute(() -> h.assertTrue(collector.work().duration == 400, "Collector must halve the 800-tick recipe"))
+                .thenWaitUntil(() -> {
+                    var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 200L, "Expected 200 oxygen from one batch");
+                })
+                .thenExecute(() -> {
+                    h.assertTrue(collector.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - 8_000L,
+                            "Collector must spend half the 16,000 FE base cost");
+                    h.setBlock(roof, Blocks.STONE);
+                })
+                .thenWaitUntil(() -> h.assertFalse(h.getLevel().canSeeSky(intake), "Waiting for the cave roof"))
+                .thenExecute(() -> {
+                    collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+                    h.assertTrue(collector.selectRecipe("rematter:cavern_vapor"), "Select cavern vapor");
+                    h.assertTrue(collector.requestBatch(), "Queue the roofed cavern batch");
+                })
+                .thenWaitUntil(() -> {
+                    var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(BuiltinChemistry.STEAM) == 250L, "Expected 250 steam from roofed cavern vapor");
+                })
+                .thenSucceed();
     }
 
     private static ItemStack cell64kWith(Map<SubstanceKey, Long> contents) {
