@@ -1,6 +1,6 @@
 {
   "id": "workshop-v11",
-  "title": "Workshop v11 (sound follows the visible mechanism)",
+  "title": "Mechanism sounds v11",
   "created": "2026-11-17",
   "provenance": "Made for ReMatter on the owner's machine. Tonal, motion and digital layers are synthesised by the project's own studio code; foley layers are cut from takes generated locally with the Apache-2.0 text-to-audio model MOSS-SoundEffect v2.0 (mlx-community 4-bit port) from the prompts recorded below. No third-party recordings and no vanilla Minecraft sounds are contained.",
   "foley_takes": {

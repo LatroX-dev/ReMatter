@@ -17,7 +17,7 @@ item_ids:
 ---
 # Before you start
 
-Plan an early midgame workshop with flint, iron, copper, redstone, gold, sand, clay and glass. The Hand Preparator and a crafting table can make your first Crystal Generator. The complete starter storage line needs **one diamond for the Drive** and **three emeralds for the Synthesizer**. Glass teaches the controls; silicon, bronze and steel are later practical goals. The first Hand Preparator itself needs no power.
+Gather flint, iron, copper, redstone, gold, sand, clay and glass for your first machines. The Hand Preparator and a crafting table can make your first Crystal Generator. The complete starter storage line needs **one diamond for the Drive** and **three emeralds for the Synthesizer**. Glass teaches the controls; silicon, bronze and steel are later practical goals. The first Hand Preparator itself needs no power.
 
 # Make the matrix by hand
 

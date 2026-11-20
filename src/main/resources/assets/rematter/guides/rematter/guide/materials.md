@@ -25,7 +25,7 @@ A filled Cell contains substance quantities. It does not store a scanned item pa
 
 The Synthesizer's product list shows explicitly approved recipes and their research status. Selecting one only prepares a job. You still need the owner's research, every ingredient, enough FE and output room. Analysis teaches a supported material family but never expands the synthesis allowlist.
 
-Frames, Control Circuits, Cells and machines remain assembled items. Craft them in their fixed recipe layouts. [Powders, alloys and ceramic](metallurgy.md) adds physical workshop materials for those assemblies; these are distinct from the quantities held in a Cell.
+Frames, Control Circuits, Cells and machines remain assembled items. Craft them in their fixed recipe layouts. Those assemblies use [powders, alloys and ceramics](metallurgy.md) that you can carry as items.
 
 ## One batch is not always one item
 

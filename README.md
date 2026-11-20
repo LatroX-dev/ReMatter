@@ -33,7 +33,7 @@ Pin a goal at the Matter Terminal to see which process to run first, what you st
 
 ## Play and build
 
-Choose the ReMatter file for your Minecraft and NeoForge versions. For multiplayer, install the same file on the server and on each client. Version 0.7.0 targets Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25.
+Choose the ReMatter file for your Minecraft and NeoForge versions. For multiplayer, install the same file on the server and on each client. ReMatter 0.7.x targets Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25.
 
 To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The mod JAR is written to `build/libs/`.
 

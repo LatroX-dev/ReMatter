@@ -1,12 +1,16 @@
 # Changelog
 
+## 0.7.1
+
+- Clarify the setup, machine upgrade and Primal Crystal instructions in the guide and tooltips.
+
 ## 0.7.0
 
-- Start a standalone workshop with a hand-built Crystal Generator. Its two copper blocks, Ember Matrix Crystal, frame, bars and circuit are obtainable before the first powered batch.
+- Power your first machines with a hand-built Crystal Generator. Its two copper blocks, Ember Matrix Crystal, frame, bars and circuit are obtainable before the first powered batch.
 - Scroll through all eight active Terminal orders and cancel an individual order. Automatic work is attributed to its own order, so cancelling preserves other orders and manual batches.
 - Select a locked material to see a suitable research sample. Pin a lab goal to check the next step, shortages and surplus at the Matter Drive or Chemical Processor. Atmospheric plans take dimension and sky access into account and can choose an alternative source.
 - Store up to 4M units in an ordinary Cell. Use a filtered Void Matter Cell for overflow and see the amounts stored and discarded when depositing a Pressurized Canister.
-- Add workshop sounds for machines, tools and transfers. Timed motion cues follow the Decomposer jaws, Preparator stroke, Analyzer sweep and reactor motion. The four-step machine volume setting also applies to the new sounds.
+- Add distinct sounds for machines, tools and transfers. Timed motion cues follow the Decomposer jaws, Preparator stroke, Analyzer sweep and reactor motion. The four-step machine volume setting also applies to the new sounds.
 - Unify device connection rules across cables, hoppers, capabilities and side settings. Fronts and open workbench tops stay closed; sealed tops start Disabled. Disabled faces show plain casing, with connection plates baked into the world model. Name the side controls and support backward cycling.
 - Replace the Primal Converter's cycling target control with a searchable list showing symbols, prices and research requirements. Show its receiving Drive and Cell bay, and require room for a complete output batch before taking payment.
 - Smooth work motion independently of recipe update packets. Add mechanism-specific bench motion, continuous industrial fields and module pulses, eased waiting states and charging/discharging Cube flow.

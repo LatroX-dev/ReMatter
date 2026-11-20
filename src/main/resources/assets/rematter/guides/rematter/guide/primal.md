@@ -57,6 +57,6 @@ One complete output batch must fit a single readable ordinary Cell whose substan
 
 Choose multiples of 250 u. Read exact output and price in the window; splitting does not improve the rate. There is no Repeat mode, external crafting pattern or automatic missing-ingredient replacement. Ordinary material never converts back into Primal.
 
-## Optional workshop
+## Making Primal Crystals
 
 A Preparation Reactor with **Precision 4** stabilizes 4 Shards and 1 Matrix Crystal into 1 Primal Crystal. Read actual FE and duration in its preview. Primal Crystals support the [Discovery Lens](discovery.md), 256k reserve and [Entangled Link](links.md). They are not fuel or reclaimable Primal. Ordinary progression does not require them.

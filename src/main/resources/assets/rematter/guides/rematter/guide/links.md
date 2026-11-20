@@ -17,4 +17,4 @@ Both endpoints must have the same owner, be in the **same dimension**, remain in
 
 It counts as **one Basic cable connection** with 128 u/t matter work and 2,048 FE/t native routing. Controller and source budgets still apply. It creates no new allowance per parallel lane, side or second route.
 
-Removing, unloading or re-pairing an endpoint stops the old connection. Complete both loaded endpoints before expecting a route. This is a short workshop link, not dimensional storage.
+Removing, unloading or re-pairing an endpoint stops the old connection. Complete both loaded endpoints before expecting a route.

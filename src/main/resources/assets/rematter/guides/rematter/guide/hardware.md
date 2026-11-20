@@ -13,7 +13,7 @@ navigation:
 | Reaction Focus / Reaction Chamber | Adds 16,000 u room for simultaneous recipe inputs |
 | Resonance Cutter / Grinding Unit | Adds capacity for grinding steps |
 | Confluence Basin / Mixing Basin | Adds capacity for mixing steps |
-| Phase Filter / Separation Unit | Adds Precision for separation and fine workshop recipes |
+| Phase Filter / Separation Unit | Adds Precision for separation and recipes that require finer control |
 
 The crystal and the small tab on a module mount show the crystal used to craft it: **Amber** for Cutters, Filters and Basins, **Violet** for Stabilizers and Foci. The item in your hand uses the same mechanism and sprites as the installed module.
 
