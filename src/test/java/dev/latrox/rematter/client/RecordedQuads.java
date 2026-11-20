@@ -7,7 +7,7 @@ import org.joml.Vector3f;
 
 /** Collects what a renderer writes, four vertices to a quad, without a graphics context. */
 final class RecordedQuads implements VertexConsumer {
-    record Vertex(float x, float y, float z, int color, float u, float v, int light) {
+    record Vertex(float x, float y, float z, int color, float u, float v, int light, Vector3f normal) {
         Vector3f position() { return new Vector3f(x, y, z); }
     }
     record Quad(List<Vertex> vertices) {
@@ -34,6 +34,7 @@ final class RecordedQuads implements VertexConsumer {
     private final List<Vertex> vertices = new ArrayList<>();
     private float x, y, z, u, v;
     private int color, light;
+    private Vector3f normal;
     private boolean open;
 
     List<Quad> quads() {
@@ -44,13 +45,14 @@ final class RecordedQuads implements VertexConsumer {
         return quads;
     }
     private void flush() {
-        if (open) vertices.add(new Vertex(x, y, z, color, u, v, light));
+        if (open) vertices.add(new Vertex(x, y, z, color, u, v, light, normal));
         open = false;
     }
 
     @Override public VertexConsumer addVertex(float x, float y, float z) {
         flush();
         this.x = x; this.y = y; this.z = z; open = true;
+        normal = null;
         return this;
     }
     @Override public VertexConsumer setColor(int red, int green, int blue, int alpha) {
@@ -61,6 +63,9 @@ final class RecordedQuads implements VertexConsumer {
     @Override public VertexConsumer setUv(float u, float v) { this.u = u; this.v = v; return this; }
     @Override public VertexConsumer setUv1(int u, int v) { return this; }
     @Override public VertexConsumer setUv2(int u, int v) { light = u & 0xFFFF | (v & 0xFFFF) << 16; return this; }
-    @Override public VertexConsumer setNormal(float x, float y, float z) { return this; }
+    @Override public VertexConsumer setNormal(float x, float y, float z) {
+        normal = new Vector3f(x, y, z);
+        return this;
+    }
     @Override public VertexConsumer setLineWidth(float width) { return this; }
 }

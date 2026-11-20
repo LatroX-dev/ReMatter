@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.2
+
+- Fix a rendering crash with Iris shaders when viewing installed Matter Cells or moving machine parts.
+
 ## 0.7.1
 
 - Clarify the setup, machine upgrade and Primal Crystal instructions in the guide and tooltips.
