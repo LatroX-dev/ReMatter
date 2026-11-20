@@ -1,0 +1,20 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:rhevon_ingot",
+  "primary_count": 4,
+  "secondary": "rematter:diamond_lattice",
+  "secondary_count": 2,
+  "tertiary": "rematter:optical_circuit",
+  "tertiary_count": 2,
+  "energy": 32000,
+  "ticks": 1600,
+  "minimum_tier": 2,
+  "result": {
+    "id": "rematter:parallel_upgrade",
+    "count": 1
+  },
+  "min_precision": 4,
+  "steps": [
+    "mix"
+  ]
+}

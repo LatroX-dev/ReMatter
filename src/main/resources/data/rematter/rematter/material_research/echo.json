@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Echo",
+  "items": [
+    "jaopca:storage_blocks.echo",
+    "occultism:echo_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:echo",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

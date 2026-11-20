@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " R ",
+    "CFC",
+    "AMA"
+  ],
+  "key": {
+    "R": "minecraft:redstone_torch",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame",
+    "A": "rematter:matter_cable",
+    "M": "rematter:mint_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:matter_level_emitter",
+    "count": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "PCP",
+    "FMF"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "P": "rematter:ender_conductor",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame",
+    "M": "rematter:mint_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:matter_terminal",
+    "count": 1
+  }
+}

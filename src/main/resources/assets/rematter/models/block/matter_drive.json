@@ -1,0 +1,283 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "front": "rematter:block/drive_front",
+    "bay": "rematter:block/drive_bay"
+  },
+  "elements": [
+    {
+      "name": "core",
+      "from": [
+        0,
+        0,
+        2
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "post_left",
+      "from": [
+        15,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "post_right",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "plinth",
+      "from": [
+        1,
+        0,
+        0
+      ],
+      "to": [
+        15,
+        2,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        1,
+        15,
+        0
+      ],
+      "to": [
+        15,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "band_left",
+      "from": [
+        9,
+        13,
+        0.5
+      ],
+      "to": [
+        15,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "band_right",
+      "from": [
+        1,
+        13,
+        0.5
+      ],
+      "to": [
+        7,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "mullion",
+      "from": [
+        7,
+        2,
+        0
+      ],
+      "to": [
+        9,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#bay"
+        },
+        "west": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "rail_left_upper",
+      "from": [
+        9,
+        9,
+        0
+      ],
+      "to": [
+        15,
+        10,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#bay"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "rail_left_lower",
+      "from": [
+        9,
+        5,
+        0
+      ],
+      "to": [
+        15,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#bay"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "rail_right_upper",
+      "from": [
+        1,
+        9,
+        0
+      ],
+      "to": [
+        7,
+        10,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#bay"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    },
+    {
+      "name": "rail_right_lower",
+      "from": [
+        1,
+        5,
+        0
+      ],
+      "to": [
+        7,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#bay"
+        },
+        "down": {
+          "texture": "#bay"
+        }
+      }
+    }
+  ]
+}

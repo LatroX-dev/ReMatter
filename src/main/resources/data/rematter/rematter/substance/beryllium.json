@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.beryllium",
+  "symbol": "Be",
+  "kind": "element",
+  "composition": {
+    "rematter:beryllium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

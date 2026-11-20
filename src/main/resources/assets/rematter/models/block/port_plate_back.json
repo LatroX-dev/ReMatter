@@ -1,0 +1,231 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#face"
+  },
+  "elements": [
+    {
+      "name": "face",
+      "from": [
+        0,
+        0,
+        15.5
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": "#face",
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "port_ring_top_back",
+      "from": [
+        2,
+        13,
+        16
+      ],
+      "to": [
+        14,
+        14,
+        16.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#ring",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            2.5,
+            14,
+            3
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            3,
+            14,
+            2.5
+          ],
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "port_ring_bottom_back",
+      "from": [
+        2,
+        2,
+        16
+      ],
+      "to": [
+        14,
+        3,
+        16.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#ring",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            2.5,
+            14,
+            3
+          ],
+          "cullface": "south"
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            3,
+            14,
+            2.5
+          ],
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "port_ring_left_back",
+      "from": [
+        2,
+        3,
+        16
+      ],
+      "to": [
+        3,
+        13,
+        16.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#ring",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        }
+      }
+    },
+    {
+      "name": "port_ring_right_back",
+      "from": [
+        13,
+        3,
+        16
+      ],
+      "to": [
+        14,
+        13,
+        16.5
+      ],
+      "faces": {
+        "south": {
+          "texture": "#ring",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

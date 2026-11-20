@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:assembler"
+    }
+  ],
+  "type": "oritech:assembler",
+  "itemInputs": [
+    "#rematter:full_ender_pearl_powders",
+    "rematter:lumivex_dust",
+    "rematter:lumivex_dust",
+    "rematter:copper_dust"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:ender_conductor_blend",
+      "count": 1
+    }
+  ],
+  "time": 180
+}

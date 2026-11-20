@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Peridot",
+  "items": [
+    "alltheores:deepslate_peridot_ore",
+    "alltheores:end_peridot_ore",
+    "alltheores:nether_peridot_ore",
+    "alltheores:other_peridot_ore",
+    "alltheores:peridot",
+    "alltheores:peridot_block",
+    "alltheores:peridot_dust",
+    "alltheores:peridot_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:peridot",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

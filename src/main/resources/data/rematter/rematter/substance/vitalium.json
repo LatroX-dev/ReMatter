@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.vitalium",
+  "symbol": "Vt",
+  "kind": "element",
+  "composition": {
+    "rematter:vitalium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

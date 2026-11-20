@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:diamond_matrix_blend",
+  "energy": 12000,
+  "ticks": 800,
+  "minimum_tier": 1,
+  "result": {
+    "id": "rematter:diamond_lattice",
+    "count": 1
+  },
+  "process": "sintering"
+}

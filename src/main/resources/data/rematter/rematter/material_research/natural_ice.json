@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Ice",
+  "items": [
+    "jaopca:storage_blocks.ice",
+    "minecraft:ice",
+    "occultism:crushed_ice"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:water",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

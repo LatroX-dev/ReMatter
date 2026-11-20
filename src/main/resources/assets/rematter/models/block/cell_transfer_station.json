@@ -1,0 +1,253 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "front": "rematter:block/cell_transfer_station_front",
+    "top": "rematter:block/cell_transfer_station_top",
+    "side": "rematter:block/cell_transfer_station_side",
+    "back": "rematter:block/cell_transfer_station_back",
+    "plain": "rematter:block/casing_plain",
+    "inner": "rematter:block/cell_transfer_station_inner"
+  },
+  "elements": [
+    {
+      "name": "desk_core",
+      "from": [
+        0,
+        0,
+        2
+      ],
+      "to": [
+        16,
+        9,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "south": {
+          "texture": "#back",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#plain",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "rear_riser",
+      "from": [
+        0,
+        9,
+        9
+      ],
+      "to": [
+        16,
+        13,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#back",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "desk_bridge",
+      "from": [
+        6.5,
+        9,
+        3
+      ],
+      "to": [
+        9.5,
+        10,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "east": {
+          "texture": "#top"
+        },
+        "west": {
+          "texture": "#top"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "post_left",
+      "from": [
+        15,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        9,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#plain",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "post_right",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1,
+        9,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#plain",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "plinth",
+      "from": [
+        1,
+        0,
+        0
+      ],
+      "to": [
+        15,
+        3,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#plain",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "mullion",
+      "from": [
+        7,
+        3,
+        0
+      ],
+      "to": [
+        9,
+        6,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        1,
+        6,
+        0
+      ],
+      "to": [
+        15,
+        9,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

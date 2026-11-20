@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Novite",
+  "items": [
+    "jaopca:dusts.novite",
+    "stellaris:novite_block",
+    "stellaris:novite_ingot",
+    "stellaris:novite_ore",
+    "stellaris:raw_novite",
+    "stellaris:raw_novite_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

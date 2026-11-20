@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MOM",
+    "DHP",
+    "MNM"
+  ],
+  "key": {
+    "M": "rematter:matrix_cluster",
+    "O": "rematter:optical_circuit",
+    "D": "rematter:diamond_lattice",
+    "H": "rematter:cell_housing",
+    "P": "rematter:ender_conductor",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:matter_cell_1m",
+    "count": 1
+  }
+}

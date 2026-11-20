@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:foundry"
+    }
+  ],
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "rematter:netherite_sheath_blend",
+    "rematter:netherite_sheath_blend"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:netherite_sheath",
+      "count": 2
+    }
+  ],
+  "time": 280
+}

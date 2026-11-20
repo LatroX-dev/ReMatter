@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:snow_block",
+  "matter": [
+    {"substance": "rematter:water", "phase": "solid", "amount": 1000}
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 100
+}

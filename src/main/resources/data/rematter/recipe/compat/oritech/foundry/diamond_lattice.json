@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:foundry"
+    }
+  ],
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "rematter:diamond_matrix_blend",
+    "rematter:diamond_matrix_blend"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:diamond_lattice",
+      "count": 2
+    }
+  ],
+  "time": 200
+}

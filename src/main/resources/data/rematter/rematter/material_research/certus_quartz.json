@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Certus Quartz",
+  "items": [
+    "ae2:certus_quartz_crystal",
+    "ae2:certus_quartz_dust",
+    "ae2:quartz_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:certus_quartz",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

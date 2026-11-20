@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.peridot",
+  "symbol": "Mg₂SiO₄",
+  "kind": "compound",
+  "composition": {
+    "rematter:magnesium": 2,
+    "rematter:silicon": 1,
+    "rematter:oxygen": 4
+  },
+  "phases": [
+    "solid"
+  ]
+}

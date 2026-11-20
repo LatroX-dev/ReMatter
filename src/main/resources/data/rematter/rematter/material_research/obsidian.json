@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Obsidian",
+  "items": [
+    "enderio:powdered_obsidian",
+    "ftbic:obsidian_dust",
+    "jaopca:storage_blocks.obsidian",
+    "mekanism:dust_obsidian",
+    "minecraft:obsidian",
+    "occultism:obsidian_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

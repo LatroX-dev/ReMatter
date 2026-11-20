@@ -1,0 +1,110 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/light_ember",
+    "light": "rematter:block/light_ember",
+    "work": "rematter:block/bench_sinter_furnace_work_active"
+  },
+  "elements": [
+    {
+      "name": "status_light",
+      "from": [
+        11,
+        1.5,
+        0.5
+      ],
+      "to": [
+        13,
+        2.5,
+        1
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#light"
+        },
+        "east": {
+          "texture": "#light"
+        },
+        "west": {
+          "texture": "#light"
+        },
+        "up": {
+          "texture": "#light"
+        },
+        "down": {
+          "texture": "#light"
+        }
+      }
+    },
+    {
+      "name": "oven_heat",
+      "from": [
+        5,
+        6,
+        8
+      ],
+      "to": [
+        11,
+        12,
+        10
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

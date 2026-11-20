@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.prometheum",
+  "item": "jaopca:storage_blocks.prometheum",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 18000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

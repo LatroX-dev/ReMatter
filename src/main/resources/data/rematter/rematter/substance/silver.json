@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.silver",
+  "symbol": "Ag",
+  "kind": "element",
+  "composition": {
+    "rematter:silver": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

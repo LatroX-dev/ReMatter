@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "S S",
+    "III"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "S": "rematter:silith"
+  },
+  "result": {
+    "id": "rematter:structural_bars",
+    "count": 12
+  }
+}

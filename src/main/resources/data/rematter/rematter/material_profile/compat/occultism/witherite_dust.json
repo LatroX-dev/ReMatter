@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "required_mod": "occultism",
+  "item": "occultism:witherite_dust",
+  "item_count": 3,
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1150
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1100
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 750
+    }
+  ],
+  "decomposition_energy": 96000,
+  "synthesis_energy": 192000,
+  "ticks": 1200
+}

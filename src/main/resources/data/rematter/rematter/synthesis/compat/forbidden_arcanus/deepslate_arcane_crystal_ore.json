@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "forbidden_arcanus",
+  "item": "forbidden_arcanus:deepslate_arcane_crystal_ore",
+  "disabled": true
+}

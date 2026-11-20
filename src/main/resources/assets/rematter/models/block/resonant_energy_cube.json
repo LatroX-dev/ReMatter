@@ -1,0 +1,129 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "plinth",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "post_0_0",
+      "from": [
+        0,
+        2,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        2
+      ],
+      "faces": {
+        "south": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "post_0_14",
+      "from": [
+        0,
+        2,
+        14
+      ],
+      "to": [
+        2,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "east": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "post_14_0",
+      "from": [
+        14,
+        2,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        2
+      ],
+      "faces": {
+        "south": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "post_14_14",
+      "from": [
+        14,
+        2,
+        14
+      ],
+      "to": [
+        16,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

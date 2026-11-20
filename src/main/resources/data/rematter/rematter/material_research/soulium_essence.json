@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Soulium Essence",
+  "items": [
+    "mysticalagriculture:soulium_block",
+    "mysticalagriculture:soulium_dust",
+    "mysticalagriculture:soulium_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:soulium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

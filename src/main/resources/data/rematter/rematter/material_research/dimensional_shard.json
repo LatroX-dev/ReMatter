@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "name": "Dimensional Shard",
+  "items": [
+    "rftoolsbase:dimensionalshard",
+    "rftoolsbase:dimensionalshard_end",
+    "rftoolsbase:dimensionalshard_nether",
+    "rftoolsbase:dimensionalshard_overworld"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:dimensional_shard",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": ""
+}

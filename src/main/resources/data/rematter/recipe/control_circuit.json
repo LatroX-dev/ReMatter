@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "AMA",
+    "CRC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "minecraft:redstone",
+    "A": "rematter:argil",
+    "M": "rematter:matrix_blend"
+  },
+  "result": {
+    "id": "rematter:control_circuit",
+    "count": 4
+  }
+}

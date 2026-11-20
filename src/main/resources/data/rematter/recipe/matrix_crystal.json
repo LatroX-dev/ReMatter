@@ -1,0 +1,11 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:matrix_blend",
+  "energy": 4000,
+  "ticks": 640,
+  "minimum_tier": 0,
+  "result": {
+    "id": "rematter:matrix_crystal",
+    "count": 1
+  }
+}

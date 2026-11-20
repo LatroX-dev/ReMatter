@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "rematter:block/nether_primal_ore"
+    }
+  }
+}

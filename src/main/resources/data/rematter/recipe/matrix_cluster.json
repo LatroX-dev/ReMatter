@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "FBF",
+    "CVC"
+  ],
+  "key": {
+    "C": "rematter:matrix_crystal",
+    "R": "rematter:rhedon",
+    "F": "rematter:structural_bars",
+    "B": "rematter:matrix_blend",
+    "V": "rematter:virel"
+  },
+  "result": {
+    "id": "rematter:matrix_cluster",
+    "count": 1
+  }
+}

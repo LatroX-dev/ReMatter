@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Stygian Steel",
+  "items": [
+    "forbidden_arcanus:stygian_steel_block",
+    "forbidden_arcanus:stygian_steel_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

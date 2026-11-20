@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "rematter:item/portable_energy_cell"
+  }
+}

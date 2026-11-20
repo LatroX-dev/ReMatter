@@ -1,0 +1,40 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "rematter:cell_status",
+    "cases": [
+      {
+        "when": "empty",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/primal_cell_64k_empty"
+        }
+      },
+      {
+        "when": "stored",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/primal_cell_64k_stored"
+        }
+      },
+      {
+        "when": "full",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/primal_cell_64k_full"
+        }
+      },
+      {
+        "when": "locked",
+        "model": {
+          "type": "minecraft:model",
+          "model": "rematter:item/primal_cell_64k_locked"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "rematter:item/primal_cell_64k"
+    }
+  }
+}

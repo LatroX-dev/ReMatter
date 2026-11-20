@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Clay",
+  "items": [
+    "minecraft:clay",
+    "minecraft:clay_ball"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

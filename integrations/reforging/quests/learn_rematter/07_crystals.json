@@ -1,0 +1,49 @@
+{
+  "title": "Learn Before You Grow",
+  "description": [
+    "Analysis keeps a sample and costs twice its decomposition FE and four times its time. Decomposition consumes it while teaching its material family. Already known samples need no paid analysis. Research belongs to the owner and current team; knowing a family never bypasses the synthesis allowlist.",
+    "The Material Synthesizer makes approved known crystal forms. Diamond also requires a Pressure Module. Chemical Reactor growth needs Field 4 or 8 and a known product. These new growth routes stay disabled in this reference integration pending separate pack balance approval.",
+    "The Analyzer Research tab offers Derive from known constituent substances. Discovery is much later: earn 32 families, both industrial milestones, a Discovery Lens and enough paid Primal steps. Its random locked family stays hidden until the complete research finishes."
+  ],
+  "icon": "rematter:material_synthesizer",
+  "x": 0.0,
+  "y": 7.2,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:material_synthesizer"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:pressure_module"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/04_silicon"
+    ]
+  },
+  "routes": {}
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "S",
+    "B"
+  ],
+  "key": {
+    "S": "rematter:silith",
+    "B": "minecraft:book"
+  },
+  "result": {
+    "id": "rematter:guide",
+    "count": 1
+  }
+}

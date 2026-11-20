@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "rematter:cavern_vapor",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:water",
+      "phase": "gas",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 50
+    }
+  ],
+  "energy": 12000,
+  "ticks": 600,
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "requires_open_air": false
+}

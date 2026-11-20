@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "regions_unexplored",
+  "item": "regions_unexplored:raw_redstone_block",
+  "disabled": true
+}

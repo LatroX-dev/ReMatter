@@ -1,0 +1,10 @@
+{
+  "parent": "rematter:block/primal_ore",
+  "textures": {
+    "particle": "minecraft:block/netherrack",
+    "host_side": "minecraft:block/netherrack",
+    "host_end": "minecraft:block/netherrack",
+    "socket": "rematter:block/nether_primal_ore_socket",
+    "glow": "rematter:block/primal_ore_glow"
+  }
+}

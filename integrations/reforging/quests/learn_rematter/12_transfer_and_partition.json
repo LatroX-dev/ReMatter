@@ -1,0 +1,55 @@
+{
+  "title": "Wrench, Partition and Link",
+  "description": [
+    "Craft a Matter Wrench to rotate machine housings, cycle Machine Port roles and sneak-right-click owned ReMatter blocks to dismantle them straight into your inventory with stored contents and settings intact. You can also insert or pull Cells directly on the six front bays of a Matter Drive.",
+    "Use a Cell Transfer Station to drain or fill portable Matter and Primal Cells against network stock, and configure a Cell's partition filter so dedicated bays accept only the substances a line should buffer.",
+    "Pair two Entangled Links when distant rooms or dimensions need to share one owned Matter Network without running a long cable spine."
+  ],
+  "icon": "rematter:matter_wrench",
+  "x": 10.8,
+  "y": 0.0,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matter_wrench"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:cell_transfer_station"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:entangled_link"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/03_glass"
+    ]
+  },
+  "routes": {}
+}

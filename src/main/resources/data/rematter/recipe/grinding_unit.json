@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DMD",
+    "RBR",
+    "VFV"
+  ],
+  "key": {
+    "D": "rematter:diamond_lattice",
+    "M": "rematter:amber_matrix_crystal",
+    "R": "rematter:rhevon_ingot",
+    "B": "rematter:structural_bars",
+    "V": "rematter:virelite_ceramic",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:grinding_unit",
+    "count": 1
+  }
+}

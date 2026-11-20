@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Energite",
+  "items": [
+    "oritech:energite",
+    "oritech:energite_dust",
+    "oritech:energite_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:fluxite",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

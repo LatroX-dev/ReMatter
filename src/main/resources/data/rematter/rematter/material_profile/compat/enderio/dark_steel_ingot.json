@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:dark_steel_ingot",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 128
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

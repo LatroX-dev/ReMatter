@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Azurite",
+  "items": [
+    "colossal_reactors:azurite_block",
+    "colossal_reactors:azurite_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

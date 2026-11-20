@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BGB",
+    "G G",
+    "BGB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "G": "minecraft:glass"
+  },
+  "result": {
+    "id": "rematter:cell_housing",
+    "count": 2
+  }
+}

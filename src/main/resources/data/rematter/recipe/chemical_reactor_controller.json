@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GVG",
+    "OMO",
+    "NXN"
+  ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "O": "rematter:optical_circuit",
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:matrix_cluster",
+    "N": "rematter:netherite_sheath",
+    "X": "rematter:violet_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:chemical_reactor_controller",
+    "count": 1
+  }
+}

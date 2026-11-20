@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Infused Entro",
+  "items": [
+    "extendedae:entro_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:entro",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

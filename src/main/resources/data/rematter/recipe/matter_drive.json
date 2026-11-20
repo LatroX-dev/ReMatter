@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "FBF",
+    "RCR",
+    "FXF"
+  ],
+  "key": {
+    "F": "rematter:machine_frame",
+    "R": "rematter:cell_rack",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "X": "rematter:mint_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:matter_drive",
+    "count": 1
+  }
+}

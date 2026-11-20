@@ -1,0 +1,30 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "enderio:sag_milling"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:item",
+      "value": "enderio:powdered_obsidian"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "input": "#c:obsidians",
+  "outputs": [
+    {
+      "item": {
+        "id": "enderio:powdered_obsidian",
+        "count": 4
+      }
+    }
+  ],
+  "energy": 2400,
+  "bonus": "none"
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "stellaris",
+  "item": "stellaris:raw_desh_block",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4950
+    },
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid",
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 2250
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

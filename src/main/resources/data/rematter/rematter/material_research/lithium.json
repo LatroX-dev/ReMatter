@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Lithium",
+  "items": [
+    "jaopca:storage_blocks.lithium",
+    "mekanism:dust_lithium"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:lithium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.eclipsealloy",
+  "item": "jaopca:storage_blocks.eclipsealloy",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2025
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 4050
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

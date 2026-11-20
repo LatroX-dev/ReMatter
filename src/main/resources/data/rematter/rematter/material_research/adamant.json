@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Adamant",
+  "items": [
+    "oritech:adamant",
+    "oritech:adamant_dust",
+    "oritech:adamant_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:item",
+      "value": "jaopca:storage_blocks.ender_pearl"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:item",
+      "value": "enderio:powdered_ender_pearl"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": ["PPP", "PPP", "PPP"],
+  "key": {"P": "enderio:powdered_ender_pearl"},
+  "result": {"id": "jaopca:storage_blocks.ender_pearl"}
+}

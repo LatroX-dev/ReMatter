@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Charged Redstone",
+  "items": [
+    "appflux:charged_redstone",
+    "appflux:charged_redstone_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:charged_redstone",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

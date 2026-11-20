@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GMG",
+    "BDB",
+    "FCF"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "M": "rematter:violet_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit"
+  },
+  "result": {
+    "id": "rematter:chemical_processor",
+    "count": 1
+  }
+}

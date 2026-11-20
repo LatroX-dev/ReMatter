@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GLG",
+    "DCD",
+    "GLG"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "L": "rematter:lumivex_ingot",
+    "D": "rematter:diamond_lattice",
+    "C": "rematter:control_circuit"
+  },
+  "result": {
+    "id": "rematter:optical_circuit",
+    "count": 2
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Prometheum",
+  "items": [
+    "jaopca:storage_blocks.prometheum",
+    "oritech:prometheum_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

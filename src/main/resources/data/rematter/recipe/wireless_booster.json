@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " B ",
+    "ECE",
+    " P "
+  ],
+  "key": {
+    "B": "rematter:blue_matrix_crystal",
+    "E": "rematter:ender_pearl_powder",
+    "C": "rematter:control_circuit",
+    "P": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "rematter:wireless_booster",
+    "count": 2
+  }
+}

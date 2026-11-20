@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.enderion",
+  "symbol": "Edr",
+  "kind": "element",
+  "composition": {
+    "rematter:enderion": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

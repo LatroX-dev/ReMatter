@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:electrum",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4500
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 3600
+}

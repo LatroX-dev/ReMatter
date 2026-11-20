@@ -1,0 +1,401 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "body": "rematter:block/module_reaction_chamber",
+    "mount": "rematter:block/module_mount",
+    "port": "rematter:block/casing_port",
+    "seat": "rematter:block/module_mount_top"
+  },
+  "elements": [
+    {
+      "name": "mount_plate",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#seat",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#port",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "mount_collar",
+      "from": [
+        3,
+        2,
+        3
+      ],
+      "to": [
+        13,
+        3,
+        13
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            2,
+            10,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "stem",
+      "from": [
+        7,
+        3,
+        7
+      ],
+      "to": [
+        9,
+        5,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            11,
+            2,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            0,
+            11,
+            2,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            11,
+            2,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            11,
+            2,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "yoke",
+      "from": [
+        3,
+        5,
+        6.5
+      ],
+      "to": [
+        13,
+        6,
+        9.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            10,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            10,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            10,
+            5,
+            13,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            10,
+            5,
+            13,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            10,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            10,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_left",
+      "from": [
+        12,
+        6,
+        6.5
+      ],
+      "to": [
+        13,
+        11,
+        9.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            3,
+            6,
+            4,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            3,
+            6,
+            4,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            6,
+            3,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            6,
+            3,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            3,
+            11,
+            4,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "name": "arm_right",
+      "from": [
+        3,
+        6,
+        6.5
+      ],
+      "to": [
+        4,
+        11,
+        9.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            3,
+            6,
+            4,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            3,
+            6,
+            4,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            6,
+            3,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            6,
+            3,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            3,
+            11,
+            4,
+            14
+          ]
+        }
+      }
+    }
+  ]
+}

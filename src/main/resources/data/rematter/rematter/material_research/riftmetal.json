@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Riftmetal",
+  "items": [
+    "hextale:riftmetal_block",
+    "hextale:riftmetal_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

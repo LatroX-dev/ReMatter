@@ -1,0 +1,30 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/terminal_screen",
+    "screen": "rematter:block/terminal_screen"
+  },
+  "elements": [
+    {
+      "name": "screen",
+      "from": [
+        1,
+        4,
+        1
+      ],
+      "to": [
+        15,
+        15,
+        2
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#screen"
+        }
+      }
+    }
+  ]
+}

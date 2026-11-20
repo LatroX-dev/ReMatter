@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Ferricore",
+  "items": [
+    "jaopca:storage_blocks.ferricore",
+    "justdirethings:ferricore_ingot",
+    "justdirethings:raw_ferricore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

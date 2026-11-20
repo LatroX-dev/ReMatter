@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "rematter:block/cell_transfer_station"
+  }
+}

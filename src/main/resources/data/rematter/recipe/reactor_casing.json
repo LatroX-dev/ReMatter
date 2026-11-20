@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "BFB",
+    "BBB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:reactor_casing",
+    "count": 8
+  }
+}

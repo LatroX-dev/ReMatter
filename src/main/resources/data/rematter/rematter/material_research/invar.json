@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "name": "Invar",
+  "items": [
+    "alltheores:invar_block",
+    "alltheores:invar_dust",
+    "alltheores:invar_ingot",
+    "alltheores:invar_nugget",
+    "ftbic:invar_block",
+    "ftbic:invar_dust",
+    "ftbic:invar_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

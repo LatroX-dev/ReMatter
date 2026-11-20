@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "name": "Brass",
+  "items": [
+    "alltheores:brass_block",
+    "alltheores:brass_dust",
+    "alltheores:brass_ingot",
+    "alltheores:brass_nugget",
+    "hextale:brass_block",
+    "hextale:brass_ingot",
+    "hextale:brass_nugget",
+    "infinity_nexus_mod:brass_block",
+    "infinity_nexus_mod:brass_dust",
+    "infinity_nexus_mod:brass_ingot",
+    "infinity_nexus_mod:brass_nugget",
+    "thaumaturge:ingot_brass",
+    "thaumaturge:metal_brass",
+    "thaumaturge:nugget_brass"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

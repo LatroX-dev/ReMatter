@@ -1,0 +1,235 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#face"
+  },
+  "elements": [
+    {
+      "name": "face",
+      "from": [
+        15.5,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": "#face",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "name": "port_ring_top_left",
+      "from": [
+        16,
+        13,
+        2
+      ],
+      "to": [
+        16.5,
+        14,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#ring",
+          "cullface": "east"
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            3,
+            14,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            14,
+            3,
+            2,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "name": "port_ring_bottom_left",
+      "from": [
+        16,
+        2,
+        2
+      ],
+      "to": [
+        16.5,
+        3,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            4,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#ring",
+          "cullface": "east"
+        },
+        "up": {
+          "texture": "#ring",
+          "uv": [
+            2,
+            3,
+            14,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "down": {
+          "texture": "#ring",
+          "uv": [
+            14,
+            3,
+            2,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "name": "port_ring_left_left",
+      "from": [
+        16,
+        3,
+        13
+      ],
+      "to": [
+        16.5,
+        13,
+        14
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#ring",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "name": "port_ring_right_left",
+      "from": [
+        16,
+        3,
+        2
+      ],
+      "to": [
+        16.5,
+        13,
+        3
+      ],
+      "faces": {
+        "north": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            2.5,
+            3,
+            3
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "south": {
+          "texture": "#ring",
+          "uv": [
+            13,
+            3,
+            3,
+            2.5
+          ],
+          "rotation": 90,
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#ring",
+          "cullface": "east"
+        }
+      }
+    }
+  ]
+}

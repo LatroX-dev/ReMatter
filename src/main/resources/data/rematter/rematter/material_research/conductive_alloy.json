@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Conductive Alloy",
+  "items": [
+    "enderio:conductive_alloy_block",
+    "enderio:conductive_alloy_ingot",
+    "enderio:conductive_alloy_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

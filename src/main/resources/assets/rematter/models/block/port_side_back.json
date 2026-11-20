@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "#face"
+  },
+  "elements": [
+    {
+      "name": "face",
+      "from": [
+        0,
+        0,
+        15.5
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": "#face",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "VMV",
+    "DOD",
+    "RFR"
+  ],
+  "key": {
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:amber_matrix_crystal",
+    "D": "rematter:diamond_lattice",
+    "O": "rematter:optical_circuit",
+    "R": "rematter:rhevon_ingot",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:separation_unit",
+    "count": 1
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:vibrant_alloy_nugget",
+  "item_count": 9,
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

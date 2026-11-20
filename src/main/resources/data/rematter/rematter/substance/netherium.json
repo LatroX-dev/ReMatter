@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.netherium",
+  "symbol": "Nt",
+  "kind": "element",
+  "composition": {
+    "rematter:netherium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

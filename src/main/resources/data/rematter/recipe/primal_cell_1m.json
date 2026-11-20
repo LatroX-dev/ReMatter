@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "COC",
+    "NHN",
+    "CDC"
+  ],
+  "key": {
+    "H": "rematter:cell_housing",
+    "C": "rematter:primal_crystal",
+    "O": "rematter:optical_circuit",
+    "D": "rematter:diamond_lattice",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:primal_cell_1m",
+    "count": 1
+  }
+}

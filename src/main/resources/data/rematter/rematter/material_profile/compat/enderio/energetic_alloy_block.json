@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:energetic_alloy_block",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4500
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 3600
+}

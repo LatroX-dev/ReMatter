@@ -1,0 +1,184 @@
+name: Build
+
+on:
+  push:
+    branches: [main, 'overhaul-*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  client-windows:
+    name: Packaged client on Windows
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Java 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25.0.2'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Build the production JAR
+        run: |
+          git -c core.autocrlf=false checkout-index --force --all
+          .\gradlew.bat jar --no-daemon
+      - name: Record file checksums for cross-platform comparison
+        shell: python
+        run: |
+          from hashlib import sha256
+          from pathlib import Path
+          from zipfile import ZipFile
+          jar, = Path("build/libs").glob("*.jar")
+          with ZipFile(jar) as archive, open("windows-jar-contents.sha256", "w", encoding="utf-8", newline="\n") as record:
+              for name in sorted(archive.namelist()):
+                  if not name.endswith("/"):
+                      print(sha256(archive.read(name)).hexdigest(), name, sep="  ", file=record)
+      - name: Save the checksum list
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: windows-jar-contents
+          path: windows-jar-contents.sha256
+          retention-days: 7
+      - name: Start the packaged mod and join a fresh world
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $settings = Get-Content gradle.properties -Raw | ConvertFrom-StringData
+          $jar = Get-Item "build/libs/$($settings.mod_id)-$($settings.mod_version).jar"
+          $work = New-Item -ItemType Directory "$env:RUNNER_TEMP/rematter-client"
+          Set-Location $work
+          New-Item -ItemType Directory -Path HeadlessMC, game/mods -Force | Out-Null
+          Copy-Item $jar game/mods
+          Write-Host "Packaged mod SHA-256 $((Get-FileHash $jar).Hash)"
+          function Get-Verified($url, $file, $sha) {
+            Invoke-WebRequest -Uri $url -OutFile $file
+            if ((Get-FileHash $file).Hash -ne $sha) { throw "Checksum mismatch for $file" }
+          }
+          $releases = 'https://github.com'
+          Get-Verified "$releases/headlesshq/headlessmc/releases/download/3.0.0-RC9/headlessmc.jar" 'hmc.jar' 'a343a7c51e48c566a5cd408bd0012ddf091ea105ecc31daff00af600d3a7218a'
+          $probe = "mc-runtime-test-$($settings.minecraft_version)-neoforge-5.1.0.jar"
+          Get-Verified "$releases/headlesshq/mc-runtime-test-mod/releases/download/$($settings.minecraft_version)-5.1.0/$probe" "game/mods/$probe" '9e73c9ab7e1231ce2b77a6d7d61d543d9ec745db28d5fa1e0e43c44cc215f1f5'
+          Get-Verified "$releases/pal1000/mesa-dist-win/releases/download/26.2.7/mesa3d-26.2.7-release-msvc.7z" 'mesa.7z' 'e61153fb1a8e58b9d80b403030cda619eaffbddd9ff99b34163b996ead03d596'
+          7z x mesa.7z -omesa 'x64/*.dll' | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw 'Could not extract the software OpenGL driver' }
+          Copy-Item mesa/x64/*.dll "$env:JAVA_HOME/bin"
+          $env:GALLIUM_DRIVER = 'llvmpipe'
+          $env:ALSOFT_DRIVERS = 'null'
+          $env:HMC_FILES_LOCATION = "$work/HeadlessMC"
+          @("hmc.java.versions=$($env:JAVA_HOME.Replace('\','/'))", "hmc.files.game=$($work.FullName.Replace('\','/'))/game", 'hmc.files.game-for-each-version=false', 'hmc.jline.enabled=false') | Set-Content HeadlessMC/config.properties
+          @('onboardAccessibility:false','pauseOnLostFocus:false','renderDistance:3','simulationDistance:5') | Set-Content game/options.txt
+          # HeadlessMC accepts the NeoForge build suffix separately from the Minecraft version.
+          $loaderBuild = $settings.neo_version.Substring($settings.minecraft_version.Length + 1)
+          java -jar hmc.jar launch --offline --jvm '-DMcRuntimeGameTest=false -Xmx3G' neoforge $settings.minecraft_version $loaderBuild
+          if ($LASTEXITCODE -ne 0) { throw "Client exited with $LASTEXITCODE" }
+          if (!(Select-String -Quiet -Path game/logs/latest.log -Pattern 'joined the game')) { throw 'Missing world join' }
+          if (!(Get-ChildItem game/saves -Recurse -Filter level.dat)) { throw 'Missing saved world' }
+          Write-Host 'Packaged Windows client joined and saved a fresh world.'
+  research-io-windows:
+    name: Research authority I/O on Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Java 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Test real filesystem publication and research recovery
+        run: >-
+          .\gradlew.bat test --rerun-tasks --no-daemon
+          --tests "dev.latrox.rematter.research.ResearchAuthorityTest"
+          --tests "dev.latrox.rematter.research.ResearchSessionsTest"
+          --tests "dev.latrox.rematter.research.ConversionClaimsTest"
+      - name: Test native server payments and rollback on Windows
+        run: .\gradlew.bat runGameTestServer --no-daemon
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Java 25
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - name: Build and run unit tests
+        run: ./gradlew build --rerun-tasks --no-daemon
+      - name: Test optional integration configuration merge
+        run: python3 -m unittest discover -s integrations/reforging/tests -p 'test_*.py'
+      - name: Test real server machines in an isolated world
+        run: ./gradlew runGameTestServer --no-daemon
+      - name: Verify curated material data matches generated resources
+        run: python3 tools/generate_material_data.py --check
+      - name: Verify generated workshop materials
+        run: python3 tools/generate_workshop_materials.py --check
+      - name: Verify generated machine assets
+        run: python3 tools/generate_visual_assets.py --check
+      - name: Verify generated machine family assets
+        run: python3 tools/generate_family_assets.py --check
+      - name: Verify generated server bench shapes
+        run: python3 tools/generate_bench_shapes.py --check
+      - name: Verify generated GUI skins
+        run: python3 tools/generate_gui_assets.py --check
+      - name: Verify generated module assets
+        run: python3 tools/generate_module_assets.py --check
+      - name: Verify generated Cell Transfer Station
+        run: python3 tools/generate_cell_transfer_assets.py --check
+      - name: Verify generated cell models
+        run: python3 tools/generate_cell_models.py --check
+      - name: Verify generated components
+        run: python3 tools/generate_component_assets.py --check
+      - name: Verify illustrated replacement icons
+        run: python3 tools/generate_illustrated_icons.py --check
+      - name: Verify generated advanced material icons
+        run: python3 tools/generate_advanced_material_icons.py --check
+      - name: Verify generated metallurgy assets
+        run: python3 tools/generate_metallurgy_assets.py --check
+      - name: Verify generated research data
+        run: python3 tools/generate_research_data.py --check
+      - name: Verify generated Primal assets
+        run: python3 tools/generate_primal_assets.py --check
+      - name: Verify generated energy cube assets
+        run: python3 tools/generate_energy_assets.py --check
+      - name: Verify generated progression assets
+        run: python3 tools/generate_progression_assets.py --check
+      - name: Verify generated player guidance
+        run: python3 tools/generate_player_guidance.py --check
+      - name: Verify the installed sound set
+        run: python3 tools/generate_sound_assets.py --check
+      - name: Check asset integrity
+        run: python3 tools/check_assets.py
+      - name: Test asset generator contracts and Primal alternatives
+        run: python3 -m unittest discover -s tools/tests -p 'test_*.py'
+      - name: Test the visual style check
+        run: python3 tools/check_visual_style.py --selftest
+      - name: Check assets against the visual style guide
+        run: python3 tools/check_visual_style.py
+      - name: Verify specialist device assets and recipes
+        run: python3 tools/generate_device_assets.py --check
+      - name: Verify crystal fuel closed-cycle audit
+        run: python3 tools/audit_crystal_fuel.py --check

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.dimensional_shard",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:enderion": 1,
+    "rematter:quantium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

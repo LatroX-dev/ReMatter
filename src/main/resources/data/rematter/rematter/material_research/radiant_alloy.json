@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Radiant Alloy",
+  "items": [
+    "hextale:radiant_alloy_block",
+    "hextale:radiant_alloy_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

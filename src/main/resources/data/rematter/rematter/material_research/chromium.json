@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Chromium",
+  "items": [
+    "colossal_reactors:chromium_block",
+    "colossal_reactors:chromium_dust",
+    "colossal_reactors:chromium_ingot",
+    "colossal_reactors:chromium_ore",
+    "colossal_reactors:chromium_raw",
+    "colossal_reactors:chromium_raw_block",
+    "colossal_reactors:deep_chromium_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:chromium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

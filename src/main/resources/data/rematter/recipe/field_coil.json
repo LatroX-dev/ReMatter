@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CLC",
+    "CMC",
+    "FQF"
+  ],
+  "key": {
+    "C": "rematter:copper_dust",
+    "L": "rematter:lumivex_ingot",
+    "M": "rematter:violet_matrix_crystal",
+    "Q": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:field_coil",
+    "count": 1
+  }
+}

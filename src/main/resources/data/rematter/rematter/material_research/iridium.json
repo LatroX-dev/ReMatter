@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "name": "Iridium",
+  "items": [
+    "alltheores:deepslate_iridium_ore",
+    "alltheores:end_iridium_ore",
+    "alltheores:iridium_block",
+    "alltheores:iridium_dust",
+    "alltheores:iridium_ingot",
+    "alltheores:iridium_nugget",
+    "alltheores:iridium_ore",
+    "alltheores:nether_iridium_ore",
+    "alltheores:other_iridium_ore",
+    "alltheores:raw_iridium",
+    "alltheores:raw_iridium_block",
+    "ftbic:iridium_block",
+    "ftbic:iridium_deepslate_ore",
+    "ftbic:iridium_dust",
+    "ftbic:iridium_ingot",
+    "ftbic:iridium_raw_block",
+    "ftbic:iridium_raw_ore",
+    "ftbic:iridium_stone_ore",
+    "infinity_nexus_mod:iridium_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iridium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": ""
+}

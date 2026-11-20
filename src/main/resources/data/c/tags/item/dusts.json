@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "#c:dusts/iron",
+    "#c:dusts/copper",
+    "#c:dusts/gold",
+    "#c:dusts/rhevon",
+    "#c:dusts/lumivex",
+    "#c:dusts/diamond",
+    "#c:dusts/netherite",
+    "#c:dusts/lapis",
+    "#c:dusts/amethyst",
+    "#c:dusts/emerald",
+    "rematter:ender_pearl_powder"
+  ]
+}

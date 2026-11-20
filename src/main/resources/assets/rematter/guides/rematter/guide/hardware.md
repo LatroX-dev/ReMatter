@@ -1,0 +1,34 @@
+---
+navigation:
+  title: Hardware and upgrades
+  icon: rematter:reaction_chamber
+  parent: index.md
+  position: 17
+---
+# Hardware grants capabilities; upgrades control work
+
+| Hardware | Its job |
+| --- | --- |
+| Field Stabilizer / Field Coil | Adds Field; special Reactor procedures require 4 or 8 |
+| Reaction Focus / Reaction Chamber | Adds 16,000 u room for simultaneous recipe inputs |
+| Resonance Cutter / Grinding Unit | Adds capacity for grinding steps |
+| Confluence Basin / Mixing Basin | Adds capacity for mixing steps |
+| Phase Filter / Separation Unit | Adds Precision for separation and fine workshop recipes |
+
+The crystal and the small tab on a module mount show the crystal used to craft it: **Amber** for Cutters, Filters and Basins, **Violet** for Stabilizers and Foci. The item in your hand uses the same mechanism and sprites as the installed module.
+
+Hardware does not add another global Speed multiplier or an FE discount. Extra room never multiplies recipe output. The menu separates Field, Precision, room, speed, efficiency and active jobs.
+
+Minimum outer height is 4 for Reactor, 5 for Preparator. Each additional layer permits another lane, up to 4. **Parallel Upgrades and enough hardware are also required.** Simultaneous Reactor inputs must fit its room; preparation jobs need capacity for every step they use.
+
+Chemical Reactor and Preparation Reactor controllers have separate **Speed, Efficiency and Parallel** slots. Compact processors keep their own single upgrade choice. The Synthesizer's Pressure Module remains a separate gate within that choice. Analyzer payment and Discovery Lens have dedicated slots.
+
+Four Speed Upgrades give five times base work rate and double batch FE. Four Efficiency Upgrades save 20% before integer rounding; the absolute saving limit is 25%. Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE.
+
+All lanes share [one transfer budget](throughput.md).
+
+## Read the work
+
+Bench mechanisms show their task: jaws close around a Decomposer sample, the Analyzer scans it with a ring, the Preparator presses or mixes it, and the Synthesizer sends matter toward its product. The Chemical Processor exchanges liquid between its two columns. Industrial fields turn continuously while modules send pulses into the chamber; Separation Units carry their pulses away from the focus.
+
+A bench status lamp is dark when idle, uses the device colour while working, and breathes blue when a loaded job waits. Read the menu for its actual reason. Mechanisms ease into motion and slow to a stop; rapid recipe batches do not make them jump back every time. A short visual afterglow does not consume extra resources or mean that a paused machine is still producing.

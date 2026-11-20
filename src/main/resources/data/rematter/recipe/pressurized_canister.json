@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " C ",
+    "VMV",
+    "RHR"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:mint_matrix_crystal",
+    "R": "rematter:rhevon_ingot",
+    "H": "rematter:cell_housing"
+  },
+  "result": {
+    "id": "rematter:pressurized_canister",
+    "count": 1
+  }
+}

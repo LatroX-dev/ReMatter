@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.dragonyst",
+  "item": "jaopca:storage_blocks.dragonyst",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 900
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 6300
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:machine_frame",
+    "rematter:control_circuit",
+    "rematter:optical_circuit",
+    "rematter:matrix_cluster"
+  ]
+}

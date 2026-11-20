@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Plastic",
+  "items": [
+    "oritech:plastic",
+    "oritech:plastic_sheet"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

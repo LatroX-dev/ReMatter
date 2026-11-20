@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "justdirethings",
+  "item": "justdirethings:raw_ferricore",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2250
+    }
+  ],
+  "decomposition_energy": 160000,
+  "synthesis_energy": 320000,
+  "ticks": 2000
+}

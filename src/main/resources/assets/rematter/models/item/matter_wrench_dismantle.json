@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "rematter:item/matter_wrench_dismantle"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "refinedstorage",
+  "item": "refinedstorage:silicon",
+  "matter": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

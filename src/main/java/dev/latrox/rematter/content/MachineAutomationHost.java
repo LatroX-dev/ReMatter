@@ -1,0 +1,399 @@
+package dev.latrox.rematter.content;
+
+import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.automation.AutomationAdapter;
+import dev.latrox.rematter.automation.AutomationBackends;
+import dev.latrox.rematter.automation.AutomationNetworkPolicy;
+import dev.latrox.rematter.automation.AutomationPort;
+import dev.latrox.rematter.automation.DefinedMatter;
+import dev.latrox.rematter.automation.OrderLedger;
+import dev.latrox.rematter.automation.OrderLedgerCodec;
+import dev.latrox.rematter.automation.StaleOrders;
+import dev.latrox.rematter.chemistry.SubstanceKey;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.StringTag;
+import java.util.Set;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jspecify.annotations.Nullable;
+
+/** The interface alone owns transferred inputs and undelivered outputs. Workers only hold temporary leases. */
+public final class MachineAutomationHost implements AutomationPort {
+    /** A recipe change must persist this long before its queued orders are cancelled and refunded. */
+    private static final long STALE_ORDER_TICKS=200;
+    private final MachineBlockEntity machine;
+    private UUID id = UUID.randomUUID();
+    private String backend = "";
+    private OrderLedger ledger = new OrderLedger();
+    private @Nullable Tag lockedData;
+    private CompoundTag adapterData = new CompoundTag();
+    private @Nullable AutomationAdapter adapter;
+    private Object chemistryIdentity, recipeIdentity;
+    private Map<String,Recipe> catalogue = Map.of();
+    private Map<String,Recipe> eligibleCatalogue = Map.of();
+    private Set<MachineKind> eligibleWorkerKinds = Set.of();
+    private List<Recipe> eligibleRecipes = List.of();
+    private final Map<UUID,MachineBlockEntity> assigned = new HashMap<>();
+    private final Map<UUID,Long> completedAt = new HashMap<>();
+    private final StaleOrders staleOrders = new StaleOrders(STALE_ORDER_TICKS);
+    private boolean closed, ticking, lease, revoking, catalogueInvalid;
+    private long loadedAt = Long.MIN_VALUE;
+
+    MachineAutomationHost(MachineBlockEntity machine) { this.machine = machine; }
+    public MachineBlockEntity machine() { return machine; }
+    public String backend() {
+        if (backend.isEmpty()) backend = AutomationBackends.available().contains("ae2") ? "ae2"
+                : AutomationBackends.available().stream().findFirst().orElse("");
+        return backend;
+    }
+    @Override public UUID ownerId() { return machine.networkOwner(); }
+    @Override public UUID bridgeId() { return id; }
+    private boolean live() { return !closed && machine.networkLive() && ownerId() != null; }
+    private boolean eligible() {
+        return live() && lockedData == null && machine.automation() && AutomationBackends.available().contains(backend());
+    }
+    private boolean elected(MachineMatterNetwork network) {
+        if (!network.ready() || !eligible()) return false;
+        return AutomationNetworkPolicy.elected(network.interfaces(), backend(),
+                candidate -> candidate.automationHost().backend(),
+                candidate -> candidate.automationHost() != null && candidate.automationHost().eligible(),
+                candidate -> candidate.automationHost().incumbency())
+                .orElse(null) == machine;
+    }
+    /** Held work outranks a live lease, so queued orders drain before another interface takes over. */
+    private int incumbency() { return !ledger.isEmpty()||adapter!=null&&adapter.hasTasks()?2:lease?1:0; }
+    @Override public boolean active() {
+        return live() && lockedData == null && machine.automation() && lease
+                && elected(machine.matterNetwork(false));
+    }
+    /** Only the selected optional backend can obtain a capability delegate. */
+    public @Nullable AutomationAdapter adapter(String requested) {
+        if (revoking || !live() || lockedData != null || !machine.automation() || !elected(machine.matterNetwork(false)) || !backend().equals(requested)) return null;
+        ensureAdapter();
+        return adapter;
+    }
+    private void ensureAdapter() {
+        if (revoking || adapter != null || !live() || lockedData != null || backend().isEmpty()) return;
+        adapter = AutomationBackends.create(backend(),machine,this);
+        if (adapter != null && adapterData.contains(backend())) {
+            var data = adapterData.getCompound(backend()).orElseThrow(() -> new IllegalStateException("Locked native adapter state"));
+            adapter.load(TagValueInput.create(ProblemReporter.DISCARDING,machine.getLevel().registryAccess(),data));
+        }
+    }
+    private void saveAdapter() {
+        if (adapter == null || machine.getLevel() == null) return;
+        var output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,machine.getLevel().registryAccess());
+        adapter.save(output);
+        adapterData.put(adapter.id(),output.buildResult());
+    }
+    private void revoke() {
+        if (revoking) return;
+        revoking = true;
+        boolean invalidate = lease || adapter != null;
+        try {
+            lease = false;
+            releaseAll();
+            if (adapter != null) {
+                saveAdapter();
+                var previous = adapter; adapter = null;
+                previous.close();
+            }
+            if (invalidate && machine.getLevel() != null) machine.getLevel().invalidateCapabilities(machine.getBlockPos());
+        } finally { revoking = false; }
+    }
+    public void close() { revoke(); closed = true; }
+    public boolean cycleBackend() {
+        if (revoking || !live() || lockedData != null || !ledger.snapshot().orders().isEmpty()) return false;
+        var next=AutomationBackends.after(AutomationBackends.available(),backend()).orElse(null); if(next==null)return false;
+        // A backend whose mod is gone keeps its native state stored under its own key and runs no tasks.
+        if(AutomationBackends.available().contains(backend())) {
+            // A revoked or freshly loaded adapter can still own native tasks in its saved data.
+            // Read that state before permitting a switch; absence of a live delegate is not an empty queue.
+            ensureAdapter();
+            if (!live() || lockedData != null || adapter != null && adapter.hasTasks()
+                    || adapter == null && adapterData.contains(backend())) return false;
+        }
+        revoke(); backend=next;
+        if(machine.getLevel()!=null)machine.getLevel().invalidateCapabilities(machine.getBlockPos());
+        changed(); return true;
+    }
+    public String status() {
+        if(lockedData!=null)return "automation_data_locked";
+        if(catalogueInvalid)return "automation_catalogue_invalid";
+        if(!machine.automation())return "automation_off";
+        var network=machine.matterNetwork(false);
+        if(!network.ready())return network.status();
+        if(backend().isEmpty()||!AutomationBackends.available().contains(backend()))return "automation_backend_missing";
+        if(!elected(network))return "automation_interface_conflict";
+        if(adapter==null||!adapter.connected())return "automation_disconnected";
+        if(!adapter.status().isEmpty())return adapter.status();
+        if(ledger.snapshot().orders().stream().anyMatch(OrderLedger.Order::quarantined))return "automation_quarantined";
+        if(staleOrders.waiting()||!ledger.pendingRefunds().isEmpty())return "automation_orders_stale";
+        return ledger.snapshot().orders().isEmpty()?"ready":"network_controlled";
+    }
+    /** Orders that a recipe change made outdated: those waiting out the grace period and cancelled ones still returning inputs. */
+    public int staleOrderCount() {
+        int refunding=(int)ledger.snapshot().orders().stream().filter(order->order.cancelled()&&!order.quarantined()&&!order.ownedInputs().isEmpty()).count();
+        return staleOrders.count()+refunding;
+    }
+    public int quarantinedOrderCount() {
+        return (int)ledger.snapshot().orders().stream().filter(OrderLedger.Order::quarantined).count();
+    }
+    /** The oldest stopped delivery whose held resources its owner may take by hand. */
+    public Optional<OrderLedger.Order> releasableOrder() {
+        return live()&&lockedData==null?ledger.firstReleasable():Optional.empty();
+    }
+    public Optional<Map<Resource,Long>> heldResources(UUID orderId) {
+        return live()&&lockedData==null?ledger.releasable(orderId).map(OrderLedger::held):Optional.empty();
+    }
+    /** Records what the owner received by hand. The order's worker lease ends first, so no batch resumes on released inputs. */
+    boolean releaseHeld(UUID orderId,Map<Resource,Long> taken) {
+        if(!live()||lockedData!=null||Transaction.getCurrentOpenedTransaction()!=null)return false;
+        var order=ledger.releasable(orderId).orElse(null);if(order==null)return false;
+        var worker=assigned.get(orderId);
+        if(worker!=null)release(orderId,worker);
+        else if(order.workerId()!=null)ledger.release(orderId,order.workerId());
+        if(!ledger.releaseHeld(orderId,taken))return false;
+        changed();return true;
+    }
+    public void tick() {
+        if(!live()||ticking||revoking||Transaction.getCurrentOpenedTransaction()!=null)return;
+        ticking=true;
+        try {
+            var level=(ServerLevel)machine.getLevel();
+            long now=level.getGameTime();
+            if(loadedAt==Long.MIN_VALUE)loadedAt=now;
+            // A completion only holds back its deliveries within the tick it happened in.
+            completedAt.values().removeIf(tick->tick<now);
+            var network=machine.matterNetwork(false);
+            if(lockedData!=null||!machine.automation()||!elected(network)) {revoke();return;}
+            // Each native backend has its own provider and queue. Revoke only same-backend losers.
+            for(var other:network.interfaces())if(other!=machine) {
+                var host=other.automationHost(); if(host!=null&&backend().equals(host.backend()))host.revoke();
+            }
+            boolean newlyElected=!lease;
+            lease=true;
+            ensureAdapter();
+            if(newlyElected)level.invalidateCapabilities(machine.getBlockPos());
+            if(!active()){revoke();return;}
+            refreshCatalogue();
+            validateClaims(network);
+            retireStaleOrders(now);
+            if(adapter!=null)adapter.tick();
+            if(adapter==null||!adapter.connected()) {releaseAll();return;}
+            for(var worker:network.workers()) {
+                if(!worker.acceptsNetworkWork()||!worker.networkOrderFree()||assigned.containsValue(worker)
+                        ||shouldYieldWorker(worker,network))continue;
+                for(var order:ledger.snapshot().orders()) {
+                    Recipe current=catalogue.get(order.recipe().id());
+                    if(order.workerId()!=null||order.cancelled()||order.quarantined()||order.remainingBatches()==0
+                            ||current==null||!current.equals(order.recipe())||!MachineAutomationRecipes.supports(worker,current))continue;
+                    if(ledger.claim(order.id(),worker.networkWorkerId(),current.revision())) {
+                        if(worker.tryBindNetworkOrder(this,order.id())) {
+                            assigned.put(order.id(),worker);changed();break;
+                        }
+                        // A different backend may already own this worker. Release only our failed claim.
+                        ledger.release(order.id(),worker.networkWorkerId());
+                    }
+                }
+            }
+        } finally { ticking=false; }
+    }
+    private boolean shouldYieldWorker(MachineBlockEntity worker,MachineMatterNetwork network) {
+        if(!worker.shouldYieldNetworkWork(backend(),true))return false;
+        for(var other:network.interfaces())if(other!=machine) {
+            var host=other.automationHost();
+            if(host!=null&&!backend().equals(host.backend())&&host.elected(network)&&host.hasReadyOrderFor(worker))return true;
+        }
+        return false;
+    }
+    private boolean hasReadyOrderFor(MachineBlockEntity worker) {
+        if(!active()||adapter==null||!adapter.connected())return false;
+        refreshCatalogue();
+        for(var order:ledger.snapshot().orders()) {
+            var current=catalogue.get(order.recipe().id());
+            if(order.workerId()==null&&!order.cancelled()&&!order.quarantined()&&order.remainingBatches()>0
+                    &&current!=null&&current.equals(order.recipe())&&MachineAutomationRecipes.supports(worker,current))return true;
+        }
+        return false;
+    }
+    private void validateClaims(MachineMatterNetwork network) {
+        for(var entry:new ArrayList<>(assigned.entrySet())) {
+            var order=ledger.order(entry.getKey()).orElse(null);var worker=entry.getValue();
+            if(order==null||order.remainingBatches()==0||!Objects.equals(order.workerId(),worker.networkWorkerId())
+                    ||!worker.acceptsNetworkWork()||!worker.hasNetworkOrder(this,entry.getKey())
+                    ||!network.workers().contains(worker)||!Objects.equals(catalogue.get(order.recipe().id()),order.recipe())) release(entry.getKey(),worker);
+        }
+    }
+    private void retireStaleOrders(long now) {
+        if(catalogueInvalid){staleOrders.clear();return;}
+        if(staleOrders.retire(ledger,catalogue::get,now,orderId->{var worker=assigned.get(orderId);if(worker!=null)release(orderId,worker);}))changed();
+    }
+    private void releaseAll() { for(var entry:new ArrayList<>(assigned.entrySet()))release(entry.getKey(),entry.getValue()); }
+    void release(UUID orderId,MachineBlockEntity worker) {
+        if(assigned.get(orderId)!=worker)return;
+        ledger.release(orderId,worker.networkWorkerId());assigned.remove(orderId);worker.releaseNetworkOrder(this,orderId);changed();
+    }
+    OrderLedger.@Nullable Order order(UUID orderId,MachineBlockEntity worker) {
+        if(!active()||adapter==null||!adapter.connected()||assigned.get(orderId)!=worker||!worker.hasNetworkOrder(this,orderId)
+                ||!machine.isCurrentNetworkWorker(ownerId(),worker))return null;
+        refreshCatalogue();var order=ledger.order(orderId).orElse(null);
+        return order!=null&&Objects.equals(order.workerId(),worker.networkWorkerId())
+                &&Objects.equals(catalogue.get(order.recipe().id()),order.recipe())?order:null;
+    }
+    boolean advance(UUID orderId,MachineBlockEntity worker,int ticks) {
+        var order=order(orderId,worker);
+        if(order==null)return false;
+        boolean changed=ledger.advance(orderId,worker.networkWorkerId(),order.recipe().revision(),ticks);
+        if(changed)changed();return changed;
+    }
+    /** Caller has just revalidated topology, worker identity, upgrades, FE and this exact recipe revision. */
+    boolean complete(UUID orderId,MachineBlockEntity worker) {
+        var order=order(orderId,worker);if(order==null)return false;
+        if(!ledger.complete(orderId,worker.networkWorkerId(),order.recipe().revision()))return false;
+        completedAt.put(orderId,machine.getLevel().getGameTime());return true;
+    }
+    private void refreshCatalogue() {
+        if(!(machine.getLevel() instanceof ServerLevel level))return;
+        Object chemistry=ReMatter.chemistry(),recipes=level.getServer().getRecipeManager().recipeMap();
+        if(chemistryIdentity==chemistry&&recipeIdentity==recipes)return;
+        var next=new LinkedHashMap<String,Recipe>();
+        try {
+            for(var recipe:MachineAutomationRecipes.catalogue(level))next.put(recipe.id(),recipe);
+            catalogue=Map.copyOf(next);catalogueInvalid=false;
+        } catch (IllegalArgumentException | ArithmeticException invalid) { catalogue=Map.of();catalogueInvalid=true; }
+        chemistryIdentity=chemistry;recipeIdentity=recipes;
+    }
+    @Override public List<Recipe> recipes() {
+        if(!active())return List.of();refreshCatalogue();
+        var kinds=EnumSet.noneOf(MachineKind.class);
+        for(var worker:machine.matterNetwork(false).workers())if(worker.networkJobs())kinds.add(worker.kind());
+        if(eligibleCatalogue!=catalogue||!eligibleWorkerKinds.equals(kinds)) {
+            eligibleRecipes=catalogue.values().stream().filter(recipe->kinds.stream()
+                    .anyMatch(kind->MachineAutomationRecipes.supports(kind,recipe)))
+                    .sorted(java.util.Comparator.comparing(Recipe::id)).toList();
+            eligibleCatalogue=catalogue;eligibleWorkerKinds=Set.copyOf(kinds);
+        }
+        return eligibleRecipes.stream().filter(recipe->machine.progressAllows(recipe.requiresAdvancement())).toList();
+    }
+    void cancelRestricted(UUID orderId,MachineBlockEntity worker) {
+        if(order(orderId,worker)==null)return;
+        ledger.cancel(orderId);release(orderId,worker);changed();
+    }
+    @Override public boolean busy() { return !active()||ledger.busy(); }
+    @Override public boolean acceptTransferred(String recipeId,String revision,int batches,Map<Resource,Long> inputs,Action action) {
+        if(!active()||Transaction.getCurrentOpenedTransaction()!=null)return false;
+        Recipe current=recipes().stream().filter(recipe->recipe.id().equals(recipeId)&&recipe.revision().equals(revision)).findFirst().orElse(null);
+        if(current==null)return false;
+        boolean accepted=ledger.accept(current,batches,inputs,action);
+        if(accepted&&action==Action.EXECUTE)changed();return accepted;
+    }
+    @Override public Map<SubstanceKey,Long> availableEntries() {
+        return active()?DefinedMatter.offered(ReMatter.chemistry(),machine.matterNetwork(false).inventory().contents()):Map.of();
+    }
+    @Override public long insert(SubstanceKey key,long maximum,Action action) {
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
+        var network=machine.matterNetwork(true);if(!elected(network))return 0;
+        long accepted=MachineBlockEntity.insertable(network.inventory(),key,maximum);
+        if(accepted==0||action==Action.SIMULATE)return accepted;
+        var activity = machine.commitNetworkMatter(network, Map.of(), Map.of(key, accepted));
+        if (activity == null) return 0;
+        network.markChanged();
+        changed();
+        machine.publishNetworkActivity(network, activity);
+        return accepted;
+    }
+    @Override public long extract(SubstanceKey key,long maximum,Action action) {
+        if(!active()||maximum<=0||Transaction.getCurrentOpenedTransaction()!=null||!ReMatter.chemistry().isKnown(key))return 0;
+        var network=machine.matterNetwork(true);if(!elected(network))return 0;
+        long extracted=Math.min(maximum,network.inventory().amount(key));
+        if(extracted==0||action==Action.SIMULATE)return extracted;
+        var activity = machine.commitNetworkMatter(network, Map.of(key, extracted), Map.of());
+        if (activity == null) return 0;
+        network.markChanged();
+        changed();
+        machine.publishNetworkActivity(network, activity);
+        return extracted;
+    }
+    @Override public List<Delivery> pendingOutputs() {
+        if(!active()||machine.getLevel().getGameTime()<=loadedAt)return List.of();
+        long now=machine.getLevel().getGameTime();
+        return ledger.pendingOutputs().stream().filter(delivery->completedAt.getOrDefault(delivery.orderId(),Long.MIN_VALUE)<now).toList();
+    }
+    @Override public boolean beginDelivery(UUID orderId,Resource resource,long offered) {
+        if(!active()||offered<=0||Transaction.getCurrentOpenedTransaction()!=null)return false;
+        boolean held=pendingOutputs().stream().anyMatch(delivery->delivery.orderId().equals(orderId)
+                &&delivery.resource().equals(resource)&&delivery.amount()>=offered);
+        if(!held||!ledger.beginDelivery(orderId,resource,offered))return false;
+        // A save or block drop during the external write must retain the durable in-flight guard.
+        changed();
+        // Marking dirty can invoke neighbor callbacks. Never write externally after losing this source;
+        // the live ledger then releases its unused guard, while a copy saved meanwhile stays locked.
+        if(active())return true;
+        ledger.finishDelivery(orderId,resource,0);
+        return false;
+    }
+    @Override public List<Delivery> pendingRefunds() { return active()?ledger.pendingRefunds():List.of(); }
+    @Override public boolean beginRefund(UUID orderId,Resource resource,long offered) {
+        if(!active()||offered<=0||Transaction.getCurrentOpenedTransaction()!=null||!ledger.beginRefund(orderId,resource,offered))return false;
+        changed();
+        if(active())return true;
+        ledger.finishRefund(orderId,resource,0);
+        return false;
+    }
+    @Override public void ackRefund(UUID orderId,Resource resource,long accepted) {
+        if(!live()||lockedData!=null||accepted<0)throw new IllegalStateException("Refund source unavailable");
+        ledger.finishRefund(orderId,resource,accepted);changed();
+    }
+    @Override public void ackOutput(UUID orderId,Resource resource,long accepted) {
+        // A topology change can revoke the lease after a valid external write; the same live source
+        // may still record its exact acknowledgement. A detached copy must remain quarantined.
+        if(!live()||lockedData!=null||accepted<0)throw new IllegalStateException("Output source unavailable");
+        ledger.finishDelivery(orderId,resource,accepted);changed();
+    }
+    @Override public void quarantineDelivery(UUID orderId,String reason) {
+        if(!live()||lockedData!=null||ledger.order(orderId).isEmpty())return;
+        String bounded=reason==null||reason.isBlank()?"delivery_outcome_unknown":reason.substring(0,Math.min(256,reason.length()));
+        ledger.quarantineDelivery(orderId,bounded);changed();
+    }
+    @Override public void changed() { machine.setChanged(); }
+    public boolean hasContents() { return lockedData!=null||!ledger.snapshot().orders().isEmpty()||!adapterData.isEmpty()||adapter!=null&&adapter.hasTasks(); }
+    Tag save() {
+        if(lockedData!=null)return lockedData.copy();
+        saveAdapter();var tag=new CompoundTag();tag.putInt("schema",1);tag.putString("id",id.toString());tag.putString("backend",backend());
+        tag.putString("ledger",OrderLedgerCodec.write(ledger));tag.put("adapters",adapterData.copy());return tag;
+    }
+    void load(Tag raw) {
+        revoke();closed=false;loadedAt=Long.MIN_VALUE;completedAt.clear();staleOrders.clear();
+        try {
+            if (!(raw instanceof CompoundTag tag) || !tag.keySet().equals(Set.of("schema","id","backend","ledger","adapters"))
+                    || !(tag.get("schema") instanceof IntTag) || !(tag.get("id") instanceof StringTag)
+                    || !(tag.get("backend") instanceof StringTag) || !(tag.get("ledger") instanceof StringTag)
+                    || !(tag.get("adapters") instanceof CompoundTag)) throw new IllegalArgumentException("Unknown interface payload");
+            var nativeData=(CompoundTag)tag.get("adapters");
+            for(String backendId:nativeData.keySet())if(!(nativeData.get(backendId) instanceof CompoundTag))
+                throw new IllegalArgumentException("Unknown native adapter payload");
+            if(tag.getIntOr("schema",-1)!=1)throw new IllegalArgumentException("Unknown interface schema");
+            UUID loadedId=UUID.fromString(tag.getStringOr("id",""));String loadedBackend=tag.getStringOr("backend","");
+            if(!loadedBackend.isEmpty()&&!List.of("ae2","rs").contains(loadedBackend))throw new IllegalArgumentException("Unknown backend");
+            var read=OrderLedgerCodec.read(tag.getStringOr("ledger",""));if(!read.readable())throw new IllegalArgumentException("Unknown queue");
+            ledger=read.ledger().orElseThrow();id=loadedId;backend=loadedBackend;adapterData=tag.getCompound("adapters").orElse(new CompoundTag()).copy();lockedData=null;
+            // Leases are runtime-only. Every unfinished batch restarts unpaid against freshly validated workers.
+            for(var order:ledger.snapshot().orders())if(order.workerId()!=null)ledger.release(order.id(),order.workerId());
+        } catch(RuntimeException unknown) { lockedData=raw.copy(); }
+    }
+}

@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "Lumium",
+  "items": [
+    "alltheores:lumium_block",
+    "alltheores:lumium_dust",
+    "alltheores:lumium_ingot",
+    "alltheores:lumium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "VOV",
+    "EFE",
+    "DND"
+  ],
+  "key": {
+    "V": "rematter:violet_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "E": "rematter:ender_conductor",
+    "F": "rematter:machine_frame",
+    "D": "rematter:diamond_lattice",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:primal_converter",
+    "count": 1
+  }
+}

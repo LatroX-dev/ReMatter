@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Soularium",
+  "items": [
+    "enderio:soularium_block",
+    "enderio:soularium_ingot",
+    "enderio:soularium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

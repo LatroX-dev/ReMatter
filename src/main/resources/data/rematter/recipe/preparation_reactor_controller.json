@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DCD",
+    "BMB",
+    "FXF"
+  ],
+  "key": {
+    "D": "rematter:diamond_lattice",
+    "C": "rematter:control_circuit",
+    "B": "rematter:rhevon_ingot",
+    "M": "rematter:matrix_cluster",
+    "F": "rematter:machine_frame",
+    "X": "rematter:amber_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:preparation_reactor_controller",
+    "count": 1
+  }
+}

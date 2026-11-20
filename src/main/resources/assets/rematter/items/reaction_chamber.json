@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/reaction_chamber"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/reaction_chamber_active_parts"
+      }
+    ]
+  }
+}

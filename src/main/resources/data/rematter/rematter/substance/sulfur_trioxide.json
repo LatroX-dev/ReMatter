@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sulfur_trioxide",
+  "symbol": "SO₃",
+  "kind": "compound",
+  "composition": {
+    "rematter:sulfur": 1,
+    "rematter:oxygen": 3
+  },
+  "phases": [
+    "gas"
+  ]
+}

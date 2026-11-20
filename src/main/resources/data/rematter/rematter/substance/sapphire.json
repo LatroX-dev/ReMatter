@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sapphire",
+  "symbol": "Al₂O₃",
+  "kind": "compound",
+  "composition": {
+    "rematter:aluminum": 2,
+    "rematter:oxygen": 3
+  },
+  "phases": [
+    "solid"
+  ]
+}

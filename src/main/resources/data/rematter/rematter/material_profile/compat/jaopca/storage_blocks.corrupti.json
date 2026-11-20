@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.corrupti",
+  "item": "jaopca:storage_blocks.corrupti",
+  "item_count": 2,
+  "matter": [
+    {
+      "substance": "rematter:arcane_crystal",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1125
+    }
+  ],
+  "decomposition_energy": 576000,
+  "synthesis_energy": 1152000,
+  "ticks": 7200
+}

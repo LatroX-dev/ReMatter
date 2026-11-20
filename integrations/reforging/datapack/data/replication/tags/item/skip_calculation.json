@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#reforging:rematter/stateful_machines",
+    "#reforging:rematter/primal_items",
+    "#reforging:rematter/crystal_fuels"
+  ]
+}

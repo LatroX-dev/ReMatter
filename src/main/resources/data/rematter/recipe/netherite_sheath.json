@@ -1,0 +1,12 @@
+{
+  "type": "rematter:preparation",
+  "primary": "rematter:netherite_sheath_blend",
+  "energy": 24000,
+  "ticks": 1120,
+  "minimum_tier": 1,
+  "result": {
+    "id": "rematter:netherite_sheath",
+    "count": 1
+  },
+  "process": "sintering"
+}

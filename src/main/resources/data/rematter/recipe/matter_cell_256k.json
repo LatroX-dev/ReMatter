@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "PMP",
+    " H "
+  ],
+  "key": {
+    "C": "rematter:control_circuit",
+    "P": "rematter:ender_conductor",
+    "M": "rematter:matrix_cluster",
+    "H": "rematter:cell_housing"
+  },
+  "result": {
+    "id": "rematter:matter_cell_256k",
+    "count": 1
+  }
+}

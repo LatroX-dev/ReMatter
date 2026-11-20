@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:quartz",
+  "unavailable_with_mods": [
+    "enderio"
+  ],
+  "synthesis_machine": "material_synthesizer",
+  "crystallization_tier": 1,
+  "category": "raw_material"
+}

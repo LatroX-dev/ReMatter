@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:deepslate_primal_ore",
+    "rematter:nether_primal_ore",
+    "rematter:end_primal_ore"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "title": "Buffer Power and Gate Batches",
+  "description": [
+    "Place an Energy Cube between generators and heavy consumers to smooth batch spikes. Configure each face as Disabled, Input or Output inside the screen or by shift-right-clicking the face with an empty hand; upgrade to Reinforced or Resonant tiers as throughput grows.",
+    "Attach a vanilla Redstone Comparator to an Energy Cube, Matter Drive, Cell Transfer Station, Machine Port or processor to read stored energy, cell fill or active batch progress as a 0 to 15 signal.",
+    "Open any processor's Settings tab to switch Redstone control between Ignored, High, Low and Pulse so standby lines pause cleanly when reserve thresholds are met."
+  ],
+  "icon": "rematter:energy_cube",
+  "x": 10.8,
+  "y": 3.6,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:energy_cube"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:reinforced_energy_cube"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/12_transfer_and_partition"
+    ]
+  },
+  "routes": {}
+}

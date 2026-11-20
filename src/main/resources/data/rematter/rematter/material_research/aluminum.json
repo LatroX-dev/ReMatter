@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "name": "Aluminum",
+  "items": [
+    "alltheores:aluminum_block",
+    "alltheores:aluminum_dust",
+    "alltheores:aluminum_ingot",
+    "alltheores:aluminum_nugget",
+    "alltheores:aluminum_ore",
+    "alltheores:deepslate_aluminum_ore",
+    "alltheores:end_aluminum_ore",
+    "alltheores:nether_aluminum_ore",
+    "alltheores:other_aluminum_ore",
+    "alltheores:raw_aluminum",
+    "alltheores:raw_aluminum_block",
+    "ftbic:aluminum_block",
+    "ftbic:aluminum_deepslate_ore",
+    "ftbic:aluminum_dust",
+    "ftbic:aluminum_ingot",
+    "ftbic:aluminum_raw_block",
+    "ftbic:aluminum_raw_ore",
+    "ftbic:aluminum_stone_ore",
+    "infinity_nexus_mod:aluminum_block",
+    "infinity_nexus_mod:aluminum_dust",
+    "infinity_nexus_mod:aluminum_ingot",
+    "infinity_nexus_mod:aluminum_nugget",
+    "infinity_nexus_mod:aluminum_ore",
+    "infinity_nexus_mod:deepslate_aluminum_ore",
+    "infinity_nexus_mod:raw_aluminum"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:aluminum",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

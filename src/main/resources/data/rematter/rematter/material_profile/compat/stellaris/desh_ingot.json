@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "stellaris",
+  "item": "stellaris:desh_ingot",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 550
+    },
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 400
+}

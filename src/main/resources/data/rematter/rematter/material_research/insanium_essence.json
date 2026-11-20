@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Insanium Essence",
+  "items": [
+    "mysticalagradditions:insanium_block",
+    "mysticalagradditions:insanium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:insanium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

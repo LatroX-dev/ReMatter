@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "rematter:nether_fumes",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:sulfur_dioxide",
+      "phase": "gas",
+      "amount": 150
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 100
+    }
+  ],
+  "energy": 16000,
+  "ticks": 600,
+  "dimensions": [
+    "minecraft:the_nether"
+  ],
+  "requires_open_air": false
+}

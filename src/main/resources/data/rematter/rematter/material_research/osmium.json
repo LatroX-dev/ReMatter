@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "name": "Osmium",
+  "items": [
+    "alltheores:deepslate_osmium_ore",
+    "alltheores:end_osmium_ore",
+    "alltheores:nether_osmium_ore",
+    "alltheores:osmium_block",
+    "alltheores:osmium_dust",
+    "alltheores:osmium_ingot",
+    "alltheores:osmium_nugget",
+    "alltheores:osmium_ore",
+    "alltheores:other_osmium_ore",
+    "alltheores:raw_osmium",
+    "alltheores:raw_osmium_block",
+    "mekanism:block_osmium",
+    "mekanism:block_raw_osmium",
+    "mekanism:deepslate_osmium_ore",
+    "mekanism:dust_osmium",
+    "mekanism:ingot_osmium",
+    "mekanism:nugget_osmium",
+    "mekanism:osmium_ore",
+    "mekanism:raw_osmium"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:osmium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

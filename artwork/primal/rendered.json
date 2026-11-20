@@ -1,0 +1,14 @@
+{
+  "primal_shard": {
+    "drawing": "5fba6021e283da21ad783a65396f5fb9e79d7a36f620653336973af9ecabb942",
+    "sprite": "bb857f76a198acc329b456cfc2ded63b1d6436838ab3376439bf21a4b0208b8e"
+  },
+  "primal_crystal": {
+    "drawing": "2f683c071533163da7b257aabf10484d4d6028aa9a538b2049e62672a274ecdf",
+    "sprite": "4f522a5e0f00d4a2ddf74fad989676ba101e24963b5e3f4ae22c2fcee48a85f2"
+  },
+  "discovery_lens": {
+    "drawing": "749b209a3eacae48dbdaf9049a67db73178cc03d54f731298ac129d80d5ac1df",
+    "sprite": "2ccc5e7375cf2a34970bbb3a10593663fbd3c6087f889734f3b1fd91635b157f"
+  }
+}

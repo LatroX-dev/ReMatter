@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:cobbled_deepslate",
+  "matter": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1050
+    },
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 700
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

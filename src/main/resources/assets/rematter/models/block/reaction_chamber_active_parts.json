@@ -1,0 +1,334 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_reaction_chamber_work_active"
+  },
+  "elements": [
+    {
+      "name": "lens_low",
+      "from": [
+        6,
+        6,
+        7
+      ],
+      "to": [
+        10,
+        7,
+        9
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            8,
+            5,
+            12,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            8,
+            5,
+            12,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            14,
+            3,
+            16,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            14,
+            3,
+            16,
+            4
+          ]
+        }
+      }
+    },
+    {
+      "name": "lens",
+      "from": [
+        4,
+        7,
+        7
+      ],
+      "to": [
+        12,
+        12,
+        9
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            8,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            8,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            10,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            8,
+            0,
+            10,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            8,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            8,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "lens_high",
+      "from": [
+        6,
+        12,
+        7
+      ],
+      "to": [
+        10,
+        13,
+        9
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            8,
+            5,
+            12,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            8,
+            5,
+            12,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            14,
+            3,
+            16,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            14,
+            3,
+            16,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            10,
+            3,
+            14,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "lens_front",
+      "from": [
+        6,
+        8,
+        6.5
+      ],
+      "to": [
+        10,
+        11,
+        7
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            14,
+            0,
+            14.5,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            14,
+            0,
+            14.5,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            8,
+            6,
+            12,
+            6.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            8,
+            6,
+            12,
+            6.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "lens_back",
+      "from": [
+        6,
+        8,
+        9
+      ],
+      "to": [
+        10,
+        11,
+        9.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "south": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            3
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            14,
+            0,
+            14.5,
+            3
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            14,
+            0,
+            14.5,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            8,
+            6,
+            12,
+            6.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            8,
+            6,
+            12,
+            6.5
+          ]
+        }
+      }
+    }
+  ]
+}

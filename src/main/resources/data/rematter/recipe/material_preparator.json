@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MBM",
+    "BCB",
+    "FCF"
+  ],
+  "key": {
+    "M": "rematter:amber_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:material_preparator",
+    "count": 1
+  }
+}

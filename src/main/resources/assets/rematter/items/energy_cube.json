@@ -1,0 +1,39 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_charge_0"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_front_energy_output"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_left_energy_input"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_back_energy_input"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_socket_right_energy_input"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_port_top_energy_input"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/energy_cube_port_bottom_energy_input"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:adamant",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

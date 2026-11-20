@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Tertium Essence",
+  "items": [
+    "mysticalagriculture:tertium_block",
+    "mysticalagriculture:tertium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:tertium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

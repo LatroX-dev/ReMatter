@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "enderio:sag_milling"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "bonus": "none",
+  "energy": 4800,
+  "input": "minecraft:diamond",
+  "outputs": [
+    {
+      "item": {
+        "id": "rematter:diamond_powder",
+        "count": 1
+      }
+    }
+  ]
+}

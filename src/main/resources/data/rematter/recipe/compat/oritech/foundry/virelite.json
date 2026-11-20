@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "oritech"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "oritech:foundry"
+    }
+  ],
+  "type": "oritech:foundry",
+  "itemInputs": [
+    "rematter:virelite_blend",
+    "rematter:virelite_blend"
+  ],
+  "itemResults": [
+    {
+      "id": "rematter:virelite_ceramic",
+      "count": 2
+    }
+  ],
+  "time": 200
+}

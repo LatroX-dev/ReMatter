@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.imperium_essence",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:vitalium": 256,
+    "rematter:arcanium": 64
+  },
+  "phases": [
+    "solid"
+  ]
+}

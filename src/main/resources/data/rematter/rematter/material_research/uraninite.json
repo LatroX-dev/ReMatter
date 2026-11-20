@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Uraninite",
+  "items": [
+    "powah:deepslate_uraninite_ore",
+    "powah:deepslate_uraninite_ore_dense",
+    "powah:deepslate_uraninite_ore_poor",
+    "powah:uraninite",
+    "powah:uraninite_block",
+    "powah:uraninite_ore",
+    "powah:uraninite_ore_dense",
+    "powah:uraninite_ore_poor",
+    "powah:uraninite_raw"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:uraninite",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

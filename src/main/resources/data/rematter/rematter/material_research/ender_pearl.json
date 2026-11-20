@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Ender Pearl",
+  "items": [
+    "ae2:ender_dust",
+    "enderio:powdered_ender_pearl",
+    "jaopca:storage_blocks.ender_pearl",
+    "minecraft:ender_pearl",
+    "rematter:ender_pearl_powder"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

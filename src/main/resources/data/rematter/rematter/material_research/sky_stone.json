@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Sky Stone",
+  "items": [
+    "ae2:sky_dust",
+    "jaopca:storage_blocks.sky_stone"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:sky_stone",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": ""
+}

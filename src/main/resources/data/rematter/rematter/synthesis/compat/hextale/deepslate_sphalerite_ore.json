@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "hextale",
+  "item": "hextale:deepslate_sphalerite_ore",
+  "disabled": true
+}

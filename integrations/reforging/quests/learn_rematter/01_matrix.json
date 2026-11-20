@@ -1,0 +1,46 @@
+{
+  "title": "Prepare the Matrix",
+  "description": [
+    "Start in early midgame with iron, copper, gold, redstone, sand, clay and glass. The Hand Preparator runs without power. For your first FE, craft a Crystal Generator with an Ember Matrix Crystal and two copper blocks, then fuel it with loose crystals. The Drive needs one diamond and the Synthesizer needs three emeralds.",
+    "Crank sand into Silith and a clay ball into Argil. Combine one of each in the Hand Preparator for four Matrix Blend, then process each Blend in the Hand Preparator into a Matrix Crystal. Mix a crystal with Gold Dust there for Amber; Redstone makes Ember. Craft a ReMatter Guide from a book and Silith for the exact grids."
+  ],
+  "icon": "rematter:hand_preparator",
+  "x": 0.0,
+  "y": 0.0,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:hand_preparator"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matrix_crystal"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": []
+  },
+  "routes": {}
+}

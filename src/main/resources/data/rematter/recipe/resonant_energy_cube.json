@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NEN",
+    "DFD",
+    "KGK"
+  ],
+  "key": {
+    "N": "rematter:netherite_sheath",
+    "E": "rematter:ember_matrix_crystal",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame",
+    "K": "rematter:resonant_matter_cable",
+    "G": "rematter:matrix_cluster"
+  },
+  "result": {
+    "id": "rematter:resonant_energy_cube",
+    "count": 1
+  }
+}

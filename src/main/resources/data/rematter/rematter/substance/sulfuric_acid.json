@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sulfuric_acid",
+  "symbol": "H₂SO₄",
+  "kind": "compound",
+  "composition": {
+    "rematter:hydrogen": 2,
+    "rematter:sulfur": 1,
+    "rematter:oxygen": 4
+  },
+  "phases": [
+    "gas"
+  ]
+}

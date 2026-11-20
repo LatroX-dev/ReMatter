@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Imperium Essence",
+  "items": [
+    "mysticalagriculture:imperium_block",
+    "mysticalagriculture:imperium_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:imperium_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "forbidden_arcanus",
+  "item": "forbidden_arcanus:stygian_steel_block",
+  "matter": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 18000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 18000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

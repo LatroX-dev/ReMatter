@@ -1,0 +1,1725 @@
+{
+  "id": "studio-v10",
+  "title": "Studio Foley v10 (shipped until 2026-11-17)",
+  "created": "2026-11-16",
+  "provenance": "Generated on the owner's machine with the Apache-2.0 text-to-audio model MOSS-SoundEffect v2.0 (mlx-community 4-bit port) and mastered by the earlier private tool; archived unchanged.",
+  "events": {
+    "wrench_configure": {
+      "sounds": [
+        {
+          "clip": "tool/wrench_configure",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        },
+        {
+          "clip": "tool/wrench_configure_2",
+          "volume": 0.82,
+          "pitch": 1.03,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.wrench_configure"
+    },
+    "wrench_dismantle": {
+      "sounds": [
+        {
+          "clip": "tool/wrench_dismantle",
+          "volume": 0.84,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.wrench_dismantle"
+    },
+    "port_cycle": {
+      "sounds": [
+        {
+          "clip": "tool/port_cycle",
+          "volume": 0.76,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.port_cycle"
+    },
+    "config_card_read": {
+      "sounds": [
+        {
+          "clip": "tool/config_card_read",
+          "volume": 0.74,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.config_card_read"
+    },
+    "config_card_write": {
+      "sounds": [
+        {
+          "clip": "tool/config_card_write",
+          "volume": 0.76,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.config_card_write"
+    },
+    "cell_insert": {
+      "sounds": [
+        {
+          "clip": "tool/cell_insert",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.cell_insert"
+    },
+    "cell_extract": {
+      "sounds": [
+        {
+          "clip": "tool/cell_extract",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 10
+        }
+      ],
+      "subtitle": "subtitles.rematter.cell_extract"
+    },
+    "hand_crank": {
+      "sounds": [
+        {
+          "clip": "tool/hand_crank",
+          "volume": 0.76,
+          "pitch": 1.0,
+          "attenuation_distance": 12
+        }
+      ],
+      "subtitle": "subtitles.rematter.hand_crank"
+    },
+    "analyzer_complete": {
+      "sounds": [
+        {
+          "clip": "tool/analyzer_complete",
+          "volume": 0.84,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.analyzer_complete"
+    },
+    "entangled_pair": {
+      "sounds": [
+        {
+          "clip": "tool/entangled_pair",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.entangled_pair"
+    },
+    "cell_transfer": {
+      "sounds": [
+        {
+          "clip": "tool/cell_transfer",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 12
+        }
+      ],
+      "subtitle": "subtitles.rematter.cell_transfer"
+    },
+    "sinter_work": {
+      "sounds": [
+        {
+          "clip": "machine/sinter_work_1",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/sinter_work_2",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.sinter_work"
+    },
+    "sinter_accent": {
+      "sounds": [
+        {
+          "clip": "machine/sinter_accent_1",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/sinter_accent_2",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/sinter_accent_3",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "processor_work": {
+      "sounds": [
+        {
+          "clip": "machine/processor_work_1",
+          "volume": 0.76,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/processor_work_2",
+          "volume": 0.76,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.processor_work"
+    },
+    "processor_accent": {
+      "sounds": [
+        {
+          "clip": "machine/processor_accent_1",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/processor_accent_2",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/processor_accent_3",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "chemical_reactor_work": {
+      "sounds": [
+        {
+          "clip": "machine/chemical_reactor_work_1",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/chemical_reactor_work_2",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.chemical_reactor_work"
+    },
+    "chemical_reactor_accent": {
+      "sounds": [
+        {
+          "clip": "machine/chemical_reactor_accent_1",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/chemical_reactor_accent_2",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/chemical_reactor_accent_3",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "hand_preparator_work": {
+      "sounds": [
+        {
+          "clip": "machine/hand_preparator_work_1",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/hand_preparator_work_2",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.hand_preparator_work"
+    },
+    "hand_preparator_accent": {
+      "sounds": [
+        {
+          "clip": "machine/hand_preparator_accent_1",
+          "volume": 0.62,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/hand_preparator_accent_2",
+          "volume": 0.62,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "preparator_work": {
+      "sounds": [
+        {
+          "clip": "machine/preparator_work_1",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparator_work_2",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.preparator_work"
+    },
+    "preparator_accent": {
+      "sounds": [
+        {
+          "clip": "machine/preparator_accent_1",
+          "volume": 0.68,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparator_accent_2",
+          "volume": 0.68,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparator_accent_3",
+          "volume": 0.68,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "preparation_reactor_work": {
+      "sounds": [
+        {
+          "clip": "machine/preparation_reactor_work_1",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparation_reactor_work_2",
+          "volume": 0.82,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.preparation_reactor_work"
+    },
+    "preparation_reactor_accent": {
+      "sounds": [
+        {
+          "clip": "machine/preparation_reactor_accent_1",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparation_reactor_accent_2",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/preparation_reactor_accent_3",
+          "volume": 0.64,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "decomposer_work": {
+      "sounds": [
+        {
+          "clip": "machine/decomposer_work_1",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/decomposer_work_2",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.decomposer_work"
+    },
+    "decomposer_accent": {
+      "sounds": [
+        {
+          "clip": "machine/decomposer_accent_1",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/decomposer_accent_2",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/decomposer_accent_3",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "synthesizer_work": {
+      "sounds": [
+        {
+          "clip": "machine/synthesizer_work_1",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/synthesizer_work_2",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.synthesizer_work"
+    },
+    "synthesizer_accent": {
+      "sounds": [
+        {
+          "clip": "machine/synthesizer_accent_1",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/synthesizer_accent_2",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/synthesizer_accent_3",
+          "volume": 0.6,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "analyzer_work": {
+      "sounds": [
+        {
+          "clip": "machine/analyzer_work_1",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/analyzer_work_2",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.analyzer_work"
+    },
+    "analyzer_accent": {
+      "sounds": [
+        {
+          "clip": "machine/analyzer_accent_1",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/analyzer_accent_2",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/analyzer_accent_3",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "generator_work": {
+      "sounds": [
+        {
+          "clip": "machine/generator_work_1",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/generator_work_2",
+          "volume": 0.78,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.generator_work"
+    },
+    "generator_accent": {
+      "sounds": [
+        {
+          "clip": "machine/generator_accent_1",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/generator_accent_2",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/generator_accent_3",
+          "volume": 0.58,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "converter_work": {
+      "sounds": [
+        {
+          "clip": "machine/converter_work_1",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/converter_work_2",
+          "volume": 0.8,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.converter_work"
+    },
+    "converter_accent": {
+      "sounds": [
+        {
+          "clip": "machine/converter_accent_1",
+          "volume": 0.62,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/converter_accent_2",
+          "volume": 0.62,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/converter_accent_3",
+          "volume": 0.62,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    },
+    "atmospheric_work": {
+      "sounds": [
+        {
+          "clip": "machine/atmospheric_work_1",
+          "volume": 0.74,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/atmospheric_work_2",
+          "volume": 0.74,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ],
+      "subtitle": "subtitles.rematter.atmospheric_work"
+    },
+    "atmospheric_accent": {
+      "sounds": [
+        {
+          "clip": "machine/atmospheric_accent_1",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/atmospheric_accent_2",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        },
+        {
+          "clip": "machine/atmospheric_accent_3",
+          "volume": 0.56,
+          "pitch": 1.0,
+          "attenuation_distance": 14
+        }
+      ]
+    }
+  },
+  "aliases": {
+    "wrench_rotate": "wrench_configure",
+    "wrench_mode": "wrench_configure",
+    "config_card_clear": "config_card_read",
+    "canister_fill": "cell_extract",
+    "canister_empty": "cell_insert",
+    "wireless_link": "entangled_pair",
+    "terminal_order": "config_card_write",
+    "energy_cell_on": "wrench_configure",
+    "energy_cell_off": "wrench_configure",
+    "action_denied": "port_cycle"
+  },
+  "machine_audio": {
+    "analyzer": {
+      "role": "analyzer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:analyzer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:analyzer_accent",
+        "interval": 80,
+        "offset": 30,
+        "jitter": 6,
+        "gain": 0.34
+      },
+      "cues": []
+    },
+    "decomposer": {
+      "role": "decomposer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:decomposer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:decomposer_accent",
+        "interval": 92,
+        "offset": 38,
+        "jitter": 6,
+        "gain": 0.32
+      },
+      "cues": []
+    },
+    "material_synthesizer": {
+      "role": "synthesizer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:synthesizer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:synthesizer_accent",
+        "interval": 88,
+        "offset": 36,
+        "jitter": 6,
+        "gain": 0.32
+      },
+      "cues": []
+    },
+    "chemical_processor": {
+      "role": "processor",
+      "position": "block",
+      "loop": {
+        "event": "rematter:processor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:processor_accent",
+        "interval": 120,
+        "offset": 54,
+        "jitter": 6,
+        "gain": 0.26
+      },
+      "cues": []
+    },
+    "chemical_reactor_controller": {
+      "role": "chemical_reactor",
+      "position": "block",
+      "loop": {
+        "event": "rematter:chemical_reactor_work",
+        "gain": 1.0,
+        "pitch": 0.94,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:chemical_reactor_accent",
+        "interval": 100,
+        "offset": 44,
+        "jitter": 6,
+        "gain": 0.34
+      },
+      "cues": []
+    },
+    "hand_preparator": {
+      "role": "hand_preparator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:hand_preparator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:hand_preparator_accent",
+        "interval": 28,
+        "offset": 12,
+        "jitter": 6,
+        "gain": 0.42
+      },
+      "cues": []
+    },
+    "material_preparator": {
+      "role": "preparator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:preparator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:preparator_accent",
+        "interval": 84,
+        "offset": 34,
+        "jitter": 6,
+        "gain": 0.36
+      },
+      "cues": []
+    },
+    "preparation_reactor_controller": {
+      "role": "preparation_reactor",
+      "position": "block",
+      "loop": {
+        "event": "rematter:preparation_reactor_work",
+        "gain": 1.0,
+        "pitch": 0.88,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:preparation_reactor_accent",
+        "interval": 84,
+        "offset": 34,
+        "jitter": 6,
+        "gain": 0.36
+      },
+      "cues": []
+    },
+    "sinter_furnace": {
+      "role": "sinter",
+      "position": "block",
+      "loop": {
+        "event": "rematter:sinter_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:sinter_accent",
+        "interval": 96,
+        "offset": 40,
+        "jitter": 6,
+        "gain": 0.34
+      },
+      "cues": []
+    },
+    "crystal_generator": {
+      "role": "generator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:generator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:generator_accent",
+        "interval": 116,
+        "offset": 52,
+        "jitter": 6,
+        "gain": 0.28
+      },
+      "cues": []
+    },
+    "industrial_crystal_generator": {
+      "role": "generator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:generator_work",
+        "gain": 1.0,
+        "pitch": 0.9,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:generator_accent",
+        "interval": 116,
+        "offset": 52,
+        "jitter": 6,
+        "gain": 0.28
+      },
+      "cues": []
+    },
+    "primal_converter": {
+      "role": "converter",
+      "position": "block",
+      "loop": {
+        "event": "rematter:converter_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:converter_accent",
+        "interval": 110,
+        "offset": 48,
+        "jitter": 6,
+        "gain": 0.32
+      },
+      "cues": []
+    },
+    "atmospheric_collector": {
+      "role": "atmospheric",
+      "position": "block",
+      "loop": {
+        "event": "rematter:atmospheric_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "accent": {
+        "event": "rematter:atmospheric_accent",
+        "interval": 108,
+        "offset": 46,
+        "jitter": 6,
+        "gain": 0.28
+      },
+      "cues": []
+    }
+  },
+  "clips": {
+    "machine/analyzer_accent_1": {
+      "sha256": "cb74645abb9dc3d34eb972bd6c7fc40c6bc34446606c3eb50c48dfeb8a301452",
+      "bytes": 6430,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.84,
+        "peak": 0.3178,
+        "dc_offset": 3.5e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/analyzer_accent_2": {
+      "sha256": "f427abc301c2ce6a40d0190b363cda275d9b2ff81d5e7c5f5f04f013d2e26597",
+      "bytes": 6602,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -24.76,
+        "peak": 0.6922,
+        "dc_offset": 1.6e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.00114
+      }
+    },
+    "machine/analyzer_accent_3": {
+      "sha256": "56d498491d4af66992d34816f2d9a4de8bd27d7059a94d63e8dbb265413d1c8a",
+      "bytes": 6345,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -25.88,
+        "peak": 0.7001,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0006
+      }
+    },
+    "machine/analyzer_work_1": {
+      "sha256": "e3c20982c8da4a9155a1e86205fc278d77db4298bec5fd5cf92107554598883f",
+      "bytes": 19217,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.79,
+        "peak": 0.2655,
+        "dc_offset": 2e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/analyzer_work_2": {
+      "sha256": "7b28e700c7d3a5cc0419e09f741dcde22922941eecfc4aaf83bedd22771c4d74",
+      "bytes": 21025,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.81,
+        "peak": 0.4324,
+        "dc_offset": 1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/atmospheric_accent_1": {
+      "sha256": "efde66c395d792c3a9820761933a21b1d46cc2f57a0bb404050297cc9021b15e",
+      "bytes": 6445,
+      "metrics": {
+        "duration_s": 0.68,
+        "rms_db": -25.32,
+        "peak": 0.6729,
+        "dc_offset": 2.1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.00015
+      }
+    },
+    "machine/atmospheric_accent_2": {
+      "sha256": "cc75b4e00983287f2421123d513e6325d8793ce72c63b9dbeb6f2ca016e580f7",
+      "bytes": 5580,
+      "metrics": {
+        "duration_s": 0.68,
+        "rms_db": -24.2,
+        "peak": 0.1395,
+        "dc_offset": 1.9e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/atmospheric_accent_3": {
+      "sha256": "22aa440b635693741b6f418f51d8ab0a35e2d9a74e64a2b47e815c9c933d7683",
+      "bytes": 5687,
+      "metrics": {
+        "duration_s": 0.68,
+        "rms_db": -24.19,
+        "peak": 0.1492,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/atmospheric_work_1": {
+      "sha256": "3e0af7fe4c1d4144e46632062c3f1fea1a3c0beff987b535adfcf63da706d097",
+      "bytes": 22278,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -23.19,
+        "peak": 0.2642,
+        "dc_offset": 8e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/atmospheric_work_2": {
+      "sha256": "449997f125ed33706e05c0378c7cc51969b2442f10b2aa1d959d5c02d9357ecb",
+      "bytes": 20357,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -23.19,
+        "peak": 0.2187,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/chemical_reactor_accent_1": {
+      "sha256": "c869c21db4fd21fa1c81e43014a85b7d94d285a9f9431ebd4f2b214224d20438",
+      "bytes": 6342,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -22.97,
+        "peak": 0.1795,
+        "dc_offset": 4.5e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/chemical_reactor_accent_2": {
+      "sha256": "b93a7042712f3cf1e385220a6377c621f8a8f779a4f697bd2ecd3e9181c026ed",
+      "bytes": 6103,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.02,
+        "peak": 0.2238,
+        "dc_offset": 2.1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/chemical_reactor_accent_3": {
+      "sha256": "b7db21c9f5310c669c74d511b97bebd7ee089549401d536f7eb9f3a92bc2772e",
+      "bytes": 6414,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.01,
+        "peak": 0.2308,
+        "dc_offset": 3.7e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/chemical_reactor_work_1": {
+      "sha256": "afce3a91e9c69060a40f390e6a8cd3e162cfd76e1ac84d99da2e9812fe8b96d0",
+      "bytes": 23584,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.78,
+        "peak": 0.2023,
+        "dc_offset": 6e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/chemical_reactor_work_2": {
+      "sha256": "2fc6532e2db13676fd14fbae77b83fe111c9c6148e94ed56d477b95c064e48ff",
+      "bytes": 22954,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.81,
+        "peak": 0.2039,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/converter_accent_1": {
+      "sha256": "216abd21c4c6c15f960a8c9df48542e0a8e359892398ff419587ed86dcd30c18",
+      "bytes": 5600,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.39,
+        "peak": 0.1929,
+        "dc_offset": 2.9e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/converter_accent_2": {
+      "sha256": "44b730d808fff0f533bae68d4960223411bf5a999af21d6c0bfc8cc673016c0e",
+      "bytes": 6103,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.39,
+        "peak": 0.1865,
+        "dc_offset": 3e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/converter_accent_3": {
+      "sha256": "30c26b7001d069b0dce77271b549e4c429a28322fb82fcdf984587cfb655f6b9",
+      "bytes": 6281,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.4,
+        "peak": 0.2689,
+        "dc_offset": 0.0001,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/converter_work_1": {
+      "sha256": "777bd21476adb967e6a5a59075996457dda391790633a6a97e80bfa5b41cdc80",
+      "bytes": 18616,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.18,
+        "peak": 0.1693,
+        "dc_offset": 5e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/converter_work_2": {
+      "sha256": "e4454fb7f16fccf3cc322598c9ca394e63a231843307a205a65b157be720b5e9",
+      "bytes": 20896,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.22,
+        "peak": 0.308,
+        "dc_offset": 2.3e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/decomposer_accent_1": {
+      "sha256": "9481d1c2dff92ecbe39bcc583e0e67163403e9176d51652e367b3f70197ea1d9",
+      "bytes": 5988,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.44,
+        "peak": 0.2155,
+        "dc_offset": 6e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/decomposer_accent_2": {
+      "sha256": "f760223f4e27d9afd72296027020aaa00f849a108bf1c9b1216d7f941e595de0",
+      "bytes": 5990,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.42,
+        "peak": 0.2327,
+        "dc_offset": 0.000122,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/decomposer_accent_3": {
+      "sha256": "31420870c01d78412ecef3b0ee014b61edd790ff5c112fdd54610c6918d4e7a0",
+      "bytes": 6008,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.42,
+        "peak": 0.222,
+        "dc_offset": 4e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/decomposer_work_1": {
+      "sha256": "ad19298e18e25240a2648995da13bdb6f92664aaf688fcfa13cfed50bfa3554c",
+      "bytes": 21796,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.43,
+        "peak": 0.2427,
+        "dc_offset": 3.6e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/decomposer_work_2": {
+      "sha256": "7fb3e3f1d79fa70785bcc60725d19cb6b88654bab44719ad5e15a49f18ff991f",
+      "bytes": 21821,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.43,
+        "peak": 0.2552,
+        "dc_offset": 1.6e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/generator_accent_1": {
+      "sha256": "38415088bb06c5a013eeb758617ff268e540bd152b446b5606d5dd0f6c778767",
+      "bytes": 6033,
+      "metrics": {
+        "duration_s": 0.78,
+        "rms_db": -23.56,
+        "peak": 0.2378,
+        "dc_offset": 0.000103,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/generator_accent_2": {
+      "sha256": "dad454efd63c892cb40a2a7cb2f3f51f18e829772212b79ad0144304ea14b758",
+      "bytes": 6048,
+      "metrics": {
+        "duration_s": 0.78,
+        "rms_db": -23.59,
+        "peak": 0.2426,
+        "dc_offset": 6.3e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/generator_accent_3": {
+      "sha256": "de9352ba2a8d2cebb9d889cbd7852f76805d82b9de9a45e218ba1736c583796f",
+      "bytes": 6042,
+      "metrics": {
+        "duration_s": 0.78,
+        "rms_db": -23.61,
+        "peak": 0.2409,
+        "dc_offset": 3.2e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/generator_work_1": {
+      "sha256": "0bfe418e8951149ba03604591e2398fce58399e67928e4ced65d7a207f0f5ade",
+      "bytes": 20476,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.29,
+        "peak": 0.2943,
+        "dc_offset": 2.1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/generator_work_2": {
+      "sha256": "d9864e7b5a37c71eff3fb16bcaf0124faf3383860d178e086fc93181e0341238",
+      "bytes": 20410,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.3,
+        "peak": 0.2667,
+        "dc_offset": 2.6e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/hand_preparator_accent_1": {
+      "sha256": "b5f9866bca844dada163574fc631a2efc3044540688b7fdd6f49768dd0163b23",
+      "bytes": 6379,
+      "metrics": {
+        "duration_s": 0.62,
+        "rms_db": -24.39,
+        "peak": 0.6516,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/hand_preparator_accent_2": {
+      "sha256": "6a76e41aa4032dc85e9b6cb003c6841a4f5f022154f8f5464bd1697b3f679125",
+      "bytes": 5885,
+      "metrics": {
+        "duration_s": 0.62,
+        "rms_db": -23.51,
+        "peak": 0.6236,
+        "dc_offset": 4.3e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/hand_preparator_work_1": {
+      "sha256": "2fcbec1646d7c8664a197bf7c5658642e7f9ddb713ceac0e84c68c189b865ed2",
+      "bytes": 23127,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -23.0,
+        "peak": 0.6459,
+        "dc_offset": 1.5e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 1e-05
+      }
+    },
+    "machine/hand_preparator_work_2": {
+      "sha256": "697cfbb3dd667df1aee1ecf076a5ff3705e8235b415980428690fcb90fc94e16",
+      "bytes": 19392,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.54,
+        "peak": 0.4632,
+        "dc_offset": 1.8e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparation_reactor_accent_1": {
+      "sha256": "ac9938fb758200996c343745ca133bfc0c7e66b6fbb45e0b26ba13bd85d1dc35",
+      "bytes": 6323,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -23.0,
+        "peak": 0.3735,
+        "dc_offset": 4.7e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparation_reactor_accent_2": {
+      "sha256": "cec930edecfed5714f746685f560ee10fa59cf2c89510ed673229aff9bc728ca",
+      "bytes": 6709,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -22.97,
+        "peak": 0.4707,
+        "dc_offset": 9.3e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparation_reactor_accent_3": {
+      "sha256": "a9746af76182f91e3c883e6f71ab64ca79048c95a76bc81aaf5b9a749c6bb02e",
+      "bytes": 6059,
+      "metrics": {
+        "duration_s": 0.84,
+        "rms_db": -22.97,
+        "peak": 0.5777,
+        "dc_offset": 9e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparation_reactor_work_1": {
+      "sha256": "adc657d9246f4b9ce28cacc3d8cf21bbefccbce438c4a3fb77e2cae38a065cb9",
+      "bytes": 24093,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.8,
+        "peak": 0.2373,
+        "dc_offset": 2e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparation_reactor_work_2": {
+      "sha256": "d1127af3e39f96fff9fd37f07b47b4b4a5f04f3612538aa567f02bdc09384c75",
+      "bytes": 22814,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.81,
+        "peak": 0.2627,
+        "dc_offset": 5.2e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparator_accent_1": {
+      "sha256": "33b37e75c16b601f99c9b7a6b417841e1719b54adfffc9005943e8386d7c5dea",
+      "bytes": 6274,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -22.82,
+        "peak": 0.235,
+        "dc_offset": 2.8e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparator_accent_2": {
+      "sha256": "83f14e28ce7f19c0a5e42701cfd4ef05314df09ce89b5ba546f080e90256b342",
+      "bytes": 6281,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -22.8,
+        "peak": 0.2466,
+        "dc_offset": 5.8e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparator_accent_3": {
+      "sha256": "64f8f6ca94a62f017cc3a3406feed8b59b98f3b5dc7543ffc76d826ba88e4480",
+      "bytes": 6305,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -22.81,
+        "peak": 0.2461,
+        "dc_offset": 1.2e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparator_work_1": {
+      "sha256": "8fe6f4b797c7802a7047bce8506ab0f2ee602bea32ff7b84d15a469f6b5ca350",
+      "bytes": 23120,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.83,
+        "peak": 0.2665,
+        "dc_offset": 1.5e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/preparator_work_2": {
+      "sha256": "7867a80a71b74f2ee6ffda7bff00229e580ebdbf13af5c8939bcd1d836c82e6f",
+      "bytes": 23118,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -21.82,
+        "peak": 0.2676,
+        "dc_offset": 1.2e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/processor_accent_1": {
+      "sha256": "2da2dc7c8c355a0288d3e6b289560b9e57e12603524ecccd0e445583c074caaf",
+      "bytes": 6271,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -23.84,
+        "peak": 0.5495,
+        "dc_offset": 3.9e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/processor_accent_2": {
+      "sha256": "e858eb16d92f5d46750f8b0377951499707b7c45da2c053b06f2501c0cf54165",
+      "bytes": 5400,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -24.95,
+        "peak": 0.5653,
+        "dc_offset": 5e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 5e-05
+      }
+    },
+    "machine/processor_accent_3": {
+      "sha256": "c817cfd010a34dd8fa9aeefc9f65b4618c692bff1b4460f99ee80819969e88b4",
+      "bytes": 5489,
+      "metrics": {
+        "duration_s": 0.72,
+        "rms_db": -23.76,
+        "peak": 0.3397,
+        "dc_offset": 0.0,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/processor_work_1": {
+      "sha256": "603b476871c348e0c57eac03057f4248222fe04fc565dfc8eced3289f35bb135",
+      "bytes": 21584,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.78,
+        "peak": 0.1715,
+        "dc_offset": 8e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/processor_work_2": {
+      "sha256": "0cc44eba7fcf16feace4e672ef7bfed8a32ea0174f4b84f3de407bd6d830b58c",
+      "bytes": 21478,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.78,
+        "peak": 0.2363,
+        "dc_offset": 1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/sinter_accent_1": {
+      "sha256": "e30608918aca99983f323b92a6a596e2c1b15b6541965dec404bb7dc93eb339d",
+      "bytes": 5765,
+      "metrics": {
+        "duration_s": 0.76,
+        "rms_db": -23.17,
+        "peak": 0.2003,
+        "dc_offset": 0.00024,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/sinter_accent_2": {
+      "sha256": "f04a97783b55db8c0c28e3eb57d56223fe128fc6f1ab610eec71b5da5927fd74",
+      "bytes": 5753,
+      "metrics": {
+        "duration_s": 0.76,
+        "rms_db": -23.29,
+        "peak": 0.1917,
+        "dc_offset": 0.000381,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/sinter_accent_3": {
+      "sha256": "b4c968929152f05186bf443588e6f611bb645466890ea80d6429a117c807fcab",
+      "bytes": 5754,
+      "metrics": {
+        "duration_s": 0.76,
+        "rms_db": -23.22,
+        "peak": 0.2141,
+        "dc_offset": 0.000657,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/sinter_work_1": {
+      "sha256": "3d6b8d9fd933a729f7c02c78af9edd5f7e12276d97df3d26c2cf42832e1add52",
+      "bytes": 18813,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.02,
+        "peak": 0.2535,
+        "dc_offset": 1e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/sinter_work_2": {
+      "sha256": "a7595e8058d2d3c83e906fa531b7297d80a6d4d6f6a17e198c723dbe75cc1f56",
+      "bytes": 18779,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.02,
+        "peak": 0.2432,
+        "dc_offset": 0.000104,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/synthesizer_accent_1": {
+      "sha256": "77bd29c814dc95f59ac3df0d73b93b5a99dda47de41c9c5067fa6cd93fc2f8ca",
+      "bytes": 5884,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.62,
+        "peak": 0.2831,
+        "dc_offset": 1.7e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/synthesizer_accent_2": {
+      "sha256": "99df460dcaf7f3c355e3ed78aa4dc3955a3b86d82df08713558977f5c167d184",
+      "bytes": 5745,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.57,
+        "peak": 0.1169,
+        "dc_offset": 4e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/synthesizer_accent_3": {
+      "sha256": "92ac26702b1bd86d36589da2550b91959942143db2599ca9fdaa514052c05ab3",
+      "bytes": 5906,
+      "metrics": {
+        "duration_s": 0.7,
+        "rms_db": -23.58,
+        "peak": 0.2352,
+        "dc_offset": 1.6e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/synthesizer_work_1": {
+      "sha256": "39060dafffe963fa650caf77d376f5e7763a3378cffde0b0a98f2df039e40d45",
+      "bytes": 21632,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.36,
+        "peak": 0.165,
+        "dc_offset": 7e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "machine/synthesizer_work_2": {
+      "sha256": "1c83d8ded9992a86bbe7847afae5e20f60b0f78a9dc5af66d5d915254a1c986f",
+      "bytes": 21838,
+      "metrics": {
+        "duration_s": 5.6,
+        "rms_db": -22.4,
+        "peak": 0.2191,
+        "dc_offset": 7e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "tool/analyzer_complete": {
+      "sha256": "a711a450cbe487b75fb1fdcdac3f999837749575094cd4e207c2dcda7c5fba60",
+      "bytes": 7028,
+      "metrics": {
+        "duration_s": 0.82,
+        "rms_db": -21.57,
+        "peak": 0.7123,
+        "dc_offset": 1e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 1e-05
+      }
+    },
+    "tool/cell_extract": {
+      "sha256": "f622a8649618472ceabdd6f2b981ccb96a649b3f2f2310a40700d35ae1e6bbc2",
+      "bytes": 6026,
+      "metrics": {
+        "duration_s": 0.56,
+        "rms_db": -21.78,
+        "peak": 0.7225,
+        "dc_offset": 0.0,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "tool/cell_insert": {
+      "sha256": "a172391fa5be46eab2b86ee766bd36346dfc9ccc1fa2ae6694f43a93d44b1c89",
+      "bytes": 6752,
+      "metrics": {
+        "duration_s": 0.56,
+        "rms_db": -21.66,
+        "peak": 0.7527,
+        "dc_offset": 9e-06,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.00088
+      }
+    },
+    "tool/cell_transfer": {
+      "sha256": "68b13746c2f3d8c5f5f07674fe7f2354a1a332dd49b60b0609fb7ff21922a69b",
+      "bytes": 5686,
+      "metrics": {
+        "duration_s": 0.68,
+        "rms_db": -21.44,
+        "peak": 0.2123,
+        "dc_offset": 9.2e-05,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "tool/config_card_read": {
+      "sha256": "621dba107bf8031f0e7ebfd101faa7e616aa3b43e60e30014304149e34daf24c",
+      "bytes": 5545,
+      "metrics": {
+        "duration_s": 0.25,
+        "rms_db": -21.39,
+        "peak": 0.6565,
+        "dc_offset": 7.7e-05,
+        "spectral_flatness": 2e-05,
+        "hf_energy_ratio": 0.02671
+      }
+    },
+    "tool/config_card_write": {
+      "sha256": "38521f4e96b039bc594937ae70a8c0bf68f6d0665deffd1c341122921e345d65",
+      "bytes": 6009,
+      "metrics": {
+        "duration_s": 0.231,
+        "rms_db": -22.88,
+        "peak": 0.8397,
+        "dc_offset": 2.1e-05,
+        "spectral_flatness": 0.00134,
+        "hf_energy_ratio": 0.04765
+      }
+    },
+    "tool/entangled_pair": {
+      "sha256": "4bff39d9874b6b0d7fe86ba8dc3a6064f2a40915055d3da60a38737bf56c13d8",
+      "bytes": 6138,
+      "metrics": {
+        "duration_s": 0.9,
+        "rms_db": -21.16,
+        "peak": 0.2449,
+        "dc_offset": 0.000109,
+        "spectral_flatness": 0.0,
+        "hf_energy_ratio": 0.0
+      }
+    },
+    "tool/hand_crank": {
+      "sha256": "e1e65afe9aaa71bc20a7058bdf2cf184efa03161db6514d3903a8dcabd851e6f",
+      "bytes": 6564,
+      "metrics": {
+        "duration_s": 0.445,
+        "rms_db": -21.15,
+        "peak": 0.7654,
+        "dc_offset": 1.9e-05,
+        "spectral_flatness": 1e-05,
+        "hf_energy_ratio": 0.00058
+      }
+    },
+    "tool/port_cycle": {
+      "sha256": "b40f3a08e5029974fc313a45359897bbc34606bf1dd983865c0863a35b199b3a",
+      "bytes": 4758,
+      "metrics": {
+        "duration_s": 0.107,
+        "rms_db": -20.77,
+        "peak": 0.7056,
+        "dc_offset": 1.6e-05,
+        "spectral_flatness": 0.00125,
+        "hf_energy_ratio": 0.27974
+      }
+    },
+    "tool/wrench_configure": {
+      "sha256": "9d4764be593e66a320f9f0d800058b635ee49a3f4a72915c8ba30369970f2b8d",
+      "bytes": 6084,
+      "metrics": {
+        "duration_s": 0.24,
+        "rms_db": -20.55,
+        "peak": 0.9001,
+        "dc_offset": 3e-06,
+        "spectral_flatness": 0.00626,
+        "hf_energy_ratio": 0.65731
+      }
+    },
+    "tool/wrench_configure_2": {
+      "sha256": "e9f71cc5af082fd57b3f02a3520f0aabef98294ffe75363ae96243b392263422",
+      "bytes": 7608,
+      "metrics": {
+        "duration_s": 0.3,
+        "rms_db": -19.59,
+        "peak": 0.7708,
+        "dc_offset": 4e-06,
+        "spectral_flatness": 0.00173,
+        "hf_energy_ratio": 0.87162
+      }
+    },
+    "tool/wrench_dismantle": {
+      "sha256": "35c6cf7bf0a2dee3ebc4d8b0af9a7a17f717d3805d975fe5e47bdf910b2f1222",
+      "bytes": 8171,
+      "metrics": {
+        "duration_s": 0.38,
+        "rms_db": -20.04,
+        "peak": 0.8441,
+        "dc_offset": 4e-06,
+        "spectral_flatness": 0.00224,
+        "hf_energy_ratio": 0.34909
+      }
+    }
+  }
+}

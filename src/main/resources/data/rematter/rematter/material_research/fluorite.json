@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Fluorite",
+  "items": [
+    "alltheores:deepslate_fluorite_ore",
+    "alltheores:end_fluorite_ore",
+    "alltheores:fluorite",
+    "alltheores:fluorite_block",
+    "alltheores:fluorite_dust",
+    "alltheores:fluorite_ore",
+    "alltheores:nether_fluorite_ore",
+    "alltheores:other_fluorite_ore",
+    "mekanism:block_fluorite",
+    "mekanism:deepslate_fluorite_ore",
+    "mekanism:dust_fluorite",
+    "mekanism:fluorite_gem",
+    "mekanism:fluorite_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:fluorite",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

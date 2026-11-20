@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:nugget_refined_obsidian",
+  "item_count": 9,
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 64
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

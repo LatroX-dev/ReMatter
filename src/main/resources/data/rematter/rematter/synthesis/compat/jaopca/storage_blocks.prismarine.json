@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.prismarine",
+  "item": "jaopca:storage_blocks.prismarine",
+  "category": "raw_material"
+}

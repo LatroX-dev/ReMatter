@@ -1,0 +1,49 @@
+{
+  "title": "Catalog Without Losing Samples",
+  "description": [
+    "Place an Analyzer on your Matter Network when you only have one copy of a rare crystal, alloy or mineral. It teaches the sample's material family without consuming the item, paying twice the decomposition FE and four times the duration.",
+    "Add a Matter Terminal on the same owned cable run to inspect stored solids, liquids and gases in one list, filter by symbol or name, pin favorites and request explicit synthesis batches once a family is known.",
+    "Open the Analyzer Research tab to check family progress, share knowledge across your team and use Derive when you already hold every constituent substance. Save a Discovery Lens and Primal Matter for locked natural families you have not found in the world yet."
+  ],
+  "icon": "rematter:analyzer",
+  "x": 0.0,
+  "y": 10.8,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:analyzer"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:matter_terminal"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/07_crystals"
+    ]
+  },
+  "routes": {}
+}

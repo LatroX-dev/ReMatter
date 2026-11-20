@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Redstone",
+  "items": [
+    "minecraft:deepslate_redstone_ore",
+    "minecraft:redstone",
+    "minecraft:redstone_block",
+    "minecraft:redstone_ore",
+    "regions_unexplored:raw_redstone_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

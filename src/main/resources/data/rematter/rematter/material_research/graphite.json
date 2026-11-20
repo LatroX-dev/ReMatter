@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Graphite",
+  "items": [
+    "colossal_reactors:graphite_block",
+    "colossal_reactors:graphite_ingot",
+    "infinity_nexus_mod:graphite_dust",
+    "infinity_nexus_mod:graphite_ingot",
+    "jaopca:storage_blocks.carbon"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:graphite",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

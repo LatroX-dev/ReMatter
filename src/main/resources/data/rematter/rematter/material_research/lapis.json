@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Lapis",
+  "items": [
+    "enderio:powdered_lapis_lazuli",
+    "ftbic:lapis_lazuli_dust",
+    "mekanism:dust_lapis_lazuli",
+    "minecraft:deepslate_lapis_ore",
+    "minecraft:lapis_block",
+    "minecraft:lapis_lazuli",
+    "minecraft:lapis_ore",
+    "occultism:lapis_dust",
+    "rematter:lapis_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

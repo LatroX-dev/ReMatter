@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "name": "Dragonyst",
+  "items": [
+    "jaopca:storage_blocks.dragonyst",
+    "occultism:dragonyst_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

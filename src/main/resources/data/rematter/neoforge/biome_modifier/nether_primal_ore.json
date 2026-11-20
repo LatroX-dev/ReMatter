@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": [
+    "rematter:nether_primal_ore"
+  ],
+  "step": "underground_ores"
+}

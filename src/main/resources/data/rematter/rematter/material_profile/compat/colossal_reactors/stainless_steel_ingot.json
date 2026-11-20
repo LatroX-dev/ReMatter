@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "colossal_reactors",
+  "item": "colossal_reactors:stainless_steel_ingot",
+  "item_count": 7,
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 56000,
+  "synthesis_energy": 112000,
+  "ticks": 2800
+}

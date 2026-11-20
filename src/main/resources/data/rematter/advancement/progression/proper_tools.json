@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.proper_tools.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.proper_tools.description"
+    },
+    "icon": {
+      "id": "rematter:pressure_module"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ],
+  "parent": "rematter:progression/start_workshop"
+}

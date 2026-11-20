@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BIB",
+    "MCM",
+    "BFB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "I": "minecraft:iron_bars",
+    "M": "rematter:mint_matrix_crystal",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:atmospheric_collector",
+    "count": 1
+  }
+}

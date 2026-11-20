@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Glowstone",
+  "items": [
+    "jaopca:storage_blocks.glowstone",
+    "minecraft:glowstone",
+    "minecraft:glowstone_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": "minecraft:the_nether"
+}

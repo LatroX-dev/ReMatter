@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Ancient Debris & Netherite Scrap",
+  "items": [
+    "ae2omnicells:netherite_scrap_block",
+    "jaopca:storage_blocks.netherite_scrap",
+    "minecraft:ancient_debris",
+    "minecraft:netherite_scrap",
+    "occultism:netherite_scrap_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 3,
+  "requires_dimension": "minecraft:the_nether"
+}

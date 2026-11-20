@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.obsidian",
+  "item": "jaopca:storage_blocks.obsidian",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 576
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2250
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 3600
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BCB",
+    "BSB",
+    "BCB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "S": "rematter:silith"
+  },
+  "result": {
+    "id": "rematter:cell_rack",
+    "count": 2
+  }
+}

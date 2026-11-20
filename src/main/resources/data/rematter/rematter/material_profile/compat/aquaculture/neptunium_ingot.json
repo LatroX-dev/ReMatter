@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "aquaculture",
+  "item": "aquaculture:neptunium_ingot",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 150
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 650
+    },
+    {
+      "substance": "rematter:vitalium",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 400
+}

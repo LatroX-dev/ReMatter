@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BIB",
+    "IMI",
+    "BIB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "I": "minecraft:iron_ingot",
+    "M": "rematter:matrix_blend"
+  },
+  "result": {
+    "id": "rematter:machine_frame",
+    "count": 4
+  }
+}

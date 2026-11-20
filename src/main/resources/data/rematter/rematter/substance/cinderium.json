@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.cinderium",
+  "symbol": "Cdr",
+  "kind": "element",
+  "composition": {
+    "rematter:cinderium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

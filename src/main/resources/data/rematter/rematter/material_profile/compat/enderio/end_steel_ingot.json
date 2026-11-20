@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:end_steel_ingot",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 192
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:coal",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 50
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1100
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

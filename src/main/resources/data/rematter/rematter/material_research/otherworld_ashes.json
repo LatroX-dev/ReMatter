@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Otherworld Ashes",
+  "items": [
+    "jaopca:storage_blocks.otherworld_wood",
+    "occultism:otherworld_ashes"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:otherworld_ashes",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

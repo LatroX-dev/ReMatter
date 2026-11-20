@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Hextech",
+  "items": [
+    "hextale:hextech_crystal",
+    "hextale:hextech_dust",
+    "jaopca:storage_blocks.hextech"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:hextech",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

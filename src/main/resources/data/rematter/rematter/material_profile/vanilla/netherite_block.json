@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:netherite_block",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 324000,
+  "synthesis_energy": 648000,
+  "ticks": 3600
+}

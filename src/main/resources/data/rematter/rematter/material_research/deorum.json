@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Deorum",
+  "items": [
+    "forbidden_arcanus:deorum_block",
+    "forbidden_arcanus:deorum_ingot",
+    "forbidden_arcanus:deorum_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcane_crystal",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "name": "Amethyst",
+  "items": [
+    "minecraft:amethyst_block",
+    "minecraft:amethyst_shard",
+    "occultism:amethyst_dust",
+    "rematter:amethyst_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BXB",
+    "KCK",
+    "BFB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "K": "minecraft:brick",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame",
+    "X": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:sinter_furnace",
+    "count": 1
+  }
+}

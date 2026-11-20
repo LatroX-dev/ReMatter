@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Calcite",
+  "items": [
+    "jaopca:storage_blocks.calcite",
+    "minecraft:calcite",
+    "occultism:crushed_calcite"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

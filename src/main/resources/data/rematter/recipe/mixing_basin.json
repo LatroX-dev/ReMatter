@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "M M",
+    "VMV",
+    "RFR"
+  ],
+  "key": {
+    "M": "rematter:amber_matrix_crystal",
+    "V": "rematter:virelite_ceramic",
+    "R": "rematter:rhevon_ingot",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:mixing_basin",
+    "count": 1
+  }
+}

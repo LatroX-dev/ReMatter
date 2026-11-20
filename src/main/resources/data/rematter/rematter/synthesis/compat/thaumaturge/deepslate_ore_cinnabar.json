@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "thaumaturge",
+  "item": "thaumaturge:deepslate_ore_cinnabar",
+  "disabled": true
+}

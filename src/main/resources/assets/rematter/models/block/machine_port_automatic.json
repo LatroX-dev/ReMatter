@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/machine_port",
+  "textures": {
+    "particle": "rematter:block/machine_port_automatic",
+    "face": "rematter:block/machine_port_automatic"
+  }
+}

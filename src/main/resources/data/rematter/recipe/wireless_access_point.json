@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " B ",
+    "OFO",
+    "ECE"
+  ],
+  "key": {
+    "B": "rematter:blue_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "F": "rematter:machine_frame",
+    "E": "rematter:ender_conductor",
+    "C": "rematter:reinforced_matter_cable"
+  },
+  "result": {
+    "id": "rematter:wireless_access_point",
+    "count": 1
+  }
+}

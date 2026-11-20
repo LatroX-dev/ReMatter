@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BBB",
+    "CSC",
+    "BBB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "C": "minecraft:copper_ingot",
+    "S": "rematter:silith"
+  },
+  "result": {
+    "id": "rematter:matter_cable",
+    "count": 12
+  }
+}

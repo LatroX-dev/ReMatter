@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "required_mod": "jaopca",
+  "required_item": "jaopca:storage_blocks.salt",
+  "item": "jaopca:storage_blocks.salt",
+  "synthesis_machine": "material_synthesizer",
+  "crystallization_tier": 1,
+  "category": "raw_material"
+}

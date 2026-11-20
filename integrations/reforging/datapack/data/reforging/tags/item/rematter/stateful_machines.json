@@ -1,0 +1,137 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "rematter:analyzer",
+      "required": false
+    },
+    {
+      "id": "rematter:decomposer",
+      "required": false
+    },
+    {
+      "id": "rematter:material_synthesizer",
+      "required": false
+    },
+    {
+      "id": "rematter:chemical_processor",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_terminal",
+      "required": false
+    },
+    {
+      "id": "rematter:chemical_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_drive",
+      "required": false
+    },
+    {
+      "id": "rematter:material_preparator",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_64k",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_256k",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_1m",
+      "required": false
+    },
+    {
+      "id": "rematter:hand_preparator",
+      "required": false
+    },
+    {
+      "id": "rematter:preparation_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:network_interface",
+      "required": false
+    },
+    {
+      "id": "rematter:recovered_matter",
+      "required": false
+    },
+    {
+      "id": "rematter:automation_pattern",
+      "required": false
+    },
+    {
+      "id": "rematter:sinter_furnace",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_converter",
+      "required": false
+    },
+    {
+      "id": "rematter:crystal_generator",
+      "required": false
+    },
+    {
+      "id": "rematter:industrial_crystal_generator",
+      "required": false
+    },
+    {
+      "id": "rematter:energy_cube",
+      "required": false
+    },
+    {
+      "id": "rematter:reinforced_energy_cube",
+      "required": false
+    },
+    {
+      "id": "rematter:resonant_energy_cube",
+      "required": false
+    },
+    {
+      "id": "rematter:cell_transfer_station",
+      "required": false
+    },
+    {
+      "id": "rematter:configuration_card",
+      "required": false
+    },
+    {
+      "id": "rematter:wireless_access_point",
+      "required": false
+    },
+    {
+      "id": "rematter:wireless_matter_terminal",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_cell_4m",
+      "required": false
+    },
+    {
+      "id": "rematter:void_matter_cell",
+      "required": false
+    },
+    {
+      "id": "rematter:portable_energy_cell",
+      "required": false
+    },
+    {
+      "id": "rematter:matter_level_emitter",
+      "required": false
+    },
+    {
+      "id": "rematter:pressurized_canister",
+      "required": false
+    },
+    {
+      "id": "rematter:atmospheric_collector",
+      "required": false
+    }
+  ]
+}

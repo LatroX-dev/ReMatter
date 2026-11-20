@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "alltheores",
+  "item": "alltheores:lumium_dust",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:tin",
+      "phase": "solid",
+      "amount": 750
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 400
+}

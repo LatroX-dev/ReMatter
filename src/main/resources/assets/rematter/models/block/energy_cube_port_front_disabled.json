@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/energy_cube_port_side_front",
+  "textures": {
+    "particle": "rematter:block/energy_cube_front_plain",
+    "face": "rematter:block/energy_cube_front_plain"
+  }
+}

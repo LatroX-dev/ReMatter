@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.emerald",
+  "symbol": "Be₃Al₂Si₆O₁₈",
+  "kind": "compound",
+  "composition": {
+    "rematter:beryllium": 3,
+    "rematter:aluminum": 2,
+    "rematter:silicon": 6,
+    "rematter:oxygen": 18
+  },
+  "phases": [
+    "solid"
+  ]
+}

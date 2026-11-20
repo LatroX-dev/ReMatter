@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Polymer Resin",
+  "items": [
+    "oritech:polymer_resin"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

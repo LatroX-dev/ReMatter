@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "thaumaturge",
+  "item": "thaumaturge:raw_cinnabar",
+  "disabled": true
+}

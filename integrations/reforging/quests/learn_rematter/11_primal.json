@@ -1,0 +1,50 @@
+{
+  "title": "Finite Primal Reserves",
+  "description": [
+    "Mine Primal Ore in deep Overworld deepslate, the Nether or the End to recover Primal Shards, then store Primal Matter inside dedicated Primal Cells in a Matter Drive. Routine decomposition, synthesis and automation never drain Primal reserves.",
+    "Primal Matter funds Derive and Discovery steps in the Analyzer and feeds the Primal Converter. Every conversion requires a known solid element target and an explicit finite batch confirmation, so reserves cannot bleed away unattended.",
+    "Treat Primal Matter as a strategic catalyst for scarce inputs and research milestones rather than bulk metal production; native quarries, bees and processing chains remain better suited for high-volume commodities."
+  ],
+  "icon": "rematter:primal_converter",
+  "x": 3.6,
+  "y": 10.8,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:primal_cell_16k"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:primal_converter"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/09_reserve",
+      "learn_rematter/10_research"
+    ]
+  },
+  "routes": {}
+}

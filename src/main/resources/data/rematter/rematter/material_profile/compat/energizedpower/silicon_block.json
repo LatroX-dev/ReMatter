@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "energizedpower",
+  "item": "energizedpower:silicon_block",
+  "matter": [
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 2250
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 3600
+}

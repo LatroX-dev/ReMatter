@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "stellaris",
+  "item": "stellaris:novite_block",
+  "matter": [
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 4500
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

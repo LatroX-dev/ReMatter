@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Titanium",
+  "items": [
+    "jaopca:dusts.titanium",
+    "stellaris:deepslate_titanium_ore",
+    "stellaris:moon_titanium_ore",
+    "stellaris:raw_titanium",
+    "stellaris:raw_titanium_block",
+    "stellaris:titanium_block",
+    "stellaris:titanium_ingot",
+    "stellaris:titanium_nugget",
+    "stellaris:titanium_ore"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

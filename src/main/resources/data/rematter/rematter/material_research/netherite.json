@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "name": "Netherite",
+  "items": [
+    "alltheores:netherite_dust",
+    "appgen:netherite_dust",
+    "ftbic:netherite_dust",
+    "mekanism:dust_netherite",
+    "minecraft:netherite_block",
+    "minecraft:netherite_ingot",
+    "occultism:netherite_dust",
+    "rematter:netherite_powder"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

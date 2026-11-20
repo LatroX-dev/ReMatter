@@ -1,0 +1,44 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/wireless_access_point_beacon_active",
+    "beacon": "rematter:block/wireless_access_point_beacon_active"
+  },
+  "elements": [
+    {
+      "name": "beacon",
+      "from": [
+        5.5,
+        13,
+        5.5
+      ],
+      "to": [
+        10.5,
+        15.5,
+        10.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#beacon"
+        },
+        "south": {
+          "texture": "#beacon"
+        },
+        "east": {
+          "texture": "#beacon"
+        },
+        "west": {
+          "texture": "#beacon"
+        },
+        "up": {
+          "texture": "#beacon"
+        }
+      }
+    }
+  ]
+}

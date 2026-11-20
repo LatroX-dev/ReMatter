@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "rematter:block/cell_transfer_station"
+    },
+    "facing=east": {
+      "model": "rematter:block/cell_transfer_station",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "rematter:block/cell_transfer_station",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "rematter:block/cell_transfer_station",
+      "y": 270
+    }
+  }
+}

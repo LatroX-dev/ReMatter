@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Stellarite",
+  "items": [
+    "forbidden_arcanus:stella_arcanum",
+    "forbidden_arcanus:stellarite_block",
+    "forbidden_arcanus:stellarite_piece"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:stellarite",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

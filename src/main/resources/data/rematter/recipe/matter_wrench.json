@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "B B",
+    " C ",
+    " B "
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "rematter:matter_wrench",
+    "count": 1
+  }
+}

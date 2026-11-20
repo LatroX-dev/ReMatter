@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BEB",
+    "PCP",
+    "BFB"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "E": "rematter:ender_conductor",
+    "P": "rematter:matter_cable",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:machine_port",
+    "count": 2
+  }
+}

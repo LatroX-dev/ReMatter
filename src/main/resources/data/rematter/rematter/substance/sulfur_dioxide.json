@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sulfur_dioxide",
+  "symbol": "SO₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:sulfur": 1,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "gas"
+  ]
+}

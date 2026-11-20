@@ -1,0 +1,39 @@
+{
+  "title": "Synthesize a Bucket of Lava",
+  "description": [
+    "Complete a batch of at least 1,000 mB of lava in a Material Synthesizer you own. A successful local batch or network crafting order earns the advancement for the machine owner. Your quest team shares this optional milestone."
+  ],
+  "icon": "minecraft:lava_bucket",
+  "x": 10.8,
+  "y": 7.2,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": true,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "advancement",
+      "advancement": "rematter:progression/synthesized_lava"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/06_thermal"
+    ]
+  },
+  "routes": {}
+}

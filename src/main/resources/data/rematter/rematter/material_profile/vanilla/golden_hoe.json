@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:golden_hoe",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 800
+}

@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "name": "Inferium Metal",
+  "items": [
+    "mysticalagriculture:inferium_ingot",
+    "mysticalagriculture:inferium_ingot_block",
+    "mysticalagriculture:inferium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:inferium_essence",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

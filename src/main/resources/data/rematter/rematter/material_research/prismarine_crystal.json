@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Prismarine Crystal",
+  "items": [
+    "jaopca:storage_blocks.prismarine",
+    "minecraft:prismarine_crystals"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prismarine_crystal",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

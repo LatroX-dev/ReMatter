@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/crystal_generator_window",
+    "window": "rematter:block/crystal_generator_window",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "chamber",
+      "from": [
+        2.5,
+        4.5,
+        0.5
+      ],
+      "to": [
+        13.5,
+        12.5,
+        1
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#window"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    }
+  ]
+}

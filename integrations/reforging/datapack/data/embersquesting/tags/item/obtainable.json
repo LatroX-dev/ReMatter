@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    {"id": "rematter:matrix_crystal", "required": false},
+    {"id": "rematter:parallel_upgrade", "required": false}
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.ethene",
+  "symbol": "C₂H₄",
+  "kind": "compound",
+  "composition": {
+    "rematter:carbon": 2,
+    "rematter:hydrogen": 4
+  },
+  "phases": [
+    "gas"
+  ]
+}

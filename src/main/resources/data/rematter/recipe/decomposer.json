@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MBM",
+    "BCB",
+    "FBF"
+  ],
+  "key": {
+    "M": "rematter:copper_matrix_crystal",
+    "B": "rematter:structural_bars",
+    "C": "rematter:control_circuit",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:decomposer",
+    "count": 1
+  }
+}

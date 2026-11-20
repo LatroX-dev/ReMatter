@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.fluorine",
+  "symbol": "F₂",
+  "kind": "element",
+  "composition": {
+    "rematter:fluorine": 2
+  },
+  "phases": [
+    "gas"
+  ]
+}

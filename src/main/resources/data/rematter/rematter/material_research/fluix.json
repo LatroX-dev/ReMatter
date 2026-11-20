@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "name": "Fluix",
+  "items": [
+    "ae2:fluix_block",
+    "ae2:fluix_crystal",
+    "ae2:fluix_dust",
+    "jaopca:storage_blocks.fluix"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:certus_quartz",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

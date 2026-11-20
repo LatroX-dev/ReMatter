@@ -1,0 +1,254 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_world"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_idle_world_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_active_world_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_world",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_idle_world_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_active_world_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_world",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_idle_world_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_active_world_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_world",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_idle_world_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "false",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_active_world_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_world"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_idle_world_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_active_world_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_world",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_idle_world_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_active_world_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_world",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_idle_world_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_active_world_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_world",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true",
+        "active": "false"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_idle_world_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "suspended": "true",
+        "active": "true"
+      },
+      "apply": {
+        "model": "rematter:block/separation_unit_suspended_active_world_parts",
+        "y": 270
+      }
+    }
+  ]
+}

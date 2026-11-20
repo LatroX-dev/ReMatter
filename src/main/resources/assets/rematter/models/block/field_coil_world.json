@@ -1,0 +1,572 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "body": "rematter:block/module_field_coil",
+    "mount": "rematter:block/module_mount",
+    "port": "rematter:block/casing_port",
+    "seat": "rematter:block/module_mount_top"
+  },
+  "elements": [
+    {
+      "name": "mount_plate",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        2,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#seat",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#port",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "mount_collar",
+      "from": [
+        3,
+        2,
+        3
+      ],
+      "to": [
+        13,
+        3,
+        13
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            12,
+            10,
+            13
+          ]
+        },
+        "up": {
+          "texture": "#mount",
+          "uv": [
+            0,
+            2,
+            10,
+            12
+          ]
+        }
+      }
+    },
+    {
+      "name": "core_foot",
+      "from": [
+        6,
+        3,
+        6
+      ],
+      "to": [
+        10,
+        4,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            12,
+            5,
+            16,
+            6
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            12,
+            5,
+            16,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            5,
+            16,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            12,
+            5,
+            16,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            0,
+            10,
+            4,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "name": "pylon_left",
+      "from": [
+        12,
+        3,
+        6
+      ],
+      "to": [
+        13,
+        7,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            4,
+            10,
+            5,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            4,
+            10,
+            5,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            10,
+            4,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            10,
+            4,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "name": "pylon_right",
+      "from": [
+        3,
+        3,
+        6
+      ],
+      "to": [
+        4,
+        7,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            4,
+            10,
+            5,
+            14
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            4,
+            10,
+            5,
+            14
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            10,
+            4,
+            14
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            10,
+            4,
+            14
+          ]
+        }
+      }
+    },
+    {
+      "name": "coil_front",
+      "from": [
+        2,
+        7,
+        2
+      ],
+      "to": [
+        14,
+        10,
+        4
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            12,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            12,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            2,
+            14,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            12,
+            2,
+            14,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            12,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            12,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "coil_back",
+      "from": [
+        2,
+        7,
+        12
+      ],
+      "to": [
+        14,
+        10,
+        14
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            12,
+            5
+          ]
+        },
+        "south": {
+          "texture": "#body",
+          "uv": [
+            0,
+            2,
+            12,
+            5
+          ]
+        },
+        "east": {
+          "texture": "#body",
+          "uv": [
+            12,
+            2,
+            14,
+            5
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            12,
+            2,
+            14,
+            5
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            12,
+            7
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            0,
+            5,
+            12,
+            7
+          ]
+        }
+      }
+    },
+    {
+      "name": "coil_left",
+      "from": [
+        12,
+        7,
+        4
+      ],
+      "to": [
+        14,
+        10,
+        12
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            7,
+            8,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            7,
+            8,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            8,
+            7,
+            10,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            8,
+            7,
+            10,
+            15
+          ]
+        }
+      }
+    },
+    {
+      "name": "coil_right",
+      "from": [
+        2,
+        7,
+        4
+      ],
+      "to": [
+        4,
+        10,
+        12
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "east": {
+          "texture": "#body",
+          "uv": [
+            0,
+            7,
+            8,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#body",
+          "uv": [
+            0,
+            7,
+            8,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#body",
+          "uv": [
+            8,
+            7,
+            10,
+            15
+          ]
+        },
+        "down": {
+          "texture": "#body",
+          "uv": [
+            8,
+            7,
+            10,
+            15
+          ]
+        }
+      }
+    }
+  ]
+}

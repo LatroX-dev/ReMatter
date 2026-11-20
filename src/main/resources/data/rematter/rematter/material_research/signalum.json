@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "Signalum",
+  "items": [
+    "alltheores:signalum_block",
+    "alltheores:signalum_dust",
+    "alltheores:signalum_ingot",
+    "alltheores:signalum_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silver",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

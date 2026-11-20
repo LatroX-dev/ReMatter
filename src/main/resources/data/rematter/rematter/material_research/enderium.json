@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "Enderium",
+  "items": [
+    "alltheores:enderium_block",
+    "alltheores:enderium_dust",
+    "alltheores:enderium_ingot",
+    "alltheores:enderium_nugget",
+    "ftbic:enderium_block",
+    "ftbic:enderium_dust",
+    "ftbic:enderium_ingot",
+    "ftbic:enderium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:lead",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ENE",
+    "DFD",
+    "EGE"
+  ],
+  "key": {
+    "E": "rematter:ember_matrix_crystal",
+    "N": "rematter:netherite_sheath",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame",
+    "G": "rematter:matrix_cluster"
+  },
+  "result": {
+    "id": "rematter:industrial_crystal_generator",
+    "count": 1
+  }
+}

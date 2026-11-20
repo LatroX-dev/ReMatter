@@ -1,0 +1,10 @@
+{
+  "parent": "rematter:block/primal_ore",
+  "textures": {
+    "particle": "minecraft:block/end_stone",
+    "host_side": "minecraft:block/end_stone",
+    "host_end": "minecraft:block/end_stone",
+    "socket": "rematter:block/end_primal_ore_socket",
+    "glow": "rematter:block/primal_ore_glow"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DPD",
+    "EOE",
+    "FCX"
+  ],
+  "key": {
+    "D": "rematter:diamond_lattice",
+    "P": "rematter:reinforced_matter_cable",
+    "E": "rematter:ender_conductor",
+    "O": "rematter:optical_circuit",
+    "F": "rematter:machine_frame",
+    "C": "rematter:control_circuit",
+    "X": "rematter:blue_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:network_interface",
+    "count": 1
+  }
+}

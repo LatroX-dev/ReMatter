@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "mysticalagriculture",
+  "item": "mysticalagriculture:prudentium_gemstone_block",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:prosperity_essence",
+      "phase": "solid",
+      "amount": 36000
+    },
+    {
+      "substance": "rematter:prudentium_essence",
+      "phase": "solid",
+      "amount": 18000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

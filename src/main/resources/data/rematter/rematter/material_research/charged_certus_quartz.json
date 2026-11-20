@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "name": "Charged Certus Quartz",
+  "items": [
+    "ae2:charged_certus_quartz_crystal"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:charged_certus_quartz",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

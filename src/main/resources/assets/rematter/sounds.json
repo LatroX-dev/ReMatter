@@ -1,0 +1,812 @@
+{
+  "sinter_work": {
+    "subtitle": "subtitles.rematter.sinter_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/sinter_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "sinter_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/sinter_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/sinter_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/sinter_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/sinter_accent_4",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "sinter_cycle": {
+    "sounds": []
+  },
+  "analyzer_work": {
+    "subtitle": "subtitles.rematter.analyzer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/analyzer_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "analyzer_accent": {
+    "sounds": []
+  },
+  "analyzer_cycle": {
+    "subtitle": "subtitles.rematter.analyzer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/analyzer_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/analyzer_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "decomposer_work": {
+    "subtitle": "subtitles.rematter.decomposer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/decomposer_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "decomposer_accent": {
+    "sounds": []
+  },
+  "decomposer_cycle": {
+    "subtitle": "subtitles.rematter.decomposer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/decomposer_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/decomposer_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/decomposer_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/decomposer_cycle_4",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "synthesizer_work": {
+    "subtitle": "subtitles.rematter.synthesizer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/synthesizer_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "synthesizer_accent": {
+    "sounds": []
+  },
+  "synthesizer_cycle": {
+    "subtitle": "subtitles.rematter.synthesizer_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/synthesizer_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/synthesizer_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/synthesizer_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "processor_work": {
+    "subtitle": "subtitles.rematter.processor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/processor_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "processor_accent": {
+    "sounds": []
+  },
+  "processor_cycle": {
+    "subtitle": "subtitles.rematter.processor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/processor_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/processor_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "chemical_reactor_work": {
+    "subtitle": "subtitles.rematter.chemical_reactor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "chemical_reactor_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "chemical_reactor_cycle": {
+    "subtitle": "subtitles.rematter.chemical_reactor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/chemical_reactor_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "hand_preparator_work": {
+    "subtitle": "subtitles.rematter.hand_preparator_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/hand_preparator_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "hand_preparator_accent": {
+    "sounds": []
+  },
+  "hand_preparator_cycle": {
+    "sounds": []
+  },
+  "preparator_work": {
+    "subtitle": "subtitles.rematter.preparator_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparator_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "preparator_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparator_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparator_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparator_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "preparator_cycle": {
+    "subtitle": "subtitles.rematter.preparator_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparator_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparator_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparator_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparator_cycle_4",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "preparation_reactor_work": {
+    "subtitle": "subtitles.rematter.preparation_reactor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "preparation_reactor_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "preparation_reactor_cycle": {
+    "subtitle": "subtitles.rematter.preparation_reactor_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      },
+      {
+        "name": "rematter:workshop-v11/machine/preparation_reactor_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "generator_work": {
+    "subtitle": "subtitles.rematter.generator_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/generator_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "generator_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/generator_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/generator_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/generator_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "generator_cycle": {
+    "sounds": []
+  },
+  "converter_work": {
+    "subtitle": "subtitles.rematter.converter_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/converter_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "converter_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/converter_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/converter_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/converter_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "converter_cycle": {
+    "sounds": []
+  },
+  "atmospheric_work": {
+    "subtitle": "subtitles.rematter.atmospheric_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_work",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "atmospheric_accent": {
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_accent_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_accent_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_accent_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "atmospheric_cycle": {
+    "subtitle": "subtitles.rematter.atmospheric_work",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_cycle_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_cycle_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      },
+      {
+        "name": "rematter:workshop-v11/machine/atmospheric_cycle_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "wrench_configure": {
+    "subtitle": "subtitles.rematter.wrench_configure",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/wrench_configure_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/wrench_configure_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/wrench_configure_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "wrench_rotate": {
+    "subtitle": "subtitles.rematter.wrench_rotate",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/wrench_rotate_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/wrench_rotate_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "wrench_mode": {
+    "subtitle": "subtitles.rematter.wrench_mode",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/wrench_mode",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "wrench_dismantle": {
+    "subtitle": "subtitles.rematter.wrench_dismantle",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/wrench_dismantle",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "port_cycle": {
+    "subtitle": "subtitles.rematter.port_cycle",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/port_cycle",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "config_card_read": {
+    "subtitle": "subtitles.rematter.config_card_read",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/config_card_read",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "config_card_write": {
+    "subtitle": "subtitles.rematter.config_card_write",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/config_card_write",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "config_card_clear": {
+    "subtitle": "subtitles.rematter.config_card_clear",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/config_card_clear",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "cell_insert": {
+    "subtitle": "subtitles.rematter.cell_insert",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/cell_insert_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/cell_insert_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/cell_insert_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "cell_extract": {
+    "subtitle": "subtitles.rematter.cell_extract",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/cell_extract_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      },
+      {
+        "name": "rematter:workshop-v11/tool/cell_extract_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "canister_fill": {
+    "subtitle": "subtitles.rematter.canister_fill",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/canister_fill",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "canister_empty": {
+    "subtitle": "subtitles.rematter.canister_empty",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/canister_empty",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "cell_transfer": {
+    "subtitle": "subtitles.rematter.cell_transfer",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/cell_transfer",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "hand_crank": {
+    "subtitle": "subtitles.rematter.hand_crank",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/hand_crank_1",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 12
+      },
+      {
+        "name": "rematter:workshop-v11/tool/hand_crank_2",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 12
+      },
+      {
+        "name": "rematter:workshop-v11/tool/hand_crank_3",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 12
+      },
+      {
+        "name": "rematter:workshop-v11/tool/hand_crank_4",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 12
+      }
+    ]
+  },
+  "analyzer_complete": {
+    "subtitle": "subtitles.rematter.analyzer_complete",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/analyzer_complete",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "synthesizer_complete": {
+    "subtitle": "subtitles.rematter.synthesizer_complete",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/machine/synthesizer_complete",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "entangled_pair": {
+    "subtitle": "subtitles.rematter.entangled_pair",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/entangled_pair",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "wireless_link": {
+    "subtitle": "subtitles.rematter.wireless_link",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/wireless_link",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 14
+      }
+    ]
+  },
+  "terminal_order": {
+    "subtitle": "subtitles.rematter.terminal_order",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/terminal_order",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "energy_cell_on": {
+    "subtitle": "subtitles.rematter.energy_cell_on",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/energy_cell_on",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "energy_cell_off": {
+    "subtitle": "subtitles.rematter.energy_cell_off",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/energy_cell_off",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  },
+  "structure_formed": {
+    "subtitle": "subtitles.rematter.structure_formed",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/structure_formed",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 20
+      }
+    ]
+  },
+  "action_denied": {
+    "subtitle": "subtitles.rematter.action_denied",
+    "sounds": [
+      {
+        "name": "rematter:workshop-v11/tool/action_denied",
+        "volume": 1.0,
+        "pitch": 1.0,
+        "attenuation_distance": 10
+      }
+    ]
+  }
+}

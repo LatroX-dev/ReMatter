@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "occultism",
+  "item": "occultism:raw_iesnium_block",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 3600
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3600
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1800
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

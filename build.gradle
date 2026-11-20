@@ -1,0 +1,151 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+group = mod_group_id
+version = mod_version
+
+base {
+    archivesName = mod_id
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = 'https://maven.blamejared.com'
+        content { includeGroup 'mezz.jei' }
+    }
+    maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url = 'https://cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+}
+
+dependencies {
+    compileOnly('mezz.jei:jei-26.1.2-common-api:29.53.0.115') { transitive = false }
+    compileOnly('maven.modrinth:jade:26.1.12+neoforge') { transitive = false }
+    compileOnly('curse.maven:semi-seasonal-emi-1706958:8945319') { transitive = false }
+    compileOnly('org.appliedenergistics:guideme:26.1.17-beta:api') { transitive = false }
+    compileOnly('curse.maven:mekanism-version-locked-1713956:9267959') { transitive = false }
+    compileOnly('curse.maven:applied-energistics-2-223794:9022271') { transitive = false }
+    compileOnly('curse.maven:refined-storage-243076:8211383') { transitive = false }
+    compileOnly('curse.maven:ftb-teams-404468:9405340') { transitive = false }
+    testImplementation platform('org.junit:junit-bom:5.14.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.13.2'
+    testImplementation("net.neoforged:neoforge:${neo_version}:universal") { transitive = false }
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+sourceSets.test {
+    java.srcDir 'integrations/reforging/tests/java'
+    resources.srcDir 'integrations/reforging/datapack'
+    compileClasspath += sourceSets.main.compileClasspath
+    runtimeClasspath += sourceSets.main.compileClasspath
+}
+
+sourceSets {
+    gameTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
+}
+
+neoForge {
+    version = project.neo_version
+
+    mods {
+        "${mod_id}" { sourceSet(sourceSets.main) }
+        rematterGameTest {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.gameTest)
+        }
+    }
+    runs {
+        client {
+            loadedMods = [neoForge.mods.rematter]
+            client()
+        }
+        visualClient {
+            type = "client"
+            gameDirectory = file("build/visual-test-run")
+            loadedMods = [neoForge.mods.rematter]
+            jvmArgument "-Xmx3G"
+        }
+        gameTestServer {
+            type = "gameTestServer"
+            sourceSet = sourceSets.gameTest
+            gameDirectory = file("build/game-test-run")
+            loadedMods = [neoForge.mods.rematterGameTest]
+            jvmArgument "-Xmx2G"
+        }
+        server {
+            loadedMods = [neoForge.mods.rematter]
+            server()
+            programArgument '--nogui'
+        }
+    }
+
+}
+
+def metadataProperties = [
+        minecraft_version_range: minecraft_version_range,
+        neo_version_range      : neo_version_range,
+        mod_id                 : mod_id,
+        mod_name               : mod_name,
+        mod_version            : mod_version,
+        mod_license            : mod_license
+]
+
+tasks.named('processResources', ProcessResources) {
+    inputs.properties metadataProperties
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand metadataProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    includeEmptyDirs = false
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('wrapper', Wrapper) {
+    distributionType = Wrapper.DistributionType.BIN
+    distributionSha256Sum = '72f44c9f8ebcb1af43838f45ee5c4aa9c5444898b3468ab3f4af7b6076c5bc3f'
+}
+
+// Distribute both license notices with binary and source artifacts.
+tasks.withType(Jar).configureEach {
+    from(rootProject.projectDir) {
+        include 'COPYING', 'COPYING.LESSER', 'LICENSE-ASSETS.md'
+        into 'META-INF'
+    }
+}
+
+tasks.register('checkAssets', Exec) {
+    group = 'verification'
+    description = 'Runs all Python asset, chemistry, crystal-fuel, and visual-style checks.'
+    workingDir = rootProject.projectDir
+    def pythonExecutable = System.getProperty('os.name').toLowerCase().contains('win') ? 'python' : 'python3'
+    commandLine pythonExecutable, 'tools/check_all.py'
+}

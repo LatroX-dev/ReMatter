@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "energizedpower",
+  "item": "energizedpower:steel_block",
+  "category": "raw_material"
+}

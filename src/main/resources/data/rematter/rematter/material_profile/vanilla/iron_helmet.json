@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:iron_helmet",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 5000
+    }
+  ],
+  "decomposition_energy": 40000,
+  "synthesis_energy": 80000,
+  "ticks": 2000
+}

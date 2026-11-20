@@ -1,0 +1,27 @@
+{
+  "display": {
+    "title": {
+      "translate": "advancement.rematter.synthesized_lava.title"
+    },
+    "description": {
+      "translate": "advancement.rematter.synthesized_lava.description"
+    },
+    "icon": {
+      "id": "minecraft:lava_bucket"
+    },
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "earned": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "earned"
+    ]
+  ],
+  "parent": "rematter:progression/put_it_back"
+}

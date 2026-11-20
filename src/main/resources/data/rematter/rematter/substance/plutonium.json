@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.plutonium",
+  "symbol": "Pu",
+  "kind": "element",
+  "composition": {
+    "rematter:plutonium": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

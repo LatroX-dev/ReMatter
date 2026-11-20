@@ -1,0 +1,330 @@
+{
+  "format": 1,
+  "active_set": "workshop-v11",
+  "machines": {
+    "analyzer": {
+      "role": "analyzer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:analyzer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:analyzer_cycle",
+          "source": "machine",
+          "period": 48,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "set": "workshop-v11"
+    },
+    "decomposer": {
+      "role": "decomposer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:decomposer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:decomposer_cycle",
+          "source": "machine",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "set": "workshop-v11"
+    },
+    "material_synthesizer": {
+      "role": "synthesizer",
+      "position": "block",
+      "loop": {
+        "event": "rematter:synthesizer_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:synthesizer_cycle",
+          "source": "machine",
+          "period": 20,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6,
+          "progress_pitch": [
+            0.94,
+            1.08
+          ]
+        }
+      ],
+      "set": "workshop-v11"
+    },
+    "chemical_processor": {
+      "role": "processor",
+      "position": "block",
+      "loop": {
+        "event": "rematter:processor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:processor_cycle",
+          "source": "machine",
+          "period": 80,
+          "phase": 0.75,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "set": "workshop-v11"
+    },
+    "chemical_reactor_controller": {
+      "role": "chemical_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:chemical_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:chemical_reactor_cycle",
+          "source": "chamber",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:chemical_reactor_accent",
+        "interval": 130,
+        "offset": 44,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "hand_preparator": {
+      "role": "hand_preparator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:hand_preparator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 3,
+        "hold": 6,
+        "fade_out": 14
+      },
+      "cues": [],
+      "set": "workshop-v11"
+    },
+    "material_preparator": {
+      "role": "preparator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:preparator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:preparator_cycle",
+          "source": "machine",
+          "period": 24,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6,
+          "mixing": false
+        }
+      ],
+      "accent": {
+        "event": "rematter:preparator_accent",
+        "interval": 60,
+        "offset": 30,
+        "jitter": 20,
+        "gain": 1.0,
+        "mixing": true
+      },
+      "set": "workshop-v11"
+    },
+    "preparation_reactor_controller": {
+      "role": "preparation_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:preparation_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:preparation_reactor_cycle",
+          "source": "chamber",
+          "period": 24,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:preparation_reactor_accent",
+        "interval": 130,
+        "offset": 34,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "sinter_furnace": {
+      "role": "sinter",
+      "position": "block",
+      "loop": {
+        "event": "rematter:sinter_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [],
+      "accent": {
+        "event": "rematter:sinter_accent",
+        "interval": 90,
+        "offset": 40,
+        "jitter": 30,
+        "gain": 0.6
+      },
+      "set": "workshop-v11"
+    },
+    "crystal_generator": {
+      "role": "generator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:generator_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [],
+      "accent": {
+        "event": "rematter:generator_accent",
+        "interval": 96,
+        "offset": 52,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "industrial_crystal_generator": {
+      "role": "generator",
+      "position": "block",
+      "loop": {
+        "event": "rematter:generator_work",
+        "gain": 1.0,
+        "pitch": 0.9,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [],
+      "accent": {
+        "event": "rematter:generator_accent",
+        "interval": 96,
+        "offset": 52,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "primal_converter": {
+      "role": "converter",
+      "position": "block",
+      "loop": {
+        "event": "rematter:converter_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [],
+      "accent": {
+        "event": "rematter:converter_accent",
+        "interval": 110,
+        "offset": 48,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "atmospheric_collector": {
+      "role": "atmospheric",
+      "position": "block",
+      "loop": {
+        "event": "rematter:atmospheric_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:atmospheric_cycle",
+          "source": "machine",
+          "period": 24,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:atmospheric_accent",
+        "interval": 100,
+        "offset": 46,
+        "jitter": 20,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    }
+  }
+}

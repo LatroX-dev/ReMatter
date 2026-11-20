@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:nugget_tin",
+  "category": "raw_material"
+}

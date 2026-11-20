@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Aquarine Copper",
+  "items": [
+    "nautec:aquarine_copper_block",
+    "nautec:aquarine_copper_ingot",
+    "nautec:aquarine_copper_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

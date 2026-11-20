@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sulfur",
+  "symbol": "S",
+  "kind": "element",
+  "composition": {
+    "rematter:sulfur": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

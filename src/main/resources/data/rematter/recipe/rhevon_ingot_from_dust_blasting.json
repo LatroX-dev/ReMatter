@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "ingredient": "#c:dusts/rhevon",
+  "result": {
+    "id": "rematter:rhevon_ingot",
+    "count": 1
+  },
+  "experience": 0.0,
+  "cookingtime": 100
+}

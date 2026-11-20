@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Blazegold",
+  "items": [
+    "jaopca:storage_blocks.blazegold",
+    "justdirethings:blazegold_ingot",
+    "justdirethings:raw_blazegold"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

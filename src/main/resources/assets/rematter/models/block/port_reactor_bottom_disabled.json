@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/port_side_bottom",
+  "textures": {
+    "particle": "rematter:block/reactor_casing",
+    "face": "rematter:block/reactor_casing"
+  }
+}

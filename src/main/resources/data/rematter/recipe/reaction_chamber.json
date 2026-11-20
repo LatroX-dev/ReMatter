@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GDG",
+    "VMV",
+    "FOF"
+  ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "D": "rematter:diamond_lattice",
+    "V": "rematter:virelite_ceramic",
+    "M": "rematter:violet_matrix_crystal",
+    "F": "rematter:machine_frame",
+    "O": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:reaction_chamber",
+    "count": 1
+  }
+}

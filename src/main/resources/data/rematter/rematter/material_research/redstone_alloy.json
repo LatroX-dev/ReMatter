@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "name": "Redstone Alloy",
+  "items": [
+    "enderio:redstone_alloy_block",
+    "enderio:redstone_alloy_ingot",
+    "enderio:redstone_alloy_nugget",
+    "energizedpower:redstone_alloy_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

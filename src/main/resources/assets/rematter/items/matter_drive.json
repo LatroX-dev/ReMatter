@@ -1,0 +1,35 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_drive"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_drive_activity_on"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_left_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_right_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_back_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_bottom_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_top_disabled"
+      }
+    ]
+  }
+}

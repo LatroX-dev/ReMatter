@@ -1,0 +1,53 @@
+{
+  "title": "Scale a Measured Reserve",
+  "description": [
+    "Choose a useful process and set Production settings to a target divisible by its complete batch yield. Processes count one substance and phase in connected ReMatter stock. Physical outputs count only their local buffer, not chest or AE2/RS stock.",
+    "Industrial Speed, Efficiency and Parallel have separate slots. Up to three Parallel Upgrades enable four lanes only when chamber height and module capacity also support them. Each lane pays its full FE. A Reaction Chamber supplies 16,000 input units; a Preparation Chamber supplies job capacity. Hardware raises Field or Precision, not an energy discount. Savings together cap at 25%.",
+    "All lanes share their controller's single matter budget: 128 / 1,024 / 8,192 units per tick on the best usable cable route. Extra equal ports do not add speed. Native FE input shares 2,048 / 16,384 / 131,072 FE per tick and the same absolute controller limit as foreign power.",
+    "Use Locate missing part to diagnose an invalid chamber. Test a full output, power interruption and repair before leaving the line unattended. Primal Cells are separate reserves: ordinary jobs never consume them. The Primal Converter runs only an explicitly confirmed finite conversion."
+  ],
+  "icon": "rematter:parallel_upgrade",
+  "x": 7.2,
+  "y": 7.2,
+  "size": 0.9,
+  "shape": "hexagon",
+  "locked": true,
+  "visibility": "full",
+  "optional": false,
+  "progression": "flexible",
+  "hide_lock_icon": true,
+  "lines_in": "always",
+  "lines_out": "always",
+  "tasks": [
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:chemical_reactor_controller"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "mode": "detect",
+      "item": "rematter:parallel_upgrade"
+    }
+  ],
+  "rewards": [
+    {
+      "auto": "manual",
+      "team_reward": false,
+      "type": "xp",
+      "points": 10,
+      "levels": 0
+    }
+  ],
+  "deps": {
+    "all": [
+      "learn_rematter/05_separation",
+      "learn_rematter/06_thermal",
+      "learn_rematter/07_crystals",
+      "learn_rematter/08_air"
+    ]
+  },
+  "routes": {}
+}

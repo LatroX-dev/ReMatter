@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.prudentium_essence",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:vitalium": 16,
+    "rematter:arcanium": 4
+  },
+  "phases": [
+    "solid"
+  ]
+}

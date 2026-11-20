@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Stainless Steel",
+  "items": [
+    "colossal_reactors:stainless_steel_block",
+    "colossal_reactors:stainless_steel_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

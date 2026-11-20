@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "rematter:air_trace_co2",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 150
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 50
+    }
+  ],
+  "energy": 16000,
+  "ticks": 600,
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "requires_open_air": true
+}

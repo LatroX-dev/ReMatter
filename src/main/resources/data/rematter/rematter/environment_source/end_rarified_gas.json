@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "rematter:end_rarified_gas",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 150
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 50
+    }
+  ],
+  "energy": 20000,
+  "ticks": 800,
+  "dimensions": [
+    "minecraft:the_end"
+  ],
+  "requires_open_air": true
+}

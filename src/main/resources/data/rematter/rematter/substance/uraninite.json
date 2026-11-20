@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.uraninite",
+  "symbol": "UO₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:uranium": 1,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

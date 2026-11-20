@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.chlorine",
+  "symbol": "Cl₂",
+  "kind": "element",
+  "composition": {
+    "rematter:chlorine": 2
+  },
+  "phases": [
+    "gas"
+  ]
+}

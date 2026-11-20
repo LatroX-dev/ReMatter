@@ -1,0 +1,41 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "id": "rematter:matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:ice_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:copper_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:amber_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:ember_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:violet_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:blue_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:leaf_matrix_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:mint_matrix_crystal",
+      "required": false
+    }
+  ]
+}

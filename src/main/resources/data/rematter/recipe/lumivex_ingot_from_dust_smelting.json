@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "ingredient": "#c:dusts/lumivex",
+  "result": {
+    "id": "rematter:lumivex_ingot",
+    "count": 1
+  },
+  "experience": 0.0,
+  "cookingtime": 200
+}

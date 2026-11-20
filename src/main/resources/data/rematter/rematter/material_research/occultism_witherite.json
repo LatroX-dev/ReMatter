@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "name": "Occultism Witherite",
+  "items": [
+    "jaopca:storage_blocks.witherite",
+    "occultism:witherite_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

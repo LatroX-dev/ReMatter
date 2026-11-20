@@ -1,0 +1,44 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_level_emitter_tip_active",
+    "tip": "rematter:block/matter_level_emitter_tip_active"
+  },
+  "elements": [
+    {
+      "name": "emitter",
+      "from": [
+        5.5,
+        5.5,
+        0.5
+      ],
+      "to": [
+        10.5,
+        10.5,
+        2.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#tip"
+        },
+        "east": {
+          "texture": "#tip"
+        },
+        "west": {
+          "texture": "#tip"
+        },
+        "up": {
+          "texture": "#tip"
+        },
+        "down": {
+          "texture": "#tip"
+        }
+      }
+    }
+  ]
+}

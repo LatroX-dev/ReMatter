@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "VEV",
+    "OHO"
+  ],
+  "key": {
+    "C": "rematter:control_circuit",
+    "V": "rematter:virelite_ceramic",
+    "E": "rematter:ember_matrix_crystal",
+    "O": "minecraft:obsidian",
+    "H": "rematter:cell_housing"
+  },
+  "result": {
+    "id": "rematter:void_matter_cell",
+    "count": 1
+  }
+}
