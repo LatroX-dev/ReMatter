@@ -11,7 +11,7 @@
 3. **Run a reaction when you need one.** Some recovered substances are ready to use. Others need more work. A Chemical Processor can separate a mixture or use electricity to split stored water into hydrogen and oxygen. Both gases stay available for later recipes.
 4. **Make something you need.** Pick a researched recipe at the **Material Synthesizer**. It consumes the listed quantities and power, then delivers a product such as a glass block or lava in its tank. Those raw materials feed your existing crafting lines for cables, tools and machines.
 
-![A row of processing machines beside a glass-walled Chemical Reactor](artwork/readme/processing-line.png)
+![A Chemical Reactor connected to power and shared material storage](artwork/listing/screenshots/orbital-reactor.jpg)
 
 ## Your first glass
 
@@ -21,7 +21,7 @@
 
 Place Silith above a book in the crafting grid to make the **ReMatter Guide**. It includes recipes and machine layouts.
 
-![Six cells in a Matter Drive store solid carbon, hydrogen gas and liquid water](artwork/readme/matter-drive.png)
+![The Matter Terminal lists the formulas and quantities available across six connected cells](artwork/listing/screenshots/matter-terminal-stock.jpg)
 
 ## Scaling up production
 
@@ -29,7 +29,7 @@ To turn spare cobblestone into a steady supply of lava, blend and melt the recov
 
 Pin a goal at the Matter Terminal to see which process to run first, what you still need and which byproducts you’ll have left.
 
-![The Chemical Reactor’s glass panels reveal the machinery inside its casing](artwork/readme/reactor.png)
+![Field Coils at work behind the reactor glass during silica electrolysis](artwork/listing/screenshots/chemical-reactor-detail.jpg)
 
 ## Play and build
 
