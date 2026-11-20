@@ -41,4 +41,8 @@ To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat b
 
 Code, data and documentation use [LGPL-3.0-only](COPYING.LESSER). Textures, models, sounds and other artwork are covered by the [asset license](LICENSE-ASSETS.md).
 
-Created by LatroX with AI assistance. Inspired by [Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry).
+Inspired by [Alchemistry](https://www.curseforge.com/minecraft/mc-mods/alchemistry).
+
+I build ReMatter from my own ideas and development experience, with AI as one of the tools I use along the way. I want the mod to be fun to play, and your feedback helps me decide what to improve next.
+
+— LatroX
