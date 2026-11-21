@@ -1,43 +1,60 @@
 # ReMatter
 
-<img align="right" width="144" src="artwork/listing/chemical-processor.png" alt="Chemical Processor with two violet reaction columns">
+**ReMatter is an industrial chemistry mod for Minecraft, developed for [LatroX's Xtreme – Tech ReForging](https://www.curseforge.com/minecraft/modpacks/latroxs-xtreme-tech-reforging).** It also runs on its own, with its own power, storage and in-game guide. Break down familiar materials, keep the substances you recover and use them in another recipe. Silica recovered from sand can become glass for your base. Minerals recovered from cobblestone can supply a tank of lava.
 
-**ReMatter is an industrial chemistry mod for Minecraft, developed for [LatroX's Xtreme – Tech ReForging](https://www.curseforge.com/minecraft/modpacks/latroxs-xtreme-tech-reforging).** You can also play it on its own. Break down familiar blocks and items, store the substances they contain, and use researched recipes to make materials for your next build.
+![The complete ReMatter machine lineup, with both industrial reactors, processing machines, power storage and network devices](artwork/listing/screenshots/all-rematter-machines.jpg)
 
-## From materials to substances and back
-
-1. **Break materials down.** Put a supported block or item into the Decomposer. Its recipe determines which substances you recover and in what quantities. Processing a sample can also teach you its material family.
-2. **Keep a shared stock.** A **Matter Cell** records how much of each solid, liquid and gas you have. Insert it into a **Matter Drive** so connected machines can use its contents, or pull it out to carry the whole stock to another base.
-3. **Run a reaction when you need one.** Some recovered substances are ready to use. Others need more work. A Chemical Processor can separate a mixture or use electricity to split stored water into hydrogen and oxygen. Both gases stay available for later recipes.
-4. **Make something you need.** Pick a researched recipe at the **Material Synthesizer**. It consumes the listed quantities and power, then delivers a product such as a glass block or lava in its tank. Those raw materials feed your existing crafting lines for cables, tools and machines.
-
-![A Chemical Reactor connected to power and shared material storage](artwork/listing/screenshots/orbital-reactor.jpg)
+[Full-size machine portraits](artwork/listing/screenshots/all-rematter-machines.jpg) · [Wide view of all 23 devices in the machine hall](artwork/listing/screenshots/machine-hall.jpg)
 
 ## Your first glass
 
-1. **Start by hand.** Crank sand in the Hand Preparator for Silith, then process a clay ball for Argil. Mix them into Matrix Blend, then form your first Matrix Crystals.
-2. **Make power.** The basic Crystal Generator uses an Ember Matrix Crystal and two copper blocks for its coils. Fuel it with spare crystals to run the Material Preparator and make the parts for your first production line.
-3. **Turn sand into glass.** Install a 64k Matter Cell in a Matter Drive. Feed one sand block to a connected Decomposer to learn the Sand & Glass family and store 1,000 units of silica. Select **Glass** on the Material Synthesizer, confirm with **Use recipe**, then press **Make 1** to spend that silica on one glass block.
+<img align="right" width="144" src="artwork/listing/chemical-processor.png" alt="Chemical Processor with two violet reaction columns">
 
-Place Silith above a book in the crafting grid to make the **ReMatter Guide**. It includes recipes and machine layouts.
+1. **Start by hand.** Crank sand in the Hand Preparator to get Silith, then use a clay ball to get Argil. Mix one of each into four Matrix Blend and form your first Matrix Crystals. Place Silith above a book in the crafting grid to make the **ReMatter Guide**.
+2. **Power a small line.** Craft a Crystal Generator with an Ember Matrix Crystal and copper coils. Fuel it with spare crystals, or connect another FE source. Place a Matter Drive between a powered Decomposer and a powered Material Synthesizer and install a 64k Matter Cell in the Drive. Touching machines can share its stock.
+3. **Decompose one sand block.** With the default recipes, the Decomposer spends 8,000 FE, stores **1,000 units of solid silica** and teaches you the Sand & Glass family. Open the Drive to see the silica. Leave the cell installed for the next step.
+4. **Make one glass block.** On the Material Synthesizer, choose **Glass**, confirm with **Use recipe**, then press **Make 1**. It draws the same 1,000 units from the Drive and spends 16,000 FE to produce one glass block.
+
+For a rare sample you want to keep, use the **Analyzer**. It spends energy to identify the material family and returns the sample. Research unlocks eligible raw materials, including metals, glass and natural blocks. Turn those materials into wires, gears, tools and machines through their usual crafting or processing recipes.
+
+## Storage and production orders
+
+Each Matter Drive holds up to six removable cells. A cell records quantities by substance and phase, so liquid water and water vapor have separate balances. Add **Matter Cables** to reach more machines and carry power from a generator or **Energy Cube**. A **Pressurized Canister** lets you carry a single liquid or gas between installations.
 
 ![The Matter Terminal lists the formulas and quantities available across six connected cells](artwork/listing/screenshots/matter-terminal-stock.jpg)
 
-## Scaling up production
+At the **Matter Terminal**, search the stock by name or filter it by phase. Open **Request Batch** to plan a target across connected machines. Pin the goal to see the next step, missing inputs, energy cost and leftover products as you work. For a recurring job, use **Loop** on the machine or set a stock target in its production settings. The Terminal's **Monitor** tab shows whether a substance is accumulating or being used up.
 
-To turn spare cobblestone into a steady supply of lava, blend and melt the recovered minerals in a Chemical Processor, then select **Lava** at the Material Synthesizer. A full batch delivers 1,000 mB for a bucket or a fluid pipe. For larger production runs, build a multiblock Chemical Reactor and fit its chamber with field stabilizers and reaction foci.
+## What to build next
 
-Pin a goal at the Matter Terminal to see which process to run first, what you still need and which byproducts you’ll have left.
+- **Make gas from water.** Use a water bucket on the Decomposer to store 1,000 units of liquid water. One **Water electrolysis** batch in a Chemical Processor converts that stock into 1,000 units of hydrogen and 500 of oxygen. Both gases return to the network.
+- **Supply lava from cobblestone.** Decompose the stone, then run **Mineral blending** and **Mineral melting** in a Chemical Processor. Select **Lava** in the Material Synthesizer to deliver 1,000 mB to its tank, ready for a bucket or fluid pipe.
+- **Build an industrial reactor.** Fit a Chemical Reactor with a Field Stabilizer, a Reaction Focus and separate ports for power and matter. Stabilizers provide the field strength for advanced processes. Foci increase the amount of input the chamber can hold at once. Parallel Upgrades let a suitably sized reactor process multiple batches at once.
+- **Collect atmospheric gases.** Leave the intake of a powered Atmospheric Collector open to the Overworld sky and select **Air Separation** to collect 200 units of oxygen per batch. Other sources have different intake conditions and yields, including sulfur dioxide from Nether fumes.
+- **Explore Primal research.** Mine Primal Ore and load its shards into a dedicated Primal Cell. At the Analyzer, spend that reserve to derive an eligible material from known substances. Later, a Discovery Lens opens research into unknown families.
 
 ![Field Coils at work behind the reactor glass during silica electrolysis](artwork/listing/screenshots/chemical-reactor-detail.jpg)
 
-## Play and build
+## Optional integrations
 
-Choose the ReMatter file for your Minecraft and NeoForge versions. For multiplayer, install the same file on the server and on each client. ReMatter 0.7.x targets Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25.
+| What you want to do | Mods and setup |
+| --- | --- |
+| Order chemistry from your storage grid | Connect a ReMatter **Network Interface** to [Applied Energistics 2](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2) or [Refined Storage](https://www.curseforge.com/minecraft/mc-mods/refined-storage). Select your storage system in the interface settings, enable **Automation**, then enable **Network jobs** on the machines that should accept orders. |
+| Look up a recipe | [Just Enough Items](https://www.curseforge.com/minecraft/mc-mods/jei) and [SEMI (Seasonal EMI)](https://www.curseforge.com/minecraft/mc-mods/semi-seasonal-emi) show exact batch inputs, yields, energy costs and processing times. |
+| Read machines and layouts in-game | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) shows machine status when you look at a block. [GuideME](https://www.curseforge.com/minecraft/mc-mods/guideme) adds interactive 3D layouts to the ReMatter Guide. |
+| Supply a chemical line | With [Mekanism: Version Locked](https://www.curseforge.com/minecraft/mc-mods/mekanism-version-locked), enable **Automation** on the Matter Drive and connect a Pressurized Tube to move supported chemicals such as hydrogen and oxygen. |
+| Process ReMatter alloys | Use an [Oritech](https://www.curseforge.com/minecraft/mc-mods/oritech) Pulverizer to grind Rhevon or Lumivex ingots. The Foundry can process their powders into ingots. |
+| Run a shared facility | With [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge), teammates can operate your machines. The player who placed a machine keeps ownership. |
 
-To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The mod JAR is written to `build/libs/`.
+See the [integration guide](docs/integrations.md) for supported API versions and details on connecting external storage and chemical networks.
 
-[Optional mod integrations](docs/integrations.md) · [Chemistry data packs](docs/data-packs.md) · [Report an issue](https://github.com/LatroX-dev/ReMatter/issues)
+## Install, build and get help
+
+ReMatter 0.7.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
+
+To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The JAR is written to `build/libs/`. Pack authors can define new material profiles, permitted synthesis outputs and processes with [chemistry data packs](docs/data-packs.md).
+
+[Report a bug, request a material or suggest a feature](https://github.com/LatroX-dev/ReMatter/issues/new/choose). For a recipe issue, include the item or fluid ID, your ReMatter version and the result you expected.
 
 Code, data and documentation use [LGPL-3.0-only](COPYING.LESSER). Textures, models, sounds and other artwork are covered by the [asset license](LICENSE-ASSETS.md).
 
