@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Celestigem",
+  "items": [
+    "justdirethings:celestigem",
+    "justdirethings:celestigem_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

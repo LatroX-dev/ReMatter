@@ -40,6 +40,7 @@ dependencies {
     compileOnly('curse.maven:applied-energistics-2-223794:9022271') { transitive = false }
     compileOnly('curse.maven:refined-storage-243076:8211383') { transitive = false }
     compileOnly('curse.maven:ftb-teams-404468:9405340') { transitive = false }
+    compileOnly('curse.maven:curios-309927:8463519') { transitive = false }
     testImplementation platform('org.junit:junit-bom:5.14.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'com.google.code.gson:gson:2.13.2'

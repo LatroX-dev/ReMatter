@@ -24,9 +24,9 @@ If the native network does not confirm a finished delivery, the interface stops 
 
 ## Recipe viewers
 
-The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs, processing times, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
+The recipe catalogue comes from the server, including its data packs. Viewers display exact item and fluid batches, substance quantities, base FE costs with effective `FE/t` rates, processing times in seconds and ticks, and explicit synthesis permissions. A nine-nugget batch appears as nine input or output items. Machine upgrades may change the effective cost or speed. Substance quantities are viewer ingredients, not an inventory item for every element.
 
-JEI and EMI show the same categories: decomposition, synthesis, electrolysis, reaction, separation, phase change crystallization and renewable air separation, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
+JEI and EMI show the same categories: decomposition (including the Industrial Decomposer), synthesis (including the Industrial Synthesizer), electrolysis, reaction, separation, phase change crystallization and renewable air separation, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
 
 - **JEI:** built against JEI 29.53.0.115 for 26.1.2.
 - **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2**, the continuation used in ReForging. The original EMI project currently has no 26.1.2 build. When SEMI and JEI are installed together, the native EMI integration supplies the ReMatter categories.
@@ -43,7 +43,25 @@ Patchouli and Ponder are not required. ReMatter does not add duplicate books to 
 
 ## Jade
 
-The optional Jade integration targets **Jade 26.1.12**. Its machine overlay reads server-authorized status, including counts of outdated and stopped network orders on a Network Interface. It respects machine ownership and does not expose another player's inventory through generic item, fluid, energy, or progress providers. The Jade settings list each ReMatter provider by name.
+The optional Jade integration targets **Jade 26.1.12**. Its server-authorized overlays cover processing machines (including live FE/t draw, active speed/efficiency/parallel upgrades, Pressure Module status, industrial Field/Room/Precision, and outdated/stopped Network Interface orders), Energy Cubes (charge level, net flow, docked charge/discharge counts), Wireless Access Points (online state, active range, installed boosters, power), Matter Level Emitters (configured substance/phase, threshold, emitted signal), Entangled Links (pairing state, dimension/range status), and Cell Transfer Stations (transfer readiness and docked cells). Every provider respects machine ownership and does not expose another player's inventory, energy, fluid, or status details. The Jade settings list each ReMatter provider by name.
+
+## Curios and Wireless Hotkey
+
+The optional Curios integration targets **Curios 15.0.0+26.1.2**. Both the **Wireless Matter Terminal** and the **Portable Energy Cell** accept `curio`, `charm`, and `belt` slots via `data/curios/tags/item/{curio,charm,belt}.json`, and `data/rematter/curios/entities/rematter.json` ensures `charm` and `belt` slots are available on players when Curios is installed.
+
+- **Wireless Matter Terminal:** assign the client keybind **Controls → ReMatter → Open Wireless Matter Terminal** (unbound by default) to open a bound, charged terminal carried in your inventory or equipped in a Curios slot without switching hotbar slots. Right-clicking the terminal in hand opens it normally rather than auto-equipping into Curios.
+- **Portable Energy Cell:** when toggled on, recharges compatible FE items across both your player inventory and equipped Curios slots, and ticks continuously while equipped in a Curios slot.
+
+## Cross-mod compatibility recipes
+
+Optional mod-loaded crafting recipes let pack tech lines participate in ReMatter's early/mid-game material preparation without bypassing ReMatter's core chemistry:
+
+- **Ender IO Alloy Smelter:** Rhevon Ingot, Lumivex Ingot, Virelite Ceramic, Diamond Lattice, Ender Conductor, and Netherite Sheath.
+- **FTB Industrial Contraptions Macerator:** Rhevon Dust, Lumivex Dust, Lapis Dust, Amethyst Dust, and Emerald Dust.
+- **Energized Power Crusher:** Rhevon Dust, Lumivex Dust, Diamond Powder, Netherite Powder, Lapis Dust, Amethyst Dust, and Emerald Dust.
+- **Mekanism Crusher:** Amethyst Dust (alongside the existing Mekanism dust/enrichment routes).
+
+Each recipe is guarded by `neoforge:mod_loaded` so it loads only when the target mod is installed.
 
 ## Mekanism chemicals
 
@@ -65,22 +83,24 @@ Enable automation on a **Matter Drive** with a readable Cell, then use chemical 
 | `mekanism:ethene` | Ethene, gas | 1 chemical unit = 1 matter unit |
 | `mekanism:lithium` | Lithium, gas | 1 chemical unit = 10 matter units |
 | `mekanism:osmium` | Osmium, gas | 1 chemical unit = 5 matter units |
+| `mekanism:brine` | Brine, gas | 1 chemical unit = 1 matter unit |
+| `mekanism:sodium` | Sodium, gas | 1 chemical unit = 1 matter unit |
 
-Mekanism moves all of these through one chemical capability, so ReMatter stores each of them in the gas phase of its substance. For sulfuric acid, lithium and osmium the gas phase is a transfer identity, not a claim about the physical state: it keeps the Mekanism chemical apart from liquid acid, lithium dust or osmium ingots, and no ReMatter process converts between those phases.
+Mekanism moves all of these through one chemical capability, so ReMatter stores each of them in the gas phase of its substance. For sulfuric acid, lithium, osmium, brine and sodium the gas phase is a transfer identity, not a claim about the physical state: it keeps the Mekanism chemical apart from liquid acid, lithium dust, osmium ingots, solid salt or solid sodium, and no ReMatter process converts between those phases.
 
 Water vapor is not an alias for every mod's steam fluid. Unknown gases are not accepted automatically. ReMatter's base water electrolysis uses 1,000 water to produce 1,000 hydrogen and 500 oxygen; the reverse reaction consumes those exact quantities. Packs that change hydrogen fuel values should review their complete energy balance.
 
 The non-unit ratios preserve the targeted Mekanism recipes: one hydrogen and one chlorine produce one external hydrogen-chloride unit, 100 lithium units crystallize into one dust, and one osmium ingot produces 200 chemical units. Transfers only export whole chemical units; insufficient capacity and fractional remainders stay in storage. These mappings do not add new reactions between the stored substances.
 
-Importing a mapped chemical needs only a known substance definition. Exporting one needs an explicit release: a `gas` synthesis permission for the substance or a `fluid` permission for the chemical's own fluid ID. All twelve mapped substances ship with a gas permission, so each can return to Mekanism.
+Importing a mapped chemical needs only a known substance definition. Exporting one needs an explicit release: a `gas` synthesis permission for the substance or a `fluid` permission for the chemical's own fluid ID. All fourteen mapped substances ship with a gas permission, so each can return to Mekanism.
 
-Ten matching source fluids are supported through explicit profiles: hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrofluoric acid, ethene, and lithium. Each conversion handles 1,000 mB and uses the ratios above. Their rotary recipes exchange one fluid mB for one chemical unit. Flowing variants are not separate inputs. Thermal steam, superheated sodium, radioactive chemicals, nuclear fuels, and antimatter are not mapped by these rules.
+Twelve matching source fluids are supported through explicit profiles: hydrogen, oxygen, chlorine, sulfur dioxide, sulfur trioxide, sulfuric acid, hydrogen chloride, hydrofluoric acid, ethene, lithium, brine, and sodium. Each conversion handles 1,000 mB and uses the ratios above. Their rotary recipes exchange one fluid mB for one chemical unit. Flowing variants are not separate inputs. Thermal steam, superheated sodium, radioactive chemicals, nuclear fuels, and antimatter are not mapped by these rules.
 
 ## Energy, fluids, and items
 
-Processing machines accept FE from external energy sources, up to 16,000 FE per transfer, into a 2,400,000 FE buffer. A batch starts only when its complete FE price is stored, so no catalogue batch may cost more than 1,200,000 FE before upgrades; four Speed Upgrades double that price. Matter Cables forward pushed FE only along the cable owner's connected cables and only to that owner's ReMatter machines and Machine Ports. Foreign or unowned cables do not connect; other mods' blocks receive none. They store none, and nothing can pull FE out through a cable.
+Processing machines accept FE from external energy sources, up to 131,072 FE/t per controller, into a 2,400,000 FE buffer. Active production batches draw FE continuously tick by tick, pause safely if power drops, and return uncommitted tick FE on interruption or save; catalogue batches stay within 1,200,000 FE before upgrades so every single batch also fits the buffer at full speed (four Speed Upgrades double the batch price and reach 10× speed). Matter Cables forward pushed FE only along the cable owner's connected cables and only to that owner's ReMatter machines and Machine Ports. Foreign or unowned cables do not connect; other mods' blocks receive none. They store none, and nothing can pull FE out through a cable.
 
-Item and fluid automation is off by default. Enable it under **Settings → Access** on each processor. For an automated glass line, put a Cell in a connected Matter Drive. One hopper feeds sand into the Decomposer and another extracts glass from the Synthesizer. Keep the Decomposer running, select Glass with **Choose recipe** or **Recipe**, confirm with **Use recipe**, and enable **Loop** beside **Make 1** on the Synthesizer's main view. Toggle it off to stop continuous production. **Pause** and **Resume** retain the current order. Feeding input through a pipe does not request synthesis jobs on its own.
+Item and fluid automation is off by default. Enable it under **Settings → Access** on each processor. Compact machines with physical outputs also offer an optional **Auto-Eject** toggle (off by default, copied by the Configuration Card) that pushes finished items and fluids into adjacent inventories or tanks only on faces explicitly configured to **Item Output** or **Fluid Output** while Automation is on. For an automated glass line, put a Cell in a connected Matter Drive. One hopper feeds sand into the Decomposer and another extracts glass from the Synthesizer. Keep the Decomposer running, select Glass with **Choose recipe** or **Recipe**, confirm with **Use recipe**, and enable **Loop** beside **Make 1** on the Synthesizer's main view. Toggle it off to stop continuous production. **Pause** and **Resume** retain the current order. Feeding input through a pipe does not request synthesis jobs on its own.
 
 Input and output slots are separate. Upgrades and Matter Cells cannot be moved through these automation slots. A matter network contains only machines of one owner and only traverses loaded chunks. Multiple Matter Drives contribute to the same network stock.
 
@@ -96,9 +116,9 @@ For ReForging's coexistence with Replication and Equivox, see the separate [opti
 
 ## Specialist machines and production rules
 
-The compact Chemical Processor and the multiblock Chemical Reactor run chemical processes, including electrolysis, separation and phase changes. JEI/EMI workstations, manual choices and native network jobs use the same routing. The Material Synthesizer handles approved crystal-family outputs; every diamond form requires tier 2 with a Pressure Module. This also applies to AE2 and RS patterns. Owner advancements gate execution; revocation prevents new batches and refunds already owned automation inputs.
+The compact Chemical Processor and the multiblock Chemical Reactor run chemical processes, including electrolysis, separation and phase changes. The multiblock **Industrial Decomposer** and **Industrial Synthesizer** share the same reactor-module chamber (height 4–9, Field Stabilizers + Reaction Foci, Machine Ports carrying items, fluids, FE, and matter), running at 2× base speed with separate Speed, Efficiency, and Parallel slots (up to 80× throughput across 4 parallel lanes). JEI/EMI workstations, manual choices and native network jobs use the same routing. The Material Synthesizer handles approved crystal-family outputs; every diamond form requires tier 2 with a Pressure Module in the compact machine, while a formed Industrial Synthesizer provides tier 2 crystallization built in. This also applies to AE2 and RS patterns. Owner advancements gate execution; revocation prevents new batches and refunds already owned automation inputs.
 
-The default Air Separation recipe produces 200 stored oxygen units for 16,000 base FE over 800 work ticks in the Overworld, with air directly above and open sky. The Drive exports oxygen to Mekanism at 1:1 for uses such as its Purification Chamber. Nitrogen is not produced. Gas venting applies only to explicitly selected newly produced gas outputs; it starts off and does not alter stored stock or native crafting contracts.
+The default Air Separation recipe produces 200 stored oxygen units for 16,000 base FE over 400 work ticks in the Overworld, with air directly above and open sky. The Drive exports oxygen to Mekanism at 1:1 for uses such as its Purification Chamber. Nitrogen is not produced. Gas venting applies only to explicitly selected newly produced gas outputs; it starts off and does not alter stored stock or native crafting contracts.
 
 Production targets count either a substance/phase in the connected ReMatter network or the producer's own item/fluid output buffer. AE2 and RS inventories are outside this scope. All producers share reservations for inputs and planned substance outputs; only complete batches fit below the hard target. Manual requests have priority. Industrial controllers accept up to three Parallel Upgrades for four concurrent, fully paid batches in their existing upgrade slot. Combined structural and Efficiency savings never exceed 25%.
 
@@ -106,4 +126,4 @@ FTB Teams 26.1.2.5 enables current team members to operate machines. Ownership, 
 
 ## Reference versions
 
-The reference integration uses ReForging 0.11.1, Minecraft 26.1.2 and NeoForge 26.1.2.126. Compile-only APIs and metadata target AE2 26.1.13-beta, Refined Storage 3.2.1, Jade 26.1.12, GuideME 26.1.17-beta, JEI 29.53.0.115, SEMI 1.1.24, Mekanism Version Locked 26.1.2-2.11 (mod version 10.8.0) and FTB Teams 26.1.2.5. Exact API compilation is not a claim that every optional gameplay path has been exercised.
+The reference integration uses ReForging 0.11.1, Minecraft 26.1.2 and NeoForge 26.1.2.126. Compile-only APIs and metadata target AE2 26.1.13-beta, Refined Storage 3.2.1, Jade 26.1.12, GuideME 26.1.17-beta, JEI 29.53.0.115, SEMI 1.1.24, Mekanism Version Locked 26.1.2-2.11 (mod version 10.8.0), Curios 15.0.0+26.1.2 and FTB Teams 26.1.2.5. Exact API compilation is not a claim that every optional gameplay path has been exercised.

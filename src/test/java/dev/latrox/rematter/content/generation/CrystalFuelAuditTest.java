@@ -105,7 +105,7 @@ class CrystalFuelAuditTest {
                 assertEquals("rematter:preparation", json.get("type").getAsString());
                 assertEquals(1, result.get("count").getAsInt());
                 assertEquals(4000, json.get("energy").getAsInt());
-                assertEquals(640, json.get("ticks").getAsInt());
+                assertEquals(320, json.get("ticks").getAsInt());
                 int tier = Set.of("matrix_crystal", "ice_matrix_crystal", "copper_matrix_crystal", "amber_matrix_crystal", "ember_matrix_crystal").contains(id) ? 0 : 1;
                 assertEquals(tier, json.get("minimum_tier").getAsInt());
                 long price = json.get("energy").getAsLong();

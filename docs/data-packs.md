@@ -242,10 +242,67 @@ The fuel catalogue accepts only plain Matrix Crystal plus its eight coloured var
 }
 ```
 
-`count` is 1–64 and `energy` is 1–1,000,000,000 FE per complete consumed count. `disabled: true` or `enabled: false` disables an entry. Duplicate targets at different paths reject the fuel reload; override the original path. Fuels cannot add arbitrary items or Primal resources. Both generators get the same total FE, at 64 or 256 FE/t; unspent energy from consumed fuel is saved independently and is never repriced by a fuel reload. Full output pauses intake.
+`count` is 1–64 and `energy` is 1–1,000,000,000 FE per complete consumed count. `disabled: true` or `enabled: false` disables an entry. Duplicate targets at different paths reject the fuel reload; override the original path. Fuels cannot add arbitrary items or Primal resources. Both generators get the same total FE, at 128 or 512 FE/t; unspent energy from consumed fuel is saved independently and is never repriced by a fuel reload. Full output pauses intake.
 
 The standalone defaults and ReForging integration enable nine fuels. One plain Matrix Crystal yields 768 FE and the Mint variant yields 2,816 FE. The [crystal fuel audit](crystal-fuel-audit.md) lists every yield and the minimum energy needed to close each crystal’s production cycle. When setting your own yields, check your pack’s renewable materials, crafting and duplication routes as well.
 
 `rematter:primal_matter` and the Primal source items are reserved. Ordinary profiles, processes, synthesis, fluid adapters and Matter Cells cannot create, spend or export them. Existing unknown or unreadable stored contents remain preserved rather than being reinterpreted. Primal Cells have their own versioned state, payment slot, exact transfers and 16k/64k/256k/1M capacities. Converter targets and 1:1/2:1/4:1 prices are an explicit implementation allowlist in 0.7.0; there is no inferred or data-pack-defined converter target category.
 
 Primal Ores use dimension-explicit world generation for Overworld Deepslate, Nether Netherrack and outer End islands, excluding the central island. They appear in newly generated terrain only; existing chunks are not refilled. ReMatter 0.7.0 does not migrate older pre-release machine or Cell schemas. A removed ordinary substance definition still leaves its stored ID, phase and exact amount preserved.
+
+## Authoring with KubeJS
+
+Because every ReMatter substance, profile, synthesis permission, process, research family, crystal fuel and preparation recipe is a standard Minecraft data-pack resource, KubeJS server scripts can generate or override them directly via `ServerEvents.generateData('after_mods', ...)` (and `ServerEvents.recipes(...)` for `rematter:preparation`) without needing a dedicated KubeJS plugin:
+
+```js
+// kubejs/server_scripts/rematter_custom.js
+ServerEvents.generateData('after_mods', event => {
+  // Add a decomposition profile for a pack-specific raw item
+  event.json('mypack:rematter/material_profile/custom_crystal', {
+    schema_version: 1,
+    required_mod: 'mypack',
+    item: 'mypack:custom_crystal',
+    matter: [
+      { substance: 'rematter:crystalline_silica', phase: 'solid', amount: 1000 }
+    ],
+    decomposition_energy: 12000,
+    synthesis_energy: 24000,
+    ticks: 120
+  })
+
+  // Explicitly permit synthesis (raw/natural materials only; never manufactured items)
+  event.json('mypack:rematter/synthesis/custom_crystal', {
+    schema_version: 1,
+    required_mod: 'mypack',
+    item: 'mypack:custom_crystal',
+    category: 'raw_material'
+  })
+
+  // Register its curated research family when research is enabled
+  event.json('mypack:rematter/material_research/custom_crystal', {
+    schema: 1,
+    name: 'Custom Crystal',
+    items: ['mypack:custom_crystal'],
+    substances: [{ substance: 'rematter:crystalline_silica', phase: 'solid' }],
+    derive: true,
+    starting_knowledge: false,
+    discovery_tier: 0,
+    requires_dimension: ''
+  })
+})
+
+ServerEvents.recipes(event => {
+  // Custom powered Material Preparator recipe
+  event.custom({
+    type: 'rematter:preparation',
+    primary: { item: 'minecraft:amethyst_shard', count: 1 },
+    result: { id: 'rematter:amethyst_dust', count: 1 },
+    energy: 3200,
+    ticks: 80,
+    minimum_tier: 1,
+    steps: ['grind']
+  }).id('mypack:preparation/custom_amethyst_dust')
+})
+```
+
+The same validation rules apply on `/reload`: keep explicit whole-batch ratios, never infer synthesis for manufactured components, and override existing shipped synthesis files at their original path (`rematter:rematter/synthesis/...`) rather than creating a second file targeting the same item.

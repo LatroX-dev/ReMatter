@@ -205,7 +205,8 @@ public final class ConfigurationCardInteractions {
                     machine.settings(),
                     machine.soundLevel(),
                     machine.customIndustrialBlueprint(),
-                    machine.structurePreviewEnabled());
+                    machine.structurePreviewEnabled(),
+                    machine.autoEject());
             stack.set(ConfigurationCardData.TYPE.get(), ConfigurationCardData.fromMachine(setup));
             player.sendOverlayMessage(Component.translatable("message.rematter.config_card.copied", machine.getDisplayName()));
             ModSounds.play(server, pos, ModSounds.CONFIG_CARD_READ);

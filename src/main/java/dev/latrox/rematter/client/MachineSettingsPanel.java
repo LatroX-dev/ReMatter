@@ -60,7 +60,7 @@ final class MachineSettingsPanel {
     private List<String> gases = List.of();
     private MachineSettings lastServerSettings;
     private EditBox target;
-    private PanelButton apply, product, gasCycle, vent, automation, jobs, redstone, backend, release, soundMute;
+    private PanelButton apply, product, gasCycle, vent, automation, autoEject, jobs, redstone, backend, release, soundMute;
     private PanelButton previewToggle, blueprintBuild, blueprintReset, portDown, portUp, widthDown, widthUp, depthDown, depthUp, heightDown, heightUp;
     private final PanelButton[] modDown = new PanelButton[3];
     private final PanelButton[] modUp = new PanelButton[3];
@@ -157,6 +157,7 @@ final class MachineSettingsPanel {
         }));
         vent = grouped(Section.PRODUCTION, button(Component.empty(), left + 22, top + 78, width - 22, 18, b -> toggleVent()));
         automation = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y, width, 18, b -> sendMenu(3)));
+        autoEject = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + 21, width, 18, b -> sendMenu(MachineMenu.TOGGLE_AUTO_EJECT)));
         jobs = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(8)));
         redstone = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(MachineMenu.CYCLE_REDSTONE)));
         backend = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(9)));
@@ -164,7 +165,7 @@ final class MachineSettingsPanel {
                 b -> minecraft.pushGuiLayer(new ReleaseConfirmation(menu, menu.snapshot().orders()))));
         apply.icon=UiIcon.CONFIRM;apply.iconOnly=true;product.icon=UiIcon.TARGET;gasCycle.icon=UiIcon.NEXT;gasCycle.iconOnly=true;
         gasCycle.setMessage(tr("settings.gas_next"));
-        vent.icon=UiIcon.VENT;automation.icon=UiIcon.HOPPER;jobs.icon=UiIcon.EXCHANGE;redstone.icon=UiIcon.REDSTONE;backend.icon=UiIcon.NETWORK_ONLINE;release.icon=UiIcon.EJECT;
+        vent.icon=UiIcon.VENT;automation.icon=UiIcon.HOPPER;autoEject.icon=UiIcon.EJECT;jobs.icon=UiIcon.EXCHANGE;redstone.icon=UiIcon.REDSTONE;backend.icon=UiIcon.NETWORK_ONLINE;release.icon=UiIcon.EJECT;
         tick();
     }
 
@@ -185,7 +186,7 @@ final class MachineSettingsPanel {
     }
 
     private List<ModuleSlot> moduleSlots() {
-        if (menu.kind() == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(menu.kind())) {
             return List.of(
                     new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "reaction_chamber",
                             new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.REACTION_CHAMBER).get()), "module_room"),
@@ -428,31 +429,58 @@ final class MachineSettingsPanel {
             vent.selected = on;
         }
         boolean access = visible && section == Section.ACCESS;
+        int nextAccessY = top + CONTENT_Y;
+        boolean hasAutoEject = dev.latrox.rematter.content.MachineBlockEntity.supportsAutoEject(menu.kind());
+        int accessStep = hasAutoEject ? 21 : ROW;
         automation.visible = access;
+        automation.setY(nextAccessY);
         automation.setMessage(tr("settings.pipes", tr(menu.snapshot().automation() ? "settings.allowed" : "settings.blocked")));
         automation.setTooltip(Tooltip.create(tr("automation_hint"))); automation.selected = menu.snapshot().automation();
+        nextAccessY += accessStep;
+        autoEject.visible = access && hasAutoEject;
+        autoEject.active = autoEject.visible && canEdit();
+        if (autoEject.visible) {
+            autoEject.setY(nextAccessY);
+            autoEject.setMessage(tr("settings.auto_eject", tr(menu.autoEject() ? "on" : "off")));
+            autoEject.setTooltip(Tooltip.create(tr("auto_eject_hint")));
+            autoEject.selected = menu.autoEject();
+            nextAccessY += accessStep;
+        }
         jobs.visible = access && (menu.kind().selectable() || PreparationTier.isPreparation(menu.kind()));
-        jobs.active = jobs.visible && canEdit(); jobs.setMessage(tr("settings.orders", tr(menu.snapshot().networkJobs() ? "on" : "off")));
-        jobs.setTooltip(Tooltip.create(tr("network_jobs_hint"))); jobs.selected = menu.snapshot().networkJobs();
+        jobs.active = jobs.visible && canEdit();
+        if (jobs.visible) {
+            jobs.setY(nextAccessY);
+            jobs.setMessage(tr("settings.orders", tr(menu.snapshot().networkJobs() ? "on" : "off")));
+            jobs.setTooltip(Tooltip.create(tr("network_jobs_hint"))); jobs.selected = menu.snapshot().networkJobs();
+            nextAccessY += accessStep;
+        }
         redstone.visible = access && RedstoneMode.controllable(menu.kind());
         redstone.active = redstone.visible && canEdit();
         if (redstone.visible) {
             var mode = menu.redstoneMode();
-            redstone.setY(top + CONTENT_Y + (jobs.visible ? ROW * 2 : ROW));
+            redstone.setY(nextAccessY);
             redstone.setMessage(tr("settings.redstone", mode.label()));
             redstone.setTooltip(Tooltip.create(mode.meaning()));
             redstone.selected = mode != RedstoneMode.IGNORED;
+            nextAccessY += accessStep;
         }
         backend.visible = access && menu.kind() == MachineKind.NETWORK_INTERFACE;
         backend.active = backend.visible && canEdit();
-        backend.setMessage(tr("settings.bridge", tr(switch (menu.snapshot().backend()) {
-            case "ae2" -> "backend_ae2"; case "rs" -> "backend_rs"; default -> "backend_none";
-        })));
-        backend.icon=StatusText.icon(menu.snapshot().status(),menu.kind())==UiIcon.NETWORK_ONLINE?UiIcon.NETWORK_ONLINE:UiIcon.NETWORK_OFFLINE;
-        backend.setTooltip(Tooltip.create(tr("backend_hint")));
+        if (backend.visible) {
+            backend.setY(nextAccessY);
+            backend.setMessage(tr("settings.bridge", tr(switch (menu.snapshot().backend()) {
+                case "ae2" -> "backend_ae2"; case "rs" -> "backend_rs"; default -> "backend_none";
+            })));
+            backend.icon=StatusText.icon(menu.snapshot().status(),menu.kind())==UiIcon.NETWORK_ONLINE?UiIcon.NETWORK_ONLINE:UiIcon.NETWORK_OFFLINE;
+            backend.setTooltip(Tooltip.create(tr("backend_hint")));
+            nextAccessY += accessStep;
+        }
         release.visible = access && menu.kind() == MachineKind.NETWORK_INTERFACE;
         release.active = release.visible && canEdit() && !menu.snapshot().orders().held().isEmpty();
-        release.setTooltip(Tooltip.create(tr("release_held_hint")));
+        if (release.visible) {
+            release.setY(nextAccessY);
+            release.setTooltip(Tooltip.create(tr("release_held_hint")));
+        }
     }
 
     private static void configureStepPair(PanelButton down, PanelButton up, IndustrialBlueprint bp,

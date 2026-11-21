@@ -118,6 +118,16 @@ public final class MachinePortBlockEntity extends BlockEntity {
                 : new GuardedResources<>(target, side, target.industrialItems(), ItemResource.EMPTY,
                         MachinePortMode.ITEM_INPUT, MachinePortMode.ITEM_OUTPUT);
     }
+    public @Nullable ResourceHandler<net.neoforged.neoforge.transfer.fluid.FluidResource> fluids(@Nullable Direction side) {
+        if (side == null) return null;
+        var target = controller(side);
+        if (target == null || !target.automation()
+                || !target.kind().decomposition() && !target.kind().synthesis()
+                || !mode.allows(MachinePortMode.FLUID_INPUT) && !mode.allows(MachinePortMode.FLUID_OUTPUT)) return null;
+        return new GuardedResources<>(target, side, target.industrialFluids(),
+                net.neoforged.neoforge.transfer.fluid.FluidResource.EMPTY,
+                MachinePortMode.FLUID_INPUT, MachinePortMode.FLUID_OUTPUT);
+    }
     private final class GuardedResources<T extends Resource> implements ResourceHandler<T> {
         private final WeakReference<MachineBlockEntity> target;
         private final Direction side;

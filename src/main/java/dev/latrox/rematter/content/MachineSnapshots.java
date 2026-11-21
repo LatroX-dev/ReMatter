@@ -137,7 +137,7 @@ final class MachineSnapshots {
         var source = source(machine);
         var store = source.store();
         int sampleBatch = 1;
-        if (kind == MachineKind.ANALYZER || kind == MachineKind.DECOMPOSER) {
+        if (kind == MachineKind.ANALYZER || kind.decomposition()) {
             var profile = MachineOperations.profile(registry, machine.stack(0));
             if (profile != null) sampleBatch = profile.itemCount();
         }
@@ -203,9 +203,9 @@ final class MachineSnapshots {
             return preview(machine, registry, null, holder.id().identifier().toString(), Map.of(), Map.of(),
                     operations.preparationCost(recipe), recipe.ticks(), "item", MachineOperations.itemId(result), result.getCount());
         }
-        if (kind == MachineKind.ANALYZER || kind == MachineKind.DECOMPOSER) {
+        if (kind == MachineKind.ANALYZER || kind.decomposition()) {
             ItemStack input = machine.stack(0);
-            var salvage = kind == MachineKind.DECOMPOSER
+            var salvage = kind.decomposition()
                     ? ToolSalvage.plan(registry, input).orElse(null)
                     : (input.getComponentsPatch().isEmpty() ? java.util.Optional.ofNullable(MachineOperations.profile(registry, input))
                             .map(p -> new ToolSalvage.Plan(p, p.matter(), 0, 0)).orElse(null) : null);
@@ -219,7 +219,7 @@ final class MachineSnapshots {
                         inspect?(machine.knownMaterial(id)?0:dev.latrox.rematter.research.ResearchService.analysisTicks(profile)):profile.ticks(),
                         inspect ? "analysis" : "matter", inspect ? id : "", inspect ? 1 : 0);
             }
-            if (kind == MachineKind.DECOMPOSER) {
+            if (kind.decomposition()) {
                 FluidResource fluid = machine.fluids().getResource(0);
                 var conversion = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
                 if (conversion != null && !fluid.isEmpty() && fluid.isComponentsPatchEmpty()) {

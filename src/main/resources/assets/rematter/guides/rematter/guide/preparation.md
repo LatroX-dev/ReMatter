@@ -41,7 +41,7 @@ These are named fractions for the matrix technology, not purified elements. No a
 
 Craft a **Material Preparator** with two Amber Matrix Crystals, Structural Bars, Machine Frames and Control Circuits. Connect an enabled side or rear port to your [Crystal Generator](generation.md) or another FE supply. The Preparator starts when the input, power and output space are ready. Press **Start** to resume it if paused.
 
-At base speed, an extraction takes **2,000 FE and 18 seconds**. Mixing takes **4,000 FE and 24 seconds**. Grinding, sieving and mixing are stages of one batch; they are not separate machines.
+At base speed, an extraction takes **2,000 FE and 9 seconds**. Mixing takes **4,000 FE and 12 seconds**. Grinding, sieving and mixing are stages of one batch; they are not separate machines.
 
 The three ingredient slots are arranged **left → middle → right**. Matrix Blend uses Silith on the left and Argil in the middle; the right slot stays empty. [Alloy and ceramic powders](metallurgy.md) use all three slots and have their own costs and durations.
 

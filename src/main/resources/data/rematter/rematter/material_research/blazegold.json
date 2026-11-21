@@ -3,6 +3,7 @@
   "name": "Blazegold",
   "items": [
     "jaopca:storage_blocks.blazegold",
+    "justdirethings:blazegold_block",
     "justdirethings:blazegold_ingot",
     "justdirethings:raw_blazegold"
   ],

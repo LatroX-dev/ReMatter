@@ -57,9 +57,9 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         }
         widgets.addFillingArrow(78, 12, (int) Math.min(Integer.MAX_VALUE, Math.max(1L, ticks) * 50L));
         EmiWidgets.icon(widgets,UiIcon.ENERGY,2,footer-2,List.of(Component.translatable("gui.rematter.viewer.energy_hint",Quantities.number(energy))));
-        EmiWidgets.value(widgets,Quantities.energy(Quantities.number(energy)).getString(),18,footer,156,UiPalette.TEXT);
+        EmiWidgets.value(widgets,Quantities.energyWithRate(energy,ticks).getString(),18,footer,156,UiPalette.TEXT);
         EmiWidgets.icon(widgets,UiIcon.TIME,2,footer+10,List.of(Component.translatable("gui.rematter.viewer.ticks_hint",Quantities.number(ticks))));
-        EmiWidgets.value(widgets,Quantities.ticks(Quantities.number(ticks)).getString(),18,footer+12,144,UiPalette.MUTED);
+        EmiWidgets.value(widgets,Quantities.durationWithTicks(ticks).getString(),18,footer+12,144,UiPalette.MUTED);
         EmiWidgets.dynamicIcon(widgets,UiIcon.INFO,164,footer+10,()->{
             var current = new java.util.ArrayList<>(notes);
             researchTarget.ifPresent(target -> current.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));

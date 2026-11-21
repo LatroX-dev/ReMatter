@@ -266,6 +266,7 @@ public final class ModContent {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedFluids);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::energy);
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::items);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::fluids);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, WIRELESS_ACCESS_POINT_ENTITY.get(), WirelessAccessPointBlockEntity::sidedEnergy);
         event.registerItem(Capabilities.Fluid.ITEM, PressurizedCanisterFluidHandler::of, PRESSURIZED_CANISTER.get());
         event.registerItem(Capabilities.Energy.ITEM,

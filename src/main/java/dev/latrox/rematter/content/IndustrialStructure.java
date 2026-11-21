@@ -154,11 +154,22 @@ public final class IndustrialStructure {
     private static final Map<MachineBlockEntity, Observation> OBSERVATIONS = Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<MachinePortBlockEntity, PortObservation> PORTS = Collections.synchronizedMap(new WeakHashMap<>());
     private IndustrialStructure() {}
-    public static boolean isIndustrial(MachineKind kind) { return kind == MachineKind.INDUSTRIAL_PREPARATOR || kind == MachineKind.INDUSTRIAL_REACTOR; }
+    public static boolean isIndustrial(MachineKind kind) {
+        return kind == MachineKind.INDUSTRIAL_PREPARATOR || usesReactorModules(kind);
+    }
+    /** Controllers whose chamber mounts Field Coils and Reaction Chambers inside solid-endcap shells. */
+    public static boolean usesReactorModules(MachineKind kind) {
+        return kind == MachineKind.INDUSTRIAL_REACTOR
+                || kind == MachineKind.INDUSTRIAL_DECOMPOSER
+                || kind == MachineKind.INDUSTRIAL_SYNTHESIZER;
+    }
     /** Minimum outer height of each chamber type. */
     public static int height(MachineKind kind) {
-        return switch (kind) { case INDUSTRIAL_PREPARATOR -> 5; case INDUSTRIAL_REACTOR -> 4;
-            default -> throw new IllegalArgumentException("Not an industrial controller"); };
+        return switch (kind) {
+            case INDUSTRIAL_PREPARATOR -> 5;
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> 4;
+            default -> throw new IllegalArgumentException("Not an industrial controller");
+        };
     }
     /** Extra outer height permits extra workers; it never multiplies a single recipe. */
     public static int laneRoom(MachineKind kind, int outerHeight) {
@@ -213,7 +224,7 @@ public final class IndustrialStructure {
                 }
                 case FRAME -> { if (material != Material.CASING) return invalidLayout("structure_frame",cell,Material.CASING); }
                 case WALL -> {
-                    if (kind == MachineKind.INDUSTRIAL_REACTOR && cell.outward.getAxis().isVertical()) {
+                    if (usesReactorModules(kind) && cell.outward.getAxis().isVertical()) {
                         if (material != Material.CASING) return invalidLayout("structure_endcaps",cell,Material.CASING);
                     } else if (material == Material.PORT) ports++;
                     else if (material != Material.CASING && material != Material.GLASS) return invalidLayout("structure_wall",cell,Material.GLASS);
@@ -354,7 +365,7 @@ public final class IndustrialStructure {
                     if (mat != Material.CASING) collected.add(new LocalMismatch(cell, Material.CASING, ""));
                 }
                 case WALL -> {
-                    if (kind == MachineKind.INDUSTRIAL_REACTOR && cell.outward.getAxis().isVertical()) {
+                    if (usesReactorModules(kind) && cell.outward.getAxis().isVertical()) {
                         if (mat != Material.CASING) collected.add(new LocalMismatch(cell, Material.CASING, ""));
                     } else if (mat == Material.PORT) {
                         ports++;

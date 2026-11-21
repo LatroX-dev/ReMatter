@@ -16,7 +16,9 @@ public enum MachineKind {
     PRIMAL_CONVERTER("primal_converter"),
     CRYSTAL_GENERATOR("crystal_generator"),
     INDUSTRIAL_CRYSTAL_GENERATOR("industrial_crystal_generator"),
-    ATMOSPHERIC_COLLECTOR("atmospheric_collector");
+    ATMOSPHERIC_COLLECTOR("atmospheric_collector"),
+    INDUSTRIAL_DECOMPOSER("industrial_decomposer_controller"),
+    INDUSTRIAL_SYNTHESIZER("industrial_synthesizer_controller");
 
     private final String id;
     MachineKind(String id) { this.id = id; }
@@ -24,7 +26,8 @@ public enum MachineKind {
     public boolean isStorage() { return this == DRIVE; }
     /** Bench machines on the alcove chassis: closed left, right, back and bottom, open to the front and the top. */
     public boolean openTop() { return switch (this) { case REACTOR, ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE, ATMOSPHERIC_COLLECTOR -> true; default -> false; }; }
-    public boolean synthesis() { return this == SYNTHESIZER; }
+    public boolean decomposition() { return this == DECOMPOSER || this == INDUSTRIAL_DECOMPOSER; }
+    public boolean synthesis() { return this == SYNTHESIZER || this == INDUSTRIAL_SYNTHESIZER; }
     public boolean selectable() { return synthesis() || this == REACTOR || this == INDUSTRIAL_REACTOR || this == ATMOSPHERIC_COLLECTOR; }
     public boolean generator(){return this==CRYSTAL_GENERATOR||this==INDUSTRIAL_CRYSTAL_GENERATOR;}
     public boolean processes() { return !generator() && !isStorage() && this != TERMINAL && this != NETWORK_INTERFACE; }

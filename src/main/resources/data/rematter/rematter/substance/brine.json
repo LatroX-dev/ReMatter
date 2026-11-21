@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.brine",
+  "symbol": "NaCl(aq)",
+  "kind": "compound",
+  "composition": {
+    "rematter:sodium": 1,
+    "rematter:chlorine": 1,
+    "rematter:hydrogen": 20,
+    "rematter:oxygen": 10
+  },
+  "phases": [
+    "gas"
+  ]
+}

@@ -24,8 +24,10 @@ final class NetworkJobWorker {
     boolean readyClaim() {
         var order=currentOrder();if(order==null||!machine.acceptsNetworkWork()||!machine.redstoneAllowsWork())return false;
         var recipe=order.recipe();
+        long required = machine.cost(baseEnergy(recipe.energy()));
+        long firstStep = MachineEnergyPolicy.stepEnergy(required, order.progress(), machine.speed(), recipe.ticks(), machine.work().energyPaid);
         return MachineAutomationRecipes.supports(machine,recipe)
-                &&machine.energy().getAmountAsLong()>=machine.cost(baseEnergy(recipe.energy()));
+                &&machine.energy().getAmountAsLong()>=firstStep;
     }
     boolean has(MachineAutomationHost host, UUID order) { return lease.matches(host, order); }
     boolean shouldYield(String backend, boolean otherBackendReady) { return lease.shouldYield(backend, otherBackendReady); }
@@ -94,20 +96,37 @@ final class NetworkJobWorker {
         if (!signature.isEmpty() && !signature.equals(current)) { release(claim); work.status = "network_controlled"; return; }
         signature = current;
         var energy = machine.energy();
+        int duration = recipe.ticks();
         if(parallelBatches==0){
             int capacity=MachineAutomationRecipes.capacity(machine,recipe,machine.parallelCapacity());
             var inputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();recipe.inputs().forEach((key,amount)->{if(key.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)inputs.put(key.matterKey(),amount);});
             capacity=machine.capacityForInputs(inputs,capacity);
-            parallelBatches=(int)Math.min(Math.min(capacity,order.remainingBatches()),energy.getAmountAsLong()/Math.max(1,required));
+            int maxLanes = Math.min(capacity, order.remainingBatches());
+            int resumedProgress = order.progress();
+            long stepPerBatch = MachineEnergyPolicy.stepEnergy(required, resumedProgress, speed, duration, 0);
+            int affordable = stepPerBatch == 0 ? maxLanes : (int) Math.min(maxLanes, energy.getAmountAsLong() / stepPerBatch);
+            if (resumedProgress > 0) {
+                while (affordable > 1 && MachineEnergyPolicy.stepEnergy(Math.multiplyExact(required, affordable), resumedProgress, speed, duration, 0) > MachineBlockEntity.ENERGY_CAPACITY)
+                    affordable--;
+            }
+            parallelBatches = affordable;
         }
-        if (parallelBatches==0||energy.getAmountAsLong() < required*parallelBatches) { work.status = "insufficient_energy"; return; }
+        if (parallelBatches==0) { work.status = "insufficient_energy"; return; }
+        long totalRequired = Math.multiplyExact(required, parallelBatches);
+        long due = MachineEnergyPolicy.stepEnergy(totalRequired, order.progress(), speed, duration, work.energyPaid);
+        if (energy.getAmountAsLong() < due) { work.status = "insufficient_energy"; return; }
         var inMatter=recipe.inputs().entrySet().stream().filter(e->e.getKey().kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER).map(java.util.Map.Entry::getValue).toList();
         var outMatter=recipe.outputs().entrySet().stream().filter(e->e.getKey().kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER).map(java.util.Map.Entry::getValue).toList();
         boolean transferred=machine.advanceNetworkTransfer(orderId+":"+recipe.revision(),ControllerThroughput.units(inMatter,outMatter,parallelBatches));
         if (!host.advance(orderId, machine, speed)) { release(claim); work.status = "network_controlled"; return; }
+        if (due > 0) {
+            energy.set((int) (energy.getAmountAsLong() - due));
+            work.energyPaid += due;
+            work.energyRate = due;
+        }
         order = host.order(orderId, machine);
         if (order == null) { release(claim); work.status = "network_controlled"; return; }
-        work.progress = order.progress(); work.duration = recipe.ticks(); work.processedThisTick = true;
+        work.progress = order.progress(); work.duration = duration; work.processedThisTick = true;
         machine.visuals().capture(MachineVisuals.firstItem(recipe.inputs()), MachineVisuals.firstItem(recipe.outputs()), work.progress, work.duration);
         boolean preparation = PreparationTier.isPreparation(machine.kind());
         work.preparationStage = preparation ? PreparationWork.stage(work.progress, work.duration) : -1;
@@ -116,16 +135,20 @@ final class NetworkJobWorker {
         if(work.progress>=work.duration&&!transferred){work.status="cable_limited";return;}
         if (work.progress >= work.duration) {
             var fresh = machine.matterNetwork(true);
-            if (!fresh.ready() || !assignedTopology.sameTopology(fresh) || !machine.acceptsNetworkWork() || energy.getAmountAsLong() < required) {
+            if (!fresh.ready() || !assignedTopology.sameTopology(fresh) || !machine.acceptsNetworkWork()
+                    || energy.getAmountAsLong() + work.energyPaid < required) {
                 release(claim); work.status = "storage_changed"; return;
             }
             // The ledger owns these inputs. Completion never withdraws the same matter or items again.
             int completed=parallelBatches;
             for(int lane=0;lane<completed;lane++) {
-                if(lane>0&&!host.advance(orderId,machine,recipe.ticks())) {release(claim);return;}
+                if(lane>0&&!host.advance(orderId,machine,duration)) {release(claim);return;}
                 var finishing=host.order(orderId,machine);
                 if(finishing==null||!host.complete(orderId,machine)) {release(claim);work.status="network_controlled";return;}
-                energy.set((int)(energy.getAmountAsLong()-required));
+                long fromPaid = Math.min(work.energyPaid, required);
+                work.energyPaid -= fromPaid;
+                long unpaid = required - fromPaid;
+                if (unpaid > 0) energy.set((int) (energy.getAmountAsLong() - unpaid));
                 machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.HANDS_OFF);
                 if(machine.kind().synthesis()) {
                     machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.PUT_IT_BACK);
@@ -140,7 +163,7 @@ final class NetworkJobWorker {
                             .filter(process->dev.latrox.rematter.automation.AutomationRecipeCatalogue.id("process",process.id().toString()).equals(recipe.id())
                                     &&process.requiresKnownOutputs()&&process.type()==dev.latrox.rematter.chemistry.ProcessType.CRYSTALLIZATION)
                             .findFirst().ifPresent(process->machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.GROWN_NOT_MINED));
-                if(machine.kind()==MachineKind.DECOMPOSER)for(var input:recipe.inputs().keySet())if(input.kind()!=dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)machine.learnMaterial(input.id(),dev.latrox.rematter.research.LearningPath.DECOMPOSITION);
+                if(machine.kind().decomposition())for(var input:recipe.inputs().keySet())if(input.kind()!=dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)machine.learnMaterial(input.id(),dev.latrox.rematter.research.LearningPath.DECOMPOSITION);
                 if(machine.kind()==MachineKind.REACTOR||machine.kind()==MachineKind.INDUSTRIAL_REACTOR){
                     var inputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();var outputs=new java.util.TreeMap<dev.latrox.rematter.chemistry.SubstanceKey,Long>();
                     recipe.inputs().forEach((k,v)->{if(k.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)inputs.put(k.matterKey(),v);});recipe.outputs().forEach((k,v)->{if(k.kind()==dev.latrox.rematter.automation.AutomationPort.Kind.MATTER)outputs.put(k.matterKey(),v);});machine.learnProcess(inputs,outputs);
@@ -149,7 +172,7 @@ final class NetworkJobWorker {
             }
             machine.consumeRedstonePulse();
             machine.completeNetworkTransfer();
-            parallelBatches=0;host.changed(); work.progress = 0; work.duration = 0;
+            parallelBatches=0;host.changed(); work.progress = 0; work.duration = 0; work.energyPaid = 0;
         }
         machine.setChanged();
     }

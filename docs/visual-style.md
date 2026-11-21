@@ -58,9 +58,9 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 | Crystal | Hex | Coloured with | Stands for | Carried by |
 | --- | --- | --- | --- | --- |
 | Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `preparation_reactor_controller`, `grinding_unit`, `separation_unit`, `mixing_basin` |
-| Copper | `#dc894f` | copper dust | decomposition | `decomposer` |
+| Copper | `#dc894f` | copper dust | decomposition | `decomposer`, `industrial_decomposer_controller` |
 | Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `matter_cell_4m`, `matter_level_emitter`, `pressurized_canister` |
-| Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer` |
+| Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer`, `industrial_synthesizer_controller` |
 | Ice | `#d7d1bc` | Silith | analysis | `analyzer` |
 | Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube`, `void_matter_cell`, `portable_energy_cell` |
 | Blue | `#6794f1` | lapis dust | network link | `network_interface`, `wireless_access_point`, `wireless_matter_terminal`, `wireless_booster` |
@@ -200,7 +200,7 @@ Where a cable, a pipe, a hopper or a neighbouring device can attach is one table
 | `matter_drive`, `network_interface`, `primal_converter`, `crystal_generator`, `industrial_crystal_generator` | left, right, back, bottom, top (starts Disabled) | front |
 | `matter_terminal` | back (fixed, not configurable) | every other side |
 | `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube` | front, left, right, back, top, bottom | none |
-| `chemical_reactor_controller`, `preparation_reactor_controller` | none: a structure connects through its Machine Ports | all six |
+| `chemical_reactor_controller`, `preparation_reactor_controller`, `industrial_decomposer_controller`, `industrial_synthesizer_controller` | none: a structure connects through its Machine Ports | all six |
 | `cell_transfer_station` | none: it is operated by hand | all six |
 
 The check compares this table with the block states, the ring colours of `MachinePortMode.java` with `PORT_MODES`, the seven-colour Automatic legend and Cube direction colours with both palettes, and reports a body model that still draws a face of its port plates. `PortAppearance` is a rendering discriminator only: saved roles and transfer permissions remain separate.

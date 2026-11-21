@@ -18,10 +18,19 @@ public final class Quantities {
     }
 
     public static String seconds(int ticks) { return String.format(Locale.ROOT, "%.1f", ticks / 20.0); }
+    public static long energyRate(long totalEnergy, int ticks) { return ticks > 0 && totalEnergy > 0 ? Math.ceilDiv(totalEnergy, ticks) : 0L; }
 
     public static Component matter(String amount) { return Component.translatable("unit.rematter.matter", amount); }
     public static Component energy(String amount) { return Component.translatable("unit.rematter.energy", amount); }
+    public static Component energyWithRate(long totalEnergy, int ticks) {
+        return ticks > 0 && totalEnergy > 0
+                ? Component.translatable("unit.rematter.energy_with_rate", number(totalEnergy), number(energyRate(totalEnergy, ticks)))
+                : energy(number(totalEnergy));
+    }
     public static Component fluid(String amount) { return Component.translatable("unit.rematter.fluid", amount); }
     public static Component ticks(String amount) { return Component.translatable("unit.rematter.ticks", amount); }
     public static Component duration(int ticks) { return Component.translatable("unit.rematter.seconds", seconds(ticks)); }
+    public static Component durationWithTicks(int ticks) {
+        return Component.translatable("unit.rematter.duration_with_ticks", seconds(ticks), number(ticks));
+    }
 }

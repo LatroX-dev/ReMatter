@@ -19,6 +19,11 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
     static final Identifier STATUS = id("machine_status");
     static final Identifier CABLE = id("cable");
     static final Identifier PORT = id("port");
+    static final Identifier ENERGY_CUBE = id("energy_cube");
+    static final Identifier ACCESS_POINT = id("wireless_access_point");
+    static final Identifier EMITTER = id("matter_level_emitter");
+    static final Identifier ENTANGLED_LINK = id("entangled_link");
+    static final Identifier CELL_TRANSFER_STATION = id("cell_transfer_station");
     static final Identifier ITEMS = id("private_items");
     static final Identifier FLUIDS = id("private_fluids");
     static final Identifier ENERGY = id("private_energy");
@@ -27,6 +32,11 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
     @Override
     public void register(IWailaCommonRegistration registration) {
         registration.registerBlockDataProvider(MachineDataProvider.INSTANCE, MachineBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.ENERGY_CUBE, dev.latrox.rematter.energy.EnergyCubeBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.ACCESS_POINT, dev.latrox.rematter.content.WirelessAccessPointBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.EMITTER, dev.latrox.rematter.content.MatterLevelEmitterBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.ENTANGLED_LINK, dev.latrox.rematter.primal.EntangledLinkBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.CELL_TRANSFER_STATION, dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity.class);
         // Stop generic capability/container readers. The guarded provider below supplies this machine's HUD.
         // An empty (not null) result also prevents fallback readers from leaking a locked machine's contents.
         var items = new PrivateStorage<net.minecraft.world.item.ItemStack>(ITEMS);
@@ -41,6 +51,7 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
         registration.registerFluidStorage(fluids, MachineBlockEntity.class);
         registration.registerFluidStorage(fluids, dev.latrox.rematter.content.MachinePortBlockEntity.class);
         registration.registerEnergyStorage(energy, MachineBlockEntity.class);
+        registration.registerEnergyStorage(energy, dev.latrox.rematter.energy.EnergyCubeBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.content.MachinePortBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.content.WirelessAccessPointBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.primal.EntangledLinkBlock.class);

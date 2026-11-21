@@ -60,7 +60,7 @@ public record IndustrialBlueprint(
         ports = Math.clamp(ports, 2, Math.min(MAX_CONFIGURED_PORTS, maxHorizontalWallPorts(width, height, depth)));
 
         int maxSlots = mountCapacity(width, depth);
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             grinding = 0;
             mixing = 0;
             separation = 0;
@@ -76,7 +76,7 @@ public record IndustrialBlueprint(
     }
 
     public static IndustrialBlueprint defaultFor(MachineKind kind) {
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             return new IndustrialBlueprint(kind, 3, 4, 3, 1, 2, 1, 1, 0, 0, 0);
         }
         if (kind == MachineKind.INDUSTRIAL_PREPARATOR) {
@@ -92,7 +92,7 @@ public record IndustrialBlueprint(
         }
         var perf = formation.performance();
         int portCount = Math.max(2, formation.ports().size());
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             return new IndustrialBlueprint(
                     kind, shape.width(), shape.height(), shape.depth(), shape.controllerColumn(),
                     portCount, Math.max(1, perf.chambers()), Math.max(1, perf.coils()), 0, 0, 0);
@@ -126,7 +126,7 @@ public record IndustrialBlueprint(
     }
 
     public int totalModules() {
-        return kind == MachineKind.INDUSTRIAL_REACTOR ? chambers + coils : grinding + mixing + separation;
+        return IndustrialStructure.usesReactorModules(kind) ? chambers + coils : grinding + mixing + separation;
     }
 
     public IndustrialPerformance performance() {
@@ -180,13 +180,13 @@ public record IndustrialBlueprint(
                 return new IndustrialBlueprint(kind, w, h, d, controllerColumn, p, ch, co, gr, mx, sp);
             }
             case CHAMBERS -> {
-                if (kind != MachineKind.INDUSTRIAL_REACTOR) return this;
+                if (!IndustrialStructure.usesReactorModules(kind)) return this;
                 int maxTotal = mountCapacity(IndustrialStructure.MAX_SIZE, IndustrialStructure.MAX_SIZE);
                 ch = Math.clamp(ch + delta, 1, maxTotal - Math.max(1, co));
                 return growFootprintToFit(w, h, d, p, ch, co, 0, 0, 0);
             }
             case COILS -> {
-                if (kind != MachineKind.INDUSTRIAL_REACTOR) return this;
+                if (!IndustrialStructure.usesReactorModules(kind)) return this;
                 int maxTotal = mountCapacity(IndustrialStructure.MAX_SIZE, IndustrialStructure.MAX_SIZE);
                 co = Math.clamp(co + delta, 1, maxTotal - Math.max(1, ch));
                 return growFootprintToFit(w, h, d, p, ch, co, 0, 0, 0);
@@ -214,7 +214,7 @@ public record IndustrialBlueprint(
     }
 
     private IndustrialBlueprint growFootprintToFit(int w, int h, int d, int p, int ch, int co, int gr, int mx, int sp) {
-        int needed = kind == MachineKind.INDUSTRIAL_REACTOR ? ch + co : gr + mx + sp;
+        int needed = IndustrialStructure.usesReactorModules(kind) ? ch + co : gr + mx + sp;
         boolean colWasCentered = controllerColumn == defaultColumn(w);
         while (mountCapacity(w, d) < needed && (w < IndustrialStructure.MAX_SIZE || d < IndustrialStructure.MAX_SIZE)) {
             if (d <= w && d < IndustrialStructure.MAX_SIZE) {
@@ -231,7 +231,7 @@ public record IndustrialBlueprint(
 
     private IndustrialBlueprint trimModulesToFit(int w, int h, int d, int col, int p, int ch, int co, int gr, int mx, int sp) {
         int cap = mountCapacity(w, d);
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             while (ch + co > cap && (ch > 1 || co > 1)) {
                 if (ch >= co && ch > 1) ch--;
                 else if (co > 1) co--;
@@ -256,7 +256,7 @@ public record IndustrialBlueprint(
                 case CONTROLLER -> {}
                 case FRAME -> casingCount++;
                 case WALL -> {
-                    if (kind == MachineKind.INDUSTRIAL_REACTOR && cell.outward().getAxis().isVertical()) {
+                    if (IndustrialStructure.usesReactorModules(kind) && cell.outward().getAxis().isVertical()) {
                         casingCount++;
                     } else {
                         wallPool++;
@@ -271,7 +271,7 @@ public record IndustrialBlueprint(
         counts.put(IndustrialStructure.Material.CASING, casingCount);
         if (glassCount > 0) counts.put(IndustrialStructure.Material.GLASS, glassCount);
         counts.put(IndustrialStructure.Material.PORT, portCount);
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             counts.put(IndustrialStructure.Material.REACTION_CHAMBER, chambers);
             counts.put(IndustrialStructure.Material.FIELD_COIL, coils);
         } else {
@@ -341,7 +341,7 @@ public record IndustrialBlueprint(
                     }
                 }
                 case WALL -> {
-                    if (kind == MachineKind.INDUSTRIAL_REACTOR && cell.outward().getAxis().isVertical()) {
+                    if (IndustrialStructure.usesReactorModules(kind) && cell.outward().getAxis().isVertical()) {
                         if (mat != IndustrialStructure.Material.CASING) {
                             collected.add(new IndustrialStructure.LocalMismatch(cell, IndustrialStructure.Material.CASING, ""));
                         }
@@ -399,7 +399,7 @@ public record IndustrialBlueprint(
             collected.add(new IndustrialStructure.LocalMismatch(closedNonPortHorizontalWalls.get(i), IndustrialStructure.Material.PORT, ""));
         }
 
-        if (kind == MachineKind.INDUSTRIAL_REACTOR) {
+        if (IndustrialStructure.usesReactorModules(kind)) {
             allocateModules(collected, IndustrialStructure.Material.REACTION_CHAMBER,
                     chambers - placedModules.getOrDefault(IndustrialStructure.Material.REACTION_CHAMBER, 0),
                     true, freeCeiling, freeFloor);

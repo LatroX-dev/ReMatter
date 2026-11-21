@@ -710,11 +710,17 @@ public final class ReMatterGameTests {
         var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
         reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);reactor.selectRecipe("rematter:air_oxygen");reactor.requestBatch();
         var inlet=origin.above(shape.height()-1);
-        h.runAtTickTime(10,()->h.getLevel().setBlock(inlet,Blocks.STONE.defaultBlockState(),3));
+        long[] blockedEnergy={0};
+        h.runAtTickTime(10,()->{
+            h.getLevel().setBlock(inlet,Blocks.STONE.defaultBlockState(),3);
+            blockedEnergy[0]=reactor.energy().getAmountAsLong();
+        });
         int blockedUntil=Math.ceilDiv(ReMatter.chemistry().environmentSource(SubstanceId.parse("rematter:air_oxygen")).orElseThrow().ticks(),reactor.speed())+40;
         h.runAtTickTime(blockedUntil,()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==0,"Blocked industrial air inlet produced gas");
-            h.assertTrue(reactor.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Blocked industrial air inlet spent FE");
+            h.assertTrue(reactor.energy().getAmountAsLong()==blockedEnergy[0]
+                    &&reactor.energy().getAmountAsLong()+reactor.work().energyPaid==MachineBlockEntity.ENERGY_CAPACITY,
+                    "Blocked industrial air inlet spent FE");
             h.getLevel().setBlock(inlet,Blocks.AIR.defaultBlockState(),3);
         });
         h.succeedWhen(()-> {

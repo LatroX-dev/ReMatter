@@ -38,6 +38,9 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
                     && !dev.latrox.rematter.content.preparation.PreparationTier.manual(machine.kind()));
             view.putInt("energy", summary.energy());
             view.putInt("energyCapacity", MachineBlockEntity.ENERGY_CAPACITY);
+            view.putLong("energyRate", machine.currentEnergyRate());
+            view.putBoolean("generator", machine.kind().generator());
+            if (machine.kind().synthesis()) view.putBoolean("pressureInstalled", machine.crystallizationTier() >= 2);
             view.putInt("progress", summary.progress());
             view.putInt("duration", summary.duration());
             view.putLong("matter", summary.used());

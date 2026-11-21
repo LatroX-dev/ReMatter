@@ -164,18 +164,24 @@ public final class VisualActivityGameTests {
         h.assertTrue(controller.selectRecipe("rematter:water_freezing") && controller.requestBatch(), "Module fixture cannot request one real batch");
         long cost = controller.cost(dev.latrox.rematter.ReMatter.chemistry().recipe(dev.latrox.rematter.chemistry.SubstanceId.parse("rematter:water_freezing")).orElseThrow().energy());
         int[] paused = {0};
+        long[] pausedEnergy = {0};
         h.runAtTickTime(10, () -> {
             controller.serverTick();
             h.assertTrue(module.visualWorkDuration() == controller.visualDuration() && module.visualWorkDuration() > 0
                     && module.visualWorkProgress() == controller.visualProgress() && module.visualBaseRate() == 2,
                     "Module does not publish the controller raw work and base rate");
             paused[0] = module.visualWorkProgress();
+            pausedEnergy[0] = controller.energy().getAmountAsLong();
+            h.assertTrue(pausedEnergy[0] < MachineBlockEntity.ENERGY_CAPACITY
+                    && pausedEnergy[0] + controller.work().energyPaid == MachineBlockEntity.ENERGY_CAPACITY,
+                    "Active module batch did not account tick FE before pause");
             controller.toggleRunning();
         });
         h.runAtTickTime(25, () -> {
             h.assertTrue(module.visualWorkDuration() > 0 && module.visualWorkProgress() == paused[0]
                     && !module.getBlockState().getValue(IndustrialModuleBlock.ACTIVE), "Paused module lost its job or gained work");
-            h.assertTrue(controller.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY
+            h.assertTrue(controller.energy().getAmountAsLong() == pausedEnergy[0]
+                    && controller.energy().getAmountAsLong() + controller.work().energyPaid == MachineBlockEntity.ENERGY_CAPACITY
                     && drive.matterStore().amount(dev.latrox.rematter.chemistry.BuiltinChemistry.WATER) == 1000L,
                     "Visual module hold paid or consumed the paused batch");
             controller.toggleRunning();

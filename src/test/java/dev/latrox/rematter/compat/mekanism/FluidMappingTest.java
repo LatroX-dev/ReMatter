@@ -52,6 +52,7 @@ class FluidMappingTest {
         }
         assertEquals(Set.of("mekanism:hydrogen", "mekanism:oxygen", "mekanism:chlorine",
                 "mekanism:sulfur_dioxide", "mekanism:sulfur_trioxide", "mekanism:sulfuric_acid",
-                "mekanism:hydrogen_chloride", "mekanism:hydrofluoric_acid", "mekanism:ethene", "mekanism:lithium"), checked);
+                "mekanism:hydrogen_chloride", "mekanism:hydrofluoric_acid", "mekanism:ethene",
+                "mekanism:lithium", "mekanism:brine", "mekanism:sodium"), checked);
     }
 }

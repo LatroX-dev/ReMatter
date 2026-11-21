@@ -60,7 +60,7 @@ Combine iron and Silith for <ItemLink id="rematter:structural_bars" />. Make <It
 
 A Cell is a cartridge: its front plate and tier bar match the slot in the Matter Drive. Its separate status lamp is blue when empty, green while holding matter, amber when full, and blinking red when its contents cannot be read. A crystal window shows the crystal of its recipe.
 
-Mix one plain crystal with redstone in the Hand Preparator to make an **Ember Matrix Crystal**. Craft the [Crystal Generator](generation.md) with the Ember crystal, **two copper blocks**, a Machine Frame, two Structural Bars and a Control Circuit. Place a side or rear port against an enabled side or rear port of the Material Preparator. Insert loose crystals in the generator's fuel slot. Each plain crystal contributes **768 FE** and the generator can deliver **64 FE/t**.
+Mix one plain crystal with redstone in the Hand Preparator to make an **Ember Matrix Crystal**. Craft the [Crystal Generator](generation.md) with the Ember crystal, **two copper blocks**, a Machine Frame, two Structural Bars and a Control Circuit. Place a side or rear port against an enabled side or rear port of the Material Preparator. Insert loose crystals in the generator's fuel slot. Each plain crystal contributes **768 FE** and the generator can deliver **128 FE/t**.
 
 <RecipeFor id="rematter:crystal_generator" />
 

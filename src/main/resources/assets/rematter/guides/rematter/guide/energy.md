@@ -30,7 +30,7 @@ The core's pulses move **up while charging** and **down while discharging**, the
 
 Insert a compatible FE item into a **Charge** slot to fill it from the cube, or into a **Discharge** slot to drain stored FE from the item into the cube. All outputs and Charge slots share the tier's output allowance, while external inputs and Discharge slots share its input limit.
 
-Craft a **Portable Energy Cell** (8,000,000 FE, 16,384 FE/t) to power a Wireless Matter Terminal or charge FE tools in your inventory when toggled with **Sneak + Right-Click**.
+Craft a **Portable Energy Cell** (8,000,000 FE, 16,384 FE/t) to power a Wireless Matter Terminal or charge FE tools in your inventory and equipped **Curios** slots when toggled with **Sneak + Right-Click**. With Curios installed, the Portable Energy Cell can also sit in a Curio, Charm, or Belt slot and recharge your gear continuously.
 
 <RecipeFor id="rematter:portable_energy_cell" />
 

@@ -13,7 +13,7 @@ public final class MachineMotions {
     /** The one canonical sample. A second call with the same clock value changes nothing. */
     public static WorkEnvelope sample(MachineBlockEntity machine,double clock){
         var kind=machine.kind();
-        double base=kind==MachineKind.INDUSTRIAL_REACTOR?2:kind==MachineKind.INDUSTRIAL_PREPARATOR?4:1;
+        double base=dev.latrox.rematter.content.IndustrialStructure.usesReactorModules(kind)?2:kind==MachineKind.INDUSTRIAL_PREPARATOR?4:1;
         var work=MOTIONS.computeIfAbsent(machine,key->new WorkEnvelope());
         work.sample(clock,machine.getBlockState().getValue(MachineBlock.ACTIVE),machine.visualDuration()>0,machine.visualProgress(),machine.visualDuration(),base);
         return work;

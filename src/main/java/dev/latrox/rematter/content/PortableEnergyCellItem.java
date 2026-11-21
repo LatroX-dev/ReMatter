@@ -88,7 +88,29 @@ public final class PortableEnergyCellItem extends Item {
     public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, @Nullable EquipmentSlot slot) {
         if (!autoCharge(stack) || !(entity instanceof Player player) || player.isSpectator()) return;
         if (Transaction.getCurrentOpenedTransaction() != null) return;
-        chargeInventoryItems(stack, player.getInventory());
+        chargePlayerItems(stack, player);
+    }
+
+    /** Called by the optional Curios integration when worn in a Curios slot. */
+    public static void tickInCurio(ItemStack stack, net.minecraft.world.entity.LivingEntity entity) {
+        if (entity.level().isClientSide() || !autoCharge(stack) || !(entity instanceof Player player) || player.isSpectator()) return;
+        if (Transaction.getCurrentOpenedTransaction() != null) return;
+        chargePlayerItems(stack, player);
+    }
+
+    /** Charges player inventory items and any Curios-equipped items within the per-tick transfer budget. */
+    public static int chargePlayerItems(ItemStack batteryStack, Player player) {
+        int stored = energy(batteryStack);
+        if (stored <= 0) return 0;
+        int sentInventory = chargeInventoryItems(batteryStack, player.getInventory());
+        int remainingStored = energy(batteryStack);
+        int remainingBudget = Math.min(remainingStored, MAX_TRANSFER - sentInventory);
+        int sentCurios = 0;
+        if (remainingBudget > 0) {
+            sentCurios = dev.latrox.rematter.compat.CuriosSupport.chargeCuriosItems(player, batteryStack, remainingBudget);
+            if (sentCurios > 0) setEnergy(batteryStack, remainingStored - sentCurios);
+        }
+        return sentInventory + sentCurios;
     }
 
     /** Distributes up to {@link #MAX_TRANSFER} FE to non-battery FE items in the inventory without ping-ponging. */

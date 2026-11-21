@@ -3,7 +3,7 @@
   "primary": "rematter:matrix_crystal",
   "secondary": "#c:dusts/gold",
   "energy": 4000,
-  "ticks": 640,
+  "ticks": 320,
   "minimum_tier": 0,
   "result": {
     "id": "rematter:amber_matrix_crystal",

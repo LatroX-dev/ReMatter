@@ -61,7 +61,8 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
             if (structure.moduleCount() != cores)
                 throw new IllegalArgumentException("Structure bonuses do not match its modules");
             int base = hardware.workRate(machineKind);
-            if (structure.workRate() % base != 0 || structure.workRate() / base > 5)
+            int maxMultiplier = MachineEnergyPolicy.speed(1, MachineEnergyPolicy.Upgrade.SPEED, MachineEnergyPolicy.MAX_UPGRADES);
+            if (structure.workRate() % base != 0 || structure.workRate() / base > maxMultiplier)
                 throw new IllegalArgumentException("Structure work rate does not match its modules");
         }
     }

@@ -6,6 +6,8 @@ navigation:
   position: 10
 item_ids:
   - rematter:chemical_reactor_controller
+  - rematter:industrial_decomposer_controller
+  - rematter:industrial_synthesizer_controller
   - rematter:field_coil
   - rematter:reaction_chamber
   - rematter:reactor_casing
@@ -14,7 +16,7 @@ item_ids:
 ---
 # Build a working reactor
 
-A Chemical Reactor joins its crystal fittings into one shared reaction field. Fit at least one **Field Stabilizer** and one **Reaction Focus**.
+A **Chemical Reactor**, **Industrial Decomposer**, or **Industrial Synthesizer** joins its crystal fittings into one shared reaction chamber. Fit at least one **Field Stabilizer** and one **Reaction Focus**.
 
 ## Fit the floor and crown
 
@@ -23,6 +25,8 @@ Both types can mount on either the inside floor or under the roof. Click a suppo
 Stabilizers use a crystal ring; Foci use one large focusing crystal. The same fitting looks mirrored at the ceiling. The field holds and transfers working material, so neither function relies on gravity. Keep the middle clear.
 
 <RecipeFor id="rematter:chemical_reactor_controller" />
+<RecipeFor id="rematter:industrial_decomposer_controller" />
+<RecipeFor id="rematter:industrial_synthesizer_controller" />
 <RecipeFor id="rematter:field_coil" />
 <RecipeFor id="rematter:reaction_chamber" />
 
@@ -139,3 +143,10 @@ The formed chamber's Casing, Glass, Ports and fittings can only be broken by pla
 Open the controller and toggle the chamber blueprint preview in **Settings → Structure** to highlight missing, misplaced or obstructing blocks in the world. Press **Auto-Build** in **Settings → Structure** — or right-click an unformed controller with a **Matter Wrench** in **Ports** mode — to place missing Reactor Casing, Reactor Glass, Machine Ports and interior fittings directly from your inventory. **Auto-Build** verifies the entire chamber volume beforehand: if any foreign block, fluid or entity obstructs full construction, no blocks are placed, a warning names the obstruction and the world preview turns on automatically.
 
 Up to three **Parallel Upgrades** permit four fully paid jobs when chamber height and process room allow them. Speed, Efficiency and Parallel have separate industrial slots. All jobs share [one controller transfer budget](throughput.md); extra cables and ports do not add rates.
+
+## Industrial Decomposer and Industrial Synthesizer
+
+Swap the front controller for an **Industrial Decomposer Controller** (Copper crystal) or **Industrial Synthesizer Controller** (Leaf crystal) using the same 3–9 × 4–9 × 3–9 reactor chamber with at least one Field Stabilizer and one Reaction Focus. Both run at **2× base speed** and accept up to **4× Speed**, **4× Efficiency**, and **3× Parallel** upgrades (up to **80×** total throughput across 4 concurrent lanes).
+
+- **Machine Ports** on an Industrial Decomposer or Industrial Synthesizer transfer **items, fluids, FE, and matter** according to each port's mode (configure modes with a Matter Wrench or Shift-right-click).
+- The **Industrial Synthesizer** includes a built-in Pressure Module when formed, enabling Tier 2 crystallization (such as diamonds and diamond blocks) across all parallel lanes without occupying an upgrade slot.

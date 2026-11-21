@@ -57,9 +57,9 @@ public record PreparationDisplay(Identifier sourceId, MachineKind machine, Ingre
     static Identifier recipeId(MachineKind machine, Identifier source) {
         return Identifier.fromNamespaceAndPath("rematter", "/preparation/" + machine.id() + "/" + source.getNamespace() + "/" + source.getPath());
     }
-    /** The visible cost value: cranks for manual work, otherwise FE. */
+    /** The visible cost value: cranks for manual work, otherwise FE with FE/t rate. */
     public Component costValue() {
-        return manual() ? Component.translatable("gui.rematter.viewer.cranks", cranks()) : Quantities.energy(Quantities.number(energy()));
+        return manual() ? Component.translatable("gui.rematter.viewer.cranks", cranks()) : Quantities.energyWithRate(energy(), ticks());
     }
-    public Component timeValue() { return Quantities.ticks(Quantities.number(ticks())); }
+    public Component timeValue() { return Quantities.durationWithTicks(ticks()); }
 }

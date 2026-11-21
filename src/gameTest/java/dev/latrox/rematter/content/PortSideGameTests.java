@@ -134,7 +134,7 @@ public final class PortSideGameTests {
             // The fixture is not vacuous: the same lookups do find the capabilities on the sides that are connections.
             boolean hasSides = MachinePortMode.configurable(kind);
             if (hasSides && !kind.isStorage()) h.assertTrue(items, kind + " exposes no item capability on any connection");
-            if (kind == MachineKind.DECOMPOSER || kind.synthesis()) h.assertTrue(fluids, kind + " exposes no fluid capability on any connection");
+            if (hasSides && (kind.decomposition() || kind.synthesis())) h.assertTrue(fluids, kind + " exposes no fluid capability on any connection");
             if (hasSides && (kind.processes() || kind.generator()) && !dev.latrox.rematter.content.preparation.PreparationTier.manual(kind))
                 h.assertTrue(energy, kind + " exposes no energy capability on any connection");
             if (!hasSides && kind != MachineKind.TERMINAL) h.assertTrue(!items && !fluids && !energy, kind + " exposes a capability without Machine Ports");

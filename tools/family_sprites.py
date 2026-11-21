@@ -356,6 +356,28 @@ def controller_front(device):
         sprite.rect(24, 18, 26, 26, SEAM)
         sprite.rect(23, 19, 27, 21, STEEL)
         sprite.row(19, 23, 27, TRIM)
+    elif device == 'industrial_decomposer_controller':
+        for x in (5, 15):
+            sprite.rect(x, 19, x + 6, 24, STEEL)
+            sprite.bevel(x, 19, x + 6, 24, TRIM, STEEL_SHADE)
+            sprite.rect(x + 1, 20, x + 5, 23, WELL)
+        sprite.rect(12, 20, 14, 23, COPPER)
+        sprite.row(20, 12, 14, COPPER_LIGHT)
+        sprite.rect(24, 18, 26, 26, SEAM)
+        sprite.rect(23, 22, 27, 24, STEEL)
+        sprite.row(22, 23, 27, TRIM)
+    elif device == 'industrial_synthesizer_controller':
+        for x in (5, 11):
+            sprite.rect(x, 19, x + 4, 23, STEEL)
+            sprite.bevel(x, 19, x + 4, 23, TRIM, STEEL_SHADE)
+            sprite.rect(x + 1, 20, x + 3, 22, WELL)
+        sprite.rect(17, 20, 23, 22, SEAM)
+        sprite.rect(19, 19, 21, 23, STEEL)
+        sprite.row(19, 19, 21, TRIM)
+        sprite.rect(25, 18, 27, 20, COPPER)
+        sprite.row(18, 25, 27, COPPER_LIGHT)
+        sprite.rect(25, 23, 27, 25, STEEL)
+        sprite.row(23, 25, 27, TRIM)
     else:
         for y, knob in ((19, 9), (23, 15)):
             sprite.rect(5, y, 21, y + 2, SEAM)
@@ -383,6 +405,20 @@ def controller_display(device, active):
         for y, length in ((7, 10), (10, 6), (13, 8)):
             sprite.rect(15, y, 15 + length, y + 2, ink)
         sprite.rect(23, 7, 25, 9, glow)
+    elif device == 'industrial_decomposer_controller':
+        sprite.rect(7, 8, 9, 14, ink)
+        sprite.rect(11, 8, 13, 14, ink)
+        sprite.rect(9, 10, 11, 12, glow)
+        for y, length in ((7, 10), (10, 7), (13, 4)):
+            sprite.rect(15, y, 15 + length, y + 2, ink)
+        sprite.rect(23, 13, 25, 15, glow)
+    elif device == 'industrial_synthesizer_controller':
+        sprite.rect(9, 8, 11, 14, ink)
+        sprite.rect(7, 10, 13, 12, ink)
+        sprite.rect(9, 10, 11, 12, glow)
+        for y, length in ((7, 4), (10, 7), (13, 10)):
+            sprite.rect(15, y, 15 + length, y + 2, ink)
+        sprite.rect(23, 13, 25, 15, glow)
     else:
         for y, shift in ((8, 0), (12, 1)):
             sprite.rect(7, y, 13, y + 2, ink)
@@ -492,7 +528,9 @@ def sprites():
         result['machine_port_' + mode] = machine_port(color, contact=mode != 'disabled')
     for name, tier in CABLE_TIERS.items():
         result[name] = cable(tier)
-    for device in ('chemical_reactor_controller', 'preparation_reactor_controller'):
+    controllers = ('chemical_reactor_controller', 'preparation_reactor_controller',
+                   'industrial_decomposer_controller', 'industrial_synthesizer_controller')
+    for device in controllers:
         result[device + '_front'] = controller_front(device)
         result[device + '_display'] = controller_display(device, False)
         result[device + '_display_active'] = controller_display(device, True)
@@ -500,7 +538,7 @@ def sprites():
     result['activity_on']=strip(activity_bar(f) for f in range(16))
     result['terminal_screen_active']=strip(terminal_frames(f) for f in range(16))
     result['interface_light_active']=strip(interface_light(f) for f in range(16))
-    for device in ('chemical_reactor_controller','preparation_reactor_controller'):
+    for device in controllers:
         result[device+'_display_active']=strip(controller_frames(device,f) for f in range(16))
     return result
 
@@ -514,5 +552,5 @@ for name in ('drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cel
 from reactor_showpiece import REACTOR_ANIMATIONS
 ANIMATIONS.update(REACTOR_ANIMATIONS)
 
-for name,frametime in {'activity_on':5,'terminal_screen_active':5,'interface_light_active':2,'chemical_reactor_controller_display_active':4,'preparation_reactor_controller_display_active':4,**{'bench_'+device+'_work_active':2 if device in ('decomposer','material_preparator') else 3 if device in ('sinter_furnace','atmospheric_collector') else 4 for device in ('analyzer','decomposer','material_synthesizer','material_preparator','sinter_furnace','atmospheric_collector')}}.items():
+for name,frametime in {'activity_on':5,'terminal_screen_active':5,'interface_light_active':2,'chemical_reactor_controller_display_active':4,'preparation_reactor_controller_display_active':4,'industrial_decomposer_controller_display_active':4,'industrial_synthesizer_controller_display_active':4,**{'bench_'+device+'_work_active':2 if device in ('decomposer','material_preparator') else 3 if device in ('sinter_furnace','atmospheric_collector') else 4 for device in ('analyzer','decomposer','material_synthesizer','material_preparator','sinter_furnace','atmospheric_collector')}}.items():
     ANIMATIONS[name]={'animation':{'frametime':frametime,'interpolate':True}}

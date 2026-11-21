@@ -297,9 +297,9 @@ public final class StorageAndGadgetsGameTests {
         h.assertTrue(displays.size() == 18, "Expected 18 CrystalFuelDisplay entries, got " + displays.size());
         var baseFirst = displays.get(0);
         var indFirst = displays.get(9);
-        h.assertTrue(baseFirst.energy() == 768L && baseFirst.rate() == 64 && baseFirst.ticks() == 12,
+        h.assertTrue(baseFirst.energy() == 768L && baseFirst.rate() == 128 && baseFirst.ticks() == 6,
                 "Unexpected base Matrix Crystal display stats: " + baseFirst);
-        h.assertTrue(indFirst.energy() == 768L && indFirst.rate() == 256 && indFirst.ticks() == 3,
+        h.assertTrue(indFirst.energy() == 768L && indFirst.rate() == 512 && indFirst.ticks() == 2,
                 "Unexpected industrial Matrix Crystal display stats: " + indFirst);
         h.succeed();
     }

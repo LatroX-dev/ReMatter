@@ -40,7 +40,7 @@ Take **one glass** from the output when the press finishes. Leave **Loop** off f
 
 ## What the numbers mean
 
-With default recipes and no upgrades, one sand produces **1,000 solid silica units** using **8,000 FE** over **400 ticks**. One glass consumes those **1,000 units**, plus **16,000 FE** over **400 ticks**. With empty machine buffers, **11 plain crystals** cover decomposition and **21 more** cover synthesis. Direct the generator to the current processor so it receives its share.
+With default recipes and no upgrades, one sand produces **1,000 solid silica units** using **8,000 FE** over **200 ticks** (**40 FE/t**). One glass consumes those **1,000 units**, plus **16,000 FE** over **200 ticks** (**80 FE/t**). With empty machine buffers, **11 plain crystals** cover decomposition and **21 more** cover synthesis. Direct the generator to the current processor so it receives its share.
 
 The Cell stores these quantities without separate silica inventory items. One batch of nuggets or fluid can have a different item count or volume; **Make 1 requests the displayed complete batch**.
 

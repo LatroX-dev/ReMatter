@@ -9,8 +9,8 @@ import net.minecraft.resources.Identifier;
 public final class PreparationWork {
     /** The industrial tier doubles a preparation price, so its base must stay within half of a machine batch. */
     public static final int MAX_ENERGY=(int)(MachineEnergyPolicy.MAX_BATCH_ENERGY/2), MAX_TICKS=1_000_000;
-    // Production recipes have four times the work; keep the Hand Preparator's click cadence.
-    public static final int CRANK_WORK=80, CRANK_COOLDOWN=5;
+    // Keep the Hand Preparator's click cadence matched to the current preparation durations.
+    public static final int CRANK_WORK=40, CRANK_COOLDOWN=5;
     public static final int MAX_RECIPES=256;
     private PreparationWork() {}
     /** A catalogue is usable only as a whole: bounded in size, with unique and bounded identifiers. */

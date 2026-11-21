@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "productivebees",
+  "item": "productivebees:wax_block",
+  "disabled": true
+}

@@ -27,7 +27,7 @@ At the **Matter Terminal**, search the stock by name or filter it by phase. Open
 
 - **Make gas from water.** Use a water bucket on the Decomposer to store 1,000 units of liquid water. One **Water electrolysis** batch in a Chemical Processor converts that stock into 1,000 units of hydrogen and 500 of oxygen. Both gases return to the network.
 - **Supply lava from cobblestone.** Decompose the stone, then run **Mineral blending** and **Mineral melting** in a Chemical Processor. Select **Lava** in the Material Synthesizer to deliver 1,000 mB to its tank, ready for a bucket or fluid pipe.
-- **Build an industrial reactor.** Fit a Chemical Reactor with a Field Stabilizer, a Reaction Focus and separate ports for power and matter. Stabilizers provide the field strength for advanced processes. Foci increase the amount of input the chamber can hold at once. Parallel Upgrades let a suitably sized reactor process multiple batches at once.
+- **Build industrial chambers.** Scale up with the **Chemical Reactor**, **Industrial Decomposer** and **Industrial Synthesizer**. Fit a `3×3×5` to `7×7×7` chamber with Field Stabilizers, Reaction Foci and separate Machine Ports for power, matter, items and fluids. Parallel Upgrades let a suitably sized chamber run up to four concurrent batches at once; a formed Industrial Synthesizer provides Tier 2 crystallization pressure built in.
 - **Collect atmospheric gases.** Leave the intake of a powered Atmospheric Collector open to the Overworld sky and select **Air Separation** to collect 200 units of oxygen per batch. Other sources have different intake conditions and yields, including sulfur dioxide from Nether fumes.
 - **Explore Primal research.** Mine Primal Ore and load its shards into a dedicated Primal Cell. At the Analyzer, spend that reserve to derive an eligible material from known substances. Later, a Discovery Lens opens research into unknown families.
 
@@ -38,17 +38,18 @@ At the **Matter Terminal**, search the stock by name or filter it by phase. Open
 | What you want to do | Mods and setup |
 | --- | --- |
 | Order chemistry from your storage grid | Connect a ReMatter **Network Interface** to [Applied Energistics 2](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2) or [Refined Storage](https://www.curseforge.com/minecraft/mc-mods/refined-storage). Select your storage system in the interface settings, enable **Automation**, then enable **Network jobs** on the machines that should accept orders. |
-| Look up a recipe | [Just Enough Items](https://www.curseforge.com/minecraft/mc-mods/jei) and [SEMI (Seasonal EMI)](https://www.curseforge.com/minecraft/mc-mods/semi-seasonal-emi) show exact batch inputs, yields, energy costs and processing times. |
-| Read machines and layouts in-game | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) shows machine status when you look at a block. [GuideME](https://www.curseforge.com/minecraft/mc-mods/guideme) adds interactive 3D layouts to the ReMatter Guide. |
-| Supply a chemical line | With [Mekanism: Version Locked](https://www.curseforge.com/minecraft/mc-mods/mekanism-version-locked), enable **Automation** on the Matter Drive and connect a Pressurized Tube to move supported chemicals such as hydrogen and oxygen. |
-| Process ReMatter alloys | Use an [Oritech](https://www.curseforge.com/minecraft/mc-mods/oritech) Pulverizer to grind Rhevon or Lumivex ingots. The Foundry can process their powders into ingots. |
+| Look up a recipe | [Just Enough Items](https://www.curseforge.com/minecraft/mc-mods/jei) and [SEMI (Seasonal EMI)](https://www.curseforge.com/minecraft/mc-mods/semi-seasonal-emi) show exact batch inputs, yields, base energy with `FE/t` rates and durations in seconds and ticks. |
+| Read machines and layouts in-game | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) shows live `FE/t` draw, machine status, Energy Cubes, Wireless Access Points, Level Emitters, Entangled Links and Cell Transfer Stations. [GuideME](https://www.curseforge.com/minecraft/mc-mods/guideme) adds interactive 3D layouts to the ReMatter Guide. |
+| Wear portable gear & use a hotkey | With [Curios](https://www.curseforge.com/minecraft/mc-mods/curios), equip the **Wireless Matter Terminal** (`charm`) and **Portable Energy Cell** (`belt`). Bind **Open Wireless Matter Terminal** in Controls to open your terminal without switching hotbar slots. |
+| Supply a chemical line | With [Mekanism: Version Locked](https://www.curseforge.com/minecraft/mc-mods/mekanism-version-locked), enable **Automation** on the Matter Drive and connect a Pressurized Tube to move supported chemicals such as hydrogen, oxygen, chlorine, brine and sodium. |
+| Process ReMatter alloys and dusts | Optional recipes support [Oritech](https://www.curseforge.com/minecraft/mc-mods/oritech), [Ender IO](https://www.curseforge.com/minecraft/mc-mods/ender-io), [FTB Industrial Contraptions](https://www.curseforge.com/minecraft/mc-mods/ftb-industrial-contraptions-forge), [Energized Power](https://www.curseforge.com/minecraft/mc-mods/energized-power) and Mekanism machines for alloy smelting and dust grinding. |
 | Run a shared facility | With [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge), teammates can operate your machines. The player who placed a machine keeps ownership. |
 
 See the [integration guide](docs/integrations.md) for supported API versions and details on connecting external storage and chemical networks.
 
 ## Install, build and get help
 
-ReMatter 0.7.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
+ReMatter 0.8.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
 
 To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The JAR is written to `build/libs/`. Pack authors can define new material profiles, permitted synthesis outputs and processes with [chemistry data packs](docs/data-packs.md).
 

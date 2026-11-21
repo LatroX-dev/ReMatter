@@ -91,7 +91,8 @@ class ChemicalTransfersTest {
     void mappingUsesOnlyExactRegisteredIdsWithoutSteamOrNitrogenAliases() {
         assertEquals(Set.of("mekanism:hydrogen", "mekanism:oxygen", "mekanism:water_vapor", "mekanism:chlorine",
                         "mekanism:sulfur_dioxide", "mekanism:sulfur_trioxide", "mekanism:sulfuric_acid",
-                        "mekanism:hydrogen_chloride", "mekanism:hydrofluoric_acid", "mekanism:ethene", "mekanism:lithium", "mekanism:osmium"),
+                        "mekanism:hydrogen_chloride", "mekanism:hydrofluoric_acid", "mekanism:ethene", "mekanism:lithium",
+                        "mekanism:osmium", "mekanism:brine", "mekanism:sodium"),
                 ChemicalMappings.ALL.stream().map(ChemicalMappings.Mapping::chemicalId).collect(Collectors.toSet()));
         assertEquals(ChemicalMappings.ALL.size(), ChemicalMappings.ALL.stream().map(ChemicalMappings.Mapping::matter).distinct().count());
         assertTrue(ChemicalMappings.ALL.stream().allMatch(mapping -> mapping.matter().phase() == Phase.GAS));

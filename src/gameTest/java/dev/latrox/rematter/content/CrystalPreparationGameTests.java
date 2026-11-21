@@ -39,8 +39,10 @@ public final class CrystalPreparationGameTests {
             "standalone_hand_workshop_to_first_glass", StarterWorkshopGameTest::run,
             "matrix_crystals_are_preparation_only", CrystalPreparationGameTests::recipes,
             "hand_preparator_bootstraps_amber_without_fe", CrystalPreparationGameTests::manual,
-            "powered_crystal_batch_commits_at_640_ticks", CrystalPreparationGameTests::powered,
-            "four_speed_upgrades_require_128_crystal_ticks", CrystalPreparationGameTests::speed);
+            "powered_crystal_batch_commits_at_320_ticks", CrystalPreparationGameTests::powered,
+            "four_speed_upgrades_require_32_crystal_ticks", CrystalPreparationGameTests::speed,
+            "tick_by_tick_fe_starts_pauses_resumes_and_refunds", CrystalPreparationGameTests::tickByTickEnergy,
+            "synthesizer_pressure_slot_combines_with_speed_upgrades", CrystalPreparationGameTests::pressureSlotWithSpeed);
     private static Identifier id(String name) { return Identifier.parse("rematter_tests:crystal_preparation/" + name); }
     @SubscribeEvent public static void functions(net.neoforged.neoforge.registries.RegisterEvent event) {
         event.register(Registries.TEST_FUNCTION, registry -> TESTS.forEach((name, body) -> registry.register(id(name), body)));
@@ -68,7 +70,7 @@ public final class CrystalPreparationGameTests {
             var recipe = recipe(h, name);
             h.assertTrue(recipe.getType() == PreparationRecipes.TYPE.get(), name + " has a different recipe type");
             h.assertTrue(ItemStack.matches(item(name, 1), recipe.result()), name + " does not produce exactly one plain crystal");
-            h.assertTrue(recipe.ticks() == 640 && recipe.energy() == 4000, name + " has the wrong shipped work or FE price");
+            h.assertTrue(recipe.ticks() == 320 && recipe.energy() == 4000, name + " has the wrong shipped work or FE price");
         }
         // Inspect the actual recipe reload, including vanilla crafting/cooking and any added fixed-output alternatives.
         var context = h.getLevel().registryAccess().createSerializationContext(JsonOps.INSTANCE);
@@ -103,7 +105,7 @@ public final class CrystalPreparationGameTests {
     private static void manualBatch(GameTestHelper h, MachineBlockEntity machine, Player owner, String name) {
         var recipe = recipe(h, name);
         var primary = machine.getItem(0).copy(); var secondary = machine.getItem(3).copy();
-        int cranks = (recipe.ticks() + 79) / 80;
+        int cranks = (recipe.ticks() + PreparationWork.CRANK_WORK - 1) / PreparationWork.CRANK_WORK;
         long sequence = machine.visualCrankSequence();
         for (int crank = 1; crank <= cranks; crank++) {
             // The first crank may arrive immediately; subsequent cranks obey the real five-tick cooldown.
@@ -112,7 +114,7 @@ public final class CrystalPreparationGameTests {
             h.assertTrue(machine.energy().getAmountAsLong() == 0, name + ": hand processing acquired or spent FE");
             h.assertTrue(machine.visualCrankSequence() == sequence + crank, name + ": crank counter differs");
             if (crank < cranks) {
-                h.assertTrue(machine.work().progress == crank * 80, name + ": one crank did not add exactly eighty work");
+                h.assertTrue(machine.work().progress == crank * PreparationWork.CRANK_WORK, name + ": one crank did not add expected work");
                 h.assertTrue(machine.getItem(1).isEmpty() && ItemStack.matches(primary, machine.getItem(0))
                         && ItemStack.matches(secondary, machine.getItem(3)), name + ": inputs committed before the final crank");
             }
@@ -122,7 +124,7 @@ public final class CrystalPreparationGameTests {
         h.assertTrue(machine.work().progress == 0 && machine.work().duration == 0, name + ": completed work was retained");
     }
     private static void manual(GameTestHelper h) {
-        h.assertTrue(PreparationWork.CRANK_WORK == 80, "The intended hand-work cadence changed");
+        h.assertTrue(PreparationWork.CRANK_WORK == 40, "The intended hand-work cadence changed");
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var machine = machine(h, MachineKind.HAND_PREPARATOR, owner);
         machine.setItem(0, item("silith", 1)); machine.setItem(3, item("argil", 1));
@@ -144,27 +146,94 @@ public final class CrystalPreparationGameTests {
         var recipe = recipe(h, "amber_matrix_crystal");
         machine.setItem(0, item("matrix_crystal", 2)); machine.setItem(3, item("gold_dust", 2));
         if (upgraded) machine.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
-        int ticks = upgraded ? 128 : 640;
+        int speed = upgraded ? 10 : 1;
+        int ticks = upgraded ? 32 : 320;
         int price = upgraded ? 8000 : 4000;
         machine.energy().set(price);
-        h.assertTrue(recipe.ticks() == 640 && recipe.energy() == 4000, "Test no longer uses the shipped crystal recipe");
-        h.assertTrue(machine.speed() == (upgraded ? 5 : 1), "Preparation speed does not match the upgrade stack");
+        h.assertTrue(recipe.ticks() == 320 && recipe.energy() == 4000, "Test no longer uses the shipped crystal recipe");
+        h.assertTrue(machine.speed() == speed, "Preparation speed does not match the upgrade stack");
         for (int tick = 1; tick < ticks; tick++) {
             nextTick(h, machine);
             h.assertTrue(machine.getItem(1).isEmpty() && machine.getItem(0).getCount() == 2 && machine.getItem(3).getCount() == 2,
                     "Physical inputs or output committed before tick " + ticks + " (at " + tick + ")");
-            h.assertTrue(machine.energy().getAmountAsLong() == price, "FE was consumed before the completed batch");
-            h.assertTrue(machine.work().progress == tick * (upgraded ? 5 : 1), "Work counter skipped or repeated a tick");
+            long expectedPaid = MachineEnergyPolicy.cumulativeEnergy(price, tick * speed, recipe.ticks());
+            h.assertTrue(machine.work().energyPaid == expectedPaid && machine.energy().getAmountAsLong() == price - expectedPaid,
+                    "Tick-by-tick FE debit was not exact at tick " + tick);
+            h.assertTrue(machine.work().progress == tick * speed, "Work counter skipped or repeated a tick");
         }
         nextTick(h, machine);
         h.assertTrue(ItemStack.matches(item("amber_matrix_crystal", 1), machine.getItem(1)), "Completed batch did not produce exactly one crystal");
         h.assertTrue(machine.getItem(0).getCount() == 1 && machine.getItem(3).getCount() == 1, "Completed batch did not debit exactly one of each input");
-        h.assertTrue(machine.energy().getAmountAsLong() == 0, "Completed batch did not debit exactly " + price + " FE");
+        h.assertTrue(machine.energy().getAmountAsLong() == 0 && machine.work().energyPaid == 0, "Completed batch did not debit exactly " + price + " FE");
         h.assertTrue(machine.work().progress == 0 && machine.work().duration == 0, "Work counters were not reset after completion");
         for (int tick = 0; tick < 20; tick++) nextTick(h, machine);
         h.assertTrue(machine.getItem(0).getCount() == 1 && machine.getItem(3).getCount() == 1 && machine.getItem(1).getCount() == 1
                 && machine.energy().getAmountAsLong() == 0 && machine.work().progress == 0,
                 "An unfunded second batch consumed inputs or produced another output");
+        h.succeed();
+    }
+    private static void tickByTickEnergy(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var machine = machine(h, MachineKind.PREPARATOR, owner);
+        var recipe = recipe(h, "amber_matrix_crystal"); // 4,000 FE over 320 ticks (~12.5 FE/t)
+        machine.setItem(0, item("matrix_crystal", 2)); machine.setItem(3, item("gold_dust", 2));
+        // Start with only 100 FE (far less than 4,000 FE batch cost) — must start immediately and pause when depleted.
+        machine.energy().set(100);
+        for (int i = 0; i < 12; i++) nextTick(h, machine);
+        h.assertTrue(machine.work().progress == 8, "Expected 8 paid ticks from 100 FE, got progress=" + machine.work().progress);
+        h.assertTrue(machine.work().energyPaid == 100 && machine.energy().getAmountAsLong() == 0, "Unexpected partial energy state");
+        h.assertTrue("energy".equals(machine.work().status), "Paused batch did not report energy: " + machine.work().status);
+        // Supply the exact remainder (3,900 FE) and verify seamless completion without double-charging.
+        machine.energy().set(3900);
+        for (int i = 0; i < recipe.ticks() - 8; i++) nextTick(h, machine);
+        h.assertTrue(ItemStack.matches(item("amber_matrix_crystal", 1), machine.getItem(1)), "Resumed batch did not produce crystal");
+        h.assertTrue(machine.energy().getAmountAsLong() == 0 && machine.work().energyPaid == 0, "Total resumed FE debit was not exact");
+        // Start second batch, run 10 ticks, verify mid-batch save preserves in-flight FE without loss or duplication.
+        machine.energy().set(1000);
+        for (int i = 0; i < 10; i++) nextTick(h, machine);
+        h.assertTrue(machine.work().progress == 10 && machine.work().energyPaid > 0, "Second batch did not draw tick FE");
+        var registries = h.getLevel().registryAccess();
+        var saved = machine.saveCustomOnly(registries);
+        var reloaded = new MachineBlockEntity(machine.getBlockPos(), machine.getBlockState());
+        reloaded.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
+                net.minecraft.util.ProblemReporter.DISCARDING, registries, saved));
+        h.assertTrue(reloaded.energy().getAmountAsLong() == 1000 && reloaded.work().energyPaid == 0,
+                "Mid-batch save/reload lost or duplicated FE: " + reloaded.energy().getAmountAsLong());
+        // Live machine was not mutated by saving; now remove primary input — spent in-flight FE must be refunded cleanly.
+        h.assertTrue(machine.work().energyPaid > 0 && machine.energy().getAmountAsLong() + machine.work().energyPaid == 1000,
+                "Saving mutated live machine energy");
+        machine.setItem(0, ItemStack.EMPTY);
+        nextTick(h, machine);
+        h.assertTrue(machine.energy().getAmountAsLong() == 1000 && machine.work().energyPaid == 0,
+                "Aborted batch did not refund in-flight FE: energy=" + machine.energy().getAmountAsLong());
+        h.succeed();
+    }
+    private static void pressureSlotWithSpeed(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var drivePos = new BlockPos(2, 3, 3);
+        h.setBlock(drivePos, ModContent.MACHINES.get(MachineKind.DRIVE).get());
+        var drive = h.getBlockEntity(drivePos, MachineBlockEntity.class);
+        drive.placedBy(owner);
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        var diamondKey = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:diamond", dev.latrox.rematter.chemistry.Phase.SOLID);
+        h.assertTrue(drive.matterStore().apply(Map.of(), Map.of(diamondKey, 1_000L)), "Diamond fixture rejected");
+        dev.latrox.rematter.research.ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(), h.getLevel().dimension().identifier().toString());
+        for (var family : dev.latrox.rematter.research.ResearchData.current().families()) {
+            dev.latrox.rematter.research.ResearchService.adminGrant(h.getLevel().getServer(), owner.getUUID(), family.id());
+        }
+        var synth = machine(h, MachineKind.SYNTHESIZER, owner);
+        h.assertTrue(synth.canPlaceItem(MachineCellAccess.PRESSURE_SLOT, new ItemStack(ModContent.PRESSURE_MODULE.get())),
+                "Synthesizer rejected Pressure Module in dedicated Pressure slot");
+        h.assertTrue(!synth.canPlaceItem(2, new ItemStack(ModContent.PRESSURE_MODULE.get())),
+                "Synthesizer main upgrade slot should no longer accept Pressure Module");
+        synth.setItem(MachineCellAccess.PRESSURE_SLOT, new ItemStack(ModContent.PRESSURE_MODULE.get()));
+        synth.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
+        synth.energy().set(32_000);
+        h.assertTrue(synth.crystallizationTier() == 2 && synth.speed() == 10, "Pressure slot and 4x Speed did not combine");
+        h.assertTrue(synth.selectRecipe("minecraft:diamond") && synth.requestBatch(), "Could not request diamond batch");
+        for (int tick = 0; tick < 20; tick++) nextTick(h, synth);
+        h.assertTrue(synth.getItem(1).is(net.minecraft.world.item.Items.DIAMOND), "Diamond did not finish in 20 ticks (1.0 s) at 10x speed");
+        h.assertTrue(synth.energy().getAmountAsLong() == 0 && drive.matterStore().amount(diamondKey) == 0, "Exact diamond FE/matter debit failed");
         h.succeed();
     }
 }

@@ -36,7 +36,10 @@ final class ChemicalMappings {
             // Native oxidizing/crystallizing: 1 dust <-> 100 lithium units.
             gas("lithium", 10),
             // Native chemical conversion: 1 ingot -> 200 osmium units.
-            gas("osmium", 5));
+            gas("osmium", 5),
+            // Native rotary & separator identity: 1 mB <-> 1 chemical unit; kept separate from solid salt/sodium.
+            gas("brine", 1),
+            gas("sodium", 1));
 
     private ChemicalMappings() {}
 

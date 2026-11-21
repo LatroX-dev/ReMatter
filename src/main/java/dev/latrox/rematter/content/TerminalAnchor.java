@@ -1,6 +1,10 @@
 package dev.latrox.rematter.content;
 
-/** Unifies a wired Matter Terminal block and a handheld Wireless Matter Terminal session. */
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
+
+/** Unifies a wired Matter Terminal block and a handheld/Curios Wireless Matter Terminal session. */
 sealed interface TerminalAnchor permits TerminalAnchor.Wired, TerminalAnchor.Wireless {
     MachineMatterNetwork matterNetwork(boolean deep);
 
@@ -10,7 +14,20 @@ sealed interface TerminalAnchor permits TerminalAnchor.Wired, TerminalAnchor.Wir
         }
     }
 
-    record Wireless(WirelessAccessPointBlockEntity accessPoint, int lockedPlayerSlot) implements TerminalAnchor {
+    record Wireless(WirelessAccessPointBlockEntity accessPoint, int lockedPlayerSlot,
+                    @Nullable String curioSlot, int curioIndex) implements TerminalAnchor {
+        Wireless(WirelessAccessPointBlockEntity accessPoint, int lockedPlayerSlot) {
+            this(accessPoint, lockedPlayerSlot, null, -1);
+        }
+
+        ItemStack resolveStack(Player player) {
+            if (curioSlot != null && curioIndex >= 0) {
+                return dev.latrox.rematter.compat.CuriosSupport.curioStack(player, curioSlot, curioIndex);
+            }
+            if (lockedPlayerSlot < 0 || lockedPlayerSlot >= player.getInventory().getContainerSize()) return ItemStack.EMPTY;
+            return player.getInventory().getItem(lockedPlayerSlot);
+        }
+
         @Override public MachineMatterNetwork matterNetwork(boolean deep) {
             return accessPoint.matterNetwork(deep);
         }

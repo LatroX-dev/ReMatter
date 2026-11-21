@@ -52,12 +52,14 @@ public final class ReMatter {
         modBus.addListener(dev.latrox.rematter.network.TerminalMonitorPayload::register);
         modBus.addListener(dev.latrox.rematter.network.TerminalBatchRequestPayload::register);
         modBus.addListener(dev.latrox.rematter.network.TerminalBatchPlanPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.OpenWirelessTerminalPayload::register);
         NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.content.generation.CrystalFuelData::register);
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);
         NeoForge.EVENT_BUS.addListener(CatalogSync::sync);
         NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.network.CrystalFuelSync::sync);
         if (ModList.get().isLoaded("ae2")) dev.latrox.rematter.compat.ae2.Ae2Compat.register(modBus);
         if (ModList.get().isLoaded("refinedstorage")) dev.latrox.rematter.compat.rs.RsCompat.register(modBus);
+        dev.latrox.rematter.compat.CuriosSupport.register(modBus);
         if (ModList.get().isLoaded("mekanism")) {
             try {
                 MekanismCompat.register(modBus);

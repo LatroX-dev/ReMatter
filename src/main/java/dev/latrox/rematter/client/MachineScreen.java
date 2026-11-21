@@ -297,7 +297,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
             if(i<MachineMenu.FIRST_PLAYER_SLOT&&!slot.hasItem()) {
                 var ghost=slotGhost(i);
                 if(ghost!=null)ScreenChrome.icon(g,ghost,leftPos+slot.x,topPos+slot.y,
-                        i==12?PRIMAL_GHOST:i==2&&ghost==UiIcon.SLOT_PRESSURE?PRESSURE_GHOST:GHOST);
+                        i==12?PRIMAL_GHOST:ghost==UiIcon.SLOT_PRESSURE?PRESSURE_GHOST:GHOST);
             }
         }
     }
@@ -306,9 +306,9 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         return switch(slot) {
             case 0 -> menu.kind()==MachineKind.ANALYZER?UiIcon.SLOT_SAMPLE:menu.kind().generator()?UiIcon.SLOT_FUEL:converter()?UiIcon.SLOT_SHARD:UiIcon.SLOT_INPUT;
             case 1 -> UiIcon.SLOT_OUTPUT;
-            case 2 -> industrial()?UiIcon.SLOT_SPEED:menu.snapshot().status().equals("requires_pressure")?UiIcon.SLOT_PRESSURE:UiIcon.SLOT_UPGRADE;
+            case 2 -> industrial()?UiIcon.SLOT_SPEED:UiIcon.SLOT_UPGRADE;
             case 3 -> UiIcon.SLOT_MIX; case 4 -> UiIcon.SLOT_ADDITIVE;
-            case 10 -> UiIcon.SLOT_EFFICIENCY; case 11 -> UiIcon.SLOT_PARALLEL;
+            case 10 -> UiIcon.SLOT_EFFICIENCY; case 11 -> !industrial()&&menu.kind().synthesis()?UiIcon.SLOT_PRESSURE:UiIcon.SLOT_PARALLEL;
             case 12 -> UiIcon.SLOT_PRIMAL_CELL; case 13 -> UiIcon.SLOT_LENS;
             default -> null;
         };
@@ -397,7 +397,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         var bom=settingsPanel.blueprintBom();
         int totalMissing=bom.stream().mapToInt(IndustrialBlueprint.PartRequirement::missing).sum();
         text(g,tr("blueprint.effects_primary",bp.workRate(),bp.laneRoom(),bp.totalModules(),bp.slotCapacity()).getString(),12,134,172,accent());
-        String secondary=menu.kind()==MachineKind.INDUSTRIAL_REACTOR
+        String secondary=IndustrialStructure.usesReactorModules(menu.kind())
                 ?tr("blueprint.effects_reactor",bp.coils(),number(16_000L*bp.chambers())).getString()
                 :tr("blueprint.effects_preparator",bp.separation(),bp.grinding(),bp.mixing(),bp.separation()).getString();
         text(g,secondary,12,145,172,TEXT);
@@ -449,7 +449,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         lines.add(Component.translatable("screen.rematter.structure_size",bp.width(),bp.depth(),bp.height()));
         lines.add(Component.translatable("screen.rematter.structure_speed",bp.workRate()));
         lines.add(tr("blueprint.lanes",bp.laneRoom()));
-        if(menu.kind()==MachineKind.INDUSTRIAL_REACTOR){
+        if(IndustrialStructure.usesReactorModules(menu.kind())){
             lines.add(tr("structure_field",bp.coils()));
             lines.add(tr("structure_room",number(16_000L*bp.chambers())));
         }else{
@@ -512,7 +512,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
             if(!menu.slots.get(1).isActive())tooltipChips(g,menu.snapshot().preview().outputs(),134,42,x,y,mx,my);
         }
         if(main())for(int i=0;i<MachineMenu.FIRST_PLAYER_SLOT;i++){var slot=menu.slots.get(i);if(!slot.isActive()||slot.hasItem()||!inside(x,y,slot.x,slot.y,16,16))continue;
-            List<Component> lines=i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":menu.kind().generator()?"fuel_slot":converter()?"primal_source_slot":"input"));tooltip(g,lines,mx,my);}
+            List<Component> lines=i==11&&!industrial()&&menu.kind().synthesis()?List.of(Component.translatable("item.rematter.pressure_module"),tr("pressure_upgrade_hint")):i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":menu.kind().generator()?"fuel_slot":converter()?"primal_source_slot":"input"));tooltip(g,lines,mx,my);}
         if(main()&&disk()&&inside(x,y,8,103,68,15))tooltip(g,storageDetails(menu.snapshot()),mx,my);
     }
     private boolean extraFlag(String key){return menu.extras().has(key)&&menu.extras().get(key).getAsBoolean();}
@@ -531,7 +531,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     private static Optional<SubstanceDetails.Hover> chipAt(List<MachineSnapshot.Amount> values,int left,int top,double x,double y){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,left+i%3*18,top+i/3*18,18,18)){var a=values.get(i);var key=key(a.id(),a.phase());if(key!=null)return Optional.of(new SubstanceDetails.Hover(key,a.required()));}return Optional.empty();}
     @Override public Rect2i substancePanelBounds(){return new Rect2i(leftPos,topPos,imageWidth,imageHeight);}
     @Override public int substanceAccent(){return accent();}
-    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(industrial()?ui("speed"):tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(menu.kind().synthesis())lines.add(tr("pressure_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
+    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(industrial()?ui("speed"):tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
     private Component statusText(){var s=menu.snapshot();return s.status().equals("structure")&&industrial()?Component.translatable("status.rematter."+s.structure().diagnostic()):StatusText.of(s.status(),s.orders().stale(),s.orders().quarantined());}
     private static Component name(MachineSnapshot.Entry e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
     private static Component name(MachineSnapshot.Amount e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
@@ -542,7 +542,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         var p=s.preview();var lines=new ArrayList<Component>();lines.add(previewTitle(s));
         if(menu.inputRole()&&!preparator()&&s.sampleBatchSize()>1)lines.add(Component.translatable("screen.rematter.composition_batch",s.sampleBatchSize()));
         lines.add(handPreparator()?Component.translatable("screen.rematter.crank_count",(p.ticks()+dev.latrox.rematter.content.preparation.PreparationWork.CRANK_WORK-1)/dev.latrox.rematter.content.preparation.PreparationWork.CRANK_WORK)
-                :Component.translatable("screen.rematter.preview_cost",number(p.energy()),Quantities.seconds(p.ticks())));
+                :Component.translatable("screen.rematter.preview_cost",number(p.energy()),number(p.ticks()>0?Math.ceilDiv(p.energy(),p.ticks()):p.energy()),Quantities.seconds(p.ticks())));
         for(var a:p.inputs())lines.add(Component.translatable("screen.rematter.preview_input",label(a),SubstanceNames.phase(a.phase()),number(a.required()),number(a.available())));
         for(var a:p.outputs())lines.add(Component.translatable("screen.rematter.preview_output",label(a),SubstanceNames.phase(a.phase()),number(a.required())));
         if(p.inputs().stream().anyMatch(a->!a.known())||p.outputs().stream().anyMatch(a->!a.known()))lines.add(tr("unknown_substance_hint"));

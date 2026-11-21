@@ -64,9 +64,9 @@ Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing va
 This is a material catalogue, not complete chemical coverage of every item in a modpack. Unsupported items are rejected; they are never converted to a guessed fallback substance. In particular:
 
 - Charged Certus Quartz, Redstone Crystal and Charged Redstone use explicit state-preserving substances with synthesis disabled; they never interchange with uncharged Certus Quartz or ordinary Redstone.
-- FTB Industrial Contraptions plutonium blocks and raw plutonium blocks still need a verified compression quantity; their simpler supported forms do not establish a block ratio by themselves.
+- FTB Industrial Contraptions plutonium blocks and raw plutonium blocks use their verified nine-unit block ratio; Powah energized steel/niotic/spirited crystals, Just Dire Things storage blocks/celestigem and AdvancedAE quantum alloy remain recovery-only so native progression stays intact.
 - Beyond reviewed Copper, Iron and Golden equipment salvage, modded tools, progression-tier armor, machines, inventory containers, storage cells, data patterns, artifacts and manufactured parts remain excluded until each has a reviewed composition and trade-loop audit. No generic recipe inversion is enabled.
-- Foods, crops, wood species, biological products and decorative building products are not assigned a universal biomass or stone substitute. Their processing and quantity chains remain a separate coverage task.
+- Vanilla logs/stems, planks, sugar cane, cactus, paper, honeycombs and Productive Bees wax use explicit Cellulose (`(C₆H₁₀O₅)ₙ`, sawmill-safe 6:1 log-to-plank ratio, separate from charcoal/carbon) and Beeswax (`C₃₀H₆₂O₂`) models. Modded foods, crops, tree species and decorative building products are not assigned a universal biomass or stone substitute; their chains remain a separate coverage task.
 - Other registered fluids, fuels, potion mixtures, experience fluids, molten magical materials and nuclear isotope chains need explicit identities, units and cycle reviews.
 - Native integration checks and pack balancing are separate from data generation. A parsed profile alone is not evidence of a completed gameplay or balance test.
 

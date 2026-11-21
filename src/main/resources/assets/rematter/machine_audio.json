@@ -133,6 +133,68 @@
       },
       "set": "workshop-v11"
     },
+    "industrial_decomposer_controller": {
+      "role": "chemical_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:chemical_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:chemical_reactor_cycle",
+          "source": "chamber",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:chemical_reactor_accent",
+        "interval": 130,
+        "offset": 44,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
+    "industrial_synthesizer_controller": {
+      "role": "chemical_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:chemical_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:chemical_reactor_cycle",
+          "source": "chamber",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:chemical_reactor_accent",
+        "interval": 130,
+        "offset": 44,
+        "jitter": 30,
+        "gain": 1.0
+      },
+      "set": "workshop-v11"
+    },
     "hand_preparator": {
       "role": "hand_preparator",
       "position": "block",

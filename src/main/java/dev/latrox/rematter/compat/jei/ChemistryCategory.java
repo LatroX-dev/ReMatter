@@ -72,9 +72,9 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryViewer.Entry> 
         graphics.text(font,Component.translatable("gui.rematter.viewer.output"),119,5,UiPalette.TEXT,false);
         ScreenChrome.icon(graphics,UiIcon.ARROW_RIGHT,81,27,UiPalette.ACCENT);
         ScreenChrome.icon(graphics,UiIcon.ENERGY,4,99,UiPalette.ACCENT);
-        ScreenChrome.text(graphics,font,Quantities.energy(Quantities.number(recipe.energy())).getString(),22,103,148,UiPalette.TEXT);
+        ScreenChrome.text(graphics,font,Quantities.energyWithRate(recipe.energy(),recipe.ticks()).getString(),22,103,148,UiPalette.TEXT);
         ScreenChrome.icon(graphics,UiIcon.TIME,4,117,UiPalette.ACCENT);
-        ScreenChrome.text(graphics,font,Quantities.ticks(Quantities.number(recipe.ticks())).getString(),22,121,132,UiPalette.MUTED);
+        ScreenChrome.text(graphics,font,Quantities.durationWithTicks(recipe.ticks()).getString(),22,121,132,UiPalette.MUTED);
         ScreenChrome.icon(graphics,UiIcon.INFO,158,117,UiPalette.ACCENT);
     }
 

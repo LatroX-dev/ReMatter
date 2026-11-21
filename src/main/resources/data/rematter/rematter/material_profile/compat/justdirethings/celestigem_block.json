@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "justdirethings",
+  "item": "justdirethings:celestigem_block",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 4050
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 1800
+}

@@ -39,7 +39,7 @@ public record CrystalFuelDisplay(MachineKind machine, Identifier itemId, Item fu
     }
 
     public int rate() {
-        return machine == MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR ? 256 : 64;
+        return machine == MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR ? 512 : 128;
     }
 
     public int ticks() {

@@ -11,6 +11,8 @@
     "minecraft:diamond",
     "minecraft:diamond_block",
     "minecraft:diamond_ore",
+    "powah:crystal_niotic",
+    "powah:niotic_crystal_block",
     "rematter:diamond_powder"
   ],
   "substances": [

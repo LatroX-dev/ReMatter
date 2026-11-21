@@ -214,7 +214,11 @@ public final class TerminalBatchPlanner {
         if (!req.advancement().isEmpty() && !ctx.hasAdvancement().test(req.advancement())) {
             return empty(Status.REQUIRES_ADVANCEMENT);
         }
-        if (req.tier() > ctx.maxPressureTier() && ctx.onlineKinds().contains(MachineKind.SYNTHESIZER)) {
+        boolean hasSynth = ctx.onlineKinds().contains(MachineKind.INDUSTRIAL_SYNTHESIZER)
+                || ctx.onlineKinds().contains(MachineKind.SYNTHESIZER);
+        MachineKind synthKind = ctx.onlineKinds().contains(MachineKind.INDUSTRIAL_SYNTHESIZER)
+                ? MachineKind.INDUSTRIAL_SYNTHESIZER : MachineKind.SYNTHESIZER;
+        if (req.tier() > ctx.maxPressureTier() && hasSynth) {
             return empty(Status.REQUIRES_PRESSURE);
         }
 
@@ -225,14 +229,14 @@ public final class TerminalBatchPlanner {
                 return empty(Status.BATCH_LIMIT_EXCEEDED);
             }
         }
-        if (!ctx.onlineKinds().contains(MachineKind.SYNTHESIZER)) {
+        if (!hasSynth) {
             state.missingMachines.add(MachineKind.SYNTHESIZER);
         } else if (req.tier() > ctx.maxPressureTier()) {
             return empty(Status.REQUIRES_PRESSURE);
         }
         state.appendStep(new PlanStep(
                 StepKind.SYNTHESIS_ITEM,
-                MachineKind.SYNTHESIZER,
+                synthKind,
                 itemId,
                 batches,
                 profile.synthesisEnergy()));
@@ -251,7 +255,11 @@ public final class TerminalBatchPlanner {
         if (!req.advancement().isEmpty() && !ctx.hasAdvancement().test(req.advancement())) {
             return empty(Status.REQUIRES_ADVANCEMENT);
         }
-        if (req.tier() > ctx.maxPressureTier() && ctx.onlineKinds().contains(MachineKind.SYNTHESIZER)) {
+        boolean hasSynth = ctx.onlineKinds().contains(MachineKind.INDUSTRIAL_SYNTHESIZER)
+                || ctx.onlineKinds().contains(MachineKind.SYNTHESIZER);
+        MachineKind synthKind = ctx.onlineKinds().contains(MachineKind.INDUSTRIAL_SYNTHESIZER)
+                ? MachineKind.INDUSTRIAL_SYNTHESIZER : MachineKind.SYNTHESIZER;
+        if (req.tier() > ctx.maxPressureTier() && hasSynth) {
             return empty(Status.REQUIRES_PRESSURE);
         }
 
@@ -262,14 +270,14 @@ public final class TerminalBatchPlanner {
                 return empty(Status.BATCH_LIMIT_EXCEEDED);
             }
         }
-        if (!ctx.onlineKinds().contains(MachineKind.SYNTHESIZER)) {
+        if (!hasSynth) {
             state.missingMachines.add(MachineKind.SYNTHESIZER);
         } else if (req.tier() > ctx.maxPressureTier()) {
             return empty(Status.REQUIRES_PRESSURE);
         }
         state.appendStep(new PlanStep(
                 StepKind.SYNTHESIS_FLUID,
-                MachineKind.SYNTHESIZER,
+                synthKind,
                 MachineChoices.fluidChoiceId(fluidId),
                 batches,
                 profile.synthesisEnergy()));

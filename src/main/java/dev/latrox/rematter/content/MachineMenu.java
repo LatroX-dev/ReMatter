@@ -39,6 +39,7 @@ public final class MachineMenu extends AbstractContainerMenu {
     public static final int OPEN_TERMINAL_MONITOR = 17;
     public static final int CLOSE_TERMINAL_MONITOR = 18;
     public static final int CONSOLIDATE_DRIVE_CELLS = 19;
+    public static final int TOGGLE_AUTO_EJECT = 20;
     /** Six ids step a side forward; the six after them step it backward. */
     public static final int CYCLE_PORT = 40;
     public static final int CYCLE_PORT_BACK = 46;
@@ -55,6 +56,7 @@ public final class MachineMenu extends AbstractContainerMenu {
     private final DataSlot redstoneMode = DataSlot.standalone();
     private final DataSlot soundVolume = DataSlot.standalone();
     private final DataSlot structurePreview = DataSlot.standalone();
+    private final DataSlot autoEject = DataSlot.standalone();
     private final DataSlot[] portModes = new DataSlot[MachinePortMode.Side.values().length];
     private boolean wirelessBatteryDepleted;
     /** Server: the last views sent. Client: the last views received. */
@@ -117,6 +119,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         redstoneMode.set(buf.readVarInt());
         soundVolume.set(buf.readVarInt());
         structurePreview.set(buf.readBoolean() ? 1 : 0);
+        autoEject.set(buf.readBoolean() ? 1 : 0);
         for (var side : MachinePortMode.Side.values()) {
             portModes[side.ordinal()].set(buf.readVarInt());
         }
@@ -138,6 +141,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         buf.writeVarInt(machine.redstoneMode().ordinal());
         buf.writeVarInt(machine.soundLevel().level());
         buf.writeBoolean(machine.structurePreviewEnabled());
+        buf.writeBoolean(machine.autoEject());
         for (var side : MachinePortMode.Side.values()) {
             buf.writeVarInt(machine.portMode(side).ordinal());
         }
@@ -200,8 +204,8 @@ public final class MachineMenu extends AbstractContainerMenu {
         });
         addSlot(new Slot(inventory, 2, 171, 103) {
             @Override public boolean mayPlace(ItemStack stack) { return acceptsPlacement(2, stack); }
-            @Override public int getMaxStackSize() { return kind().synthesis() && getItem().is(ModContent.PRESSURE_MODULE.get()) ? 1 : IndustrialStructure.isIndustrial(kind()) && getItem().is(ModContent.PARALLEL_UPGRADE.get()) ? 3 : 4; }
-            @Override public int getMaxStackSize(ItemStack stack) { return stack.is(ModContent.PRESSURE_MODULE.get()) ? 1 : stack.is(ModContent.PARALLEL_UPGRADE.get()) ? 3 : 4; }
+            @Override public int getMaxStackSize() { return 4; }
+            @Override public int getMaxStackSize(ItemStack stack) { return 4; }
             @Override public boolean mayPickup(Player player) { return machine == null || machine.canAccess(player); }
             @Override public boolean isActive() { return view == View.MAIN && !diskRole() && (supportsUpgrades() || hasItem()) || view == View.CONFIGURATION && diskRole() && hasItem(); }
         });
@@ -255,6 +259,8 @@ public final class MachineMenu extends AbstractContainerMenu {
         addDataSlot(soundVolume);
         structurePreview.set(machine != null && machine.structurePreviewEnabled() ? 1 : 0);
         addDataSlot(structurePreview);
+        autoEject.set(machine != null && machine.autoEject() ? 1 : 0);
+        addDataSlot(autoEject);
         for (var side : MachinePortMode.Side.values()) {
             var mode = DataSlot.standalone();
             if (machine != null) mode.set(machine.portMode(side).ordinal());
@@ -266,8 +272,8 @@ public final class MachineMenu extends AbstractContainerMenu {
         return new Slot(container,index,x,y) {
             @Override public boolean mayPlace(ItemStack stack){return acceptsPlacement(index,stack);}
             @Override public boolean mayPickup(Player player){return machine==null||machine.canAccess(player);}
-            @Override public int getMaxStackSize(){return index==MachineCellAccess.EFFICIENCY_SLOT?4:index==MachineCellAccess.PARALLEL_SLOT?3:1;}
-            @Override public boolean isActive(){return view==View.MAIN&&(index==MachineCellAccess.EFFICIENCY_SLOT||index==MachineCellAccess.PARALLEL_SLOT?IndustrialStructure.isIndustrial(kind()):index==MachineCellAccess.PRIMAL_SLOT?kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER:kind()==MachineKind.ANALYZER)||view==View.CONFIGURATION&&diskRole()&&hasItem();}
+            @Override public int getMaxStackSize(){return index==MachineCellAccess.EFFICIENCY_SLOT?4:index==MachineCellAccess.PARALLEL_SLOT?(IndustrialStructure.isIndustrial(kind())?3:1):1;}
+            @Override public boolean isActive(){return view==View.MAIN&&(index==MachineCellAccess.EFFICIENCY_SLOT?IndustrialStructure.isIndustrial(kind()):index==MachineCellAccess.PARALLEL_SLOT?IndustrialStructure.isIndustrial(kind())||kind().synthesis():index==MachineCellAccess.PRIMAL_SLOT?kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER:kind()==MachineKind.ANALYZER)||view==View.CONFIGURATION&&diskRole()&&hasItem();}
         };
     }
     private Slot playerSlot(Inventory inventory,int containerSlot,int x,int y) {
@@ -299,12 +305,13 @@ public final class MachineMenu extends AbstractContainerMenu {
     public MachineSoundLevel soundLevel() { return MachineSoundLevel.byLevel(soundVolume.get()); }
     public boolean soundMuted() { return soundLevel().muted(); }
     public boolean structurePreviewEnabled() { return structurePreview.get() != 0; }
+    public boolean autoEject() { return autoEject.get() != 0; }
     private boolean acceptsPlacement(int slot, ItemStack stack) {
         if (machine != null) return inventory.canPlaceItem(slot, stack);
-        if (snapshot.containerId() != containerId || snapshot.networkJobs() && slot != 2) return false;
+        if (snapshot.containerId() != containerId || snapshot.networkJobs() && slot != 2 && slot != MachineCellAccess.EFFICIENCY_SLOT && slot != MachineCellAccess.PARALLEL_SLOT) return false;
         if (diskRole() && slot == 0) return MachineCellAccess.isMountableBayCell(stack) && stack.getCount() == 1;
         if(slot==MachineCellAccess.EFFICIENCY_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.EFFICIENCY_UPGRADE.get());
-        if(slot==MachineCellAccess.PARALLEL_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get());
+        if(slot==MachineCellAccess.PARALLEL_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get())||!IndustrialStructure.isIndustrial(kind())&&kind().synthesis()&&stack.is(ModContent.PRESSURE_MODULE.get());
         if(slot==MachineCellAccess.PRIMAL_SLOT)return (kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER)&&stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem;
         if(slot==MachineCellAccess.DISCOVERY_SLOT)return kind()==MachineKind.ANALYZER&&stack.is(dev.latrox.rematter.primal.PrimalContent.DISCOVERY_LENS.get());
         if(slot==0&&(kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER)&&(stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem||dev.latrox.rematter.primal.PrimalCells.sourceUnits(stack)>0))return true;
@@ -321,7 +328,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         return MachinePortMode.byIndex(portModes[side.ordinal()].get());
     }
     public boolean mixingRole() { return PreparationTier.isPreparation(kind()) && kind() != MachineKind.SINTER_FURNACE; }
-    public boolean inputRole() { return kind().generator() || kind() == MachineKind.PRIMAL_CONVERTER || kind() == MachineKind.ANALYZER || kind() == MachineKind.DECOMPOSER || PreparationTier.isPreparation(kind()); }
+    public boolean inputRole() { return kind().generator() || kind() == MachineKind.PRIMAL_CONVERTER || kind() == MachineKind.ANALYZER || kind().decomposition() || PreparationTier.isPreparation(kind()); }
     public boolean diskRole() { return kind().isStorage(); }
     public int diskMenuSlot(int bay) {
         if(bay<0 || bay>=diskBayCount())return -1;
@@ -555,6 +562,7 @@ public final class MachineMenu extends AbstractContainerMenu {
             redstoneMode.set(machine.redstoneMode().ordinal());
             soundVolume.set(machine.soundLevel().level());
             structurePreview.set(machine.structurePreviewEnabled() ? 1 : 0);
+            autoEject.set(machine.autoEject() ? 1 : 0);
             for (var side : MachinePortMode.Side.values()) {
                 portModes[side.ordinal()].set(machine.portMode(side).ordinal());
             }
@@ -566,7 +574,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         boolean initialSync = nextSnapshot == 0;
         nextSnapshot = tick + 5;
         if (!initialSync && terminal instanceof TerminalAnchor.Wireless wireless) {
-            ItemStack held = player.getInventory().getItem(wireless.lockedPlayerSlot());
+            ItemStack held = wireless.resolveStack(player);
             if (!(held.getItem() instanceof WirelessMatterTerminalItem)
                     || !WirelessMatterTerminalItem.consumeEnergy(held, WirelessMatterTerminalItem.SESSION_INTERVAL_COST)) {
                 if (held.getItem() instanceof WirelessMatterTerminalItem) {
@@ -740,6 +748,9 @@ public final class MachineMenu extends AbstractContainerMenu {
             case CONSOLIDATE_DRIVE_CELLS -> {
                 if (!machine.consolidateCells(player)) return false;
             }
+            case TOGGLE_AUTO_EJECT -> {
+                if (!machine.toggleAutoEject()) return false;
+            }
             default -> { return false; }
         }
         nextSnapshot = 0;
@@ -773,7 +784,8 @@ public final class MachineMenu extends AbstractContainerMenu {
             }
             if(!moved)return ItemStack.EMPTY;
         } else if (original.is(ModContent.SPEED_UPGRADE.get()) || original.is(ModContent.EFFICIENCY_UPGRADE.get()) || original.is(ModContent.PARALLEL_UPGRADE.get()) || original.is(ModContent.PRESSURE_MODULE.get())) {
-            int target=IndustrialStructure.isIndustrial(kind())?(original.is(ModContent.EFFICIENCY_UPGRADE.get())?MachineCellAccess.EFFICIENCY_SLOT:original.is(ModContent.PARALLEL_UPGRADE.get())?MachineCellAccess.PARALLEL_SLOT:2):2;
+            int target=IndustrialStructure.isIndustrial(kind())?(original.is(ModContent.EFFICIENCY_UPGRADE.get())?MachineCellAccess.EFFICIENCY_SLOT:original.is(ModContent.PARALLEL_UPGRADE.get())?MachineCellAccess.PARALLEL_SLOT:2)
+                    :kind().synthesis()&&original.is(ModContent.PRESSURE_MODULE.get())?MachineCellAccess.PRESSURE_SLOT:2;
             if(!supportsUpgrades()||!slots.get(target).mayPlace(original)||!moveItemStackTo(original,target,target+1,false))return ItemStack.EMPTY;
         } else if (PreparationTier.isPreparation(kind())) {
             if (!(slots.get(0).mayPlace(original) && moveItemStackTo(original, 0, 1, false))

@@ -132,6 +132,14 @@
     {
       "id": "rematter:atmospheric_collector",
       "required": false
+    },
+    {
+      "id": "rematter:industrial_decomposer_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:industrial_synthesizer_controller",
+      "required": false
     }
   ]
 }

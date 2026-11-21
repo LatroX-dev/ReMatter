@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.cellulose",
+  "symbol": "(C₆H₁₀O₅)ₙ",
+  "kind": "compound",
+  "composition": {
+    "rematter:carbon": 6,
+    "rematter:hydrogen": 10,
+    "rematter:oxygen": 5
+  },
+  "phases": [
+    "solid"
+  ]
+}

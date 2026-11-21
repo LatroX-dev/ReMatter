@@ -172,12 +172,12 @@ public final class ThroughputRuntimeGameTests {
     private static long remaining(MachineBlockEntity generator){return generator.extensions().view().get("fuelRemaining").getAsLong();}
     private static void generatorReload(GameTestHelper h){
         var gen=generator(h,owner(h));nextTick(h,gen);
-        h.assertTrue(gen.getItem(0).isEmpty()&&gen.energy().getAmountAsLong()==64&&remaining(gen)==704,"First generation step did not debit exactly one crystal");
+        h.assertTrue(gen.getItem(0).isEmpty()&&gen.energy().getAmountAsLong()==128&&remaining(gen)==640,"First generation step did not debit exactly one crystal");
         var output=energy(h,gen.getBlockPos(),Direction.EAST);
-        try(var tx=Transaction.openRoot()){h.assertTrue(output.extract(64,tx)==64,"Real generator output simulation failed");}
-        h.assertTrue(gen.energy().getAmountAsLong()==64&&remaining(gen)==704,"Aborted output changed buffer or unburnt energy");
+        try(var tx=Transaction.openRoot()){h.assertTrue(output.extract(128,tx)==128,"Real generator output simulation failed");}
+        h.assertTrue(gen.energy().getAmountAsLong()==128&&remaining(gen)==640,"Aborted output changed buffer or unburnt energy");
         reload(h,gen);h.assertTrue(gen.energy().getAmountAsLong()+remaining(gen)==768&&gen.getItem(0).isEmpty(),"Reload duplicated or dropped fuel energy");
-        for(int i=0;i<11;i++)nextTick(h,gen);
+        for(int i=0;i<5;i++)nextTick(h,gen);
         h.assertTrue(gen.energy().getAmountAsLong()==768&&remaining(gen)==0&&gen.getItem(0).isEmpty(),"One crystal did not produce exactly 768 FE");
         reload(h,gen);for(int i=0;i<3;i++)nextTick(h,gen);
         h.assertTrue(gen.energy().getAmountAsLong()==768&&remaining(gen)==0,"Completed fuel paid again after reload");
@@ -193,8 +193,8 @@ public final class ThroughputRuntimeGameTests {
             h.assertTrue(north.extract(2_000,outer)==2_000&&south.extract(2_000,outer)==48,"Generator sides did not share one2,048FE output allowance");outer.commit();
         }
         h.assertTrue(extract(energy(h,gen.getBlockPos(),Direction.EAST),2_048)==0,"A third side bypassed the spent output allowance");
-        gen.serverTick();h.assertTrue(gen.getItem(0).isEmpty()&&remaining(gen)==704,"Space did not consume exactly one new crystal");
-        h.assertTrue(gen.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-2_048+64,"Generated buffer energy was not exact");
+        gen.serverTick();h.assertTrue(gen.getItem(0).isEmpty()&&remaining(gen)==640,"Space did not consume exactly one new crystal");
+        h.assertTrue(gen.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-2_048+128,"Generated buffer energy was not exact");
         h.assertTrue(extract(north,2_048)==0,"Generation reset the same-tick output journal");nextTick(h);
         h.assertTrue(extract(north,2_048)==2_048,"Generator output budget did not reset next tick");h.succeed();
     }

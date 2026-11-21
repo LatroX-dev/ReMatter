@@ -3,7 +3,7 @@
   "primary": "rematter:matrix_crystal",
   "secondary": "#c:dusts/emerald",
   "energy": 4000,
-  "ticks": 640,
+  "ticks": 320,
   "minimum_tier": 1,
   "result": {
     "id": "rematter:leaf_matrix_crystal",

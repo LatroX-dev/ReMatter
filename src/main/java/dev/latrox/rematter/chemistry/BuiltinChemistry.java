@@ -61,35 +61,35 @@ public final class BuiltinChemistry {
                 Map.of(CARBON.id(), 1L, OXYGEN.id(), 2L), Set.of(Phase.GAS));
 
         process(builder, "water_electrolysis", ProcessType.ELECTROLYSIS,
-                Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), 32_000, 800);
+                Map.of(WATER, 1_000L), Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), 32_000, 400);
         process(builder, "water_synthesis", ProcessType.REACTION,
-                Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), Map.of(WATER, 1_000L), 16_000, 800);
+                Map.of(HYDROGEN, 1_000L, OXYGEN, 500L), Map.of(WATER, 1_000L), 16_000, 400);
         process(builder, "water_evaporation", ProcessType.PHASE_CHANGE,
-                Map.of(WATER, 1_000L), Map.of(STEAM, 1_000L), 16_000, 800);
+                Map.of(WATER, 1_000L), Map.of(STEAM, 1_000L), 16_000, 400);
         process(builder, "steam_condensation", ProcessType.PHASE_CHANGE,
-                Map.of(STEAM, 1_000L), Map.of(WATER, 1_000L), 8_000, 800);
+                Map.of(STEAM, 1_000L), Map.of(WATER, 1_000L), 8_000, 400);
         process(builder, "water_freezing", ProcessType.PHASE_CHANGE,
-                Map.of(WATER, 1_000L), Map.of(ICE, 1_000L), 8_000, 800);
+                Map.of(WATER, 1_000L), Map.of(ICE, 1_000L), 8_000, 400);
         process(builder, "ice_melting", ProcessType.PHASE_CHANGE,
-                Map.of(ICE, 1_000L), Map.of(WATER, 1_000L), 8_000, 800);
+                Map.of(ICE, 1_000L), Map.of(WATER, 1_000L), 8_000, 400);
         process(builder, "mineral_melting", ProcessType.PHASE_CHANGE,
-                Map.of(ROCK, 1_000L), Map.of(LAVA, 1_000L), 128_000, 1600);
+                Map.of(ROCK, 1_000L), Map.of(LAVA, 1_000L), 128_000, 800);
         process(builder, "lava_cooling", ProcessType.PHASE_CHANGE,
-                Map.of(LAVA, 1_000L), Map.of(ROCK, 1_000L), 16_000, 1600);
+                Map.of(LAVA, 1_000L), Map.of(ROCK, 1_000L), 16_000, 800);
         process(builder, "mineral_separation", ProcessType.SEPARATION,
-                Map.of(ROCK, 1_000L), STONE_MATTER, 48_000, 1200);
+                Map.of(ROCK, 1_000L), STONE_MATTER, 48_000, 600);
         process(builder, "mineral_blending", ProcessType.REACTION,
-                STONE_MATTER, Map.of(ROCK, 1_000L), 32_000, 1200);
+                STONE_MATTER, Map.of(ROCK, 1_000L), 32_000, 600);
         process(builder, "soil_separation", ProcessType.SEPARATION,
-                Map.of(SOIL, 1_000L), Map.of(SILICA, 1_000L, CARBON, 1_000L, WATER, 1_000L), 24_000, 800);
+                Map.of(SOIL, 1_000L), Map.of(SILICA, 1_000L, CARBON, 1_000L, WATER, 1_000L), 24_000, 400);
         process(builder, "soil_blending", ProcessType.REACTION,
-                Map.of(SILICA, 1_000L, CARBON, 1_000L, WATER, 1_000L), Map.of(SOIL, 1_000L), 16_000, 800);
+                Map.of(SILICA, 1_000L, CARBON, 1_000L, WATER, 1_000L), Map.of(SOIL, 1_000L), 16_000, 400);
         process(builder, "silica_electrolysis", ProcessType.ELECTROLYSIS,
-                Map.of(SILICA, 1_000L), Map.of(SILICON, 1_000L, OXYGEN, 1_000L), 64_000, 1600);
+                Map.of(SILICA, 1_000L), Map.of(SILICON, 1_000L, OXYGEN, 1_000L), 64_000, 800);
         process(builder, "silica_synthesis", ProcessType.REACTION,
-                Map.of(SILICON, 1_000L, OXYGEN, 1_000L), Map.of(SILICA, 1_000L), 32_000, 1200);
+                Map.of(SILICON, 1_000L, OXYGEN, 1_000L), Map.of(SILICA, 1_000L), 32_000, 600);
         process(builder, "carbon_oxidation", ProcessType.REACTION,
-                Map.of(CARBON, 1_000L, OXYGEN, 1_000L), Map.of(CARBON_DIOXIDE, 1_000L), 16_000, 800);
+                Map.of(CARBON, 1_000L, OXYGEN, 1_000L), Map.of(CARBON_DIOXIDE, 1_000L), 16_000, 400);
         return builder.build();
     }
 

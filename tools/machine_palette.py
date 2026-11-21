@@ -3,7 +3,9 @@
 FAMILY = {
     "analyzer": "ice",
     "decomposer": "copper",
+    "industrial_decomposer_controller": "copper",
     "material_synthesizer": "leaf",
+    "industrial_synthesizer_controller": "leaf",
     "chemical_processor": "violet",
     "chemical_reactor_controller": "violet",
     "material_preparator": "amber",

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "advanced_ae",
+  "item": "advanced_ae:quantum_alloy_block",
+  "disabled": true
+}

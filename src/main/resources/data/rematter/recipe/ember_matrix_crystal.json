@@ -3,7 +3,7 @@
   "primary": "rematter:matrix_crystal",
   "secondary": "minecraft:redstone",
   "energy": 4000,
-  "ticks": 640,
+  "ticks": 320,
   "minimum_tier": 0,
   "result": {
     "id": "rematter:ember_matrix_crystal",

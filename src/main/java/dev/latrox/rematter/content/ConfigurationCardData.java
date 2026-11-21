@@ -51,19 +51,27 @@ public final class ConfigurationCardData {
     public record MachineSetup(MachineKind sourceKind, int packedPorts, RedstoneMode redstoneMode,
                                boolean running, boolean repeat, boolean automation, boolean networkJobs,
                                String selection, MachineSettings settings, MachineSoundLevel soundLevel,
-                               @Nullable IndustrialBlueprint blueprint, boolean structurePreview) {
+                               @Nullable IndustrialBlueprint blueprint, boolean structurePreview, boolean autoEject) {
+        public MachineSetup(MachineKind sourceKind, int packedPorts, RedstoneMode redstoneMode,
+                            boolean running, boolean repeat, boolean automation, boolean networkJobs,
+                            String selection, MachineSettings settings, MachineSoundLevel soundLevel,
+                            @Nullable IndustrialBlueprint blueprint, boolean structurePreview) {
+            this(sourceKind, packedPorts, redstoneMode, running, repeat, automation, networkJobs, selection, settings,
+                    soundLevel, blueprint, structurePreview, false);
+        }
+
         public MachineSetup(MachineKind sourceKind, int packedPorts, RedstoneMode redstoneMode,
                             boolean running, boolean repeat, boolean automation, boolean networkJobs,
                             String selection, MachineSettings settings) {
             this(sourceKind, packedPorts, redstoneMode, running, repeat, automation, networkJobs, selection, settings,
-                    MachineSoundLevel.HIGH, null, false);
+                    MachineSoundLevel.HIGH, null, false, false);
         }
 
         public MachineSetup(MachineKind sourceKind, int packedPorts, RedstoneMode redstoneMode,
                             boolean running, boolean repeat, boolean automation, boolean networkJobs,
                             String selection, MachineSettings settings, boolean soundMuted) {
             this(sourceKind, packedPorts, redstoneMode, running, repeat, automation, networkJobs, selection, settings,
-                    soundMuted ? MachineSoundLevel.MUTED : MachineSoundLevel.HIGH, null, false);
+                    soundMuted ? MachineSoundLevel.MUTED : MachineSoundLevel.HIGH, null, false, false);
         }
 
         public MachineSetup {
@@ -149,6 +157,9 @@ public final class ConfigurationCardData {
         if (setup.structurePreview()) {
             tag.putBoolean("structure_preview", true);
         }
+        if (setup.autoEject()) {
+            tag.putBoolean("auto_eject", true);
+        }
         return new ConfigurationCardData(tag);
     }
 
@@ -222,7 +233,8 @@ public final class ConfigurationCardData {
                     settings,
                     soundLevel,
                     blueprint,
-                    raw.getBooleanOr("structure_preview", false)));
+                    raw.getBooleanOr("structure_preview", false),
+                    raw.getBooleanOr("auto_eject", false)));
         } catch (RuntimeException invalid) {
             return Optional.empty();
         }

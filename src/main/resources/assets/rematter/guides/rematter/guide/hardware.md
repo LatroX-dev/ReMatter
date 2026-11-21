@@ -21,9 +21,9 @@ Hardware does not add another global Speed multiplier or an FE discount. Extra r
 
 Minimum outer height is 4 for Reactor, 5 for Preparator. Each additional layer permits another lane, up to 4. **Parallel Upgrades and enough hardware are also required.** Simultaneous Reactor inputs must fit its room; preparation jobs need capacity for every step they use.
 
-Chemical Reactor and Preparation Reactor controllers have separate **Speed, Efficiency and Parallel** slots. Compact processors keep their own single upgrade choice. The Synthesizer's Pressure Module remains a separate gate within that choice. Analyzer payment and Discovery Lens have dedicated slots.
+Chemical Reactor, Industrial Decomposer, Industrial Synthesizer and Preparation Reactor controllers have separate **Speed, Efficiency and Parallel** slots. Compact processors keep their own single upgrade choice. The compact Material Synthesizer has a separate **Pressure Module** slot beside its upgrade slot so diamond forms can still use Speed or Efficiency Upgrades; a formed Industrial Synthesizer provides Tier 2 crystallization built in. Analyzer payment and Discovery Lens have dedicated slots.
 
-Four Speed Upgrades give five times base work rate and double batch FE. Four Efficiency Upgrades save 20% before integer rounding; the absolute saving limit is 25%. Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE.
+Four Speed Upgrades give ten times base work rate (2×, 4×, 7×, 10×) and double batch FE. Four Efficiency Upgrades save 20% before integer rounding; the absolute saving limit is 25%. Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE, drawn tick by tick while working.
 
 All lanes share [one transfer budget](throughput.md).
 

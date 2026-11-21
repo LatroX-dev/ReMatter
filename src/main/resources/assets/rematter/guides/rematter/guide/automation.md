@@ -70,7 +70,7 @@ You can dig space below the Synthesizer for its hopper and chest.
 
 ## 3. Start continuous production
 
-Enable **Automation** in both processors' **Settings** tabs. Hover its symbol to read the explanation; the small On/Off label shows the setting. Press **Start** on the Decomposer if it is paused.
+Enable **Automation** in both processors' **Settings** tabs. Hover its symbol to read the explanation; the small On/Off label shows the setting. Compact processors with physical outputs also offer an optional **Auto-Eject** toggle in **Settings → Access** (off by default): when enabled together with Automation, finished items and fluids push automatically into adjacent inventories or tanks on faces explicitly set to **Item Output** or **Fluid Output** — and the Configuration Card copies this toggle alongside side modes. Press **Start** on the Decomposer if it is paused.
 
 On the Synthesizer, open **Choose recipe** or **Recipe**, select **Glass** and confirm with **Use recipe**. Then enable **Loop** beside **Make 1** on the main view. Put sand in the input chest. The line now produces glass while input, power and space remain available.
 
@@ -107,7 +107,7 @@ A Cluster combines four Crystals with Rhedon, Virel, Structural Bars and Matrix 
 
 Every Cell supports up to **512 substance/phase pairs**. Solids, liquids and gases share its space. Water and water vapor are different types.
 
-Crafting a new Cell gives you an empty Cell. Installed Cells keep their own contents, and the Drive pools their available stock. Connect a powered **Wireless Access Point** (optionally upgraded with **Wireless Boosters**) and sneak-use a charged **Wireless Matter Terminal** on it to browse your network within range.
+Crafting a new Cell gives you an empty Cell. Installed Cells keep their own contents, and the Drive pools their available stock. Connect a powered **Wireless Access Point** (optionally upgraded with **Wireless Boosters**) and sneak-use a charged **Wireless Matter Terminal** on it to browse your network within range. Assign a key in **Controls → ReMatter → Open Wireless Matter Terminal** to open a carried (or **Curios**-equipped) terminal from anywhere in range without switching hotbar slots.
 
 <RecipeFor id="rematter:wireless_access_point" />
 <RecipeFor id="rematter:wireless_booster" />

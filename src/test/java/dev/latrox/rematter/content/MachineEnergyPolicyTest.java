@@ -37,8 +37,30 @@ class MachineEnergyPolicyTest {
     @Test void speedUpgradesMultiplyTheBaseRateUpToTheSlotLimit() {
         assertEquals(2, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.NONE, 4));
         assertEquals(4, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 1));
-        assertEquals(10, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 9));
+        assertEquals(8, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 2));
+        assertEquals(14, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 3));
+        assertEquals(20, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 4));
+        assertEquals(20, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.SPEED, 9));
         assertEquals(1, MachineEnergyPolicy.speed(1, MachineEnergyPolicy.Upgrade.EFFICIENCY, 4));
+    }
+
+    @Test void tickByTickEnergySumsToTheExactBatchPriceWithoutRoundingLoss() {
+        for (long total : new long[]{0, 1, 7, 100, 1_000, 16_000, 921_600, 3_686_400}) {
+            for (int duration : new int[]{3, 17, 200, 320, 800}) {
+                for (int speed : new int[]{1, 2, 4, 7, 10, 20, 40}) {
+                    int progress = 0;
+                    long paid = 0;
+                    while (progress < duration) {
+                        long due = MachineEnergyPolicy.stepEnergy(total, progress, speed, duration, paid);
+                        assertTrue(due >= 0);
+                        paid += due;
+                        progress = (int) Math.min(duration, (long) progress + speed);
+                    }
+                    assertEquals(total, paid, "total=" + total + " duration=" + duration + " speed=" + speed);
+                    assertEquals(0, MachineEnergyPolicy.stepEnergy(total, duration, speed, duration, paid));
+                }
+            }
+        }
     }
 
     @Test void speedRaisesTheTotalPriceAndNeverRoundsItDown() {

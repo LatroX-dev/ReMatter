@@ -2,7 +2,7 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **998 item profiles** across **34 namespaces**, with **439 explicit item synthesis outputs**. It also covers **12 fluids** (12 with synthesis) and **12 gas outputs**, and defines 80 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
+The data catalogue contains **1043 item profiles** across **36 namespaces**, with **455 explicit item synthesis outputs**. It also covers **14 fluids** (14 with synthesis) and **14 gas outputs**, and defines 83 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
 
 ## Quantities and material states
 
@@ -43,7 +43,7 @@ Fictional constituents have element-like symbols that never duplicate a real ele
 - **Astrion** (`Ast`): Sky Stone, Stellarite; held directly by 30 item profiles.
 - **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 23 item profiles.
 - **Enderion** (`Edr`): Dimensional Shard Material; held directly by 29 item profiles.
-- **Netherium** (`Nt`): held directly by 18 item profiles.
+- **Netherium** (`Nt`): held directly by 19 item profiles.
 - **Quantium** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
 - **Vitalium** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
 
@@ -57,6 +57,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 
 | Namespace | Profiles | Synthesis outputs |
 | --- | ---: | ---: |
+| `advanced_ae` | 2 | 0 |
 | `ae2` | 10 | 6 |
 | `ae2omnicells` | 1 | 1 |
 | `alltheores` | 205 | 83 |
@@ -69,21 +70,22 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `energizedpower` | 20 | 12 |
 | `extendedae` | 5 | 1 |
 | `forbidden_arcanus` | 17 | 3 |
-| `ftbic` | 84 | 40 |
+| `ftbic` | 86 | 41 |
 | `hextale` | 18 | 3 |
 | `infinity_nexus_mod` | 78 | 41 |
 | `jaopca` | 38 | 17 |
-| `justdirethings` | 7 | 0 |
+| `justdirethings` | 12 | 0 |
 | `mekanism` | 67 | 38 |
 | `mekanism_extras` | 8 | 0 |
 | `mekmm` | 8 | 4 |
-| `minecraft` | 108 | 49 |
+| `minecraft` | 136 | 64 |
 | `mysticalagradditions` | 11 | 0 |
 | `mysticalagriculture` | 61 | 37 |
 | `nautec` | 4 | 1 |
 | `occultism` | 36 | 18 |
 | `oritech` | 53 | 26 |
-| `powah` | 9 | 0 |
+| `powah` | 15 | 0 |
+| `productivebees` | 2 | 0 |
 | `refinedstorage` | 1 | 1 |
 | `regions_unexplored` | 1 | 0 |
 | `rematter` | 15 | 7 |
@@ -100,6 +102,7 @@ Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing va
 
 | Fluid | Batch | Matter | Synthesis |
 | --- | ---: | --- | --- |
+| `mekanism:brine` | 1000 mB | rematter:brine[gas]=1000 | yes |
 | `mekanism:chlorine` | 1000 mB | rematter:chlorine[gas]=1000 | yes |
 | `mekanism:ethene` | 1000 mB | rematter:ethene[gas]=1000 | yes |
 | `mekanism:hydrofluoric_acid` | 1000 mB | rematter:hydrofluoric_acid[gas]=1000 | yes |
@@ -107,6 +110,7 @@ Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing va
 | `mekanism:hydrogen_chloride` | 1000 mB | rematter:hydrogen_chloride[gas]=2000 | yes |
 | `mekanism:lithium` | 1000 mB | rematter:lithium[gas]=10000 | yes |
 | `mekanism:oxygen` | 1000 mB | rematter:oxygen[gas]=1000 | yes |
+| `mekanism:sodium` | 1000 mB | rematter:sodium[gas]=1000 | yes |
 | `mekanism:sulfur_dioxide` | 1000 mB | rematter:sulfur_dioxide[gas]=1000 | yes |
 | `mekanism:sulfur_trioxide` | 1000 mB | rematter:sulfur_trioxide[gas]=1000 | yes |
 | `mekanism:sulfuric_acid` | 1000 mB | rematter:sulfuric_acid[gas]=1000 | yes |
@@ -115,6 +119,7 @@ Fluid profiles use exact source-fluid IDs and explicit amount ratios. Flowing va
 
 Gases that may leave storage as gas:
 
+- `rematter:brine` (with `mekanism`)
 - `rematter:chlorine` (with `mekanism`)
 - `rematter:ethene` (with `mekanism`)
 - `rematter:hydrofluoric_acid` (with `mekanism`)
@@ -123,6 +128,7 @@ Gases that may leave storage as gas:
 - `rematter:lithium` (with `mekanism`)
 - `rematter:osmium` (with `mekanism`)
 - `rematter:oxygen`
+- `rematter:sodium` (with `mekanism`)
 - `rematter:sulfur_dioxide` (with `mekanism`)
 - `rematter:sulfur_trioxide` (with `mekanism`)
 - `rematter:sulfuric_acid` (with `mekanism`)
@@ -133,9 +139,9 @@ Gases that may leave storage as gas:
 This is a material catalogue, not complete chemical coverage of every item in a modpack. Unsupported items are rejected; they are never converted to a guessed fallback substance. In particular:
 
 - Charged Certus Quartz, Redstone Crystal and Charged Redstone use explicit state-preserving substances with synthesis disabled; they never interchange with uncharged Certus Quartz or ordinary Redstone.
-- FTB Industrial Contraptions plutonium blocks and raw plutonium blocks still need a verified compression quantity; their simpler supported forms do not establish a block ratio by themselves.
+- FTB Industrial Contraptions plutonium blocks and raw plutonium blocks use their verified nine-unit block ratio; Powah energized steel/niotic/spirited crystals, Just Dire Things storage blocks/celestigem and AdvancedAE quantum alloy remain recovery-only so native progression stays intact.
 - Beyond reviewed Copper, Iron and Golden equipment salvage, modded tools, progression-tier armor, machines, inventory containers, storage cells, data patterns, artifacts and manufactured parts remain excluded until each has a reviewed composition and trade-loop audit. No generic recipe inversion is enabled.
-- Foods, crops, wood species, biological products and decorative building products are not assigned a universal biomass or stone substitute. Their processing and quantity chains remain a separate coverage task.
+- Vanilla logs/stems, planks, sugar cane, cactus, paper, honeycombs and Productive Bees wax use explicit Cellulose (`(C₆H₁₀O₅)ₙ`, sawmill-safe 6:1 log-to-plank ratio, separate from charcoal/carbon) and Beeswax (`C₃₀H₆₂O₂`) models. Modded foods, crops, tree species and decorative building products are not assigned a universal biomass or stone substitute; their chains remain a separate coverage task.
 - Other registered fluids, fuels, potion mixtures, experience fluids, molten magical materials and nuclear isotope chains need explicit identities, units and cycle reviews.
 - Native integration checks and pack balancing are separate from data generation. A parsed profile alone is not evidence of a completed gameplay or balance test.
 

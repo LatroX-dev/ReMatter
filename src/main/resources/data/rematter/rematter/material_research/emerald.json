@@ -10,6 +10,8 @@
     "minecraft:emerald_block",
     "minecraft:emerald_ore",
     "occultism:emerald_dust",
+    "powah:crystal_spirited",
+    "powah:spirited_crystal_block",
     "rematter:emerald_dust"
   ],
   "substances": [

@@ -50,7 +50,7 @@ class MachineSnapshotTest {
     }
     @Test void moduleCountsCannotAdvertiseUnearnedRateOrEfficiency() {
         assertThrows(IllegalArgumentException.class,()->industrialSnapshot(MachineKind.INDUSTRIAL_PREPARATOR,
-                new MachineSnapshot.StructureView(5,5,6,24,2,"ready",2,3,2,0,0,0)));
+                new MachineSnapshot.StructureView(5,5,6,44,2,"ready",2,3,2,0,0,0)));
         assertThrows(IllegalArgumentException.class,()->industrialSnapshot(MachineKind.INDUSTRIAL_PREPARATOR,
                 new MachineSnapshot.StructureView(5,5,6,10,2,"ready",2,3,2,0,0,0)));
         assertThrows(IllegalArgumentException.class,()->industrialSnapshot(MachineKind.INDUSTRIAL_PREPARATOR,

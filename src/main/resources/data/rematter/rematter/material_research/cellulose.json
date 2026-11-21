@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "name": "Cellulose",
+  "items": [
+    "minecraft:acacia_log",
+    "minecraft:acacia_planks",
+    "minecraft:bamboo_planks",
+    "minecraft:birch_log",
+    "minecraft:birch_planks",
+    "minecraft:cactus",
+    "minecraft:cherry_log",
+    "minecraft:cherry_planks",
+    "minecraft:crimson_planks",
+    "minecraft:crimson_stem",
+    "minecraft:dark_oak_log",
+    "minecraft:dark_oak_planks",
+    "minecraft:jungle_log",
+    "minecraft:jungle_planks",
+    "minecraft:mangrove_log",
+    "minecraft:mangrove_planks",
+    "minecraft:oak_log",
+    "minecraft:oak_planks",
+    "minecraft:pale_oak_log",
+    "minecraft:pale_oak_planks",
+    "minecraft:paper",
+    "minecraft:spruce_log",
+    "minecraft:spruce_planks",
+    "minecraft:sugar_cane",
+    "minecraft:warped_planks",
+    "minecraft:warped_stem"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

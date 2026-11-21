@@ -7,6 +7,7 @@
     "rematter:sodium": 1
   },
   "phases": [
-    "solid"
+    "solid",
+    "gas"
   ]
 }

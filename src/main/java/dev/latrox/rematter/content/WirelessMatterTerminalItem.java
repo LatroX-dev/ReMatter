@@ -69,52 +69,113 @@ public final class WirelessMatterTerminalItem extends Item {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (player.isSpectator()) return InteractionResult.PASS;
         ItemStack stack = player.getItemInHand(hand);
-        if (!(level instanceof ServerLevel server) || !(player instanceof ServerPlayer serverPlayer)) {
+        if (!(level instanceof ServerLevel) || !(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.SUCCESS;
         }
+        int lockedSlot = hand == InteractionHand.MAIN_HAND ? player.getInventory().getSelectedSlot() : Inventory.SLOT_OFFHAND;
+        return tryOpen(serverPlayer, stack, lockedSlot, null, -1) ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+    }
+
+    /** Opens the best available Wireless Matter Terminal from Curios or player inventory via hotkey. */
+    public static boolean openFromHotkey(ServerPlayer player) {
+        var anchor = prepareHotkeyOpen(player);
+        return anchor != null && TerminalNetwork.openRoot(anchor, player);
+    }
+
+    /** Validates and debits the best available Wireless Matter Terminal for hotkey activation. */
+    static TerminalAnchor.@org.jspecify.annotations.Nullable Wireless prepareHotkeyOpen(Player player) {
+        if (player.isSpectator()) return null;
+        var curio = dev.latrox.rematter.compat.CuriosSupport.findWirelessTerminal(player);
+        if (curio.isPresent() && isReadyCandidate(curio.get().stack())) {
+            return prepareOpen(player, curio.get().stack(), -1, curio.get().identifier(), curio.get().index());
+        }
+        Inventory inv = player.getInventory();
+        int fallbackSlot = -1;
+        int linkedSlot = -1;
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack candidate = inv.getItem(i);
+            if (!(candidate.getItem() instanceof WirelessMatterTerminalItem)) continue;
+            if (fallbackSlot < 0) fallbackSlot = i;
+            var link = candidate.get(WirelessTerminalData.LINK.get());
+            boolean linked = link != null && link.target().isPresent();
+            if (linked && linkedSlot < 0) linkedSlot = i;
+            if (linked && energy(candidate) >= OPEN_COST) {
+                return prepareOpen(player, candidate, i, null, -1);
+            }
+        }
+        if (curio.isPresent()) {
+            return prepareOpen(player, curio.get().stack(), -1, curio.get().identifier(), curio.get().index());
+        }
+        int chosen = linkedSlot >= 0 ? linkedSlot : fallbackSlot;
+        if (chosen >= 0) {
+            return prepareOpen(player, inv.getItem(chosen), chosen, null, -1);
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            serverPlayer.sendOverlayMessage(Component.translatable("message.rematter.wireless.none_carried"));
+        }
+        return null;
+    }
+
+    private static boolean isReadyCandidate(ItemStack stack) {
+        var link = stack.get(WirelessTerminalData.LINK.get());
+        return link != null && link.target().isPresent() && energy(stack) >= OPEN_COST;
+    }
+
+    private static boolean tryOpen(ServerPlayer serverPlayer, ItemStack stack, int lockedInventorySlot,
+                                   @org.jspecify.annotations.Nullable String curioSlot, int curioIndex) {
+        var anchor = prepareOpen(serverPlayer, stack, lockedInventorySlot, curioSlot, curioIndex);
+        return anchor != null && TerminalNetwork.openRoot(anchor, serverPlayer);
+    }
+
+    private static TerminalAnchor.@org.jspecify.annotations.Nullable Wireless prepareOpen(
+            Player player, ItemStack stack, int lockedInventorySlot,
+            @org.jspecify.annotations.Nullable String curioSlot, int curioIndex) {
+        if (!(player.level() instanceof ServerLevel server)) return null;
         var data = stack.get(WirelessTerminalData.LINK.get());
         var target = data == null ? null : data.target().orElse(null);
         if (target == null) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.unbound"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.unbound"));
+            return null;
         }
         if (!target.dimension().equals(server.dimension())) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.wrong_dimension"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.wrong_dimension"));
+            return null;
         }
         double distSqr = player.position().distanceToSqr(Vec3.atCenterOf(target.pos()));
         if (distSqr > (double) WirelessAccessPointBlockEntity.MAX_RANGE * WirelessAccessPointBlockEntity.MAX_RANGE) {
             int distance = (int) Math.ceil(Math.sqrt(distSqr));
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.out_of_range",
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.out_of_range",
                     distance, WirelessAccessPointBlockEntity.MAX_RANGE));
-            return InteractionResult.FAIL;
+            return null;
         }
         var chunk = server.getChunkSource().getChunkNow(target.pos().getX() >> 4, target.pos().getZ() >> 4);
         if (chunk == null || !(chunk.getBlockEntity(target.pos()) instanceof WirelessAccessPointBlockEntity ap) || !ap.networkLive()) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.unloaded"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.unloaded"));
+            return null;
         }
         if (!ap.withinRange(player)) {
             int distance = (int) Math.ceil(Math.sqrt(distSqr));
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.out_of_range",
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.out_of_range",
                     distance, ap.effectiveRange()));
-            return InteractionResult.FAIL;
+            return null;
         }
         if (!ap.canAccess(player)) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.private_machine"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.private_machine"));
+            return null;
         }
         if (!ap.powered()) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.ap_unpowered"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.ap_unpowered"));
+            return null;
         }
         if (!consumeEnergy(stack, OPEN_COST)) {
-            player.sendOverlayMessage(Component.translatable("message.rematter.wireless.low_battery"));
-            return InteractionResult.FAIL;
+            notifyPlayer(player, Component.translatable("message.rematter.wireless.low_battery"));
+            return null;
         }
-        int lockedSlot = hand == InteractionHand.MAIN_HAND ? player.getInventory().getSelectedSlot() : Inventory.SLOT_OFFHAND;
-        return TerminalNetwork.openRoot(new TerminalAnchor.Wireless(ap, lockedSlot), serverPlayer)
-                ? InteractionResult.SUCCESS : InteractionResult.FAIL;
+        return new TerminalAnchor.Wireless(ap, lockedInventorySlot, curioSlot, curioIndex);
+    }
+
+    private static void notifyPlayer(Player player, Component message) {
+        if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendOverlayMessage(message);
     }
 
     @Override

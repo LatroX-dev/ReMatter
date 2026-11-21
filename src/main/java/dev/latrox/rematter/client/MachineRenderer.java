@@ -165,10 +165,10 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 var q=new Quaternionf().rotationZ((float)Math.toRadians(s.handAngle));
                 for(var a:new RendererParts.Part[]{RendererParts.HAND_ARM,RendererParts.HAND_GRIP})m.box(a.x0(),a.y0(),a.z0(),a.x1(),a.y1(),a.z1(),METAL,MovingBoxes.ALL,white,s.lightCoords,10.5F,11.5F,2.5F,q);
             }
-            case INDUSTRIAL_REACTOR,INDUSTRIAL_PREPARATOR -> field(s);
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER, INDUSTRIAL_PREPARATOR -> field(s);
             default -> { }
         }
-        if(s.kind!=MachineKind.INDUSTRIAL_REACTOR&&s.kind!=MachineKind.INDUSTRIAL_PREPARATOR){
+        if(!dev.latrox.rematter.content.IndustrialStructure.isIndustrial(s.kind)){
             var lamp=RendererParts.STATUS;float breath=.8F+.2F*(float)Math.sin(s.clock*Math.PI*2/60);
             int color=UiPalette.mix(UiPalette.multiply(UiPalette.WAITING_LIGHT,s.waiting*breath*(WAITING_LIGHT==WaitingLight.BLUE_BREATH?1:0)),accent,d);
             m.box(lamp.x0(),lamp.y0(),lamp.z0(),lamp.x1(),lamp.y1(),lamp.z1(),MASK,MovingBoxes.ALL^MovingBoxes.SOUTH,color,MovingBoxes.light(s.lightCoords,Math.max(d,s.waiting)),0,0,0,null);
@@ -179,7 +179,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         boolean odd=(s.industrialWidth&1)==1&&(s.industrialDepth&1)==1;
         float x=(s.industrialWidth/2F-s.industrialColumn)*16,y=(s.industrialHeight/2F-1)*16,z=s.industrialDepth/2F*16;
         float scale=interior>=3?Math.clamp(Math.min(Math.min(s.industrialWidth-2,s.industrialDepth-2),s.industrialHeight-4),1,2.5F):1;
-        boolean reactor=s.kind==MachineKind.INDUSTRIAL_REACTOR;
+        boolean reactor=dev.latrox.rematter.content.IndustrialStructure.usesReactorModules(s.kind);
         if(INDUSTRIAL_FIELD==IndustrialField.PLATES){
             if(interior<3)return;
             for(int i=0;i<4;i++){float p=(float)((s.turns/64+i*.25)%1),a=WorkEnvelope.ease(p/.15)*WorkEnvelope.ease((1-p)/.15)*s.engage;
@@ -189,7 +189,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         if(interior>=3||odd)ring(s,x,y,z,scale,false,reactor?(interior>=3?25:15):(interior>=3?10:0),(float)((s.turns*1.8)%360));
         ring(s,x,y,z,scale,true,reactor&&interior>=3?50:0,(float)((s.turns*-3)%360));
         if(reactor&&interior>=3){var a=RendererParts.FIELD_CORE;
-            s.moving.box(x+a.x0()*scale,y+a.y0()*scale,z+a.z0()*scale,x+a.x1()*scale,y+a.y1()*scale,z+a.z1()*scale,MASK,MovingBoxes.ALL,UiPalette.multiply(UiPalette.tint(UiPalette.VIOLET,.45F),.5F+.5F*s.drive),MovingBoxes.light(s.lightCoords,s.drive),x,y,z,new Quaternionf().rotationZYX((float)Math.PI/4,(float)Math.PI/4,0));}
+            s.moving.box(x+a.x0()*scale,y+a.y0()*scale,z+a.z0()*scale,x+a.x1()*scale,y+a.y1()*scale,z+a.z1()*scale,MASK,MovingBoxes.ALL,UiPalette.multiply(UiPalette.tint(UiPalette.machineAccent(s.kind),.45F),.5F+.5F*s.drive),MovingBoxes.light(s.lightCoords,s.drive),x,y,z,new Quaternionf().rotationZYX((float)Math.PI/4,(float)Math.PI/4,0));}
     }
     private static void ring(MachineRenderState s,float x,float y,float z,float scale,boolean inner,float tilt,float yaw){
         var parts=inner?new RendererParts.Part[]{RendererParts.FIELD_INNER_FRONT,RendererParts.FIELD_INNER_BACK,RendererParts.FIELD_INNER_RIGHT,RendererParts.FIELD_INNER_LEFT}:new RendererParts.Part[]{RendererParts.FIELD_OUTER_FRONT,RendererParts.FIELD_OUTER_BACK,RendererParts.FIELD_OUTER_RIGHT,RendererParts.FIELD_OUTER_LEFT};
@@ -235,10 +235,10 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 floatingItem(source,8,8.6F+.25F*(float)Math.sin(s.turns*Math.PI*2/64)*e,5.5F,size*s.itemScales[s.processInputItem.isEmpty()?0:4],0,s,pose,collector);
                 item(s.outputItem,8,6.15F,2.5F,5*s.itemScales[3],1.8F,2.5F,s,pose,collector);
             }
-            case INDUSTRIAL_REACTOR,INDUSTRIAL_PREPARATOR -> {
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER, INDUSTRIAL_PREPARATOR -> {
                 if(s.industrialHeight>=5){float x=(s.industrialWidth/2F-s.industrialColumn)*16,y=(s.industrialHeight/2F-1)*16,z=s.industrialDepth/2F*16;
                     float productSize=4,productHeight=3;
-                    if(s.kind==MachineKind.INDUSTRIAL_REACTOR){
+                    if(dev.latrox.rematter.content.IndustrialStructure.usesReactorModules(s.kind)){
                         float fieldScale=Math.clamp(Math.min(Math.min(s.industrialWidth-2,s.industrialDepth-2),s.industrialHeight-4),1,2.5F);
                         productSize=Math.min(4,2*fieldScale);
                         // A tilted core fits inside this sphere; reserve the full bob and half a pixel of air.

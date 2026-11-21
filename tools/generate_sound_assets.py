@@ -65,10 +65,16 @@ INTERACTION_EVENTS = (
 MACHINE_KINDS = {
     "analyzer": "analyzer", "decomposer": "decomposer", "material_synthesizer": "synthesizer",
     "chemical_processor": "processor", "chemical_reactor_controller": "chemical_reactor",
+    "industrial_decomposer_controller": "chemical_reactor",
+    "industrial_synthesizer_controller": "chemical_reactor",
     "hand_preparator": "hand_preparator", "material_preparator": "preparator",
     "preparation_reactor_controller": "preparation_reactor", "sinter_furnace": "sinter",
     "crystal_generator": "generator", "industrial_crystal_generator": "generator",
     "primal_converter": "converter", "atmospheric_collector": "atmospheric",
+}
+PROFILE_ALIASES = {
+    "industrial_decomposer_controller": "chemical_reactor_controller",
+    "industrial_synthesizer_controller": "chemical_reactor_controller",
 }
 
 # Limits for clips that carry measurements in their set record (the earlier set carries only a few numbers).
@@ -152,7 +158,8 @@ def resolve(active: str, role_overrides: dict[str, str], event_overrides: dict[s
     machines: dict[str, dict] = {}
     for kind, role in MACHINE_KINDS.items():
         set_id = role_overrides.get(role, active)
-        profile = dict(sets[set_id]["machine_audio"][kind])
+        table = sets[set_id]["machine_audio"]
+        profile = dict(table.get(kind) or table[PROFILE_ALIASES[kind]])
         profile["set"] = set_id
         for block in [profile.get("loop"), profile.get("accent"), *profile.get("cues", [])]:
             if block and block["event"].removeprefix("rematter:") not in chosen:

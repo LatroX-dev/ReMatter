@@ -123,7 +123,7 @@ public final class OverhaulExpansionGameTests {
                 })
                 .thenWaitUntil(() -> h.assertTrue(h.getLevel().canSeeSky(intake), "Waiting for skylight at the intake"))
                 .thenWaitUntil(() -> h.assertTrue(collector.work().progress > 0, "Waiting for the oxygen batch to start"))
-                .thenExecute(() -> h.assertTrue(collector.work().duration == 400, "Collector must halve the 800-tick recipe"))
+                .thenExecute(() -> h.assertTrue(collector.work().duration == 200, "Collector must halve the 400-tick recipe"))
                 .thenWaitUntil(() -> {
                     var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
                     h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 200L, "Expected 200 oxygen from one batch");

@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ftbic"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "ftbic:macerating"
+    }
+  ],
+  "type": "ftbic:macerating",
+  "inputs": [
+    {
+      "ingredient": "minecraft:amethyst_shard"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "rematter:amethyst_dust",
+        "count": 1
+      }
+    }
+  ]
+}

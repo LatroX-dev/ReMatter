@@ -13,7 +13,7 @@ public record IndustrialPerformance(int grinding, int mixing, int separation, in
     public int workRate(MachineKind kind) {
         return switch (kind) {
             case INDUSTRIAL_PREPARATOR -> grinding > 0 && mixing > 0 && separation > 0 ? 4 : 0;
-            case INDUSTRIAL_REACTOR -> coils > 0 && chambers > 0 ? 2 : 0;
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> coils > 0 && chambers > 0 ? 2 : 0;
             default -> 0;
         };
     }

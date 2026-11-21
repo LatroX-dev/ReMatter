@@ -73,7 +73,7 @@ class StarterProgressionTest {
         assertEquals(List.of("rematter:silith", "rematter:argil"), ingredients(blend));
         assertEquals(0, blend.get("minimum_tier").getAsInt());
         assertEquals(4000, blend.get("energy").getAsInt());
-        assertEquals(480, blend.get("ticks").getAsInt());
+        assertEquals(240, blend.get("ticks").getAsInt());
         assertEquals(4, blend.getAsJsonObject("result").get("count").getAsInt());
         assertNull(getClass().getClassLoader().getResource("data/rematter/advancement/recipes/matrix_blend.json"),
                 "A machine process must not advertise an obsolete crafting-table recipe");
@@ -87,7 +87,7 @@ class StarterProgressionTest {
         assertEquals(List.of("rematter:matrix_blend"), ingredients(crystal));
         assertEquals(0, crystal.get("minimum_tier").getAsInt(), "The first core must be hand-preparable");
         assertEquals(4000, crystal.get("energy").getAsInt());
-        assertEquals(640, crystal.get("ticks").getAsInt());
+        assertEquals(320, crystal.get("ticks").getAsInt());
         assertEquals("rematter:matrix_crystal", crystal.getAsJsonObject("result").get("id").getAsString());
         assertEquals(1, crystal.getAsJsonObject("result").get("count").getAsInt());
         for (String retired : List.of("recipe/", "advancement/recipes/"))
@@ -110,7 +110,7 @@ class StarterProgressionTest {
             assertFalse(extraction.has("secondary"));
             assertEquals(i < 2 ? 0 : 1, extraction.get("minimum_tier").getAsInt());
             assertEquals(2000, extraction.get("energy").getAsInt());
-            assertEquals(360, extraction.get("ticks").getAsInt());
+            assertEquals(180, extraction.get("ticks").getAsInt());
             assertEquals("rematter:" + names.get(i), extraction.getAsJsonObject("result").get("id").getAsString());
             assertEquals(1, extraction.getAsJsonObject("result").get("count").getAsInt());
         }

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.beeswax",
+  "symbol": "C₃₀H₆₂O₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:carbon": 30,
+    "rematter:hydrogen": 62,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

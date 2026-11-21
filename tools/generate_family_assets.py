@@ -465,6 +465,8 @@ def family():
     network_interface(result)
     controller(result, 'chemical_reactor_controller')
     controller(result, 'preparation_reactor_controller')
+    controller(result, 'industrial_decomposer_controller')
+    controller(result, 'industrial_synthesizer_controller')
     machine_port(result)
     structure_cubes(result)
     matter_cables(result)

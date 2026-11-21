@@ -3,7 +3,7 @@
   "primary": "rematter:matrix_crystal",
   "secondary": "rematter:silith",
   "energy": 4000,
-  "ticks": 640,
+  "ticks": 320,
   "minimum_tier": 0,
   "result": {
     "id": "rematter:ice_matrix_crystal",

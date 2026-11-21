@@ -11,6 +11,8 @@ public final class MachineEnergyPolicy {
     static final int MAX_UPGRADES = 4;
     /** Four speed upgrades double a batch price. */
     static final int MAX_SPEED_FACTOR = 2;
+    /** Speed multipliers for 0..4 Speed Upgrades: scales compact machines up to 10x (200 t -> 1.0 s). */
+    private static final int[] SPEED_MULTIPLIERS = {1, 2, 4, 7, 10};
     /** The largest base price a catalogue entry may declare, so that it still fits the buffer at full speed. */
     public static final long MAX_BATCH_ENERGY = MachineBlockEntity.ENERGY_CAPACITY / MAX_SPEED_FACTOR;
     public enum Upgrade { NONE, SPEED, EFFICIENCY }
@@ -19,7 +21,23 @@ public final class MachineEnergyPolicy {
 
     /** Work units per tick for a base rate and the installed upgrade stack. */
     static int speed(int baseRate, Upgrade upgrade, int count) {
-        return baseRate * (upgrade == Upgrade.SPEED ? 1 + installed(count) : 1);
+        return baseRate * (upgrade == Upgrade.SPEED ? SPEED_MULTIPLIERS[installed(count)] : 1);
+    }
+
+    /** Exact cumulative FE due by {@code progress} out of {@code duration} work units; reaches {@code totalEnergy} at completion. */
+    public static long cumulativeEnergy(long totalEnergy, int progress, int duration) {
+        if (totalEnergy < 0 || progress < 0 || duration < 1 || progress > duration)
+            throw new IllegalArgumentException("Invalid progress energy step");
+        if (totalEnergy == 0 || progress == 0) return 0;
+        if (progress == duration) return totalEnergy;
+        return dev.latrox.rematter.primal.PrimalPricing.ceilScale(totalEnergy, progress, duration);
+    }
+
+    /** FE due on the next tick when advancing up to {@code speed} work units from {@code progress}. */
+    public static long stepEnergy(long totalEnergy, int progress, int speed, int duration, long alreadyPaid) {
+        if (speed < 1 || alreadyPaid < 0) throw new IllegalArgumentException("Invalid step energy input");
+        int next = (int) Math.min(duration, (long) progress + speed);
+        return Math.max(0L, cumulativeEnergy(totalEnergy, next, duration) - alreadyPaid);
     }
 
     /** A recipe base scaled by a machine-tier multiplier, saturating instead of overflowing. */

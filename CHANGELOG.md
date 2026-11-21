@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0
+
+- Add two endgame multiblocks: **Industrial Decomposer** (Copper accent) and **Industrial Synthesizer** (Leaf accent). Both share the modular `3×3×5` to `7×7×7` chamber shell, Field Stabilizers, Reaction Foci and separate Machine Ports with the Chemical Reactor, run at **2× base speed** and accept up to **4× Speed**, **4× Efficiency** and **3× Parallel** upgrades (up to 4 parallel lanes / 80× throughput). The formed Industrial Synthesizer includes **Tier 2 crystallization pressure built in** without requiring a Pressure Module.
+- Rebalance processing speed and energy: compact processors now scale up to **10× speed** (`1× / 2× / 4× / 7× / 10×`) across 0–4 Speed Upgrades, Crystal Generators output **128 FE/t** and **512 FE/t**, and alloy/component preparation costs and durations are tuned to match contemporary tech lines.
+- Give the compact **Material Synthesizer** a dedicated **Pressure Module** slot beside its upgrade slot so diamond crystallization can still use Speed or Efficiency Upgrades.
+- Add optional **Auto-eject** under **Settings → Access** (off by default, copied by the Configuration Card) to push finished item outputs into adjacent storage on enabled output faces.
+- Add optional **Curios 15.0.0** support and a **Wireless Matter Terminal hotkey** (**Controls → ReMatter → Open Wireless Matter Terminal**, unbound by default). Both the Wireless Matter Terminal (`charm`/`curio`) and Portable Energy Cell (`belt`/`curio`) can be worn in Curios slots (with standalone player `charm`/`belt` slot registration), and the Portable Energy Cell recharges compatible FE gear across both inventory and Curios slots.
+- Enhance **JEI / SEMI (EMI)** and **Jade** integrations: recipe viewers now display effective `FE/t` rates, durations in seconds alongside ticks and both new industrial workstations. Server-authorized Jade overlays show live `FE/t` draw on active machines and now cover **Energy Cubes**, **Wireless Access Points**, **Matter Level Emitters**, **Entangled Links** and **Cell Transfer Stations**.
+- Expand the curated material catalogue to **1,043 item profiles** (455 explicit synthesis outputs), **14 fluids**, **14 gas outputs** and **83 substances**, including vanilla wood/cellulose, honeycomb, sugar cane/paper, cactus, Mekanism **brine** and **sodium** (fluid and chemical), and reviewed materials across AdvancedAE, Powah, Just Dire Things, Productive Bees and FTBIC.
+- Add 19 optional mod-loaded cross-mod compatibility recipes for **Ender IO** (Alloy Smelter), **FTB Industrial Contraptions** (Macerator), **Energized Power** (Crusher) and **Mekanism** (Crusher).
+
 ## 0.7.2
 
 - Fix a rendering crash with Iris shaders when viewing installed Matter Cells or moving machine parts.

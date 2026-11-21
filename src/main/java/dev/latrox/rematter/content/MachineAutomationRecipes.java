@@ -66,7 +66,9 @@ public final class MachineAutomationRecipes {
     }
     public static boolean supports(MachineKind kind,Recipe recipe) {
         return kind.id().equals(recipe.workerKind()) || kind==MachineKind.INDUSTRIAL_REACTOR&&recipe.workerKind().equals(MachineKind.REACTOR.id())
-                || kind==MachineKind.INDUSTRIAL_PREPARATOR&&recipe.workerKind().equals(MachineKind.PREPARATOR.id());
+                || kind==MachineKind.INDUSTRIAL_PREPARATOR&&recipe.workerKind().equals(MachineKind.PREPARATOR.id())
+                || kind==MachineKind.INDUSTRIAL_DECOMPOSER&&recipe.workerKind().equals(MachineKind.DECOMPOSER.id())
+                || kind==MachineKind.INDUSTRIAL_SYNTHESIZER&&recipe.workerKind().equals(MachineKind.SYNTHESIZER.id());
     }
     /** Per-recipe hardware room for simultaneous network jobs, in addition to height and upgrades. */
     static int capacity(MachineBlockEntity machine,Recipe recipe,int requested) {

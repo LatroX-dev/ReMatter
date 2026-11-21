@@ -3,6 +3,7 @@
   "name": "Ferricore",
   "items": [
     "jaopca:storage_blocks.ferricore",
+    "justdirethings:ferricore_block",
     "justdirethings:ferricore_ingot",
     "justdirethings:raw_ferricore"
   ],

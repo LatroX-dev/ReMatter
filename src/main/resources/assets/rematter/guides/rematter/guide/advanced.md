@@ -58,12 +58,12 @@ Put the material in the Material Preparator's **left input** and leave the other
 
 | Input | Output | Base cost |
 | --- | --- | --- |
-| Emerald | <ItemLink id="rematter:emerald_dust" /> | 4,000 FE, 20 seconds |
-| Lapis Lazuli | <ItemLink id="rematter:lapis_dust" /> | 4,000 FE, 20 seconds |
-| Amethyst Shard | <ItemLink id="rematter:amethyst_dust" /> | 4,000 FE, 20 seconds |
-| Diamond | <ItemLink id="rematter:diamond_powder" /> | 6,000 FE, 24 seconds |
-| Ender Pearl | <ItemLink id="rematter:ender_pearl_powder" /> | 8,000 FE, 28 seconds |
-| Netherite Ingot | <ItemLink id="rematter:netherite_powder" /> | 12,000 FE, 36 seconds |
+| Emerald | <ItemLink id="rematter:emerald_dust" /> | 4,000 FE, 10 seconds |
+| Lapis Lazuli | <ItemLink id="rematter:lapis_dust" /> | 4,000 FE, 10 seconds |
+| Amethyst Shard | <ItemLink id="rematter:amethyst_dust" /> | 4,000 FE, 10 seconds |
+| Diamond | <ItemLink id="rematter:diamond_powder" /> | 6,000 FE, 12 seconds |
+| Ender Pearl | <ItemLink id="rematter:ender_pearl_powder" /> | 8,000 FE, 14 seconds |
+| Netherite Ingot | <ItemLink id="rematter:netherite_powder" /> | 12,000 FE, 18 seconds |
 
 ## Mix the blends
 
@@ -71,9 +71,9 @@ Fill the three ingredient slots from left to right. Each batch makes one blend.
 
 | Left input | Middle input | Right input | Output | Base cost |
 | --- | --- | --- | --- | --- |
-| 1 Diamond Powder | 2 Matrix Blend | 1 Gold Dust | <ItemLink id="rematter:diamond_matrix_blend" /> | 8,000 FE, 32 seconds |
-| 1 Ender Pearl Powder | 2 Lumivex Powder | 1 Copper Dust | <ItemLink id="rematter:ender_conductor_blend" /> | 10,000 FE, 36 seconds |
-| 1 Netherite Powder | 2 Rhevon Powder | 1 Virelite Powder | <ItemLink id="rematter:netherite_sheath_blend" /> | 14,000 FE, 44 seconds |
+| 1 Diamond Powder | 2 Matrix Blend | 1 Gold Dust | <ItemLink id="rematter:diamond_matrix_blend" /> | 8,000 FE, 16 seconds |
+| 1 Ender Pearl Powder | 2 Lumivex Powder | 1 Copper Dust | <ItemLink id="rematter:ender_conductor_blend" /> | 10,000 FE, 18 seconds |
+| 1 Netherite Powder | 2 Rhevon Powder | 1 Virelite Powder | <ItemLink id="rematter:netherite_sheath_blend" /> | 14,000 FE, 22 seconds |
 
 AE2's Ender Dust can replace the Ender Pearl Powder. Lumivex, Rhevon and Virelite Powder come from [Powders, alloys and ceramic](metallurgy.md).
 
@@ -83,9 +83,9 @@ Put one blend in the Sinter Furnace's input.
 
 | Blend | Component | Base cost | Used in |
 | --- | --- | --- | --- |
-| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 40 seconds | Analyzer, Chemical Processor, Network Interface, Preparation Reactor, Optical Circuits, upgrades, Cutters, Filters, Foci, 1M Cell |
-| Ender Conductor Blend | <ItemLink id="rematter:ender_conductor" /> | 16,000 FE, 48 seconds | 256k and 1M Cells, Matter Terminal, Network Interface, Machine Ports, Reinforced Matter Cable |
-| Netherite Sheath Blend | <ItemLink id="rematter:netherite_sheath" /> | 24,000 FE, 56 seconds | 1M Cell, Chemical Reactor, Resonant Matter Cable |
+| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 20 seconds | Analyzer, Chemical Processor, Network Interface, Preparation Reactor, Optical Circuits, upgrades, Cutters, Filters, Foci, 1M Cell |
+| Ender Conductor Blend | <ItemLink id="rematter:ender_conductor" /> | 16,000 FE, 24 seconds | 256k and 1M Cells, Matter Terminal, Network Interface, Machine Ports, Reinforced Matter Cable |
+| Netherite Sheath Blend | <ItemLink id="rematter:netherite_sheath" /> | 24,000 FE, 28 seconds | 1M Cell, Chemical Reactor, Resonant Matter Cable |
 
 Inputs are consumed only when the complete output fits. The Lattice, Conductor and Sheath stay physical parts; they never enter a Cell as stored matter.
 

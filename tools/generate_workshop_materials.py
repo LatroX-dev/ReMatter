@@ -7,7 +7,7 @@ from generated_files import GeneratedFiles
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "src/main/resources/data"
 OUTPUT = GeneratedFiles(ROOT, False)
-PRODUCTION_TIME_FACTOR = 4
+PRODUCTION_TIME_FACTOR = 2
 
 
 def write(path, data):
@@ -103,6 +103,10 @@ def advanced_materials():
         recipe("compat/oritech/foundry/" + result, optional("oritech", {
             "type": "oritech:foundry", "itemInputs": ["rematter:" + blend] * 2,
             "itemResults": [{"id": "rematter:" + result, "count": 2}], "time": sinter_t}))
+        recipe("compat/enderio/alloy_smelting/" + result, optional("enderio", {
+            "type": "enderio:alloy_smelting", "energy": sinter_fe, "experience": 0.0,
+            "inputs": [{"count": 1, "ingredient": "rematter:" + blend}],
+            "output": {"id": "rematter:" + result, "count": 1}}))
 
     tag("c", "dusts/diamond", ["rematter:diamond_powder"])
     tag("c", "dusts/netherite", ["rematter:netherite_powder"])
@@ -128,6 +132,9 @@ def advanced_materials():
         recipe("compat/enderio/sag_milling/" + name, optional("enderio", {
             "type": "enderio:sag_milling", "bonus": "none", "energy": 4800, "input": raw,
             "outputs": [{"item": {"id": "rematter:" + name + "_powder", "count": 1}}]}))
+        recipe("compat/energizedpower/crusher/" + name, optional("energizedpower", {
+            "type": "energizedpower:crusher", "ingredient": raw,
+            "result": {"id": "rematter:" + name + "_powder", "count": 1}}))
 
 
 def crystal_powders():
@@ -137,6 +144,16 @@ def crystal_powders():
         powder = name + "_dust"
         preparation(powder, [(raw, 1)], powder)
         tag("c", "dusts/" + name, ["rematter:" + powder])
+        recipe("compat/ftbic/macerating/" + name, optional("ftbic", {
+            "type": "ftbic:macerating", "inputs": [{"ingredient": raw}],
+            "outputs": [{"item": {"id": "rematter:" + powder, "count": 1}}]}))
+        recipe("compat/energizedpower/crusher/" + name, optional("energizedpower", {
+            "type": "energizedpower:crusher", "ingredient": raw,
+            "result": {"id": "rematter:" + powder, "count": 1}}))
+        if name == "amethyst":
+            recipe("compat/mekanism/crushing/amethyst", optional("mekanism", {
+                "type": "mekanism:crushing", "input": {"count": 1, "ingredient": raw},
+                "output": {"id": "rematter:" + powder, "count": 1}}))
 
 
 def matrix_crystals():
@@ -245,6 +262,10 @@ def generate():
             "type": "oritech:foundry",
             "itemInputs": ["rematter:" + powder] * 2,
             "itemResults": [{"id": "rematter:" + product, "count": 2}], "time": 200}))
+        recipe("compat/enderio/alloy_smelting/" + material, optional("enderio", {
+            "type": "enderio:alloy_smelting", "energy": 12000, "experience": 0.0,
+            "inputs": [{"count": 1, "ingredient": heating_input}],
+            "output": {"id": "rematter:" + product, "count": 1}}))
 
     for material in ("rhevon", "lumivex"):
         ingot, dust = "rematter:" + material + "_ingot", "rematter:" + material + "_dust"
@@ -265,6 +286,12 @@ def generate():
         recipe("compat/oritech/pulverizer/" + material, optional("oritech", {
             "type": "oritech:pulverizer", "itemInputs": ["#c:ingots/" + material],
             "itemResults": [{"id": dust, "count": 1}], "time": 100}))
+        recipe("compat/ftbic/macerating/" + material, optional("ftbic", {
+            "type": "ftbic:macerating", "inputs": [{"ingredient": "#c:ingots/" + material}],
+            "outputs": [{"item": {"id": dust, "count": 1}}]}))
+        recipe("compat/energizedpower/crusher/" + material, optional("energizedpower", {
+            "type": "energizedpower:crusher", "ingredient": "#c:ingots/" + material,
+            "result": {"id": dust, "count": 1}}))
         tag("c", "ingots/" + material, [ingot])
         tag("c", "dusts/" + material, [dust])
 

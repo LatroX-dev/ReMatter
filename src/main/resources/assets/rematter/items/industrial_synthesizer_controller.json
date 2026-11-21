@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/industrial_synthesizer_controller"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/industrial_synthesizer_controller_active_parts"
+      }
+    ]
+  }
+}

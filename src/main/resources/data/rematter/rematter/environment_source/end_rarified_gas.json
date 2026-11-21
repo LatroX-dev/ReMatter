@@ -15,7 +15,7 @@
     }
   ],
   "energy": 20000,
-  "ticks": 800,
+  "ticks": 400,
   "dimensions": [
     "minecraft:the_end"
   ],

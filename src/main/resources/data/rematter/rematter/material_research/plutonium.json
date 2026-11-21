@@ -2,8 +2,10 @@
   "schema": 1,
   "name": "Plutonium",
   "items": [
+    "ftbic:plutonium_block",
     "ftbic:plutonium_dust",
     "ftbic:plutonium_ingot",
+    "ftbic:plutonium_raw_block",
     "ftbic:plutonium_raw_ore",
     "oritech:plutonium_dust"
   ],

@@ -66,7 +66,7 @@ final class MachineOperations {
         restriction="";
         MachineKind kind = machine.kind();
         if (PreparationTier.isPreparation(kind)) return machine.assayMode()?assay(registry):preparation();
-        if (kind == MachineKind.ANALYZER || kind == MachineKind.DECOMPOSER) return sample(registry, kind);
+        if (kind == MachineKind.ANALYZER || kind.decomposition()) return sample(registry, kind);
         var choice = machine.selectedChoice();
         if (choice == null) return null;
         if (kind.synthesis()) return synthesis(registry, choice,enforceAccess);
@@ -153,7 +153,7 @@ final class MachineOperations {
                     },
                     analyze ? input : ItemStack.EMPTY);
         }
-        if (kind != MachineKind.DECOMPOSER) return null;
+        if (!kind.decomposition()) return null;
         var fluids = machine.fluids();
         FluidResource fluid = fluids.getResource(0);
         var conversion = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
@@ -195,6 +195,10 @@ final class MachineOperations {
     }
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation) {
+        return readiness(needsStorage, store, operation, operation.cost());
+    }
+
+    String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation, long requiredEnergy) {
         long energy = machine.energy().getAmountAsLong();
         if(MachineRouting.environmentSources(machine.kind())
                 && dev.latrox.rematter.ReMatter.chemistry().environmentSources().stream().anyMatch(source -> source.id().toString().equals(operation.signature()))
@@ -204,9 +208,9 @@ final class MachineOperations {
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);
             return PreparationWork.readiness(!primary.isEmpty(), !secondary.isEmpty(), mixingPreparation(),
                     primary.getComponentsPatch().isEmpty() && secondary.getComponentsPatch().isEmpty() && tertiary.getComponentsPatch().isEmpty(),
-                    true, operation.canFinish(), energy, operation.cost());
+                    true, operation.canFinish(), energy, requiredEnergy);
         }
-        return readiness.checkRepeated(needsStorage, store, operation.inputs(), storedOutputs(operation), operation.canFinish(), energy, operation.cost());
+        return readiness.checkRepeated(needsStorage, store, operation.inputs(), storedOutputs(operation), operation.canFinish(), energy, requiredEnergy);
     }
 
     String inputStatus(ChemistryRegistry registry) {
@@ -225,7 +229,7 @@ final class MachineOperations {
         if (machine.supportsBatchControl()) return "choose_process";
         ItemStack input = machine.stack(0);
         if (!input.isEmpty()) {
-            if (kind == MachineKind.DECOMPOSER) {
+            if (kind.decomposition()) {
                 if (!ToolSalvage.hasOnlyAllowedDamage(input)) return "unsupported_components";
                 var profile = profile(registry, input);
                 if (profile == null) return "unsupported_input";
@@ -238,7 +242,7 @@ final class MachineOperations {
             }
         }
         var fluids = machine.fluids();
-        if (kind == MachineKind.DECOMPOSER && !fluids.getResource(0).isEmpty()) {
+        if (kind.decomposition() && !fluids.getResource(0).isEmpty()) {
             var fluid = fluids.getResource(0);
             if (!fluid.isComponentsPatchEmpty()) return "unsupported_components";
             var profile = registry.fluidProfile(BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString()).orElse(null);
@@ -328,7 +332,7 @@ final class MachineOperations {
     }
 
     private void putOutput(ItemStack result) {
-        if (machine.stack(1).isEmpty()) machine.putStack(1, result);
+        if (machine.stack(1).isEmpty()) machine.putStack(1, result.copy());
         else machine.stack(1).grow(result.getCount());
     }
 
@@ -362,6 +366,15 @@ final class MachineOperations {
             if(p==null)return 0;var out=machine.stack(1);
             long maximum=operation.visualResult().getMaxStackSize();
             return Math.max(0,Math.min(maximum-out.getCount(),target>0?target-out.getCount():Long.MAX_VALUE))/p.itemCount();
+        }
+        if(machine.kind().decomposition()) {
+            if(operation.signature().startsWith(MachineChoices.FLUID_PREFIX)) {
+                var p=dev.latrox.rematter.ReMatter.chemistry().fluidProfile(operation.signature().substring(MachineChoices.FLUID_PREFIX.length())).orElse(null);
+                return p==null?0:machine.fluids().getAmountAsLong(0)/p.amount();
+            }
+            var input=machine.stack(0);
+            var p=profile(dev.latrox.rematter.ReMatter.chemistry(),input);
+            return p==null?0:input.getCount()/p.itemCount();
         }
         return Integer.MAX_VALUE;
     }

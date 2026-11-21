@@ -3,6 +3,7 @@
   "name": "Eclipsealloy",
   "items": [
     "jaopca:storage_blocks.eclipsealloy",
+    "justdirethings:eclipsealloy_block",
     "justdirethings:eclipsealloy_ingot",
     "justdirethings:raw_eclipsealloy"
   ],

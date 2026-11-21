@@ -21,8 +21,8 @@ Standalone and ReForging definitions allow the base Matrix Crystal and all eight
 
 | Generator | Generation | Energy per permitted crystal |
 | --- | --- | --- |
-| Crystal Generator | 64 FE/t | 768 to 2,816 FE |
-| Industrial Crystal Generator | 256 FE/t | 768 to 2,816 FE |
+| Crystal Generator | 128 FE/t | 768 to 2,816 FE |
+| Industrial Crystal Generator | 512 FE/t | 768 to 2,816 FE |
 
 Insert permitted fuel and connect an enabled power output. The industrial model buys power per tick, not better yield. Other FE sources remain usable.
 

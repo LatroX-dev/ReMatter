@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "productivebees",
+  "item": "productivebees:wax_block",
+  "matter": [
+    {
+      "substance": "rematter:beeswax",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 1800
+}

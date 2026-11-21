@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ftbic"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "ftbic:macerating"
+    }
+  ],
+  "type": "ftbic:macerating",
+  "inputs": [
+    {
+      "ingredient": "minecraft:emerald"
+    }
+  ],
+  "outputs": [
+    {
+      "item": {
+        "id": "rematter:emerald_dust",
+        "count": 1
+      }
+    }
+  ]
+}

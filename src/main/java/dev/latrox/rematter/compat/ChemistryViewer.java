@@ -39,8 +39,8 @@ public final class ChemistryViewer {
         /** Physical outputs use the Synthesizer; chemical transformations and environmental sources use reactors. */
         public List<MachineKind> machines() {
             return switch (this) {
-                case DECOMPOSITION -> List.of(MachineKind.DECOMPOSER);
-                case SYNTHESIS -> List.of(MachineKind.SYNTHESIZER);
+                case DECOMPOSITION -> List.of(MachineKind.DECOMPOSER, MachineKind.INDUSTRIAL_DECOMPOSER);
+                case SYNTHESIS -> List.of(MachineKind.SYNTHESIZER, MachineKind.INDUSTRIAL_SYNTHESIZER);
                 case ELECTROLYSIS -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.ELECTROLYSIS);
                 case REACTION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.REACTION);
                 case SEPARATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.SEPARATION);

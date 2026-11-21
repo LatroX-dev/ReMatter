@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'src/main/resources/data/rematter/rematter/material_research'
 # Explicit natural-material Discovery allowlist. Manufactured alloys, components, essences and boss loot stay absent.
 TIERS = {
-    1: set('aluminum amber andesite boron calcite charcoal chromium clay coal copper deepslate diorite granite graphite iron lead natural_ice nickel salt silica silicon soil stone sulfur tin tuff zinc'.split()),
+    1: set('aluminum amber andesite beeswax boron calcite cellulose charcoal chromium clay coal copper deepslate diorite granite graphite iron lead natural_ice nickel salt silica silicon soil stone sulfur tin tuff zinc'.split()),
     2: set('amethyst basalt blackstone certus_quartz cinnabar emerald end_stone ender_pearl fluorite glowstone gold lapis lithium netherrack obsidian osmium peridot platinum quartz quicksilver redstone ruby sapphire seashell silver titanium uraninite uranium'.split()),
     3: set('arcane_crystal diamond dimensional_shard iridium netherite_scrap sky_stone'.split()),
 }

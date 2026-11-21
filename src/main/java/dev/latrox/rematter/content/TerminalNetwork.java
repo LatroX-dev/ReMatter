@@ -24,13 +24,13 @@ final class TerminalNetwork {
             case TerminalAnchor.Wired(var terminal) -> terminal.kind() == MachineKind.TERMINAL
                     && terminal.networkLive() && terminal.getLevel() == player.level()
                     && terminal.canAccess(player) && Container.stillValidBlockEntity(terminal, player);
-            case TerminalAnchor.Wireless(var ap, int lockedSlot) -> {
+            case TerminalAnchor.Wireless wireless -> {
+                var ap = wireless.accessPoint();
                 if (!ap.networkLive() || ap.getLevel() != player.level() || !ap.powered() || !ap.canAccess(player)
                         || !ap.withinRange(player)) {
                     yield false;
                 }
-                if (lockedSlot < 0 || lockedSlot >= player.getInventory().getContainerSize()) yield false;
-                ItemStack held = player.getInventory().getItem(lockedSlot);
+                ItemStack held = wireless.resolveStack(player);
                 if (!(held.getItem() instanceof WirelessMatterTerminalItem)) yield false;
                 var link = held.get(WirelessTerminalData.LINK.get());
                 var target = link == null ? null : link.target().orElse(null);
@@ -60,7 +60,7 @@ final class TerminalNetwork {
         int lockedSlot = -1;
         if (anchor instanceof TerminalAnchor.Wireless wireless) {
             lockedSlot = wireless.lockedPlayerSlot();
-            ItemStack held = player.getInventory().getItem(lockedSlot);
+            ItemStack held = wireless.resolveStack(player);
             if (WirelessMatterTerminalItem.energy(held) <= 0) return false;
         }
         int finalLockedSlot = lockedSlot;

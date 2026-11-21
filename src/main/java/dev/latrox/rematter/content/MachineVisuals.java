@@ -36,7 +36,8 @@ final class MachineVisuals {
 
     static boolean showsItems(MachineKind kind) {
         return switch (kind) {
-            case ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE, INDUSTRIAL_PREPARATOR -> true;
+            case ANALYZER, DECOMPOSER, SYNTHESIZER, PREPARATOR, HAND_PREPARATOR, SINTER_FURNACE,
+                 INDUSTRIAL_PREPARATOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> true;
             default -> false;
         };
     }

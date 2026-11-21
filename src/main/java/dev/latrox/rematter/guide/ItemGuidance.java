@@ -25,7 +25,9 @@ public final class ItemGuidance {
         var items = new HashMap<String, Spec>();
         add(items, "analyzer", Role.RESEARCH, "analyzer");
         add(items, "decomposer", Role.BREAKDOWN, "decomposer");
+        add(items, "industrial_decomposer_controller", Role.BREAKDOWN, "industrial_decomposer");
         add(items, "material_synthesizer", Role.SYNTHESIS, "synthesizer");
+        add(items, "industrial_synthesizer_controller", Role.SYNTHESIS, "industrial_synthesizer");
         add(items, "chemical_processor", Role.REACTION, "reactor");
         add(items, "chemical_reactor_controller", Role.REACTION, "industrial_reactor");
         add(items, "material_preparator", Role.PREPARATION, "preparator");
@@ -39,8 +41,8 @@ public final class ItemGuidance {
         add(items, "network_interface", Role.LINK, "interface");
         add(items, "primal_converter", Role.REACTION, "converter");
         for(var tier:dev.latrox.rematter.energy.EnergyCubeTier.values())add(items,tier.id(),Role.POWER,"energy_cube");
-        items.put("rematter:crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 768, 2816, 64))));
-        items.put("rematter:industrial_crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 768, 2816, 256))));
+        items.put("rematter:crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 768, 2816, 128))));
+        items.put("rematter:industrial_crystal_generator", new Spec(Role.HEAT, List.of(Hint.of("generator", 768, 2816, 512))));
         items.put("rematter:matter_cable", cable(128, 2048));
         items.put("rematter:reinforced_matter_cable", cable(1024, 16384));
         items.put("rematter:resonant_matter_cable", cable(8192, 131072));

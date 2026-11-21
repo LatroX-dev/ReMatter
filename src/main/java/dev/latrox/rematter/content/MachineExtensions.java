@@ -327,7 +327,7 @@ final class MachineExtensions {
         out.add("blueprintBom",bomArr);
         return out;
     }
-    int generationRate(){return machine.kind()==MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR?256:64;}
+    int generationRate(){return machine.kind()==MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR?512:128;}
     private void tickGenerator(){
         pushEnergy();var work=machine.work();
         if(!machine.running()){work.status="paused";return;}
@@ -336,7 +336,7 @@ final class MachineExtensions {
         if(!burner.apply(plan)){work.status="unsupported_data";return;}
         if(plan.changesState()){
             if(plan.consumedItems()>0)machine.consumeRedstonePulse();
-            machine.stack(0).shrink(plan.consumedItems());machine.energy().set((int)(machine.energy().getAmountAsLong()+plan.producedEnergy()));work.processedThisTick=plan.producedEnergy()>0;work.status="generating";machine.setChanged();
+            machine.stack(0).shrink(plan.consumedItems());machine.energy().set((int)(machine.energy().getAmountAsLong()+plan.producedEnergy()));work.energyRate=plan.producedEnergy();work.processedThisTick=plan.producedEnergy()>0;work.status="generating";machine.setChanged();
         }
         else work.status=!burner.readable()?"unsupported_data":machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY?"energy_full":"generator_fuel";
     }

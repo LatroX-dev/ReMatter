@@ -3,7 +3,9 @@
   "values": [
     "rematter:analyzer",
     "rematter:decomposer",
+    "rematter:industrial_decomposer_controller",
     "rematter:material_synthesizer",
+    "rematter:industrial_synthesizer_controller",
     "rematter:chemical_processor",
     "rematter:matter_terminal",
     "rematter:chemical_reactor_controller",

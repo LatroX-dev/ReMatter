@@ -11,11 +11,11 @@ item_ids:
 ---
 # Upgrades
 
-Upgrade slots stay in the main machine view. Compact processors choose Speed or Efficiency in their shared slot, up to four. The Material Synthesizer may choose one Pressure Module in that slot instead. Chemical Reactor and Preparation Reactor controllers have separate Speed, Efficiency and Parallel slots; Parallel stacks to three. Analyzer Primal payment and Discovery Lens have dedicated slots.
+Upgrade slots stay in the main machine view. Compact processors choose Speed or Efficiency in their shared slot, up to four. The compact Material Synthesizer has a dedicated Pressure Module slot beside its upgrade slot, so diamond synthesis can also use Speed or Efficiency Upgrades; a formed Industrial Synthesizer includes Tier 2 crystallization built in. Industrial Reactor, Decomposer, Synthesizer and Preparation controllers have separate Speed, Efficiency and Parallel slots; Parallel stacks to three. Analyzer Primal payment and Discovery Lens have dedicated slots.
 
 ## Speed
 
-Each <ItemLink id="rematter:speed_upgrade" /> adds one unit of base throughput and increases total FE per operation by **25%**. With four, a compact machine processes at five times its unupgraded speed and uses twice the FE per operation. A very short recipe cannot finish faster than one operation per tick.
+Each <ItemLink id="rematter:speed_upgrade" /> raises throughput (**2×, 4×, 7×, 10×** for one to four upgrades) and increases total FE per operation by **25%**. With four, a compact machine processes at ten times its unupgraded speed and uses twice the FE per operation. A very short recipe cannot finish faster than one operation per tick.
 
 <RecipeFor id="rematter:speed_upgrade" />
 

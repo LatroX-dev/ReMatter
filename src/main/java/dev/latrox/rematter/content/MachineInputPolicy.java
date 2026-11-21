@@ -21,16 +21,14 @@ public final class MachineInputPolicy {
                     .anyMatch(entry -> entry.recipe().acceptsInsertion(inputs, slot, candidate));
         }
         if (slot != 0) return false;
-        if (kind == MachineKind.DECOMPOSER) return ToolSalvage.plan(chemistry, candidate).isPresent();
+        if (kind.decomposition()) return ToolSalvage.plan(chemistry, candidate).isPresent();
         return kind == MachineKind.ANALYZER && candidate.getComponentsPatch().isEmpty()
                 && MachineOperations.profile(chemistry, candidate) != null;
     }
 
     public static boolean acceptsUpgrade(MachineKind kind, ItemStack stack) {
         if(IndustrialStructure.isIndustrial(kind))return stack.is(ModContent.SPEED_UPGRADE.get());
-        return kind.processes() && kind!=MachineKind.PRIMAL_CONVERTER && !PreparationTier.manual(kind) && (stack.is(ModContent.SPEED_UPGRADE.get())
-                || stack.is(ModContent.EFFICIENCY_UPGRADE.get())
-                || IndustrialStructure.isIndustrial(kind) && stack.is(ModContent.PARALLEL_UPGRADE.get())
-                || kind.synthesis() && stack.is(ModContent.PRESSURE_MODULE.get()));
+        return kind.processes() && kind!=MachineKind.PRIMAL_CONVERTER && !PreparationTier.manual(kind)
+                && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));
     }
 }

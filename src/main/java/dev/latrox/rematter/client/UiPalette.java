@@ -58,8 +58,8 @@ public final class UiPalette {
     public static int machineAccent(MachineKind kind) {
         return switch(kind) {
             case ANALYZER -> 0xffd7d1bc;
-            case DECOMPOSER -> 0xffdc894f;
-            case SYNTHESIZER -> 0xff7dd27f;
+            case DECOMPOSER, INDUSTRIAL_DECOMPOSER -> 0xffdc894f;
+            case SYNTHESIZER, INDUSTRIAL_SYNTHESIZER -> 0xff7dd27f;
             case NETWORK_INTERFACE -> 0xff6794f1;
             case PRIMAL_CONVERTER -> PRIMAL;
             case CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR -> EMBER;

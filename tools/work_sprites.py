@@ -152,6 +152,20 @@ def controller_display(device, frame):
             sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
         sprite.rect(9, 10, 11, 12, glow if wave(0) > -.3 else ink)
         sprite.rect(23, 7, 25, 9, back)
+    elif device == 'industrial_decomposer_controller':
+        sprite.rect(15, 7, 26, 15, back)
+        for index, (y, length) in enumerate(((7, 8), (10, 6), (13, 5))):
+            n = length + round(2 * wave(-index / 3))
+            sprite.rect(15, y, 15 + n, y + 2, ink)
+            sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
+        sprite.rect(9, 10, 11, 12, glow if wave(0) > -.2 else back)
+    elif device == 'industrial_synthesizer_controller':
+        sprite.rect(15, 7, 26, 15, back)
+        for index, (y, length) in enumerate(((7, 5), (10, 7), (13, 8))):
+            n = length + round(2 * wave(index / 3))
+            sprite.rect(15, y, 15 + n, y + 2, ink)
+            sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
+        sprite.rect(9, 10, 11, 12, glow if wave(0) > -.2 else ink)
     else:
         sprite.rect(15, 7, 26, 16, back)
         for index, (x, height) in enumerate(((15, 4), (18, 6), (21, 5), (24, 3))):
