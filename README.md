@@ -2,16 +2,14 @@
 
 **ReMatter is an industrial chemistry mod for Minecraft, developed for [LatroX's Xtreme – Tech ReForging](https://www.curseforge.com/minecraft/modpacks/latroxs-xtreme-tech-reforging).** It also runs on its own, with its own power, storage and in-game guide. Break down familiar materials, keep the substances you recover and use them in another recipe. Silica recovered from sand can become glass for your base. Minerals recovered from cobblestone can supply a tank of lava.
 
-![The complete ReMatter machine lineup, with both industrial reactors, processing machines, power storage and network devices](artwork/listing/screenshots/all-rematter-machines.jpg)
-
-[Full-size machine portraits](artwork/listing/screenshots/all-rematter-machines.jpg) · [Wide view of all 23 devices in the machine hall](artwork/listing/screenshots/machine-hall.jpg)
+![Three Atmospheric Collectors connected by a green Matter Cable beneath the illuminated observatory arch at dusk](artwork/listing/screenshots/observatory-at-dusk.jpg)
 
 ## Your first glass
 
 <img align="right" width="144" src="artwork/listing/chemical-processor.png" alt="Chemical Processor with two violet reaction columns">
 
 1. **Start by hand.** Crank sand in the Hand Preparator to get Silith, then use a clay ball to get Argil. Mix one of each into four Matrix Blend and form your first Matrix Crystals. Place Silith above a book in the crafting grid to make the **ReMatter Guide**.
-2. **Power a small line.** Craft a Crystal Generator with an Ember Matrix Crystal and copper coils. Fuel it with spare crystals, or connect another FE source. Place a Matter Drive between a powered Decomposer and a powered Material Synthesizer and install a 64k Matter Cell in the Drive. Touching machines can share its stock.
+2. **Power a small line.** Craft a Crystal Generator with an Ember Matrix Crystal and two blocks of copper. Fuel it with spare crystals, or connect another FE source. Place a Matter Drive between a powered Decomposer and a powered Material Synthesizer and install a 64k Matter Cell in the Drive. Touching machines can share its stock.
 3. **Decompose one sand block.** With the default recipes, the Decomposer spends 8,000 FE, stores **1,000 units of solid silica** and teaches you the Sand & Glass family. Open the Drive to see the silica. Leave the cell installed for the next step.
 4. **Make one glass block.** On the Material Synthesizer, choose **Glass**, confirm with **Use recipe**, then press **Make 1**. It draws the same 1,000 units from the Drive and spends 16,000 FE to produce one glass block.
 
@@ -53,6 +51,8 @@ See the [integration guide](docs/integrations.md) for supported API versions and
 ReMatter 0.7.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
 
 To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The JAR is written to `build/libs/`. Pack authors can define new material profiles, permitted synthesis outputs and processes with [chemistry data packs](docs/data-packs.md).
+
+[Read the ReMatter Wiki](https://github.com/LatroX-dev/ReMatter/wiki) for illustrated recipes, reactor layouts and troubleshooting.
 
 [Report a bug, request a material or suggest a feature](https://github.com/LatroX-dev/ReMatter/issues/new/choose). For a recipe issue, include the item or fluid ID, your ReMatter version and the result you expected.
 
