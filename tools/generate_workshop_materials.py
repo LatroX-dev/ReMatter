@@ -213,7 +213,7 @@ def industrial_workshop():
                 "parallel_upgrade", energy=32000, ticks=400, minimum_tier=2, min_precision=4, steps=["mix"])
     preparation("primal_crystal", [("rematter:primal_shard", 4), ("rematter:matrix_crystal", 1)], "primal_crystal",
                 energy=256000, ticks=9600, minimum_tier=2, min_precision=4, steps=["mix"], network_recipe=False)
-    preparation("discovery_lens", [("rematter:primal_crystal", 8), ("rematter:optical_circuit", 2), ("rematter:diamond_lattice", 1)],
+    preparation("discovery_lens", [("rematter:primal_crystal", 8), ("rematter:spectrometer_lens", 1), ("rematter:optical_circuit", 2)],
                 "discovery_lens", energy=256000, ticks=9600, minimum_tier=2, min_precision=4, steps=["mix"], network_recipe=False)
     recipe("material_preparator_from_hand_preparator", {
         "type": "minecraft:crafting_shaped", "category": "misc", "pattern": ["MBM", "BHB", "C C"],

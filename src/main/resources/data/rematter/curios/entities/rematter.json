@@ -9,6 +9,7 @@
     "player"
   ],
   "slots": [
+    "head",
     "charm",
     "belt"
   ]

@@ -61,7 +61,7 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 | Copper | `#dc894f` | copper dust | decomposition | `decomposer`, `industrial_decomposer_controller` |
 | Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `matter_cell_4m`, `matter_level_emitter`, `pressurized_canister` |
 | Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer`, `industrial_synthesizer_controller` |
-| Ice | `#d7d1bc` | Silith | analysis | `analyzer` |
+| Ice | `#d7d1bc` | Silith | analysis | `analyzer`, `spectrometer_lens` |
 | Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube`, `void_matter_cell`, `portable_energy_cell` |
 | Blue | `#6794f1` | lapis dust | network link | `network_interface`, `wireless_access_point`, `wireless_matter_terminal`, `wireless_booster` |
 | Violet | `#b381e8` | amethyst dust | reaction | `chemical_processor`, `chemical_reactor_controller`, `field_coil`, `reaction_chamber`, `primal_converter`, `primal_cell_16k`, `primal_cell_64k` |
@@ -263,7 +263,7 @@ The side controls use a compact unfolded face net around the front, with complet
 | `generate_primal_assets.py` | Primal Ores, Primal Shard, Primal Crystal, Discovery Lens, Entangled Link |
 | `generate_gui_assets.py` | GUI frames and icons |
 | `generate_technical_sprites.py`, `generate_storage_sprites.py` | component, upgrade and guide icons from `artwork/components/` |
-| `generate_illustrated_icons.py` | Ice Matrix Crystal, Matrix Cluster, Matter Wrench (`WRENCH_LOOK`), Configuration Card (`CONFIGURATION_CARD_LOOK`), Wireless Booster, Wireless Matter Terminal (`WIRELESS_TERMINAL_LOOK`), Portable Energy Cell, Pressurized Canister (`CANISTER_LOOK`), Pressure Module and Parallel Upgrade icons, with their checksums in `artwork/components/illustrated-rendered.json` |
+| `generate_illustrated_icons.py` | Ice Matrix Crystal, Matrix Cluster, Matter Wrench (`WRENCH_LOOK`), Configuration Card (`CONFIGURATION_CARD_LOOK`), Wireless Booster, Wireless Matter Terminal (`WIRELESS_TERMINAL_LOOK`), Portable Energy Cell, Pressurized Canister (`CANISTER_LOOK`), Spectrometer Lens, Pressure Module and Parallel Upgrade icons, with their checksums in `artwork/components/illustrated-rendered.json` |
 | `generate_component_assets.py`, `generate_advanced_material_icons.py`, `generate_metallurgy_assets.py`, `generate_device_assets.py` | item models, tags and definitions of the illustrated icons |
 
 Run a generator without arguments to write its files and with `--check` to compare them. `tools/README.md` lists every command. After any visual change run:

@@ -250,7 +250,7 @@ def generate(check):
     out = GeneratedFiles(ROOT, check)
     for name in ("parallel_upgrade", "pressure_module", "configuration_card",
                  "wireless_booster", "wireless_matter_terminal", "portable_energy_cell",
-                 "pressurized_canister"):
+                 "pressurized_canister", "spectrometer_lens"):
         out.json(ASSETS / f"models/item/{name}.json", {"parent": "minecraft:item/generated", "textures": {"layer0": f"rematter:item/{name}"}})
         out.json(ASSETS / f"items/{name}.json", {"model": {"type": "minecraft:model", "model": f"rematter:item/{name}"}})
         if name == "parallel_upgrade":
@@ -282,6 +282,11 @@ def generate(check):
                 "C": "minecraft:copper_ingot", "V": "rematter:virelite_ceramic",
                 "M": "rematter:mint_matrix_crystal", "R": "rematter:rhevon_ingot",
                 "H": "rematter:cell_housing"}, category="equipment")
+        elif name == "spectrometer_lens":
+            recipe(out, name, [" G ", "BIB", " C "], {
+                "G": "minecraft:glass_pane", "B": "rematter:structural_bars",
+                "I": "rematter:ice_matrix_crystal", "C": "rematter:control_circuit"},
+                category="equipment", unlock="rematter:ice_matrix_crystal")
 
     for block_name, builder, pattern, keys in (
             ("wireless_access_point", access_point_models, [" B ", "OFO", "ECE"], {

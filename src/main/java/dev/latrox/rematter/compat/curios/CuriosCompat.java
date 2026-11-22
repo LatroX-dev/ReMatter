@@ -6,6 +6,7 @@ import dev.latrox.rematter.content.PortableEnergyCellItem;
 import dev.latrox.rematter.content.WirelessMatterTerminalItem;
 import dev.latrox.rematter.content.WirelessTerminalData;
 import dev.latrox.rematter.energy.EnergyCubeItem;
+import dev.latrox.rematter.primal.PrimalContent;
 import java.util.Optional;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +19,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
-/** Optional Curios 15.0.0 bridge for Wireless Matter Terminal and Portable Energy Cell. */
+/** Optional Curios 15.0.0 bridge for Wireless Matter Terminal, Portable Energy Cell, Spectrometer Lens, and Discovery Lens. */
 public final class CuriosCompat {
     private CuriosCompat() {}
 
@@ -37,7 +38,27 @@ public final class CuriosCompat {
                     PortableEnergyCellItem.tickInCurio(stack, slotContext.entity());
                 }
             });
+            CuriosApi.registerCurio(ModContent.SPECTROMETER_LENS.get(), new ICurioItem() {
+                @Override public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) { return true; }
+            });
+            CuriosApi.registerCurio(PrimalContent.DISCOVERY_LENS.get(), new ICurioItem() {
+                @Override public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) { return true; }
+            });
         });
+    }
+
+    public static ItemStack findSpectrometerLens(Player player) {
+        var handler = CuriosApi.getCuriosInventory(player).orElse(null);
+        if (handler == null) return ItemStack.EMPTY;
+        var discovery = handler.findCurios(PrimalContent.DISCOVERY_LENS.get());
+        if (!discovery.isEmpty()) return discovery.getFirst().stack();
+        var spectrometer = handler.findCurios(ModContent.SPECTROMETER_LENS.get());
+        if (!spectrometer.isEmpty()) return spectrometer.getFirst().stack();
+        return ItemStack.EMPTY;
+    }
+
+    public static boolean hasDiscoveryLens(Player player) {
+        return !findSpectrometerLens(player).isEmpty();
     }
 
     public static Optional<CuriosSupport.CurioSlot> findWirelessTerminal(Player player) {

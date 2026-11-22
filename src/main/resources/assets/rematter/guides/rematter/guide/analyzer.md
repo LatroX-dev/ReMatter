@@ -6,6 +6,7 @@ navigation:
   position: 5
 item_ids:
   - rematter:analyzer
+  - rematter:spectrometer_lens
 ---
 # Learn a material, keep the sample
 
@@ -38,6 +39,12 @@ Knowledge is an **additional condition** for synthesis. The output must still be
 
 The machine checks its real owner's effective personal/team knowledge. Leaving a team does not copy its shared knowledge into personal knowledge. Trading a sample and analysing it remains a deliberate learning path. Imported cells, external network imports and Recovered Matter never teach a material.
 
-The Analyzer's **Research** tab offers [Derive and Discovery](discovery.md). Derive targets a material whose required substances are already known. Discovery is a much later, paid random find. Both use an explicitly inserted [Primal Cell](primal.md), separate from ordinary stock.
+## Field spectrometry
+
+Craft an early **Spectrometer Lens** with an Ice Matrix Crystal, Glass Pane, Structural Bars and a Control Circuit. Carry it in either hand, or wear it in a **Curios** `head`, `charm`, or `curio` slot (right-click in air to equip), to project a live **Field Spectrometer** HUD over targeted blocks, source fluids, Primal Ore veins, and harvestable ambient gases. While an active lens is worn in Curios or carried in your inventory, hold **Shift** on any supported item to view its complete substance badges and exact quantities even before researching it. Bind **Controls → ReMatter → Toggle Spectrometer Lens** to switch the HUD and tooltips on or off at any time. Synthesizing materials still requires researching them in the Analyzer or Decomposer.
+
+<RecipeFor id="rematter:spectrometer_lens" />
+
+The Analyzer's **Research** tab offers [Derive and Discovery](discovery.md). Derive targets a material whose required substances are already known. Discovery is a much later, paid random find that upgrades your Spectrometer Lens into a Discovery Lens. Both use an explicitly inserted [Primal Cell](primal.md), separate from ordinary stock.
 
 Return to [Your first glass](copper.md) when ready.

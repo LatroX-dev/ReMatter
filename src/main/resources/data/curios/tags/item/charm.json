@@ -2,6 +2,8 @@
   "replace": false,
   "values": [
     "rematter:wireless_matter_terminal",
-    "rematter:portable_energy_cell"
+    "rematter:portable_energy_cell",
+    "rematter:spectrometer_lens",
+    "rematter:discovery_lens"
   ]
 }

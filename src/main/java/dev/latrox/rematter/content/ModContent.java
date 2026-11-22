@@ -132,6 +132,7 @@ public final class ModContent {
     public static final DeferredItem<Item> AUTOMATION_PATTERN = ITEMS.registerSimpleItem("automation_pattern", p -> p.stacksTo(1));
     public static final DeferredItem<MatterWrenchItem> MATTER_WRENCH = ITEMS.registerItem("matter_wrench", MatterWrenchItem::new);
     public static final DeferredItem<ConfigurationCardItem> CONFIGURATION_CARD = ITEMS.registerItem("configuration_card", ConfigurationCardItem::new);
+    public static final DeferredItem<Item> SPECTROMETER_LENS = ITEMS.registerSimpleItem("spectrometer_lens", p -> p.stacksTo(1));
     public static final DeferredBlock<WirelessAccessPointBlock> WIRELESS_ACCESS_POINT = BLOCKS.registerBlock("wireless_access_point", WirelessAccessPointBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.5F, 10.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> WIRELESS_ACCESS_POINT_ITEM = ITEMS.registerSimpleBlockItem(WIRELESS_ACCESS_POINT);
@@ -181,6 +182,7 @@ public final class ModContent {
                         output.accept(RESONANT_MATTER_CABLE_ITEM.get());
                         output.accept(MATTER_WRENCH.get());
                         output.accept(CONFIGURATION_CARD.get());
+                        output.accept(SPECTROMETER_LENS.get());
                         output.accept(WIRELESS_BOOSTER.get());
                         output.accept(WIRELESS_MATTER_TERMINAL.get());
                         output.accept(WirelessMatterTerminalItem.createCharged());

@@ -46,5 +46,9 @@
   "pressurized_canister": {
     "svg": "713eb772685f62ad114b1e17ef60a6f7f5ceddd38b6ac6025e2e4fe3c37c7b1a",
     "png": "4caaf45932ce2542e00ceaaa372b338beb0708291dc1d28944c4260d127f28f9"
+  },
+  "spectrometer_lens": {
+    "svg": "d8df5569327949f38f892b95e7a619e8f633f83766708000d7ac71d72031d71f",
+    "png": "8e857e4ebf82579c8175b821fc69813b79669271a3956bba4d17e07e247f2f9c"
   }
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.1
+
+- Add the early-game **Spectrometer Lens** (`rematter:spectrometer_lens`, crafted with an Ice Matrix Crystal, Glass Pane, Structural Bars and Control Circuit) as the optical precursor to the endgame **Discovery Lens**, which now upgrades directly from a Spectrometer Lens in the Industrial Preparation Reactor.
+- Equip either the **Spectrometer Lens** or **Discovery Lens** in **Curios** (`head`, `charm`, or `curio` slots, including right-click in air to equip) and toggle the live spectrometer HUD and Shift tooltips on or off via **Controls → ReMatter → Toggle Spectrometer Lens** (unbound by default).
+- Reveal full chemical compositions, exact quantities, and harvestable ambient gases through both lenses even before researching a material, rendered with ReMatter's 16×16 **substance badges** in both Shift item tooltips and the in-world Field Spectrometer HUD (deduplicating overlapping atmospheric sources). Material synthesis remains strictly research-gated and clearly displays its unlock status.
+- Update the optional **ReForging** integration pack to restore standard amorphous-silica (sand) electrolysis for elemental silicon now that Replication and Equivox are removed from ReForging, while preserving full standalone and optional third-party modpack compatibility (including Replication tags and the Equivox merge helper).
+
 ## 0.8.0
 
 - Add two endgame multiblocks: **Industrial Decomposer** (Copper accent) and **Industrial Synthesizer** (Leaf accent). Both share the modular `3×3×5` to `7×7×7` chamber shell, Field Stabilizers, Reaction Foci and separate Machine Ports with the Chemical Reactor, run at **2× base speed** and accept up to **4× Speed**, **4× Efficiency** and **3× Parallel** upgrades (up to 4 parallel lanes / 80× throughput). The formed Industrial Synthesizer includes **Tier 2 crystallization pressure built in** without requiring a Pressure Module.

@@ -3,7 +3,6 @@ package dev.latrox.rematter.client;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.chemistry.FluidProfile;
 import dev.latrox.rematter.chemistry.MaterialProfile;
-import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.ReservedSubstances;
 import dev.latrox.rematter.content.ConfigurationCardItem;
 import dev.latrox.rematter.content.MatterWrenchItem;
@@ -28,30 +27,56 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 /**
- * Compact field spectrometer HUD shown when holding a Discovery Lens in either hand.
+ * Compact field spectrometer HUD shown while a Discovery Lens is active (in hand or equipped in Curios).
  * Inspects targeted blocks, fluids, Primal ore signatures, and harvestable atmospheric gases.
  */
 public final class DiscoveryLensHudOverlay {
-    private static final int MAX_CARD_WIDTH = 184;
-    private static final int MIN_CARD_WIDTH = 120;
+    private static final int MAX_CARD_WIDTH = 236;
+    private static final int MIN_CARD_WIDTH = 136;
     private static final int MAX_TRACE_LINES = 5;
+    private static final int MAX_ATMO_LINES = 4;
+    private static final int PAD = 6;
+    private static final int BADGE_COLUMN = 20;
+    private static final int HEADER_HEIGHT = 18;
+    private static final int TEXT_ROW_HEIGHT = 11;
+    private static final int TRACE_ROW_HEIGHT = 18;
 
-    private record Line(String text, int color) {}
+    private sealed interface Row permits HeaderRow, TextRow, TraceRow {
+        int height();
+        int width(Font font);
+    }
+
+    private record HeaderRow(String text, int color) implements Row {
+        @Override public int height() { return HEADER_HEIGHT; }
+        @Override public int width(Font font) { return BADGE_COLUMN + font.width(text) + 4; }
+    }
+
+    private record TextRow(String text, int color) implements Row {
+        @Override public int height() { return TEXT_ROW_HEIGHT; }
+        @Override public int width(Font font) { return font.width(text) + 4; }
+    }
+
+    private record TraceRow(DiscoveryLensInspector.KnownTrace trace, String text, int color) implements Row {
+        @Override public int height() { return TRACE_ROW_HEIGHT; }
+        @Override public int width(Font font) { return BADGE_COLUMN + font.width(text) + 4; }
+    }
 
     private DiscoveryLensHudOverlay() {}
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || mc.screen != null || mc.options.hideGui) return;
-        ItemStack mainHand = mc.player.getMainHandItem();
-        ItemStack offHand = mc.player.getOffhandItem();
-        if (!mainHand.is(PrimalContent.DISCOVERY_LENS.get()) && !offHand.is(PrimalContent.DISCOVERY_LENS.get())) {
-            return;
-        }
+        ItemStack activeLens = DiscoveryLensState.activeHudLens(mc.player);
+        if (activeLens.isEmpty()) return;
 
+        boolean discoveryLens = activeLens.is(PrimalContent.DISCOVERY_LENS.get());
         ChemistryRegistry chemistry = ClientChemistry.current();
-        List<Line> lines = new ArrayList<>(8);
-        lines.add(new Line(Component.translatable("hud.rematter.discovery_lens.title").getString(), UiPalette.PRIMAL_LIGHT));
+        List<Row> rows = new ArrayList<>(10);
+        rows.add(new HeaderRow(
+                Component.translatable(discoveryLens
+                        ? "hud.rematter.discovery_lens.title"
+                        : "hud.rematter.spectrometer_lens.title").getString(),
+                discoveryLens ? UiPalette.PRIMAL_LIGHT : UiPalette.ACCENT_BRIGHT));
 
         double reach = mc.player.blockInteractionRange();
         float partial = deltaTracker.getGameTimeDeltaPartialTick(false);
@@ -70,7 +95,7 @@ public final class DiscoveryLensHudOverlay {
                     String fluidId = BuiltInRegistries.FLUID.getKey(sourceFluid).toString();
                     FluidProfile fluidProfile = chemistry.fluidProfile(fluidId).orElse(null);
                     if (fluidProfile != null) {
-                        lines.add(new Line(fluidState.getFluidType().getDescription().getString(), UiPalette.TEXT));
+                        rows.add(new TextRow(fluidState.getFluidType().getDescription().getString(), UiPalette.TEXT));
                         var report = DiscoveryLensInspector.inspectCurrent(
                                 chemistry,
                                 fluidId,
@@ -78,7 +103,7 @@ public final class DiscoveryLensHudOverlay {
                                 fluidProfile.amount(),
                                 false,
                                 fluidProfile.matter());
-                        appendReportLines(lines, report);
+                        appendReportRows(rows, report);
                         handledTarget = true;
                     }
                 }
@@ -89,14 +114,14 @@ public final class DiscoveryLensHudOverlay {
             BlockPos pos = hit.getBlockPos();
             BlockState state = mc.level.getBlockState(pos);
             if (!state.isAir()) {
-                lines.add(new Line(state.getBlock().getName().getString(), UiPalette.TEXT));
+                rows.add(new TextRow(state.getBlock().getName().getString(), UiPalette.TEXT));
                 String blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
                 var item = state.getBlock().asItem();
                 String itemId = item != Items.AIR ? BuiltInRegistries.ITEM.getKey(item).toString() : blockId;
                 if (ReservedSubstances.primalItem(itemId) || ReservedSubstances.primalItem(blockId)) {
-                    lines.add(new Line(
+                    rows.add(new TextRow(
                             Component.translatable("hud.rematter.discovery_lens.primal_signature").getString(),
-                            UiPalette.PRIMAL));
+                            UiPalette.PRIMAL_LIGHT));
                 } else {
                     MaterialProfile profile = chemistry.profile(itemId).or(() -> chemistry.profile(blockId)).orElse(null);
                     if (profile != null) {
@@ -107,9 +132,9 @@ public final class DiscoveryLensHudOverlay {
                                 profile.itemCount(),
                                 false,
                                 profile.matter());
-                        appendReportLines(lines, report);
+                        appendReportRows(rows, report);
                     } else {
-                        lines.add(new Line(
+                        rows.add(new TextRow(
                                 Component.translatable("hud.rematter.discovery_lens.no_profile").getString(),
                                 UiPalette.MUTED));
                     }
@@ -122,121 +147,126 @@ public final class DiscoveryLensHudOverlay {
             String dimensionId = mc.level.dimension().identifier().toString();
             boolean skyVisible = mc.level.canSeeSky(mc.player.blockPosition().above());
             var sources = DiscoveryLensInspector.inspectAtmosphereCurrent(chemistry, dimensionId, skyVisible);
-            lines.add(new Line(
+            rows.add(new TextRow(
                     Component.translatable("hud.rematter.discovery_lens.atmosphere").getString(),
                     UiPalette.GAS));
             if (sources.isEmpty()) {
-                lines.add(new Line(
+                rows.add(new TextRow(
                         Component.translatable("hud.rematter.discovery_lens.atmosphere_none").getString(),
                         UiPalette.MUTED));
             } else {
-                int shown = 0;
+                var bestBySubstance = new java.util.LinkedHashMap<dev.latrox.rematter.chemistry.SubstanceKey, Long>();
                 for (var entry : sources) {
-                    if (shown >= 3) break;
-                    if (entry.knownYields().isEmpty() && entry.hiddenYieldCount() > 0) {
-                        lines.add(new Line(
-                                Component.translatable("hud.rematter.discovery_lens.unanalyzed").getString(),
-                                UiPalette.WARNING));
-                    } else {
-                        for (var trace : entry.knownYields()) {
-                            if (shown >= 3) break;
-                            lines.add(new Line(formatTrace(trace), phaseColor(trace.key().phase())));
-                            shown++;
-                        }
+                    for (var trace : entry.knownYields()) {
+                        bestBySubstance.merge(trace.key(), trace.amount(), Math::max);
                     }
-                    shown = Math.max(shown, 1);
+                }
+                List<DiscoveryLensInspector.KnownTrace> uniqueYields = bestBySubstance.entrySet().stream()
+                        .map(e -> new DiscoveryLensInspector.KnownTrace(e.getKey(), e.getValue()))
+                        .sorted(java.util.Comparator.comparingLong(DiscoveryLensInspector.KnownTrace::amount)
+                                .reversed()
+                                .thenComparing(DiscoveryLensInspector.KnownTrace::key))
+                        .toList();
+                int shown = 0;
+                for (var trace : uniqueYields) {
+                    if (shown >= MAX_ATMO_LINES) {
+                        rows.add(new TextRow(
+                                Component.translatable("hud.rematter.discovery_lens.more_traces",
+                                        uniqueYields.size() - shown).getString(),
+                                UiPalette.MUTED));
+                        break;
+                    }
+                    rows.add(traceRow(trace));
+                    shown++;
                 }
             }
         }
 
         Font font = mc.font;
         int contentWidth = MIN_CARD_WIDTH;
-        for (Line line : lines) {
-            contentWidth = Math.max(contentWidth, Math.min(MAX_CARD_WIDTH, font.width(line.text()) + 4));
+        int contentHeight = 0;
+        for (Row row : rows) {
+            contentWidth = Math.max(contentWidth, Math.min(MAX_CARD_WIDTH, row.width(font)));
+            contentHeight += row.height();
         }
-        int pad = 5;
-        int rowHeight = 10;
-        int cardWidth = contentWidth + pad * 2;
-        int cardHeight = lines.size() * rowHeight + pad * 2 - 1;
+        int cardWidth = contentWidth + PAD * 2;
+        int cardHeight = contentHeight + PAD * 2 - 1;
 
+        ItemStack mainHand = mc.player.getMainHandItem();
+        ItemStack offHand = mc.player.getOffhandItem();
         boolean wrenchAlsoHeld = isWrenchOverlayActive(mainHand, offHand);
         int guiW = graphics.guiWidth();
         int guiH = graphics.guiHeight();
         int x = Math.min(guiW / 2 + 12, guiW - cardWidth - 6);
-        int baseOffsetY = wrenchAlsoHeld ? 68 : 8;
-        int y = Math.min(guiH / 2 + baseOffsetY, guiH - cardHeight - 6);
+        int maxY = Math.max(6, guiH - cardHeight - 74); // Keep clear of the actionbar overlay and hotbar.
+        int desiredY = wrenchAlsoHeld ? guiH / 2 - cardHeight - 8 : guiH / 2 - cardHeight / 2;
+        int y = Math.clamp(desiredY, 6, maxY);
 
         ScreenChrome.panel(graphics, x, y, cardWidth, cardHeight);
-        int textY = y + pad;
-        for (Line line : lines) {
-            ScreenChrome.text(graphics, font, line.text(), x + pad, textY, contentWidth, line.color());
-            textY += rowHeight;
+        ItemStack lensIcon = new ItemStack(activeLens.getItem());
+        int rowY = y + PAD;
+        for (Row row : rows) {
+            switch (row) {
+                case HeaderRow header -> {
+                    graphics.fakeItem(lensIcon, x + PAD, rowY);
+                    ScreenChrome.text(graphics, font, header.text(), x + PAD + BADGE_COLUMN, rowY + 4,
+                            contentWidth - BADGE_COLUMN, header.color());
+                }
+                case TextRow text -> ScreenChrome.text(graphics, font, text.text(), x + PAD, rowY + 1,
+                        contentWidth, text.color());
+                case TraceRow trace -> {
+                    SubstanceIcon.draw(graphics, x + PAD, rowY, trace.trace().key());
+                    ScreenChrome.text(graphics, font, trace.text(), x + PAD + BADGE_COLUMN, rowY + 4,
+                            contentWidth - BADGE_COLUMN, trace.color());
+                }
+            }
+            rowY += row.height();
         }
     }
 
-    private static void appendReportLines(List<Line> lines, DiscoveryLensInspector.SampleReport report) {
-        if (report.unanalyzed()) {
-            lines.add(new Line(
-                    Component.translatable("hud.rematter.discovery_lens.unanalyzed").getString(),
-                    UiPalette.WARNING));
-            return;
-        }
+    private static void appendReportRows(List<Row> rows, DiscoveryLensInspector.SampleReport report) {
         if (report.fluidMillibuckets()) {
-            lines.add(new Line(
-                    Component.translatable("hud.rematter.discovery_lens.fluid_batch", Quantities.number(report.batchCount())).getString(),
+            rows.add(new TextRow(
+                    Component.translatable("hud.rematter.discovery_lens.fluid_batch",
+                            Quantities.number(report.batchCount())).getString(),
                     UiPalette.MUTED));
         } else if (report.batchCount() > 1) {
-            lines.add(new Line(
-                    Component.translatable("hud.rematter.discovery_lens.item_batch", Quantities.number(report.batchCount())).getString(),
+            rows.add(new TextRow(
+                    Component.translatable("hud.rematter.discovery_lens.item_batch",
+                            Quantities.number(report.batchCount())).getString(),
                     UiPalette.MUTED));
         }
         int count = 0;
         for (var trace : report.knownTraces()) {
             if (count >= MAX_TRACE_LINES) {
                 int remaining = report.knownTraces().size() - count;
-                lines.add(new Line(
+                rows.add(new TextRow(
                         Component.translatable("hud.rematter.discovery_lens.more_traces", remaining).getString(),
                         UiPalette.MUTED));
                 break;
             }
-            lines.add(new Line(formatTrace(trace), phaseColor(trace.key().phase())));
+            rows.add(traceRow(trace));
             count++;
         }
-        if (report.hiddenTraceCount() > 0) {
-            lines.add(new Line(
-                    Component.translatable("hud.rematter.discovery_lens.unknown_traces", report.hiddenTraceCount()).getString(),
-                    UiPalette.WARNING));
-        }
         switch (report.synthesisStatus()) {
-            case SYNTHESIS_UNLOCKED -> lines.add(new Line(
+            case SYNTHESIS_UNLOCKED -> rows.add(new TextRow(
                     Component.translatable("hud.rematter.discovery_lens.synthesis_unlocked").getString(),
                     UiPalette.ACCENT));
-            case SYNTHESIS_LOCKED -> lines.add(new Line(
+            case SYNTHESIS_LOCKED -> rows.add(new TextRow(
                     Component.translatable("hud.rematter.discovery_lens.synthesis_locked").getString(),
                     UiPalette.AMBER));
-            case DECOMPOSITION_ONLY -> lines.add(new Line(
+            case DECOMPOSITION_ONLY -> rows.add(new TextRow(
                     Component.translatable("hud.rematter.discovery_lens.decomposition_only").getString(),
                     UiPalette.MUTED));
             case NONE -> {}
         }
     }
 
-    private static String formatTrace(DiscoveryLensInspector.KnownTrace trace) {
-        Component name = SubstanceNames.labelled(trace.key());
-        Component phase = SubstanceNames.phase(trace.key().phase());
-        return Component.translatable(
-                "hud.rematter.discovery_lens.trace_line",
-                name,
-                phase,
-                Quantities.number(trace.amount())).getString();
-    }
-
-    private static int phaseColor(Phase phase) {
-        return switch (phase) {
-            case SOLID -> UiPalette.ACCENT;
-            case LIQUID -> UiPalette.LIQUID;
-            case GAS -> UiPalette.GAS;
-        };
+    private static TraceRow traceRow(DiscoveryLensInspector.KnownTrace trace) {
+        return new TraceRow(
+                trace,
+                DiscoveryLensTooltip.formatLabel(trace).getString(),
+                DiscoveryLensTooltip.phaseColor(trace.key().phase()));
     }
 
     private static boolean isWrenchOverlayActive(ItemStack mainHand, ItemStack offHand) {

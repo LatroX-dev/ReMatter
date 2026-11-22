@@ -22,6 +22,7 @@ import dev.latrox.rematter.chemistry.SynthesisCategory;
 import dev.latrox.rematter.chemistry.SynthesisRequirement;
 import dev.latrox.rematter.client.DiscoveryLensInspector;
 import dev.latrox.rematter.client.DiscoveryLensInspector.SynthesisStatus;
+import dev.latrox.rematter.client.DiscoveryLensState;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -125,7 +126,7 @@ final class PlannerSpectrometerAndAtmosphereTest {
     }
 
     @Test
-    void discoveryLensInspectorMasksUnresearchedMatterRevealsKnownTracesAndFlagsPrimalSignatures() {
+    void discoveryLensInspectorRevealsFullCompositionWithoutResearchWhileKeepingSynthesisResearchGated() {
         ChemistryRegistry reg = testRegistry();
 
         // Primal item always reports Primal signature without ordinary matter breakdown.
@@ -144,7 +145,7 @@ final class PlannerSpectrometerAndAtmosphereTest {
         assertFalse(primal.unanalyzed());
         assertEquals(SynthesisStatus.NONE, primal.synthesisStatus());
 
-        // Unresearched allowlisted item hides all traces and marks unanalyzed + synthesis locked.
+        // Unresearched allowlisted item reveals its full composition, while synthesis remains strictly locked.
         var lockedGlass = DiscoveryLensInspector.inspect(
                 reg,
                 "minecraft:glass",
@@ -156,29 +157,50 @@ final class PlannerSpectrometerAndAtmosphereTest {
                 true,
                 false,
                 k -> false);
-        assertTrue(lockedGlass.unanalyzed());
-        assertTrue(lockedGlass.knownTraces().isEmpty());
-        assertEquals(1, lockedGlass.hiddenTraceCount());
+        assertFalse(lockedGlass.unanalyzed());
+        assertEquals(1, lockedGlass.knownTraces().size());
+        assertEquals(BuiltinChemistry.SILICA, lockedGlass.knownTraces().getFirst().key());
+        assertEquals(1_000L, lockedGlass.knownTraces().getFirst().amount());
+        assertEquals(0, lockedGlass.hiddenTraceCount());
         assertEquals(SynthesisStatus.SYNTHESIS_LOCKED, lockedGlass.synthesisStatus());
 
-        // Partial substance knowledge on decomposition-only damaged tool reveals known IRON, masks CARBON, stays DECOMPOSITION_ONLY.
-        var partialSalvage = DiscoveryLensInspector.inspect(
+        // Even while research sync is unavailable, full composition is shown and synthesis fails closed to locked.
+        var unsyncedGlass = DiscoveryLensInspector.inspect(
+                reg,
+                "minecraft:glass",
+                false,
+                1,
+                false,
+                Map.of(BuiltinChemistry.SILICA, 1_000L),
+                true,
+                false,
+                true,
+                k -> false);
+        assertFalse(unsyncedGlass.unanalyzed());
+        assertEquals(1, unsyncedGlass.knownTraces().size());
+        assertEquals(SynthesisStatus.SYNTHESIS_LOCKED, unsyncedGlass.synthesisStatus());
+
+        // Damaged decomposition-only tool reveals ALL constituents ordered by amount descending, stays DECOMPOSITION_ONLY.
+        var salvage = DiscoveryLensInspector.inspect(
                 reg,
                 "minecraft:iron_pickaxe",
                 false,
                 1,
                 true,
-                Map.of(BuiltinChemistry.IRON, 1_500L, BuiltinChemistry.CARBON, 250L),
+                Map.of(BuiltinChemistry.CARBON, 250L, BuiltinChemistry.IRON, 1_500L),
                 true,
                 true,
                 false,
-                BuiltinChemistry.IRON::equals);
-        assertFalse(partialSalvage.unanalyzed());
-        assertTrue(partialSalvage.durabilityScaled());
-        assertEquals(1, partialSalvage.knownTraces().size());
-        assertEquals(BuiltinChemistry.IRON, partialSalvage.knownTraces().getFirst().key());
-        assertEquals(1, partialSalvage.hiddenTraceCount());
-        assertEquals(SynthesisStatus.DECOMPOSITION_ONLY, partialSalvage.synthesisStatus());
+                k -> false);
+        assertFalse(salvage.unanalyzed());
+        assertTrue(salvage.durabilityScaled());
+        assertEquals(2, salvage.knownTraces().size());
+        assertEquals(BuiltinChemistry.IRON, salvage.knownTraces().get(0).key());
+        assertEquals(1_500L, salvage.knownTraces().get(0).amount());
+        assertEquals(BuiltinChemistry.CARBON, salvage.knownTraces().get(1).key());
+        assertEquals(250L, salvage.knownTraces().get(1).amount());
+        assertEquals(0, salvage.hiddenTraceCount());
+        assertEquals(SynthesisStatus.DECOMPOSITION_ONLY, salvage.synthesisStatus());
 
         // Unlocked synthesis item reveals all traces and reports SYNTHESIS_UNLOCKED.
         var unlockedGlass = DiscoveryLensInspector.inspect(
@@ -197,23 +219,52 @@ final class PlannerSpectrometerAndAtmosphereTest {
         assertEquals(0, unlockedGlass.hiddenTraceCount());
         assertEquals(SynthesisStatus.SYNTHESIS_UNLOCKED, unlockedGlass.synthesisStatus());
 
-        // Atmosphere inspection filters open-air sources underground and masks unknown yields.
+        // Atmosphere inspection still filters open-air sources underground, and reveals yields even without research.
         var caveAtmo = DiscoveryLensInspector.inspectAtmosphere(
                 reg, "minecraft:overworld", false, true, true, Set.of());
         assertEquals(1, caveAtmo.size());
         assertEquals("rematter:cavern_vapor", caveAtmo.getFirst().source().id().toString());
-        assertTrue(caveAtmo.getFirst().knownYields().isEmpty());
-        assertEquals(1, caveAtmo.getFirst().hiddenYieldCount());
+        assertEquals(1, caveAtmo.getFirst().knownYields().size());
+        assertEquals(BuiltinChemistry.STEAM, caveAtmo.getFirst().knownYields().getFirst().key());
+        assertEquals(0, caveAtmo.getFirst().hiddenYieldCount());
 
         var skyAtmo = DiscoveryLensInspector.inspectAtmosphere(
-                reg, "minecraft:overworld", true, true, true, Set.of(BuiltinChemistry.OXYGEN));
+                reg, "minecraft:overworld", true, true, true, Set.of());
         assertEquals(2, skyAtmo.size());
         var airEntry = skyAtmo.stream()
                 .filter(e -> e.source().id().toString().equals("rematter:air_oxygen"))
                 .findFirst()
                 .orElseThrow();
         assertEquals(1, airEntry.knownYields().size());
+        assertEquals(BuiltinChemistry.OXYGEN, airEntry.knownYields().getFirst().key());
         assertEquals(0, airEntry.hiddenYieldCount());
+    }
+
+    @Test
+    void discoveryLensStateTogglesHudAndTooltipsForHandInventoryAndCurios() {
+        DiscoveryLensState.reset();
+        assertTrue(DiscoveryLensState.enabled());
+
+        // Active: HUD shows when held in hand or equipped in Curios (not when merely sitting in inventory).
+        assertTrue(DiscoveryLensState.shouldShowHud(true, true, false));
+        assertTrue(DiscoveryLensState.shouldShowHud(true, false, true));
+        assertFalse(DiscoveryLensState.shouldShowHud(true, false, false));
+
+        // Active: Tooltips show when carried in inventory or equipped in Curios.
+        assertTrue(DiscoveryLensState.shouldShowTooltip(true, true, false));
+        assertTrue(DiscoveryLensState.shouldShowTooltip(true, false, true));
+        assertFalse(DiscoveryLensState.shouldShowTooltip(true, false, false));
+
+        // Toggled off: both HUD and tooltips turn off even while equipped in Curios or held in hand.
+        assertFalse(DiscoveryLensState.toggle());
+        assertFalse(DiscoveryLensState.enabled());
+        assertFalse(DiscoveryLensState.shouldShowHud(false, true, true));
+        assertFalse(DiscoveryLensState.shouldShowTooltip(false, true, true));
+
+        // Toggle back on.
+        assertTrue(DiscoveryLensState.toggle());
+        assertTrue(DiscoveryLensState.enabled());
+        DiscoveryLensState.reset();
     }
 
     @Test

@@ -1,7 +1,7 @@
 {
   "title": "Recover Silicon for Storage",
   "description": [
-    "In this pack, Nether Quartz supplies crystalline silica. Electrolyze 1,000 units into 1,000 silicon and 1,000 oxygen units, then synthesize four silicon items at 250 units each. The complete base cost is 160,000 FE.",
+    "Decompose sand into amorphous silica, then electrolyze 1,000 units into 1,000 silicon and 1,000 oxygen units and synthesize four silicon items at 250 units each. The complete base electrolysis cost is 64,000 FE.",
     "Compare the native alternatives: Refined Storage smelts quartz directly, and Mekanism crushes sand into silicon. ReMatter offers recovery choices and shared stock rather than the cheapest route in every case. Export oxygen through an automated Drive and Mekanism tube, or explicitly confirm venting of new oxygen only."
   ],
   "icon": "refinedstorage:silicon",

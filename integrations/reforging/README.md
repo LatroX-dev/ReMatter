@@ -1,16 +1,16 @@
-# ReForging coexistence integration
+# ReForging integration
 
-This optional integration applies specific rules while ReMatter, Replication, and Equivox coexist. It is separate from the standalone mod and is not bundled or activated by the ReMatter JAR. Its reference pack is ReForging 0.11.1 for Minecraft 26.1.2, with data pack format 101.1, Replication 1.2.9 and Equivox 1.4.0.
+This optional integration applies ReForging's pack balance rules, bonus-free milling overrides, crystal fuels and Embers Questing chapter. It is separate from the standalone mod and is not bundled or activated by the ReMatter JAR. ReForging no longer ships Replication or Equivox; the Replication deny tags and `merge_equivox.py` helper below remain included as optional coexistence safeguards for third-party modpacks that do install Replication or Equivox alongside ReMatter.
 
-## Quartz
+## Quartz and silicon
 
 Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem is synthesizable in the Material Synthesizer. The standalone mod disables it while Ender IO is loaded; this integration explicitly restores it together with the bonus-free milling override below. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
 
-Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. Virelite keeps the quartz share of its preparation batch as crystalline silica and its sand and clay shares as amorphous silica and clay, so sand and clay add no electrolysis feedstock.
+Quartz dusts use the same 1,000 units. A quartz block contains 4,000 units; nine quartz nuggets form one 1,000-unit batch. Quartz ores can be decomposed but cannot be synthesized. Virelite keeps the quartz share of its preparation batch as crystalline silica and its sand and clay shares as amorphous silica and clay.
 
 The integration adds no crystallization reaction. Sand, separated minerals, silicon, and oxygen therefore cannot become crystalline silica through the included chemistry recipes. This keeps the quartz recovery cycle available without turning sand into an inexpensive quartz source. A future crystallization recipe requires its own progression and balance review.
 
-Silica electrolysis uses this crystalline quartz feedstock in ReForging instead of amorphous silica. Its silicon and oxygen outputs, 64,000 FE cost are preserved; its duration is 800 work ticks, matching the standalone production balance. Ordinary sand and separated amorphous silica cannot feed this process. This prevents a sand → silicon → EMC → sand loop when silicon material recovery is available; silicon obtained through the pack's normal routes can still be recovered.
+Silica electrolysis uses ReMatter's standard amorphous `rematter:silica` feedstock (from sand or separated minerals/soil), yielding 1,000 elemental silicon and 1,000 oxygen for 64,000 FE over 800 work ticks. Packs that separately re-add EMC/Equivox alongside ReMatter should review whether to override `rematter:silica_electrolysis` back to `rematter:crystalline_silica` to prevent a sand → silicon → EMC → sand loop.
 
 The data pack also makes Ender IO's **quartz-gem grinding** recipe produce exactly one quartz dust, with grinding-ball output bonuses disabled. Its energy cost remains 2,400 FE. This closes a pre-existing gem → extra dust → gem loop that also works through other mods. Quartz-ore processing and its bonuses are unchanged. KubeJS can still unify the output to the pack's canonical quartz dust.
 
@@ -66,7 +66,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
 ## Installation
 
 1. Copy the contents of `datapack/` into a new data pack directory. With Paxi, use `config/paxi/datapacks/reforging-rematter-compat/`; otherwise use the world's `datapacks/reforging-rematter-compat/` directory. `pack.mcmeta` must be at that directory's root.
-2. Prepare the Equivox configuration in a separate file, using Python 3:
+2. *(Optional — only for packs with Equivox installed)* Prepare the Equivox configuration in a separate file, using Python 3:
 
    ```sh
    python3 integrations/reforging/merge_equivox.py \
@@ -74,7 +74,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
      custom_emc.rematter.json
    ```
 
-3. Review the generated file, then use it as `config/Equivox/custom_emc.json`. The helper never edits its input or overwrites an existing destination. Install both parts; the data pack alone does not change EMC values.
+3. *(Optional — Equivox)* Review the generated file, then use it as `config/Equivox/custom_emc.json`. The helper never edits its input or overwrites an existing destination. The data pack alone does not change EMC values.
 4. *(Optional — Eccentric Tome)* To allow the **ReMatter Guide** inside an Eccentric Tome, add `"rematter:guide"` to the `items` list (and `"rematter"` to `mod_aliases` if desired) in `config/eccentrictome-common.toml`:
 
    ```toml
@@ -85,7 +85,7 @@ Replication's `skip_calculation` tag does not override an explicit matter-value 
    ]
    ```
 
-5. Restart the game or server and verify the final chemistry, tag, EMC, and Replication state. Check quartz recovery, the absence of a sand-to-quartz route, and the protected machines and three Cell types with stored contents. Automated data checks do not replace this gameplay and balance check.
+5. Restart the game or server and verify the final chemistry, tags, and (if installed) EMC/Replication exclusions. Check quartz recovery, the absence of a sand-to-quartz route, and sand-to-silicon electrolysis. Automated data checks do not replace this gameplay and balance check.
 
 ## Validation
 

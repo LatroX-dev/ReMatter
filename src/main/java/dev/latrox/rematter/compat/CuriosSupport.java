@@ -48,6 +48,24 @@ public final class CuriosSupport {
         }
     }
 
+    public static ItemStack findSpectrometerLens(Player player) {
+        if (!enabled) return ItemStack.EMPTY;
+        try {
+            return dev.latrox.rematter.compat.curios.CuriosCompat.findSpectrometerLens(player);
+        } catch (LinkageError incompatible) {
+            enabled = false;
+            return ItemStack.EMPTY;
+        }
+    }
+
+    public static boolean hasSpectrometerLens(Player player) {
+        return !findSpectrometerLens(player).isEmpty();
+    }
+
+    public static boolean hasDiscoveryLens(Player player) {
+        return hasSpectrometerLens(player);
+    }
+
     public static int chargeCuriosItems(Player player, ItemStack batteryStack, int budget) {
         if (!enabled || budget <= 0) return 0;
         try {

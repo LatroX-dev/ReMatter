@@ -178,7 +178,12 @@ public final class ResearchRuntimeGameTests {
         return spent;
     }
     private static void discovery(GameTestHelper h) {
-        var r = rig(h, MachineKind.ANALYZER); fuel(r.machine, 64_000, true);
+        var r = rig(h, MachineKind.ANALYZER);
+        assertTrue(h, !r.machine.canPlaceItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(ModContent.SPECTROMETER_LENS.get())),
+                "Early Spectrometer Lens must not satisfy the Analyzer Discovery slot");
+        assertTrue(h, r.machine.canPlaceItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(PrimalContent.DISCOVERY_LENS.get())),
+                "Discovery Lens must fit the Analyzer Discovery slot");
+        fuel(r.machine, 64_000, true);
         assertTrue(h, !action(r.machine, MachineActionPayload.Action.DISCOVER, "", 1), "Discovery ignored its real progression gate");
         // The production operator override explicitly supports test worlds and quest rewards; no hidden test bypass.
         ResearchService.ledger(r.server()).overrideDiscovery(r.uuid(), true);

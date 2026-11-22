@@ -56,6 +56,8 @@ public final class ItemGuidance {
         add(items, "pressurized_canister", Role.STORAGE, "pressurized_canister");
         add(items, "matter_level_emitter", Role.STORAGE, "matter_level_emitter");
         add(items, "entangled_link", Role.LINK, "entangled_link");
+        add(items, "spectrometer_lens", Role.RESEARCH, "spectrometer_lens");
+        add(items, "discovery_lens", Role.RESEARCH, "discovery_lens");
         add(items, "grinding_unit", Role.PREPARATION, "grinding");
         add(items, "mixing_basin", Role.PREPARATION, "mixing");
         add(items, "separation_unit", Role.PREPARATION, "precision");

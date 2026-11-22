@@ -45,12 +45,13 @@ Patchouli and Ponder are not required. ReMatter does not add duplicate books to 
 
 The optional Jade integration targets **Jade 26.1.12**. Its server-authorized overlays cover processing machines (including live FE/t draw, active speed/efficiency/parallel upgrades, Pressure Module status, industrial Field/Room/Precision, and outdated/stopped Network Interface orders), Energy Cubes (charge level, net flow, docked charge/discharge counts), Wireless Access Points (online state, active range, installed boosters, power), Matter Level Emitters (configured substance/phase, threshold, emitted signal), Entangled Links (pairing state, dimension/range status), and Cell Transfer Stations (transfer readiness and docked cells). Every provider respects machine ownership and does not expose another player's inventory, energy, fluid, or status details. The Jade settings list each ReMatter provider by name.
 
-## Curios and Wireless Hotkey
+## Curios and Hotkeys
 
-The optional Curios integration targets **Curios 15.0.0+26.1.2**. Both the **Wireless Matter Terminal** and the **Portable Energy Cell** accept `curio`, `charm`, and `belt` slots via `data/curios/tags/item/{curio,charm,belt}.json`, and `data/rematter/curios/entities/rematter.json` ensures `charm` and `belt` slots are available on players when Curios is installed.
+The optional Curios integration targets **Curios 15.0.0+26.1.2**. The **Wireless Matter Terminal** and **Portable Energy Cell** accept `curio`, `charm`, and `belt` slots, the **Spectrometer Lens** and **Discovery Lens** accept `head`, `charm`, and `curio` slots via `data/curios/tags/item/{head,curio,charm,belt}.json`, and `data/rematter/curios/entities/rematter.json` ensures `head`, `charm`, and `belt` slots are available on players when Curios is installed.
 
 - **Wireless Matter Terminal:** assign the client keybind **Controls → ReMatter → Open Wireless Matter Terminal** (unbound by default) to open a bound, charged terminal carried in your inventory or equipped in a Curios slot without switching hotbar slots. Right-clicking the terminal in hand opens it normally rather than auto-equipping into Curios.
 - **Portable Energy Cell:** when toggled on, recharges compatible FE items across both your player inventory and equipped Curios slots, and ticks continuously while equipped in a Curios slot.
+- **Spectrometer Lens & Discovery Lens:** craft an early **Spectrometer Lens** (upgradable into a **Discovery Lens** for Analyzer Discovery), wear either lens in a Curios `head`, `charm`, or `curio` slot (or right-click in air to equip) to project the Field Spectrometer HUD and inspect full item compositions with `SubstanceIcon` badges on Shift tooltips even before research. Assign **Controls → ReMatter → Toggle Spectrometer Lens** (unbound by default) to toggle the spectrometer HUD and tooltips on or off without unequipping. Synthesizing materials still requires research.
 
 ## Cross-mod compatibility recipes
 
@@ -112,7 +113,7 @@ The [material catalogue](material-coverage.md) lists the reviewed material famil
 
 Add or rebalance profiles with [chemistry data packs](data-packs.md). Decomposition does not grant synthesis permission. Every synthesized output needs an explicit allowed category; manufactured components, machines, and equipment remain excluded.
 
-For ReForging's coexistence with Replication and Equivox, see the separate [optional integration pack](../integrations/reforging/README.md). It requires crystalline quartz silica for silicon electrolysis, removes Ender IO grinding-ball bonuses from quartz-gem and obsidian milling, disables native recipes that would turn a single dust or cheap ingredients into a whole block or ingot, and excludes ReMatter machines from Replication and Equivox copying. These additional pack rules are not activated by installing the standalone mod.
+For ReForging's pack rules and optional third-party coexistence safeguards, see the separate [optional integration pack](../integrations/reforging/README.md). It preserves ReMatter's standard sand-to-silicon electrolysis while keeping crystalline quartz separate, removes Ender IO grinding-ball bonuses from quartz-gem and obsidian milling, disables native recipes that would turn a single dust or cheap ingredients into a whole block or ingot, and retains optional Replication/Equivox exclusions for packs that install those mods. These additional pack rules are not activated by installing the standalone mod.
 
 ## Specialist machines and production rules
 

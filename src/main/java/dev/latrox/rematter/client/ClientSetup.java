@@ -9,6 +9,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterBlockStateModels;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
@@ -39,6 +40,9 @@ public final class ClientSetup {
     @SubscribeEvent public static void registerLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(MachineRenderer.LAYER, MachineRenderer::createLayer);
         event.registerLayerDefinition(IndustrialModuleRenderer.LAYER, IndustrialModuleRenderer::createLayer);
+    }
+    @SubscribeEvent public static void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(DiscoveryLensTooltip.Data.class, DiscoveryLensTooltip.Client::new);
     }
     @SubscribeEvent public static void registerGuiLayers(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event) {
         var wrenchLayer = net.minecraft.resources.Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "wrench_hud");

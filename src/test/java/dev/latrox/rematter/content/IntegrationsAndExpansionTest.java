@@ -36,7 +36,7 @@ class IntegrationsAndExpansionTest {
     }
 
     @Test
-    void curiosSlotTagsIncludeWirelessTerminalAndPortableEnergyCell() throws Exception {
+    void curiosSlotTagsIncludeWirelessTerminalPortableEnergyCellAndDiscoveryLens() throws Exception {
         for (String slot : List.of("curio", "charm", "belt")) {
             Path path = RESOURCES.resolve("data/curios/tags/item/" + slot + ".json");
             assertTrue(Files.isRegularFile(path), "Missing Curios tag: " + path);
@@ -46,13 +46,34 @@ class IntegrationsAndExpansionTest {
                     .map(e -> e.getAsString()).collect(Collectors.toSet());
             assertTrue(values.contains("rematter:wireless_matter_terminal"), slot);
             assertTrue(values.contains("rematter:portable_energy_cell"), slot);
+            if (!slot.equals("belt")) {
+                assertTrue(values.contains("rematter:spectrometer_lens"), slot);
+                assertTrue(values.contains("rematter:discovery_lens"), slot);
+            }
         }
+        Path headPath = RESOURCES.resolve("data/curios/tags/item/head.json");
+        assertTrue(Files.isRegularFile(headPath), "Missing Curios head tag: " + headPath);
+        var headJson = JsonParser.parseString(Files.readString(headPath)).getAsJsonObject();
+        assertFalse(headJson.get("replace").getAsBoolean());
+        Set<String> headValues = headJson.getAsJsonArray("values").asList().stream()
+                .map(e -> e.getAsString()).collect(Collectors.toSet());
+        assertTrue(headValues.contains("rematter:spectrometer_lens"), "head");
+        assertTrue(headValues.contains("rematter:discovery_lens"), "head");
+
         Path entitySlots = RESOURCES.resolve("data/rematter/curios/entities/rematter.json");
         assertTrue(Files.isRegularFile(entitySlots), "Missing Curios entity slot declaration");
         var entityJson = JsonParser.parseString(Files.readString(entitySlots)).getAsJsonObject();
         Set<String> slots = entityJson.getAsJsonArray("slots").asList().stream()
                 .map(e -> e.getAsString()).collect(Collectors.toSet());
-        assertTrue(slots.contains("charm") && slots.contains("belt"));
+        assertTrue(slots.contains("head") && slots.contains("charm") && slots.contains("belt"));
+
+        // Verify Spectrometer Lens is early-game shaped crafting and upgrades into Discovery Lens.
+        var specRecipe = JsonParser.parseString(Files.readString(RESOURCES.resolve("data/rematter/recipe/spectrometer_lens.json"))).getAsJsonObject();
+        assertEquals("minecraft:crafting_shaped", specRecipe.get("type").getAsString());
+        assertEquals("rematter:ice_matrix_crystal", specRecipe.getAsJsonObject("key").get("I").getAsString());
+        var discRecipe = JsonParser.parseString(Files.readString(RESOURCES.resolve("data/rematter/recipe/discovery_lens.json"))).getAsJsonObject();
+        assertEquals("rematter:preparation", discRecipe.get("type").getAsString());
+        assertEquals("rematter:spectrometer_lens", discRecipe.get("secondary").getAsString());
     }
 
     @Test

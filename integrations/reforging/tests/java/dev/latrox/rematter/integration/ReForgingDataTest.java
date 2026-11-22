@@ -112,20 +112,20 @@ class ReForgingDataTest {
     }
 
     @Test
-    void ordinarySandSoilAndRockCannotBecomeHighValueSilicon() throws Exception {
+    void sandElectrolysisProducesSiliconWhileQuartzIdentityRemainsProtected() throws Exception {
         ChemistryRegistry registry = integration();
         ProcessRecipe electrolysis = registry.recipe(SubstanceId.parse("rematter:silica_electrolysis")).orElseThrow();
-        assertEquals(Map.of(CRYSTAL, 1_000L), electrolysis.inputs());
+        assertEquals(Map.of(BuiltinChemistry.SILICA, 1_000L), electrolysis.inputs());
         assertEquals(Map.of(BuiltinChemistry.SILICON, 1_000L, BuiltinChemistry.OXYGEN, 1_000L), electrolysis.outputs());
         assertEquals(64_000, electrolysis.energy());
         assertEquals(800, electrolysis.ticks());
         assertEquals(registry.elementAmounts(electrolysis.inputs()), registry.elementAmounts(electrolysis.outputs()));
         var reachable = MatterReachability.from(registry, Set.of("minecraft:sand", "minecraft:clay_ball", "minecraft:dirt",
                 "minecraft:stone", "minecraft:cobblestone"), Set.of("minecraft:water", "minecraft:lava"));
-        assertTrue(reachable.matter().containsAll(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SOIL, BuiltinChemistry.ROCK,
-                BuiltinChemistry.LAVA, BuiltinChemistry.HYDROGEN, BuiltinChemistry.OXYGEN)));
+        assertTrue(reachable.matter().containsAll(Set.of(BuiltinChemistry.SILICA, BuiltinChemistry.SILICON,
+                BuiltinChemistry.SOIL, BuiltinChemistry.ROCK, BuiltinChemistry.LAVA, BuiltinChemistry.HYDROGEN,
+                BuiltinChemistry.OXYGEN)));
         assertFalse(reachable.matter().contains(CRYSTAL));
-        assertFalse(reachable.matter().contains(BuiltinChemistry.SILICON));
         assertFalse(reachable.matter().contains(BuiltinChemistry.ALUMINUM));
         assertFalse(reachable.items().contains("minecraft:quartz"));
     }

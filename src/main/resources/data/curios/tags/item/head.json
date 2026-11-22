@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:spectrometer_lens",
+    "rematter:discovery_lens"
+  ]
+}

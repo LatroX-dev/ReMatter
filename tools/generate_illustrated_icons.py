@@ -688,6 +688,99 @@ def pressurized_canister(look=None):
     return drawing.svg()
 
 
+def spectrometer_lens():
+    """Early field spectrometer optic: graphite & steel bezel with a faceted Ice Matrix Crystal prism core.
+    Matches the Discovery Lens silhouette so its later upgrade path reads clearly, while carrying the exact
+    Ice crystal hue (#d7d1bc) from its recipe and no Primal hues."""
+    ice_rgb = RGB['ice']
+    ice_hi = hex_color(lighten(ice_rgb, .38))
+    ice = hex_color(ice_rgb)
+    ice_mid = hex_color(scale(ice_rgb, .80))
+    ice_lo = hex_color(scale(ice_rgb, .52))
+    ice_deep = hex_color(scale(ice_rgb, .28))
+    ink = hex_color(SEAM)
+    well = hex_color(WELL)
+    trim = hex_color(TRIM)
+    steel = hex_color(STEEL)
+    steel_sh = hex_color(STEEL_SHADE)
+    steel_dp = hex_color(STEEL_DEEP)
+    base = hex_color(BASE)
+    hi = hex_color(HIGHLIGHT)
+    shade = hex_color(SHADE)
+    port_lt = hex_color(PORT_LIGHT)
+    port_mt = hex_color(PORT_METAL)
+    cu = hex_color(COPPER)
+    cu_hi = hex_color(COPPER_LIGHT)
+    tilt = 'transform="rotate(-18 60 58)"'
+
+    defs = [
+        f'<linearGradient id="sl-graphite" x1="0%" y1="0%" x2="100%" y2="100%">'
+        f'<stop offset="0%" stop-color="{port_lt}"/>'
+        f'<stop offset="32%" stop-color="{port_mt}"/>'
+        f'<stop offset="68%" stop-color="{hi}"/>'
+        f'<stop offset="100%" stop-color="{base}"/></linearGradient>',
+        f'<linearGradient id="sl-wall" x1="0%" y1="0%" x2="100%" y2="100%">'
+        f'<stop offset="0%" stop-color="{hi}"/>'
+        f'<stop offset="100%" stop-color="{shade}"/></linearGradient>',
+        f'<linearGradient id="sl-steel" x1="0%" y1="0%" x2="100%" y2="100%">'
+        f'<stop offset="0%" stop-color="{trim}"/>'
+        f'<stop offset="48%" stop-color="{steel}"/>'
+        f'<stop offset="100%" stop-color="{steel_sh}"/></linearGradient>',
+        f'<radialGradient id="sl-glass" cx=".44" cy=".42" r=".64">'
+        f'<stop offset="0%" stop-color="{ice_hi}"/>'
+        f'<stop offset="38%" stop-color="{ice_mid}"/>'
+        f'<stop offset="76%" stop-color="{steel_dp}"/>'
+        f'<stop offset="100%" stop-color="{well}"/></radialGradient>',
+        f'<clipPath id="sl-pane"><ellipse cx="60" cy="58" rx="28" ry="26.5" {tilt}/></clipPath>',
+    ]
+    clamps = ''.join(
+        f'<rect x="-5" y="-39.5" width="10" height="11" rx="2" transform="translate(60 58) rotate({angle})" '
+        f'fill="url(#sl-steel)" stroke="{ink}" stroke-width="2"/>' for angle in (-58, 62, 182))
+    ticks = ''.join(
+        f'<line x1="60" y1="17" x2="60" y2="21" transform="rotate({angle} 60 58)" stroke="{trim}" '
+        f'stroke-width="1.5" stroke-linecap="round" opacity=".78"/>' for angle in range(-128, 40, 14))
+    parts = [
+        # Steel mounting lug with copper contact collar (from its Control Circuit) and bore hole.
+        f'<rect x="-9" y="36" width="18" height="30" rx="5" transform="translate(64 62) rotate(-45)" '
+        f'fill="url(#sl-steel)" stroke="{ink}" stroke-width="5"/>',
+        f'<rect x="-8" y="38" width="16" height="6" rx="1.5" transform="translate(64 62) rotate(-45)" '
+        f'fill="{cu}" stroke="{ink}" stroke-width="1.6"/>',
+        f'<line x1="-6" y1="39.5" x2="6" y2="39.5" transform="translate(64 62) rotate(-45)" '
+        f'stroke="{cu_hi}" stroke-width="1.4" stroke-linecap="round"/>',
+        f'<circle cx="104.5" cy="102.5" r="3.6" fill="{well}" stroke="{ink}" stroke-width="1.2"/>',
+        # Three-quarter graphite housing depth and face.
+        f'<ellipse cx="67" cy="67" rx="44" ry="42" {tilt} fill="url(#sl-wall)" stroke="{ink}" stroke-width="5"/>',
+        f'<ellipse cx="60" cy="58" rx="44" ry="42" {tilt} fill="url(#sl-graphite)" stroke="{ink}" stroke-width="5"/>',
+        f'<ellipse cx="60" cy="58" rx="40.6" ry="38.6" {tilt} fill="none" stroke="{trim}" stroke-width="1.6" '
+        'stroke-dasharray="118 400" stroke-dashoffset="-128" stroke-linecap="round" opacity=".8"/>',
+        f'<g>{ticks}</g>',
+        f'<ellipse cx="60" cy="58" rx="34.5" ry="32.5" {tilt} fill="url(#sl-steel)" stroke="{ink}" stroke-width="2.6"/>',
+        f'<ellipse cx="60" cy="58" rx="29.5" ry="28" {tilt} fill="{well}" stroke="{ink}" stroke-width="1.6"/>',
+        f'<ellipse cx="60" cy="58" rx="28" ry="26.5" {tilt} fill="url(#sl-glass)"/>',
+        '<g clip-path="url(#sl-pane)">',
+        # Analytical spectrometer reticle ring and axis marks inside the lens chamber.
+        f'<circle cx="60" cy="58" r="21" fill="none" stroke="{trim}" stroke-width="1.2" opacity=".45"/>',
+        f'<line x1="33" y1="58" x2="43" y2="58" stroke="{trim}" stroke-width="1.4" opacity=".55"/>',
+        f'<line x1="77" y1="58" x2="87" y2="58" stroke="{trim}" stroke-width="1.4" opacity=".55"/>',
+        f'<line x1="60" y1="32" x2="60" y2="41" stroke="{trim}" stroke-width="1.4" opacity=".55"/>',
+        f'<line x1="60" y1="75" x2="60" y2="84" stroke="{trim}" stroke-width="1.4" opacity=".55"/>',
+        # Faceted Ice Matrix Crystal prism core carrying large flat facets in the exact #d7d1bc Ice hue.
+        f'<polygon points="60,38 75,51 73,70 59,79 45,67 46,49" fill="{ice}" stroke="{ice_deep}" stroke-width="2.2" stroke-linejoin="round"/>',
+        f'<polygon points="60,38 75,51 60,55 46,49" fill="{ice_hi}"/>',
+        f'<polygon points="46,49 60,55 59,79 45,67" fill="{ice}"/>',
+        f'<polygon points="60,55 75,51 73,70 59,79" fill="{ice}"/>',
+        f'<polygon points="75,51 73,70 67,67 68,54" fill="{ice_lo}"/>',
+        f'<polygon points="52,50 60,53 59,66 51,62" fill="{ice}"/>',
+        # Glass specular reflection arcs.
+        '<path d="M38 48 Q44 33 60 31 Q48 37 43 51 Z" fill="#ffffff" opacity=".75"/>',
+        '<path d="M74 82 Q82 77 85 67 Q84 78 77 84 Z" fill="#ffffff" opacity=".32"/>',
+        '</g>',
+        f'<g>{clamps}</g>',
+    ]
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">\n<defs>\n'
+            + '\n'.join(defs) + '\n</defs>\n' + '\n'.join(parts) + '\n</svg>\n')
+
+
 def digest(content):
     return hashlib.sha256(content).hexdigest()
 
@@ -705,7 +798,8 @@ def generate(check=False):
                          ('wireless_booster', wireless_booster()),
                          ('wireless_matter_terminal', wireless_terminal()),
                          ('portable_energy_cell', portable_energy_cell()),
-                         ('pressurized_canister', pressurized_canister())):
+                         ('pressurized_canister', pressurized_canister()),
+                         ('spectrometer_lens', spectrometer_lens())):
         source = source.encode()
         out.bytes(ART / (name + '.svg'), source)
         path = TEX / (name + '.png')

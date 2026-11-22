@@ -5,15 +5,18 @@ import dev.latrox.rematter.chemistry.EnvironmentSource;
 import dev.latrox.rematter.chemistry.ReservedSubstances;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Pure research-gated spectrometry logic shared by the in-world Discovery Lens HUD and Shift tooltips.
- * Never reveals unanalyzed substance compositions when research progression is enabled.
+ * Pure spectrometry logic shared by the in-world Discovery Lens HUD and Shift item tooltips.
+ * Reveals full chemical compositions even before research, while keeping synthesis status strictly research-gated.
  */
 public final class DiscoveryLensInspector {
+    private static final Comparator<KnownTrace> TRACE_ORDER =
+            Comparator.comparingLong(KnownTrace::amount).reversed().thenComparing(KnownTrace::key);
     public enum SynthesisStatus {
         NONE,
         DECOMPOSITION_ONLY,
@@ -83,44 +86,16 @@ public final class DiscoveryLensInspector {
                 ? registry.synthesisPolicy().allowsFluid(exactId)
                 : registry.synthesisPolicy().allowsItem(exactId);
 
-        if (researchEnabled && !researchAvailable) {
-            return new SampleReport(
-                    false,
-                    true,
-                    batchCount,
-                    fluid,
-                    durabilityScaled,
-                    List.of(),
-                    matter.size(),
-                    allowlisted ? SynthesisStatus.SYNTHESIS_LOCKED : SynthesisStatus.DECOMPOSITION_ONLY);
-        }
-
         List<KnownTrace> revealed = new ArrayList<>(matter.size());
-        int hidden = 0;
         for (var entry : matter.entrySet()) {
-            if (!researchEnabled || targetSynthesisKnown || substanceKnown.test(entry.getKey())) {
-                revealed.add(new KnownTrace(entry.getKey(), entry.getValue()));
-            } else {
-                hidden++;
-            }
+            revealed.add(new KnownTrace(entry.getKey(), entry.getValue()));
         }
-
-        if (researchEnabled && revealed.isEmpty()) {
-            return new SampleReport(
-                    false,
-                    true,
-                    batchCount,
-                    fluid,
-                    durabilityScaled,
-                    List.of(),
-                    hidden,
-                    allowlisted ? SynthesisStatus.SYNTHESIS_LOCKED : SynthesisStatus.DECOMPOSITION_ONLY);
-        }
+        revealed.sort(TRACE_ORDER);
 
         SynthesisStatus synthStatus;
         if (!allowlisted || durabilityScaled) {
             synthStatus = SynthesisStatus.DECOMPOSITION_ONLY;
-        } else if (!researchEnabled || targetSynthesisKnown) {
+        } else if (!researchEnabled || (researchAvailable && targetSynthesisKnown)) {
             synthStatus = SynthesisStatus.SYNTHESIS_UNLOCKED;
         } else {
             synthStatus = SynthesisStatus.SYNTHESIS_LOCKED;
@@ -132,7 +107,7 @@ public final class DiscoveryLensInspector {
                 fluid,
                 durabilityScaled,
                 revealed,
-                hidden,
+                0,
                 synthStatus);
     }
 
@@ -174,16 +149,12 @@ public final class DiscoveryLensInspector {
         for (EnvironmentSource source : registry.environmentSources()) {
             if (!source.dimensions().contains(dimensionId)) continue;
             if (source.requiresOpenAir() && !skyVisible) continue;
-            List<KnownTrace> known = new ArrayList<>();
-            int hidden = 0;
+            List<KnownTrace> known = new ArrayList<>(source.outputs().size());
             for (var entry : source.outputs().entrySet()) {
-                if (!researchEnabled || (researchAvailable && substanceKnown.test(entry.getKey()))) {
-                    known.add(new KnownTrace(entry.getKey(), entry.getValue()));
-                } else {
-                    hidden++;
-                }
+                known.add(new KnownTrace(entry.getKey(), entry.getValue()));
             }
-            out.add(new AtmosphereEntry(source, known, hidden));
+            known.sort(TRACE_ORDER);
+            out.add(new AtmosphereEntry(source, known, 0));
         }
         return List.copyOf(out);
     }
