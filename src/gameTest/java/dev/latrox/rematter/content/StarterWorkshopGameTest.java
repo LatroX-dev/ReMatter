@@ -76,12 +76,12 @@ final class StarterWorkshopGameTest {
 
         craft("rematter:cell_rack", 1);
         craft("rematter:cell_housing", 1);
-        craft("rematter:matter_cell_64k", 1);
+        craft("rematter:matter_cell_4m", 1);
         craft("rematter:matter_drive", 1);
         craft("rematter:decomposer", 1);
         craft("rematter:material_synthesizer", 1);
         var drive = place(MachineKind.DRIVE, bench.west());
-        drive.setItem(drive.cellSlotForBay(0), take(ModContent.MATTER_CELL_64K.get(), 1));
+        drive.setItem(drive.cellSlotForBay(0), take(ModContent.MATTER_CELL_4M.get(), 1));
 
         // Give each processor the generator's output in turn, as a player can by moving the machines.
         var decomposer = place(MachineKind.DECOMPOSER, bench);

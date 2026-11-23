@@ -48,10 +48,14 @@ class TerminalPayloadCodecTest {
         assertEquals(queue, roundTrip(TerminalDeviceActionPayload.CODEC, queue));
         var open = new TerminalDeviceActionPayload(4, POSITION, TerminalDeviceActionPayload.Action.OPEN, "");
         assertEquals(open, roundTrip(TerminalDeviceActionPayload.CODEC, open));
+        var cancel = new TerminalDeviceActionPayload(4, POSITION, TerminalDeviceActionPayload.Action.CANCEL_JOB, "");
+        assertEquals(cancel, roundTrip(TerminalDeviceActionPayload.CODEC, cancel));
         assertThrows(IllegalArgumentException.class,
                 () -> new TerminalDeviceActionPayload(4, POSITION, TerminalDeviceActionPayload.Action.QUEUE_BATCH, ""));
         assertThrows(IllegalArgumentException.class,
                 () -> new TerminalDeviceActionPayload(4, POSITION, TerminalDeviceActionPayload.Action.OPEN, RECIPE));
+        assertThrows(IllegalArgumentException.class,
+                () -> new TerminalDeviceActionPayload(4, POSITION, TerminalDeviceActionPayload.Action.CANCEL_JOB, RECIPE));
         assertThrows(IllegalArgumentException.class, () -> new TerminalDeviceActionPayload(4, POSITION,
                 TerminalDeviceActionPayload.Action.QUEUE_BATCH, "rematter:" + "x".repeat(MachineSnapshot.MAX_CHOICE_ID_LENGTH)));
     }

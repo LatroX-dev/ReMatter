@@ -43,7 +43,7 @@ public final class RsClient {
                 new RsMatterGrid((RsMatterKey) resource).render(graphics, x, y);
             }
             @Override public void render(ResourceKey resource, PoseStack poseStack, SubmitNodeCollector nodes, int light, long seed) {
-                var icon=new com.refinedmods.refinedstorage.common.support.resource.ItemResource(dev.latrox.rematter.content.ModContent.MATTER_CELL_64K.get());
+                var icon=new com.refinedmods.refinedstorage.common.support.resource.ItemResource(dev.latrox.rematter.content.ModContent.MATTER_CELL_4M.get());
                 RefinedStorageClientApi.INSTANCE.getResourceRendering(com.refinedmods.refinedstorage.common.support.resource.ItemResource.class)
                         .render(icon,poseStack,nodes,light,seed);
             }

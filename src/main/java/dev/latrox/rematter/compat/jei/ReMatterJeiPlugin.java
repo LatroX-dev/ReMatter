@@ -108,6 +108,33 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         for (var machine : dev.latrox.rematter.compat.CrystalFuelDisplay.MACHINES) registration.addRecipeCategories(new CrystalFuelCategory(machine, registration.getJeiHelpers().getGuiHelper()));
     }
     @Override
+    public void registerVanillaCategoryExtensions(mezz.jei.api.registration.IVanillaCategoryExtensionRegistration registration) {
+        if (!enabled()) return;
+        registration.getCraftingCategory().addExtension(
+                dev.latrox.rematter.energy.EnergyUpgradeRecipe.class,
+                new mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension<>() {
+                    @Override
+                    public List<net.minecraft.world.item.crafting.display.SlotDisplay> getIngredients(
+                            net.minecraft.world.item.crafting.RecipeHolder<dev.latrox.rematter.energy.EnergyUpgradeRecipe> holder) {
+                        return holder.value().pattern.ingredients().stream()
+                                .map(ing -> ing.map(net.minecraft.world.item.crafting.Ingredient::display)
+                                        .orElse(net.minecraft.world.item.crafting.display.SlotDisplay.Empty.INSTANCE))
+                                .toList();
+                    }
+                    @Override public int getWidth(net.minecraft.world.item.crafting.RecipeHolder<dev.latrox.rematter.energy.EnergyUpgradeRecipe> holder) { return holder.value().getWidth(); }
+                    @Override public int getHeight(net.minecraft.world.item.crafting.RecipeHolder<dev.latrox.rematter.energy.EnergyUpgradeRecipe> holder) { return holder.value().getHeight(); }
+                    @Override
+                    public void setRecipe(
+                            net.minecraft.world.item.crafting.RecipeHolder<dev.latrox.rematter.energy.EnergyUpgradeRecipe> holder,
+                            mezz.jei.api.gui.builder.IRecipeLayoutBuilder builder,
+                            mezz.jei.api.gui.ingredient.ICraftingGridHelper helper,
+                            mezz.jei.api.recipe.IFocusGroup focuses) {
+                        helper.createAndSetIngredientsFromDisplays(builder, getIngredients(holder), getWidth(holder), getHeight(holder));
+                        helper.createAndSetOutputs(builder, new net.minecraft.world.item.crafting.display.SlotDisplay.ItemStackSlotDisplay(holder.value().resultTemplate()));
+                    }
+                });
+    }
+    @Override
     public void registerRecipes(IRecipeRegistration registration) {
         if (!enabled()) return;
         visibleRecipes.forEach(recipe -> knownRecipes.put(recipe, recipe));

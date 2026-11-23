@@ -8,9 +8,9 @@ item_ids:
   - rematter:cell_transfer_station
   - rematter:matter_drive
   - rematter:matrix_cluster
-  - rematter:matter_cell_256k
-  - rematter:matter_cell_1m
-  - rematter:matter_cell_4m
+  - rematter:matter_cell_16m
+  - rematter:matter_cell_64m
+  - rematter:matter_cell_256m
   - rematter:void_matter_cell
   - rematter:pressurized_canister
   - rematter:matter_terminal
@@ -94,15 +94,15 @@ Primal Cells also retain their inventory gesture for loading Shards or ore and m
 
 ## Larger Cells
 
-A 64k Cell holds **64,000 units** and uses a Matrix Crystal and a Control Circuit. A 256k Cell holds **256,000 units** and uses a Matrix Cluster, a Control Circuit and two Ender Conductors. A 1M Cell holds **1,000,000 units** and uses four Clusters, an Optical Circuit, a Diamond Lattice, an Ender Conductor and a Netherite Sheath. A 4M Cell holds **4,000,000 units** and combines a Mint Matrix Crystal, a Cluster, two Optical Circuits, two Ender Conductors, a Diamond Lattice and a Netherite Sheath. A **Void Matter Cell** accepts whitelisted substance overflow and safely discards excess amounts once full.
+A 4M Cell holds **4,000,000 units** (4,000 ingots or buckets) and uses a Matrix Crystal and a Control Circuit. A 16M Cell holds **16,000,000 units** and uses a Matrix Cluster, a Control Circuit and two Rhevon Ingots. A 64M Cell holds **64,000,000 units** and uses two Clusters, an Optical Circuit, a Diamond Lattice and two Ender Conductors. A 256M Cell holds **256,000,000 units** and combines a Mint Matrix Crystal, two Clusters, two Optical Circuits, two Ender Conductors and a Netherite Sheath. A **Void Matter Cell** accepts whitelisted substance overflow and safely discards excess amounts once full.
 
 A Cluster combines four Crystals with Rhedon, Virel, Structural Bars and Matrix Blend. An Optical Circuit uses Lumivex, glass, a Control Circuit and Diamond Lattices. Each Cell also needs a separately crafted Cell Housing.
 
 <RecipeFor id="rematter:matrix_cluster" />
 <RecipeFor id="rematter:optical_circuit" />
-<RecipeFor id="rematter:matter_cell_256k" />
-<RecipeFor id="rematter:matter_cell_1m" />
-<RecipeFor id="rematter:matter_cell_4m" />
+<RecipeFor id="rematter:matter_cell_16m" />
+<RecipeFor id="rematter:matter_cell_64m" />
+<RecipeFor id="rematter:matter_cell_256m" />
 <RecipeFor id="rematter:void_matter_cell" />
 
 Every Cell supports up to **512 substance/phase pairs**. Solids, liquids and gases share its space. Water and water vapor are different types.

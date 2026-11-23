@@ -15,6 +15,11 @@ CLEAR = (0, 0, 0, 0)
 # Automatic wears a neutral light-graphite ring, clearly brighter than the casing and without rainbow segments.
 PORT_AUTOMATIC_STYLES = ('solid_bevel', 'notched_bevel')
 PORT_AUTOMATIC_STYLE = 'solid_bevel'
+# One-line switch for Matter Cable texture style & animation (synced with generate_family_assets.py).
+CABLE_LOOKS = ('pcb_traces', 'fiber_trace', 'glass_conduit', 'conduit_cage', 'classic_sleek')
+CABLE_LOOK = 'pcb_traces'
+CABLE_ANIMS = ('single_pulse', 'idle_quiet', 'steady_flow')
+CABLE_ANIM = 'single_pulse'
 
 
 class Sprite:
@@ -302,43 +307,439 @@ def machine_port(color, contact=True, automatic_style=PORT_AUTOMATIC_STYLE):
     return sprite
 
 
-def cable(tier):
+def cable(tier, look=None):
+    """Static shaded dark-graphite housing of a Matter Cable: clamps, elbows, manifold hubs and bolted flanges."""
+    look = CABLE_LOOK if look is None else look
     stripe, width, dashed = tier['stripe'], tier['width'], tier['dashed']
-    dark = scale(stripe, .7)
-    first = 4 - width // 2
+    deep = scale(stripe, .36)
+    dark = scale(stripe, .66)
     sprite = Sprite(fill=JACKET)
-    # Run strip, 32 x 8, repeating every eight texels. Its rows mirror around the centre line: the block state
-    # turns one arm model to all six sides, so any one-sided row would swap sides between opposite arms.
+    # Clamping collar / outer jacket strip (32 x 8), mirrored vertically around centre line.
     sprite.row(0, 0, 32, SEAM)
     sprite.row(7, 0, 32, SEAM)
-    sprite.rect(0, first, 32, first + width, stripe)
-    if dashed:
+    if look == 'conduit_cage':
+        # Dark armored steel-graphite cable clamp with subtle woven recesses.
+        sprite.row(1, 0, 32, PORT_DARK)
+        sprite.row(6, 0, 32, PORT_DARK)
+        sprite.rect(0, 2, 32, 6, SHADE)
         for x in range(32):
-            if x % 8 in (7, 0):
-                sprite.rect(x, 3, x + 1, 5, IVORY)
-    # End cap of the 4 x 4 core.
-    sprite.bevel(0, 8, 8, 16, SHADE, SEAM)
-    sprite.rect(2, 10, 6, 14, stripe)
-    sprite.row(13, 2, 6, dark)
-    # Face of the 6 x 6 junction hub.
+            if x % 4 in (1, 2):
+                sprite.px(x, 1, PORT_METAL)
+                sprite.px(x, 6, PORT_METAL)
+                sprite.rect(x, 2, x + 1, 6, BASE)
+            if x % 8 in (2, 3):
+                sprite.rect(x, 3, x + 1, 5, stripe)
+    elif look == 'glass_conduit':
+        # Sleek forged gunmetal end-clamp bands for Mekanism-style glass tubes.
+        sprite.row(1, 0, 32, PORT_LIGHT)
+        sprite.row(6, 0, 32, PORT_DARK)
+        sprite.rect(0, 2, 32, 6, PORT_METAL)
+        for x in range(32):
+            if x % 4 == 0:
+                sprite.rect(x, 1, x + 1, 7, SHADE)
+            elif x % 4 == 2:
+                sprite.rect(x, 3, x + 1, 5, stripe)
+    else:
+        # fiber_trace & classic_sleek: deep sleek graphite jacket with crisp dark channel + tier trace.
+        sprite.row(1, 0, 32, SHADE)
+        sprite.row(6, 0, 32, SHADE)
+        sprite.rect(0, 2, 32, 6, WELL)
+        sprite.rect(0, 3, 32, 5, stripe)
+        if dashed:
+            for x in range(32):
+                if x % 8 == 0:
+                    sprite.rect(x, 3, x + 1, 5, dark)
+    # End cap of the 4 x 4 elbow/core & clamp ends (0..8, 8..16): dark graphite bezel + subtle tier core.
+    sprite.rect(0, 8, 8, 16, SHADE)
+    sprite.ring(0, 8, 8, 16, SEAM)
+    sprite.bevel(1, 9, 7, 15, PORT_DARK, SEAM)
+    sprite.rect(2, 10, 6, 14, WELL)
+    sprite.rect(3, 11, 5, 13, stripe)
+    sprite.px(4, 12, dark)
+    for rx, ry in ((1, 9), (6, 9), (1, 14), (6, 14)):
+        sprite.px(rx, ry, PORT_METAL)
+    # Face of the 6 x 6 hub / manifold cap (8..20, 8..20): sleek dark graphite plate + centered cross/core.
+    sprite.rect(8, 8, 20, 20, BASE)
     sprite.ring(8, 8, 20, 20, SEAM)
-    sprite.rect(10, 10, 18, 18, PORT_METAL)
-    sprite.bevel(10, 10, 18, 18, PORT_LIGHT, PORT_DARK)
-    sprite.rect(12, 12, 16, 16, stripe)
-    sprite.row(15, 12, 16, dark)
-    # Face of the device flange; the shaft hides its centre.
-    sprite.rect(20, 8, 32, 20, PORT_METAL)
+    sprite.bevel(9, 9, 19, 19, HIGHLIGHT, SHADE)
+    sprite.rect(10, 10, 18, 18, JACKET)
+    if look == 'fiber_trace':
+        # Recessed dark channels meeting at a neat 2 x 2 tier node.
+        sprite.rect(13, 9, 15, 19, WELL)
+        sprite.rect(9, 13, 19, 15, WELL)
+        sprite.rect(13, 12, 15, 16, deep)
+        sprite.rect(12, 13, 16, 15, deep)
+        sprite.rect(13, 13, 15, 15, stripe)
+    elif look == 'conduit_cage':
+        # Dark armored 5 x 5 / 6 x 6 node with four bolted steel corners and a tight core lens.
+        sprite.rect(11, 11, 17, 17, PORT_DARK)
+        sprite.rect(12, 12, 16, 16, WELL)
+        sprite.rect(13, 13, 15, 15, stripe)
+    else:
+        sprite.rect(11, 11, 17, 17, WELL)
+        sprite.rect(12, 12, 16, 16, dark)
+        sprite.rect(13, 13, 15, 15, stripe)
+    for bx, by in ((10, 10), (17, 10), (10, 17), (17, 17)):
+        sprite.px(bx, by, PORT_LIGHT)
+    # Face of the 6 x 6 device flange (20..32, 8..20): dark gunmetal socket with subtle corner bolts.
+    sprite.rect(20, 8, 32, 20, PORT_DARK)
     sprite.ring(20, 8, 32, 20, SEAM)
-    sprite.bevel(21, 9, 31, 19, PORT_LIGHT, PORT_DARK)
+    sprite.bevel(21, 9, 31, 19, PORT_METAL, SEAM)
     sprite.rect(23, 11, 29, 17, JACKET)
     sprite.ring(22, 10, 30, 18, SEAM)
-    # Side of the flange: gunmetal toward the device, jacket and stripe toward the cable.
-    sprite.rect(0, 20, 12, 22, PORT_METAL)
-    sprite.row(20, 0, 12, PORT_LIGHT)
-    sprite.rect(0, 22, 12, 24, SHADE)
-    sprite.rect(6 - width // 2, 22, 6 + width // 2, 24, stripe)
+    for bx, by in ((22, 10), (29, 10), (22, 17), (29, 17)):
+        sprite.px(bx, by, STEEL_SHADE)
+    # Side of the device flange (0..12, 20..24): sleek dark gunmetal connector with fine tier accent.
+    sprite.rect(0, 20, 12, 24, PORT_DARK)
+    sprite.row(20, 0, 12, PORT_METAL)
+    sprite.row(23, 0, 12, SEAM)
+    sprite.rect(0, 22, 12, 23, JACKET)
+    sprite.rect(5, 21, 7, 23, stripe)
     sprite.col(0, 20, 24, SEAM)
     sprite.col(11, 20, 24, SEAM)
+    # Side rim of the glass_conduit hub caps (12..24, 20..24): slim forged metal bracket.
+    sprite.rect(12, 20, 24, 24, PORT_DARK)
+    sprite.row(20, 12, 24, PORT_METAL)
+    sprite.row(23, 12, 24, SEAM)
+    sprite.rect(14, 21, 22, 23, JACKET)
+    sprite.rect(17, 21, 19, 23, stripe)
+    sprite.col(12, 20, 24, SEAM)
+    sprite.col(23, 20, 24, SEAM)
+    return sprite
+
+
+def _pulse_tone(dist, anim, deep, dim, mid, bright, dashed, core_pin=False):
+    """Saturated, non-washed-out glow tone along a 16-texel conduit cycle."""
+    if anim == 'idle_quiet':
+        return mid
+    if anim == 'single_pulse':
+        # One calm, sleek data/energy pulse gliding through a dark sleeping fibre (period 16).
+        if dist == 0:
+            return IVORY if (dashed and core_pin) else bright
+        if dist in (1, 15):
+            return mid
+        if dist in (2, 14):
+            return dim
+        return deep
+    # steady_flow: continuous smooth dual-wave current (period 8), rich & saturated.
+    p = dist % 8
+    if p == 0:
+        return bright
+    if p in (1, 7):
+        return mid
+    if p in (2, 6):
+        return dim
+    return deep
+
+
+def _pcb_paths(complex_arches):
+    """Two non-touching 1-texel PCB trace paths over a 16-texel period (entry/exit symmetric at y=2 and y=5).
+
+    Path A bridges vertically OVER Path B at x=4; Path B bridges vertically OVER Path A at x=12.
+    Dark 1-texel gaps flank each underpass so both crossings read crisply on a 32x32 block texture.
+    """
+    if complex_arches:
+        path_a = [
+            (0, 2), (1, 2), (1, 1), (2, 1), (2, 2), (3, 2), (4, 2),
+            (4, 3), (4, 4), (4, 5), (5, 5), (6, 5), (6, 6), (7, 6),
+            (7, 5), (8, 5), (9, 5), (10, 5), (10, 4), (10, 3),
+            None,  # underpass under Path B at x=12
+            (14, 3), (14, 2), (15, 2),
+        ]
+        path_b = [
+            (0, 5), (1, 5), (2, 5), (2, 4), (2, 3),
+            None,  # underpass under Path A at x=4
+            (6, 3), (7, 3), (7, 2), (8, 2), (9, 2), (9, 1), (10, 1),
+            (10, 2), (11, 2), (12, 2), (12, 3), (12, 4), (12, 5),
+            (13, 5), (14, 5), (15, 5),
+        ]
+    else:
+        # Simplified crisp 90-degree dual traces without outer edge arches (Basic tier).
+        path_a = [
+            (0, 2), (1, 2), (2, 2), (3, 2), (4, 2),
+            (4, 3), (4, 4), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5),
+            (10, 5), (10, 4), (10, 3),
+            None,
+            (14, 3), (14, 2), (15, 2),
+        ]
+        path_b = [
+            (0, 5), (1, 5), (2, 5), (2, 4), (2, 3),
+            None,
+            (6, 3), (7, 3), (7, 2), (8, 2), (9, 2), (10, 2), (11, 2), (12, 2),
+            (12, 3), (12, 4), (12, 5), (13, 5), (14, 5), (15, 5),
+        ]
+    return path_a, path_b
+
+
+def _trace_tone(stripe, intensity):
+    """Quantize 0..1 intensity onto 4 well-spaced S1/S4/S5 palette stops (interpolate:true smooths frames on GPU)."""
+    if intensity >= .82:
+        return lighten(stripe, .24)
+    if intensity >= .52:
+        return stripe
+    if intensity >= .20:
+        return scale(stripe, .76)
+    return scale(stripe, .56)
+
+
+def _calm_envelope(frame):
+    """32-frame calm pulse envelope: smooth fade-in (1..4), gentle sweep (5..14), fade-out (15..18), quiet rest (19..31)."""
+    f = frame % 32
+    if f in (1, 17):
+        return .28
+    if f in (2, 16):
+        return .58
+    if f in (3, 15):
+        return .84
+    if 4 <= f <= 14:
+        return 1.0
+    return 0.0
+
+
+def _paint_pcb_traces(sprite, name, tier, frame, anim):
+    """Draw dark-shaft PCB traces (32x8), glowing corner core (8x8), and PCB junction hub (12x12)."""
+    stripe, width, dashed = tier['stripe'], tier['width'], tier['dashed']
+    deep = scale(stripe, .42)
+    dim = scale(stripe, .58)
+    mid = stripe
+    bright = lighten(stripe, .24)
+    # 1. Dark graphite cable shaft (32 x 8 at y=0..8) with sculpted dark border frame.
+    sprite.row(0, 0, 32, SEAM)
+    sprite.row(7, 0, 32, SEAM)
+    sprite.row(1, 0, 32, JACKET)
+    sprite.row(6, 0, 32, JACKET)
+    sprite.rect(0, 2, 32, 6, WELL)
+
+    path_a, path_b = _pcb_paths(complex_arches=(name != 'matter_cable'))
+    bridges = {(4, 3), (12, 3)}
+    env = _calm_envelope(frame) if anim == 'single_pulse' else 1.0
+
+    def draw_path(path, phase_shift, reverse=False):
+        n = len(path)
+        for idx, pt in enumerate(path):
+            if pt is None:
+                continue
+            lx, ly = pt
+            # Map path index onto 0..15 wave phase so the signal visibly travels along every bend & bridge.
+            pos = int(round((n - 1 - idx if reverse else idx) * 16 / n)) % 16
+            if anim == 'idle_quiet':
+                col = bright if pt in bridges else mid
+            elif anim == 'single_pulse':
+                ahead = (pos - (frame + phase_shift)) % 16
+                if ahead == 0:
+                    wave = 1.0
+                elif ahead == 15:
+                    wave = .76
+                elif ahead == 1:
+                    wave = .56
+                elif ahead == 14:
+                    wave = .44
+                elif ahead == 13:
+                    wave = .20
+                else:
+                    wave = 0.0
+                lift = .22 if pt in bridges else 0.0
+                col = _trace_tone(stripe, min(1.0, lift + env * wave))
+            else:  # steady_flow
+                dist = (pos - frame - phase_shift) % 16
+                p = dist % 8
+                if p == 0:
+                    col = bright
+                elif p in (1, 7):
+                    col = mid
+                elif p in (2, 6):
+                    col = dim
+                else:
+                    col = deep
+            for tile in (0, 16):
+                sprite.px(tile + lx, ly, col)
+
+    # In single_pulse both lanes glide coherently (Path B trailing 4 texels) followed by a long calm rest window.
+    if anim == 'single_pulse':
+        draw_path(path_a, phase_shift=0, reverse=False)
+        draw_path(path_b, phase_shift=4, reverse=False)
+    else:
+        draw_path(path_a, phase_shift=0, reverse=False)
+        draw_path(path_b, phase_shift=8, reverse=dashed)
+    if anim == 'idle_quiet':
+        for tile in (0, 16):
+            sprite.px(tile + 4, 3, IVORY if dashed else bright)
+            sprite.px(tile + 12, 3, IVORY if dashed else bright)
+
+    # 2. Glowing PCB corner/elbow cap (8 x 8 at x=0..8, y=8..16): steady entries + subtle calm centre warmth.
+    breath = abs((frame % 16) - 8)
+    if anim == 'single_pulse':
+        ring_col = scale(stripe, .56)
+        hub_ring = scale(stripe, .76)
+        pad_core = _trace_tone(stripe, .55 + .35 * env)
+        corner_core = _trace_tone(stripe, .25 + .35 * env)
+    elif anim == 'idle_quiet':
+        ring_col = dim
+        hub_ring = mid
+        pad_core = mid
+        corner_core = mid
+    else:
+        ring_col = mid if breath <= 3 else dim
+        hub_ring = bright if breath <= 2 else mid
+        pad_core = bright if breath <= 2 else mid if breath <= 5 else dim
+        corner_core = pad_core
+    sprite.rect(0, 8, 8, 16, WELL)
+    sprite.ring(0, 8, 8, 16, SEAM)
+    # Four dark corner frames around the PCB entries
+    for cx, cy in ((1, 9), (6, 9), (1, 14), (6, 14)):
+        sprite.px(cx, cy, SHADE)
+    # Entry traces at positions 2 and 5 on all four sides, meeting an inner square trace ring
+    for p in (2, 5):
+        sprite.px(p, 8, ring_col); sprite.px(p, 9, ring_col)
+        sprite.px(p, 14, ring_col); sprite.px(p, 15, ring_col)
+        sprite.px(0, 8 + p, ring_col); sprite.px(1, 8 + p, ring_col)
+        sprite.px(6, 8 + p, ring_col); sprite.px(7, 8 + p, ring_col)
+    sprite.ring(2, 10, 6, 14, ring_col)
+    sprite.rect(3, 11, 5, 13, corner_core)
+
+    # 3. PCB Junction Hub face (12 x 12 at x=8..20, y=8..20): entries at 4 & 7 on all 4 edges + inner circuit ring!
+    sprite.rect(8, 8, 20, 20, JACKET)
+    sprite.ring(8, 8, 20, 20, SEAM)
+    sprite.bevel(9, 9, 19, 19, PORT_DARK, SEAM)
+    sprite.rect(10, 10, 18, 18, WELL)
+    # Corner mounting pads
+    for bx, by in ((9, 9), (18, 9), (9, 18), (18, 18)):
+        sprite.px(bx, by, PORT_METAL)
+    # Dual trace entries from each side (at local offsets 4 & 7 -> exact alignment with cable y=2 & y=5!)
+    for p in (4, 7):
+        sprite.rect(8 + p, 9, 8 + p + 1, 11, ring_col)
+        sprite.rect(8 + p, 17, 8 + p + 1, 19, ring_col)
+        sprite.rect(9, 8 + p, 11, 8 + p + 1, ring_col)
+        sprite.rect(17, 8 + p, 19, 8 + p + 1, ring_col)
+    # Inner PCB trace ring + glowing central chip node
+    sprite.ring(11, 11, 17, 17, hub_ring)
+    sprite.rect(12, 12, 16, 16, WELL)
+    sprite.rect(13, 13, 15, 15, pad_core)
+    if dashed:
+        sprite.px(13, 13, IVORY if anim == 'idle_quiet' else bright)
+    return sprite
+
+
+def cable_glow_frame(name, tier, frame, look=None, anim=None):
+    """One 32 x 32 frame of the emissive conduit sheet for any CABLE_LOOK x CABLE_ANIM."""
+    look = CABLE_LOOK if look is None else look
+    anim = CABLE_ANIM if anim is None else anim
+    if look == 'pcb_traces':
+        return _paint_pcb_traces(Sprite(fill=WELL), name, tier, frame, anim)
+    stripe, width, dashed = tier['stripe'], tier['width'], tier['dashed']
+    # Saturated tones only — never blown-out pastel white.
+    deep = scale(stripe, .34)
+    dim = scale(stripe, .58)
+    mid = stripe
+    bright = lighten(stripe, .26)
+    sprite = Sprite(fill=JACKET)
+
+    # 1. Conduit run strip (32 x 8 at y=0..8, vertically mirrored around y=3.5).
+    #    4 x 4 runs sample y=0..8; recessed 3 x 3 runs sample y=1..7.
+    sprite.row(0, 0, 32, SEAM)
+    sprite.row(7, 0, 32, SEAM)
+    if look == 'fiber_trace':
+        # Sleek dark graphite jacket (75% dark!) with a razor-sharp 2-texel luminous fibre down the middle.
+        for x in range(32):
+            dist = (x - frame) % 16
+            jacket_edge = SHADE if x % 8 in (0, 7) else JACKET
+            sprite.px(x, 1, jacket_edge)
+            sprite.px(x, 6, jacket_edge)
+            # Dark recessed groove flanking the fibre; subtly catches colour only right at the pulse head.
+            groove = deep if (anim != 'idle_quiet' and dist in (0, 1, 15)) or (width >= 4 and anim == 'steady_flow' and dist % 8 == 0) else WELL
+            sprite.px(x, 2, groove)
+            sprite.px(x, 5, groove)
+            core = _pulse_tone(dist, anim, deep, dim, mid, bright, dashed, core_pin=(x % 2 == 0))
+            sprite.px(x, 3, core)
+            sprite.px(x, 4, core)
+    elif look == 'glass_conduit':
+        # Dark smoked-glass tube (Mekanism-style): dark glass walls with subtle steel sheen + luminous inner core.
+        for x in range(32):
+            dist = (x - frame) % 16
+            glass_rim = STEEL_DEEP if x % 8 in (1, 2) else SEAM
+            sprite.px(x, 1, glass_rim)
+            sprite.px(x, 6, glass_rim)
+            inner_wall = dim if (width >= 4 and (anim == 'steady_flow' or dist in (0, 1, 15))) else deep if dist in (0, 1, 2, 14, 15) or anim != 'single_pulse' else WELL
+            sprite.px(x, 2, inner_wall)
+            sprite.px(x, 5, inner_wall)
+            core = _pulse_tone(dist, anim, dim, mid, mid if anim == 'idle_quiet' else bright, bright, dashed, core_pin=True)
+            sprite.px(x, 3, core)
+            sprite.px(x, 4, core)
+    elif look == 'conduit_cage':
+        # Ender-IO-style dark industrial armored bundle with crisp segmented sight-slits every 8 texels.
+        for x in range(32):
+            dist = (x - frame) % 16
+            rib = x % 8 in (0, 1, 6, 7)
+            sprite.px(x, 1, PORT_DARK if rib else SEAM)
+            sprite.px(x, 6, PORT_DARK if rib else SEAM)
+            if rib:
+                sprite.rect(x, 2, x + 1, 6, JACKET if x % 8 in (0, 7) else SHADE)
+            else:
+                sprite.px(x, 2, WELL)
+                sprite.px(x, 5, WELL)
+                core = _pulse_tone(dist, anim, deep, dim, mid, bright, dashed, core_pin=True)
+                sprite.px(x, 3, core)
+                sprite.px(x, 4, core)
+    else:
+        # classic_sleek: clean smooth dark graphite cable with refined 2-texel (Basic) or 4-texel (Reinforced/Resonant) channel.
+        first = 4 - width // 2
+        for x in range(32):
+            dist = (x - frame) % 16
+            sprite.px(x, 1, JACKET)
+            sprite.px(x, 6, JACKET)
+            sprite.px(x, 2, WELL)
+            sprite.px(x, 5, WELL)
+            core = _pulse_tone(dist, anim, deep, dim, mid, bright, dashed, core_pin=False)
+            outer = dim if (anim == 'idle_quiet' or dist in (0, 1, 15)) else deep
+            if width >= 4:
+                sprite.px(x, 2, outer)
+                sprite.px(x, 5, outer)
+            sprite.px(x, 3, core)
+            sprite.px(x, 4, core)
+            if dashed and x % 8 == 0 and anim == 'idle_quiet':
+                sprite.px(x, 3, deep)
+                sprite.px(x, 4, deep)
+
+    # 2. Sleek dark hub face with crisp glowing cross/window (12 x 12 at x=8..20, y=8..20) for fiber_trace & classic_sleek.
+    breath = abs((frame % 16) - 8)
+    hub_core = mid if anim == 'idle_quiet' else (bright if breath <= 2 else mid if breath <= 5 else dim)
+    hub_arm = dim if anim == 'idle_quiet' else (mid if breath <= 3 else deep)
+    sprite.rect(8, 8, 20, 20, BASE)
+    sprite.ring(8, 8, 20, 20, SEAM)
+    sprite.bevel(9, 9, 19, 19, HIGHLIGHT, SHADE)
+    sprite.rect(10, 10, 18, 18, JACKET)
+    sprite.rect(13, 9, 15, 19, WELL)
+    sprite.rect(9, 13, 19, 15, WELL)
+    sprite.rect(13, 10, 15, 18, hub_arm)
+    sprite.rect(10, 13, 18, 15, hub_arm)
+    sprite.rect(13, 13, 15, 15, hub_core)
+    for bx, by in ((10, 10), (17, 10), (10, 17), (17, 17)):
+        sprite.px(bx, by, PORT_METAL)
+
+    # 3. Smoked-glass manifold hub chamber (10 x 8 at x=0..10, y=12..20) for glass_conduit & conduit_cage.
+    sprite.rect(0, 12, 10, 20, SEAM)
+    sprite.rect(1, 13, 9, 19, WELL)
+    if look == 'conduit_cage':
+        # Dark armored 5 x 5 node with tight central glowing lens.
+        sprite.rect(1, 13, 9, 19, JACKET)
+        sprite.bevel(1, 13, 9, 19, PORT_DARK, SEAM)
+        sprite.rect(3, 14, 7, 18, WELL)
+        sprite.rect(4, 15, 6, 17, hub_core)
+    else:
+        # Smoked glass chamber showing the saturated core stream passing across.
+        sprite.px(2, 13, STEEL_DEEP)
+        sprite.px(7, 18, STEEL_DEEP)
+        for lx in range(8):
+            c = _pulse_tone((lx - frame) % 16, anim, deep, dim, mid, bright, dashed, core_pin=True)
+            sprite.px(1 + lx, 15, c)
+            sprite.px(1 + lx, 16, c)
+            sprite.px(1 + lx, 14, deep if c in (mid, bright, IVORY) else WELL)
+            sprite.px(1 + lx, 17, deep if c in (mid, bright, IVORY) else WELL)
+
+    # 4. End cap (6 x 6 at x=20..26, y=12..18) for exposed glass/conduit ends on item models.
+    sprite.rect(20, 12, 26, 18, SEAM)
+    sprite.rect(21, 13, 25, 17, WELL)
+    sprite.rect(22, 14, 24, 16, hub_core)
     return sprite
 
 
@@ -492,10 +893,10 @@ def sprites():
         'reactor_glass_pane': reactor_glass_pane(),
         'drive_front': drive_front(),
         'drive_bay': drive_bay(),
-        'drive_cell_64k': drive_cell(2),
-        'drive_cell_256k': drive_cell(4),
-        'drive_cell_1m': drive_cell(6),
-        'drive_cell_4m': drive_cell(6, crystal='mint'),
+        'drive_cell_4m': drive_cell(2),
+        'drive_cell_16m': drive_cell(4),
+        'drive_cell_64m': drive_cell(6),
+        'drive_cell_256m': drive_cell(6, crystal='mint'),
         'drive_cell_unknown': drive_cell(None),
         'drive_void_matter_cell': void_drive_cell(),
         'drive_primal_cell_16k': primal_drive_cell(2),
@@ -527,7 +928,7 @@ def sprites():
     for mode, color in PORT_MODES.items():
         result['machine_port_' + mode] = machine_port(color, contact=mode != 'disabled')
     for name, tier in CABLE_TIERS.items():
-        result[name] = cable(tier)
+        result[name] = cable(tier, CABLE_LOOK)
     controllers = ('chemical_reactor_controller', 'preparation_reactor_controller',
                    'industrial_decomposer_controller', 'industrial_synthesizer_controller')
     for device in controllers:
@@ -535,6 +936,12 @@ def sprites():
         result[device + '_display'] = controller_display(device, False)
         result[device + '_display_active'] = controller_display(device, True)
     from work_sprites import strip,activity_bar,terminal_screen as terminal_frames,interface_light,controller_display as controller_frames
+    cable_frames = 32 if (CABLE_LOOK == 'pcb_traces' and CABLE_ANIM == 'single_pulse') else 16
+    for name, tier in CABLE_TIERS.items():
+        if CABLE_ANIM == 'idle_quiet':
+            result[name + '_glow'] = cable_glow_frame(name, tier, 0, CABLE_LOOK, CABLE_ANIM)
+        else:
+            result[name + '_glow'] = strip(cable_glow_frame(name, tier, f, CABLE_LOOK, CABLE_ANIM) for f in range(cable_frames))
     result['activity_on']=strip(activity_bar(f) for f in range(16))
     result['terminal_screen_active']=strip(terminal_frames(f) for f in range(16))
     result['interface_light_active']=strip(interface_light(f) for f in range(16))
@@ -544,13 +951,24 @@ def sprites():
 
 
 # Animation metadata by sprite name.
-ANIMATIONS = {'led_red': {'animation': {'frametime': 10}}}
-for name in ('drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k', 'drive_primal_cell_1m'):
-    ANIMATIONS[name] = {'animation': {'frametime': 3}}
+def build_animations(cable_anim=None):
+    anim = CABLE_ANIM if cable_anim is None else cable_anim
+    meta = {'led_red': {'animation': {'frametime': 10}}}
+    for name in ('drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k', 'drive_primal_cell_1m'):
+        meta[name] = {'animation': {'frametime': 3}}
+    from reactor_showpiece import REACTOR_ANIMATIONS
+    meta.update(REACTOR_ANIMATIONS)
+    if anim != 'idle_quiet':
+        if anim == 'single_pulse' and CABLE_LOOK == 'pcb_traces':
+            ft_basic, ft_fast = 4, 3
+        else:
+            ft_basic = 3 if anim == 'single_pulse' else 2
+            ft_fast = 2
+        for name, frametime in (('matter_cable_glow', ft_basic), ('reinforced_matter_cable_glow', ft_fast), ('resonant_matter_cable_glow', ft_fast)):
+            meta[name] = {'animation': {'frametime': frametime, 'interpolate': True}}
+    for name, frametime in {'activity_on':5,'terminal_screen_active':5,'interface_light_active':2,'chemical_reactor_controller_display_active':4,'preparation_reactor_controller_display_active':4,'industrial_decomposer_controller_display_active':4,'industrial_synthesizer_controller_display_active':4,**{'bench_'+device+'_work_active':2 if device in ('decomposer','material_preparator') else 3 if device in ('sinter_furnace','atmospheric_collector') else 4 for device in ('analyzer','decomposer','material_synthesizer','material_preparator','sinter_furnace','atmospheric_collector')}}.items():
+        meta[name] = {'animation': {'frametime': frametime, 'interpolate': True}}
+    return meta
 
-# Active sight windows are animated only in the active model.
-from reactor_showpiece import REACTOR_ANIMATIONS
-ANIMATIONS.update(REACTOR_ANIMATIONS)
 
-for name,frametime in {'activity_on':5,'terminal_screen_active':5,'interface_light_active':2,'chemical_reactor_controller_display_active':4,'preparation_reactor_controller_display_active':4,'industrial_decomposer_controller_display_active':4,'industrial_synthesizer_controller_display_active':4,**{'bench_'+device+'_work_active':2 if device in ('decomposer','material_preparator') else 3 if device in ('sinter_furnace','atmospheric_collector') else 4 for device in ('analyzer','decomposer','material_synthesizer','material_preparator','sinter_furnace','atmospheric_collector')}}.items():
-    ANIMATIONS[name]={'animation':{'frametime':frametime,'interpolate':True}}
+ANIMATIONS = build_animations()

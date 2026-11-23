@@ -59,10 +59,10 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 | --- | --- | --- | --- | --- |
 | Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `preparation_reactor_controller`, `grinding_unit`, `separation_unit`, `mixing_basin` |
 | Copper | `#dc894f` | copper dust | decomposition | `decomposer`, `industrial_decomposer_controller` |
-| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `matter_cell_4m`, `matter_level_emitter`, `pressurized_canister` |
+| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `matter_cell_256m`, `matter_level_emitter`, `pressurized_canister` |
 | Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer`, `industrial_synthesizer_controller` |
 | Ice | `#d7d1bc` | Silith | analysis | `analyzer`, `spectrometer_lens` |
-| Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube`, `void_matter_cell`, `portable_energy_cell` |
+| Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `void_matter_cell`, `energy_core` |
 | Blue | `#6794f1` | lapis dust | network link | `network_interface`, `wireless_access_point`, `wireless_matter_terminal`, `wireless_booster` |
 | Violet | `#b381e8` | amethyst dust | reaction | `chemical_processor`, `chemical_reactor_controller`, `field_coil`, `reaction_chamber`, `primal_converter`, `primal_cell_16k`, `primal_cell_64k` |
 
@@ -107,7 +107,9 @@ A status colour never decorates and never tells tiers apart. A tier is a bar len
 | Reinforced Matter Cable | `CABLE_TIERS['reinforced_matter_cable']['stripe']` | `#54bfac` | 4 texels, solid |
 | Resonant Matter Cable | `CABLE_TIERS['resonant_matter_cable']['stripe']` | `#be8fbb` | 4 texels, dashed |
 
-Each Energy Cube contains the matching cable in its independent recipe and inherits that cable's exact stripe on its horizontal casing frames. This is a material tier band, separate from status colours. The Basic Cube's copper stripe is the documented exception to the rule that a crystal hue requires that crystal: its cable supplies the copper conductor. Every Cube wears its front maker's badge, Ember crystal plate and tier pips on the front face, plus a north-aligned Copper and Ivory orientation pointer on the top face, so its facing is clear from every angle.
+Each cable tier pairs a static dark-graphite metal housing (`{tier}.png`) with an emissive conduit texture (`{tier}_glow.png`). One-line switches in `tools/family_sprites.py` select both silhouette (`CABLE_LOOK`: `pcb_traces` [recommended: dark 4 × 4 graphite shaft carrying two routed PCB traces with bends and bridge crossovers, seamless glowing corner pads and PCB junction hubs], `fiber_trace` [uninterrupted dark 4 × 4 graphite jacket with a crisp 2-texel luminous fibre], `glass_conduit` [smoked-glass 3 × 3 conduit with metal end-clamps and glass manifold hub], `conduit_cage` [compact dark armored 3 × 3 bundle with sight slits and 5 × 5 node], `classic_sleek` [smooth dark 4 × 4 silhouette]) and motion (`CABLE_ANIM`: `single_pulse` [recommended: calm 32-frame interpolated sweep on `pcb_traces` with a long resting pause and steady hubs so dense cable runs never flicker], `idle_quiet` [calm static glowing traces when idle], `steady_flow` [continuous 16-frame interpolated dual-wave trace current]). Active Matter transfers are drawn by `ClientMatterCablePulses` in one batched zero-particle additive 3D pass (`RenderTypes.lightning`, FE power flow stays quiet on the traces unless `SHOW_ENERGY_PULSES` is enabled) selectable via `TRANSFER_STYLE`: `ENERGY_SLEEVE` [recommended: soft tapered light sleeve hugging the conduit and illuminating the traces underneath], `TRACE_RING` [narrow glowing induction collar gliding along the shaft], or `NONE` [no extra transfer overlay]. All five silhouettes stay within the cable hitbox and pass all 729 side combinations without overlap.
+
+Each Energy Cube and the Portable Energy Cell share the `energy_core` building block (inheriting its Ember crystal hue) and each Energy Cube tier includes its matching cable and inherits that cable's exact stripe on its horizontal casing frames. Higher Energy Cube tiers upgrade the previous tier (`energy_cube` → `reinforced_energy_cube` → `resonant_energy_cube`) through `rematter:energy_upgrade_shaped`, transferring stored FE, side modes and charging-bay items safely. This cable band is a material tier band, separate from status colours. The Basic Cube's copper stripe is the documented exception to the rule that a crystal hue requires that crystal: its cable supplies the copper conductor. Every Cube wears its front maker's badge, Ember crystal plate and tier pips on the front face, plus a north-aligned Copper and Ivory orientation pointer on the top face, so its facing is clear from every angle.
 
 <!-- check:energy-cable-tiers -->
 | Energy Cube | Cable ingredient | Hex |
@@ -248,6 +250,22 @@ The side controls use a compact unfolded face net around the front, with complet
 | Lit edge | `HIGHLIGHT` | `HIGHLIGHT` |
 | Slot edge | `SLOT_EDGE` | `PORT_LIGHT` |
 
+## Project icon
+
+The listing icon shows the Chemical Processor from its open front, with both violet reaction columns visible. It uses the shipped item model and textures on a transparent square canvas.
+
+## Logo studies
+
+The logo is project artwork for pages, listings and the README. It is not drawn on a block, an item or a screen of the mod.
+
+- **Mark.** A block of 4 x 4 x 4 cubes in the isometric view, lit from the top left, outlined in `SEAM` and textured like the sprites. It is mostly steel (`STEEL`, `TRIM`) with small veins of eight raw materials. Four cubes are missing and float around the block: two leave it, with a trail that starts in their gap (decomposition), and two arrive, with a trail that ends heading into their gap (synthesis). A leaving cube comes from a vein of its own material; an arriving cube completes one.
+- **Wordmark.** "ReMatter" in blocky letters whose strokes are two cells wide, extruded toward the lower right. The letters follow the same rules: steel with veins, six pieces missing, four leaving and two arriving.
+- **Lockups.** Mark beside the wordmark, or above it.
+- **Colour.** The eight crystal hues appear here as the materials they are named after: gold, copper, diamond, emerald, Silith, redstone, lapis and amethyst. This is the one place where a crystal hue appears without a crystal in a recipe. That is why the logo never appears on a block, an item or a screen.
+- **Source.** `tools/generate_logo.py` writes the SVG files, the PNG renders and `artwork/logo/rendered.json`. `LOGO_LOOK` selects the steel block with veins (recommended), a patchwork of materials (`mosaic`) or layers of material (`strata`); `--all` writes the other looks under `artwork/logo/alternatives/` for comparison.
+
+The illustrated logo study pairs a terrain block and blue crystal with custom outlined lettering. Copper marks the “Re” prefix. A loose glass voxel completes the final letter. The horizontal logo shows the blocks in flight. The square icon uses the seated pose to keep the silhouette legible at small sizes. Set `ICON_POSE` in `tools/generate_launch_logo.py` to switch the icon to the open pose. The artwork masters and exports live under `artwork/logo/launch/`.
+
 ## Who writes what
 
 | Generator | Owns |
@@ -256,14 +274,14 @@ The side controls use a compact unfolded face net around the front, with complet
 | `port_plates.py` (shared by the three generators around it) | the port plates of every device: plain face and plate per side and role, and the `rematter:port_plates` block state entry |
 | `renderer_parts.py` (shared by the family and module generators) | moving hardware coordinates, generated Java constants and composition checks at rest and stroke ends |
 | `generate_progression_assets.py` | Primal Converter and both Crystal Generators |
-| `generate_energy_assets.py` | the three Energy Cube tiers, charge0–8 core models, independent recipes, loot and recipe-book advancements |
+| `generate_energy_assets.py` | the three Energy Cube tiers, charge0–8 core models, tiered energy-preserving upgrade recipes (`energy_core` + previous tier), loot and recipe-book advancements |
 | `generate_module_assets.py` | the five industrial modules |
 | `generate_cell_models.py` | Cell Housing, Matter Cells and Primal Cells |
 | `generate_cell_transfer_assets.py` | unpowered benchtop Cell Transfer Station, one empty source and one target bay, independent recipe, loot and recipe-book advancement |
 | `generate_primal_assets.py` | Primal Ores, Primal Shard, Primal Crystal, Discovery Lens, Entangled Link |
 | `generate_gui_assets.py` | GUI frames and icons |
-| `generate_technical_sprites.py`, `generate_storage_sprites.py` | component, upgrade and guide icons from `artwork/components/` |
-| `generate_illustrated_icons.py` | Ice Matrix Crystal, Matrix Cluster, Matter Wrench (`WRENCH_LOOK`), Configuration Card (`CONFIGURATION_CARD_LOOK`), Wireless Booster, Wireless Matter Terminal (`WIRELESS_TERMINAL_LOOK`), Portable Energy Cell, Pressurized Canister (`CANISTER_LOOK`), Spectrometer Lens, Pressure Module and Parallel Upgrade icons, with their checksums in `artwork/components/illustrated-rendered.json` |
+| `generate_technical_sprites.py`, `generate_storage_sprites.py` | component, circuit, upgrade and guide icons from `artwork/components/` (`STRUCTURAL_BARS_LOOK` selects `bar_bundle` [recommended], `stepped_bars`, `hex_bars`, `truss_lattice`, or `twin_ibeam`; `NETHERITE_SHEATH_LOOK` selects `clamped_jacket` [recommended], `plate_shroud`, or `hex_collar`; `ENDER_CONDUCTOR_LOOK` selects `caged_resonator` [recommended], `tuning_fork`, or `bus_relay`; `UPGRADE_CHASSIS_LOOK` unifies all upgrades/modules on `cartridge_case` [recommended], `bevel_module`, or `dock_pack`; `CIRCUIT_LOOK` selects `ic_microchip` [recommended], `edge_pcb`, or `wafer_die`) |
+| `generate_illustrated_icons.py` | Ice Matrix Crystal, Matrix Cluster, Matter Wrench (`WRENCH_LOOK`), Configuration Card (`CONFIGURATION_CARD_LOOK`), Wireless Booster, Wireless Matter Terminal (`WIRELESS_TERMINAL_LOOK`), Energy Core (`ENERGY_CORE_LOOK`: `coil_core` [recommended], `capacitor_block`, `ring_core`), Portable Energy Cell (`PORTABLE_ENERGY_CELL_LOOK`: `upright_battery` [recommended], `twin_cell_pack`, `hex_capacitor`), Pressurized Canister (`CANISTER_LOOK`), Spectrometer Lens, Pressure Module and Parallel Upgrade icons (sharing `UPGRADE_CHASSIS_LOOK`), with their checksums in `artwork/components/illustrated-rendered.json` |
 | `generate_component_assets.py`, `generate_advanced_material_icons.py`, `generate_metallurgy_assets.py`, `generate_device_assets.py` | item models, tags and definitions of the illustrated icons |
 
 Run a generator without arguments to write its files and with `--check` to compare them. `tools/README.md` lists every command. After any visual change run:

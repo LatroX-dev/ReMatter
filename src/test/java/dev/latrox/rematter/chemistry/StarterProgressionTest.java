@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /** Verifies the complete vanilla bootstrap and its exact material/permission boundaries. */
 class StarterProgressionTest {
     private static final Set<String> BOOTSTRAP = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:decomposer",
-            "rematter:cell_housing", "rematter:matter_cell_64k");
+            "rematter:cell_housing", "rematter:matter_cell_4m");
 
     @Test void furnaceAndIndustrialInternalsHaveAnAcyclicVanillaRouteAndCannotBeSynthesized() throws Exception {
         for (String name : List.of("sinter_furnace", "grinding_unit", "separation_unit", "mixing_basin", "field_coil", "reaction_chamber")) {
@@ -121,39 +121,51 @@ class StarterProgressionTest {
                 Set.of("rematter:matrix_cluster", "rematter:rhevon_ingot")));
     }
 
-    @Test void cellMatrixCostsScaleExactlyOneFourSixteenWithoutConsumedStorage() throws Exception {
+    @Test void cellMatrixCostsScaleMonotonicallyAcrossAllFourTiersWithoutConsumedStorage() throws Exception {
         var housing = recipe("cell_housing");
         assertEquals("minecraft:crafting_shaped", housing.get("type").getAsString());
         assertEquals(Map.of("rematter:structural_bars", 4, "minecraft:glass", 4), ingredientCounts(housing));
         assertEquals("rematter:cell_housing", housing.getAsJsonObject("result").get("id").getAsString());
         assertEquals(2, housing.getAsJsonObject("result").get("count").getAsInt());
-        List<String> cells = List.of("matter_cell_64k", "matter_cell_256k", "matter_cell_1m");
+        List<String> cells = List.of("matter_cell_4m", "matter_cell_16m", "matter_cell_64m", "matter_cell_256m");
+        int[] expectedCrystals = {1, 4, 8, 9};
         for (int i = 0; i < cells.size(); i++) {
             var cellRecipe = recipe(cells.get(i));
             List<String> inputs = ingredients(cellRecipe);
             var amounts = ingredientCounts(cellRecipe);
             assertEquals(1, amounts.get("rematter:cell_housing"));
-            assertEquals(1, amounts.get(i == 2 ? "rematter:optical_circuit" : "rematter:control_circuit"));
-            if (i >= 1) assertEquals(i == 1 ? 2 : 1, amounts.get("rematter:ender_conductor"));
+            if (i < 2) assertEquals(1, amounts.get("rematter:control_circuit"));
+            else assertEquals(i == 2 ? 1 : 2, amounts.get("rematter:optical_circuit"));
+            if (i == 1) assertEquals(2, amounts.get("rematter:rhevon_ingot"));
+            if (i >= 2) assertEquals(2, amounts.get("rematter:ender_conductor"));
             if (i == 2) {
                 assertEquals(1, amounts.get("rematter:diamond_lattice"));
+                assertNull(amounts.get("rematter:netherite_sheath"), "Tier 3 cell must not require Netherite");
+            }
+            if (i == 3) {
                 assertEquals(1, amounts.get("rematter:netherite_sheath"));
+                assertEquals(1, amounts.get("rematter:mint_matrix_crystal"));
             }
             int crystals = java.util.Collections.frequency(inputs, "rematter:matrix_crystal")
+                    + java.util.Collections.frequency(inputs, "rematter:mint_matrix_crystal")
                     + 4 * java.util.Collections.frequency(inputs, "rematter:matrix_cluster");
-            assertEquals(1 << (2 * i), crystals);
+            assertEquals(expectedCrystals[i], crystals, cells.get(i));
             assertEquals(1, cellRecipe.getAsJsonObject("result").get("count").getAsInt());
             assertTrue(inputs.size() <= 9);
         }
+        assertEquals(4_000_000L, dev.latrox.rematter.content.MatterLimits.CELL_4M);
+        assertEquals(16_000_000L, dev.latrox.rematter.content.MatterLimits.CELL_16M);
+        assertEquals(64_000_000L, dev.latrox.rematter.content.MatterLimits.CELL_64M);
+        assertEquals(256_000_000L, dev.latrox.rematter.content.MatterLimits.CELL_256M);
     }
 
     @Test void componentsStorageAndUnprofiledMatrixMaterialsCannotBeSynthesized() throws Exception {
-        for (String component : List.of("hand_preparator", "material_preparator", "preparation_reactor_controller", "sinter_furnace", "machine_frame", "structural_bars", "control_circuit", "optical_circuit", "cell_housing", "matter_drive", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m", "matter_cell_4m", "void_matter_cell", "matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin", "diamond_lattice", "ender_conductor", "netherite_sheath")) {
+        for (String component : List.of("hand_preparator", "material_preparator", "preparation_reactor_controller", "sinter_furnace", "machine_frame", "structural_bars", "control_circuit", "optical_circuit", "energy_core", "cell_housing", "matter_drive", "matter_cell_4m", "matter_cell_16m", "matter_cell_64m", "matter_cell_256m", "void_matter_cell", "matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin", "diamond_lattice", "ender_conductor", "netherite_sheath")) {
             assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + component));
             assertTrue(ShippedChemistry.standalone().profile("rematter:" + component).isEmpty(), component);
         }
-        Set<String> forbidden = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:preparation_reactor_controller", "rematter:sinter_furnace", "rematter:machine_frame", "rematter:structural_bars", "rematter:control_circuit", "rematter:optical_circuit", "rematter:cell_housing", "rematter:matter_drive",
-                "rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m", "rematter:matter_cell_4m", "rematter:void_matter_cell",
+        Set<String> forbidden = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:preparation_reactor_controller", "rematter:sinter_furnace", "rematter:machine_frame", "rematter:structural_bars", "rematter:control_circuit", "rematter:optical_circuit", "rematter:energy_core", "rematter:cell_housing", "rematter:matter_drive",
+                "rematter:matter_cell_4m", "rematter:matter_cell_16m", "rematter:matter_cell_64m", "rematter:matter_cell_256m", "rematter:void_matter_cell",
                 "rematter:matrix_blend", "rematter:matrix_crystal", "rematter:matrix_cluster",
                 "rematter:silith", "rematter:argil", "rematter:rhedon", "rematter:virel", "rematter:lumin",
                 "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath");
@@ -172,9 +184,10 @@ class StarterProgressionTest {
     @Test void cellAndStorageRecipesUseOnlyStatelessPartsWithoutExistingContainers() throws Exception {
         Set<String> plainParts = Set.of("rematter:matrix_crystal", "rematter:matrix_cluster", "rematter:control_circuit",
                 "rematter:optical_circuit", "rematter:machine_frame", "rematter:cell_housing", "rematter:cell_rack",
-                "rematter:structural_bars", "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath",
-                "rematter:mint_matrix_crystal", "rematter:ember_matrix_crystal", "rematter:virelite_ceramic", "minecraft:obsidian");
-        for (String name : List.of("matter_drive", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m", "matter_cell_4m", "void_matter_cell")) {
+                "rematter:structural_bars", "rematter:rhevon_ingot", "rematter:diamond_lattice", "rematter:ender_conductor",
+                "rematter:netherite_sheath", "rematter:mint_matrix_crystal", "rematter:ember_matrix_crystal",
+                "rematter:virelite_ceramic", "minecraft:obsidian");
+        for (String name : List.of("matter_drive", "matter_cell_4m", "matter_cell_16m", "matter_cell_64m", "matter_cell_256m", "void_matter_cell")) {
             var crafting = recipe(name);
             List<String> inputs = ingredients(crafting);
             assertEquals("minecraft:crafting_shaped", crafting.get("type").getAsString());
@@ -202,14 +215,15 @@ class StarterProgressionTest {
         try (var files = Files.walk(recipeRoot)) {
             for (Path file : files.filter(path -> path.toString().endsWith(".json")).toList()) {
                 var crafting = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
-                if (crafting.get("type").getAsString().startsWith("minecraft:crafting_")) {
+                String type = crafting.get("type").getAsString();
+                if (type.startsWith("minecraft:crafting_") || type.equals("rematter:energy_upgrade_shaped")) {
                     String relative = recipeRoot.relativize(file).toString().replace('\\', '/');
                     names.add(relative.substring(0, relative.length() - ".json".length()));
                 }
             }
         }
         assertTrue(names.containsAll(Set.of("machine_frame", "structural_bars", "control_circuit", "optical_circuit", "cell_housing",
-                "matrix_cluster", "guide", "matter_cell_64k", "matter_cell_256k", "matter_cell_1m",
+                "matrix_cluster", "guide", "matter_cell_4m", "matter_cell_16m", "matter_cell_64m",
                 "analyzer", "decomposer", "material_synthesizer", "matter_drive", "cell_rack", "matter_terminal",
                 "hand_preparator", "material_preparator", "preparation_reactor_controller", "sinter_furnace",
                 "chemical_processor", "chemical_reactor_controller", "network_interface", "grinding_unit", "separation_unit",

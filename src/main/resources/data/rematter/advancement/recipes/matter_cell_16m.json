@@ -7,7 +7,7 @@
         "items": [
           {
             "items": [
-              "rematter:matrix_crystal"
+              "rematter:matrix_cluster"
             ]
           }
         ]
@@ -16,7 +16,7 @@
     "has_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "rematter:matter_cell_64k"
+        "recipe": "rematter:matter_cell_16m"
       }
     }
   },
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "rematter:matter_cell_64k"
+      "rematter:matter_cell_16m"
     ]
   }
 }

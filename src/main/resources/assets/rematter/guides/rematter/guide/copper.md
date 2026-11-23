@@ -10,7 +10,7 @@ item_ids:
 ---
 # Sand, a Cell, then glass
 
-Use your [starter line](setup.md), its **64k Matter Cell in the Drive**, a fueled Crystal Generator and **one sand**.
+Use your [starter line](setup.md), its **4M Matter Cell in the Drive**, a fueled Crystal Generator and **one sand**.
 
 ## 1. Load the Decomposer
 

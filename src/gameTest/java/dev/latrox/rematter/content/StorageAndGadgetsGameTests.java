@@ -47,6 +47,7 @@ public final class StorageAndGadgetsGameTests {
     static {
         TESTS.put("canister_deposit_separates_stored_and_voided_units", StorageAndGadgetsGameTests::canisterOverflowReceipt);
         TESTS.put("endgame_and_void_cells_fill_finite_first_and_discard_overflow", StorageAndGadgetsGameTests::endgameAndVoidCells);
+        TESTS.put("legacy_matter_cell_aliases_migrate_cleanly", StorageAndGadgetsGameTests::legacyMatterCellAliases);
         TESTS.put("portable_energy_cell_docks_and_recharges_inventory_without_battery_ping_pong", StorageAndGadgetsGameTests::portableEnergyCell);
         TESTS.put("matter_level_emitter_tracks_ordinary_and_primal_stock_with_directional_redstone", StorageAndGadgetsGameTests::matterLevelEmitter);
         TESTS.put("machine_sound_mute_and_crystal_fuel_displays_behave_consistently", StorageAndGadgetsGameTests::soundMuteAndCrystalFuelDisplays);
@@ -89,47 +90,70 @@ public final class StorageAndGadgetsGameTests {
         var drive = placeMachine(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, Direction.NORTH, owner);
 
         // Mount 4M Matter Cell and 1M Primal Cell and verify capacities.
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_256M.get()));
         drive.setItem(drive.cellSlotForBay(1), new ItemStack(PrimalContent.PRIMAL_CELL_1M.get()));
         var net = drive.matterNetwork(true);
         var inv = Objects.requireNonNull(net.inventory(), "Drive with 4M cell should expose network inventory");
-        h.assertTrue(inv.capacity() == MatterLimits.CELL_4M, "Expected 4M ordinary capacity, got " + inv.capacity());
+        h.assertTrue(inv.capacity() == MatterLimits.CELL_256M, "Expected 4M ordinary capacity, got " + inv.capacity());
         h.assertTrue(drive.drivePrimalCapacity() == 1_000_000L, "Expected 1M primal capacity, got " + drive.drivePrimalCapacity());
 
         // Replace with 64k cell + partitioned Void Matter Cell (COPPER only): finite fills first, excess COPPER voids, IRON overflow is rejected.
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         ItemStack voidCell = new ItemStack(ModContent.VOID_MATTER_CELL.get());
         voidCell.set(CellPartitionData.TYPE.get(), CellPartitionData.allowOnly(Set.of(BuiltinChemistry.COPPER)));
         drive.setItem(drive.cellSlotForBay(1), voidCell);
 
         var voidNet = drive.matterNetwork(true);
         var voidInv = Objects.requireNonNull(voidNet.inventory(), "Drive with 64k + void cell should expose network inventory");
-        h.assertTrue(voidInv.apply(Map.of(), Map.of(BuiltinChemistry.COPPER, 70_000L)),
-                "Partitioned void cell failed to absorb overflow COPPER after filling 64k cell");
+        h.assertTrue(voidInv.apply(Map.of(), Map.of(BuiltinChemistry.COPPER, MatterLimits.CELL_4M + 6_000L)),
+                "Partitioned void cell failed to absorb overflow COPPER after filling starter cell");
         voidNet.markChanged();
-        h.assertTrue(voidInv.amount(BuiltinChemistry.COPPER) == MatterLimits.CELL_64K,
-                "64k cell should hold exact 64,000 COPPER after 70,000 insertion, got " + voidInv.amount(BuiltinChemistry.COPPER));
+        h.assertTrue(voidInv.amount(BuiltinChemistry.COPPER) == MatterLimits.CELL_4M,
+                "Starter cell should hold exact capacity COPPER after overflow insertion, got " + voidInv.amount(BuiltinChemistry.COPPER));
         h.assertTrue(!voidInv.canApply(Map.of(), Map.of(BuiltinChemistry.IRON, 1L)),
                 "Partitioned void cell must not accept unpartitioned IRON once finite space is full");
+        h.succeed();
+    }
+
+    private static void legacyMatterCellAliases(GameTestHelper h) {
+        var registry = net.minecraft.core.registries.BuiltInRegistries.ITEM;
+        h.assertTrue(registry.getValue(Identifier.fromNamespaceAndPath("rematter", "matter_cell_64k")) == ModContent.MATTER_CELL_4M.get(),
+                "Legacy matter_cell_64k alias must resolve to matter_cell_4m");
+        h.assertTrue(registry.getValue(Identifier.fromNamespaceAndPath("rematter", "matter_cell_256k")) == ModContent.MATTER_CELL_16M.get(),
+                "Legacy matter_cell_256k alias must resolve to matter_cell_16m");
+        h.assertTrue(registry.getValue(Identifier.fromNamespaceAndPath("rematter", "matter_cell_1m")) == ModContent.MATTER_CELL_64M.get(),
+                "Legacy matter_cell_1m alias must resolve to matter_cell_64m");
+        var original = new ItemStack(ModContent.MATTER_CELL_4M.get());
+        var inv = new dev.latrox.rematter.chemistry.MatterInventory(MatterLimits.CELL_4M, MatterCellData.MAX_TYPES);
+        inv.apply(Map.of(), Map.of(BuiltinChemistry.IRON, 12_500L));
+        original.set(MatterCellData.TYPE.get(), MatterCellData.from(inv));
+        var ops = h.getLevel().registryAccess().createSerializationContext(net.minecraft.nbt.NbtOps.INSTANCE);
+        var encoded = (net.minecraft.nbt.CompoundTag) ItemStack.CODEC.encodeStart(ops, original).getOrThrow();
+        encoded.putString("id", "rematter:matter_cell_64k");
+        var decoded = ItemStack.CODEC.parse(ops, encoded).getOrThrow();
+        h.assertTrue(decoded.is(ModContent.MATTER_CELL_4M.get()), "Decoded legacy 64k stack must become matter_cell_4m");
+        var opened = ((MatterCellItem) decoded.getItem()).open(decoded).orElseThrow();
+        h.assertTrue(opened.capacity() == MatterLimits.CELL_4M && opened.amount(BuiltinChemistry.IRON) == 12_500L,
+                "Migrated Matter Cell must preserve stored contents and expose 4M capacity");
         h.succeed();
     }
 
     private static void canisterOverflowReceipt(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var drive = placeMachine(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         ItemStack sink = new ItemStack(ModContent.VOID_MATTER_CELL.get());
         sink.set(CellPartitionData.TYPE.get(), CellPartitionData.allowOnly(Set.of(BuiltinChemistry.OXYGEN)));
         drive.setItem(drive.cellSlotForBay(1), sink);
         var network = drive.matterNetwork(true);
         var stock = Objects.requireNonNull(network.inventory());
-        h.assertTrue(stock.apply(Map.of(), Map.of(BuiltinChemistry.OXYGEN, 63_250L)), "Seed finite storage");
+        h.assertTrue(stock.apply(Map.of(), Map.of(BuiltinChemistry.OXYGEN, MatterLimits.CELL_4M - 750L)), "Seed finite storage");
         var partial = PressurizedCanisterItem.depositWithReceipt(drive, owner, BuiltinChemistry.OXYGEN, 1_000);
         h.assertTrue(partial.stored() == 750 && partial.voided() == 250, "Local deposit must report both quantities");
         var overflow = PressurizedCanisterItem.depositIntoNetwork(network, drive, BuiltinChemistry.OXYGEN, 1_000);
         h.assertTrue(overflow.stored() == 0 && overflow.voided() == 1_000, "Network deposit is fully voided");
         var rejected = PressurizedCanisterItem.depositIntoNetwork(network, null, BuiltinChemistry.HYDROGEN, 1_000);
-        h.assertTrue(rejected.accepted() == 0 && stock.amount(BuiltinChemistry.OXYGEN) == 64_000,
+        h.assertTrue(rejected.accepted() == 0 && stock.amount(BuiltinChemistry.OXYGEN) == MatterLimits.CELL_4M,
                 "Overflow filter and finite stock must agree with receipts");
         h.succeed();
     }
@@ -191,7 +215,7 @@ public final class StorageAndGadgetsGameTests {
         BlockPos copyEmitterRel = new BlockPos(3, 2, 2);
 
         var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.SOUTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_256M.get()));
         ItemStack primalCell = new ItemStack(PrimalContent.PRIMAL_CELL_1M.get());
         primalCell.set(PrimalCellData.TYPE.get(), PrimalCellData.from(new PrimalCellData.State(UUID.randomUUID(), 2_500L, 0L, Map.of())));
         drive.setItem(drive.cellSlotForBay(1), primalCell);
@@ -358,7 +382,7 @@ public final class StorageAndGadgetsGameTests {
         BlockPos termRel = new BlockPos(2, 2, 4);
 
         var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_256K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_16M.get()));
         h.setBlock(cableRel, ModContent.MATTER_CABLE.get());
         CableOwners.placedBy(h.getLevel(), h.absolutePos(cableRel), owner.getUUID());
         var terminal = placeMachine(h, termRel, MachineKind.TERMINAL, Direction.SOUTH, owner);
@@ -436,10 +460,10 @@ public final class StorageAndGadgetsGameTests {
         station.placedBy(owner);
 
         var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
 
         var filterKeys = Set.of(BuiltinChemistry.COPPER, BuiltinChemistry.HYDROGEN);
-        ItemStack sourceCell = new ItemStack(ModContent.MATTER_CELL_64K.get());
+        ItemStack sourceCell = new ItemStack(ModContent.MATTER_CELL_4M.get());
         sourceCell.set(CellPartitionData.TYPE.get(), CellPartitionData.allowOnly(filterKeys));
 
         ItemStack card = new ItemStack(ModContent.CONFIGURATION_CARD.get());
@@ -463,7 +487,7 @@ public final class StorageAndGadgetsGameTests {
         owner.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
 
         // 3. Paste filter onto target cell inside Cell Transfer Station.
-        station.setItem(1, new ItemStack(ModContent.MATTER_CELL_256K.get()));
+        station.setItem(1, new ItemStack(ModContent.MATTER_CELL_16M.get()));
         BlockPos absStation = h.absolutePos(stationRel);
         owner.setPos(absStation.getX() + 0.5, absStation.getY(), absStation.getZ() + 0.5);
         h.assertTrue(ConfigurationCardInteractions.interact(owner, h.getLevel(), absStation, card, hit(h, stationRel, Direction.UP)).consumesAction(),
@@ -498,7 +522,7 @@ public final class StorageAndGadgetsGameTests {
         BlockPos emitterRel = new BlockPos(3, 2, 1);
 
         var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.SOUTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         ItemStack voidCell = new ItemStack(ModContent.VOID_MATTER_CELL.get());
         voidCell.set(CellPartitionData.TYPE.get(), CellPartitionData.allowOnly(Set.of(BuiltinChemistry.OXYGEN)));
         drive.setItem(drive.cellSlotForBay(1), voidCell);
@@ -530,7 +554,7 @@ public final class StorageAndGadgetsGameTests {
                 "Non-owner WrenchDiagnostics must be locked and zeroed");
         var ownerDiag = Objects.requireNonNull(WrenchDiagnostics.inspect(h.getLevel(), absDrive, Direction.NORTH, owner));
         h.assertTrue(!ownerDiag.locked() && ownerDiag.matterUsed() == 1_000L
-                        && ownerDiag.matterCapacity() == MatterLimits.CELL_64K && ownerDiag.networkNodes() >= 3,
+                        && ownerDiag.matterCapacity() == MatterLimits.CELL_4M && ownerDiag.networkNodes() >= 3,
                 "Owner WrenchDiagnostics missed live storage/network telemetry: " + ownerDiag);
 
         // 2. TerminalMonitorCollector reports drives, finite/void cells, target caps, emitters, and rolling rates.

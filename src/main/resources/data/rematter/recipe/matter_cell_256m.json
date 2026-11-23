@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OCO",
+    "MHM",
+    "ENE"
+  ],
+  "key": {
+    "O": "rematter:optical_circuit",
+    "C": "rematter:mint_matrix_crystal",
+    "M": "rematter:matrix_cluster",
+    "H": "rematter:cell_housing",
+    "E": "rematter:ender_conductor",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:matter_cell_256m",
+    "count": 1
+  }
+}

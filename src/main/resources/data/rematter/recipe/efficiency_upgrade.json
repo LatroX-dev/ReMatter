@@ -2,15 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "BVB",
-    "LDL",
-    "BCB"
+    "BHB",
+    "VCV",
+    "BHB"
   ],
   "key": {
     "B": "rematter:structural_bars",
+    "H": "rematter:rhevon_ingot",
     "V": "rematter:virelite_ceramic",
-    "L": "rematter:lumivex_ingot",
-    "D": "rematter:diamond_lattice",
     "C": "rematter:control_circuit"
   },
   "result": {

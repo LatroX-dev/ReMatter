@@ -311,7 +311,7 @@ def generate():
                              "result": {"id": "rematter:sinter_furnace", "count": 1}})
     advancement("sinter_furnace", "rematter:machine_frame")
     recipe("atmospheric_collector", {"type": "minecraft:crafting_shaped", "category": "misc",
-                                     "pattern": ["BIB", "MCM", "BFB"],
+                                     "pattern": ["BMB", "ICI", "BFB"],
                                      "key": {"B": "rematter:structural_bars", "I": "minecraft:iron_bars",
                                              "M": "rematter:mint_matrix_crystal", "C": "rematter:control_circuit",
                                              "F": "rematter:machine_frame"},

@@ -107,7 +107,7 @@ final class PrimalConverterPanel {
         target.setTooltip(Tooltip.create(quote==null?tr("target_hint"):quoteTooltip(quote).copy().append("\n").append(tr("target_hint"))));
         set(load,!awaiting&&menu.getSlot(0).hasItem()&&number(extras,"primalCapacity",0)>number(extras,"primal",0));
         set(minus,idle&&amount>250&&quote!=null);set(plus,idle&&amount<8_000&&quote!=null);
-        boolean affordable=quote!=null&&number(extras,"primal",0)>=quote.primal()&&menu.progress().energy()>=quote.energy();
+        boolean affordable=quote!=null&&number(extras,"primal",0)>=quote.primal()&&menu.progress().energy()>=firstTickEnergy(quote);
         set(action,!awaiting&&(converting()||idle&&affordable&&destination.ready()));
         action.setMessage(converting()?tr("cancel"):confirming?tr("confirm"):pendingOutput>0?tr("pending_button"):tr("start"));
         action.setIcon(converting()?UiIcon.STOP:confirming?UiIcon.CONFIRM:pendingOutput>0?UiIcon.TIME:UiIcon.START);
@@ -137,7 +137,7 @@ final class PrimalConverterPanel {
             UiIcon[] icons={UiIcon.PRIMAL,UiIcon.ENERGY,UiIcon.TIME};String[] values={compact(quote.primal()),compact(quote.energy()),time(quote.ticks())};
             for(int i=0;i<3;i++){int x=left+i*54;ScreenChrome.icon(g,icons[i],x-2,top+63,i==0?UiPalette.PRIMAL:UiPalette.TEXT);label(g,Component.literal(values[i]),x+14,top+67,36,i==0?UiPalette.PRIMAL_LIGHT:UiPalette.TEXT);}
         }else label(g,tr("choose_hint"),left,top+67,width-18,UiPalette.MUTED);
-        UiIcon lamp=pendingOutput>0?UiIcon.STATUS_WARNING:awaiting||confirming?UiIcon.STATUS_WAITING:converting()?UiIcon.STATUS_WORKING:quote==null?UiIcon.STATUS_IDLE:!destination.ready()||number(extras,"primal",0)<quote.primal()||menu.progress().energy()<quote.energy()?UiIcon.STATUS_BLOCKED:UiIcon.STATUS_IDLE;
+        UiIcon lamp=pendingOutput>0?UiIcon.STATUS_WARNING:awaiting||confirming?UiIcon.STATUS_WAITING:converting()?UiIcon.STATUS_WORKING:quote==null?UiIcon.STATUS_IDLE:!destination.ready()||number(extras,"primal",0)<quote.primal()||menu.progress().energy()<firstTickEnergy(quote)?UiIcon.STATUS_BLOCKED:UiIcon.STATUS_IDLE;
         ScreenChrome.icon(g,lamp,left+width-18,top+63,-1);
         label(g,tr("output",exact(awaiting&&pendingAction.equals("SELECT")?requestedAmount:amount)),left+22,top+85,width-106,UiPalette.TEXT);
         if(converting()){
@@ -157,10 +157,11 @@ final class PrimalConverterPanel {
             g.setComponentTooltipForNextFrame(font,lines,mouseX,mouseY);
         }
     }
+    private static long firstTickEnergy(Target quote){return quote.ticks()>0?Math.ceilDiv(quote.energy(),quote.ticks()):quote.energy();}
     private Component status(Target quote,Destination destination){
-        return pendingOutput>0?tr("pending_output",exact(pendingOutput)):awaiting?tr("awaiting"):converting()?tr("running"):confirming?tr("confirm_output",exact(amount),quote==null?"":PrimalTargetScreen.name(quote.id())):selectionRejected?tr("unavailable"):quote==null?tr("choose_hint"):!destination.ready()?destinationMessage(destination):number(extras,"primal",0)<quote.primal()?tr("need_primal"):menu.progress().energy()<quote.energy()?tr("need_energy"):tr("finite");
+        return pendingOutput>0?tr("pending_output",exact(pendingOutput)):awaiting?tr("awaiting"):converting()?tr("running"):confirming?tr("confirm_output",exact(amount),quote==null?"":PrimalTargetScreen.name(quote.id())):selectionRejected?tr("unavailable"):quote==null?tr("choose_hint"):!destination.ready()?destinationMessage(destination):number(extras,"primal",0)<quote.primal()?tr("need_primal"):menu.progress().energy()<firstTickEnergy(quote)?tr("need_energy"):tr("finite");
     }
-    private Component quoteTooltip(Target quote){return Component.literal(PrimalTargetScreen.label(quote.id())).append("\n").append(PrimalTargetScreen.ratio(quote)).append("\n").append(tr("exact_price",exact(quote.primal()),exact(amount),exact(quote.energy()),time(quote.ticks()))).append("\n").append(tr("energy_reserve",exact(menu.progress().energy()))).append("\n").append(tr("start_hint"));}
+    private Component quoteTooltip(Target quote){return Component.literal(PrimalTargetScreen.label(quote.id())).append("\n").append(PrimalTargetScreen.ratio(quote)).append("\n").append(tr("exact_price",exact(quote.primal()),exact(amount),exact(quote.energy()),time(quote.ticks()))).append("\n").append(tr("energy_reserve",exact(menu.progress().energy()),exact(menu.progress().energyCapacity()))).append("\n").append(tr("start_hint"));}
     private static Component destinationMessage(Destination destination){return switch(destination.status()){
         case "ready"->tr("destination_ready");case "choose_target"->tr("destination_choose");case "no_compatible_cell"->tr("destination_full");case "unknown_schema"->tr("destination_locked");case "missing_cell"->tr("destination_missing_cell");default->tr("destination_none");};}
     boolean mouseScrolled(double x,double y,double dx,double dy){

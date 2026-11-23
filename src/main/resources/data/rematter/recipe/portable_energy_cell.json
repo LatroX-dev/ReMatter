@@ -2,16 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "pattern": [
-    " E ",
+    "KCK",
     "LHL",
-    "OCO"
+    "O O"
   ],
   "key": {
-    "E": "rematter:ember_matrix_crystal",
+    "K": "rematter:energy_core",
+    "C": "rematter:reinforced_matter_cable",
     "L": "rematter:lumivex_ingot",
     "H": "rematter:cell_housing",
-    "O": "rematter:optical_circuit",
-    "C": "rematter:reinforced_matter_cable"
+    "O": "rematter:optical_circuit"
   },
   "result": {
     "id": "rematter:portable_energy_cell",

@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.*;
+import org.jspecify.annotations.Nullable;
 
 /** Explicit non-chemistry operations. Ordinary recipes and automation never acquire this payment reserve. */
 final class MachineExtensions {
@@ -26,6 +27,7 @@ final class MachineExtensions {
     private String conversionTarget="";
     private long conversionAmount=1000;
     private int conversionProgress;
+    private long conversionEnergyPaid;
     private boolean converting, assay, researchRunning;
     private boolean identityCheckpoint;
     private final Set<UUID> checkpointedCells=new HashSet<>();
@@ -35,13 +37,14 @@ final class MachineExtensions {
     private final PrimalCells.Journal sourceCell;
     private final CrystalBurner burner=new CrystalBurner();
     private final ControllerEnergyBudget outputBudget=new ControllerEnergyBudget();
-    private record EnergyState(int amount,long revision,long partial){}
+    private record EnergyState(int amount,long revision,long partial,long conversionPaid){}
     private final SnapshotJournal<EnergyState> energyJournal=new SnapshotJournal<>(){
-        @Override protected EnergyState createSnapshot(){return new EnergyState((int)machine.energy().getAmountAsLong(),energyReceiptRevision,partialEnergyDebt);}
-        @Override protected void revertToSnapshot(EnergyState state){machine.energy().set(state.amount());energyReceiptRevision=state.revision();partialEnergyDebt=state.partial();}
+        @Override protected EnergyState createSnapshot(){return new EnergyState((int)machine.energy().getAmountAsLong(),energyReceiptRevision,partialEnergyDebt,conversionEnergyPaid);}
+        @Override protected void revertToSnapshot(EnergyState state){machine.energy().set(state.amount());energyReceiptRevision=state.revision();partialEnergyDebt=state.partial();conversionEnergyPaid=state.conversionPaid();}
     };
     MachineExtensions(MachineBlockEntity machine){this.machine=machine;primal=new PrimalCells.Journal(()->machine.stack(MachineCellAccess.PRIMAL_SLOT));sourceCell=new PrimalCells.Journal(()->machine.stack(0));}
     boolean assayMode(){return assay&&machine.kind()==MachineKind.INDUSTRIAL_PREPARATOR;}
+    boolean isResearchRunning(){return researchRunning&&researchId!=null;}
     private ServerLevel level(){return (ServerLevel)machine.getLevel();}
     private UUID owner(){return machine.networkOwner();}
     private boolean owned(){return machine.networkLive()&&ResearchService.realOwner(level().getServer(),owner());}
@@ -59,7 +62,27 @@ final class MachineExtensions {
         ResearchService.recordEnergyPayment(level().getServer(),owner(),machineId,operation,energy,tx);
         energyJournal.updateSnapshots(tx);
         if(!debit.get().apply(tx))return false;
-        machine.energy().set(Math.toIntExact(machine.energy().getAmountAsLong()-energy));energyReceiptRevision=ResearchService.energyChanges(level().getServer(),machineId).size();partialEnergyDebt=0;machine.setChanged();return true;
+        machine.energy().set(Math.toIntExact(machine.energy().getAmountAsLong()-energy));energyReceiptRevision=ResearchService.energyChanges(level().getServer(),machineId).size();partialEnergyDebt=0;machine.work().energyRate=energy;machine.setChanged();return true;
+    }
+    private boolean payResearchTick(long due,@Nullable TransactionContext tx){
+        if(!owned()||due>machine.energy().getAmountAsLong())return false;
+        if(tx!=null)energyJournal.updateSnapshots(tx);
+        machine.energy().set(Math.toIntExact(machine.energy().getAmountAsLong()-due));
+        machine.work().energyRate=due;machine.setChanged();return true;
+    }
+    private boolean payConversion(UUID operation,long units,long energy,TransactionContext tx){
+        long available=conversionEnergyPaid+machine.energy().getAmountAsLong();
+        if(!owned()||energy>available)return false;
+        var debit=primal.prepareDebit(operation,units);if(debit.isEmpty())return false;
+        ResearchService.recordCellPayment(level().getServer(),owner(),debit.get(),-units,tx);
+        ResearchService.recordEnergyPayment(level().getServer(),owner(),machineId,operation,energy,tx);
+        energyJournal.updateSnapshots(tx);
+        if(!debit.get().apply(tx))return false;
+        long fromPaid=Math.min(conversionEnergyPaid,energy);
+        conversionEnergyPaid-=fromPaid;
+        long remaining=energy-fromPaid;
+        if(remaining>0)machine.energy().set(Math.toIntExact(machine.energy().getAmountAsLong()-remaining));
+        energyReceiptRevision=ResearchService.energyChanges(level().getServer(),machineId).size();partialEnergyDebt=0;machine.setChanged();return true;
     }
     /** Reconcile authority-new/BE-old energy before that buffer can run work or emit power. */
     private boolean energyDebt(){
@@ -68,6 +91,8 @@ final class MachineExtensions {
         while(energyReceiptRevision<debts.size()){
             long remaining=debts.get(Math.toIntExact(energyReceiptRevision)).energy()-partialEnergyDebt;
             if(remaining<0)return true;
+            long fromConversion=Math.min(remaining,conversionEnergyPaid);
+            if(fromConversion>0){conversionEnergyPaid-=fromConversion;partialEnergyDebt+=fromConversion;remaining-=fromConversion;machine.setChanged();}
             long paid=Math.min(remaining,machine.energy().getAmountAsLong());
             if(paid>0){machine.energy().set((int)(machine.energy().getAmountAsLong()-paid));partialEnergyDebt+=paid;machine.setChanged();}
             if(paid<remaining)return true;
@@ -130,7 +155,7 @@ final class MachineExtensions {
         long energy=view.mode()==ResearchSessions.Mode.DISCOVERY?discoveryEnergy():deriveEnergy();
         int ticks=view.mode()==ResearchSessions.Mode.DISCOVERY?DiscoveryTier.STEP_TICKS:deriveTicks();
         if(!checkpoint(false)){machine.work().status="identity_checkpoint";return true;}
-        var result=engine().advance(context(),researchId,level().getGameTime(),lens(),network(),energy,ticks,this::pay);
+        var result=engine().advance(context(),researchId,level().getGameTime(),lens(),network(),energy,ticks,this::pay,this::payResearchTick);
         if(result==ResearchSessions.Result.LEARNED&&view.mode()==ResearchSessions.Mode.DERIVE)machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.ON_PAPER);
         var updated=engine().session(context(),researchId).orElse(view);
         machine.work().progress=updated.completedSteps()*updated.stepTicks()+updated.elapsedTicks();
@@ -168,14 +193,21 @@ final class MachineExtensions {
         var network=machine.matterNetwork(true);
         if(!network.ready()){work.status=network.status();return;}
         if(!ConverterDestination.observe(network,quote.target(),quote.output()).ready()){work.status="output_full";return;}
-        if(machine.energy().getAmountAsLong()<quote.energy()||PrimalCells.view(primal.stack()).amount()<quote.primal()){work.status="research_payment";return;}
+        if(PrimalCells.view(primal.stack()).amount()<quote.primal()){work.status="research_payment";return;}
+        long due=MachineEnergyPolicy.stepEnergy(quote.energy(),conversionProgress,1,quote.ticks(),conversionEnergyPaid);
+        if(machine.energy().getAmountAsLong()<due){work.status="research_payment";return;}
+        if(due>0){
+            machine.energy().set((int)(machine.energy().getAmountAsLong()-due));
+            conversionEnergyPaid+=due;
+            work.energyRate=due;
+        }
         conversionProgress=Math.min(quote.ticks(),conversionProgress+1);work.progress=conversionProgress;work.duration=quote.ticks();work.processedThisTick=true;work.status="working";
         boolean transferred=machine.advanceNetworkTransfer(conversionId.toString(),quote.output());
         if(conversionProgress<quote.ticks()){machine.setChanged();return;}
         if(!transferred){work.status="cable_limited";return;}
         if(!checkpoint(true)){work.status="identity_checkpoint";return;}
-        var result=ResearchService.commitConversion(level().getServer(),owner(),machineId,conversionId,quote.target(),quote.output(),quote.energy(),this::pay);
-        if(result.isPresent()){converting=false;conversionProgress=0;machine.consumeRedstonePulse();machine.completeNetworkTransfer();work.status="ready";machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.ONE_WAY);}
+        var result=ResearchService.commitConversion(level().getServer(),owner(),machineId,conversionId,quote.target(),quote.output(),quote.energy(),this::payConversion);
+        if(result.isPresent()){converting=false;conversionProgress=0;conversionEnergyPaid=0;machine.consumeRedstonePulse();machine.completeNetworkTransfer();work.status="ready";machine.guidance(dev.latrox.rematter.guide.GuidanceEvent.ONE_WAY);}
         else work.status="research_payment";
         machine.setChanged();
     }
@@ -223,9 +255,16 @@ final class MachineExtensions {
                 }
                 case CONVERT_START->{
                     if(machine.kind()!=MachineKind.PRIMAL_CONVERTER||converting||!ResearchService.conversionClaims(level().getServer(),owner(),machineId).stream().noneMatch(c->c.remaining()>0))return false;
-                    quote();conversionId=UUID.randomUUID();conversionProgress=0;converting=true;
+                    quote();conversionId=UUID.randomUUID();conversionProgress=0;conversionEnergyPaid=0;converting=true;
                 }
-                case CONVERT_CANCEL->{if(machine.kind()!=MachineKind.PRIMAL_CONVERTER)return false;converting=false;conversionProgress=0;machine.completeNetworkTransfer();}
+                case CONVERT_CANCEL->{
+                    if(machine.kind()!=MachineKind.PRIMAL_CONVERTER)return false;
+                    if(conversionEnergyPaid>0){
+                        long restored=Math.min(machine.energyCapacity(),machine.energy().getAmountAsLong()+conversionEnergyPaid);
+                        machine.energy().set((int)restored);conversionEnergyPaid=0;
+                    }
+                    converting=false;conversionProgress=0;machine.completeNetworkTransfer();
+                }
                 case ASSAY->{if(machine.kind()!=MachineKind.INDUSTRIAL_PREPARATOR||machine.networkJobs())return false;assay=!assay;machine.resetProgress();}
                 case DERIVE->{
                     if(machine.kind()!=MachineKind.ANALYZER)return false;
@@ -332,17 +371,17 @@ final class MachineExtensions {
         pushEnergy();var work=machine.work();
         if(!machine.running()){work.status="paused";return;}
         if(!machine.redstoneAllowsGenerator(burner.remaining()>0)){work.status="redstone_paused";return;}
-        var plan=burner.tick(MachineBlockEntity.ENERGY_CAPACITY-machine.energy().getAmountAsLong(),generationRate(),CrystalFuelData.fuel(machine.stack(0)).orElse(null),machine.stack(0).getCount());
+        var plan=burner.tick(machine.energyCapacity()-machine.energy().getAmountAsLong(),generationRate(),CrystalFuelData.fuel(machine.stack(0)).orElse(null),machine.stack(0).getCount());
         if(!burner.apply(plan)){work.status="unsupported_data";return;}
         if(plan.changesState()){
             if(plan.consumedItems()>0)machine.consumeRedstonePulse();
             machine.stack(0).shrink(plan.consumedItems());machine.energy().set((int)(machine.energy().getAmountAsLong()+plan.producedEnergy()));work.energyRate=plan.producedEnergy();work.processedThisTick=plan.producedEnergy()>0;work.status="generating";machine.setChanged();
         }
-        else work.status=!burner.readable()?"unsupported_data":machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY?"energy_full":"generator_fuel";
+        else work.status=!burner.readable()?"unsupported_data":machine.energy().getAmountAsLong()>=machine.energyCapacity()?"energy_full":"generator_fuel";
     }
     private final EnergyHandler output=new EnergyHandler(){
         public long getAmountAsLong(){return machine.energy().getAmountAsLong();}
-        public long getCapacityAsLong(){return MachineBlockEntity.ENERGY_CAPACITY;}
+        public long getCapacityAsLong(){return machine.energyCapacity();}
         public int insert(int amount,TransactionContext tx){return 0;}
         public int extract(int amount,TransactionContext tx){
             if(amount<0)throw new IllegalArgumentException("Negative energy");if(!machine.networkLive()||!machine.kind().generator())return 0;
@@ -363,13 +402,17 @@ final class MachineExtensions {
             }
         }
     }
-    boolean hasResources(){return burner.remaining()>0||!burner.readable();}
+    boolean hasResources(){return burner.remaining()>0||!burner.readable()||conversionEnergyPaid>0;}
     void save(ValueOutput out){
         if(machine.kind()==MachineKind.ANALYZER||machine.kind()==MachineKind.PRIMAL_CONVERTER||energyReceiptRevision>0||partialEnergyDebt>0||identityCheckpoint||!checkpointedCells.isEmpty()){
             out.putString("extension_id",machineId.toString());out.putBoolean("identity_checkpoint",identityCheckpoint);out.store("checkpointed_cells",com.mojang.serialization.Codec.STRING.listOf(),checkpointedCells.stream().map(UUID::toString).sorted().toList());out.putLong("energy_receipt_revision",energyReceiptRevision);out.putLong("partial_energy_debt",partialEnergyDebt);
         }
         if(researchId!=null){out.putString("research_session",researchId.toString());out.putBoolean("research_running",researchRunning);}
-        if(machine.kind()==MachineKind.PRIMAL_CONVERTER){out.putString("conversion_target",conversionTarget);out.putLong("conversion_amount",conversionAmount);out.putBoolean("converting",converting);out.putInt("conversion_progress",conversionProgress);if(conversionId!=null)out.putString("conversion_id",conversionId.toString());}
+        if(machine.kind()==MachineKind.PRIMAL_CONVERTER){
+            out.putString("conversion_target",conversionTarget);out.putLong("conversion_amount",conversionAmount);out.putBoolean("converting",converting);out.putInt("conversion_progress",conversionProgress);
+            if(conversionEnergyPaid>0)out.putLong("conversion_energy_paid",conversionEnergyPaid);
+            if(conversionId!=null)out.putString("conversion_id",conversionId.toString());
+        }
         if(assay)out.putBoolean("assay",true);
         if(machine.kind().generator())out.store("crystal_burner",CompoundTag.CODEC,burner.save());
     }
@@ -392,8 +435,9 @@ final class MachineExtensions {
         if(in.getString("research_session").isPresent())researchId=storedIdentity(in.getString("research_session").orElseThrow());
         researchRunning=in.getBooleanOr("research_running",false);assay=in.getBooleanOr("assay",false);
         conversionTarget=in.getStringOr("conversion_target","");conversionAmount=in.getLongOr("conversion_amount",1000);converting=in.getBooleanOr("converting",false);conversionProgress=in.getIntOr("conversion_progress",0);
+        conversionEnergyPaid=in.getLongOr("conversion_energy_paid",0);
         if(in.getString("conversion_id").isPresent())conversionId=storedIdentity(in.getString("conversion_id").orElseThrow());
-        if(converting&&conversionId==null||conversionAmount<250||conversionAmount>8000||conversionAmount%250!=0||conversionProgress<0||conversionProgress>12000||researchRunning&&researchId==null)throw new IllegalArgumentException("Invalid retained research or conversion job");
+        if(converting&&conversionId==null||conversionAmount<250||conversionAmount>8000||conversionAmount%250!=0||conversionProgress<0||conversionProgress>12000||conversionEnergyPaid<0||conversionEnergyPaid>1_200_000||(!converting&&conversionEnergyPaid!=0)||researchRunning&&researchId==null)throw new IllegalArgumentException("Invalid retained research or conversion job");
         if(machine.kind().generator())in.read("crystal_burner",CompoundTag.CODEC).ifPresent(burner::load);
     }
 }

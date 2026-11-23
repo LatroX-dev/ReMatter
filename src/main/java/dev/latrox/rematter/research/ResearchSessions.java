@@ -13,6 +13,7 @@ import java.util.UUID;
 import java.util.random.RandomGenerator;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
 
 /** Server-only research scheduler. A session belongs to knowledge identity, not a block or transported item. */
 public final class ResearchSessions {
@@ -24,6 +25,10 @@ public final class ResearchSessions {
     /** The adapter must debit FE and the explicit cell in this same transaction; no normal network fallback. */
     @FunctionalInterface public interface Payment {
         boolean debit(UUID operation, long primal, long energy, TransactionContext transaction);
+    }
+    /** Debits per-tick FE during an active paid step. When transaction is non-null, changes must roll back with it. */
+    @FunctionalInterface public interface EnergyDebit {
+        boolean debit(long energy, @Nullable TransactionContext transaction);
     }
     /** Returns the amount actually inserted into the explicit return cell. Full cells simply return zero. */
     @FunctionalInterface public interface Refund {
@@ -108,7 +113,7 @@ public final class ResearchSessions {
     }
     /** Call at most once per server tick. A saved tick claim prevents two analyzers from advancing the same session. */
     public Result advance(ResearchContext context, UUID id, long gameTick, boolean lens, boolean ownNetworkReady,
-                          long actualEnergy, int actualTicks, Payment payment) {
+                          long actualEnergy, int actualTicks, Payment payment, EnergyDebit tickEnergy) {
         ledger.requireWritable(); var session = ledger.sessions.get(id);
         if (session == null || !session.identity.equals(context.identity()) || closed(session)) return Result.UNAVAILABLE;
         if (!session.signature.equals(signature(actualEnergy, actualTicks))) return pauseAs(session, State.DEFINITION_CHANGED);
@@ -123,11 +128,15 @@ public final class ResearchSessions {
         if (family.isEmpty()) return pauseAs(session, State.INELIGIBLE);
         if (session.lastTick == gameTick) return Result.WAITING;
         boolean paidNow = session.paidSteps == session.completedSteps;
-        // Ordinary paid work changes only this session's clock. Do not snapshot the entire world ledger every tick.
+        // Ordinary paid work changes only this session's clock and per-tick FE. Do not snapshot the entire world ledger every tick.
         boolean finalTick = session.completedSteps + 1 == session.totalSteps && session.elapsed + 1 == session.stepTicks;
+        long tickDue = dev.latrox.rematter.content.MachineEnergyPolicy.stepEnergy(
+                session.energyPerStep, session.elapsed, 1, session.stepTicks, session.stepEnergyPaid);
         if (!paidNow && !finalTick) {
+            if (tickDue > 0 && !tickEnergy.debit(tickDue, null)) return Result.WAITING;
+            session.stepEnergyPaid += tickDue;
             session.lastTick = gameTick; session.state = State.ACTIVE; session.elapsed++;
-            if (session.elapsed == session.stepTicks) { session.elapsed = 0; session.completedSteps++; }
+            if (session.elapsed == session.stepTicks) { session.elapsed = 0; session.stepEnergyPaid = 0; session.completedSteps++; }
             ledger.changed(); return Result.WORKING;
         }
         try (var tx = Transaction.openRoot()) {
@@ -135,22 +144,26 @@ public final class ResearchSessions {
             if (paidNow) {
                 var operation = operation(session.id, "step:" + session.paidSteps);
                 if (!ledger.hasPayment(operation)) {
-                    if (!payment.debit(operation, session.primalPerStep, session.energyPerStep, tx)) return Result.WAITING;
+                    if (!payment.debit(operation, session.primalPerStep, tickDue, tx)) return Result.WAITING;
                     if (ledger.needsCellRecord()) {
                         var cell = ledger.cellChanges.get(operation); var energy = ledger.energyChanges.get(operation);
                         if (cell == null || cell.delta() != -session.primalPerStep || !cell.identity().equals(context.identity())
-                                || energy == null || energy.energy() != session.energyPerStep || !energy.owner().equals(context.owner()))
+                                || energy == null || energy.energy() != tickDue || !energy.owner().equals(context.owner()))
                             throw new IllegalStateException("Research debit requires exact authoritative cell/energy/identity receipts");
                     }
                     ledger.addPayment(operation);
                 }
                 session.paidSteps++;
+                session.stepEnergyPaid += tickDue;
+            } else {
+                if (tickDue > 0 && !tickEnergy.debit(tickDue, tx)) return Result.WAITING;
+                session.stepEnergyPaid += tickDue;
             }
             session.lastTick = gameTick; session.state = State.ACTIVE;
             session.elapsed++;
             Result result = paidNow ? Result.PAID : Result.WORKING;
             if (session.elapsed == session.stepTicks) {
-                session.elapsed = 0; session.completedSteps++;
+                session.elapsed = 0; session.stepEnergyPaid = 0; session.completedSteps++;
                 if (session.completedSteps == session.totalSteps) {
                     // Knowledge and the final paid work commit together. Another learning path was checked above.
                     ledger.learn(context, family.get(), session.mode == Mode.DERIVE ? LearningPath.DERIVATION : LearningPath.DISCOVERY);
@@ -231,7 +244,7 @@ public final class ResearchSessions {
     static final class Session {
         final UUID id; final ResearchIdentity identity; final Mode mode; final int tier; final String target;
         final List<String> order; final String signature; final int totalSteps; final long primalPerStep, energyPerStep; final int stepTicks;
-        String resultFamily = ""; int paidSteps, completedSteps, elapsed; long lastTick = Long.MIN_VALUE; State state = State.ACTIVE;
+        String resultFamily = ""; int paidSteps, completedSteps, elapsed; long stepEnergyPaid; long lastTick = Long.MIN_VALUE; State state = State.ACTIVE;
         Session(UUID id, ResearchIdentity identity, Mode mode, int tier, String target, List<String> order, String signature,
                 int totalSteps, long primalPerStep, long energyPerStep, int stepTicks) {
             this.id = id; this.identity = identity; this.mode = mode; this.tier = tier; this.target = target; this.order = List.copyOf(order);
@@ -250,16 +263,19 @@ public final class ResearchSessions {
             var obj = new JsonObject(); obj.addProperty("id", id.toString()); obj.addProperty("identity", identity.key()); obj.addProperty("mode", mode.name());
             obj.addProperty("tier", tier); obj.addProperty("target", target); var choices = new JsonArray(); order.forEach(choices::add); obj.add("order", choices);
             obj.addProperty("signature", signature); obj.addProperty("total_steps", totalSteps); obj.addProperty("primal", primalPerStep); obj.addProperty("energy", energyPerStep); obj.addProperty("ticks", stepTicks);
-            obj.addProperty("paid", paidSteps); obj.addProperty("completed", completedSteps); obj.addProperty("elapsed", elapsed); obj.addProperty("last_tick", lastTick); obj.addProperty("state", state.name()); obj.addProperty("result", resultFamily); return obj;
+            obj.addProperty("paid", paidSteps); obj.addProperty("completed", completedSteps); obj.addProperty("elapsed", elapsed); obj.addProperty("energy_paid", stepEnergyPaid); obj.addProperty("last_tick", lastTick); obj.addProperty("state", state.name()); obj.addProperty("result", resultFamily); return obj;
         }
         static Session fromJson(JsonObject obj) {
             var order = new ArrayList<String>(); obj.getAsJsonArray("order").forEach(e -> order.add(e.getAsString()));
             var session = new Session(UUID.fromString(obj.get("id").getAsString()), ResearchIdentity.parse(obj.get("identity").getAsString()), Mode.valueOf(obj.get("mode").getAsString()),
                     obj.get("tier").getAsInt(), obj.get("target").getAsString(), order, obj.get("signature").getAsString(), obj.get("total_steps").getAsInt(), obj.get("primal").getAsLong(), obj.get("energy").getAsLong(), obj.get("ticks").getAsInt());
-            session.paidSteps = obj.get("paid").getAsInt(); session.completedSteps = obj.get("completed").getAsInt(); session.elapsed = obj.get("elapsed").getAsInt(); session.lastTick = obj.get("last_tick").getAsLong(); session.state = State.valueOf(obj.get("state").getAsString()); session.resultFamily = obj.get("result").getAsString();
+            session.paidSteps = obj.get("paid").getAsInt(); session.completedSteps = obj.get("completed").getAsInt(); session.elapsed = obj.get("elapsed").getAsInt();
+            session.stepEnergyPaid = obj.has("energy_paid") ? obj.get("energy_paid").getAsLong() : (session.elapsed > 0 ? session.energyPerStep : 0L);
+            session.lastTick = obj.get("last_tick").getAsLong(); session.state = State.valueOf(obj.get("state").getAsString()); session.resultFamily = obj.get("result").getAsString();
             if (session.state == State.COMPLETE ? !session.order.contains(session.resultFamily) : !session.resultFamily.isEmpty()) throw new IllegalArgumentException("Invalid research result visibility");
             if (session.completedSteps < 0 || session.completedSteps > session.totalSteps || session.paidSteps < session.completedSteps || session.paidSteps > session.totalSteps || session.paidSteps > session.completedSteps + 1
                     || session.elapsed < 0 || session.elapsed >= session.stepTicks || session.elapsed > 0 && session.paidSteps == session.completedSteps
+                    || session.stepEnergyPaid < 0 || session.stepEnergyPaid > session.energyPerStep || session.elapsed == 0 && session.stepEnergyPaid != 0
                     || session.state == State.COMPLETE && session.completedSteps != session.totalSteps)
                 throw new IllegalArgumentException("Invalid paid research progress");
             return session;

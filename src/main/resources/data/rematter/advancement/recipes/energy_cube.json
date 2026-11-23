@@ -7,10 +7,10 @@
         "items": [
           {
             "items": [
-              "rematter:ember_matrix_crystal"
+              "rematter:energy_core"
             ],
             "count": {
-              "min": 1
+              "min": 2
             }
           },
           {
@@ -35,14 +35,6 @@
             ],
             "count": {
               "min": 4
-            }
-          },
-          {
-            "items": [
-              "rematter:virelite_ceramic"
-            ],
-            "count": {
-              "min": 1
             }
           }
         ]

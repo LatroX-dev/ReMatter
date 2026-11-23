@@ -110,7 +110,9 @@ final class MachineSnapshots {
 
     static MachineProgressPayload progress(MachineBlockEntity machine, int containerId) {
         var work = machine.work();
-        return new MachineProgressPayload(containerId, (int) machine.energy().getAmountAsLong(), Math.min(work.progress, work.duration), work.duration);
+        int cap = machine.energyCapacity();
+        int stored = (int) Math.clamp(machine.energy().getAmountAsLong(), 0, cap);
+        return new MachineProgressPayload(containerId, stored, cap, Math.min(work.progress, work.duration), work.duration);
     }
 
     static MachineBlockEntity.Summary summary(MachineBlockEntity machine, int rows) {

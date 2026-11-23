@@ -61,7 +61,7 @@ public final class ReMatterGameTests {
     }
     private static void drivePreservedItems(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
-        for(int bay=0;bay<6;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        for(int bay=0;bay<6;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),new ItemStack(ModContent.MATTER_CELL_4M.get()));
         drive.setItem(3,new ItemStack(Items.IRON_INGOT,3));drive.setItem(4,new ItemStack(Items.GOLD_INGOT,2));
         var menu=new MachineMenu(1,owner.getInventory(),drive);
         for(var view:List.of(MachineMenu.View.MAIN,MachineMenu.View.CONFIGURATION)) {
@@ -94,9 +94,9 @@ public final class ReMatterGameTests {
     private static Rig rig(GameTestHelper h,MachineKind kind) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);
         var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
-        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var machine=place(h,new BlockPos(3,2,2),kind,owner);
-        machine.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        machine.energy().set(machine.energyCapacity());
         return new Rig(drive,machine,owner);
     }
     private static MachineBlockEntity place(GameTestHelper h,BlockPos pos,MachineKind kind,net.minecraft.world.entity.player.Player owner) {
@@ -119,13 +119,14 @@ public final class ReMatterGameTests {
     }
     private static void glass(GameTestHelper h) {
         var r=rig(h,MachineKind.DECOMPOSER);r.machine.setItem(0,new ItemStack(Items.SAND));
-        var synth=place(h,new BlockPos(1,2,2),MachineKind.SYNTHESIZER,r.owner);synth.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var synth=place(h,new BlockPos(1,2,2),MachineKind.SYNTHESIZER,r.owner);synth.energy().set(synth.energyCapacity());
         synth.selectRecipe("minecraft:glass");synth.requestBatch();
+        long expectedPool=(long)r.machine.energyCapacity()+synth.energyCapacity();
         h.succeedWhen(()-> {
             h.assertTrue(synth.getItem(1).is(Items.GLASS),"Glass was not produced");
             h.assertTrue(r.machine.getItem(0).isEmpty(),"Sand input was not consumed exactly once");
             h.assertTrue(r.drive.matterStore().total()==0,"Silica was duplicated or lost");
-            h.assertTrue(r.machine.energy().getAmountAsLong()+synth.energy().getAmountAsLong()==2L*MachineBlockEntity.ENERGY_CAPACITY-24000,"Wrong FE debit");
+            h.assertTrue(r.machine.energy().getAmountAsLong()+synth.energy().getAmountAsLong()==expectedPool-24000,"Wrong FE debit");
         });
     }
     private static void fullOutput(GameTestHelper h) {
@@ -134,7 +135,7 @@ public final class ReMatterGameTests {
         r.machine.setItem(1,new ItemStack(Items.GLASS,64));r.machine.selectRecipe("minecraft:glass");r.machine.requestBatch();
         h.runAtTickTime(ReMatter.chemistry().profile("minecraft:glass").orElseThrow().ticks()+60,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.SILICA)==1000,"A full output consumed matter");
-            h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"A full output consumed FE");h.succeed();
+            h.assertTrue(r.machine.energy().getAmountAsLong()==r.machine.energyCapacity(),"A full output consumed FE");h.succeed();
         });
     }
     private static void noPower(GameTestHelper h) {
@@ -170,11 +171,11 @@ public final class ReMatterGameTests {
     }
     private static void target(GameTestHelper h) {
         var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.HYDROGEN,6000L,BuiltinChemistry.OXYGEN,3000L));
-        var other=place(h,new BlockPos(1,2,2),MachineKind.REACTOR,r.owner);other.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var other=place(h,new BlockPos(1,2,2),MachineKind.REACTOR,r.owner);other.energy().set(other.energyCapacity());
         r.machine.selectRecipe("rematter:water_synthesis");other.selectRecipe("rematter:water_synthesis");
         var setting=new MachineSettings(2000,"rematter:water","liquid",Set.of());
         h.assertTrue(r.machine.configure(r.owner,setting)&&other.configure(r.owner,setting),"Target rejected");
-        var locked=place(h,new BlockPos(2,2,3),MachineKind.SYNTHESIZER,r.owner);locked.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var locked=place(h,new BlockPos(2,2,3),MachineKind.SYNTHESIZER,r.owner);locked.energy().set(locked.energyCapacity());
         locked.selectRecipe("minecraft:diamond");locked.requestBatch();
         int cycle=ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_synthesis")).orElseThrow().ticks();
         h.runAtTickTime(cycle+40,()-> {
@@ -236,7 +237,7 @@ public final class ReMatterGameTests {
         h.runAtTickTime(20,()->r.drive.setItem(0,ItemStack.EMPTY));
         h.runAtTickTime(ReMatter.chemistry().profile("minecraft:glass").orElseThrow().ticks()+70,()-> {
             h.assertTrue(r.machine.getItem(1).isEmpty(),"Disconnected storage produced output");
-            h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Disconnected work consumed FE");
+            h.assertTrue(r.machine.energy().getAmountAsLong()==r.machine.energyCapacity(),"Disconnected work consumed FE");
             r.drive.setItem(0,cell);
         });
         h.succeedWhen(()-> {
@@ -253,7 +254,7 @@ public final class ReMatterGameTests {
         var next=place(h,new BlockPos(5,2,2),MachineKind.SYNTHESIZER,h.makeMockPlayer(GameType.SURVIVAL));
         h.assertTrue(data.loadInto(next,h.getLevel().registryAccess()),"Portable data was not restored");
         h.assertTrue(next.getItem(1).getCount()==13,"Portable output was lost");
-        h.assertTrue(next.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Portable FE was lost");h.succeed();
+        h.assertTrue(next.energy().getAmountAsLong()==next.energyCapacity(),"Portable FE was lost");h.succeed();
     }
     private static void parallel(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var origin=h.absolutePos(new BlockPos(4,2,3));
@@ -272,9 +273,10 @@ public final class ReMatterGameTests {
         h.setBlock(4,2,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.REACTION_CHAMBER).get());
         h.setBlock(4,6,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.FIELD_COIL).get());
         h.assertTrue(IndustrialStructure.inspect(controller).formed(),"Fixture chamber did not form: "+IndustrialStructure.inspect(controller).diagnostic());
-        var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
         h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.WATER,4000L)),"Water fixture rejected");
-        controller.energy().set(MachineBlockEntity.ENERGY_CAPACITY);controller.setItem(MachineCellAccess.PARALLEL_SLOT,new ItemStack(ModContent.PARALLEL_UPGRADE.get(),3));
+        int controllerCap=controller.energyCapacity();
+        controller.energy().set(controllerCap);controller.setItem(MachineCellAccess.PARALLEL_SLOT,new ItemStack(ModContent.PARALLEL_UPGRADE.get(),3));
         controller.selectRecipe("rematter:water_evaporation");for(int i=0;i<4;i++)controller.requestBatch();
         long debit=4*controller.cost(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().energy());
         h.runAtTickTime(10,()->h.assertTrue(controller.parallelRunning()==4,"Four lanes were not reserved together"));
@@ -282,19 +284,19 @@ public final class ReMatterGameTests {
         int cycle=Math.ceilDiv(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_evaporation")).orElseThrow().ticks(),controller.speed());
         h.runAtTickTime(cycle+40,()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.WATER)==4000,"Broken chamber consumed reserved inputs");
-            h.assertTrue(controller.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Broken chamber consumed FE");
+            h.assertTrue(controller.energy().getAmountAsLong()==controllerCap,"Broken chamber consumed FE");
             h.assertTrue(IndustrialStructure.inspect(controller).mismatch()!=null,"Broken chamber lacks a construction hint");
             h.setBlock(3,1,3,ModContent.REACTOR_CASING.get());
         });
         h.succeedWhen(()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.STEAM)==4000,"Parallel output is not exact");
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.WATER)==0,"Parallel input duplicated");
-            h.assertTrue(controller.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-debit,"Parallel FE debit is not per batch");
+            h.assertTrue(controller.energy().getAmountAsLong()==controllerCap-debit,"Parallel FE debit is not per batch");
         });
     }
     private static void cables(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var foreign=h.makeMockPlayer(GameType.SURVIVAL);
-        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var processor=place(h,new BlockPos(4,2,2),MachineKind.DECOMPOSER,owner);
         var outsider=place(h,new BlockPos(4,2,3),MachineKind.DECOMPOSER,foreign);
         h.setBlock(3,2,2,ModContent.MATTER_CABLE.get());h.setBlock(3,2,3,ModContent.MATTER_CABLE.get());
@@ -327,7 +329,7 @@ public final class ReMatterGameTests {
     private static void placedCables(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         placeItem(h, new BlockPos(2,2,2), owner, new ItemStack(ModContent.MACHINES.get(MachineKind.DRIVE).get()));
-        h.getBlockEntity(new BlockPos(2,2,2), MachineBlockEntity.class).setItem(0, new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        h.getBlockEntity(new BlockPos(2,2,2), MachineBlockEntity.class).setItem(0, new ItemStack(ModContent.MATTER_CELL_4M.get()));
         placeItem(h, new BlockPos(3,2,2), owner, new ItemStack(ModContent.MATTER_CABLE.get()));
         placeItem(h, new BlockPos(4,2,2), owner, new ItemStack(ModContent.REINFORCED_MATTER_CABLE.get()));
         placeItem(h, new BlockPos(5,2,2), owner, new ItemStack(ModContent.RESONANT_MATTER_CABLE.get()));
@@ -511,13 +513,13 @@ public final class ReMatterGameTests {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var pos=new BlockPos(2,2,2);
         var drive=place(h,pos,MachineKind.DRIVE,owner);drive.serverTick();
         h.assertTrue(!h.getBlockState(pos).getValue(MachineBlock.ACTIVE),"Empty Drive shows activity");
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,4),new ItemStack(ModContent.MATTER_CELL_256K.get()));drive.serverTick();
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,4),new ItemStack(ModContent.MATTER_CELL_16M.get()));drive.serverTick();
         h.assertTrue(h.getBlockState(pos).getValue(MachineBlock.ACTIVE),"Readable cell did not light the activity bar");
         var unknown=new net.minecraft.nbt.CompoundTag();unknown.putInt("schema",99);
-        var locked=new ItemStack(ModContent.MATTER_CELL_64K.get());locked.set(MatterCellData.TYPE.get(),new MatterCellData(unknown));
+        var locked=new ItemStack(ModContent.MATTER_CELL_4M.get());locked.set(MatterCellData.TYPE.get(),new MatterCellData(unknown));
         drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,4),locked);drive.serverTick();
         h.assertTrue(!h.getBlockState(pos).getValue(MachineBlock.ACTIVE),"Only an unreadable cell is mounted, yet the bar is lit");
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,0),new ItemStack(ModContent.MATTER_CELL_64K.get()));drive.serverTick();
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,0),new ItemStack(ModContent.MATTER_CELL_4M.get()));drive.serverTick();
         h.assertTrue(h.getBlockState(pos).getValue(MachineBlock.ACTIVE),"One readable cell beside an unreadable one must light the bar");
         for(int bay=0;bay<MachineCellAccess.DRIVE_BAYS;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),ItemStack.EMPTY);
         drive.serverTick();
@@ -538,7 +540,7 @@ public final class ReMatterGameTests {
         Runnable tick=()-> {drive.serverTick();terminal.serverTick();link.serverTick();lone.serverTick();};
         tick.run();
         h.assertTrue(!lit(h,terminalPos)&&!lit(h,interfacePos),"A network without a readable cell lit a Terminal or an Interface");
-        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));tick.run();
+        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));tick.run();
         h.assertTrue(lit(h,terminalPos),"A ready network did not light the Terminal screen");
         h.assertTrue(lit(h,interfacePos),"A ready network did not light the Network Interface lens");
         h.assertTrue(!lit(h,lonePos),"A Terminal without a network lit its screen");
@@ -707,8 +709,9 @@ public final class ReMatterGameTests {
         h.setBlock(3,2,4,ModContent.MACHINE_PORT.get());h.setBlock(5,2,4,ModContent.MACHINE_PORT.get());
         h.setBlock(4,2,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.REACTION_CHAMBER).get());
         h.setBlock(4,3,4,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.FIELD_COIL).get());
-        var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
-        reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);reactor.selectRecipe("rematter:air_oxygen");reactor.requestBatch();
+        var drive=place(h,new BlockPos(2,2,4),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        int reactorCap=reactor.energyCapacity();
+        reactor.energy().set(reactorCap);reactor.selectRecipe("rematter:air_oxygen");reactor.requestBatch();
         var inlet=origin.above(shape.height()-1);
         long[] blockedEnergy={0};
         h.runAtTickTime(10,()->{
@@ -719,22 +722,22 @@ public final class ReMatterGameTests {
         h.runAtTickTime(blockedUntil,()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==0,"Blocked industrial air inlet produced gas");
             h.assertTrue(reactor.energy().getAmountAsLong()==blockedEnergy[0]
-                    &&reactor.energy().getAmountAsLong()+reactor.work().energyPaid==MachineBlockEntity.ENERGY_CAPACITY,
+                    &&reactor.energy().getAmountAsLong()+reactor.work().energyPaid==reactorCap,
                     "Blocked industrial air inlet spent FE");
             h.getLevel().setBlock(inlet,Blocks.AIR.defaultBlockState(),3);
         });
         h.succeedWhen(()-> {
             h.assertTrue(drive.matterStore().amount(BuiltinChemistry.OXYGEN)==200,"Industrial air source did not recover after reopening inlet");
-            h.assertTrue(reactor.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-reactor.cost(16000),"Industrial air source paid wrong FE");
+            h.assertTrue(reactor.energy().getAmountAsLong()==reactorCap-reactor.cost(16000),"Industrial air source paid wrong FE");
         });
     }
     private static void byproduct(GameTestHelper h) {
-        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.CARBON,63000L));
+        var r=rig(h,MachineKind.REACTOR);put(r,Map.of(BuiltinChemistry.WATER,1000L,BuiltinChemistry.CARBON,MatterLimits.CELL_4M-1000L));
         r.machine.selectRecipe("rematter:water_electrolysis");r.machine.requestBatch();
         h.runAtTickTime(ReMatter.chemistry().recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow().ticks()+50,()-> {
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.WATER)==1000,"A full byproduct consumed water");
             h.assertTrue(r.drive.matterStore().amount(BuiltinChemistry.HYDROGEN)==0,"A partial batch escaped");
-            h.assertTrue(r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"A full byproduct consumed FE");h.succeed();
+            h.assertTrue(r.machine.energy().getAmountAsLong()==r.machine.energyCapacity(),"A full byproduct consumed FE");h.succeed();
         });
     }
     private static void advancement(GameTestHelper h) {
@@ -788,17 +791,17 @@ public final class ReMatterGameTests {
     private static void cellLed(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);
         var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
-        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));drive.serverTick();
+        drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));drive.serverTick();
         h.assertTrue(drive.visibleCellStatus(0)==CellStatus.EMPTY,"Empty cell indicator missing");
-        h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,64000L)),"LED fixture did not fit");drive.serverTick();
+        h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,MatterLimits.CELL_4M)),"LED fixture did not fit");drive.serverTick();
         h.assertTrue(drive.visibleCellStatus(0)==CellStatus.FULL,"Full indicator did not follow live contents");
         var packet=drive.getUpdateTag(h.getLevel().registryAccess());
         h.assertTrue((packet.getIntOr("cell_statuses",0)&7)==CellStatus.FULL.ordinal(),"Public update did not carry full indicator");
-        h.assertTrue(!packet.toString().contains("rematter:soil")&&!packet.toString().contains("64000"),"LED leaked detailed stock");
+        h.assertTrue(!packet.toString().contains("rematter:soil")&&!packet.toString().contains(Long.toString(MatterLimits.CELL_4M)),"LED leaked detailed stock");
         h.assertTrue(drive.matterStore().apply(Map.of(BuiltinChemistry.SOIL,1L),Map.of()),"Could not extract LED sample");drive.serverTick();
         h.assertTrue(drive.visibleCellStatus(0)==CellStatus.STORED,"Green indicator did not follow extraction");
         var unknown=new net.minecraft.nbt.CompoundTag();unknown.putInt("schema",99);unknown.putLong("preserved",37);
-        var locked=new ItemStack(ModContent.MATTER_CELL_64K.get());locked.set(MatterCellData.TYPE.get(),new MatterCellData(unknown));drive.setItem(0,locked);drive.serverTick();
+        var locked=new ItemStack(ModContent.MATTER_CELL_4M.get());locked.set(MatterCellData.TYPE.get(),new MatterCellData(unknown));drive.setItem(0,locked);drive.serverTick();
         h.assertTrue(drive.visibleCellStatus(0)==CellStatus.LOCKED,"Unreadable cell was not red");
         h.assertTrue(locked.get(MatterCellData.TYPE.get()).copyTag().equals(unknown),"Reading the LED changed preserved contents");
         h.succeed();
@@ -810,7 +813,7 @@ public final class ReMatterGameTests {
         // up to the workers, independent of whether the top of a Drive is a connection.
         for(int x=1;x<=8;x++)for(int z=1;z<=8;z++) {
             var drive=place(h,new BlockPos(x,1,z),MachineKind.DRIVE,owner,x==1?net.minecraft.core.Direction.WEST:net.minecraft.core.Direction.NORTH);drives.add(drive);
-            for(int bay=0;bay<6;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),new ItemStack(ModContent.MATTER_CELL_64K.get()));
+            for(int bay=0;bay<6;bay++)drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE,bay),new ItemStack(ModContent.MATTER_CELL_4M.get()));
         }
         var workers=new ArrayList<MachineBlockEntity>();
         for(int x=1;x<=5;x++)for(int z=1;z<=4;z++) {
@@ -821,7 +824,7 @@ public final class ReMatterGameTests {
             h.assertTrue(useItemAt(h,cable,owner,new ItemStack(ModContent.MATTER_CABLE.get())).consumesAction(),"Riser cable placement failed");
         long start=System.nanoTime();var network=workers.getFirst().matterNetwork(true);
         h.assertTrue(network.ready(),"Valid large topology rejected: "+network.status());
-        h.assertTrue(network.inventory().members().size()==384&&network.inventory().capacity()==384*MatterLimits.CELL_64K,"Large network did not expose every cell");
+        h.assertTrue(network.inventory().members().size()==384&&network.inventory().capacity()==384*MatterLimits.CELL_4M,"Large network did not expose every cell");
         for(int i=0;i<100;i++)workers.get(i%workers.size()).matterNetwork(true).inventory().contents();
         ReMatter.LOGGER.info("ReMatter large-network sample: 64 Drives, 384 Cells, 20 workers, initial scan + 100 stock views = {} us",(System.nanoTime()-start)/1000);
         h.succeedWhen(()-> {

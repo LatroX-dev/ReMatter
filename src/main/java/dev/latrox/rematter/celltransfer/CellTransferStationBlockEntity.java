@@ -244,7 +244,7 @@ public final class CellTransferStationBlockEntity extends BlockEntity implements
                 if(cell.view.readable()){
                     long capacity=cell.view.capacity();
                     tier=cell.view.kind()==1
-                            ?(capacity==MatterLimits.CELL_64K?1:capacity==MatterLimits.CELL_256K?2:capacity==MatterLimits.CELL_1M?3:capacity==MatterLimits.CELL_4M?8:4)
+                            ?(capacity==MatterLimits.CELL_4M?1:capacity==MatterLimits.CELL_16M?2:capacity==MatterLimits.CELL_64M?3:capacity==MatterLimits.CELL_256M?8:4)
                             :(capacity==16_000?5:capacity==64_000?6:capacity==256_000?7:capacity==1_000_000?9:4);
                 }
                 status=CellStatus.of(true,cell.view.readable(),cell.view.amount(),cell.view.capacity(),cell.view.kind()==2?0:cell.view.types(),cell.view.kind()==2?1:MatterCellData.MAX_TYPES);

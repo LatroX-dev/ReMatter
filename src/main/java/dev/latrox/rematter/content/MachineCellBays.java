@@ -112,9 +112,9 @@ final class MachineCellBays {
                     ? (cell.capacity() <= 16_000 ? 5 : cell.capacity() <= 64_000 ? 6 : cell.capacity() <= 256_000 ? 7 : 9) : 4;
         }
         if (!cells.mount(bay).readable(stack) || !(stack.getItem() instanceof MatterCellItem item)) return 4;
-        return item.capacity() <= MatterLimits.CELL_64K ? 1
-                : item.capacity() <= MatterLimits.CELL_256K ? 2
-                : item.capacity() <= MatterLimits.CELL_1M ? 3 : 8;
+        return item.capacity() <= MatterLimits.CELL_4M ? 1
+                : item.capacity() <= MatterLimits.CELL_16M ? 2
+                : item.capacity() <= MatterLimits.CELL_64M ? 3 : 8;
     }
     int visibleTiers() {
         int tiers = 0;

@@ -170,7 +170,7 @@ public final class OptimizationAndIndustrialGameTests {
 
         var synth = placeMachine(h, synthPos, MachineKind.SYNTHESIZER, Direction.NORTH, owner);
         var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.SOUTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var driveNet = drive.matterNetwork(true);
         var inv = Objects.requireNonNull(driveNet.inventory());
         h.assertTrue(inv.apply(Map.of(), Map.of(BuiltinChemistry.SILICA, 10_000L)), "Failed to seed silica");
@@ -183,7 +183,7 @@ public final class OptimizationAndIndustrialGameTests {
         h.assertTrue(synth.portMode(MachinePortMode.Side.RIGHT) == MachinePortMode.AUTOMATIC, "RIGHT should default to AUTOMATIC");
         h.assertFalse(synth.autoEject(), "Auto-Eject must start disabled");
 
-        synth.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        synth.energy().set(synth.energyCapacity());
         synth.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         synth.toggleAutomation();
         h.assertTrue(synth.selectRecipe("minecraft:glass"), "Could not select glass");
@@ -231,7 +231,7 @@ public final class OptimizationAndIndustrialGameTests {
         stranger.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(2.5, 2.0, 2.5)));
 
         var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.NORTH, player);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
 
         h.setBlock(apPos, ModContent.WIRELESS_ACCESS_POINT.get().defaultBlockState().setValue(WirelessAccessPointBlock.FACING, Direction.SOUTH));
         var ap = h.getBlockEntity(apPos, WirelessAccessPointBlockEntity.class);
@@ -315,9 +315,9 @@ public final class OptimizationAndIndustrialGameTests {
 
         // Verify live currentEnergyRate() on a working Decomposer returns > 0 FE/t while active and 0 once idle.
         var drive = placeMachine(h, new BlockPos(2, 2, 4), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var decomposer = placeMachine(h, new BlockPos(3, 2, 4), MachineKind.DECOMPOSER, Direction.NORTH, owner);
-        decomposer.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        decomposer.energy().set(decomposer.energyCapacity());
         decomposer.setItem(0, new ItemStack(Items.SAND, 1));
         h.assertTrue(decomposer.currentEnergyRate() == 0L, "Idle decomposer must report 0 FE/t");
 
@@ -342,7 +342,7 @@ public final class OptimizationAndIndustrialGameTests {
 
         // Connect Matter Drive with 256k Cell adjacent to the Matter port.
         var drive = placeMachine(h, chamber.matterPos().east(), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_256K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_16M.get()));
 
         chamber.controller().toggleAutomation();
         chamber.controller().setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
@@ -354,10 +354,10 @@ public final class OptimizationAndIndustrialGameTests {
         var energyCap = h.getLevel().getCapability(Capabilities.Energy.BLOCK, h.absolutePos(chamber.powerPos()), Direction.WEST);
         Objects.requireNonNull(energyCap, "Power Machine Port must expose Energy capability");
         try (var tx = Transaction.openRoot()) {
-            h.assertTrue(energyCap.insert(MachineBlockEntity.ENERGY_CAPACITY, tx) > 0, "Failed to power Industrial Decomposer");
+            h.assertTrue(energyCap.insert(chamber.controller().energyCapacity(), tx) > 0, "Failed to power Industrial Decomposer");
             tx.commit();
         }
-        chamber.controller().energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        chamber.controller().energy().set(chamber.controller().energyCapacity());
 
         // Insert exactly 3 Sand via Item Input Machine Port -> must run 3 parallel lanes (not 4!) and store 3,000 u Silica.
         var itemCap = h.getLevel().getCapability(Capabilities.Item.BLOCK, h.absolutePos(chamber.itemPos()), Direction.WEST);
@@ -412,7 +412,7 @@ public final class OptimizationAndIndustrialGameTests {
         setBlockPortMode(chamber.fluidPort(), owner, Direction.EAST, MachinePortMode.FLUID_OUTPUT);
 
         var drive = placeMachine(h, chamber.matterPos().east(), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_256K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_16M.get()));
         var driveNet = drive.matterNetwork(true);
         var inv = Objects.requireNonNull(driveNet.inventory());
         var diamondCarbon = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:diamond", dev.latrox.rematter.chemistry.Phase.SOLID);
@@ -421,7 +421,7 @@ public final class OptimizationAndIndustrialGameTests {
         driveNet.markChanged();
 
         chamber.controller().toggleAutomation();
-        chamber.controller().energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        chamber.controller().energy().set(chamber.controller().energyCapacity());
         chamber.controller().setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         chamber.controller().setItem(MachineCellAccess.PARALLEL_SLOT, new ItemStack(ModContent.PARALLEL_UPGRADE.get(), 3));
         h.assertTrue(chamber.controller().parallelCapacity() == 4, "Industrial Synthesizer should have 4 parallel lanes");
@@ -448,7 +448,7 @@ public final class OptimizationAndIndustrialGameTests {
                         tx.commit();
                     }
                     // Now synthesize 4,000 mB Water and extract via Fluid Output Machine Port!
-                    chamber.controller().energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+                    chamber.controller().energy().set(chamber.controller().energyCapacity());
                     h.assertTrue(chamber.controller().selectRecipe("fluid:minecraft:water"), "Could not select Water");
                     for (int i = 0; i < 4; i++) {
                         h.assertTrue(chamber.controller().requestBatch(), "Could not queue Water batch " + (i + 1));

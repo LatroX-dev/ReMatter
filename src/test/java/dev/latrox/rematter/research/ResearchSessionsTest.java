@@ -16,12 +16,15 @@ class ResearchSessionsTest {
     private final MaterialResearch quartz = family("quartz", DiscoveryTier.I, "");
     private ResearchLedger enabled() { var ledger = new ResearchLedger(); ledger.overrideDiscovery(OWNER, true); return ledger; }
     private ResearchSessions engine(ResearchLedger ledger, MaterialResearch... families) { return new ResearchSessions(ledger, new ResearchCatalogue(List.of(families)), 32, new Random(7)); }
-    private static final class Pay implements ResearchSessions.Payment {
-        long primal, energy; int calls;
+    private static final class Pay implements ResearchSessions.Payment, ResearchSessions.EnergyDebit {
+        long primal, energy, tickEnergy; int calls;
         @Override public boolean debit(UUID op, long primal, long energy, TransactionContext tx) { this.primal += primal; this.energy += energy; calls++; return true; }
+        @Override public boolean debit(long energy, TransactionContext tx) { this.tickEnergy += energy; return true; }
+        long totalEnergy() { return energy + tickEnergy; }
     }
     private ResearchSessions.Result tick(ResearchSessions engine, UUID id, long tick, ResearchSessions.Payment payment) {
-        return engine.advance(context, id, tick, true, true, DiscoveryTier.STEP_ENERGY, DiscoveryTier.STEP_TICKS, payment);
+        ResearchSessions.EnergyDebit tickDebit = payment instanceof ResearchSessions.EnergyDebit debit ? debit : (due, tx) -> true;
+        return engine.advance(context, id, tick, true, true, DiscoveryTier.STEP_ENERGY, DiscoveryTier.STEP_TICKS, payment, tickDebit);
     }
     @Test void discoveryIsPaidInFourStepsAndCannotRunFasterThroughAnotherMachine() {
         var ledger = enabled(); var engine = engine(ledger, sand, quartz); var payment = new Pay();
@@ -33,9 +36,44 @@ class ResearchSessionsTest {
         assertTrue(ledger.knownFamilies(context).isEmpty());
         assertEquals(ResearchSessions.Result.LEARNED, tick(engine, id, 5_999, payment));
         assertEquals(1, ledger.knownFamilies(context).size()); assertTrue(ledger.knownFamilies(context).contains(engine.session(context, id).orElseThrow().resultFamily())); assertEquals(Set.of(SILICA), ledger.knownSubstances(context));
-        assertEquals(16_000, payment.primal); assertEquals(2_400_000, payment.energy); assertEquals(4, payment.calls);
+        assertEquals(16_000, payment.primal); assertEquals(1_600, payment.energy); assertEquals(2_400_000, payment.totalEnergy()); assertEquals(4, payment.calls);
         var second = engine.beginDiscovery(context, DiscoveryTier.I, true, 600_000).orElseThrow();
         assertNotEquals(id, second.id()); assertEquals(1, second.candidates());
+    }
+    @Test void perTickResearchEnergyPausesWhenPowerDropsAndSurvivesReload() {
+        var ledger = enabled(); var engine = engine(ledger, sand);
+        var id = engine.beginDiscovery(context, DiscoveryTier.I, true, 600_000).orElseThrow().id();
+        long[] buffer = {32_000L}; long[] paidTotal = {0L};
+        ResearchSessions.Payment pay = (op, primal, fe, tx) -> {
+            if (buffer[0] < fe) return false;
+            buffer[0] -= fe; paidTotal[0] += fe; return true;
+        };
+        ResearchSessions.EnergyDebit tickDebit = (fe, tx) -> {
+            if (buffer[0] < fe) return false;
+            buffer[0] -= fe; paidTotal[0] += fe; return true;
+        };
+        for (int t = 0; t < 80; t++) {
+            var res = engine.advance(context, id, t, true, true, 600_000, 1_500, pay, tickDebit);
+            assertEquals(t == 0 ? ResearchSessions.Result.PAID : ResearchSessions.Result.WORKING, res);
+        }
+        assertEquals(0L, buffer[0]);
+        assertEquals(32_000L, paidTotal[0]);
+        assertEquals(ResearchSessions.Result.WAITING, engine.advance(context, id, 80, true, true, 600_000, 1_500, pay, tickDebit));
+        var json = ledger.toJson();
+        assertEquals(32_000L, json.getAsJsonArray("sessions").get(0).getAsJsonObject().get("energy_paid").getAsLong());
+        var reloaded = ResearchLedger.fromJson(json);
+        var resumed = engine(reloaded, sand);
+        for (int t = 80; t < 6_000; t++) {
+            if (buffer[0] < 400) buffer[0] = 32_000L;
+            var res = resumed.advance(context, id, t, true, true, 600_000, 1_500, pay, tickDebit);
+            if (t == 5_999) assertEquals(ResearchSessions.Result.LEARNED, res);
+            else assertTrue(res == ResearchSessions.Result.PAID || res == ResearchSessions.Result.WORKING);
+        }
+        assertEquals(2_400_000L, paidTotal[0]);
+        // Legacy session JSON without energy_paid paid the full step FE upfront, so restore energyPerStep without double charging.
+        json.getAsJsonArray("sessions").get(0).getAsJsonObject().remove("energy_paid");
+        var legacy = ResearchLedger.fromJson(json);
+        assertEquals(600_000L, legacy.toJson().getAsJsonArray("sessions").get(0).getAsJsonObject().get("energy_paid").getAsLong());
     }
     @Test void cancellationReloadAndDifferentMachineResumeSameHiddenOrder() {
         var ledger = enabled(); var engine = engine(ledger, sand, quartz);
@@ -96,7 +134,11 @@ class ResearchSessionsTest {
         assertTrue(engine.beginDerive(context, sand.id(), true, 256_000, 1_800).isEmpty());
         ledger.learnSubstances(context, Set.of(SILICA));
         var id = engine.beginDerive(context, sand.id(), true, 256_000, 1_800).orElseThrow().id();
-        for (int i = 0; i < 1_800; i++) engine.advance(context, id, i, false, true, 256_000, 1_800, (op, primal, energy, tx) -> true);
+        long[] paid = {0L};
+        for (int i = 0; i < 1_800; i++) engine.advance(context, id, i, false, true, 256_000, 1_800,
+                (op, primal, energy, tx) -> { paid[0] += energy; return true; },
+                (energy, tx) -> { paid[0] += energy; return true; });
+        assertEquals(256_000L, paid[0]);
         assertTrue(ledger.knows(context, sand.id())); assertFalse(ledger.knows(context, quartz.id())); assertEquals(Set.of(SILICA), ledger.knownSubstances(context));
     }
     @Test void startingKnowledgeSuppliesDeriveConstituentsWithoutBecomingEarnedProgress() {
@@ -107,7 +149,8 @@ class ResearchSessionsTest {
         assertTrue(engine.beginDiscovery(context, DiscoveryTier.I, true, 600_000).isEmpty());
         assertTrue(ledger.knownFamilies(context).isEmpty()); assertTrue(ledger.knownSubstances(context).isEmpty()); assertEquals(0, ledger.earnedFamilies(context));
         var id = engine.beginDerive(context, quartz.id(), true, 256_000, 1_800).orElseThrow().id();
-        for (int i = 0; i < 1_800; i++) engine.advance(context, id, i, false, true, 256_000, 1_800, (op, primal, energy, tx) -> true);
+        for (int i = 0; i < 1_800; i++) engine.advance(context, id, i, false, true, 256_000, 1_800,
+                (op, primal, energy, tx) -> true, (energy, tx) -> true);
         assertEquals(quartz.id(), engine.session(context, id).orElseThrow().resultFamily());
         assertEquals(Set.of(quartz.id()), ledger.knownFamilies(context)); assertEquals(1, ledger.earnedFamilies(context));
         assertFalse(engine.canDerive(context, quartz)); assertEquals(0, engine.available(context, DiscoveryTier.I));

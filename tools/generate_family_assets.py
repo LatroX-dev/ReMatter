@@ -17,7 +17,8 @@ from family_geometry import (ROTATION, Box, GeometryError, build, check_boxes, c
                              mapped_uv, turned_parts)
 from family_palette import CABLE_TIERS, PORT_MODES
 from bench_showpieces import DEVICES as BENCHES, boxes as bench_boxes, work_boxes as bench_work, show_skin as bench_skin, work_skin as bench_work_skin, crank_boxes
-from family_sprites import ANIMATIONS, sprites
+import family_sprites
+from family_sprites import ANIMATIONS, CABLE_ANIMS, CABLE_ANIM, CABLE_LOOKS, CABLE_LOOK, sprites
 from hardware_sprites import OwnedFiles
 import port_plates
 from reactor_showpiece import (PREFIX as REACTOR_SPRITE_PREFIX, REACTOR_LIQUID, column_boxes, column_skin,
@@ -31,10 +32,10 @@ HORIZONTAL = ('north', 'east', 'south', 'west')
 NATURAL = {'north': ('-x', '-y'), 'south': ('+x', '-y'), 'west': ('+z', '-y'), 'east': ('-z', '-y'),
            'up': ('+x', '+z'), 'down': ('+x', '-z')}
 # Sprites that only the block entity renderer draws: mounted cell faceplates and status lights.
-RENDERER_SPRITES = ('drive_cell_64k', 'drive_cell_256k', 'drive_cell_1m', 'drive_cell_4m', 'drive_cell_unknown',
+RENDERER_SPRITES = ('drive_cell_4m', 'drive_cell_16m', 'drive_cell_64m', 'drive_cell_256m', 'drive_cell_unknown',
                     'led_blue', 'led_green', 'led_amber', 'led_red', 'chemical_processor_columns_shuttle', 'chemical_processor_columns_liquid', 'chemical_processor_columns_glass', 'drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k', 'drive_primal_cell_1m', 'drive_void_matter_cell')
 # Most boxes a block model of each kind may hold.
-BUDGET = {'bench_part': 4, 'network': 16, 'process': 24, 'part': 2, 'reactor_part': 3, 'cable': 2, 'cube': 1}
+BUDGET = {'bench_part': 4, 'network': 16, 'process': 24, 'part': 2, 'reactor_part': 3, 'cable': 4, 'cube': 1}
 
 
 def region(box, face, origin, sprite=32):
@@ -279,47 +280,182 @@ def structure_cubes(family):
 
 # --------------------------------------------------------------------------- Matter Cables
 CABLE_AXES = (('north', 'south'), ('east', 'west'), ('up', 'down'))
-# Texel origins on a cable sheet.
-STRIP, CORE_CAP, HUB_FACE, FLANGE_FACE, FLANGE_SIDE = (0, 0), (0, 8), (8, 8), (20, 8), (0, 20)
+# Texel origins on the static housing sheet ({tier}.png) and emissive conduit sheet ({tier}_glow.png).
+STRIP, CORE_CAP, HUB_FACE, FLANGE_FACE, FLANGE_SIDE, HUB_CAP_SIDE = (0, 0), (0, 8), (8, 8), (20, 8), (0, 20), (12, 20)
+GLOW_STRIP_RECESSED, GLOW_STRIP_FULL, GLOW_HUB_FACE, GLOW_HUB_CHAMBER, GLOW_CAP = (0, 1), (0, 0), (8, 8), (0, 12), (20, 12)
 
 
-def run_skin(box, face):
-    """The stripe follows the run: u grows along z on all four sides."""
+def run_skin(box, face, key='cable', origin=STRIP):
+    """The conduit wave or clamp strip follows the run: u grows along z on all four sides."""
     across = {'east': '-y', 'west': '-y', 'up': '+x', 'down': '+x'}[face]
-    uv, rotation = mapped_uv(face, box.lo, box.hi, '+z', across, (STRIP[0] + box.lo[2] * 2 % 16, STRIP[1]))
-    return 'cable', uv, rotation
+    uv, rotation = mapped_uv(face, box.lo, box.hi, '+z', across, (origin[0] + int(box.lo[2] * 2) % 16, origin[1]))
+    return key, uv, rotation
 
 
 def cable_skin(box, face):
-    if box.name in ('arm', 'shaft', 'centre', 'run') and face not in ('north', 'south'):
-        return run_skin(box, face)
-    if box.name == 'flange' and face not in ('north', 'south'):
+    name = box.name
+    if name in ('arm_glass', 'centre_glass', 'shaft_glass', 'arm_bundle', 'centre_bundle', 'shaft_bundle', 'item_glass'):
+        if face not in ('north', 'south'):
+            return run_skin(box, face, 'glow', GLOW_STRIP_RECESSED)
+        return ('glow', *region(box, face, GLOW_CAP))
+    if name == 'core_glow':
+        return ('glow', *region(box, face, CORE_CAP))
+    if name in ('arm', 'shaft', 'centre', 'run') and box.emissive:
+        if face not in ('north', 'south'):
+            return run_skin(box, face, 'glow', GLOW_STRIP_FULL)
+        if family_sprites.CABLE_LOOK == 'pcb_traces':
+            return ('glow', *region(box, face, CORE_CAP))
+        return ('cable', *region(box, face, CORE_CAP))
+    if name in ('arm_clamp', 'centre_clamp', 'shaft_clamp', 'item_clamp_a', 'item_clamp_b'):
+        if face not in ('north', 'south'):
+            return run_skin(box, face, 'cable', STRIP)
+        return ('cable', *region(box, face, CORE_CAP))
+    if name == 'hub_glow':
+        return ('glow', *region(box, face, GLOW_HUB_FACE))
+    if name == 'hub_chamber':
+        return ('glow', *region(box, face, GLOW_HUB_CHAMBER))
+    if name in ('hub_bot', 'hub_top'):
+        origin = HUB_FACE if face in ('up', 'down') else HUB_CAP_SIDE
+        return ('cable', *region(box, face, origin))
+    if name == 'flange' and face not in ('north', 'south'):
         across = '+y' if face in ('east', 'west') else '+x'
         return ('cable', *mapped_uv(face, box.lo, box.hi, across, '+z', FLANGE_SIDE))
-    origin = {'hub': HUB_FACE, 'flange': FLANGE_FACE}.get(box.name, CORE_CAP)
+    origin = {'hub': HUB_FACE, 'flange': FLANGE_FACE}.get(name, CORE_CAP)
     return ('cable', *region(box, face, origin))
 
 
-def matter_cables(family):
+def cable_geometry(look=None):
+    """Part boxes, neighbor contexts, skipped faces, allowed hub overlaps and item run for all 4 CABLE_LOOKS."""
+    look = family_sprites.CABLE_LOOK if look is None else look
+    if look not in CABLE_LOOKS:
+        raise GeometryError(f'Unknown CABLE_LOOK: {look}')
     core = Box('core', (6, 6, 6), (10, 10, 10))
-    centre = Box('centre', (6, 6, 6), (10, 10, 10))
+    flange = Box('flange', (5, 5, 0), (11, 11, 1.5))
+
+    if look == 'pcb_traces':
+        # Dual PCB traces with bends & bridge crossovers on a dark graphite shaft, seamless glowing corners & PCB hubs.
+        core_glow = Box('core_glow', (6, 6, 6), (10, 10, 10), emissive=True)
+        centre = Box('centre', (6, 6, 6), (10, 10, 10), emissive=True)
+        hub = Box('hub_glow', (5, 5, 5), (11, 11, 11), emissive=True)
+        arm = Box('arm', (6, 6, 0), (10, 10, 6), emissive=True)
+        shaft = Box('shaft', (6, 6, 1.5), (10, 10, 6), emissive=True)
+        north_full, south_full = Box('north', (6, 6, 0), (10, 10, 6)), Box('south', (6, 6, 10), (10, 10, 16))
+        parts = {
+            'core': ([core_glow], [core_glow], ()),
+            'straight': ([centre], [centre, north_full, south_full], ()),
+            'junction': ([hub], [hub], ()),
+            'arm': ([arm], [arm, core_glow], {('arm', 'north')}),
+            'arm_device': ([flange, shaft], [flange, shaft, core_glow], ()),
+        }
+        overlaps = (('hub_glow', 'arm'), ('hub_glow', 'shaft'))
+        item_boxes = [Box('run', (6, 6, 0), (10, 10, 16), emissive=True)]
+        return parts, overlaps, item_boxes
+
+    if look == 'fiber_trace':
+        # 1. Sleek continuous dark graphite 4 x 4 conduit with razor-sharp uninterrupted 2-texel glowing fibre.
+        centre = Box('centre', (6, 6, 6), (10, 10, 10), emissive=True)
+        hub = Box('hub_glow', (5, 5, 5), (11, 11, 11), emissive=True)
+        arm = Box('arm', (6, 6, 0), (10, 10, 6), emissive=True)
+        shaft = Box('shaft', (6, 6, 1.5), (10, 10, 6), emissive=True)
+        north_full, south_full = Box('north', (6, 6, 0), (10, 10, 6)), Box('south', (6, 6, 10), (10, 10, 16))
+        parts = {
+            'core': ([core], [core], ()),
+            'straight': ([centre], [centre, north_full, south_full], ()),
+            'junction': ([hub], [hub], ()),
+            'arm': ([arm], [arm, core], {('arm', 'north')}),
+            'arm_device': ([flange, shaft], [flange, shaft, core], ()),
+        }
+        overlaps = (('hub_glow', 'arm'), ('hub_glow', 'shaft'))
+        item_boxes = [Box('run', (6, 6, 0), (10, 10, 16), emissive=True)]
+        return parts, overlaps, item_boxes
+
+    if look == 'glass_conduit':
+        # 2. Mekanism-style smoked-glass 3 x 3 tube with metal end-clamps only at block joints & hubs.
+        hub_bot = Box('hub_bot', (5, 5, 5), (11, 6, 11))
+        hub_mid = Box('hub_chamber', (5.5, 6, 5.5), (10.5, 10, 10.5), emissive=True)
+        hub_top = Box('hub_top', (5, 10, 5), (11, 11, 11))
+        arm_clamp = Box('arm_clamp', (6, 6, 0), (10, 10, 1))
+        arm_glass = Box('arm_glass', (6.5, 6.5, 1), (9.5, 9.5, 6), emissive=True)
+        centre_glass = Box('centre_glass', (6.5, 6.5, 6), (9.5, 9.5, 10), emissive=True)
+        shaft_glass = Box('shaft_glass', (6.5, 6.5, 1.5), (9.5, 9.5, 6), emissive=True)
+        north_rec, south_rec = Box('north', (6.5, 6.5, 0), (9.5, 9.5, 6)), Box('south', (6.5, 6.5, 10), (9.5, 9.5, 16))
+        parts = {
+            'core': ([core], [core], ()),
+            'straight': ([centre_glass], [centre_glass, north_rec, south_rec], ()),
+            'junction': ([hub_bot, hub_mid, hub_top], [hub_bot, hub_mid, hub_top], ()),
+            'arm': ([arm_clamp, arm_glass], [arm_clamp, arm_glass, core], {('arm_clamp', 'north')}),
+            'arm_device': ([flange, shaft_glass], [flange, shaft_glass, core], ()),
+        }
+        overlaps = tuple((h, a) for h in ('hub_bot', 'hub_chamber', 'hub_top') for a in ('arm_glass', 'shaft_glass'))
+        item_boxes = [
+            Box('item_clamp_a', (6, 6, 0), (10, 10, 2)),
+            Box('item_glass', (6.5, 6.5, 2), (9.5, 9.5, 14), emissive=True),
+            Box('item_clamp_b', (6, 6, 14), (10, 10, 16)),
+        ]
+        return parts, overlaps, item_boxes
+
+    if look == 'conduit_cage':
+        # 3. Ender-IO-style compact armored 3 x 3 conduit bundle with heavy centre clamp & tight 5 x 5 node.
+        hub_bot = Box('hub_bot', (5, 5, 5), (11, 6, 11))
+        hub_mid = Box('hub_chamber', (5.5, 6, 5.5), (10.5, 10, 10.5), emissive=True)
+        hub_top = Box('hub_top', (5, 10, 5), (11, 11, 11))
+        arm_bundle = Box('arm_bundle', (6.5, 6.5, 0), (9.5, 9.5, 6), emissive=True)
+        centre_clamp = Box('centre_clamp', (6, 6, 7), (10, 10, 9))
+        centre_n = Box('centre_bundle', (6.5, 6.5, 6), (9.5, 9.5, 7), emissive=True)
+        centre_s = Box('centre_bundle', (6.5, 6.5, 9), (9.5, 9.5, 10), emissive=True)
+        shaft_clamp = Box('shaft_clamp', (6, 6, 1.5), (10, 10, 3))
+        shaft_bundle = Box('shaft_bundle', (6.5, 6.5, 3), (9.5, 9.5, 6), emissive=True)
+        north_rec, south_rec = Box('north', (6.5, 6.5, 0), (9.5, 9.5, 6)), Box('south', (6.5, 6.5, 10), (9.5, 9.5, 16))
+        parts = {
+            'core': ([core], [core], ()),
+            'straight': ([centre_n, centre_clamp, centre_s], [centre_n, centre_clamp, centre_s, north_rec, south_rec], ()),
+            'junction': ([hub_bot, hub_mid, hub_top], [hub_bot, hub_mid, hub_top], ()),
+            'arm': ([arm_bundle], [arm_bundle, core], {('arm_bundle', 'north')}),
+            'arm_device': ([flange, shaft_clamp, shaft_bundle], [flange, shaft_clamp, shaft_bundle, core], ()),
+        }
+        overlaps = tuple((h, a) for h in ('hub_bot', 'hub_chamber', 'hub_top') for a in ('arm_bundle', 'shaft_bundle'))
+        item_boxes = [
+            Box('item_clamp_a', (6, 6, 0), (10, 10, 2)),
+            Box('item_glass', (6.5, 6.5, 2), (9.5, 9.5, 14), emissive=True),
+            Box('item_clamp_b', (6, 6, 14), (10, 10, 16)),
+        ]
+        return parts, overlaps, item_boxes
+
+    # 4. classic_sleek: clean smooth 4 x 4 silhouette without ribs, upgraded with dark refined graphite & emissive trace.
+    centre = Box('centre', (6, 6, 6), (10, 10, 10), emissive=True)
     hub = Box('hub', (5, 5, 5), (11, 11, 11))
-    arm = Box('arm', (6, 6, 0), (10, 10, 6))
-    flange = Box('flange', (5, 5, 0), (11, 11, 2))
-    shaft = Box('shaft', (6, 6, 2), (10, 10, 6))
-    north, south = Box('north', (6, 6, 0), (10, 10, 6)), Box('south', (6, 6, 10), (10, 10, 16))
-    geometry = {
+    arm = Box('arm', (6, 6, 0), (10, 10, 6), emissive=True)
+    flange2 = Box('flange', (5, 5, 0), (11, 11, 2))
+    shaft = Box('shaft', (6, 6, 2), (10, 10, 6), emissive=True)
+    north_full, south_full = Box('north', (6, 6, 0), (10, 10, 6)), Box('south', (6, 6, 10), (10, 10, 16))
+    parts = {
         'core': ([core], [core], ()),
-        'straight': ([centre], [centre, north, south], ()),
+        'straight': ([centre], [centre, north_full, south_full], ()),
         'junction': ([hub], [hub], ()),
-        # An arm runs on into the next cable, so it has no end face.
         'arm': ([arm], [arm, core], {('arm', 'north')}),
-        'arm_device': ([flange, shaft], [flange, shaft, core], ()),
+        'arm_device': ([flange2, shaft], [flange2, shaft, core], ()),
     }
+    overlaps = (('hub', 'arm'), ('hub', 'shaft'))
+    item_boxes = [Box('run', (6, 6, 0), (10, 10, 16), emissive=True)]
+    return parts, overlaps, item_boxes
+
+
+def matter_cables(family):
+    look = family_sprites.CABLE_LOOK
+    geometry, overlaps, item_boxes = cable_geometry(look)
     drawn = {}
+    part_textures = {}
     for part, (boxes, context, skip) in geometry.items():
-        drawn[part] = family.model('matter_cable_geometry_' + part, 'cable', {'cable': 'matter_cable'}, boxes,
-                                   cable_skin, context=context, skip=skip)
+        has_cable = any(not b.emissive for b in boxes)
+        has_glow = any(b.emissive for b in boxes)
+        textures = {}
+        if has_cable:
+            textures['cable'] = 'matter_cable'
+        if has_glow:
+            textures['glow'] = 'matter_cable_glow'
+        part_textures[part] = tuple(textures)
+        drawn[part] = family.model('matter_cable_geometry_' + part, 'cable', textures, boxes,
+                                   cable_skin, context=context, skip=skip, particle='matter_cable')
 
     # Every combination of free sides, cable arms and device arms that the block state can show.
     for sides in product((None, 'arm', 'arm_device'), repeat=6):
@@ -332,8 +468,8 @@ def matter_cables(family):
         for side, kind in used:
             parts += turned_parts(drawn[kind], side)
         check_composition('cable ' + ' '.join(f'{side}:{kind}' for side, kind in used), parts,
-                          allowed_overlap=(('hub', 'arm'), ('hub', 'shaft')))
-    family.compositions.append('cable: 729 side combinations')
+                          allowed_overlap=overlaps)
+    family.compositions.append(f'cable ({look}): 729 side combinations')
 
     def exact(connected):
         return {side: str(side in connected).lower() for side in ROTATION}
@@ -341,8 +477,12 @@ def matter_cables(family):
     small = [group for count in range(3) for group in combinations(ROTATION, count) if group not in CABLE_AXES]
     for name in CABLE_TIERS:
         for part in geometry:
-            family.child(name if part == 'core' else f'{name}_{part}', 'matter_cable_geometry_' + part,
-                         {'cable': name})
+            child_tex = {'particle': name}
+            if 'cable' in part_textures[part]:
+                child_tex['cable'] = name
+            if 'glow' in part_textures[part]:
+                child_tex['glow'] = name + '_glow'
+            family.child(name if part == 'core' else f'{name}_{part}', 'matter_cable_geometry_' + part, child_tex)
         states = [
             {'when': {'OR': [exact(group) for group in small]}, 'apply': {'model': MODEL + name}},
             {'when': {'OR': [dict.fromkeys(group, 'true') for group in combinations(ROTATION, 3)]},
@@ -356,13 +496,18 @@ def matter_cables(family):
             states.append({'when': {side: 'true', side + '_device': 'true'},
                            'apply': {'model': MODEL + name + '_arm_device', **rotation}})
         family.blockstates[name] = {'multipart': states}
-        # The item is one straight run with both end caps.
-        run = [Box('run', (6, 6, 0), (10, 10, 16))]
-        check_boxes(name + ' item', run)
+        # The item shows one full straight run in the selected cable look.
+        check_boxes(name + ' item', item_boxes)
+        item_elements = build(item_boxes, cable_skin)
+        item_tex = {'particle': MODEL + name}
+        if any(not b.emissive for b in item_boxes) or look in ('fiber_trace', 'classic_sleek'):
+            item_tex['cable'] = MODEL + name
+        if any(b.emissive for b in item_boxes):
+            item_tex['glow'] = MODEL + name + '_glow'
         family.item_models[name] = {
             'parent': 'minecraft:block/block',
-            'textures': {'particle': MODEL + name, 'cable': MODEL + name},
-            'elements': build(run, cable_skin)}
+            'textures': item_tex,
+            'elements': item_elements}
         family.items[name] = {'model': {'type': 'minecraft:model', 'model': 'rematter:item/' + name}}
 
 
@@ -505,20 +650,26 @@ def check_references(result, art):
              for texture in model['textures'].values() if not texture.startswith('#')}
     if set(art) != drawn | set(RENDERER_SPRITES):
         raise GeometryError(f'sprites without a user or a painter: {sorted(set(art) ^ (drawn | set(RENDERER_SPRITES)))}')
+    animations = family_sprites.build_animations()
     for name, sprite in art.items():
         frames = sprite.height // sprite.width
         if sprite.width not in (16, 32) or sprite.height != sprite.width * frames:
             raise GeometryError(f'{name}: sprites are 16 or 32 texels wide with square frames')
-        if (frames > 1) != (name in ANIMATIONS):
+        if (frames > 1) != (name in animations):
             raise GeometryError(f'{name}: only animated sprites hold several frames')
         clear = any(sprite.pixel(x, y)[3] < 255 for y in range(sprite.height) for x in range(sprite.width))
         if clear != (name == 'reactor_glass_pane'):
             raise GeometryError(f'{name}: only the glass pane may hold transparent texels')
 
 
-def generate(check):
+def generate(check, cable_look=None, cable_anim=None):
+    if cable_look is not None:
+        family_sprites.CABLE_LOOK = cable_look
+    if cable_anim is not None:
+        family_sprites.CABLE_ANIM = cable_anim
     import renderer_parts
     renderer_parts.generate(check)
+    animations = family_sprites.build_animations()
     result, art = family(), sprites()
     check_references(result, art)
     out = OwnedFiles(ROOT, check)
@@ -526,15 +677,16 @@ def generate(check):
     out.json(ASSETS.parent / 'minecraft/atlases/blocks.json',{'sources':[{'type':'minecraft:single','resource':'rematter:entity/effect_light'}]})
     for name, sprite in art.items():
         out.png(ASSETS / f'textures/block/{name}.png', sprite.width, sprite.height, sprite.pixel)
-        if name in ANIMATIONS:
-            out.json(ASSETS / f'textures/block/{name}.png.mcmeta', ANIMATIONS[name])
+        if name in animations:
+            out.json(ASSETS / f'textures/block/{name}.png.mcmeta', animations[name])
     for folder, files in (('models/block', result.models), ('models/item', result.item_models),
                           ('blockstates', result.blockstates), ('items', result.items)):
         for name, value in files.items():
             out.json(ASSETS / folder / f'{name}.json', value)
     # Plate models that a changed PortSides.SEALED_TOP no longer needs are removed, or reported by --check.
     out.sweep(ASSETS / 'models/block',list(port_plates.OWNED)+['chemical_processor_glass_cores.json']+[name+suffix+'.json' for name in (*BENCHES,'chemical_processor') for suffix in ('_idle_parts','_active_parts','_idle_world_parts','_active_world_parts')])
-    out.sweep(ASSETS / 'textures/block',['light_blue.png'])
+    out.sweep(ASSETS / 'textures/block',['light_blue.png', 'drive_cell_64k.png', 'drive_cell_256k.png', 'drive_cell_1m.png',
+                                         'matter_cable_glow.png.mcmeta', 'reinforced_matter_cable_glow.png.mcmeta', 'resonant_matter_cable_glow.png.mcmeta'])
     print(('Verified' if check else 'Generated') + f' {out.count} family files;'
           f' {len(result.models)} block models passed the geometry checks in {len(result.compositions)} compositions.')
 
@@ -542,4 +694,7 @@ def generate(check):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true', help='compare the files instead of writing them')
-    generate(parser.parse_args().check)
+    parser.add_argument('--cable-look', choices=CABLE_LOOKS, default=None, help='override CABLE_LOOK for this run')
+    parser.add_argument('--cable-anim', choices=CABLE_ANIMS, default=None, help='override CABLE_ANIM for this run')
+    args = parser.parse_args()
+    generate(args.check, cable_look=args.cable_look, cable_anim=args.cable_anim)

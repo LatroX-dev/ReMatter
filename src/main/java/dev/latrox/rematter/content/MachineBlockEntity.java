@@ -63,7 +63,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  */
 public final class MachineBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider {
     private static final Map<ServerLevel, BatchReservations> PLANNING = new java.util.WeakHashMap<>();
-    public static final int ENERGY_CAPACITY = MatterLimits.MACHINE_ENERGY;
+    public static final int MAX_ENERGY_CAPACITY = MatterLimits.MAX_MACHINE_ENERGY;
     public static final int TANK_CAPACITY = MatterLimits.MACHINE_FLUID;
     private static final Codec<Tag> RAW_TAG_CODEC = Codec.PASSTHROUGH.xmap(
             dynamic -> dynamic.convert(NbtOps.INSTANCE).getValue(), tag -> new Dynamic<>(NbtOps.INSTANCE, tag));
@@ -83,7 +83,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             return prefix;
         }
     };
-    private NonNullList<ItemStack> items = NonNullList.withSize(3, ItemStack.EMPTY);
+    private NonNullList<ItemStack> items = NonNullList.withSize(MachineCellAccess.INVENTORY_SIZE, ItemStack.EMPTY);
     private final MachineCellBays bays = new MachineCellBays(kind(), this::stack,this::touchObservations);
     private final MachineStorageSession storageSession = new MachineStorageSession();
     private final MachineSideConfig sides = new MachineSideConfig();
@@ -123,14 +123,25 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private final MachineExtensions extensions=new MachineExtensions(this);
     MachineExtensions extensions(){return extensions;}
     private final ControllerThroughput transferWork=new ControllerThroughput();
-    private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, ControllerEnergyBudget.MAX_INPUT, 0) {
+    private final DynamicEnergyHandler energy = new DynamicEnergyHandler();
+
+    private final class DynamicEnergyHandler extends SimpleEnergyHandler {
+        private DynamicEnergyHandler() { super(MatterLimits.COMPACT_MACHINE_ENERGY, ControllerEnergyBudget.MAX_INPUT, 0); }
+        void syncCapacity(int nextCapacity) { this.capacity = nextCapacity; }
+        @Override public long getCapacityAsLong() {
+            int cap = energyCapacity();
+            this.capacity = cap;
+            return cap;
+        }
         @Override public int insert(int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonNegative(amount);
             if(!isLiveServerMachine()||kind().generator()||PreparationTier.manual(kind())||!industrialStructureReady())return 0;
+            this.capacity = energyCapacity();
+            if (this.energy >= this.capacity) return 0;
             return energyBudget.insert(level.getGameTime(),amount,NativeCableEnergy.rate(),transaction,allowed->super.insert(allowed,transaction));
         }
         @Override protected void onEnergyChanged(int previous) { if (!committingOwnedState) setChanged(); }
-    };
+    }
     private final FluidStacksResourceHandler fluids = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
         @Override public boolean isValid(int index, FluidResource resource) {
             return isLiveServerMachine() && !networkJobs && (kind().decomposition() || kind().synthesis())
@@ -152,9 +163,63 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     public MachineBlockEntity(BlockPos pos, BlockState state) {
         super(ModContent.MACHINE_ENTITY.get(), pos, state);
         items = NonNullList.withSize(MachineCellAccess.inventorySize(kind()), ItemStack.EMPTY);
+        energy.syncCapacity(energyCapacity());
     }
     boolean supportsBatchControl() { return MachineControl.batchControl(kind()); }
     public MachineKind kind() { return ((MachineBlock) getBlockState().getBlock()).kind(); }
+    public int speedUpgradeCount() {
+        if (!MachineEnergyPolicy.supportsUpgrades(kind()) || items.size() <= MachineCellAccess.SPEED_SLOT) return 0;
+        ItemStack stack = items.get(MachineCellAccess.SPEED_SLOT);
+        return stack.is(ModContent.SPEED_UPGRADE.get()) ? Math.clamp(stack.getCount(), 0, MachineEnergyPolicy.MAX_UPGRADES) : 0;
+    }
+    public int efficiencyUpgradeCount() {
+        if (!MachineEnergyPolicy.supportsUpgrades(kind()) || items.size() <= MachineCellAccess.EFFICIENCY_SLOT) return 0;
+        ItemStack stack = items.get(MachineCellAccess.EFFICIENCY_SLOT);
+        return stack.is(ModContent.EFFICIENCY_UPGRADE.get()) ? Math.clamp(stack.getCount(), 0, MachineEnergyPolicy.MAX_UPGRADES) : 0;
+    }
+    public int parallelUpgradeCount() {
+        if (!IndustrialStructure.isIndustrial(kind()) || items.size() <= MachineCellAccess.PARALLEL_SLOT) return 0;
+        ItemStack stack = items.get(MachineCellAccess.PARALLEL_SLOT);
+        return stack.is(ModContent.PARALLEL_UPGRADE.get()) ? Math.clamp(stack.getCount(), 0, 3) : 0;
+    }
+    public int energyCapacity() {
+        return MachineEnergyPolicy.energyCapacity(kind(), efficiencyUpgradeCount());
+    }
+    void syncEnergyCapacity() {
+        int cap = energyCapacity();
+        energy.syncCapacity(cap);
+        if (Transaction.getCurrentOpenedTransaction() == null && energy.getAmountAsLong() > cap) {
+            energy.set(cap);
+        }
+    }
+    /** Mekanism-style Sneak+Right-Click in-world upgrade installation. Returns true if the held item was handled. */
+    boolean tryInstallUpgrade(Player player, ItemStack held) {
+        if (!isLiveServerMachine() || unsupportedData != null || !MachineInputPolicy.isUpgradeItem(held)) return false;
+        int slot = MachineInputPolicy.upgradeSlotFor(kind(), held);
+        if (slot < 0) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.upgrade.unsupported", held.getHoverName()));
+            return true;
+        }
+        int limit = MachineInputPolicy.upgradeSlotLimit(kind(), slot);
+        ItemStack current = items.get(slot);
+        if (!current.isEmpty() && !ItemStack.isSameItemSameComponents(current, held)) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.upgrade.unsupported", held.getHoverName()));
+            return true;
+        }
+        if (current.getCount() >= limit) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.upgrade.full", held.getHoverName(), current.getCount(), limit));
+            return true;
+        }
+        if (current.isEmpty()) items.set(slot, held.copyWithCount(1));
+        else current.grow(1);
+        if (!player.hasInfiniteMaterials()) held.shrink(1);
+        syncEnergyCapacity();
+        setChanged();
+        ModSounds.play(level, worldPosition, ModSounds.PORT_CYCLE);
+        player.sendOverlayMessage(Component.translatable("message.rematter.upgrade.installed",
+                held.getHoverName(), items.get(slot).getCount(), limit));
+        return true;
+    }
     long drivePrimalAmount(){return kind()==MachineKind.DRIVE?bays.primalAmount():0;}
     long drivePrimalCapacity(){return kind()==MachineKind.DRIVE?bays.primalCapacity():0;}
     java.util.Set<java.util.UUID> establishCellIdentities(){return bays.establishIdentities();}
@@ -804,7 +869,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     public boolean hasStoredResources() {
         return extensions.hasResources()||unsupportedData != null || automationHost != null && automationHost.hasContents()
-                || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0;
+                || !isEmpty() || fluids.getAmountAsLong(0) > 0 || energy.getAmountAsLong() > 0 || work.energyPaid > 0;
     }
     public @Nullable MachineAutomationHost automationHost() {
         if (kind() != MachineKind.NETWORK_INTERFACE) return null;
@@ -917,6 +982,34 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         interruptTerminalStep();
         return control.toggleRepeat();
     }
+    /** Cancels an active or queued manual/terminal job and refunds uncommitted FE up to buffer capacity. */
+    public boolean cancelJob() {
+        if (!isLiveServerMachine() || networkJobs) return false;
+        if (terminalStep != null) {
+            var step = terminalStep;
+            if (step.cancelParentJob()) return true;
+            interruptTerminalStep();
+            return true;
+        }
+        if (supportsBatchControl()) {
+            var state = control.runState();
+            if (!state.repeat() && state.queuedBatches() == 0 && work.progress == 0 && work.energyPaid == 0) return false;
+            control.cancel();
+            work.status = "awaiting_request";
+            work.processedThisTick = false;
+            setChanged();
+            return true;
+        }
+        if (!kind().processes() || kind() == MachineKind.PRIMAL_CONVERTER || PreparationTier.manual(kind())) return false;
+        if (kind() == MachineKind.ANALYZER && extensions.isResearchRunning()) return false;
+        if (work.progress == 0 && work.energyPaid == 0) return false;
+        resetProgress();
+        control.runState(control.runState().pause());
+        work.status = "paused";
+        work.processedThisTick = false;
+        setChanged();
+        return true;
+    }
     public void select(int offset) { if (!networkJobs) control.select(offset); }
     public boolean selectRecipe(String exactId) { return !networkJobs && control.select(exactId); }
     public List<MachineChoices.Choice> choices() { return control.choices(); }
@@ -1018,9 +1111,13 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         ChemistryRegistry registry = ReMatter.chemistry();
         if (!analysis.isEmpty() && !operations.hasValidAnalysis(registry, analysis)) { analysis = AnalysisState.EMPTY; setChanged(); }
         if (registry != lastRegistry) {
+            boolean initialLoad = lastRegistry == null;
             lastRegistry = registry;
-            resetProgress();
+            if (!initialLoad || work.restoredLanes == 0) {
+                resetProgress();
+            }
             if (!control.restore(registry)) {
+                resetProgress();
                 interruptTerminalStep();
                 work.status = "selection_unavailable";
             }
@@ -1083,8 +1180,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (!fingerprint.equals(work.job)) { resetProgressRetainingTransfer(); work.job = fingerprint; }
         work.duration = operation.ticks();
         long firstTickPerBatch = MachineEnergyPolicy.stepEnergy(operation.cost(), 0, speed, work.duration, 0);
-        long requiredNow = work.ticket == null ? firstTickPerBatch
-                : MachineEnergyPolicy.stepEnergy(Math.multiplyExact(operation.cost(), work.ticket.remaining()), work.progress, speed, work.duration, work.energyPaid);
+        int activeLanes = work.ticket != null ? work.ticket.remaining() : work.restoredLanes;
+        long requiredNow = activeLanes > 0
+                ? MachineEnergyPolicy.stepEnergy(Math.multiplyExact(operation.cost(), activeLanes), work.progress, speed, work.duration, work.energyPaid)
+                : firstTickPerBatch;
         String reason = operations.readiness(needsStorage, store, operation, requiredNow);
         if (!reason.equals("ready")) {
             if (work.ticket != null && work.ticket.valid()) planning().touch(work.ticket, level.getGameTime());
@@ -1094,6 +1193,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if(work.ticket==null) {
             int limit=capacityForInputs(operation.inputs(),parallelCapacity());
             if(supportsBatchControl()&&!runState.repeat())limit=Math.min(limit,runState.queuedBatches());
+            int restoring = work.restoredLanes;
+            if (restoring > 0) limit = Math.min(limit, restoring);
             var outputs=operations.storedOutputs(operation);
             dev.latrox.rematter.chemistry.SubstanceKey targetKey=null;
             if(targetActive()&&!settings.targetSubstance().isEmpty()) {
@@ -1106,10 +1207,18 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 work.ticket=planning().reserve(worker.id(),network==null?this:network.planningKey(),
                         network==null?Set.of(this):network.planningMembers(),level.getGameTime(),
                         activeStore==null?Map.of():activeStore.contents(),activeStore==null?Long.MAX_VALUE:activeStore.capacity(),
-                        operation.inputs(),outputs,limit,energy.getAmountAsLong(),firstTickPerBatch,operations.physicalLimit(operation),
+                        operation.inputs(),outputs,limit,energy.getAmountAsLong(),restoring>0?0L:firstTickPerBatch,operations.physicalLimit(operation),
                         targetActive()?settings.target():0,targetKey,
                         activeStore==null?key->false:activeStore::voidsOverflow);
             } catch(ArithmeticException invalidQuantity) {work.status="invalid_quantity";return;}
+            if (restoring > 0) {
+                if (work.ticket == null || work.ticket.remaining() != restoring) {
+                    resetProgress(); work.job = fingerprint;
+                    work.status = targetActive() ? "target_reached" : "resources_reserved";
+                    return;
+                }
+                work.restoredLanes = 0;
+            }
             if(work.ticket==null) {work.status=targetActive()?"target_reached":"resources_reserved";return;}
         }
         planning().touch(work.ticket,level.getGameTime());
@@ -1257,24 +1366,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             var formation = IndustrialStructure.inspect(this);
             if (formation.formed()) base = formation.baseWorkRate(kind());
         }
-        return MachineEnergyPolicy.speed(base, upgrade(), items.get(2).getCount());
+        return MachineEnergyPolicy.speed(base, speedUpgradeCount());
     }
-    /** The FE price of one batch with the installed upgrades and structure. */
+    /** The FE price of one batch with the installed Mekanism-style Speed and Efficiency upgrades. */
     long cost(long base) {
-        IndustrialPerformance performance = null;
-        if (IndustrialStructure.isIndustrial(kind())) {
-            var formation = IndustrialStructure.inspect(this);
-            if (formation.formed()) performance = formation.performance();
-        }
-        if(IndustrialStructure.isIndustrial(kind()))return MachineEnergyPolicy.combined(base,
-                stack(2).is(ModContent.SPEED_UPGRADE.get())?stack(2).getCount():0,
-                stack(MachineCellAccess.EFFICIENCY_SLOT).is(ModContent.EFFICIENCY_UPGRADE.get())?stack(MachineCellAccess.EFFICIENCY_SLOT).getCount():0);
-        return MachineEnergyPolicy.cost(base, upgrade(), items.get(2).getCount(), kind(), performance);
+        return MachineEnergyPolicy.combined(base, speedUpgradeCount(), efficiencyUpgradeCount());
     }
     int effectiveSavingPercent() {
-        var beforeSavings=upgrade()==MachineEnergyPolicy.Upgrade.SPEED?MachineEnergyPolicy.Upgrade.SPEED:MachineEnergyPolicy.Upgrade.NONE;
-        long reference=MachineEnergyPolicy.cost(1_000_000,beforeSavings,items.get(2).getCount(),kind(),null);
-        return (int)((reference-cost(1_000_000))*100/reference);
+        long actual = cost(1_000_000L);
+        return actual >= 1_000_000L ? 0 : (int) ((1_000_000L - actual) * 100L / 1_000_000L);
     }
     /** Exact current count in the configured scope. -1 means no readable stock observation. */
     public long targetStock() {
@@ -1285,17 +1385,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return network.inventory().amount(SubstanceKey.of(settings.targetSubstance(),
                 dev.latrox.rematter.chemistry.Phase.valueOf(settings.targetPhase().toUpperCase(java.util.Locale.ROOT))));
     }
-    private MachineEnergyPolicy.Upgrade upgrade() {
-        ItemStack upgrade = items.get(2);
-        if (upgrade.is(ModContent.SPEED_UPGRADE.get())) return MachineEnergyPolicy.Upgrade.SPEED;
-        return upgrade.is(ModContent.EFFICIENCY_UPGRADE.get()) ? MachineEnergyPolicy.Upgrade.EFFICIENCY : MachineEnergyPolicy.Upgrade.NONE;
-    }
     void resetProgress() { resetProgress(false); }
     /** Only a topology/layout restart retains work, still keyed to the exact job and quantity. */
     void resetProgressRetainingTransfer() { resetProgress(true); }
     private void refundWorkEnergy() {
         if (work.energyPaid <= 0) return;
-        long restored = Math.min(ENERGY_CAPACITY, energy.getAmountAsLong() + work.energyPaid);
+        long restored = Math.min(energyCapacity(), energy.getAmountAsLong() + work.energyPaid);
         work.energyPaid = 0;
         energy.set((int) restored);
     }
@@ -1483,11 +1578,20 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             savedAnalysis.putString("item", analysis.itemId());
             savedAnalysis.putString("profile", analysis.profileFingerprint());
         }
-        // Progress is deliberately not persisted: inputs remain untouched, and any in-flight tick FE is restored on save.
         output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
-        if (work.energyPaid > 0) {
-            var savedEnergy = new SimpleEnergyHandler(ENERGY_CAPACITY, ControllerEnergyBudget.MAX_INPUT, 0);
-            savedEnergy.set((int) Math.min(ENERGY_CAPACITY, energy.getAmountAsLong() + work.energyPaid));
+        int activeLanes = work.ticket != null && work.ticket.valid() ? work.ticket.remaining() : work.restoredLanes;
+        if (work.progress > 0 && work.duration > 0 && !work.job.isEmpty() && !networkJobs && activeLanes > 0) {
+            ValueOutput savedWork = output.child("work");
+            savedWork.putString("job", work.job);
+            savedWork.putInt("progress", work.progress);
+            savedWork.putInt("duration", work.duration);
+            savedWork.putLong("energy_paid", work.energyPaid);
+            savedWork.putInt("lanes", activeLanes);
+            energy.serialize(output.child("power"));
+        } else if (work.energyPaid > 0) {
+            int cap = energyCapacity();
+            var savedEnergy = new SimpleEnergyHandler(cap, ControllerEnergyBudget.MAX_INPUT, 0);
+            savedEnergy.set((int) Math.min(cap, energy.getAmountAsLong() + work.energyPaid));
             savedEnergy.serialize(output.child("power"));
         } else {
             energy.serialize(output.child("power"));
@@ -1569,7 +1673,29 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         analysis = AnalysisState.restore(savedAnalysis.getStringOr("item", ""), savedAnalysis.getStringOr("profile", ""));
         var stacks = savedItems.orElseThrow();
         for (int i = 0; i < items.size(); i++) items.set(i, stacks.get(i));
+        // Migrate legacy compact Efficiency Upgrades from the shared slot 2 into the dedicated Efficiency slot 10.
+        if (!IndustrialStructure.isIndustrial(kind()) && MachineEnergyPolicy.supportsUpgrades(kind())
+                && items.get(MachineCellAccess.SPEED_SLOT).is(ModContent.EFFICIENCY_UPGRADE.get())
+                && items.get(MachineCellAccess.EFFICIENCY_SLOT).isEmpty()) {
+            items.set(MachineCellAccess.EFFICIENCY_SLOT, items.get(MachineCellAccess.SPEED_SLOT));
+            items.set(MachineCellAccess.SPEED_SLOT, ItemStack.EMPTY);
+        }
         energy.deserialize(input.childOrEmpty("power"));
+        syncEnergyCapacity();
+        ValueInput savedWork = input.childOrEmpty("work");
+        String savedJob = savedWork.getStringOr("job", "");
+        int savedProgress = savedWork.getIntOr("progress", 0);
+        int savedDuration = savedWork.getIntOr("duration", 0);
+        long savedEnergyPaid = savedWork.getLongOr("energy_paid", 0L);
+        int savedLanes = savedWork.getIntOr("lanes", 0);
+        if (!savedJob.isEmpty() && savedProgress > 0 && savedDuration > 0 && savedProgress <= savedDuration
+                && savedEnergyPaid >= 0L && savedLanes >= 1 && savedLanes <= 4 && !networkJobs) {
+            work.job = savedJob;
+            work.progress = savedProgress;
+            work.duration = savedDuration;
+            work.energyPaid = savedEnergyPaid;
+            work.restoredLanes = savedLanes;
+        }
         fluids.deserialize(input.childOrEmpty("tank"));
         bays.mountAll();
     }
@@ -1582,12 +1708,16 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public ItemStack removeItem(int index, int amount) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.removeItem(items, index, amount);
-        if (!result.isEmpty()) { if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index); else setChanged(); }
+        if (!result.isEmpty()) {
+            if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
+            if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index); else setChanged();
+        }
         return result;
     }
     @Override public ItemStack removeItemNoUpdate(int index) {
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.takeItem(items, index);
+        if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
         if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index);
         return result;
     }
@@ -1601,6 +1731,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         if(items.get(index).isEmpty())preparationRecoveryMask&=~(1<<index);
         items.set(index, stack);
+        if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
         if (index == 0 && kind() == MachineKind.ANALYZER) { analysis = AnalysisState.EMPTY; control.runState(MachineRunState.automatic()); }
         stack.limitSize(getMaxStackSize(stack)); setChanged();
     }
@@ -1620,7 +1751,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
         if (unsupportedData != null || networkJobs && index!=2&&index!=MachineCellAccess.EFFICIENCY_SLOT&&index!=MachineCellAccess.PARALLEL_SLOT || recoverySlot(index)) return false;
         if (MachineCellAccess.isCellSlot(kind(), index)) return MachineCellAccess.isMountableBayCell(stack) && stack.getCount() == 1 && canRemoveCell(index);
-        if(index==MachineCellAccess.EFFICIENCY_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.EFFICIENCY_UPGRADE.get());
+        if(index==MachineCellAccess.EFFICIENCY_SLOT)return MachineInputPolicy.acceptsEfficiency(kind(),stack);
         if(index==MachineCellAccess.PARALLEL_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get())
                 || !IndustrialStructure.isIndustrial(kind())&&kind().synthesis()&&stack.is(ModContent.PRESSURE_MODULE.get())&&stack.getCount()==1;
         if(index==MachineCellAccess.PRIMAL_SLOT)return (kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER)&&stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem&&stack.getCount()==1;
@@ -1650,5 +1781,5 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) {
         return allowsItemOutput(side) && (index==1||recoverySlot(index));
     }
-    @Override public void clearContent() { for (int slot : cellSlots()) if (!items.get(slot).isEmpty()) return; items.clear(); setChanged(); }
+    @Override public void clearContent() { for (int slot : cellSlots()) if (!items.get(slot).isEmpty()) return; items.clear(); syncEnergyCapacity(); setChanged(); }
 }

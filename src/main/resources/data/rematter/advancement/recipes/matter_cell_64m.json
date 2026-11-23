@@ -7,7 +7,7 @@
         "items": [
           {
             "items": [
-              "rematter:netherite_sheath"
+              "rematter:optical_circuit"
             ]
           }
         ]
@@ -16,7 +16,7 @@
     "has_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "rematter:matter_cell_1m"
+        "recipe": "rematter:matter_cell_64m"
       }
     }
   },
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "rematter:matter_cell_1m"
+      "rematter:matter_cell_64m"
     ]
   }
 }

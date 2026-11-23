@@ -99,7 +99,7 @@ public final class StorageChunkMetadataGameTests {
         h.succeed();
     }
     private static ItemStack cell(Map<SubstanceKey,Long> contents){
-        var stack=new ItemStack(ModContent.MATTER_CELL_64K.get());var store=new MatterInventory(64000,512);
+        var stack=new ItemStack(ModContent.MATTER_CELL_4M.get());var store=new MatterInventory(MatterLimits.CELL_4M,512);
         if(!store.apply(Map.of(),contents))throw new IllegalArgumentException("Cell fixture exceeds capacity");
         stack.set(MatterCellData.TYPE.get(),MatterCellData.from(store));return stack;
     }

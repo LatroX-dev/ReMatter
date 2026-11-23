@@ -62,8 +62,8 @@ public final class CellTransferStationGameTests {
     }
 
     private static ItemStack cell(Map<SubstanceKey, Long> contents) {
-        var stack = new ItemStack(ModContent.MATTER_CELL_64K.get());
-        var store = new MatterInventory(64000, 512);
+        var stack = new ItemStack(ModContent.MATTER_CELL_4M.get());
+        var store = new MatterInventory(MatterLimits.CELL_4M, 512);
         if (!store.apply(Map.of(), contents)) throw new IllegalArgumentException("Cell fixture exceeds capacity");
         stack.set(MatterCellData.TYPE.get(), MatterCellData.from(store));
         return stack;
@@ -96,12 +96,12 @@ public final class CellTransferStationGameTests {
         var preview = station.snapshot(1);
         h.assertTrue(before.equals(station.saveCustomOnly(h.getLevel().registryAccess())), "Preview changed persisted resources or policy");
         h.assertTrue(preview.movableOrdinary() == 1000 && preview.movablePrimal() == 0, "Target partition did not filter preview");
-        var sourceId = station.getItem(0).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId();
+        var sourceId = station.getItem(0).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId();
         h.assertTrue(station.transfer(owner, station.revision()) == 1000, "Selected filtered quantity was not exact");
         h.assertTrue(amount(station.getItem(1), IRON) == 1000 && amount(station.getItem(1), WATER) == 0, "Target Cell partition was ignored");
         h.assertTrue(amount(station.getItem(0), WATER) == 200 && amount(station.getItem(0), GAS) == 100 && amount(station.getItem(0), COPPER) == 100,
                 "Unselected or unaccepted resources changed");
-        h.assertTrue(sourceId.equals(station.getItem(0).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId()), "Source identity changed");
+        h.assertTrue(sourceId.equals(station.getItem(0).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId()), "Source identity changed");
         h.assertTrue(CellPartitionData.read(station.getItem(1)).orElseThrow().allowed().equals(Set.of(IRON)), "Cell partition was lost");
         h.succeed();
     }
@@ -180,7 +180,7 @@ public final class CellTransferStationGameTests {
     private static void portable(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var station = place(h, new BlockPos(2, 2, 2), owner);
-        station.setItem(0, cell(Map.of(IRON, 64000L)));
+        station.setItem(0, cell(Map.of(IRON, MatterLimits.CELL_4M)));
         station.setItem(1, primal(1000));
         action(station, owner, CellTransferConfigPayload.Action.CELL_TOGGLE, 0, IRON, false);
         action(station, owner, CellTransferConfigPayload.Action.GLOBAL_CLEAR, -1, null, false);
@@ -262,12 +262,12 @@ public final class CellTransferStationGameTests {
         var station = place(h, new BlockPos(2, 2, 2), owner);
         station.setItem(0, cell(Map.of(IRON, 450L)));
         station.setItem(1, cell(Map.of()));
-        var id0 = station.getItem(0).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId();
-        var id1 = station.getItem(1).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId();
+        var id0 = station.getItem(0).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId();
+        var id1 = station.getItem(1).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId();
         h.assertTrue(station.transfer(owner, station.revision()) == 450, "Initial transfer failed");
         h.assertTrue(action(station, owner, CellTransferConfigPayload.Action.SWAP, -1, null, false), "Swap action failed");
-        h.assertTrue(station.getItem(0).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId().equals(id1)
-                        && station.getItem(1).get(MatterCellData.TYPE.get()).resolve(64000).orElseThrow().cellId().equals(id0),
+        h.assertTrue(station.getItem(0).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId().equals(id1)
+                        && station.getItem(1).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow().cellId().equals(id0),
                 "Swap lost or altered Cell identities");
         h.assertTrue(station.transfer(owner, station.revision()) == 450 && amount(station.getItem(1), IRON) == 450,
                 "Reverse transfer after Swap failed");

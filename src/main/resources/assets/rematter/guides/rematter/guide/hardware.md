@@ -21,9 +21,9 @@ Hardware does not add another global Speed multiplier or an FE discount. Extra r
 
 Minimum outer height is 4 for Reactor, 5 for Preparator. Each additional layer permits another lane, up to 4. **Parallel Upgrades and enough hardware are also required.** Simultaneous Reactor inputs must fit its room; preparation jobs need capacity for every step they use.
 
-Chemical Reactor, Industrial Decomposer, Industrial Synthesizer and Preparation Reactor controllers have separate **Speed, Efficiency and Parallel** slots. Compact processors keep their own single upgrade choice. The compact Material Synthesizer has a separate **Pressure Module** slot beside its upgrade slot so diamond forms can still use Speed or Efficiency Upgrades; a formed Industrial Synthesizer provides Tier 2 crystallization built in. Analyzer payment and Discovery Lens have dedicated slots.
+All upgradable compact processors and industrial controllers (Chemical Reactor, Industrial Decomposer, Industrial Synthesizer and Preparation Reactor) have separate **Speed** and **Efficiency** slots that work simultaneously, plus **Parallel** on industrial controllers and a separate **Pressure Module** slot on the compact Material Synthesizer (a formed Industrial Synthesizer provides Tier 2 crystallization built in). **Sneak + Right-Click** a machine with an upgrade item to install it in-world. Analyzer payment and Discovery Lens have dedicated slots.
 
-Four Speed Upgrades give ten times base work rate (2×, 4×, 7×, 10×) and double batch FE. Four Efficiency Upgrades save 20% before integer rounding; the absolute saving limit is 25%. Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE, drawn tick by tick while working.
+Four Speed Upgrades give ten times base work rate (2×, 4×, 7×, 10×) and +25% FE per unmatched upgrade. Each Efficiency Upgrade doubles the internal FE buffer (32k → 512k FE compact, 128k → 2,048k FE industrial), cancels one Speed Upgrade's +25% FE surcharge 1:1, and saves 5% base FE per excess upgrade (up to 20% saved; absolute policy limit 25%). Three Parallel Upgrades permit up to four lanes when height, room and step capacity allow. Every batch pays full inputs and FE, drawn tick by tick while working.
 
 All lanes share [one transfer budget](throughput.md).
 

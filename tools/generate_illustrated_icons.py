@@ -20,6 +20,8 @@ from machine_palette import RGB, hex_color
 from check_assets import strip_ancillary_chunks
 from generated_files import GeneratedFiles
 
+import generate_technical_sprites as technical_sprites
+
 ROOT = Path(__file__).resolve().parents[1]
 ART = ROOT / 'artwork/components'
 TEX = ROOT / 'src/main/resources/assets/rematter/textures/item'
@@ -34,6 +36,10 @@ CONFIGURATION_CARD_LOOKS = ('smart_module', 'punched_bus')
 CONFIGURATION_CARD_LOOK = 'smart_module'
 WIRELESS_TERMINAL_LOOKS = ('field_slate', 'transceiver_deck')
 WIRELESS_TERMINAL_LOOK = 'field_slate'
+PORTABLE_ENERGY_CELL_LOOKS = ('upright_battery', 'twin_cell_pack', 'hex_capacitor')
+PORTABLE_ENERGY_CELL_LOOK = 'upright_battery'
+ENERGY_CORE_LOOKS = ('coil_core', 'capacitor_block', 'ring_core')
+ENERGY_CORE_LOOK = 'coil_core'
 CANISTER_LOOKS = ('valved_cylinder', 'twin_gauge', 'ribbed_flask')
 CANISTER_LOOK = 'valved_cylinder'
 INK = SEAM
@@ -67,42 +73,14 @@ def ice():
     return svg(parts)
 
 
-def board():
-    parts = [poly('11,61 60,33 116,64 116,76 69,104 11,74', BASE, INK, 4),
-             poly('12,62 60,35 114,65 68,92', PORT_METAL),
-             poly('12,63 68,93 68,101 12,73', STEEL_DEEP),
-             poly('68,93 114,66 114,75 68,101', SHADE),
-             line('18,61 60,38 108,65', STEEL_SHADE, 2.3),
-             line('18,67 67,94', STEEL_SHADE, 1.4)]
-    # Copper contacts are material, independent of a recipe-crystal identity.
-    for x, y in ((80, 87), (94, 79), (108, 71)):
-        parts += [poly(f'{x},{y} {x+8},{y-4} {x+8},{y+1} {x},{y+5}', COPPER, INK, 2.7),
-                  line(f'{x+1},{y} {x+7},{y-3}', COPPER_LIGHT, 1.6)]
-    return parts
+def pressure(look=None):
+    """Pressure Module on the unified upgrade/module chassis shared with Speed, Efficiency and Parallel."""
+    return technical_sprites.pressure_module_drawing(look).svg()
 
 
-def pressure():
-    parts = board()
-    # A raised pressure cap in a metal yoke; no unrelated crystal is inserted into its recipe.
-    parts += [poly('32,57 56,43 89,61 65,75', STEEL, INK, 2),
-              poly('32,57 65,75 65,82 32,64', STEEL_SHADE, INK, 1.5),
-              poly('65,75 89,61 89,68 65,82', STEEL_DEEP, INK, 1.5),
-              poly('49,48 61,41 75,49 63,56', TRIM, INK, 2.5),
-              poly('49,48 63,56 63,69 49,61', COPPER if UPGRADE_LOOK == 'material' else HIGHLIGHT, INK, 2),
-              poly('63,56 75,49 75,62 63,69', COPPER_DARK if UPGRADE_LOOK == 'material' else STEEL_DEEP, INK, 2),
-              line('54,47 61,44 69,48', IVORY, 1.5)]
-    return svg(parts)
-
-
-def parallel():
-    parts = board()
-    # Three separate material channels indicate parallel work at inventory scale.
-    for x, y in ((28, 63), (43, 54), (58, 45)):
-        hue = TRIM if UPGRADE_LOOK == 'material' else STEEL_SHADE
-        parts += [poly(f'{x},{y} {x+9},{y-5} {x+39},{y+12} {x+30},{y+17}', hue, INK, 2.7),
-                  poly(f'{x},{y} {x+30},{y+17} {x+30},{y+22} {x},{y+5}', STEEL_DEEP, INK, 1.5),
-                  line(f'{x+4},{y} {x+31},{y+15}', STEEL, 1.6)]
-    return svg(parts)
+def parallel(look=None):
+    """Parallel Upgrade on the unified upgrade/module chassis shared with Speed, Efficiency and Pressure."""
+    return technical_sprites.parallel_upgrade_drawing(look).svg()
 
 
 # One Matrix Crystal as the painted crystal icons show it, in the coordinates of the 128 px canvas: the body
@@ -386,54 +364,9 @@ def configuration_card(look=None):
     return drawing.svg()
 
 
-def wireless_booster():
-    """Wireless Booster card: plug-in RF range-amplifier cartridge with twin dipole fins, copper bus pins,
-    and a central Blue Matrix Crystal resonator (#6794f1)."""
-    blue = hex_color(RGB['blue'])
-    blue_hi = hex_color(lighten(RGB['blue'], .38))
-    blue_lo = hex_color(scale(RGB['blue'], .66))
-    ivory = hex_color(IVORY)
-    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
-    casing_hi, casing, casing_lo, well = (hex_color(c) for c in (HIGHLIGHT, BASE, SHADE, WELL))
-    port_hi, port = hex_color(PORT_LIGHT), hex_color(PORT_METAL)
-    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
-
-    drawing = Composition(.95, (0, 0))
-    chassis_grad = drawing.gradient('wb-chassis', (18, 30), (106, 104), (port_hi, port, casing, casing_lo))
-    steel_grad = drawing.gradient('wb-steel', (52, 12), (112, 48), (light, steel, shade, deep))
-    cu_grad = drawing.gradient('wb-cu', (22, 82), (62, 112), (cu_hi, cu, cu_lo))
-
-    # Twin angled steel dipole antenna fins at the upper-right head.
-    drawing.shape([(62, 31), (86, 12), (96, 17), (72, 38)], steel_grad, joint=2.2)
-    drawing.stroke([(65, 29), (86.5, 13.5)], light, 1.8)
-    drawing.shape([(80, 41), (104, 22), (114, 27), (90, 48)], steel_grad, joint=2.2)
-    drawing.stroke([(83, 39), (104.5, 23.5)], light, 1.8)
-
-    # Angled amplifier module cartridge body.
-    body = [(16, 70), (58, 30), (108, 56), (108, 68), (66, 108), (16, 82)]
-    drawing.shape(body, chassis_grad, joint=2.5)
-    drawing.fill([(19, 69), (58, 32.5), (105, 57), (65, 95)], casing)
-    drawing.fill([(18, 71), (65, 96), (65, 106), (18, 81)], shade)
-    drawing.fill([(65, 96), (106, 57.5), (106, 67), (65, 106)], casing_lo)
-    drawing.stroke([(20, 68.5), (58, 33), (103, 56.5)], casing_hi, 1.8)
-
-    # Copper insertion edge-connector pins at the lower-left foot.
-    foot = [(15, 76), (54, 96), (46, 106), (13, 88)]
-    drawing.shape(foot, casing_lo, joint=2.1)
-    for step in range(4):
-        px, py = 20 + step * 8.0, 82 + step * 4.2
-        drawing.fill([(px, py), (px + 5.2, py + 2.7), (px + 1.4, py + 7.2), (px - 3.8, py + 4.5)], cu_grad)
-        drawing.stroke([(px - .5, py + 1.0), (px + 4.0, py + 3.4)], cu_hi, 1.4)
-
-    # Central faceted Blue Matrix Crystal resonator core (exact #6794f1 middle table >= 320 px).
-    drawing.shape([(38, 62), (62, 40), (88, 54), (64, 76)], well, joint=2.0)
-    gem = [(43, 60), (62, 43), (83, 54), (80, 66), (63, 74), (45, 66)]
-    drawing.shape(gem, blue, joint=2.2)
-    drawing.fill([(45, 59.5), (62, 45), (79, 54), (63, 58)], blue_hi)
-    drawing.fill([(45, 60), (63, 58), (79, 65), (63, 72.5), (46, 65)], blue)
-    drawing.fill([(63, 58), (81, 54.5), (79, 65)], blue_lo)
-    drawing.stroke([(58, 49), (69, 55)], ivory, 1.8)
-    return drawing.svg()
+def wireless_booster(look=None):
+    """Wireless Booster on the unified upgrade/module chassis, carrying exact Blue Matrix Crystal (#6794f1)."""
+    return technical_sprites.wireless_booster_drawing(look).svg()
 
 
 def wireless_terminal(look=None):
@@ -504,12 +437,16 @@ def wireless_terminal(look=None):
     return drawing.svg()
 
 
-def portable_energy_cell():
-    """Portable Energy Cell: ruggedized pocket 4M FE battery pack with twin Copper terminal posts,
-    charge indicator pips, and a faceted Ember Matrix Crystal capacitor core (#ea4848)."""
+def portable_energy_cell(look=None):
+    """Portable Energy Cell: upright ruggedized 4M FE pocket power battery with raised top Copper terminals,
+    armored steel frame, and segmented glowing Ember core bars (#ea4848) echoing the Energy Cube core.
+    Deliberately upright so its silhouette cannot be confused with the diagonal Wireless Matter Terminal."""
+    look = look or PORTABLE_ENERGY_CELL_LOOK
+    if look not in PORTABLE_ENERGY_CELL_LOOKS:
+        raise ValueError(f'Unknown Portable Energy Cell look: {look}')
     ember = hex_color(RGB['ember'])
-    ember_hi = hex_color(lighten(RGB['ember'], .36))
-    ember_lo = hex_color(scale(RGB['ember'], .68))
+    ember_hi = hex_color(lighten(RGB['ember'], .40))
+    ember_lo = hex_color(scale(RGB['ember'], .64))
     green = hex_color(LED['green'])
     ivory = hex_color(IVORY)
     light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
@@ -517,44 +454,183 @@ def portable_energy_cell():
     port_hi, port = hex_color(PORT_LIGHT), hex_color(PORT_METAL)
     cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
 
+    drawing = Composition(.95, (0, 1))
+    chassis_grad = drawing.gradient('pec-chassis', (24, 18), (104, 114), (port_hi, port, casing, casing_lo))
+    steel_grad = drawing.gradient('pec-steel', (22, 16), (104, 112), (light, steel, shade, deep))
+    cu_grad = drawing.gradient('pec-cu', (38, 8), (88, 30), (cu_hi, cu, cu_lo))
+
+    if look == 'upright_battery':
+        # Twin raised top Copper battery terminal posts (+ / -) standing straight up on top cap.
+        for ox in (38, 70):
+            drawing.shape([(ox, 24), (ox, 11), (ox + 16, 11), (ox + 16, 24)], cu_grad, joint=2.2)
+            drawing.fill([(ox + 1.5, 12.5), (ox + 8, 12.5), (ox + 8, 22), (ox + 1.5, 22)], cu_hi)
+            drawing.fill([(ox + 11, 12.5), (ox + 14.5, 12.5), (ox + 14.5, 22), (ox + 11, 22)], cu_lo)
+            drawing.stroke([(ox + 2.5, 13.2), (ox + 13.5, 13.2)], ivory, 1.5)
+        # Heavy upright three-quarter armored battery block (left lit front + shaded right cheek).
+        body = [(25, 28), (33, 21), (88, 21), (101, 30), (101, 108), (89, 117), (33, 117), (25, 109)]
+        drawing.shape(body, chassis_grad, joint=2.6)
+        # Top cap bevel
+        drawing.fill([(27, 29), (34, 22.5), (87, 22.5), (99, 30.5), (86, 34), (27, 34)], port_hi)
+        # Main front face + darker right three-quarter side cheek
+        drawing.fill([(27, 34), (86, 34), (86, 115), (34, 115), (27, 108)], casing)
+        drawing.fill([(86, 34), (99.5, 31), (99.5, 107), (86, 115)], casing_lo)
+        drawing.stroke([(29, 31), (34, 24), (86, 24)], light, 1.9)
+        # Top & bottom heavy steel armor bumper collars wrapping across the pack.
+        drawing.shape([(23, 31), (87, 31), (102, 28), (102, 39), (87, 42), (23, 42)], steel_grad, joint=2.1)
+        drawing.fill([(25, 32.5), (85, 32.5), (85, 36), (25, 36)], light)
+        drawing.fill([(87, 32.5), (100.5, 29.8), (100.5, 38), (87, 40.8)], deep)
+        drawing.shape([(23, 102), (87, 102), (102, 97), (102, 108), (87, 115), (23, 115)], steel_grad, joint=2.1)
+        drawing.fill([(25, 103.5), (85, 103.5), (85, 107), (25, 107)], light)
+        drawing.fill([(87, 103.5), (100.5, 99), (100.5, 107), (87, 113.5)], deep)
+        # Deep dark vertical charge-cell window echoing the Energy Cube's vertical Ember core.
+        drawing.shape([(34, 46), (78, 46), (78, 98), (34, 98)], well, joint=2.2)
+        # Four stacked segmented glowing Ember core bars (exact #ea4848 >= 550 px).
+        for idx in range(4):
+            by = 50 + idx * 11.5
+            drawing.fill([(38, by), (74, by), (74, by + 8.5), (38, by + 8.5)], ember)
+            drawing.fill([(38, by), (74, by), (74, by + 2.2), (38, by + 2.2)], ember_hi)
+            drawing.fill([(67, by + 2.2), (74, by + 2.2), (74, by + 8.5), (67, by + 8.5)], ember_lo)
+            drawing.stroke([(40, by + 1.5), (50, by + 1.5)], ivory, 1.3)
+        # Auto-charge status green LED + subtle side Copper bus contact on right cheek.
+        drawing.fill([(89, 52), (96, 50), (96, 58), (89, 60)], green)
+        drawing.shape([(89, 68), (97, 66), (97, 86), (89, 88)], cu_grad, joint=1.6)
+
+    elif look == 'twin_cell_pack':
+        # Upright paired dual-cell rechargeable power bank joined by steel bridge clamps & top Copper bus.
+        drawing.shape([(34, 18), (44, 11), (86, 11), (94, 18), (94, 26), (34, 26)], cu_grad, joint=2.2)
+        drawing.stroke([(44, 13), (85, 13)], ivory, 1.8)
+        for cx in (24, 65):
+            cell = [(cx, 28), (cx + 8, 22), (cx + 31, 22), (cx + 39, 28), (cx + 39, 108), (cx + 31, 115), (cx + 8, 115), (cx, 108)]
+            drawing.shape(cell, chassis_grad, joint=2.4)
+            drawing.fill([(cx + 2, 29), (cx + 28, 29), (cx + 28, 112), (cx + 2, 107)], casing)
+            drawing.fill([(cx + 28, 29), (cx + 37.5, 29), (cx + 37.5, 107), (cx + 28, 113)], casing_lo)
+            drawing.shape([(cx + 7, 42), (cx + 29, 42), (cx + 29, 98), (cx + 7, 98)], well, joint=1.9)
+            for idx in range(4):
+                by = 46 + idx * 12.2
+                drawing.fill([(cx + 10, by), (cx + 26, by), (cx + 26, by + 9), (cx + 10, by + 9)], ember)
+                drawing.fill([(cx + 10, by), (cx + 26, by), (cx + 26, by + 2.3), (cx + 10, by + 2.3)], ember_hi)
+        # Twin steel clamping straps bridging both upright cells.
+        for sy in (31, 100):
+            drawing.shape([(21, sy), (107, sy), (107, sy + 10), (21, sy + 10)], steel_grad, joint=2.1)
+            drawing.fill([(23, sy + 1.5), (105, sy + 1.5), (105, sy + 4.5), (23, sy + 4.5)], light)
+        drawing.fill([(59, 64), (69, 64), (69, 73), (59, 73)], green)
+
+    else:
+        # 'hex_capacitor': Standing chamfered hexagonal power cell with top copper stud & faceted Ember core.
+        drawing.shape([(50, 22), (50, 10), (78, 10), (78, 22)], cu_grad, joint=2.2)
+        drawing.stroke([(53, 12.5), (75, 12.5)], ivory, 1.8)
+        body = [(27, 30), (42, 20), (86, 20), (101, 30), (101, 106), (86, 117), (42, 117), (27, 106)]
+        drawing.shape(body, chassis_grad, joint=2.6)
+        drawing.fill([(29, 31), (43, 22), (85, 22), (99, 31), (84, 37), (43, 37)], port_hi)
+        drawing.fill([(29, 31), (43, 37), (43, 114), (29, 105)], shade)
+        drawing.fill([(43, 37), (84, 37), (84, 115), (43, 115)], casing)
+        drawing.fill([(84, 37), (99, 31), (99, 105), (84, 114)], casing_lo)
+        for sy in (34, 99):
+            drawing.shape([(25, sy), (43, sy + 5), (85, sy + 5), (103, sy), (103, sy + 9), (85, sy + 14), (43, sy + 14), (25, sy + 9)],
+                          steel_grad, joint=2.0)
+        drawing.shape([(45, 47), (82, 47), (82, 95), (45, 95)], well, joint=2.1)
+        gem = [(63.5, 50), (78, 60), (78, 82), (63.5, 92), (49, 82), (49, 60)]
+        drawing.shape(gem, ember, joint=2.0)
+        drawing.fill([(63.5, 51.5), (76.5, 60.5), (63.5, 64.5), (50.5, 60.5)], ember_hi)
+        drawing.fill([(50.5, 60.5), (63.5, 64.5), (74, 80.5), (63.5, 90.5), (50.5, 81)], ember)
+        drawing.fill([(63.5, 64.5), (76.5, 60.5), (76.5, 81), (74, 80.5)], ember_lo)
+        drawing.stroke([(56, 59), (63.5, 55), (70, 59)], ivory, 1.7)
+        drawing.fill([(33, 66), (40, 68), (40, 76), (33, 74)], green)
+    return drawing.svg()
+
+
+def energy_core(look=None):
+    """Shared Ember Capacitor Core used in Portable Energy Cell, Wireless Terminal, and all 3 Energy Cubes.
+    Crafted directly with an Ember Matrix Crystal (#ea4848), Copper, Rhevon, and Virelite Ceramic."""
+    look = look or ENERGY_CORE_LOOK
+    if look not in ENERGY_CORE_LOOKS:
+        raise ValueError(f'Unknown Energy Core look: {look}')
+    ember = hex_color(RGB['ember'])
+    ember_hi = hex_color(lighten(RGB['ember'], .38))
+    ember_lo = hex_color(scale(RGB['ember'], .64))
+    ivory = hex_color(IVORY)
+    virelite_hi = '#f0dbce'
+    virelite = '#bc9fa0'
+    virelite_lo = '#826b76'
+    rhevon_hi = '#8f8285'
+    rhevon = '#685862'
+    rhevon_lo = '#392f3b'
+    casing_lo, well = hex_color(SHADE), hex_color(WELL)
+    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
+
     drawing = Composition(.95, (0, 0))
-    chassis_grad = drawing.gradient('pec-chassis', (16, 26), (110, 110), (port_hi, port, casing, casing_lo))
-    steel_grad = drawing.gradient('pec-steel', (56, 12), (108, 48), (light, steel, shade, deep))
-    cu_grad = drawing.gradient('pec-cu', (62, 10), (108, 44), (cu_hi, cu, cu_lo))
+    cu_grad = drawing.gradient('ec-cu', (22, 16), (106, 110), (cu_hi, cu, cu_lo))
+    vir_grad = drawing.gradient('ec-vir', (20, 22), (104, 104), (virelite_hi, virelite, virelite_lo))
+    rh_grad = drawing.gradient('ec-rh', (20, 20), (108, 108), (rhevon_hi, rhevon, rhevon_lo))
 
-    # Twin heavy Copper terminal posts with steel isolator collars at the upper-right head.
-    for ox, oy in ((62, 28), (82, 39)):
-        drawing.shape([(ox, oy), (ox + 12, oy - 11), (ox + 22, oy - 5), (ox + 10, oy + 6)], steel_grad, joint=2.0)
-        drawing.shape([(ox + 5, oy - 6), (ox + 15, oy - 15), (ox + 23, oy - 10), (ox + 13, oy - 1)], cu_grad, joint=2.0)
-        drawing.stroke([(ox + 7, oy - 7), (ox + 15.5, oy - 13.5)], cu_hi, 1.8)
+    if look == 'coil_core':
+        # Modular angled Ember induction core: Copper end-caps, warm Virelite ceramic insulator rings,
+        # Rhevon structural rails, and a large glowing faceted Ember crystal core (#ea4848 >= 380 px).
+        # Upper-right Copper terminal cap + Virelite ring.
+        drawing.shape([(76, 17), (94, 15), (112, 33), (110, 51), (95, 56), (72, 33)], cu_grad, joint=2.3)
+        drawing.fill([(78, 18.5), (93.5, 16.8), (103, 26), (87, 29)], cu_hi)
+        drawing.stroke([(82, 19), (94, 17.5), (108, 31.5)], ivory, 1.7)
+        drawing.shape([(62, 23), (75, 15), (112, 52), (104, 65), (90, 62), (65, 37)], vir_grad, joint=2.2)
+        drawing.fill([(64, 23.5), (75, 16.8), (88, 30), (77, 36.5)], virelite_hi)
+        # Central dark Rhevon induction cradle holding the Ember core.
+        drawing.shape([(26, 61), (63, 24), (103, 64), (66, 101)], rh_grad, joint=2.5)
+        drawing.fill([(31, 61), (63, 29), (98, 64), (66, 96)], well)
+        # Large faceted Ember Matrix Crystal core inside the coil bay (exact #ea4848 >= 380 px).
+        gem = [(38, 62), (62, 38), (90, 66), (66, 90)]
+        drawing.shape(gem, ember, joint=2.2)
+        drawing.fill([(40, 62), (62, 40), (72, 50), (50, 72)], ember_hi)
+        drawing.fill([(50, 72), (72, 50), (86, 64), (64, 86)], ember)
+        drawing.fill([(64, 86), (86, 64), (88, 66), (66, 88)], ember_lo)
+        drawing.stroke([(48, 61), (62, 47), (70, 55)], ivory, 1.9)
+        # Twin Rhevon clamping bars framing the Ember crystal cleanly.
+        drawing.shape([(41, 47), (48, 40), (87, 79), (80, 86)], rh_grad, joint=1.8)
+        drawing.fill([(43, 46.5), (48, 41.5), (61, 54.5), (56, 59.5)], rhevon_hi)
+        # Lower-left Virelite ceramic ring + Copper terminal cap.
+        drawing.shape([(23, 62), (37, 65), (62, 90), (65, 104), (52, 112), (15, 75)], vir_grad, joint=2.2)
+        drawing.fill([(25, 64), (36, 66.5), (49, 79.5), (38, 86)], virelite_hi)
+        drawing.shape([(15, 76), (32, 73), (55, 96), (52, 112), (34, 112), (16, 94)], cu_grad, joint=2.3)
+        drawing.fill([(17, 77.5), (31, 75), (40, 84), (26, 89)], cu_hi)
+        drawing.stroke([(19, 78.5), (30.5, 76.5)], ivory, 1.6)
 
-    # Armored graphite-and-gunmetal pocket battery housing.
-    body = [(14, 68), (58, 28), (110, 56), (110, 72), (66, 112), (14, 84)]
-    drawing.shape(body, chassis_grad, joint=2.6)
-    drawing.fill([(17, 67), (58, 30.5), (107, 57), (65, 96)], casing)
-    drawing.fill([(16, 69), (65, 97), (65, 110), (16, 83)], shade)
-    drawing.fill([(65, 97), (108, 57.5), (108, 71), (65, 110)], casing_lo)
-    drawing.stroke([(18, 66.5), (58, 31), (105, 56.5)], casing_hi, 1.8)
+    elif look == 'capacitor_block':
+        # Compact isometric armored capacitor block (miniature cousin of Energy Cube core).
+        drawing.shape([(64, 14), (110, 38), (110, 90), (64, 114), (18, 90), (18, 38)], rh_grad, joint=2.6)
+        drawing.fill([(64, 16), (107, 38.5), (64, 61), (21, 38.5)], rhevon_hi)
+        drawing.fill([(20, 40), (63, 62), (63, 112), (20, 89)], rhevon)
+        drawing.fill([(65, 62), (108, 40), (108, 89), (65, 112)], casing_lo)
+        # Top Copper contact plate + Virelite ceramic corner collars.
+        drawing.shape([(46, 29), (64, 20), (82, 29), (64, 38)], cu_grad, joint=1.9)
+        drawing.stroke([(50, 29), (64, 22), (78, 29)], ivory, 1.5)
+        for vx, vy in ((24, 41), (95, 41), (59, 98)):
+            drawing.shape([(vx, vy), (vx + 9, vy - 4), (vx + 9, vy + 7), (vx, vy + 11)], vir_grad, joint=1.6)
+        # Glowing vertical Ember charge cores on both front isometric faces (exact #ea4848 >= 380 px).
+        drawing.shape([(29, 54), (54, 67), (54, 98), (29, 85)], well, joint=1.9)
+        drawing.fill([(32, 57), (51, 67), (51, 94), (32, 84)], ember)
+        drawing.fill([(32, 57), (51, 67), (51, 72), (32, 62)], ember_hi)
+        drawing.shape([(74, 67), (99, 54), (99, 85), (74, 98)], well, joint=1.9)
+        drawing.fill([(77, 67), (96, 57), (96, 84), (77, 94)], ember)
+        drawing.fill([(77, 67), (96, 57), (96, 62), (77, 72)], ember_hi)
 
-    # Steel clamp straps framing the cell core.
-    for sx, sy in ((26, 59), (74, 85)):
-        drawing.fill([(sx, sy), (sx + 8, sy - 7), (sx + 14, sy - 3.5), (sx + 6, sy + 3.5)], steel)
-        drawing.stroke([(sx + 1, sy - .5), (sx + 7.5, sy - 6.2)], light, 1.4)
-
-    # Recessed dark capacitor window with faceted Ember Matrix Crystal core (exact #ea4848 >= 350 px).
-    drawing.shape([(34, 61), (60, 37), (92, 55), (66, 79)], well, joint=2.1)
-    gem = [(40, 59), (60, 41), (86, 55), (83, 68), (65, 76), (43, 66)]
-    drawing.shape(gem, ember, joint=2.2)
-    drawing.fill([(42, 58.5), (60, 43), (82, 55), (64, 59.5)], ember_hi)
-    drawing.fill([(42, 59), (64, 59.5), (81, 67), (65, 74.5), (44, 65.5)], ember)
-    drawing.fill([(64, 59.5), (84, 55.5), (81, 67)], ember_lo)
-    drawing.stroke([(56, 48), (70, 56)], ivory, 1.8)
-
-    # Three status-green charge pips along the lower side rail + Copper base bus contact.
-    for p in range(3):
-        px, py = 26 + p * 10.5, 76 + p * 5.8
-        drawing.fill([(px, py), (px + 6.5, py + 3.6), (px + 6.5, py + 7.2), (px, py + 3.6)], green)
-    drawing.shape([(50, 92), (59, 97), (59, 104), (50, 99)], cu_grad, joint=1.6)
+    else:
+        # 'ring_core': Octagonal toroidal Copper-and-Virelite induction core around a glowing Ember crystal.
+        oct_outer = [(64 + 48 * math.cos(math.pi / 8 + i * math.pi / 4),
+                      64 + 48 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+        drawing.shape(oct_outer, rh_grad, joint=2.6)
+        oct_vir = [(64 + 38 * math.cos(math.pi / 8 + i * math.pi / 4),
+                    64 + 38 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+        drawing.shape(oct_vir, vir_grad, joint=2.2)
+        # Four Copper cardinal coil wraps.
+        for cx, cy, w, h in ((54, 14, 20, 16), (54, 98, 20, 16), (14, 54, 16, 20), (98, 54, 16, 20)):
+            drawing.shape([(cx, cy), (cx + w, cy), (cx + w, cy + h), (cx, cy + h)], cu_grad, joint=1.9)
+        oct_well = [(64 + 26 * math.cos(math.pi / 8 + i * math.pi / 4),
+                     64 + 26 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+        drawing.shape(oct_well, well, joint=2.1)
+        gem = [(64, 40), (85, 52), (85, 76), (64, 88), (43, 76), (43, 52)]
+        drawing.shape(gem, ember, joint=2.0)
+        drawing.fill([(64, 41.5), (83.5, 53), (64, 58), (44.5, 53)], ember_hi)
+        drawing.fill([(44.5, 53), (64, 58), (80, 75), (64, 86.5), (44.5, 75)], ember)
+        drawing.fill([(64, 58), (83.5, 53), (83.5, 75), (80, 75)], ember_lo)
+        drawing.stroke([(54, 52), (64, 46), (73, 52)], ivory, 1.8)
     return drawing.svg()
 
 
@@ -797,6 +873,7 @@ def generate(check=False):
                          ('configuration_card', configuration_card()),
                          ('wireless_booster', wireless_booster()),
                          ('wireless_matter_terminal', wireless_terminal()),
+                         ('energy_core', energy_core()),
                          ('portable_energy_cell', portable_energy_cell()),
                          ('pressurized_canister', pressurized_canister()),
                          ('spectrometer_lens', spectrometer_lens())):
@@ -812,9 +889,10 @@ def generate(check=False):
             strip_ancillary_chunks(path)
         expected[name] = {'svg': digest(source), 'png': digest(path.read_bytes())}
     out.json(RECORD, expected)
-    print(f"{'Verified' if check else 'Generated'} {len(expected)} illustrated icons ({UPGRADE_LOOK} upgrade "
-          f"inserts, {MATRIX_CLUSTER_LOOK} Matrix Cluster, {WRENCH_LOOK} Matter Wrench, "
+    print(f"{'Verified' if check else 'Generated'} {len(expected)} illustrated icons ({technical_sprites.UPGRADE_CHASSIS_LOOK} upgrade "
+          f"chassis, {MATRIX_CLUSTER_LOOK} Matrix Cluster, {WRENCH_LOOK} Matter Wrench, "
           f"{CONFIGURATION_CARD_LOOK} Configuration Card, {WIRELESS_TERMINAL_LOOK} Wireless Terminal, "
+          f"{ENERGY_CORE_LOOK} Energy Core, {PORTABLE_ENERGY_CELL_LOOK} Portable Energy Cell, "
           f"{CANISTER_LOOK} Pressurized Canister)")
 
 

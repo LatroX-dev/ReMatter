@@ -34,11 +34,11 @@ public final class ItemGuidanceTooltips {
                         : Component.translatable("tooltip.rematter.crystal_fuel.yield_batch",
                                 Quantities.number(fuel.count()), Quantities.number(fuel.energy()));
                 event.getToolTip().add(yieldLine.copy().withStyle(ChatFormatting.GOLD));
-                long standardTicks = (fuel.energy() + 63L) / 64L;
-                long industrialTicks = (fuel.energy() + 255L) / 256L;
+                long standardTicks = (fuel.energy() + 127L) / 128L;
+                long industrialTicks = (fuel.energy() + 511L) / 512L;
                 event.getToolTip().add(Component.translatable("tooltip.rematter.crystal_fuel.rates",
-                        Quantities.number(64), Quantities.number(standardTicks),
-                        Quantities.number(256), Quantities.number(industrialTicks)).withStyle(ChatFormatting.DARK_GRAY));
+                        Quantities.number(128), Quantities.number(standardTicks),
+                        Quantities.number(512), Quantities.number(industrialTicks)).withStyle(ChatFormatting.DARK_GRAY));
             });
         }
         ItemGuidance.forItem(item).ifPresent(spec -> {

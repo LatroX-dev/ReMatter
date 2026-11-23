@@ -196,7 +196,10 @@ public class MachineBlock extends Block implements EntityBlock {
             InteractionResult mekResult = tryMekanismItem(stack, level, pos, player, hand, machine);
             if (mekResult != InteractionResult.TRY_WITH_EMPTY_HAND) return mekResult;
             if (!level.isClientSide() && machine.interact(player)) {
+                if (player.isShiftKeyDown() && machine.tryInstallUpgrade(player, stack)) return InteractionResult.SUCCESS;
                 if (FluidUtil.interactWithFluidHandler(player, hand, pos, machine.playerFluidHandler(), null)) return InteractionResult.SUCCESS;
+            } else if (level.isClientSide() && player.isShiftKeyDown() && MachineInputPolicy.isUpgradeItem(stack)) {
+                return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.TRY_WITH_EMPTY_HAND;
@@ -227,6 +230,17 @@ public class MachineBlock extends Block implements EntityBlock {
         // A machine item is a portable container: the next placer becomes its owner.
         data.remove("owner");
         data.remove("industrial_claim");
+        if (data.contains("work")) {
+            long paid = data.getCompoundOrEmpty("work").getLongOr("energy_paid", 0L);
+            data.remove("work");
+            if (paid > 0) {
+                var power = data.getCompoundOrEmpty("power");
+                int stored = Math.max(0, power.getIntOr("energy", 0));
+                int restored = (int) Math.min(machine.energyCapacity(), stored + paid);
+                power.putInt("energy", restored);
+                data.put("power", power);
+            }
+        }
         drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), data));
         return List.of(drop);
     }

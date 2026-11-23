@@ -30,7 +30,8 @@ public final class EnergyCubeGameTests {
             "energy_cube_native_item_charging",EnergyCubeGameTests::charging,
             "energy_cube_portable_contents",EnergyCubeGameTests::portable,
             "energy_cube_native_cables_and_owners",EnergyCubeGameTests::cables,
-            "energy_cube_unknown_data_is_preserved",EnergyCubeGameTests::unknown);
+            "energy_cube_unknown_data_is_preserved",EnergyCubeGameTests::unknown,
+            "energy_cube_upgrade_transfers_energy_sides_and_items",EnergyCubeGameTests::upgradeTransfersEnergy);
     private static Identifier id(String path){return Identifier.fromNamespaceAndPath("rematter_tests",path);}
     @SubscribeEvent public static void functions(net.neoforged.neoforge.registries.RegisterEvent event){
         event.register(Registries.TEST_FUNCTION,helper->TESTS.forEach((name,test)->helper.register(id(name),test)));
@@ -133,5 +134,85 @@ public final class EnergyCubeGameTests {
         cube.clearContent();cube.serverTick();
         var drop=((EnergyCubeBlock)cube.getBlockState().getBlock()).storedDrop(cube,h.getLevel().registryAccess());
         h.assertTrue(raw.equals(drop.get(DataComponents.BLOCK_ENTITY_DATA).copyTagWithoutId()),"Unknown portable data was modified");h.succeed();
+    }
+    private static void upgradeTransfersEnergy(GameTestHelper h){
+        var level=h.getLevel();
+        var owner=h.makeMockPlayer(GameType.SURVIVAL);
+        var basic=place(h,new BlockPos(2,2,2),EnergyCubeTier.BASIC,owner);
+        // Seed Basic Cube with 2,500,000 FE, custom side mode, charge-slot item, and discharge-slot item.
+        var basicItem=(EnergyCubeItem)ModContent.ENERGY_CUBES.get(EnergyCubeTier.BASIC).get().asItem();
+        var reinfItem=(EnergyCubeItem)ModContent.ENERGY_CUBES.get(EnergyCubeTier.REINFORCED).get().asItem();
+        var resonItem=(EnergyCubeItem)ModContent.ENERGY_CUBES.get(EnergyCubeTier.RESONANT).get().asItem();
+        var pick=new ItemStack(Items.IRON_PICKAXE);pick.set(DataComponents.REPAIR_COST,4321);
+        basic.setItem(0,pick);
+        var pocket=new ItemStack(ModContent.PORTABLE_ENERGY_CELL.get());
+        PortableEnergyCellItem.setEnergy(pocket,123_456);
+        basic.setItem(1,pocket);
+        owner.setPos(basic.getBlockPos().getX()+.5,basic.getBlockPos().getY(),basic.getBlockPos().getZ()+.5);
+        h.assertTrue(basic.cycleSide(owner,MachinePortMode.Side.LEFT),"Could not customize Basic Cube side");
+        int customModes=basic.packedSideModes();
+        var basicDrop=((EnergyCubeBlock)basic.getBlockState().getBlock()).storedDrop(basic,level.registryAccess());
+        // Set exact 2,500,000 FE directly in valid portable BE tag (avoids ticking 1,221 ticks).
+        var basicTag=basicDrop.get(DataComponents.BLOCK_ENTITY_DATA).copyTagWithoutId();
+        basicTag.putInt("energy",2_500_000);
+        basicDrop.set(DataComponents.BLOCK_ENTITY_DATA,net.minecraft.world.item.component.TypedEntityData.of(ModContent.ENERGY_CUBE_ENTITY.get(),basicTag));
+        h.assertTrue(basicItem.storedEnergy(basicDrop)==2_500_000,"Basic fixture did not hold 2,500,000 FE");
+
+        // 1. Upgrade Basic -> Reinforced via real RecipeManager recipe (KCK / LBL / OEO).
+        var recipes=level.getServer().getRecipeManager();
+        var reinfGrid=net.minecraft.world.item.crafting.CraftingInput.of(3,3,List.of(
+                new ItemStack(ModContent.ENERGY_CORE.get()), new ItemStack(ModContent.REINFORCED_MATTER_CABLE_ITEM.get()), new ItemStack(ModContent.ENERGY_CORE.get()),
+                new ItemStack(ModContent.LUMIVEX_INGOT.get()), basicDrop.copy(), new ItemStack(ModContent.LUMIVEX_INGOT.get()),
+                new ItemStack(ModContent.OPTICAL_CIRCUIT.get()), new ItemStack(ModContent.ENDER_CONDUCTOR.get()), new ItemStack(ModContent.OPTICAL_CIRCUIT.get())));
+        var reinfHolder=recipes.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,reinfGrid,level).orElseThrow(()->new AssertionError("Reinforced Energy Cube upgrade recipe did not match"));
+        h.assertTrue(reinfHolder.value() instanceof EnergyUpgradeRecipe,"Expected EnergyUpgradeRecipe for Reinforced Cube");
+        var reinfStack=reinfHolder.value().assemble(reinfGrid);
+        h.assertTrue(reinfStack.is(reinfItem)&&reinfItem.storedEnergy(reinfStack)==2_500_000,
+                "Reinforced upgrade did not transfer exact 2,500,000 FE: "+reinfItem.storedEnergy(reinfStack));
+        var reinfData=reinfStack.get(DataComponents.BLOCK_ENTITY_DATA);
+        h.assertTrue(reinfData!=null&&!reinfData.contains("owner"),"Upgraded Reinforced Cube retained stale owner");
+
+        // Place upgraded Reinforced Cube and verify FE, custom sides, and both charge/discharge items restored cleanly.
+        var placedReinf=place(h,new BlockPos(5,2,2),EnergyCubeTier.REINFORCED,owner);
+        h.assertTrue(reinfData.loadInto(placedReinf,level.registryAccess()),"Upgraded Reinforced data failed to load");
+        placedReinf.placedBy(owner);
+        h.assertTrue(!placedReinf.locked()&&placedReinf.energy()==2_500_000&&placedReinf.packedSideModes()==customModes,
+                "Placed upgraded Reinforced Cube lost energy or side modes");
+        h.assertTrue(placedReinf.getItem(0).is(Items.IRON_PICKAXE)&&placedReinf.getItem(0).getOrDefault(DataComponents.REPAIR_COST,0)==4321,
+                "Placed upgraded Reinforced Cube lost charge-slot item");
+        h.assertTrue(placedReinf.getItem(2).is(ModContent.PORTABLE_ENERGY_CELL.get())&&PortableEnergyCellItem.energy(placedReinf.getItem(2))==123_456,
+                "Placed upgraded Reinforced Cube lost discharge-slot item");
+
+        // 2. Upgrade Reinforced (24,000,000 FE) -> Resonant via real RecipeManager recipe (KCK / NBN / DGD).
+        var reinfTag=reinfData.copyTagWithoutId();reinfTag.putInt("energy",24_000_000);
+        reinfStack.set(DataComponents.BLOCK_ENTITY_DATA,net.minecraft.world.item.component.TypedEntityData.of(ModContent.ENERGY_CUBE_ENTITY.get(),reinfTag));
+        var resonGrid=net.minecraft.world.item.crafting.CraftingInput.of(3,3,List.of(
+                new ItemStack(ModContent.ENERGY_CORE.get()), new ItemStack(ModContent.RESONANT_MATTER_CABLE_ITEM.get()), new ItemStack(ModContent.ENERGY_CORE.get()),
+                new ItemStack(ModContent.NETHERITE_SHEATH.get()), reinfStack.copy(), new ItemStack(ModContent.NETHERITE_SHEATH.get()),
+                new ItemStack(ModContent.DIAMOND_LATTICE.get()), new ItemStack(ModContent.MATRIX_CLUSTER.get()), new ItemStack(ModContent.DIAMOND_LATTICE.get())));
+        var resonHolder=recipes.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,resonGrid,level).orElseThrow(()->new AssertionError("Resonant Energy Cube upgrade recipe did not match"));
+        var resonStack=resonHolder.value().assemble(resonGrid);
+        h.assertTrue(resonStack.is(resonItem)&&resonItem.storedEnergy(resonStack)==24_000_000,
+                "Resonant upgrade did not transfer exact 24,000,000 FE: "+resonItem.storedEnergy(resonStack));
+
+        // 3. Fresh empty Basic Cube upgrades cleanly without empty BE NBT clutter.
+        var emptyGrid=net.minecraft.world.item.crafting.CraftingInput.of(3,3,List.of(
+                new ItemStack(ModContent.ENERGY_CORE.get()), new ItemStack(ModContent.REINFORCED_MATTER_CABLE_ITEM.get()), new ItemStack(ModContent.ENERGY_CORE.get()),
+                new ItemStack(ModContent.LUMIVEX_INGOT.get()), new ItemStack(basicItem), new ItemStack(ModContent.LUMIVEX_INGOT.get()),
+                new ItemStack(ModContent.OPTICAL_CIRCUIT.get()), new ItemStack(ModContent.ENDER_CONDUCTOR.get()), new ItemStack(ModContent.OPTICAL_CIRCUIT.get())));
+        var emptyOut=recipes.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,emptyGrid,level).orElseThrow().value().assemble(emptyGrid);
+        h.assertTrue(emptyOut.is(reinfItem)&&!emptyOut.has(DataComponents.BLOCK_ENTITY_DATA),"Empty cube upgrade attached unnecessary BE data");
+
+        // 4. Corrupted / unknown-schema Basic Cube MUST be refused so protected data cannot be wiped.
+        var lockedCube=new ItemStack(basicItem);
+        var unknownTag=new CompoundTag();unknownTag.putInt("schema",99);unknownTag.putInt("energy",500);
+        lockedCube.set(DataComponents.BLOCK_ENTITY_DATA,net.minecraft.world.item.component.TypedEntityData.of(ModContent.ENERGY_CUBE_ENTITY.get(),unknownTag));
+        var badGrid=net.minecraft.world.item.crafting.CraftingInput.of(3,3,List.of(
+                new ItemStack(ModContent.ENERGY_CORE.get()), new ItemStack(ModContent.REINFORCED_MATTER_CABLE_ITEM.get()), new ItemStack(ModContent.ENERGY_CORE.get()),
+                new ItemStack(ModContent.LUMIVEX_INGOT.get()), lockedCube, new ItemStack(ModContent.LUMIVEX_INGOT.get()),
+                new ItemStack(ModContent.OPTICAL_CIRCUIT.get()), new ItemStack(ModContent.ENDER_CONDUCTOR.get()), new ItemStack(ModContent.OPTICAL_CIRCUIT.get())));
+        h.assertTrue(recipes.getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING,badGrid,level).isEmpty(),
+                "Corrupted/unknown-schema Energy Cube was unexpectedly accepted for tier upgrade");
+        h.succeed();
     }
 }

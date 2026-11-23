@@ -30,7 +30,7 @@ final class MatterKeyRenderer implements AEKeyRenderer<MatterKey, MatterKeyRende
     @Override public void extract(RenderState state, MatterKey key, Level level, int seed) {
         // World-mounted AE2 displays use the registered native item renderer as their visual container.
         // Its state stays opaque; no dependency on AE2's internal renderer implementation is needed.
-        var icon = AEItemKey.of(ModContent.MATTER_CELL_64K.get());
+        var icon = AEItemKey.of(ModContent.MATTER_CELL_4M.get());
         state.capture(AEKeyRendering.getOrThrow(icon), icon, level, seed);
     }
     @Override public void submit(PoseStack pose, RenderState state, SubmitNodeCollector collector, int light) {

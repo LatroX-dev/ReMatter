@@ -47,9 +47,9 @@ Put one powder in the Sinter Furnace's single input. Leave room for one complete
 | <ItemLink id="rematter:rhevon_dust" /> | <ItemLink id="rematter:rhevon_ingot" /> | Rigid alloy for Cutters, Filters and Basins | 12,000 FE, 20 seconds |
 | <ItemLink id="rematter:lumivex_dust" /> | <ItemLink id="rematter:lumivex_ingot" /> | Signal alloy for Optical Circuits | 12,000 FE, 20 seconds |
 | <ItemLink id="rematter:virelite_blend" /> | <ItemLink id="rematter:virelite_ceramic" /> | Technical ceramic for insulated reaction machinery | 12,000 FE, 20 seconds |
-| <ItemLink id="rematter:diamond_matrix_blend" /> | <ItemLink id="rematter:diamond_lattice" /> | Optical Circuits, upgrades and advanced machines | 12,000 FE, 20 seconds |
-| <ItemLink id="rematter:ender_conductor_blend" /> | <ItemLink id="rematter:ender_conductor" /> | Larger Cells, Terminals, Interfaces and Ports | 16,000 FE, 24 seconds |
-| <ItemLink id="rematter:netherite_sheath_blend" /> | <ItemLink id="rematter:netherite_sheath" /> | 1M Cell, Chemical Reactor and Resonant Cable | 24,000 FE, 28 seconds |
+| <ItemLink id="rematter:diamond_matrix_blend" /> | <ItemLink id="rematter:diamond_lattice" /> | Optical Circuits, Resonant Cable, 64M Cell and advanced machines | 12,000 FE, 20 seconds |
+| <ItemLink id="rematter:ender_conductor_blend" /> | <ItemLink id="rematter:ender_conductor" /> | 64M/256M Cells, Wireless Terminals, Interfaces, Ports and Reinforced Cable | 16,000 FE, 24 seconds |
+| <ItemLink id="rematter:netherite_sheath_blend" /> | <ItemLink id="rematter:netherite_sheath" /> | 256M Cell, Resonant Energy Cube and Chemical Reactor | 24,000 FE, 28 seconds |
 
 The last three blends are mixed in the Material Preparator; see [Crystals and advanced components](advanced.md). Sintering takes inspiration from powder metallurgy and ceramic firing: compacted grains bond under heat. ReMatter's field and signal properties are fictional. No added water or fluid connection is required.
 

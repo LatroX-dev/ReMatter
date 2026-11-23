@@ -3,12 +3,12 @@
   "category": "equipment",
   "pattern": [
     " C ",
-    "RIR",
+    "RSR",
     " P "
   ],
   "key": {
     "C": "rematter:control_circuit",
-    "I": "rematter:optical_circuit",
+    "S": "rematter:structural_bars",
     "R": "rematter:rhevon_ingot",
     "P": "minecraft:copper_ingot"
   },

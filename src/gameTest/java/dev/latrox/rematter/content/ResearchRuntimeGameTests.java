@@ -65,9 +65,9 @@ public final class ResearchRuntimeGameTests {
         // Explicit QA ownership evidence; an imported cell is deliberately not a learning hook.
         ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(), h.getLevel().dimension().identifier().toString());
         var drive = place(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var machine = place(h, new BlockPos(3, 2, 2), kind, owner);
-        machine.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        machine.energy().set(machine.energyCapacity());
         return new Rig(h, owner, drive, machine);
     }
     private static MachineBlockEntity place(GameTestHelper h, BlockPos relative, MachineKind kind, Player owner) {
@@ -116,10 +116,10 @@ public final class ResearchRuntimeGameTests {
     private static void analysis(GameTestHelper h) {
         var r = rig(h, MachineKind.ANALYZER);
         assertTrue(h, r.drive.matterStore().apply(Map.of(), Map.of(BuiltinChemistry.SILICA, 1_000L)), "Stock fixture did not fit");
-        var synth = place(h, new BlockPos(1, 2, 2), MachineKind.SYNTHESIZER, r.owner); synth.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var synth = place(h, new BlockPos(1, 2, 2), MachineKind.SYNTHESIZER, r.owner); int synthCap = synth.energyCapacity(); synth.energy().set(synthCap);
         synth.selectRecipe("minecraft:glass"); synth.requestBatch(); ticks(h, 120, synth);
         assertTrue(h, !ResearchService.allowsSynthesis(r.server(), r.uuid(), "minecraft:glass") && synth.getItem(1).isEmpty(), "Imported stock unlocked unresearched synthesis");
-        assertTrue(h, synth.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY && r.drive.matterStore().amount(BuiltinChemistry.SILICA) == 1_000, "A locked synthesis consumed resources");
+        assertTrue(h, synth.energy().getAmountAsLong() == synthCap && r.drive.matterStore().amount(BuiltinChemistry.SILICA) == 1_000, "A locked synthesis consumed resources");
         var profile = ReMatter.chemistry().profile("minecraft:sand").orElseThrow();
         r.machine.setItem(0, new ItemStack(Items.SAND, 3)); long before = r.machine.energy().getAmountAsLong();
         ticks(h, ResearchService.analysisTicks(profile), r.machine);
@@ -147,7 +147,7 @@ public final class ResearchRuntimeGameTests {
         ticks(h, profile.ticks() + 2, r.machine());
         assertTrue(h, !dev.latrox.rematter.guide.GuidanceProgress.earned(level, owner).contains(award),
                 "Owning a bucket and requesting a blocked batch earned the milestone");
-        r.machine().energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        r.machine().energy().set(r.machine().energyCapacity());
         ticks(h, profile.ticks() + 2, r.machine());
         assertTrue(h, r.machine().fluids().getAmountAsLong(0) == 1_000L, "Lava batch failed");
         assertTrue(h, dev.latrox.rematter.guide.GuidanceProgress.earned(level, owner).contains(award),
@@ -162,17 +162,18 @@ public final class ResearchRuntimeGameTests {
         assertTrue(h, action(r.machine, MachineActionPayload.Action.DERIVE, "rematter:granite", 0), "Server rejected legitimate derivation"); return r;
     }
     private static void derive(GameTestHelper h) {
-        var r = deriveRig(h); var family = ResearchData.current().family("rematter:granite").orElseThrow(); long energy = r.machine.energy().getAmountAsLong();
-        ticks(h, ResearchSessions.DERIVE_TICKS, r.machine); var view = session(r, r.machine);
+        var r = deriveRig(h); var family = ResearchData.current().family("rematter:granite").orElseThrow();
+        assertTrue(h, r.machine.energyCapacity() == MatterLimits.COMPACT_MACHINE_ENERGY, "Analyzer base buffer should be 32,000 FE");
+        long spent = researchTicks(h, r.machine, ResearchSessions.DERIVE_TICKS); var view = session(r, r.machine);
         assertTrue(h, view.state() == ResearchSessions.State.COMPLETE && view.resultFamily().equals(family.id()), "Derivation did not finish the selected family");
         assertTrue(h, primal(r.machine) == 16_000 - family.derivePrimal(), "Derivation charged the wrong Primal amount");
-        assertTrue(h, energy - r.machine.energy().getAmountAsLong() == ResearchSessions.DERIVE_ENERGY, "Derivation charged the wrong FE amount");
+        assertTrue(h, spent == ResearchSessions.DERIVE_ENERGY, "Derivation charged the wrong FE amount: " + spent);
         assertTrue(h, !action(r.machine, MachineActionPayload.Action.DERIVE, family.id(), 0), "Known family accepted another paid derivation"); h.succeed();
     }
-    private static long discoveryTicks(GameTestHelper h, MachineBlockEntity machine, int ticks) {
+    private static long researchTicks(GameTestHelper h, MachineBlockEntity machine, int ticks) {
         long spent = 0;
         for (int i = 0; i < ticks; i++) {
-            if (machine.energy().getAmountAsLong() < DiscoveryTier.STEP_ENERGY) machine.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+            if (machine.energy().getAmountAsLong() < 4_000) machine.energy().set(machine.energyCapacity());
             long before = machine.energy().getAmountAsLong(); tick(h, machine); spent = Math.addExact(spent, before - machine.energy().getAmountAsLong());
         }
         return spent;
@@ -189,28 +190,28 @@ public final class ResearchRuntimeGameTests {
         ResearchService.ledger(r.server()).overrideDiscovery(r.uuid(), true);
         var engine = ResearchService.researchSession(r.server()); int possible = engine.available(r.context(), DiscoveryTier.I);
         assertTrue(h, possible >= 2 && action(r.machine, MachineActionPayload.Action.DISCOVER, "", 1), "Eligible Discovery did not start");
-        long charged = discoveryTicks(h, r.machine, 1); var first = session(r, r.machine);
+        long charged = researchTicks(h, r.machine, 1); var first = session(r, r.machine);
         assertTrue(h, first.paidSteps() == 1 && first.resultFamily().isEmpty(), "Unpaid/surprise result was exposed");
         assertTrue(h, action(r.machine, MachineActionPayload.Action.RESEARCH_PAUSE, "", 0), "Pause failed");
         var saved = r.machine.saveCustomOnly(h.getLevel().registryAccess()); reload(r.machine, saved);
-        var secondAnalyzer = place(h, new BlockPos(2, 2, 3), MachineKind.ANALYZER, r.owner); secondAnalyzer.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        var secondAnalyzer = place(h, new BlockPos(2, 2, 3), MachineKind.ANALYZER, r.owner); secondAnalyzer.energy().set(secondAnalyzer.energyCapacity());
         var paymentCell = r.machine.getItem(MachineCellAccess.PRIMAL_SLOT); r.machine.setItem(MachineCellAccess.PRIMAL_SLOT, ItemStack.EMPTY);
         secondAnalyzer.setItem(MachineCellAccess.PRIMAL_SLOT, paymentCell); secondAnalyzer.setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(PrimalContent.DISCOVERY_LENS.get()));
         assertTrue(h, action(secondAnalyzer, MachineActionPayload.Action.RESEARCH_RESUME, first.id().toString(), 0), "Different Analyzer could not resume its identity's session");
-        charged += discoveryTicks(h, secondAnalyzer, DiscoveryTier.I.minimumTicks() - 1);
+        charged += researchTicks(h, secondAnalyzer, DiscoveryTier.I.minimumTicks() - 1);
         var complete = session(r, secondAnalyzer);
         assertTrue(h, complete.id().equals(first.id()) && complete.state() == ResearchSessions.State.COMPLETE, "Reload/device change rerolled or failed the session");
         assertTrue(h, complete.paidSteps() == 4 && charged == DiscoveryTier.I.energy() && primal(secondAnalyzer) == 48_000, "6000 active ticks did not pay exactly2.4MFE/16kPrimal");
         assertTrue(h, ResearchService.knownFamilies(r.server(), r.uuid()).contains(complete.resultFamily()), "Discovery result was not learned");
         assertTrue(h, engine.available(r.context(), DiscoveryTier.I) == possible - 1, "Known Discovery result remained in its pool");
         assertTrue(h, action(secondAnalyzer, MachineActionPayload.Action.DISCOVER, "", 1), "Second Discovery did not start");
-        long nextEnergy = discoveryTicks(h, secondAnalyzer, DiscoveryTier.I.minimumTicks()); var next = session(r, secondAnalyzer);
+        long nextEnergy = researchTicks(h, secondAnalyzer, DiscoveryTier.I.minimumTicks()); var next = session(r, secondAnalyzer);
         assertTrue(h, next.state() == ResearchSessions.State.COMPLETE && !next.resultFamily().equals(complete.resultFamily()), "Discovery awarded a duplicate");
         assertTrue(h, nextEnergy == DiscoveryTier.I.energy() && primal(secondAnalyzer) == 32_000, "Second Discovery did not pay its independent price"); h.succeed();
     }
     private static void refund(GameTestHelper h) {
         var r = rig(h, MachineKind.ANALYZER); fuel(r.machine, 64_000, true); ResearchService.ledger(r.server()).overrideDiscovery(r.uuid(), true);
-        assertTrue(h, action(r.machine, MachineActionPayload.Action.DISCOVER, "", 1), "Discovery fixture did not start"); discoveryTicks(h, r.machine, 1);
+        assertTrue(h, action(r.machine, MachineActionPayload.Action.DISCOVER, "", 1), "Discovery fixture did not start"); researchTicks(h, r.machine, 1);
         for (var family : ResearchData.current().families()) if (family.discoveryTier() == DiscoveryTier.I) ResearchService.adminGrant(r.server(), r.uuid(), family.id());
         tick(h, r.machine); var engine = ResearchService.researchSession(r.server());
         assertTrue(h, engine.refundDue(r.context()) == 4_000, "Exhausted pool did not create exact paid refund");
@@ -221,7 +222,8 @@ public final class ResearchRuntimeGameTests {
         assertTrue(h, action(r.machine, MachineActionPayload.Action.RESEARCH_REFUND, "", 0), "Valid return cell did not receive refund");
         assertTrue(h, primal(r.machine) == 64_000 && engine.refundDue(r.context()) == 0, "Refund amount was wrong");
         assertTrue(h, !action(r.machine, MachineActionPayload.Action.RESEARCH_REFUND, "", 0) && primal(r.machine) == 64_000, "Refund paid twice");
-        assertTrue(h, r.machine.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - DiscoveryTier.STEP_ENERGY, "Refund restored spent FE"); h.succeed();
+        long firstTickFe = MachineEnergyPolicy.stepEnergy(DiscoveryTier.STEP_ENERGY, 0, 1, DiscoveryTier.STEP_TICKS, 0);
+        assertTrue(h, r.machine.energy().getAmountAsLong() == r.machine.energyCapacity() - firstTickFe, "Refund restored spent FE"); h.succeed();
     }
     private static void converter(GameTestHelper h) {
         var r = rig(h, MachineKind.PRIMAL_CONVERTER); fuel(r.machine, 16_000, false); ResearchService.adminGrant(r.server(), r.uuid(), "rematter:iron");
@@ -229,27 +231,27 @@ public final class ResearchRuntimeGameTests {
         ticks(h, PrimalPricing.quote(ReMatter.chemistry(), BuiltinChemistry.IRON, 1_000, id -> id.equals(BuiltinChemistry.IRON.id())).ticks(), r.machine);
         var claims = r.machine.extensions().view().getAsJsonArray("conversionClaims"); assertTrue(h, claims.size() == 1, "Converter did not create exactly one result owner");
         var claimId = UUID.fromString(claims.get(0).getAsJsonObject().get("id").getAsString()); var machineId = UUID.fromString(claims.get(0).getAsJsonObject().get("machine").getAsString());
-        assertTrue(h, primal(r.machine) == 15_000 && r.machine.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - 64_000, "Converter payment was not exact");
+        assertTrue(h, primal(r.machine) == 15_000 && r.machine.energy().getAmountAsLong() == r.machine.energyCapacity() - 64_000, "Converter payment was not exact");
         ResearchService.adminGrant(r.server(),r.uuid(),"rematter:copper");
         assertTrue(h,!action(r.machine,MachineActionPayload.Action.CONVERT_SELECT,"rematter:copper",250),"Paid pending output allowed changing its target");
         var retained=r.machine.extensions().view();
         assertTrue(h,retained.get("conversionTarget").getAsString().equals("rematter:iron")&&retained.get("conversionAmount").getAsLong()==1_000
                 &&retained.getAsJsonArray("conversionClaims").equals(claims),"Rejected target change altered selection or paid claim");
-        assertTrue(h, r.drive.matterStore().apply(Map.of(), Map.of(BuiltinChemistry.SOIL, 64_000L)), "Could not block output"); r.drive.setChanged();
+        assertTrue(h, r.drive.matterStore().apply(Map.of(), Map.of(BuiltinChemistry.SOIL, MatterLimits.CELL_4M)), "Could not block output"); r.drive.setChanged();
         ticks(h, 20, r.machine);
         assertTrue(h, ResearchService.conversionClaims(r.server(), r.uuid(), machineId).getFirst().remaining() == 1_000 && primal(r.machine) == 15_000, "Blocked output lost result or paid twice");
         reload(r.machine, r.machine.saveCustomOnly(h.getLevel().registryAccess()));
         assertTrue(h, r.drive.matterStore().apply(Map.of(BuiltinChemistry.SOIL, 1_000L), Map.of()), "Could not make output room"); r.drive.setChanged();
         var stale = r.drive.getItem(r.drive.cellSlotForBay(0)).copy(); tick(h, r.machine);
-        assertTrue(h, r.drive.matterStore().amount(BuiltinChemistry.IRON) == 1_000 && r.drive.matterStore().total() == 64_000, "Claim payout was not exact");
+        assertTrue(h, r.drive.matterStore().amount(BuiltinChemistry.IRON) == 1_000 && r.drive.matterStore().total() == MatterLimits.CELL_4M, "Claim payout was not exact");
         assertTrue(h, ResearchService.conversionClaims(r.server(), r.uuid(), machineId).getFirst().remaining() == 0, "Paid output retained a live claim");
         var replay = ResearchService.commitConversion(r.server(), r.uuid(), machineId, claimId, BuiltinChemistry.IRON, 1_000, 64_000, (op, primal, energy, tx) -> { throw new IllegalStateException("Replay attempted another debit"); });
         assertTrue(h, replay.isPresent(), "Valid operation replay lost its original claim");
         r.drive.removeItemNoUpdate(r.drive.cellSlotForBay(0)); r.drive.setItem(r.drive.cellSlotForBay(0), stale);
-        assertTrue(h, r.drive.matterStore().amount(BuiltinChemistry.IRON) == 1_000 && r.drive.matterStore().total() == 64_000, "Stale physical output did not reconcile once");
-        var resolved = r.drive.getItem(r.drive.cellSlotForBay(0)).get(MatterCellData.TYPE.get()).resolve(64_000).orElseThrow();
+        assertTrue(h, r.drive.matterStore().amount(BuiltinChemistry.IRON) == 1_000 && r.drive.matterStore().total() == MatterLimits.CELL_4M, "Stale physical output did not reconcile once");
+        var resolved = r.drive.getItem(r.drive.cellSlotForBay(0)).get(MatterCellData.TYPE.get()).resolve(MatterLimits.CELL_4M).orElseThrow();
         assertTrue(h, resolved.creditRevision() == 1, "Output cell did not keep its compact credit watermark");
-        ticks(h, 20, r.machine); assertTrue(h, primal(r.machine) == 15_000 && r.drive.matterStore().total() == 64_000, "Idle Converter repeated payment or output"); h.succeed();
+        ticks(h, 20, r.machine); assertTrue(h, primal(r.machine) == 15_000 && r.drive.matterStore().total() == MatterLimits.CELL_4M, "Idle Converter repeated payment or output"); h.succeed();
     }
     private static void converterDestination(GameTestHelper h){
         var r=rig(h,MachineKind.PRIMAL_CONVERTER);fuel(r.machine,16_000,false);
@@ -262,22 +264,23 @@ public final class ResearchRuntimeGameTests {
         assertTrue(h,initial.getAsJsonObject("conversionDestination").get("bay").getAsInt()==1,"Initial first-fit destination was not bay1");
         // Primal Cells are never output destinations; an ordinary Cell's partition remains binding.
         r.drive.setItem(r.drive.cellSlotForBay(0),new ItemStack(PrimalContent.PRIMAL_CELL_64K.get()));
-        var restricted=new ItemStack(ModContent.MATTER_CELL_64K.get());restricted.set(CellPartitionData.TYPE.get(),CellPartitionData.allowOnly(Set.of(BuiltinChemistry.COPPER)));
+        var restricted=new ItemStack(ModContent.MATTER_CELL_4M.get());restricted.set(CellPartitionData.TYPE.get(),CellPartitionData.allowOnly(Set.of(BuiltinChemistry.COPPER)));
         r.drive.setItem(r.drive.cellSlotForBay(1),restricted);
         assertTrue(h,r.machine.extensions().view().getAsJsonObject("conversionDestination").get("status").getAsString().equals("no_compatible_cell"),"Primal or restricted Cell was offered as an Iron destination");
-        r.drive.setItem(r.drive.cellSlotForBay(1),new ItemStack(ModContent.MATTER_CELL_64K.get()));
-        r.drive.setItem(r.drive.cellSlotForBay(2),new ItemStack(ModContent.MATTER_CELL_64K.get()));
-        assertTrue(h,r.drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,127_000L)),"Could not prepare fragmented output space");r.drive.setChanged();
+        r.drive.setItem(r.drive.cellSlotForBay(1),new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        r.drive.setItem(r.drive.cellSlotForBay(2),new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        long targetPerCell = MatterLimits.CELL_4M - 500L;
+        assertTrue(h,r.drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.SOIL,targetPerCell * 2)),"Could not prepare fragmented output space");r.drive.setChanged();
         // Leave 500 u in each Cell: aggregate space fits, but the durable credit belongs to one Cell.
         var members=r.drive.matterStore().members();
         long first=members.get(0).total();
-        if(first>63_500)assertTrue(h,members.get(0).transferTo(members.get(1),BuiltinChemistry.SOIL,first-63_500)==first-63_500,"Could not split free space");
-        else if(first<63_500)assertTrue(h,members.get(1).transferTo(members.get(0),BuiltinChemistry.SOIL,63_500-first)==63_500-first,"Could not split free space");
+        if(first>targetPerCell)assertTrue(h,members.get(0).transferTo(members.get(1),BuiltinChemistry.SOIL,first-targetPerCell)==first-targetPerCell,"Could not split free space");
+        else if(first<targetPerCell)assertTrue(h,members.get(1).transferTo(members.get(0),BuiltinChemistry.SOIL,targetPerCell-first)==targetPerCell-first,"Could not split free space");
         assertTrue(h,r.drive.matterStore().canApply(Map.of(),Map.of(BuiltinChemistry.IRON,1_000L)),"Fragmented aggregate fixture did not fit");
         var blocked=r.machine.extensions().view().getAsJsonObject("conversionDestination");
         assertTrue(h,blocked.get("status").getAsString().equals("no_compatible_cell"),"Fragmented space advertised a complete destination");
         assertTrue(h,action(r.machine,MachineActionPayload.Action.CONVERT_START,"",0),"Finite request was rejected");ticks(h,20,r.machine);
-        assertTrue(h,primal(r.machine)==16_000&&r.machine.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Blocked destination charged payment");
+        assertTrue(h,primal(r.machine)==16_000&&r.machine.energy().getAmountAsLong()==r.machine.energyCapacity(),"Blocked destination charged payment");
         assertTrue(h,members.get(0).extract(BuiltinChemistry.SOIL,500)==500,"Could not make one destination fit");r.drive.setChanged();
         var ready=r.machine.extensions().view().getAsJsonObject("conversionDestination");
         assertTrue(h,ready.get("status").getAsString().equals("ready")&&ready.get("bay").getAsInt()==2&&ready.get("free").getAsLong()==1_000,"Preview did not name the first actual fitting ordinary bay");
@@ -293,8 +296,10 @@ public final class ResearchRuntimeGameTests {
             var disk = IdentityCheckpointReader.blockEntity(h.getLevel(), r.machine.getBlockPos()).orElseThrow();
             assertTrue(h, !disk.getStringOr("extension_id", "").isEmpty() && disk.getBooleanOr("identity_checkpoint", false), "Identity checkpoint never reached physical chunk NBT");
             long afterEnergy = r.machine.energy().getAmountAsLong(), afterPrimal = primal(r.machine);
+            long tick1Due = MachineEnergyPolicy.stepEnergy(ResearchSessions.DERIVE_ENERGY, 1, 1, ResearchSessions.DERIVE_TICKS,
+                    MachineEnergyPolicy.stepEnergy(ResearchSessions.DERIVE_ENERGY, 0, 1, ResearchSessions.DERIVE_TICKS, 0));
             reload(r.machine, disk); tick(h, r.machine);
-            assertTrue(h, r.machine.energy().getAmountAsLong() == afterEnergy, "Authority-new/machine-old FE was not reconciled exactly");
+            assertTrue(h, r.machine.energy().getAmountAsLong() == afterEnergy - tick1Due, "Authority-new/machine-old FE was not reconciled exactly");
             assertTrue(h, primal(r.machine) == afterPrimal && session(r, r.machine).paidSteps() == 1, "Stale payment cell was charged twice or rolled back");
             assertTrue(h, session(r, r.machine).elapsedTicks() == paid.elapsedTicks() + 1, "Reload changed paid progress or rerolled the operation");
         } catch (java.io.IOException problem) { throw new IllegalStateException("Physical payment checkpoint readback failed", problem); }
@@ -308,6 +313,7 @@ public final class ResearchRuntimeGameTests {
         var beforeCell=r.machine.getItem(MachineCellAccess.PRIMAL_SLOT).get(PrimalCellData.TYPE.get()).copyTag();
         var beforeMachine=r.machine.saveCustomOnly(h.getLevel().registryAccess());
         long beforeEnergy=r.machine.energy().getAmountAsLong();
+        long tickFe=MachineEnergyPolicy.stepEnergy(DiscoveryTier.STEP_ENERGY,0,1,DiscoveryTier.STEP_TICKS,0);
         try(var fault=ResearchAuthorityIoFault.install(r.server())){
             RuntimeException failure=null;
             try{tick(h,r.machine);}catch(RuntimeException problem){failure=problem;}
@@ -329,17 +335,17 @@ public final class ResearchRuntimeGameTests {
             var stale=IdentityCheckpointReader.blockEntity(h.getLevel(),r.machine.getBlockPos()).orElseThrow();
             var machineId=UUID.fromString(stale.getStringOr("extension_id",""));
             var cellId=UUID.fromString(beforeCell.getStringOr("cell_id",""));
-            assertTrue(h,durable.changesForCell(cellId).size()==1&&durable.outstandingEnergy(machineId,Map.of()).values().stream().mapToLong(Long::longValue).sum()==600_000,
+            assertTrue(h,durable.changesForCell(cellId).size()==1&&durable.outstandingEnergy(machineId,Map.of()).values().stream().mapToLong(Long::longValue).sum()==tickFe,
                     "Published Cell/FE journals do not describe exactly one real payment");
             // Startup selects the newer durable ledger; the checkpointed controller and Cell can still be old.
             fault.recoverPublishedState();reload(r.machine,stale);tick(h,r.machine);
             var resumed=session(r,r.machine);
             assertTrue(h,resumed.id().equals(initial.id())&&resumed.paidSteps()==1&&resumed.elapsedTicks()==2,
                     "Recovered authority rerolled or repaid the existing Discovery step");
-            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-600_000,
-                    "Authority-new/controller-old restart did not settle exactly4kPrimal/600kFE");
+            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-2*tickFe,
+                    "Authority-new/controller-old restart did not settle exactly4kPrimal + 2 tick FE");
             tick(h,r.machine);
-            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-600_000
+            assertTrue(h,primal(r.machine)==60_000&&r.machine.energy().getAmountAsLong()==beforeEnergy-3*tickFe
                     &&ResearchService.cellChanges(r.server(),cellId).size()==1&&ResearchService.energyChanges(r.server(),machineId).size()==1,
                     "Recovered paid step replayed its resource debit");
             action(r.machine,MachineActionPayload.Action.RESEARCH_PAUSE,"",0);

@@ -1,11 +1,12 @@
 package dev.latrox.rematter.content;
 
-/** Transient state of the current batch. Nothing here is persisted: inputs commit at completion and unpaid/in-flight FE is restored on abort or save. */
+/** Active batch state. Progress and paid FE persist across stationary chunk reloads so long batches never lose paid energy. */
 final class MachineWork {
     int progress;
     int duration;
     long energyPaid;
     long energyRate;
+    int restoredLanes;
     String job = "";
     String status = "idle";
     boolean processedThisTick;
@@ -13,5 +14,5 @@ final class MachineWork {
     boolean preparationMixing;
     BatchReservations.Ticket ticket;
 
-    void reset() { progress = 0; duration = 0; energyPaid = 0; energyRate = 0; job = ""; }
+    void reset() { progress = 0; duration = 0; energyPaid = 0; energyRate = 0; restoredLanes = 0; job = ""; }
 }

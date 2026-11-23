@@ -2,7 +2,8 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "rematter:block/matter_cable",
-    "cable": "rematter:block/matter_cable"
+    "cable": "rematter:block/matter_cable",
+    "glow": "rematter:block/matter_cable_glow"
   },
   "elements": [
     {
@@ -15,7 +16,7 @@
       "to": [
         11,
         11,
-        2
+        1.5
       ],
       "faces": {
         "north": {
@@ -43,7 +44,7 @@
             6,
             10,
             0,
-            12
+            11.5
           ],
           "rotation": 90
         },
@@ -51,7 +52,7 @@
           "texture": "#cable",
           "uv": [
             6,
-            12,
+            11.5,
             0,
             10
           ],
@@ -63,14 +64,14 @@
             0,
             10,
             6,
-            12
+            11.5
           ]
         },
         "down": {
           "texture": "#cable",
           "uv": [
             0,
-            12,
+            11.5,
             6,
             10
           ]
@@ -82,36 +83,38 @@
       "from": [
         6,
         6,
-        2
+        1.5
       ],
       "to": [
         10,
         10,
         6
       ],
+      "shade": false,
+      "light_emission": 15,
       "faces": {
         "east": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             6,
             0,
-            2,
+            1.5,
             4
           ]
         },
         "west": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
-            2,
+            1.5,
             0,
             6,
             4
           ]
         },
         "up": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
-            2,
+            1.5,
             4,
             6,
             0
@@ -119,11 +122,11 @@
           "rotation": 90
         },
         "down": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             6,
             4,
-            2,
+            1.5,
             0
           ],
           "rotation": 90

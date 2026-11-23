@@ -33,7 +33,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     private final Set<String> phaseFilter=new HashSet<>();
     private EditBox search;
     private DarkButton labGoalTab;
-    private DarkButton machineTab,devicesTab,monitorTab,researchTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,buildHint,back;
+    private DarkButton machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,cancel,buildHint,back;
     private MachineSettingsPanel settingsPanel;
     private ResearchPanel researchPanel;
     private PrimalConverterPanel converterPanel;
@@ -59,6 +59,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     private boolean monitoring(){return menu.view()==MachineMenu.View.MONITOR&&menu.kind()==MachineKind.TERMINAL;}
     private boolean passive(){return !menu.kind().processes()&&!menu.kind().generator();}
     private boolean researching(){return menu.view()==MachineMenu.View.RESEARCH&&menu.kind()==MachineKind.ANALYZER;}
+    private boolean upgrades(){return menu.view()==MachineMenu.View.UPGRADES&&menu.supportsUpgrades();}
     private boolean converter(){return menu.kind()==MachineKind.PRIMAL_CONVERTER;}
     private boolean disk(){return menu.diskRole();}
     private boolean terminal(){return menu.kind()==MachineKind.TERMINAL;}
@@ -111,6 +112,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         devicesTab=tab(UiIcon.DEVICES,ui("tab_machines"),1,MachineMenu.View.MACHINES);
         monitorTab=tab(UiIcon.MONITOR,ui("tab_monitor"),2,MachineMenu.View.MONITOR);
         researchTab=tab(UiIcon.RESEARCH,ui("tab_research"),1,MachineMenu.View.RESEARCH);
+        upgradesTab=tab(UiIcon.SLOT_UPGRADE,ui("tab_upgrades"),1,MachineMenu.View.UPGRADES);
         settingsTab=tab(UiIcon.SETTINGS,ui("tab_settings"),2,MachineMenu.View.CONFIGURATION);
         search=addRenderableWidget(new EditBox(font,leftPos+27,topPos+24,82,12,tr("search")));
         search.setBordered(false);search.setTextColor(TEXT);search.setMaxLength(128);search.setValue(query);
@@ -135,10 +137,12 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         primary=button(tr("start"),tr("start_once_hint"),24,102,58,b->{if(menu.kind().generator()){send(2);return;}var d=MachinePrimaryAction.forSnapshot(menu.snapshot());if(d.opensRecipeSelection())minecraft.pushGuiLayer(new ProcessSelectionScreen(menu));else if(selecting()&&!menu.snapshot().networkJobs()&&validSelection())send(4);else if(d.enabled()&&d.menuAction()>=0)send(d.menuAction());});
         repeat=addRenderableWidget(DarkButton.icon(UiIcon.LOOP_OFF,ui("repeat_off"),tr("continuous_hint"),leftPos+86,topPos+102,18,18,b->send(5)));
         pause=addRenderableWidget(DarkButton.icon(UiIcon.PAUSE,tr("pause"),tr("pause_hint"),leftPos+108,topPos+102,18,18,b->send(2)));
+        cancel=addRenderableWidget(DarkButton.icon(UiIcon.CANCEL,tr("cancel_job"),tr("cancel_job_hint"),leftPos+130,topPos+102,18,18,b->send(MachineMenu.CANCEL_JOB)));
+        cancel.setAccent(WARNING);
         buildHint=button(ui("missing_part"),tr("locate_part_hint"),24,102,138,b->{if(menu.structurePreviewEnabled())ClientStructureHints.clear();send(MachineMenu.TOGGLE_STRUCTURE_PREVIEW);});
         back=addRenderableWidget(DarkButton.icon(UiIcon.BACK,tr("terminal.return"),tr("terminal.return_hint"),leftPos+171,topPos+2,17,16,b->send(MachineMenu.RETURN_TO_TERMINAL)));
         stockRows.clear();for(int i=0;i<8;i++){var row=new StockRow();stockRows.add(addRenderableWidget(row));}
-        deviceRows.clear();for(int i=0;i<5;i++){var row=new DeviceRow();deviceRows.add(row);addRenderableWidget(row.open);addRenderableWidget(row.queue);}
+        deviceRows.clear();for(int i=0;i<5;i++){var row=new DeviceRow();deviceRows.add(row);addRenderableWidget(row.open);addRenderableWidget(row.queue);addRenderableWidget(row.cancel);}
         settingsPanel=new MachineSettingsPanel(menu,minecraft,font,w->addRenderableWidget(w),this::rebuildWidgets,leftPos+8,topPos+20,180);
         settingsPanel.initWidgets();
         researchPanel=new ResearchPanel(menu,minecraft,font,w->addRenderableWidget(w),leftPos+8,topPos+20,200,188);researchPanel.initWidgets();
@@ -150,7 +154,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     /** Native recipe viewers return this same screen; retain its exact focus, filters and scroll at the same size. */
     @Override protected void repositionElements(){if(layoutWidth!=width||layoutHeight!=height)super.repositionElements();}
     private DarkButton button(Component name,Component hint,int x,int y,int width,Button.OnPress action){return addRenderableWidget(DarkButton.labelIcon(UiIcon.START,name,hint,leftPos+x,topPos+y,width,18,action));}
-    private DarkButton tab(UiIcon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,ui(switch(view){case MAIN->"tab_machine_hint";case MACHINES->"tab_machines_hint";case MONITOR->"tab_monitor_hint";case RESEARCH->"tab_research_hint";case CONFIGURATION->"tab_settings_hint";}),leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
+    private DarkButton tab(UiIcon icon,Component name,int row,MachineMenu.View view){return addRenderableWidget(DarkButton.icon(icon,name,ui(switch(view){case MAIN->"tab_machine_hint";case MACHINES->"tab_machines_hint";case MONITOR->"tab_monitor_hint";case RESEARCH->"tab_research_hint";case UPGRADES->"tab_upgrades_hint";case CONFIGURATION->"tab_settings_hint";}),leftPos-22,topPos+18+row*24,24,22,b->setView(view)));}
     public void setView(MachineMenu.View view){
         if(observing&&view!=MachineMenu.View.MACHINES){send(MachineMenu.CLOSE_TERMINAL_DEVICES);observing=false;}
         if(observingMonitor&&view!=MachineMenu.View.MONITOR){send(MachineMenu.CLOSE_TERMINAL_MONITOR);observingMonitor=false;}
@@ -158,7 +162,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         if(view==MachineMenu.View.MONITOR&&!observingMonitor&&terminal()) {menu.resetTerminalMonitor();send(MachineMenu.OPEN_TERMINAL_MONITOR);observingMonitor=true;}
         menu.setView(view);search.setValue("");stockScroll.setOffset(0);deviceScroll.setOffset(0);refresh();
     }
-    public List<Rect2i> viewerExclusionAreas(){var result=new ArrayList<Rect2i>();for(var tab:List.of(machineTab,devicesTab,monitorTab,researchTab,settingsTab,labGoalTab))if(tab!=null&&tab.visible)result.add(new Rect2i(tab.getX(),tab.getY(),tab.getWidth(),tab.getHeight()));return result;}
+    public List<Rect2i> viewerExclusionAreas(){var result=new ArrayList<Rect2i>();for(var tab:List.of(machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,labGoalTab))if(tab!=null&&tab.visible)result.add(new Rect2i(tab.getX(),tab.getY(),tab.getWidth(),tab.getHeight()));return result;}
     @Override protected boolean hasClickedOutside(double mx,double my,int x,int y){for(var r:viewerExclusionAreas())if(mx>=r.getX()&&mx<r.getX()+r.getWidth()&&my>=r.getY()&&my<r.getY()+r.getHeight())return false;return super.hasClickedOutside(mx,my,x,y);}
     private static Component lines(List<Component> values){var text=Component.empty();for(var value:values){if(!text.getSiblings().isEmpty())text.append("\n");text.append(value);}return text;}
     private boolean validSelection(){var s=menu.snapshot();return s.selected()>=0&&!s.preview().id().isEmpty()&&s.selectedId().equals(s.preview().id())&&!s.status().equals("selection_unavailable");}
@@ -175,7 +179,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     }
     private void refresh(){
         if(search==null)return;var s=menu.snapshot();boolean ready=s.containerId()==menu.containerId;
-        for(var control:List.of(machineTab,devicesTab,monitorTab,researchTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,buildHint,back))control.setAccent(machineAccent(menu.kind()));
+        for(var control:List.of(machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,buildHint,back))control.setAccent(machineAccent(menu.kind()));
 
         var labGoal = PinnedLabGoal.current();
         labGoalTab.visible = ready && labGoal != null && (menu.kind() == MachineKind.DRIVE || menu.kind() == MachineKind.REACTOR);
@@ -193,12 +197,20 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         machineTab.setMessage(ui(terminal()?"tab_storage":passive()?"tab_contents":"tab_machine"));
         machineTab.setIcon(passive()?UiIcon.STOCK:UiIcon.MACHINE);
         machineTab.setTooltip(Tooltip.create(machineTab.getMessage().copy().append("\n").append(ui(terminal()?"tab_storage_hint":passive()?"tab_contents_hint":"tab_machine_hint"))));
-        machineTab.setSelected(main());devicesTab.setSelected(machines());monitorTab.setSelected(monitoring());settingsTab.setSelected(configuration());
+        machineTab.setSelected(main());devicesTab.setSelected(machines());monitorTab.setSelected(monitoring());upgradesTab.setSelected(upgrades());settingsTab.setSelected(configuration());
         machineTab.visible=!singleStructurePage;
         devicesTab.visible=!singleStructurePage&&terminal();
         monitorTab.visible=!singleStructurePage&&terminal();
         researchTab.visible=!singleStructurePage&&menu.kind()==MachineKind.ANALYZER;researchTab.setSelected(researching());
-        settingsTab.visible=!singleStructurePage&&!menu.wireless();settingsTab.setY(topPos+18+(terminal()?3:menu.kind()==MachineKind.ANALYZER?2:1)*24);
+        upgradesTab.visible=!singleStructurePage&&menu.supportsUpgrades();
+        if(upgradesTab.visible){
+            upgradesTab.setTooltip(Tooltip.create(lines(List.of(ui("tab_upgrades"),ui("tab_upgrades_hint"),upgradeSummaryLine()))));
+        }
+        settingsTab.visible=!singleStructurePage&&!menu.wireless();
+        int tabRow=0;
+        for(var tabButton:List.of(machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,labGoalTab)){
+            if(tabButton.visible)tabButton.setY(topPos+18+tabRow++*24);
+        }
         back.visible=ready&&menu.remote();
         boolean list=ready&&(storageList()||machines());search.visible=search.active=list;
         search.setWidth(machines()?154:82);search.setHint(tr("ui.search_short").copy().withStyle(style->style.withColor(MUTED&0xffffff)));search.setSuggestion(null);if(!list)search.setFocused(false);
@@ -230,6 +242,11 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         repeat.visible=selectable;repeat.active=valid;repeat.setMessage(ui("loop"));repeat.setIcon(s.repeat()?UiIcon.LOOP:UiIcon.LOOP_OFF);repeat.setTooltip(Tooltip.create(ui(s.repeat()?"repeat_on":"repeat_off").copy().append("\n").append(tr("continuous_hint"))));repeat.setSelected(s.repeat());
         pause.visible=selectable&&(s.repeat()||s.queuedBatches()>0);pause.active=pause.visible;
         pause.setMessage(tr(s.running()?"pause":"resume"));pause.setIcon(s.running()?UiIcon.PAUSE:UiIcon.RESUME);pause.setTooltip(Tooltip.create(pause.getMessage().copy().append("\n").append(tr("pause_hint"))));pause.setSelected(!s.running());
+        boolean cancelSelectable=selectable&&(s.repeat()||s.queuedBatches()>0||menu.progress().progress()>0);
+        boolean cancelDirect=process&&!selecting()&&!handPreparator()&&!converter()&&!menu.kind().generator()&&!s.networkJobs()
+                &&menu.progress().progress()>0&&!(menu.kind()==MachineKind.ANALYZER&&extraFlag("researchRunning"));
+        cancel.visible=cancel.active=cancelSelectable||cancelDirect;
+        cancel.setX(leftPos+(cancelSelectable?130:86));
         if(selectable&&valid){primary.setMessage(ui(s.queuedBatches()>0?"add_one":"make_one"));primary.setIcon(s.queuedBatches()>0?UiIcon.QUEUE_ADD:UiIcon.MAKE_ONE);primary.active=!s.repeat()&&s.queuedBatches()<64;primary.setTooltip(Tooltip.create(primary.getMessage().copy().append("\n").append(tr(s.queuedBatches()>0?"add_batch_hint":"start_once_hint"))));}
         if(menu.kind().generator()){primary.visible=main();primary.active=main();primary.setMessage(tr(s.running()?"pause":"start"));primary.setIcon(s.running()?UiIcon.PAUSE:UiIcon.START);}
         if(s.status().equals("requires_research")||s.status().equals("requires_field"))primary.active=repeat.active=false;
@@ -243,7 +260,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
             buildHint.setSelected(previewOn);
             buildHint.setMessage(tr("missing_parts_toggle",hintCount,tr(previewOn?"on":"off")));
             buildHint.setTooltip(Tooltip.create(lines(structureHintDetails(menu.structureHint(),previewOn))));
-            primary.visible=repeat.visible=pause.visible=false;
+            primary.visible=repeat.visible=pause.visible=cancel.visible=false;
         }
         for(var row:stockRows)row.visible=row.active=false;
         stockScroll.setVisibleRows(stockCount());
@@ -284,10 +301,25 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         if(monitoring())monitorPanel.drawBackground(g);
         if(search!=null&&search.visible)ScreenChrome.inset(g,leftPos+8,topPos+20,machines()?180:104,18);
         if(machines())for(var row:deviceRows)if(row.device!=null)ScreenChrome.inset(g,leftPos+8,row.y,174,28);
-        if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
+        if(main()&&!passive()&&!converter()){
             if(handPreparator())ScreenChrome.icon(g,UiIcon.CRANK,leftPos+6,topPos+40,MUTED);
-            else{ScreenChrome.inset(g,leftPos+8,topPos+20,12,58);int fill=(int)(54L*menu.progress().energy()/MachineBlockEntity.ENERGY_CAPACITY);g.fill(leftPos+10,topPos+76-fill,leftPos+18,topPos+76,menu.progress().energy()==0?WARNING:accent());}
-            arrow(g,leftPos+94,topPos+52);
+            else{
+                ScreenChrome.inset(g,leftPos+8,topPos+20,12,58);
+                int cap=Math.max(1,menu.progress().energyCapacity());
+                int fill=(int)Math.clamp(54L*menu.progress().energy()/cap,0,54);
+                g.fill(leftPos+10,topPos+76-fill,leftPos+18,topPos+76,menu.progress().energy()==0?WARNING:accent());
+            }
+            if(!menu.kind().generator())arrow(g,leftPos+94,topPos+52);
+        }
+        if(upgrades()){
+            ScreenChrome.inset(g,leftPos+8,topPos+22,200,22);
+            ScreenChrome.inset(g,leftPos+8,topPos+48,200,22);
+            if(hasThirdUpgradeSlot()){
+                ScreenChrome.inset(g,leftPos+8,topPos+74,200,22);
+                ScreenChrome.inset(g,leftPos+8,topPos+100,200,20);
+            }else{
+                ScreenChrome.inset(g,leftPos+8,topPos+74,200,46);
+            }
         }
         for(int i=0;i<menu.slots.size();i++){
             var slot=menu.slots.get(i);if(!slot.isActive())continue;
@@ -306,7 +338,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         return switch(slot) {
             case 0 -> menu.kind()==MachineKind.ANALYZER?UiIcon.SLOT_SAMPLE:menu.kind().generator()?UiIcon.SLOT_FUEL:converter()?UiIcon.SLOT_SHARD:UiIcon.SLOT_INPUT;
             case 1 -> UiIcon.SLOT_OUTPUT;
-            case 2 -> industrial()?UiIcon.SLOT_SPEED:UiIcon.SLOT_UPGRADE;
+            case 2 -> UiIcon.SLOT_SPEED;
             case 3 -> UiIcon.SLOT_MIX; case 4 -> UiIcon.SLOT_ADDITIVE;
             case 10 -> UiIcon.SLOT_EFFICIENCY; case 11 -> !industrial()&&menu.kind().synthesis()?UiIcon.SLOT_PRESSURE:UiIcon.SLOT_PARALLEL;
             case 12 -> UiIcon.SLOT_PRIMAL_CELL; case 13 -> UiIcon.SLOT_LENS;
@@ -342,13 +374,14 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         }
         if(researching())return;
         if(!terminal())g.text(font,tr("inventory"),18,123,MUTED,false);
+        if(upgrades()){drawUpgrades(g);return;}
         if(machines()){drawDevices(g);return;}
         if(!main())return;
         if(passive()){drawStorage(g);return;}
         if(converter())return;
         if(menu.kind().generator()){
             ScreenChrome.icon(g,UiIcon.ENERGY,22,62,accent());text(g,ui("generator_rate",extraNumber("generationRate")).getString(),38,66,150,accent());
-            text(g,Quantities.energy(Quantities.compact(menu.progress().energy())).getString(),38,78,150,TEXT);
+            text(g,Quantities.energy(Quantities.compact(menu.progress().energy())+" / "+Quantities.compact(menu.progress().energyCapacity())).getString(),38,78,150,TEXT);
             ScreenChrome.icon(g,UiIcon.FUEL,22,86,MUTED);text(g,ui("generator_remaining",extraNumber("fuelRemaining")).getString(),38,90,150,MUTED);return;
         }
         var s=menu.snapshot();var p=s.preview();
@@ -370,6 +403,50 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         if(s.queuedBatches()>0)status+=" · "+s.queuedBatches()+" "+ui("queued").getString();else if(s.repeat())status+=" · "+ui("repeating").getString();
         int color=working(s.status())?accent():List.of("ready","idle","analyzed","analysis_complete","awaiting_request","paused").contains(s.status())?MUTED:WARNING;
         ScreenChrome.icon(g,StatusText.icon(s.status(),menu.kind()),22,88,-1);text(g,status,38,92,150,color);
+    }
+    private boolean hasThirdUpgradeSlot(){return menu.slots.get(MachineCellAccess.PARALLEL_SLOT).isActive();}
+    private void drawUpgrades(GuiGraphicsExtractor g){
+        int spd=installedUpgrades(MachineCellAccess.SPEED_SLOT,ModContent.SPEED_UPGRADE.get());
+        int eff=installedUpgrades(MachineCellAccess.EFFICIENCY_SLOT,ModContent.EFFICIENCY_UPGRADE.get());
+        int spdMult=MachineEnergyPolicy.speedMultiplier(spd);
+        int surchargePct=Math.max(0,MachineEnergyPolicy.costPercent(spd,0)-100);
+        int costPct=MachineEnergyPolicy.costPercent(spd,eff);
+        int bufMult=MachineEnergyPolicy.bufferMultiplier(eff);
+        int cap=Math.max(1,menu.progress().energyCapacity());
+        String capStr=Quantities.compact(cap);
+
+        // Row 1: Speed Upgrade
+        text(g,ui("speed").getString()+" ("+spd+"/"+MachineEnergyPolicy.MAX_UPGRADES+")",35,24,168,TEXT);
+        text(g,ui("upgrade_speed_row",spdMult,surchargePct).getString(),35,34,168,spd>0?accent():MUTED);
+
+        // Row 2: Efficiency Upgrade
+        text(g,ui("efficiency").getString()+" ("+eff+"/"+MachineEnergyPolicy.MAX_UPGRADES+")",35,50,168,TEXT);
+        text(g,ui("upgrade_efficiency_row",costPct,capStr+" FE",bufMult).getString(),35,60,168,eff>0?accent():MUTED);
+
+        boolean third=hasThirdUpgradeSlot();
+        if(third){
+            if(industrial()){
+                int par=installedUpgrades(MachineCellAccess.PARALLEL_SLOT,ModContent.PARALLEL_UPGRADE.get());
+                text(g,ui("parallel").getString()+" ("+par+"/3)",35,76,168,TEXT);
+                text(g,ui("upgrade_parallel_row",par).getString(),35,86,168,par>0?accent():MUTED);
+            }else{
+                int press=menu.slots.get(MachineCellAccess.PARALLEL_SLOT).getItem().is(ModContent.PRESSURE_MODULE.get())?1:0;
+                text(g,Component.translatable("item.rematter.pressure_module").getString()+" ("+press+"/1)",35,76,168,TEXT);
+                text(g,ui(press>0?"upgrade_pressure_active":"upgrade_pressure_inactive").getString(),35,86,168,press>0?accent():MUTED);
+            }
+        }
+
+        int sumY=third?100:74;
+        ScreenChrome.icon(g,UiIcon.ENERGY,11,sumY+2,accent());
+        text(g,ui("upgrade_totals_line",spdMult,costPct,capStr).getString(),28,sumY+6,176,TEXT);
+        if(!third){
+            g.fill(12,sumY+19,204,sumY+20,BORDER);
+            int line=0;
+            for(var part:font.split(ui("upgrade_synergy_note"),190)){
+                if(line>=2)break;
+                g.text(font,part,12,sumY+23+line++*10,MUTED,false);
+            }
+        }
     }
     private void chips(GuiGraphicsExtractor g,List<MachineSnapshot.Amount> values,int x,int y){
         for(int i=0;i<Math.min(6,values.size());i++){var a=values.get(i);int xx=x+i%3*18,yy=y+i/3*18;ScreenChrome.inset(g,xx,yy,18,18);substanceIcon(g,key(a.id(),a.phase()),xx+1,yy+1);if(a.available()<a.required())g.fill(xx,yy,xx+18,yy+1,WARNING);}
@@ -503,16 +580,38 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         }
         if(search!=null&&search.visible)ScreenChrome.icon(g,UiIcon.SEARCH,leftPos+9,topPos+21,MUTED);
         if(storageList())stockBar.extractRenderState(g);else if(machines())deviceBar.extractRenderState(g);
-        if(main()&&!passive()&&!converter()&&!menu.kind().generator()){
-            if(inside(x,y,8,20,12,58)){var lines=new ArrayList<Component>();lines.add(energyLine());addRouteDetails(lines,menu.snapshot());tooltip(g,lines,mx,my);}
-            if(inside(x,y,94,52,24,16))tooltip(g,recipeDetails(menu.snapshot()),mx,my);
-            if(inside(x,y,24,90,164,11)){var lines=new ArrayList<Component>();lines.add(statusText());lines.addAll(industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()));tooltip(g,lines,mx,my);}
-            if(inside(x,y,170,42,18,34)&&!outputIcon(menu.snapshot().preview()).isEmpty())tooltip(g,List.of(tr("result_preview_detail",menu.snapshot().preview().outputCount(),outputIcon(menu.snapshot().preview()).getHoverName()),tr("result_preview_hint")),mx,my);
-            tooltipChips(g,menu.snapshot().preview().inputs(),24,42,x,y,mx,my);
-            if(!menu.slots.get(1).isActive())tooltipChips(g,menu.snapshot().preview().outputs(),134,42,x,y,mx,my);
+        if(main()&&!passive()&&!converter()){
+            if(!handPreparator()&&inside(x,y,8,20,12,58)){
+                var lines=new ArrayList<Component>();
+                lines.add(energyLine());
+                if(menu.supportsUpgrades())lines.add(upgradeSummaryLine());
+                addRouteDetails(lines,menu.snapshot());
+                tooltip(g,lines,mx,my);
+            }
+            if(!menu.kind().generator()){
+                if(inside(x,y,94,52,24,16))tooltip(g,recipeDetails(menu.snapshot()),mx,my);
+                if(inside(x,y,24,90,164,11)){var lines=new ArrayList<Component>();lines.add(statusText());lines.addAll(industrial()?structureDetails(menu.snapshot()):storageDetails(menu.snapshot()));tooltip(g,lines,mx,my);}
+                if(inside(x,y,170,42,18,34)&&!outputIcon(menu.snapshot().preview()).isEmpty())tooltip(g,List.of(tr("result_preview_detail",menu.snapshot().preview().outputCount(),outputIcon(menu.snapshot().preview()).getHoverName()),tr("result_preview_hint")),mx,my);
+                tooltipChips(g,menu.snapshot().preview().inputs(),24,42,x,y,mx,my);
+                if(!menu.slots.get(1).isActive())tooltipChips(g,menu.snapshot().preview().outputs(),134,42,x,y,mx,my);
+            }
         }
-        if(main())for(int i=0;i<MachineMenu.FIRST_PLAYER_SLOT;i++){var slot=menu.slots.get(i);if(!slot.isActive()||slot.hasItem()||!inside(x,y,slot.x,slot.y,16,16))continue;
-            List<Component> lines=i==11&&!industrial()&&menu.kind().synthesis()?List.of(Component.translatable("item.rematter.pressure_module"),tr("pressure_upgrade_hint")):i>=10?List.of(ui(i==10?"efficiency":i==11?"parallel":i==12?"primal_cell":"discovery_lens")):i==2?upgradeDetails():List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":menu.kind().generator()?"fuel_slot":converter()?"primal_source_slot":"input"));tooltip(g,lines,mx,my);}
+        if(upgrades()){
+            boolean third=hasThirdUpgradeSlot();
+            if(inside(x,y,33,22,175,22))tooltip(g,speedSlotDetails(),mx,my);
+            else if(inside(x,y,33,48,175,22))tooltip(g,efficiencySlotDetails(),mx,my);
+            else if(third&&inside(x,y,33,74,175,22))tooltip(g,industrial()
+                    ?List.of(ui("parallel"),tr("parallel_upgrade_hint"),tr("upgrade_install_hint"))
+                    :List.of(Component.translatable("item.rematter.pressure_module"),tr("pressure_upgrade_hint"),tr("upgrade_install_hint")),mx,my);
+            else if(inside(x,y,8,third?100:74,200,third?20:46))tooltip(g,List.of(upgradeSummaryLine(),ui("upgrade_synergy_note"),tr("upgrade_install_hint")),mx,my);
+        }
+        if(main()||upgrades())for(int i=0;i<MachineMenu.FIRST_PLAYER_SLOT;i++){var slot=menu.slots.get(i);if(!slot.isActive()||slot.hasItem()||!inside(x,y,slot.x,slot.y,16,16))continue;
+            List<Component> lines=i==2?speedSlotDetails():i==10?efficiencySlotDetails()
+                    :i==11&&!industrial()&&menu.kind().synthesis()?List.of(Component.translatable("item.rematter.pressure_module"),tr("pressure_upgrade_hint"))
+                    :i==11?List.of(ui("parallel"),tr("parallel_upgrade_hint"))
+                    :i>=12?List.of(ui(i==12?"primal_cell":"discovery_lens"))
+                    :List.of(tr(i==1?"output":i==3?"mix_slot":i==4?"additive_slot":disk()?"disk_slot":menu.kind()==MachineKind.ANALYZER?"sample":menu.kind().generator()?"fuel_slot":converter()?"primal_source_slot":"input"));
+            tooltip(g,lines,mx,my);}
         if(main()&&disk()&&inside(x,y,8,103,68,15))tooltip(g,storageDetails(menu.snapshot()),mx,my);
     }
     private boolean extraFlag(String key){return menu.extras().has(key)&&menu.extras().get(key).getAsBoolean();}
@@ -531,7 +630,15 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     private static Optional<SubstanceDetails.Hover> chipAt(List<MachineSnapshot.Amount> values,int left,int top,double x,double y){for(int i=0;i<Math.min(6,values.size());i++)if(inside(x,y,left+i%3*18,top+i/3*18,18,18)){var a=values.get(i);var key=key(a.id(),a.phase());if(key!=null)return Optional.of(new SubstanceDetails.Hover(key,a.required()));}return Optional.empty();}
     @Override public Rect2i substancePanelBounds(){return new Rect2i(leftPos,topPos,imageWidth,imageHeight);}
     @Override public int substanceAccent(){return accent();}
-    private List<Component> upgradeDetails(){var lines=new ArrayList<Component>();lines.add(industrial()?ui("speed"):tr("upgrade_hint"));lines.add(tr("upgrade_limit"));lines.add(tr("speed_upgrade_hint"));lines.add(tr("efficiency_upgrade_hint"));if(industrial())lines.add(tr("parallel_upgrade_hint"));return lines;}
+    private List<Component> speedSlotDetails(){return List.of(ui("speed"),tr("speed_upgrade_hint"),tr("upgrade_install_hint"));}
+    private List<Component> efficiencySlotDetails(){return List.of(ui("efficiency"),tr("efficiency_upgrade_hint"),tr("upgrade_install_hint"));}
+    private int installedUpgrades(int slot,net.minecraft.world.item.Item item){var stack=menu.slots.get(slot).getItem();return stack.is(item)?Math.clamp(stack.getCount(),0,MachineEnergyPolicy.MAX_UPGRADES):0;}
+    private Component upgradeSummaryLine(){
+        int spd=installedUpgrades(MachineCellAccess.SPEED_SLOT,ModContent.SPEED_UPGRADE.get());
+        int eff=installedUpgrades(MachineCellAccess.EFFICIENCY_SLOT,ModContent.EFFICIENCY_UPGRADE.get());
+        return tr("upgrade_summary",spd,MachineEnergyPolicy.MAX_UPGRADES,MachineEnergyPolicy.speedMultiplier(spd),
+                eff,MachineEnergyPolicy.MAX_UPGRADES,MachineEnergyPolicy.costPercent(spd,eff),MachineEnergyPolicy.bufferMultiplier(eff));
+    }
     private Component statusText(){var s=menu.snapshot();return s.status().equals("structure")&&industrial()?Component.translatable("status.rematter."+s.structure().diagnostic()):StatusText.of(s.status(),s.orders().stale(),s.orders().quarantined());}
     private static Component name(MachineSnapshot.Entry e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
     private static Component name(MachineSnapshot.Amount e){return SubstanceNames.substance(e.id(),e.phase(),e.known());}
@@ -579,6 +686,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         if(!v.formed()){lines.add(Component.translatable("status.rematter."+v.diagnostic()));lines.add(Component.translatable("screen.rematter.help_"+v.diagnostic()));lines.add(tr(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR?"preparation_stack":"reactor_stack"));}
         else {
             lines.add(Component.translatable("screen.rematter.structure_speed",v.workRate()));
+            lines.add(energyLine());
+            lines.add(upgradeSummaryLine());
             if(menu.kind()==MachineKind.INDUSTRIAL_PREPARATOR)lines.add(tr("structure_precision",v.separation()));
             else {lines.add(tr("structure_field",v.coils()));lines.add(tr("structure_room",number(16_000L*v.chambers())));}
             addRouteDetails(lines,s);
@@ -627,7 +736,8 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         if(menu.kind()==MachineKind.NETWORK_INTERFACE)lines.add(statusText());
         if(disk()&&extraNumber("primalCapacity")>0)lines.add(ui("primal_reserve",number(extraNumber("primal")),number(extraNumber("primalCapacity"))));
         lines.add(tr("source_"+s.storageSource()));lines.add(capacity(number(s.used()),number(s.capacity())));
-        if(menu.kind().processes())lines.add(energyLine());
+        if(menu.kind().processes()||menu.kind().generator())lines.add(energyLine());
+        if(menu.supportsUpgrades())lines.add(upgradeSummaryLine());
         if(disk()) {
             lines.add(Component.translatable("screen.rematter.drive_cells",s.cells().stream().filter(MachineSnapshot.CellView::installed).count()));
             if(s.cells().stream().anyMatch(c->c.installed()&&!c.readable()))lines.add(tr("drive_blocked"));
@@ -669,7 +779,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     private static String matter(long v){return Quantities.matter(Quantities.compact(v)).getString();}
     private static Component capacity(String used,String capacity){return Component.translatable("screen.rematter.capacity",used,capacity);}
     private static MutableComponent joined(Component first,Component second){return Component.translatable("screen.rematter.joined",first,second);}
-    private Component energyLine(){return Component.translatable("screen.rematter.energy_buffer",number(menu.progress().energy()),number(MachineBlockEntity.ENERGY_CAPACITY));}
+    private Component energyLine(){return Component.translatable("screen.rematter.energy_buffer",number(menu.progress().energy()),number(menu.progress().energyCapacity()));}
 
     private final class StockRow extends Button {
         private MachineSnapshot.Entry entry;
@@ -694,8 +804,18 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         private TerminalDevicesPayload.Device device;
         private final DarkButton open=DarkButton.icon(UiIcon.OPEN,ui("open"),tr("terminal.return_hint"),leftPos+161,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.OPEN));
         private final DarkButton queue=DarkButton.icon(UiIcon.QUEUE_ADD,ui("queue_one"),tr("add_batch_hint"),leftPos+141,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.QUEUE_BATCH));
+        private final DarkButton cancel=DarkButton.icon(UiIcon.CANCEL,tr("cancel_job"),tr("cancel_job_hint"),leftPos+121,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.CANCEL_JOB));
         private int y;
-        void show(TerminalDevicesPayload.Device value,int y){device=value;this.y=y;open.visible=open.active=value!=null;queue.visible=value!=null;queue.active=value!=null&&value.canQueue();open.setY(y+3);queue.setY(y+3);if(value!=null)open.setTooltip(Tooltip.create(Component.translatable("block.rematter."+value.kind().id()).copy().append("\n").append(Component.literal(value.position().toShortString())).append("\n").append(ui("open_hint"))));}
-        void draw(GuiGraphicsExtractor g){if(device==null)return;int yy=y-topPos;String title=Component.translatable("block.rematter."+device.kind().id()).getString();ScreenChrome.icon(g,StatusText.icon(device.status(),device.kind()),9,yy+6,-1);text(g,title,27,yy+3,110,TEXT);String status=StatusText.of(device.status(),0,0).getString();if(device.queuedBatches()>0)status+=" · "+device.queuedBatches()+" "+ui("queued").getString();text(g,status,27,yy+15,110,working(device.status())?machineAccent(device.kind()):MUTED);if(device.duration()>0)g.fill(11,yy+25,11+(int)(126L*device.progress()/device.duration()),yy+26,machineAccent(device.kind()));}
+        DeviceRow(){cancel.setAccent(WARNING);}
+        void show(TerminalDevicesPayload.Device value,int y){
+            device=value;this.y=y;
+            open.visible=open.active=value!=null;
+            queue.visible=value!=null;queue.active=value!=null&&value.canQueue();
+            boolean cancellable=value!=null&&(value.queuedBatches()>0||value.progress()>0||value.workingBatches()>0);
+            cancel.visible=cancel.active=cancellable;
+            open.setY(y+3);queue.setY(y+3);cancel.setY(y+3);
+            if(value!=null)open.setTooltip(Tooltip.create(Component.translatable("block.rematter."+value.kind().id()).copy().append("\n").append(Component.literal(value.position().toShortString())).append("\n").append(ui("open_hint"))));
+        }
+        void draw(GuiGraphicsExtractor g){if(device==null)return;int yy=y-topPos;int textW=cancel.visible?92:110;String title=Component.translatable("block.rematter."+device.kind().id()).getString();ScreenChrome.icon(g,StatusText.icon(device.status(),device.kind()),9,yy+6,-1);text(g,title,27,yy+3,textW,TEXT);String status=StatusText.of(device.status(),0,0).getString();if(device.queuedBatches()>0)status+=" · "+device.queuedBatches()+" "+ui("queued").getString();text(g,status,27,yy+15,textW,working(device.status())?machineAccent(device.kind()):MUTED);if(device.duration()>0)g.fill(11,yy+25,11+(int)(126L*device.progress()/device.duration()),yy+26,machineAccent(device.kind()));}
     }
 }

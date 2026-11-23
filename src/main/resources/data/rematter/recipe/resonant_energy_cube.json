@@ -1,17 +1,17 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "rematter:energy_upgrade_shaped",
   "category": "misc",
   "pattern": [
-    "NEN",
-    "DFD",
-    "KGK"
+    "KCK",
+    "NBN",
+    "DGD"
   ],
   "key": {
+    "K": "rematter:energy_core",
+    "C": "rematter:resonant_matter_cable",
     "N": "rematter:netherite_sheath",
-    "E": "rematter:ember_matrix_crystal",
+    "B": "rematter:reinforced_energy_cube",
     "D": "rematter:diamond_lattice",
-    "F": "rematter:machine_frame",
-    "K": "rematter:resonant_matter_cable",
     "G": "rematter:matrix_cluster"
   },
   "result": {

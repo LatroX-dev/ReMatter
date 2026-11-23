@@ -13,12 +13,12 @@ import net.minecraft.util.LightCoordsUtil;
  */
 final class DriveBays {
     /** Block sprites in the order of the indices below. */
-    static final String[] SPRITES = {"drive_cell_64k", "drive_cell_256k", "drive_cell_1m", "drive_cell_unknown",
+    static final String[] SPRITES = {"drive_cell_4m", "drive_cell_16m", "drive_cell_64m", "drive_cell_unknown",
             "led_blue", "led_green", "led_amber", "led_red",
             "drive_primal_cell_16k", "drive_primal_cell_64k", "drive_primal_cell_256k",
-            "drive_cell_4m", "drive_primal_cell_1m", "drive_void_matter_cell"};
+            "drive_cell_256m", "drive_primal_cell_1m", "drive_void_matter_cell"};
     private static final int UNKNOWN_CELL = 3, LED_BLUE = 4, LED_GREEN = 5, LED_AMBER = 6, LED_RED = 7;
-    private static final int CELL_4M = 11, PRIMAL_CELL_1M = 12, VOID_CELL = 13;
+    private static final int CELL_256M = 11, PRIMAL_CELL_1M = 12, VOID_CELL = 13;
     static final float BAY_WIDTH = 6, BAY_HEIGHT = 3, FACE_Z = .5F;
     static final float LED_X = 4.5F, LED_Y = 1, LED_SIZE = 1, LED_DEPTH = .5F;
     /** The status sprites are one flat colour; the centre texels stay clear of the neighbouring atlas entries. */
@@ -37,7 +37,7 @@ final class DriveBays {
         return switch (tier) {
             case 1, 2, 3 -> tier - 1;
             case 5, 6, 7 -> tier + 3;
-            case 8 -> CELL_4M;
+            case 8 -> CELL_256M;
             case 9 -> PRIMAL_CELL_1M;
             case 10 -> VOID_CELL;
             default -> UNKNOWN_CELL;

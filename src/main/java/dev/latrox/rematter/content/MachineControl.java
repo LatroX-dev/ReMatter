@@ -57,6 +57,11 @@ final class MachineControl {
         machine.setChanged();
         return true;
     }
+    void cancel() {
+        runState = MachineRunState.manual();
+        machine.resetProgress();
+        machine.setChanged();
+    }
     void select(int offset) {
         var options = choices();
         if (options.isEmpty()) return;

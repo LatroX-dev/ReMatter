@@ -223,7 +223,7 @@ public final class TerminalRequestScreen extends SubstanceScreenLayer {
         jobRows.clear();
         for (int i = 0; i < jobScroll.visibleRows(); i++) {
             JobRow row = new JobRow();
-            row.cancel = addRenderableWidget(DarkButton.icon(UiIcon.EJECT, tr("cancel_job"), tr("cancel_job_hint"),
+            row.cancel = addRenderableWidget(DarkButton.icon(UiIcon.CANCEL, tr("cancel_job"), tr("cancel_job_hint"),
                     rightColX + rightColWidth - 27, jobsTop + ROW_H * i, 18, 18,
                     b -> { if (row.job != null) cancelJob(row.job.jobId()); }));
             row.cancel.setAccent(UiPalette.WARNING);

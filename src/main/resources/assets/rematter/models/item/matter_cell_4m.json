@@ -1,9 +1,9 @@
 {
   "gui_light": "side",
   "textures": {
-    "particle": "rematter:block/cell_cartridge_mint",
+    "particle": "rematter:block/cell_cartridge",
     "face": "rematter:block/drive_cell_4m",
-    "body": "rematter:block/cell_cartridge_mint",
+    "body": "rematter:block/cell_cartridge",
     "light": "rematter:block/status_off"
   },
   "elements": [
@@ -33,45 +33,45 @@
           "texture": "#body",
           "uv": [
             0,
-            7.5,
+            12,
             6,
-            10.5
+            15
           ]
         },
         "east": {
           "texture": "#body",
           "uv": [
-            4.5,
             10.5,
-            5.5,
-            13.5
+            4.5,
+            11.5,
+            7.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            4.5,
             10.5,
-            5.5,
-            13.5
+            4.5,
+            11.5,
+            7.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
+            0,
+            15,
             6,
-            4.5,
-            12,
-            5.5
+            16
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
+            0,
+            15,
             6,
-            4.5,
-            12,
-            5.5
+            16
           ]
         }
       }
@@ -92,37 +92,37 @@
         "east": {
           "texture": "#body",
           "uv": [
-            4,
-            13.5,
-            5.5,
-            15
+            11.5,
+            6,
+            13,
+            7.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            4,
-            13.5,
-            5.5,
-            15
+            11.5,
+            6,
+            13,
+            7.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
-            0,
-            13.5,
-            4,
-            15
+            11.5,
+            4.5,
+            15.5,
+            6
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
-            0,
-            13.5,
-            4,
-            15
+            11.5,
+            4.5,
+            15.5,
+            6
           ]
         }
       }
@@ -144,45 +144,45 @@
           "texture": "#body",
           "uv": [
             0,
-            4.5,
+            9,
             6,
-            7.5
+            12
           ]
         },
         "south": {
           "texture": "#body",
           "uv": [
             0,
-            4.5,
+            9,
             6,
-            7.5
+            12
           ]
         },
         "east": {
           "texture": "#body",
           "uv": [
-            0,
-            10.5,
+            6,
             4.5,
-            13.5
+            10.5,
+            7.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            0,
-            10.5,
+            6,
             4.5,
-            13.5
+            10.5,
+            7.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
-            6,
             0,
-            12,
-            4.5
+            4.5,
+            6,
+            9
           ]
         },
         "down": {
@@ -213,45 +213,45 @@
           "texture": "#body",
           "uv": [
             12,
-            4.5,
+            0,
             16,
-            5.5
+            1
           ]
         },
         "east": {
           "texture": "#body",
           "uv": [
-            5.5,
-            13.5,
-            6,
-            14.5
+            15.5,
+            4.5,
+            16,
+            5.5
           ]
         },
         "west": {
           "texture": "#body",
           "uv": [
-            5.5,
-            13.5,
-            6,
-            14.5
+            15.5,
+            4.5,
+            16,
+            5.5
           ]
         },
         "up": {
           "texture": "#body",
           "uv": [
-            0,
-            15,
-            4,
-            15.5
+            12,
+            1,
+            16,
+            1.5
           ]
         },
         "down": {
           "texture": "#body",
           "uv": [
-            0,
-            15,
-            4,
-            15.5
+            12,
+            1,
+            16,
+            1.5
           ]
         }
       }

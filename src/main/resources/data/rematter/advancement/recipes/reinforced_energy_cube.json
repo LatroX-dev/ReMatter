@@ -7,7 +7,7 @@
         "items": [
           {
             "items": [
-              "rematter:ember_matrix_crystal"
+              "rematter:ender_conductor"
             ],
             "count": {
               "min": 1
@@ -15,10 +15,18 @@
           },
           {
             "items": [
-              "rematter:ender_conductor"
+              "rematter:energy_core"
             ],
             "count": {
               "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_cube"
+            ],
+            "count": {
+              "min": 1
             }
           },
           {
@@ -27,14 +35,6 @@
             ],
             "count": {
               "min": 2
-            }
-          },
-          {
-            "items": [
-              "rematter:machine_frame"
-            ],
-            "count": {
-              "min": 1
             }
           },
           {

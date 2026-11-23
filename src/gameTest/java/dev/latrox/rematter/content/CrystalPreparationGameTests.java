@@ -188,7 +188,7 @@ public final class CrystalPreparationGameTests {
         for (int i = 0; i < recipe.ticks() - 8; i++) nextTick(h, machine);
         h.assertTrue(ItemStack.matches(item("amber_matrix_crystal", 1), machine.getItem(1)), "Resumed batch did not produce crystal");
         h.assertTrue(machine.energy().getAmountAsLong() == 0 && machine.work().energyPaid == 0, "Total resumed FE debit was not exact");
-        // Start second batch, run 10 ticks, verify mid-batch save preserves in-flight FE without loss or duplication.
+        // Start second batch, run 10 ticks, verify stationary save preserves paid progress while portable drop refunds FE.
         machine.energy().set(1000);
         for (int i = 0; i < 10; i++) nextTick(h, machine);
         h.assertTrue(machine.work().progress == 10 && machine.work().energyPaid > 0, "Second batch did not draw tick FE");
@@ -197,8 +197,15 @@ public final class CrystalPreparationGameTests {
         var reloaded = new MachineBlockEntity(machine.getBlockPos(), machine.getBlockState());
         reloaded.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
                 net.minecraft.util.ProblemReporter.DISCARDING, registries, saved));
-        h.assertTrue(reloaded.energy().getAmountAsLong() == 1000 && reloaded.work().energyPaid == 0,
-                "Mid-batch save/reload lost or duplicated FE: " + reloaded.energy().getAmountAsLong());
+        h.assertTrue(reloaded.work().progress == 10 && reloaded.work().energyPaid == machine.work().energyPaid
+                        && reloaded.energy().getAmountAsLong() + reloaded.work().energyPaid == 1000,
+                "Stationary mid-batch save/reload lost progress or FE: progress=" + reloaded.work().progress
+                        + " energy=" + reloaded.energy().getAmountAsLong() + " paid=" + reloaded.work().energyPaid);
+        var drops = net.minecraft.world.level.block.Block.getDrops(machine.getBlockState(), h.getLevel(), machine.getBlockPos(), machine);
+        var portable = new MachineBlockEntity(machine.getBlockPos(), machine.getBlockState());
+        drops.getFirst().get(net.minecraft.core.component.DataComponents.BLOCK_ENTITY_DATA).loadInto(portable, registries);
+        h.assertTrue(portable.energy().getAmountAsLong() == 1000 && portable.work().progress == 0 && portable.work().energyPaid == 0,
+                "Portable drop did not strip active work and refund uncommitted FE: energy=" + portable.energy().getAmountAsLong());
         // Live machine was not mutated by saving; now remove primary input — spent in-flight FE must be refunded cleanly.
         h.assertTrue(machine.work().energyPaid > 0 && machine.energy().getAmountAsLong() + machine.work().energyPaid == 1000,
                 "Saving mutated live machine energy");
@@ -214,7 +221,7 @@ public final class CrystalPreparationGameTests {
         h.setBlock(drivePos, ModContent.MACHINES.get(MachineKind.DRIVE).get());
         var drive = h.getBlockEntity(drivePos, MachineBlockEntity.class);
         drive.placedBy(owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var diamondKey = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:diamond", dev.latrox.rematter.chemistry.Phase.SOLID);
         h.assertTrue(drive.matterStore().apply(Map.of(), Map.of(diamondKey, 1_000L)), "Diamond fixture rejected");
         dev.latrox.rematter.research.ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(), h.getLevel().dimension().identifier().toString());

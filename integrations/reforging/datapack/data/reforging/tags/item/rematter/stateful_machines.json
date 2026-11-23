@@ -34,15 +34,15 @@
       "required": false
     },
     {
-      "id": "rematter:matter_cell_64k",
+      "id": "rematter:matter_cell_4m",
       "required": false
     },
     {
-      "id": "rematter:matter_cell_256k",
+      "id": "rematter:matter_cell_16m",
       "required": false
     },
     {
-      "id": "rematter:matter_cell_1m",
+      "id": "rematter:matter_cell_64m",
       "required": false
     },
     {
@@ -110,7 +110,7 @@
       "required": false
     },
     {
-      "id": "rematter:matter_cell_4m",
+      "id": "rematter:matter_cell_256m",
       "required": false
     },
     {

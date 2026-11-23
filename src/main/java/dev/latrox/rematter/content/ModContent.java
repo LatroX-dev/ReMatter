@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
@@ -123,10 +124,10 @@ public final class ModContent {
     private static final List<DeferredItem<Item>> COLORED_MATRIX_CRYSTALS =
             List.of("ice", "copper", "leaf", "blue", "violet", "amber", "ember", "mint").stream()
                     .map(family -> ITEMS.registerSimpleItem(family + "_matrix_crystal")).toList();
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_64K = ITEMS.registerItem("matter_cell_64k", p -> new MatterCellItem(p, MatterLimits.CELL_64K));
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_256K = ITEMS.registerItem("matter_cell_256k", p -> new MatterCellItem(p, MatterLimits.CELL_256K));
-    public static final DeferredItem<MatterCellItem> MATTER_CELL_1M = ITEMS.registerItem("matter_cell_1m", p -> new MatterCellItem(p, MatterLimits.CELL_1M));
     public static final DeferredItem<MatterCellItem> MATTER_CELL_4M = ITEMS.registerItem("matter_cell_4m", p -> new MatterCellItem(p, MatterLimits.CELL_4M));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_16M = ITEMS.registerItem("matter_cell_16m", p -> new MatterCellItem(p, MatterLimits.CELL_16M));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_64M = ITEMS.registerItem("matter_cell_64m", p -> new MatterCellItem(p, MatterLimits.CELL_64M));
+    public static final DeferredItem<MatterCellItem> MATTER_CELL_256M = ITEMS.registerItem("matter_cell_256m", p -> new MatterCellItem(p, MatterLimits.CELL_256M));
     public static final DeferredItem<VoidMatterCellItem> VOID_MATTER_CELL = ITEMS.registerItem("void_matter_cell", VoidMatterCellItem::new);
     public static final DeferredItem<PressurizedCanisterItem> PRESSURIZED_CANISTER = ITEMS.registerItem("pressurized_canister", PressurizedCanisterItem::new);
     public static final DeferredItem<Item> AUTOMATION_PATTERN = ITEMS.registerSimpleItem("automation_pattern", p -> p.stacksTo(1));
@@ -141,6 +142,7 @@ public final class ModContent {
     public static final DeferredItem<BlockItem> MATTER_LEVEL_EMITTER_ITEM = ITEMS.registerSimpleBlockItem(MATTER_LEVEL_EMITTER);
     public static final DeferredItem<Item> WIRELESS_BOOSTER = ITEMS.registerSimpleItem("wireless_booster", p -> p.stacksTo(16));
     public static final DeferredItem<WirelessMatterTerminalItem> WIRELESS_MATTER_TERMINAL = ITEMS.registerItem("wireless_matter_terminal", WirelessMatterTerminalItem::new);
+    public static final DeferredItem<Item> ENERGY_CORE = ITEMS.registerSimpleItem("energy_core");
     public static final DeferredItem<PortableEnergyCellItem> PORTABLE_ENERGY_CELL = ITEMS.registerItem("portable_energy_cell", PortableEnergyCellItem::new);
     public static final DeferredItem<Item> CELL_RACK = ITEMS.registerSimpleItem("cell_rack");
     public static final DeferredItem<MatterRecoveryItem> RECOVERED_MATTER = ITEMS.registerItem("recovered_matter", MatterRecoveryItem::new);
@@ -186,6 +188,7 @@ public final class ModContent {
                         output.accept(WIRELESS_BOOSTER.get());
                         output.accept(WIRELESS_MATTER_TERMINAL.get());
                         output.accept(WirelessMatterTerminalItem.createCharged());
+                        output.accept(ENERGY_CORE.get());
                         output.accept(PORTABLE_ENERGY_CELL.get());
                         output.accept(PortableEnergyCellItem.createCharged());
                         output.accept(CELL_RACK.get());
@@ -227,10 +230,10 @@ public final class ModContent {
                         output.accept(DIAMOND_LATTICE.get());
                         output.accept(ENDER_CONDUCTOR.get());
                         output.accept(NETHERITE_SHEATH.get());
-                        output.accept(MATTER_CELL_64K.get());
-                        output.accept(MATTER_CELL_256K.get());
-                        output.accept(MATTER_CELL_1M.get());
                         output.accept(MATTER_CELL_4M.get());
+                        output.accept(MATTER_CELL_16M.get());
+                        output.accept(MATTER_CELL_64M.get());
+                        output.accept(MATTER_CELL_256M.get());
                         output.accept(VOID_MATTER_CELL.get());
                         output.accept(PRESSURIZED_CANISTER.get());
                         dev.latrox.rematter.primal.PrimalContent.creativeItems().forEach(output::accept);
@@ -239,6 +242,13 @@ public final class ModContent {
 
     private ModContent() {}
     public static void register(IEventBus bus) {
+        // Migrate legacy pre-0.9 Matter Cell IDs cleanly while preserving all stored MatterCellData.
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_64k"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_4m"));
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_256k"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_16m"));
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_1m"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_64m"));
         BLOCKS.register(bus);
         ITEMS.register(bus);
         BLOCK_ENTITIES.register(bus);
@@ -253,6 +263,7 @@ public final class ModContent {
         ConfigurationCardData.register(bus);
         WirelessTerminalData.register(bus);
         PortableEnergyCellData.register(bus);
+        EnergyUpgradeRecipe.register(bus);
         dev.latrox.rematter.content.preparation.PreparationRecipes.register(bus);
         bus.addListener(ModContent::registerCapabilities);
         bus.addListener(MachineSnapshot::register);

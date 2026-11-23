@@ -157,7 +157,7 @@ public final class PortSideGameTests {
         var bench = place(h, benchPos, MachineKind.DECOMPOSER, Direction.NORTH, owner); bench.toggleAutomation();
         var generator = place(h, generatorPos, MachineKind.CRYSTAL_GENERATOR, Direction.NORTH, owner); generator.toggleAutomation();
         // A full buffer keeps the generator from burning what a hopper might deliver.
-        generator.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        generator.energy().set(generator.energyCapacity());
         var intoBenchFront = hopper(h, benchPos.north(), Direction.SOUTH, new ItemStack(Items.SAND, 8));
         var intoBenchTop = hopper(h, benchPos.above(), Direction.DOWN, new ItemStack(Items.SAND, 8));
         var intoGeneratorFront = hopper(h, generatorPos.north(), Direction.SOUTH, new ItemStack(ModContent.MATRIX_CRYSTAL.get(), 4));
@@ -227,7 +227,7 @@ public final class PortSideGameTests {
         var atBack = cube(h, pos.south(), Direction.SOUTH, owner);
         h.assertTrue(atFront.sideMode(Direction.SOUTH) == EnergyCubeSideMode.INPUT && atBack.sideMode(Direction.NORTH) == EnergyCubeSideMode.INPUT,
                 "Cube fixtures do not face the generator with an input");
-        generator.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        generator.energy().set(generator.energyCapacity());
         for (int tick = 0; tick < 5; tick++) generator.serverTick();
         h.assertTrue(atBack.energy() > 0, "The generator pushed nothing through its back: the fixture proves nothing");
         h.assertTrue(atFront.energy() == 0, "The generator pushed " + atFront.energy() + " FE out of its front");
@@ -287,7 +287,7 @@ public final class PortSideGameTests {
     }
     private static MachineBlockEntity drive(GameTestHelper h, BlockPos pos, Player owner) {
         var drive = place(h, pos, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         return drive;
     }
 

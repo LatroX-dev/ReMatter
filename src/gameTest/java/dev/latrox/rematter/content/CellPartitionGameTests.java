@@ -30,7 +30,7 @@ public final class CellPartitionGameTests {
                 new TestData<>(env,id("empty"),200,0,true,Rotation.NONE,false,1,1,true,2)));
     }
     private static ItemStack cell(Map<SubstanceKey,Long> contents,SubstanceKey...allowed){
-        var item=new ItemStack(ModContent.MATTER_CELL_64K.get());var inv=new MatterInventory(64000,512);contents.forEach(inv::insert);
+        var item=new ItemStack(ModContent.MATTER_CELL_4M.get());var inv=new MatterInventory(MatterLimits.CELL_4M,512);contents.forEach(inv::insert);
         item.set(MatterCellData.TYPE.get(),MatterCellData.from(inv));item.set(CellPartitionData.TYPE.get(),CellPartitionData.allowOnly(List.of(allowed)));return item;
     }
     private static void routing(GameTestHelper h){

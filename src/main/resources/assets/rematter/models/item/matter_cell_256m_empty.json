@@ -1,5 +1,5 @@
 {
-  "parent": "rematter:item/matter_cell_1m",
+  "parent": "rematter:item/matter_cell_256m",
   "textures": {
     "light": "rematter:block/led_blue"
   }

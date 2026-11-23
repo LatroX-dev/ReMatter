@@ -40,7 +40,7 @@ public final class MachineComparators {
                     }
                     yield machine.stack(0).isEmpty() && machine.stack(1).isEmpty() ? 0 : 1;
                 }
-                yield scale(machine.energy().getAmountAsLong(), MachineBlockEntity.ENERGY_CAPACITY);
+                yield scale(machine.energy().getAmountAsLong(), machine.energyCapacity());
             }
         };
     }

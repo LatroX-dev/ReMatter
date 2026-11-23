@@ -51,6 +51,7 @@ public final class ItemGuidance {
         add(items, "wireless_access_point", Role.LINK, "wireless_access_point");
         add(items, "wireless_booster", Role.LINK, "wireless_booster");
         add(items, "wireless_matter_terminal", Role.STORAGE, "wireless_matter_terminal");
+        add(items, "energy_core", Role.POWER, "energy_core");
         add(items, "portable_energy_cell", Role.POWER, "portable_energy_cell");
         add(items, "void_matter_cell", Role.STORAGE, "void_matter_cell");
         add(items, "pressurized_canister", Role.STORAGE, "pressurized_canister");
@@ -58,6 +59,10 @@ public final class ItemGuidance {
         add(items, "entangled_link", Role.LINK, "entangled_link");
         add(items, "spectrometer_lens", Role.RESEARCH, "spectrometer_lens");
         add(items, "discovery_lens", Role.RESEARCH, "discovery_lens");
+        add(items, "speed_upgrade", Role.POWER, "speed_upgrade");
+        add(items, "efficiency_upgrade", Role.POWER, "efficiency_upgrade");
+        add(items, "parallel_upgrade", Role.POWER, "parallel_upgrade");
+        add(items, "pressure_module", Role.SYNTHESIS, "pressure_module");
         add(items, "grinding_unit", Role.PREPARATION, "grinding");
         add(items, "mixing_basin", Role.PREPARATION, "mixing");
         add(items, "separation_unit", Role.PREPARATION, "precision");

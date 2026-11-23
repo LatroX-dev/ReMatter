@@ -43,10 +43,10 @@ ITEM = 'rematter:item/'
 # Item id -> faceplate sprite. The sprites of filled cells belong to the Matter Drive, which mounts them.
 FACES = {
     'cell_housing': 'cell_housing_face',
-    'matter_cell_64k': 'drive_cell_64k',
-    'matter_cell_256k': 'drive_cell_256k',
-    'matter_cell_1m': 'drive_cell_1m',
     'matter_cell_4m': 'drive_cell_4m',
+    'matter_cell_16m': 'drive_cell_16m',
+    'matter_cell_64m': 'drive_cell_64m',
+    'matter_cell_256m': 'drive_cell_256m',
     'void_matter_cell': 'drive_void_matter_cell',
     'primal_cell_16k': 'drive_primal_cell_16k',
     'primal_cell_64k': 'drive_primal_cell_64k',
@@ -251,7 +251,8 @@ public final class PrimalVisualColors {{
     for path, value in outputs():
         out.json(path, value)
     out.sweep(ASSETS / 'textures/block', ['cell_cartridge*.png', 'cell_cartridge*.png.mcmeta', 'cell_housing_face.png*'])
-    out.sweep(ASSETS / 'models/item', [f'{name}{rest}.json' for name in MODEL_NAMES for rest in ('', '_*')])
+    out.sweep(ASSETS / 'models/item', [f'{name}{rest}.json' for name in (*MODEL_NAMES, 'matter_cell_64k', 'matter_cell_256k', 'matter_cell_1m') for rest in ('', '_*')])
+    out.sweep(ASSETS / 'items', [f'{name}.json' for name in ('matter_cell_64k', 'matter_cell_256k', 'matter_cell_1m')])
     return out.count
 
 

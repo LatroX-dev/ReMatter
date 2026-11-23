@@ -249,7 +249,7 @@ def level_emitter_models():
 def generate(check):
     out = GeneratedFiles(ROOT, check)
     for name in ("parallel_upgrade", "pressure_module", "configuration_card",
-                 "wireless_booster", "wireless_matter_terminal", "portable_energy_cell",
+                 "wireless_booster", "wireless_matter_terminal", "energy_core", "portable_energy_cell",
                  "pressurized_canister", "spectrometer_lens"):
         out.json(ASSETS / f"models/item/{name}.json", {"parent": "minecraft:item/generated", "textures": {"layer0": f"rematter:item/{name}"}})
         out.json(ASSETS / f"items/{name}.json", {"model": {"type": "minecraft:model", "model": f"rematter:item/{name}"}})
@@ -260,23 +260,28 @@ def generate(check):
                 "R": "rematter:rhevon_ingot", "L": "rematter:diamond_lattice",
                 "O": "rematter:optical_circuit", "C": "rematter:control_circuit"}, unlock="rematter:machine_frame")
         elif name == "configuration_card":
-            recipe(out, name, [" C ", "RIR", " P "], {
-                "C": "rematter:control_circuit", "I": "rematter:optical_circuit",
+            recipe(out, name, [" C ", "RSR", " P "], {
+                "C": "rematter:control_circuit", "S": "rematter:structural_bars",
                 "R": "rematter:rhevon_ingot", "P": "minecraft:copper_ingot"}, category="equipment")
         elif name == "wireless_booster":
             recipe(out, name, [" B ", "ECE", " P "], {
                 "B": "rematter:blue_matrix_crystal", "E": "rematter:ender_pearl_powder",
                 "C": "rematter:control_circuit", "P": "minecraft:copper_ingot"}, count=2)
         elif name == "wireless_matter_terminal":
-            recipe(out, name, [" B ", "ETE", "OCO"], {
+            recipe(out, name, [" B ", "ETE", "OKO"], {
                 "B": "rematter:blue_matrix_crystal", "E": "rematter:ender_conductor",
                 "T": "rematter:matter_terminal", "O": "rematter:optical_circuit",
-                "C": "rematter:energy_cube"}, category="equipment")
+                "K": "rematter:energy_core"}, category="equipment")
+        elif name == "energy_core":
+            recipe(out, name, ["CRC", "VEV", "CRC"], {
+                "C": "minecraft:copper_ingot", "R": "rematter:rhevon_ingot",
+                "V": "rematter:virelite_ceramic", "E": "rematter:ember_matrix_crystal"},
+                unlock="rematter:ember_matrix_crystal")
         elif name == "portable_energy_cell":
-            recipe(out, name, [" E ", "LHL", "OCO"], {
-                "E": "rematter:ember_matrix_crystal", "L": "rematter:lumivex_ingot",
-                "H": "rematter:cell_housing", "O": "rematter:optical_circuit",
-                "C": "rematter:reinforced_matter_cable"}, category="equipment")
+            recipe(out, name, ["KCK", "LHL", "O O"], {
+                "K": "rematter:energy_core", "C": "rematter:reinforced_matter_cable",
+                "L": "rematter:lumivex_ingot", "H": "rematter:cell_housing",
+                "O": "rematter:optical_circuit"}, category="equipment")
         elif name == "pressurized_canister":
             recipe(out, name, [" C ", "VMV", "RHR"], {
                 "C": "minecraft:copper_ingot", "V": "rematter:virelite_ceramic",

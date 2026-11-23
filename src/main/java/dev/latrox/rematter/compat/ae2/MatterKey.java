@@ -47,6 +47,7 @@ public final class MatterKey extends AEKey {
             return of(new SubstanceKey(SubstanceId.parse(buffer.readUtf(512)), buffer.readEnum(Phase.class)));
         }
         @Override public int getAmountPerUnit() { return 1; }
+        @Override public int getAmountPerByte() { return 8_000; }
         @Override public int getAmountPerOperation() { return 1_000; }
         @Override public String getUnitSymbol() { return "u"; }
     };

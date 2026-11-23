@@ -3,19 +3,18 @@
   "category": "misc",
   "pattern": [
     "MOM",
-    "DHP",
-    "MNM"
+    "EHE",
+    " D "
   ],
   "key": {
     "M": "rematter:matrix_cluster",
     "O": "rematter:optical_circuit",
-    "D": "rematter:diamond_lattice",
+    "E": "rematter:ender_conductor",
     "H": "rematter:cell_housing",
-    "P": "rematter:ender_conductor",
-    "N": "rematter:netherite_sheath"
+    "D": "rematter:diamond_lattice"
   },
   "result": {
-    "id": "rematter:matter_cell_1m",
+    "id": "rematter:matter_cell_64m",
     "count": 1
   }
 }

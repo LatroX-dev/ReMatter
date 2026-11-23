@@ -7,34 +7,34 @@
         "when": "empty",
         "model": {
           "type": "minecraft:model",
-          "model": "rematter:item/matter_cell_256k_empty"
+          "model": "rematter:item/matter_cell_64m_empty"
         }
       },
       {
         "when": "stored",
         "model": {
           "type": "minecraft:model",
-          "model": "rematter:item/matter_cell_256k_stored"
+          "model": "rematter:item/matter_cell_64m_stored"
         }
       },
       {
         "when": "full",
         "model": {
           "type": "minecraft:model",
-          "model": "rematter:item/matter_cell_256k_full"
+          "model": "rematter:item/matter_cell_64m_full"
         }
       },
       {
         "when": "locked",
         "model": {
           "type": "minecraft:model",
-          "model": "rematter:item/matter_cell_256k_locked"
+          "model": "rematter:item/matter_cell_64m_locked"
         }
       }
     ],
     "fallback": {
       "type": "minecraft:model",
-      "model": "rematter:item/matter_cell_256k"
+      "model": "rematter:item/matter_cell_64m"
     }
   }
 }

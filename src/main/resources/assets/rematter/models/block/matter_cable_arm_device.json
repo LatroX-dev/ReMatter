@@ -2,6 +2,7 @@
   "parent": "rematter:block/matter_cable_geometry_arm_device",
   "textures": {
     "particle": "rematter:block/matter_cable",
-    "cable": "rematter:block/matter_cable"
+    "cable": "rematter:block/matter_cable",
+    "glow": "rematter:block/matter_cable_glow"
   }
 }

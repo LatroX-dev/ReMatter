@@ -23,12 +23,12 @@ class ResearchAuthorityTest {
     private record WalletState(PrimalCellData.State cell,long energy){}
     private static final class Wallet extends SnapshotJournal<WalletState> implements ResearchSessions.Payment {
         final ResearchLedger ledger;final UUID machine=UUID.randomUUID();
-        PrimalCellData.State cell=new PrimalCellData.State(UUID.randomUUID(),256_000,0,Map.of());long energy=2_400_000;
+        PrimalCellData.State cell=new PrimalCellData.State(UUID.randomUUID(),256_000,0,Map.of());long energy=32_000;
         Wallet(ResearchLedger ledger){this.ledger=ledger;}
         @Override protected WalletState createSnapshot(){return new WalletState(cell,energy);}
         @Override protected void revertToSnapshot(WalletState previous){cell=previous.cell();energy=previous.energy();}
         @Override public boolean debit(UUID operation,long primal,long fe,TransactionContext tx){
-            assertEquals(4_000,primal);assertEquals(600_000,fe);updateSnapshots(tx);
+            assertEquals(4_000,primal);assertEquals(400,fe);updateSnapshots(tx);
             ledger.recordCellChange(new ResearchLedger.CellChange(cell.cellId(),operation,-primal,ResearchIdentity.player(OWNER)),tx);
             ledger.recordEnergyChange(new ResearchLedger.EnergyChange(machine,operation,OWNER,fe),tx);
             cell=cell.withReceipt(operation,-primal);energy-=fe;return true;
@@ -41,7 +41,7 @@ class ResearchAuthorityTest {
         try{ResearchAuthority.writeState(path,ledger.toJson());}catch(IOException problem){throw new UncheckedIOException(problem);}
     }
     private static ResearchSessions.Result firstStep(ResearchSessions engine,UUID session,ResearchSessions.Payment payment){
-        return engine.advance(ResearchContext.personal(OWNER),session,0,true,true,600_000,1_500,payment);
+        return engine.advance(ResearchContext.personal(OWNER),session,0,true,true,600_000,1_500,payment,(due,tx)->true);
     }
     private static void assertRestartKeepsPaidStep(ResearchLedger loaded,UUID session,UUID cell,UUID machine){
         var context=ResearchContext.personal(OWNER);var resumed=engine(loaded);
@@ -55,10 +55,11 @@ class ResearchAuthorityTest {
         assertEquals(256_000,oldPhysical.amount(),"Reconciliation must not edit stale physical data during reads");
         assertEquals(1,loaded.changesForCell(cell).size());assertEquals(1,loaded.energyChanges.size());assertEquals(1,loaded.payments.size());
         var operation=loaded.changesForCell(cell).getFirst().operation();
-        assertEquals(Map.of(operation,600_000L),loaded.outstandingEnergy(machine,Map.of()));
-        assertTrue(loaded.outstandingEnergy(machine,Map.of(operation,600_000L)).isEmpty());
+        assertEquals(Map.of(operation,400L),loaded.outstandingEnergy(machine,Map.of()));
+        assertTrue(loaded.outstandingEnergy(machine,Map.of(operation,400L)).isEmpty());
         assertEquals(ResearchSessions.Result.WORKING,resumed.advance(context,session,1,true,true,600_000,1_500,
-                (op,primal,energy,tx)->fail("A paid step must not debit again after restart")));
+                (op,primal,energy,tx)->fail("A paid step must not debit again after restart"),
+                (due,tx)->{assertEquals(400L,due);return true;}));
         assertEquals(1,resumed.session(context,session).orElseThrow().paidSteps());
     }
     @Test void nativeFilesystemFirstDiscoveryPaymentPublishesAndRestartsWithoutDoubleDebit() throws Exception {
@@ -66,7 +67,7 @@ class ResearchAuthorityTest {
         ledger.authority(()->write(path,ledger));var engine=engine(ledger);var wallet=new Wallet(ledger);
         var session=engine.beginDiscovery(ResearchContext.personal(OWNER),DiscoveryTier.III,true,600_000).orElseThrow().id();
         assertEquals(ResearchSessions.Result.PAID,firstStep(engine,session,wallet));
-        assertEquals(252_000,wallet.cell.amount());assertEquals(1_800_000,wallet.energy);
+        assertEquals(252_000,wallet.cell.amount());assertEquals(31_600,wallet.energy);
         var durable=ResearchAuthority.readState(path);assertEquals(ledger.toJson(),durable.toJson());
         assertEquals(1,durable.authorityRevision);assertFalse(Files.exists(path.resolveSibling("research-authority.json.pending")));
         assertRestartKeepsPaidStep(durable,session,wallet.cell.cellId(),wallet.machine);

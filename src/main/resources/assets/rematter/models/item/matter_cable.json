@@ -2,7 +2,7 @@
   "parent": "minecraft:block/block",
   "textures": {
     "particle": "rematter:block/matter_cable",
-    "cable": "rematter:block/matter_cable"
+    "glow": "rematter:block/matter_cable_glow"
   },
   "elements": [
     {
@@ -17,9 +17,11 @@
         10,
         16
       ],
+      "shade": false,
+      "light_emission": 15,
       "faces": {
         "north": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             0,
             4,
@@ -29,7 +31,7 @@
           "cullface": "north"
         },
         "south": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             0,
             4,
@@ -39,7 +41,7 @@
           "cullface": "south"
         },
         "east": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             16,
             0,
@@ -48,7 +50,7 @@
           ]
         },
         "west": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             0,
             0,
@@ -57,7 +59,7 @@
           ]
         },
         "up": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             0,
             4,
@@ -67,7 +69,7 @@
           "rotation": 90
         },
         "down": {
-          "texture": "#cable",
+          "texture": "#glow",
           "uv": [
             16,
             4,

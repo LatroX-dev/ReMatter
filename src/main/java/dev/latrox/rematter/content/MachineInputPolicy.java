@@ -27,8 +27,33 @@ public final class MachineInputPolicy {
     }
 
     public static boolean acceptsUpgrade(MachineKind kind, ItemStack stack) {
-        if(IndustrialStructure.isIndustrial(kind))return stack.is(ModContent.SPEED_UPGRADE.get());
-        return kind.processes() && kind!=MachineKind.PRIMAL_CONVERTER && !PreparationTier.manual(kind)
-                && (stack.is(ModContent.SPEED_UPGRADE.get()) || stack.is(ModContent.EFFICIENCY_UPGRADE.get()));
+        return MachineEnergyPolicy.supportsUpgrades(kind) && stack.is(ModContent.SPEED_UPGRADE.get());
+    }
+
+    public static boolean acceptsEfficiency(MachineKind kind, ItemStack stack) {
+        return MachineEnergyPolicy.supportsUpgrades(kind) && stack.is(ModContent.EFFICIENCY_UPGRADE.get());
+    }
+
+    public static boolean isUpgradeItem(ItemStack stack) {
+        return stack.is(ModContent.SPEED_UPGRADE.get())
+                || stack.is(ModContent.EFFICIENCY_UPGRADE.get())
+                || stack.is(ModContent.PARALLEL_UPGRADE.get())
+                || stack.is(ModContent.PRESSURE_MODULE.get());
+    }
+
+    /** Target machine slot for an upgrade item, or -1 if this machine kind does not accept it. */
+    public static int upgradeSlotFor(MachineKind kind, ItemStack stack) {
+        if (acceptsUpgrade(kind, stack)) return MachineCellAccess.SPEED_SLOT;
+        if (acceptsEfficiency(kind, stack)) return MachineCellAccess.EFFICIENCY_SLOT;
+        if (IndustrialStructure.isIndustrial(kind) && stack.is(ModContent.PARALLEL_UPGRADE.get())) return MachineCellAccess.PARALLEL_SLOT;
+        if (!IndustrialStructure.isIndustrial(kind) && kind.synthesis() && stack.is(ModContent.PRESSURE_MODULE.get())) return MachineCellAccess.PRESSURE_SLOT;
+        return -1;
+    }
+
+    /** Maximum installed count for an upgrade slot on the given machine kind. */
+    public static int upgradeSlotLimit(MachineKind kind, int slot) {
+        if (slot == MachineCellAccess.SPEED_SLOT || slot == MachineCellAccess.EFFICIENCY_SLOT) return MachineEnergyPolicy.MAX_UPGRADES;
+        if (slot == MachineCellAccess.PARALLEL_SLOT) return IndustrialStructure.isIndustrial(kind) ? 3 : 1;
+        return 0;
     }
 }

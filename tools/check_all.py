@@ -26,6 +26,7 @@ GENERATOR_AND_STYLE_CHECKS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("metallurgy_assets", ("tools/generate_metallurgy_assets.py", "--check")),
     ("device_assets", ("tools/generate_device_assets.py", "--check")),
     ("sound_assets", ("tools/generate_sound_assets.py", "--check")),
+    ("logo", ("tools/generate_logo.py", "--check")),
     ("research_data", ("tools/generate_research_data.py", "--check")),
     ("primal_assets", ("tools/generate_primal_assets.py", "--check")),
     ("energy_assets", ("tools/generate_energy_assets.py", "--check")),

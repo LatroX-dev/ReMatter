@@ -35,4 +35,13 @@ class TerminalDeviceRequestsTest {
         assertFalse(TerminalDeviceRequests.permits(shown(RECIPE, true), open, 20, 20));
         assertTrue(TerminalDeviceRequests.permits(shown(RECIPE, true), open, 0, Long.MIN_VALUE));
     }
+
+    @Test void cancelRequiresAnActiveOrQueuedDevice() {
+        var cancel = new TerminalDeviceActionPayload(1, POSITION, Action.CANCEL_JOB, "");
+        assertFalse(TerminalDeviceRequests.permits(shown(RECIPE, true), cancel, 20, 19));
+        var queued = new TerminalDevicesPayload.Device(POSITION, MachineKind.REACTOR, "working", RECIPE, 0, 0, 2, true);
+        assertTrue(TerminalDeviceRequests.permits(queued, cancel, 20, 19));
+        var active = new TerminalDevicesPayload.Device(POSITION, MachineKind.DECOMPOSER, "working", "", 15, 200, 0, false);
+        assertTrue(TerminalDeviceRequests.permits(active, cancel, 20, 19));
+    }
 }

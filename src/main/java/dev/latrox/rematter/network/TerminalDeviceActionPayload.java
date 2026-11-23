@@ -11,9 +11,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
-/** A request to open a device or queue a batch of its already selected recipe. */
+/** A request to open a device, queue a batch of its selected recipe, or cancel its active/queued job. */
 public record TerminalDeviceActionPayload(int containerId, BlockPos position, Action action, String recipeId) implements CustomPacketPayload {
-    public enum Action { OPEN, QUEUE_BATCH }
+    public enum Action { OPEN, QUEUE_BATCH, CANCEL_JOB }
 
     public TerminalDeviceActionPayload {
         position = position.immutable();
@@ -37,7 +37,7 @@ public record TerminalDeviceActionPayload(int containerId, BlockPos position, Ac
     };
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToServer(TYPE, CODEC, (payload, context) -> {
+        event.registrar("2").playToServer(TYPE, CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player && player.containerMenu instanceof MachineMenu menu
                     && menu.containerId == payload.containerId()) {
                 menu.useTerminalDevice(player, payload);

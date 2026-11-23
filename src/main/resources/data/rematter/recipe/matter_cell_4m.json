@@ -2,18 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "OCO",
-    "DHN",
-    "EME"
+    "C",
+    "M",
+    "H"
   ],
   "key": {
-    "O": "rematter:optical_circuit",
-    "C": "rematter:mint_matrix_crystal",
-    "D": "rematter:diamond_lattice",
-    "H": "rematter:cell_housing",
-    "N": "rematter:netherite_sheath",
-    "E": "rematter:ender_conductor",
-    "M": "rematter:matrix_cluster"
+    "C": "rematter:control_circuit",
+    "M": "rematter:matrix_crystal",
+    "H": "rematter:cell_housing"
   },
   "result": {
     "id": "rematter:matter_cell_4m",

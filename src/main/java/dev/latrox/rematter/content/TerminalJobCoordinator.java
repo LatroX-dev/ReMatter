@@ -83,6 +83,10 @@ public final class TerminalJobCoordinator {
         void release() {
             if (worker != null) worker.releaseTerminalStep(this);
         }
+
+        boolean cancelParentJob() {
+            return TerminalJobCoordinator.cancel(job.level, job.owner, job.jobId);
+        }
     }
 
     private static final class ActiveJob {

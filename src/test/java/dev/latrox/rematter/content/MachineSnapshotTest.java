@@ -91,7 +91,7 @@ class MachineSnapshotTest {
         assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.NetworkView("ready",12,3,19,1,100,1));
     }
     @Test void processingMachineSnapshotsCannotAdvertiseAnInstalledCell() {
-        var disk = new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",0,64000,0,512);
+        var disk = new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",0,64000,0,512);
         assertThrows(IllegalArgumentException.class,()->snapshot(MachineKind.SYNTHESIZER, "ready", 0, 0, false,
                 MachineSnapshot.Preview.EMPTY, "network", MachineSnapshot.StructureView.EMPTY, MachineSnapshot.NetworkView.EMPTY, List.of(disk)));
     }
@@ -125,11 +125,15 @@ class MachineSnapshotTest {
         assertFalse(structure.formed()); assertEquals(0, structure.workRate()); assertEquals(0, structure.moduleCount());
     }
     @Test void unpaidProgressAndFullBufferTravelSeparatelyAndStayBounded() {
-        var progress = new MachineProgressPayload(8, MachineBlockEntity.ENERGY_CAPACITY, 12, 90);
-        assertEquals(progress, roundTrip(MachineProgressPayload.CODEC, progress));
-        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, MachineBlockEntity.ENERGY_CAPACITY + 1, 0, 0));
-        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, 0, 91, 90));
-        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, -1, 0, 0));
+        var compact = new MachineProgressPayload(8, MatterLimits.COMPACT_MACHINE_ENERGY, MatterLimits.COMPACT_MACHINE_ENERGY, 12, 90);
+        assertEquals(compact, roundTrip(MachineProgressPayload.CODEC, compact));
+        var maxIndustrial = new MachineProgressPayload(8, MachineBlockEntity.MAX_ENERGY_CAPACITY, MachineBlockEntity.MAX_ENERGY_CAPACITY, 12, 90);
+        assertEquals(maxIndustrial, roundTrip(MachineProgressPayload.CODEC, maxIndustrial));
+        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, MatterLimits.COMPACT_MACHINE_ENERGY + 1, MatterLimits.COMPACT_MACHINE_ENERGY, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, 0, MachineBlockEntity.MAX_ENERGY_CAPACITY + 1, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, 0, -1, 0, 0));
+        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, 0, 32_000, 91, 90));
+        assertThrows(IllegalArgumentException.class, () -> new MachineProgressPayload(8, -1, 32_000, 0, 0));
     }
     @Test void fullMountingSurfacesAndUpgradesRoundTripWithoutOverflowOrRateInflation() {
         var structure = new MachineSnapshot.StructureView(9,9,9,20,49,"ready",49,48,1,0,0,0);
@@ -138,8 +142,8 @@ class MachineSnapshotTest {
         assertThrows(IllegalArgumentException.class,()->industrialSnapshot(MachineKind.INDUSTRIAL_REACTOR, structure));
     }
     @Test void sixPhysicalBaysKeepTheirOrderAndUnreadableStateAcrossTheWire() {
-        var primary = new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",1000,64000,2,512);
-        var unreadable = new MachineSnapshot.CellView(true,false,"rematter:matter_cell_1m",0,0,0,0);
+        var primary = new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",1000,64000,2,512);
+        var unreadable = new MachineSnapshot.CellView(true,false,"rematter:matter_cell_64m",0,0,0,0);
         var cells = new java.util.ArrayList<>(EMPTY_BAYS);
         cells.set(0,primary); cells.set(5,unreadable);
         var snapshot = driveSnapshot("unknown_schema", cells);
@@ -152,9 +156,9 @@ class MachineSnapshotTest {
         assertThrows(IllegalArgumentException.class,()->driveSnapshot("ready", Collections.nCopies(7,primary)));
     }
     @Test void mountedCellViewsNameTheItemIdForTheMenuAndTheSummary() {
-        var readable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_64k"),true,1250,64000,2);
-        var unreadable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_1m"),false,9000,1_000_000,0);
-        assertEquals("rematter:matter_cell_64k",readable.itemId());
+        var readable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_4m"),true,1250,64000,2);
+        var unreadable = MatterCellMount.installedView(Identifier.fromNamespaceAndPath("rematter","matter_cell_64m"),false,9000,1_000_000,0);
+        assertEquals("rematter:matter_cell_4m",readable.itemId());
         assertEquals(1250,readable.used());assertEquals(0,unreadable.used());
         var cells = new java.util.ArrayList<>(EMPTY_BAYS);
         cells.set(0,readable); cells.set(3,unreadable);
@@ -173,19 +177,19 @@ class MachineSnapshotTest {
     }
     @Test void cellPresenceUsageCapacityAndTypeCountRoundTripWithoutSubstanceContents() {
         var cells = new java.util.ArrayList<>(EMPTY_BAYS);
-        cells.set(0, new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",1000,64000,2,512));
+        cells.set(0, new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",1000,64000,2,512));
         var snapshot = snapshot(MachineKind.DRIVE, "ready", 1000, 64000, true, MachineSnapshot.Preview.EMPTY, "local",
                 MachineSnapshot.StructureView.EMPTY, MachineSnapshot.NetworkView.EMPTY, cells);
         assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
-        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",1000,64000,513,512));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",1000,64000,513,512));
         assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"",0,64000,0,512));
-        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(false,false,"rematter:matter_cell_64k",0,0,0,0));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(false,false,"rematter:matter_cell_4m",0,0,0,0));
     }
     @Test void cellUsedAmountsAreBoundedAndUnreadableContentsStayPrivate() {
-        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",-1,64000,1,512));
-        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",64001,64000,1,512));
-        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,false,"rematter:matter_cell_64k",1,64000,0,512));
-        var full=new MachineSnapshot.CellView(true,true,"rematter:matter_cell_64k",64000,64000,1,512);
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",-1,64000,1,512));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",64001,64000,1,512));
+        assertThrows(IllegalArgumentException.class,()->new MachineSnapshot.CellView(true,false,"rematter:matter_cell_4m",1,64000,0,512));
+        var full=new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",64000,64000,1,512);
         var cells=new java.util.ArrayList<>(EMPTY_BAYS);cells.set(0,full);
         assertEquals(64000,roundTrip(MachineSnapshot.CODEC,driveSnapshot("ready",cells)).cells().getFirst().used());
     }

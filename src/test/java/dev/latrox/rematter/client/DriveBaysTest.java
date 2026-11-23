@@ -96,11 +96,11 @@ class DriveBaysTest {
         var quads = draw(ALL_BAYS, packed(1, 2, 3, 8, 10, 7), 0);
         int[] expected = {0, 1, 2, 11, 13, 10};
         for (int bay = 0; bay < 6; bay++) assertEquals(expected[bay], sprite(quads.get(bay)), "bay " + bay);
-        assertEquals("drive_cell_64k", DriveBays.SPRITES[0]);
-        assertEquals("drive_cell_256k", DriveBays.SPRITES[1]);
-        assertEquals("drive_cell_1m", DriveBays.SPRITES[2]);
+        assertEquals("drive_cell_4m", DriveBays.SPRITES[0]);
+        assertEquals("drive_cell_16m", DriveBays.SPRITES[1]);
+        assertEquals("drive_cell_64m", DriveBays.SPRITES[2]);
         assertEquals("drive_cell_unknown", DriveBays.SPRITES[3]);
-        assertEquals("drive_cell_4m", DriveBays.SPRITES[11]);
+        assertEquals("drive_cell_256m", DriveBays.SPRITES[11]);
         assertEquals("drive_void_matter_cell", DriveBays.SPRITES[13]);
     }
 

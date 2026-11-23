@@ -7,7 +7,7 @@
         "items": [
           {
             "items": [
-              "rematter:matrix_cluster"
+              "rematter:netherite_sheath"
             ]
           }
         ]
@@ -16,7 +16,7 @@
     "has_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "rematter:matter_cell_256k"
+        "recipe": "rematter:matter_cell_256m"
       }
     }
   },
@@ -28,7 +28,7 @@
   ],
   "rewards": {
     "recipes": [
-      "rematter:matter_cell_256k"
+      "rematter:matter_cell_256m"
     ]
   }
 }

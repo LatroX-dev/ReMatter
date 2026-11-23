@@ -1,48 +1,59 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
 <defs>
-<linearGradient id="pec-chassis" gradientUnits="userSpaceOnUse" x1="18.40" y1="27.90" x2="107.70" y2="107.70"><stop offset="0" stop-color="#64727e"/><stop offset="0.333333" stop-color="#46515b"/><stop offset="0.666667" stop-color="#2b2f35"/><stop offset="1" stop-color="#1d2127"/></linearGradient>
-<linearGradient id="pec-steel" gradientUnits="userSpaceOnUse" x1="56.40" y1="14.60" x2="105.80" y2="48.80"><stop offset="0" stop-color="#c3ccce"/><stop offset="0.333333" stop-color="#9aa6ab"/><stop offset="0.666667" stop-color="#6b777d"/><stop offset="1" stop-color="#4a545a"/></linearGradient>
-<linearGradient id="pec-cu" gradientUnits="userSpaceOnUse" x1="62.10" y1="12.70" x2="105.80" y2="45.00"><stop offset="0" stop-color="#c08f71"/><stop offset="0.5" stop-color="#ae6f49"/><stop offset="1" stop-color="#7d5035"/></linearGradient>
+<linearGradient id="pec-chassis" gradientUnits="userSpaceOnUse" x1="26.00" y1="21.30" x2="102.00" y2="112.50"><stop offset="0" stop-color="#64727e"/><stop offset="0.333333" stop-color="#46515b"/><stop offset="0.666667" stop-color="#2b2f35"/><stop offset="1" stop-color="#1d2127"/></linearGradient>
+<linearGradient id="pec-steel" gradientUnits="userSpaceOnUse" x1="24.10" y1="19.40" x2="102.00" y2="110.60"><stop offset="0" stop-color="#c3ccce"/><stop offset="0.333333" stop-color="#9aa6ab"/><stop offset="0.666667" stop-color="#6b777d"/><stop offset="1" stop-color="#4a545a"/></linearGradient>
+<linearGradient id="pec-cu" gradientUnits="userSpaceOnUse" x1="39.30" y1="11.80" x2="86.80" y2="32.70"><stop offset="0" stop-color="#c08f71"/><stop offset="0.5" stop-color="#ae6f49"/><stop offset="1" stop-color="#7d5035"/></linearGradient>
 </defs>
-<polygon points="62.10,29.80 73.50,19.35 83.00,25.05 71.60,35.50" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="66.85,24.10 76.35,15.55 83.95,20.30 74.45,28.85" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="81.10,40.25 92.50,29.80 102.00,35.50 90.60,45.95" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="85.85,34.55 95.35,26.00 102.95,30.75 93.45,39.30" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="16.50,67.80 58.30,29.80 107.70,56.40 107.70,71.60 65.90,109.60 16.50,83.00" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="35.50,61.15 60.20,38.35 90.60,55.45 65.90,78.25" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="41.20,59.25 60.20,42.15 84.90,55.45 82.05,67.80 64.95,75.40 44.05,65.90" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="50.70,90.60 59.25,95.35 59.25,102.00 50.70,97.25" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
-<polygon points="62.10,29.80 73.50,19.35 83.00,25.05 71.60,35.50" fill="url(#pec-steel)" stroke="#28333e" stroke-width="4" stroke-linejoin="round"/>
-<polygon points="62.10,29.80 73.50,19.35 83.00,25.05 71.60,35.50" fill="url(#pec-steel)"/>
-<polygon points="66.85,24.10 76.35,15.55 83.95,20.30 74.45,28.85" fill="url(#pec-cu)" stroke="#28333e" stroke-width="4" stroke-linejoin="round"/>
-<polygon points="66.85,24.10 76.35,15.55 83.95,20.30 74.45,28.85" fill="url(#pec-cu)"/>
-<polyline points="68.75,23.15 76.83,16.98" fill="none" stroke="#c08f71" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="81.10,40.25 92.50,29.80 102.00,35.50 90.60,45.95" fill="url(#pec-steel)" stroke="#28333e" stroke-width="4" stroke-linejoin="round"/>
-<polygon points="81.10,40.25 92.50,29.80 102.00,35.50 90.60,45.95" fill="url(#pec-steel)"/>
-<polygon points="85.85,34.55 95.35,26.00 102.95,30.75 93.45,39.30" fill="url(#pec-cu)" stroke="#28333e" stroke-width="4" stroke-linejoin="round"/>
-<polygon points="85.85,34.55 95.35,26.00 102.95,30.75 93.45,39.30" fill="url(#pec-cu)"/>
-<polyline points="87.75,33.60 95.83,27.43" fill="none" stroke="#c08f71" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="16.50,67.80 58.30,29.80 107.70,56.40 107.70,71.60 65.90,109.60 16.50,83.00" fill="url(#pec-chassis)" stroke="#28333e" stroke-width="5.2" stroke-linejoin="round"/>
-<polygon points="16.50,67.80 58.30,29.80 107.70,56.40 107.70,71.60 65.90,109.60 16.50,83.00" fill="url(#pec-chassis)"/>
-<polygon points="19.35,66.85 58.30,32.17 104.85,57.35 64.95,94.40" fill="#2b2f35"/>
-<polygon points="18.40,68.75 64.95,95.35 64.95,107.70 18.40,82.05" fill="#6b777d"/>
-<polygon points="64.95,95.35 105.80,57.83 105.80,70.65 64.95,107.70" fill="#1d2127"/>
-<polyline points="20.30,66.38 58.30,32.65 102.95,56.88" fill="none" stroke="#495059" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="27.90,59.25 35.50,52.60 41.20,55.92 33.60,62.58" fill="#9aa6ab"/>
-<polyline points="28.85,58.77 35.03,53.36" fill="none" stroke="#c3ccce" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="73.50,83.95 81.10,77.30 86.80,80.62 79.20,87.28" fill="#9aa6ab"/>
-<polyline points="74.45,83.47 80.62,78.06" fill="none" stroke="#c3ccce" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="35.50,61.15 60.20,38.35 90.60,55.45 65.90,78.25" fill="#0a0d11" stroke="#28333e" stroke-width="4.2" stroke-linejoin="round"/>
-<polygon points="35.50,61.15 60.20,38.35 90.60,55.45 65.90,78.25" fill="#0a0d11"/>
-<polygon points="41.20,59.25 60.20,42.15 84.90,55.45 82.05,67.80 64.95,75.40 44.05,65.90" fill="#ea4848" stroke="#28333e" stroke-width="4.4" stroke-linejoin="round"/>
-<polygon points="41.20,59.25 60.20,42.15 84.90,55.45 82.05,67.80 64.95,75.40 44.05,65.90" fill="#ea4848"/>
-<polygon points="43.10,58.77 60.20,44.05 81.10,55.45 64.00,59.73" fill="#f28a8a"/>
-<polygon points="43.10,59.25 64.00,59.73 80.15,66.85 64.95,73.97 45.00,65.42" fill="#ea4848"/>
-<polygon points="64.00,59.73 83.00,55.92 80.15,66.85" fill="#9f3131"/>
-<polyline points="56.40,48.80 69.70,56.40" fill="none" stroke="#e4decc" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-<polygon points="27.90,75.40 34.08,78.82 34.08,82.24 27.90,78.82" fill="#4fe18e"/>
-<polygon points="37.88,80.91 44.05,84.33 44.05,87.75 37.88,84.33" fill="#4fe18e"/>
-<polygon points="47.85,86.42 54.02,89.84 54.02,93.26 47.85,89.84" fill="#4fe18e"/>
-<polygon points="50.70,90.60 59.25,95.35 59.25,102.00 50.70,97.25" fill="url(#pec-cu)" stroke="#28333e" stroke-width="3.2" stroke-linejoin="round"/>
-<polygon points="50.70,90.60 59.25,95.35 59.25,102.00 50.70,97.25" fill="url(#pec-cu)"/>
+<polygon points="39.30,27.00 39.30,14.65 54.50,14.65 54.50,27.00" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="69.70,27.00 69.70,14.65 84.90,14.65 84.90,27.00" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="26.95,30.80 34.55,24.15 86.80,24.15 99.15,32.70 99.15,106.80 87.75,115.35 34.55,115.35 26.95,107.75" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="25.05,33.65 85.85,33.65 100.10,30.80 100.10,41.25 85.85,44.10 25.05,44.10" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="25.05,101.10 85.85,101.10 100.10,96.35 100.10,106.80 85.85,113.45 25.05,113.45" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="35.50,47.90 77.30,47.90 77.30,97.30 35.50,97.30" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="87.75,68.80 95.35,66.90 95.35,85.90 87.75,87.80" fill="#28333e" stroke="#28333e" stroke-width="9" stroke-linejoin="round"/>
+<polygon points="39.30,27.00 39.30,14.65 54.50,14.65 54.50,27.00" fill="url(#pec-cu)" stroke="#28333e" stroke-width="4.4" stroke-linejoin="round"/>
+<polygon points="39.30,27.00 39.30,14.65 54.50,14.65 54.50,27.00" fill="url(#pec-cu)"/>
+<polygon points="40.73,16.08 46.90,16.08 46.90,25.10 40.73,25.10" fill="#c08f71"/>
+<polygon points="49.75,16.08 53.08,16.08 53.08,25.10 49.75,25.10" fill="#7d5035"/>
+<polyline points="41.67,16.74 52.12,16.74" fill="none" stroke="#e4decc" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="69.70,27.00 69.70,14.65 84.90,14.65 84.90,27.00" fill="url(#pec-cu)" stroke="#28333e" stroke-width="4.4" stroke-linejoin="round"/>
+<polygon points="69.70,27.00 69.70,14.65 84.90,14.65 84.90,27.00" fill="url(#pec-cu)"/>
+<polygon points="71.12,16.08 77.30,16.08 77.30,25.10 71.12,25.10" fill="#c08f71"/>
+<polygon points="80.15,16.08 83.47,16.08 83.47,25.10 80.15,25.10" fill="#7d5035"/>
+<polyline points="72.08,16.74 82.53,16.74" fill="none" stroke="#e4decc" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="26.95,30.80 34.55,24.15 86.80,24.15 99.15,32.70 99.15,106.80 87.75,115.35 34.55,115.35 26.95,107.75" fill="url(#pec-chassis)" stroke="#28333e" stroke-width="5.2" stroke-linejoin="round"/>
+<polygon points="26.95,30.80 34.55,24.15 86.80,24.15 99.15,32.70 99.15,106.80 87.75,115.35 34.55,115.35 26.95,107.75" fill="url(#pec-chassis)"/>
+<polygon points="28.85,31.75 35.50,25.58 85.85,25.58 97.25,33.17 84.90,36.50 28.85,36.50" fill="#64727e"/>
+<polygon points="28.85,36.50 84.90,36.50 84.90,113.45 35.50,113.45 28.85,106.80" fill="#2b2f35"/>
+<polygon points="84.90,36.50 97.72,33.65 97.72,105.85 84.90,113.45" fill="#1d2127"/>
+<polyline points="30.75,33.65 35.50,27.00 84.90,27.00" fill="none" stroke="#c3ccce" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="25.05,33.65 85.85,33.65 100.10,30.80 100.10,41.25 85.85,44.10 25.05,44.10" fill="url(#pec-steel)" stroke="#28333e" stroke-width="4.2" stroke-linejoin="round"/>
+<polygon points="25.05,33.65 85.85,33.65 100.10,30.80 100.10,41.25 85.85,44.10 25.05,44.10" fill="url(#pec-steel)"/>
+<polygon points="26.95,35.08 83.95,35.08 83.95,38.40 26.95,38.40" fill="#c3ccce"/>
+<polygon points="85.85,35.08 98.67,32.51 98.67,40.30 85.85,42.96" fill="#4a545a"/>
+<polygon points="25.05,101.10 85.85,101.10 100.10,96.35 100.10,106.80 85.85,113.45 25.05,113.45" fill="url(#pec-steel)" stroke="#28333e" stroke-width="4.2" stroke-linejoin="round"/>
+<polygon points="25.05,101.10 85.85,101.10 100.10,96.35 100.10,106.80 85.85,113.45 25.05,113.45" fill="url(#pec-steel)"/>
+<polygon points="26.95,102.53 83.95,102.53 83.95,105.85 26.95,105.85" fill="#c3ccce"/>
+<polygon points="85.85,102.53 98.67,98.25 98.67,105.85 85.85,112.03" fill="#4a545a"/>
+<polygon points="35.50,47.90 77.30,47.90 77.30,97.30 35.50,97.30" fill="#0a0d11" stroke="#28333e" stroke-width="4.4" stroke-linejoin="round"/>
+<polygon points="35.50,47.90 77.30,47.90 77.30,97.30 35.50,97.30" fill="#0a0d11"/>
+<polygon points="39.30,51.70 73.50,51.70 73.50,59.77 39.30,59.77" fill="#ea4848"/>
+<polygon points="39.30,51.70 73.50,51.70 73.50,53.79 39.30,53.79" fill="#f29191"/>
+<polygon points="66.85,53.79 73.50,53.79 73.50,59.77 66.85,59.77" fill="#962e2e"/>
+<polyline points="41.20,53.12 50.70,53.12" fill="none" stroke="#e4decc" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="39.30,62.62 73.50,62.62 73.50,70.70 39.30,70.70" fill="#ea4848"/>
+<polygon points="39.30,62.62 73.50,62.62 73.50,64.72 39.30,64.72" fill="#f29191"/>
+<polygon points="66.85,64.72 73.50,64.72 73.50,70.70 66.85,70.70" fill="#962e2e"/>
+<polyline points="41.20,64.05 50.70,64.05" fill="none" stroke="#e4decc" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="39.30,73.55 73.50,73.55 73.50,81.62 39.30,81.62" fill="#ea4848"/>
+<polygon points="39.30,73.55 73.50,73.55 73.50,75.64 39.30,75.64" fill="#f29191"/>
+<polygon points="66.85,75.64 73.50,75.64 73.50,81.62 66.85,81.62" fill="#962e2e"/>
+<polyline points="41.20,74.97 50.70,74.97" fill="none" stroke="#e4decc" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="39.30,84.47 73.50,84.47 73.50,92.55 39.30,92.55" fill="#ea4848"/>
+<polygon points="39.30,84.47 73.50,84.47 73.50,86.56 39.30,86.56" fill="#f29191"/>
+<polygon points="66.85,86.56 73.50,86.56 73.50,92.55 66.85,92.55" fill="#962e2e"/>
+<polyline points="41.20,85.90 50.70,85.90" fill="none" stroke="#e4decc" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>
+<polygon points="87.75,53.60 94.40,51.70 94.40,59.30 87.75,61.20" fill="#4fe18e"/>
+<polygon points="87.75,68.80 95.35,66.90 95.35,85.90 87.75,87.80" fill="url(#pec-cu)" stroke="#28333e" stroke-width="3.2" stroke-linejoin="round"/>
+<polygon points="87.75,68.80 95.35,66.90 95.35,85.90 87.75,87.80" fill="url(#pec-cu)"/>
 </svg>

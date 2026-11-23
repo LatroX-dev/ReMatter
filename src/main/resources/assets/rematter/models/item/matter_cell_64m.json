@@ -2,7 +2,7 @@
   "gui_light": "side",
   "textures": {
     "particle": "rematter:block/cell_cartridge",
-    "face": "rematter:block/drive_cell_64k",
+    "face": "rematter:block/drive_cell_64m",
     "body": "rematter:block/cell_cartridge",
     "light": "rematter:block/status_off"
   },

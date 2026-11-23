@@ -23,7 +23,7 @@ class PrimalConverterViewTest {
     }
     @Test void destinationKeepsNegativeCoordinatesAndExactLargeCapacity(){
         var source=JsonParser.parseString("""
-            {"conversionDestination":{"status":"ready","x":-112,"y":224,"z":-48,"bay":6,"item":"rematter:matter_cell_1m","used":123456,"capacity":1024000}}
+            {"conversionDestination":{"status":"ready","x":-112,"y":224,"z":-48,"bay":6,"item":"rematter:matter_cell_64m","used":123456,"capacity":1024000}}
             """).getAsJsonObject();
         var destination=PrimalConverterView.destination(source);
         assertTrue(destination.ready());assertEquals(-112,destination.x());assertEquals(-48,destination.z());assertEquals(6,destination.bay());

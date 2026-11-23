@@ -8,12 +8,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** Bounded display traffic from committed matter and energy transfers. */
+/** Bounded display traffic from committed matter transfers (FE transfers stay quiet on the cable traces). */
 final class MatterCableActivity {
-    private static final int MAX_MATTER_PULSES_PER_WINDOW = 6;
-    private static final int MAX_ENERGY_PULSES_PER_WINDOW = 2;
-    private static final int MAX_ROUTE_LOOKUPS_PER_WINDOW = 8;
-    private static final double VIEW_DISTANCE = 40;
+    private static final boolean TRACK_ENERGY_PULSES = false;
+    private static final int MAX_MATTER_PULSES_PER_WINDOW = 10;
+    private static final int MAX_ENERGY_PULSES_PER_WINDOW = 4;
+    private static final int MAX_ROUTE_LOOKUPS_PER_WINDOW = 12;
+    private static final double VIEW_DISTANCE = 44;
     private static final WeakHashMap<ServerLevel, Budget> BUDGETS = new WeakHashMap<>();
 
     private MatterCableActivity() {}
@@ -26,7 +27,7 @@ final class MatterCableActivity {
     }
 
     static boolean canTrackEnergy(ServerLevel level) {
-        if (level.players().isEmpty()) return false;
+        if (!TRACK_ENERGY_PULSES || level.players().isEmpty()) return false;
         var budget = BUDGETS.get(level);
         return budget == null || budget.window != level.getGameTime() / 4
                 || budget.energyPulses < MAX_ENERGY_PULSES_PER_WINDOW;

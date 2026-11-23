@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "VEV",
+    "CRC"
+  ],
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "R": "rematter:rhevon_ingot",
+    "V": "rematter:virelite_ceramic",
+    "E": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_core",
+    "count": 1
+  }
+}

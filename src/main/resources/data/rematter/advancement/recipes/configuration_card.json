@@ -23,18 +23,18 @@
           },
           {
             "items": [
-              "rematter:optical_circuit"
-            ],
-            "count": {
-              "min": 1
-            }
-          },
-          {
-            "items": [
               "rematter:rhevon_ingot"
             ],
             "count": {
               "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:structural_bars"
+            ],
+            "count": {
+              "min": 1
             }
           }
         ]

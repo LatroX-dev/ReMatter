@@ -24,15 +24,64 @@ class MachineEnergyPolicyTest {
     @Test void combinedSavingsNeverExceedTheGlobalCapAcrossEverySupportedCount() {
         for(long base:new long[]{1,2,3,4,19,20,99,100,16000,1200000,Long.MAX_VALUE})
             for(int coils=1;coils<IndustrialPerformance.MAX_PARTS_PER_TYPE;coils++)
-                for(var upgrade:MachineEnergyPolicy.Upgrade.values())for(int count=0;count<=4;count++) {
+                for(int speed=0;speed<=4;speed++)for(int efficiency=0;efficiency<=4;efficiency++) {
                     var hardware=new IndustrialPerformance(0,0,0,coils,1);
-                    long reference=MachineEnergyPolicy.cost(base,upgrade==MachineEnergyPolicy.Upgrade.SPEED?upgrade:MachineEnergyPolicy.Upgrade.NONE,
-                            count,MachineKind.INDUSTRIAL_REACTOR,null);
-                    long price=MachineEnergyPolicy.cost(base,upgrade,count,MachineKind.INDUSTRIAL_REACTOR,hardware);
-                    assertTrue(price>=reference-reference/4);assertTrue(price<=reference);
+                    long reference=MachineEnergyPolicy.combined(base,speed,0);
+                    long price=MachineEnergyPolicy.cost(base,speed,efficiency,MachineKind.INDUSTRIAL_REACTOR,hardware);
+                    assertTrue(price>=base-base/4,"Below 75% floor: base="+base+" s="+speed+" e="+efficiency);
+                    assertTrue(price<=reference,"Above unmatched speed reference");
                 }
         var maximum=new IndustrialPerformance(0,0,0,IndustrialPerformance.MAX_PARTS_PER_TYPE-1,1);
-        assertEquals(12800,MachineEnergyPolicy.cost(16000,MachineEnergyPolicy.Upgrade.EFFICIENCY,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
+        assertEquals(12800,MachineEnergyPolicy.cost(16000,0,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
+        assertEquals(16000,MachineEnergyPolicy.cost(16000,4,4,MachineKind.INDUSTRIAL_REACTOR,maximum));
+    }
+    @Test void mekanismStyleCombinedPricingCancelsSpeedSurchargeOneToOneAndPreservesFloor() {
+        assertEquals(1000, MachineEnergyPolicy.combined(1000, 0, 0));
+        assertEquals(1250, MachineEnergyPolicy.combined(1000, 1, 0));
+        assertEquals(2000, MachineEnergyPolicy.combined(1000, 4, 0));
+        assertEquals(1000, MachineEnergyPolicy.combined(1000, 1, 1));
+        assertEquals(1000, MachineEnergyPolicy.combined(1000, 4, 4));
+        assertEquals(1250, MachineEnergyPolicy.combined(1000, 3, 2));
+        assertEquals(1500, MachineEnergyPolicy.combined(1000, 4, 2));
+        assertEquals(950, MachineEnergyPolicy.combined(1000, 0, 1));
+        assertEquals(900, MachineEnergyPolicy.combined(1000, 2, 4));
+        assertEquals(800, MachineEnergyPolicy.combined(1000, 0, 4));
+        assertEquals(100, MachineEnergyPolicy.costPercent(4, 4));
+        assertEquals(200, MachineEnergyPolicy.costPercent(4, 0));
+        assertEquals(80, MachineEnergyPolicy.costPercent(0, 4));
+        assertEquals(90, MachineEnergyPolicy.costPercent(2, 4));
+        for (int s = 0; s <= 4; s++) {
+            for (int e = 0; e < 4; e++) {
+                assertTrue(MachineEnergyPolicy.combined(16_000, s, e + 1) <= MachineEnergyPolicy.combined(16_000, s, e));
+            }
+        }
+    }
+    @Test void energyCapacityScalesPerTierAndDoublesWithEfficiencyUpgrades() {
+        for (var compact : List.of(MachineKind.ANALYZER, MachineKind.DECOMPOSER, MachineKind.SYNTHESIZER,
+                MachineKind.REACTOR, MachineKind.PREPARATOR, MachineKind.SINTER_FURNACE, MachineKind.ATMOSPHERIC_COLLECTOR)) {
+            assertEquals(32_000, MachineEnergyPolicy.baseEnergyCapacity(compact));
+            assertEquals(32_000, MachineEnergyPolicy.energyCapacity(compact, 0));
+            assertEquals(64_000, MachineEnergyPolicy.energyCapacity(compact, 1));
+            assertEquals(128_000, MachineEnergyPolicy.energyCapacity(compact, 2));
+            assertEquals(256_000, MachineEnergyPolicy.energyCapacity(compact, 3));
+            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(compact, 4));
+            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(compact, 9));
+        }
+        for (var industrial : List.of(MachineKind.INDUSTRIAL_REACTOR, MachineKind.INDUSTRIAL_PREPARATOR,
+                MachineKind.INDUSTRIAL_DECOMPOSER, MachineKind.INDUSTRIAL_SYNTHESIZER)) {
+            assertEquals(128_000, MachineEnergyPolicy.baseEnergyCapacity(industrial));
+            assertEquals(128_000, MachineEnergyPolicy.energyCapacity(industrial, 0));
+            assertEquals(256_000, MachineEnergyPolicy.energyCapacity(industrial, 1));
+            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(industrial, 2));
+            assertEquals(1_024_000, MachineEnergyPolicy.energyCapacity(industrial, 3));
+            assertEquals(2_048_000, MachineEnergyPolicy.energyCapacity(industrial, 4));
+        }
+        assertEquals(32_000, MachineEnergyPolicy.energyCapacity(MachineKind.CRYSTAL_GENERATOR, 4));
+        assertEquals(128_000, MachineEnergyPolicy.energyCapacity(MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR, 4));
+        assertEquals(128_000, MachineEnergyPolicy.energyCapacity(MachineKind.PRIMAL_CONVERTER, 4));
+        for (var unpowered : List.of(MachineKind.DRIVE, MachineKind.TERMINAL, MachineKind.NETWORK_INTERFACE, MachineKind.HAND_PREPARATOR)) {
+            assertEquals(0, MachineEnergyPolicy.energyCapacity(unpowered, 4));
+        }
     }
     @Test void speedUpgradesMultiplyTheBaseRateUpToTheSlotLimit() {
         assertEquals(2, MachineEnergyPolicy.speed(2, MachineEnergyPolicy.Upgrade.NONE, 4));
@@ -88,12 +137,13 @@ class MachineEnergyPolicyTest {
         assertThrows(IllegalArgumentException.class, () -> MachineEnergyPolicy.scaled(-1, 2));
     }
 
-    @Test void theLargestCatalogueBatchFitsTheBufferWithEverySpeedUpgrade() {
-        long full = MachineEnergyPolicy.cost(MachineEnergyPolicy.MAX_BATCH_ENERGY, MachineEnergyPolicy.Upgrade.SPEED, 4, MachineKind.SYNTHESIZER, null);
-        assertEquals(MachineBlockEntity.ENERGY_CAPACITY, full);
-        long industrialPreparation = MachineEnergyPolicy.cost(MachineEnergyPolicy.scaled(PreparationWork.MAX_ENERGY,
-                PreparationTier.energyMultiplier(MachineKind.INDUSTRIAL_PREPARATOR)), MachineEnergyPolicy.Upgrade.SPEED, 4, MachineKind.INDUSTRIAL_PREPARATOR, null);
-        assertTrue(industrialPreparation <= MachineBlockEntity.ENERGY_CAPACITY);
+    @Test void theLargestCatalogueBatchFitsPerTickAndUpgradedCapacities() {
+        long full = MachineEnergyPolicy.combined(MachineEnergyPolicy.MAX_BATCH_ENERGY, 4, 0);
+        assertEquals(2_400_000L, full);
+        assertEquals(MachineEnergyPolicy.MAX_BATCH_ENERGY, MachineEnergyPolicy.combined(MachineEnergyPolicy.MAX_BATCH_ENERGY, 4, 4));
+        long industrialPreparation = MachineEnergyPolicy.combined(MachineEnergyPolicy.scaled(PreparationWork.MAX_ENERGY,
+                PreparationTier.energyMultiplier(MachineKind.INDUSTRIAL_PREPARATOR)), 4, 4);
+        assertTrue(industrialPreparation <= MachineBlockEntity.MAX_ENERGY_CAPACITY);
     }
 
     @Test void aCatalogueWithAnUnaffordableBatchIsRejectedAtLoad() {
@@ -106,7 +156,7 @@ class MachineEnergyPolicyTest {
         assertTrue(error.getMessage().contains("example:expensive"));
     }
 
-    @Test void everyShippedBatchFitsTheBufferWithEverySpeedUpgrade() throws IOException {
+    @Test void everyShippedBatchFitsCatalogueLimitsAndSingleTickBaseBufferEvenAtMaxSpeed() throws IOException {
         assertDoesNotThrow(() -> MachineEnergyPolicy.requireFits(ShippedChemistry.standalone()));
         var documents = new ArrayList<Path>();
         for (var root : List.of(Path.of("src/main/resources/data"), Path.of("integrations/reforging/datapack/data")))
@@ -119,9 +169,23 @@ class MachineEnergyPolicyTest {
             if (!(JsonParser.parseString(Files.readString(document)) instanceof JsonObject json)) continue;
             if (path.contains("/recipe/")) {
                 if (!json.has("type") || !json.get("type").getAsString().equals("rematter:preparation")) continue;
-                assertTrue(json.get("energy").getAsLong() <= PreparationWork.MAX_ENERGY, path);
-            } else for (String field : List.of("energy", "decomposition_energy", "synthesis_energy"))
-                if (json.has(field)) assertTrue(json.get(field).getAsLong() <= MachineEnergyPolicy.MAX_BATCH_ENERGY, path);
+                long energy = json.get("energy").getAsLong();
+                int ticks = json.get("ticks").getAsInt();
+                assertTrue(energy <= PreparationWork.MAX_ENERGY, path);
+                long maxStep = MachineEnergyPolicy.stepEnergy(MachineEnergyPolicy.combined(energy, 4, 0), 0, 10, ticks, 0);
+                assertTrue(maxStep <= MatterLimits.COMPACT_MACHINE_ENERGY, "Single tick exceeds compact base buffer: " + path);
+            } else {
+                int ticks = json.has("ticks") ? json.get("ticks").getAsInt() : 0;
+                for (String field : List.of("energy", "decomposition_energy", "synthesis_energy")) {
+                    if (!json.has(field)) continue;
+                    long energy = json.get(field).getAsLong();
+                    assertTrue(energy <= MachineEnergyPolicy.MAX_BATCH_ENERGY, path);
+                    if (ticks > 0) {
+                        long maxStep = MachineEnergyPolicy.stepEnergy(MachineEnergyPolicy.combined(energy, 4, 0), 0, 10, ticks, 0);
+                        assertTrue(maxStep <= MatterLimits.COMPACT_MACHINE_ENERGY, "Single tick exceeds compact base buffer: " + path + " (" + field + ")");
+                    }
+                }
+            }
             checked++;
         }
         assertTrue(checked > 100, "Shipped catalogue documents were not found");

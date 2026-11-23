@@ -133,6 +133,7 @@ public final class EnergyCubePortGameTests {
             try(var tx=Transaction.openRoot()){h.assertTrue(incoming.insert(1,tx)==0,"Cable input bypassed horizontal OUTPUT role");}
             h.setBlock(outside,ModContent.MACHINES.get(MachineKind.DECOMPOSER).get().defaultBlockState().setValue(MachineBlock.FACING,side));
             var receiver=h.getBlockEntity(outside,MachineBlockEntity.class);receiver.placedBy(owner);
+            receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new net.minecraft.world.item.ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
             CableOwners.set(h.getLevel(),absolute,UUID.randomUUID());cube.serverTick();
             h.assertTrue(cube.energy()==tier.transferRate()&&receiver.energy().getAmountAsLong()==0,"Foreign cable accepted Cube output");
             CableOwners.set(h.getLevel(),absolute,owner.getUUID());cube.serverTick();

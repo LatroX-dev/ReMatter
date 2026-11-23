@@ -13,7 +13,7 @@ item_ids:
   - rematter:control_circuit
   - rematter:cell_rack
   - rematter:cell_housing
-  - rematter:matter_cell_64k
+  - rematter:matter_cell_4m
 ---
 # Before you start
 
@@ -68,7 +68,7 @@ Grind gold ingots in the Hand Preparator. Mix one Gold Dust with one plain Cryst
 
 Make the colored Crystals for the other machines by mixing a plain Matrix Crystal with the corresponding dust in a Preparator. Use **Copper Dust** for the Decomposer's two Copper Crystals, **Diamond Powder** for the Matter Drive's Mint Crystal, and **Emerald Dust** for the Synthesizer's three Leaf Crystals. Copper ingots can also be ground in the Hand Preparator. [Crystals and advanced components](advanced.md) lists every crystal color and the machines that use it.
 
-Make a **Cell Housing** from Structural Bars and glass. Stack **Control Circuit → Matrix Crystal → Cell Housing**, top to bottom, to make the 64k Cell. Make **Cell Racks** from Structural Bars, Control Circuits and Silith. Each Rack has three bays, and the Drive uses two Racks.
+Make a **Cell Housing** from Structural Bars and glass. Stack **Control Circuit → Matrix Crystal → Cell Housing**, top to bottom, to make the 4M Cell (4,000,000 u = 4,000 ingots or buckets). Make **Cell Racks** from Structural Bars, Control Circuits and Silith. Each Rack has three bays, and the Drive uses two Racks.
 
 <RecipeFor id="rematter:amber_matrix_crystal" />
 <RecipeFor id="rematter:material_preparator" />
@@ -78,7 +78,7 @@ Make a **Cell Housing** from Structural Bars and glass. Stack **Control Circuit 
 <RecipeFor id="rematter:decomposer" />
 <RecipeFor id="rematter:material_synthesizer" />
 <RecipeFor id="rematter:cell_housing" />
-<RecipeFor id="rematter:matter_cell_64k" />
+<RecipeFor id="rematter:matter_cell_4m" />
 <RecipeFor id="rematter:cell_rack" />
 <RecipeFor id="rematter:matter_drive" />
 

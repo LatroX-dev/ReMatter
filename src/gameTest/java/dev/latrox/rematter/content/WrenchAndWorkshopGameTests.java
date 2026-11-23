@@ -199,20 +199,20 @@ public final class WrenchAndWorkshopGameTests {
         // Click bottom-right bay (col 1, row 2 -> bay 5) on the NORTH front face while holding a 64k Cell.
         Vec3 bay5Point = new Vec3(absPos.getX() + 0.25, absPos.getY() + 3.5 / 16.0, absPos.getZ());
         var frontHit = new BlockHitResult(bay5Point, Direction.NORTH, absPos, false);
-        ItemStack heldCell = new ItemStack(ModContent.MATTER_CELL_64K.get());
+        ItemStack heldCell = new ItemStack(ModContent.MATTER_CELL_4M.get());
         owner.setItemInHand(InteractionHand.MAIN_HAND, heldCell);
         owner.setShiftKeyDown(false);
         var insertResult = h.getBlockState(relPos).useItemOn(heldCell, h.getLevel(), owner, InteractionHand.MAIN_HAND, frontHit);
         h.assertTrue(insertResult.consumesAction(), "Drive front bay did not accept cell click");
         int bay5Slot = MachineCellAccess.slotForBay(MachineKind.DRIVE, 5);
-        h.assertTrue(drive.getItem(bay5Slot).is(ModContent.MATTER_CELL_64K.get()) && owner.getMainHandItem().isEmpty(),
+        h.assertTrue(drive.getItem(bay5Slot).is(ModContent.MATTER_CELL_4M.get()) && owner.getMainHandItem().isEmpty(),
                 "Cell did not land in targeted Drive bay 5");
 
         // Shift-right-click with empty hand extracts the cell from bay 5 back into main hand.
         owner.setShiftKeyDown(true);
         var extractResult = h.getBlockState(relPos).useWithoutItem(h.getLevel(), owner, frontHit);
         h.assertTrue(extractResult.consumesAction(), "Drive front bay did not extract cell on sneak-right-click");
-        h.assertTrue(drive.getItem(bay5Slot).isEmpty() && owner.getMainHandItem().is(ModContent.MATTER_CELL_64K.get()),
+        h.assertTrue(drive.getItem(bay5Slot).isEmpty() && owner.getMainHandItem().is(ModContent.MATTER_CELL_4M.get()),
                 "Extracted cell was not returned cleanly to player hand");
         h.succeed();
     }
@@ -222,9 +222,9 @@ public final class WrenchAndWorkshopGameTests {
         BlockPos drivePos = new BlockPos(2, 2, 2);
         BlockPos decompPos = new BlockPos(3, 2, 2);
         var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var decomp = placeMachine(h, decompPos, MachineKind.DECOMPOSER, Direction.NORTH, owner);
-        decomp.energy().set(100_000);
+        decomp.energy().set(decomp.energyCapacity());
         decomp.setItem(0, new ItemStack(Items.COPPER_INGOT, 2));
 
         // Comparator reads stored energy on Decomposer (> 0) and 0 on empty Drive.
@@ -258,10 +258,10 @@ public final class WrenchAndWorkshopGameTests {
     private static void toolSalvageRuntime(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var drive = placeMachine(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var decomp = placeMachine(h, new BlockPos(3, 2, 2), MachineKind.DECOMPOSER, Direction.NORTH, owner);
         var analyzer = placeMachine(h, new BlockPos(1, 2, 2), MachineKind.ANALYZER, Direction.NORTH, owner);
-        decomp.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        decomp.energy().set(decomp.energyCapacity());
 
         // Half-damaged copper shovel (1 ingot = 400 ticks) yields strictly scaled copper in Decomposer,
         // is rejected by Analyzer, and is rejected when carrying CUSTOM_DATA.
@@ -402,7 +402,7 @@ public final class WrenchAndWorkshopGameTests {
         h.setBlock(cablePos, ModContent.MATTER_CABLE.get());
         CableOwners.set(h.getLevel(), h.absolutePos(cablePos), owner.getUUID());
         var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var synth = placeMachine(h, synthPos, MachineKind.SYNTHESIZER, Direction.NORTH, owner);
 
         try (var tx = Transaction.openRoot()) {

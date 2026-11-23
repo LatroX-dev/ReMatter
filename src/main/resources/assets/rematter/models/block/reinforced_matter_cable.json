@@ -2,6 +2,6 @@
   "parent": "rematter:block/matter_cable_geometry_core",
   "textures": {
     "particle": "rematter:block/reinforced_matter_cable",
-    "cable": "rematter:block/reinforced_matter_cable"
+    "glow": "rematter:block/reinforced_matter_cable_glow"
   }
 }

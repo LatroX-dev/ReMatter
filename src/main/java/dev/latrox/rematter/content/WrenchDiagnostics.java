@@ -125,7 +125,7 @@ public final class WrenchDiagnostics {
         if (summary == null) return WrenchDiagnosticPayload.locked(pos, face);
         var kind = machine.kind();
         boolean hasEnergy = !PreparationTier.manual(kind) && (kind.processes() || kind.generator());
-        long energyCap = hasEnergy ? MachineBlockEntity.ENERGY_CAPACITY : 0;
+        long energyCap = hasEnergy ? machine.energyCapacity() : 0;
         var netView = machine.networkLive() ? machine.matterNetwork(false).view() : null;
         int nodes = netView == null ? 0 : netView.nodes();
         int cells = netView == null ? 0 : netView.cells();

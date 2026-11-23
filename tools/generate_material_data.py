@@ -41,25 +41,21 @@ def output(path, value, check, written):
 
 
 def java_constant(source, name):
-    match = re.search(rf"static final (?:int|long) {name} = ([0-9_]+);", (MACHINE_SOURCES / source).read_text())
+    match = re.search(rf"static final (?:int|long) {name} = ([0-9_]+)L?;", (MACHINE_SOURCES / source).read_text())
     if not match:
         raise ValueError(f"Cannot read {name} from {source}")
     return int(match.group(1).replace("_", ""))
 
 
 def batch_energy_limit():
-    """Return MachineEnergyPolicy.MAX_BATCH_ENERGY: the FE buffer divided by the full speed-upgrade factor.
+    """Return MachineEnergyPolicy.MAX_BATCH_ENERGY.
 
     The machines reject a catalogue at load time when any batch exceeds it, whether or not synthesis is permitted.
     """
     policy = (MACHINE_SOURCES / "MachineEnergyPolicy.java").read_text()
-    if re.search(r"MAX_BATCH_ENERGY = [0-9_]+;", policy):
+    if re.search(r"MAX_BATCH_ENERGY = [0-9_]+L?;", policy):
         return java_constant("MachineEnergyPolicy.java", "MAX_BATCH_ENERGY")
-    if "MAX_BATCH_ENERGY = MachineBlockEntity.ENERGY_CAPACITY / MAX_SPEED_FACTOR;" not in policy:
-        raise ValueError("MachineEnergyPolicy.MAX_BATCH_ENERGY changed; update batch_energy_limit")
-    if "ENERGY_CAPACITY = MatterLimits.MACHINE_ENERGY;" not in (MACHINE_SOURCES / "MachineBlockEntity.java").read_text():
-        raise ValueError("Machine energy no longer uses MatterLimits")
-    return java_constant("MatterLimits.java", "MACHINE_ENERGY") // java_constant("MachineEnergyPolicy.java", "MAX_SPEED_FACTOR")
+    raise ValueError("MachineEnergyPolicy.MAX_BATCH_ENERGY changed; update batch_energy_limit")
 
 
 def require_energy(target, row, limit):

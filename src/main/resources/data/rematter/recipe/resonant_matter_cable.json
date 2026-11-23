@@ -2,18 +2,16 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "CLC",
-    "VNV",
-    "CLC"
+    "CCC",
+    "CDC",
+    "CCC"
   ],
   "key": {
     "C": "rematter:reinforced_matter_cable",
-    "L": "rematter:lumivex_ingot",
-    "V": "rematter:virelite_ceramic",
-    "N": "rematter:netherite_sheath"
+    "D": "rematter:diamond_lattice"
   },
   "result": {
     "id": "rematter:resonant_matter_cable",
-    "count": 4
+    "count": 8
   }
 }

@@ -29,14 +29,21 @@ ENERGY_CUBE_LOOK = 'recessed_core'
 ENERGY_PORT_SIZES = {'compact': 6, 'trimmed': 7, 'balanced': 8}
 ENERGY_PORT_STYLE = 'compact'
 TIERS = {'energy_cube': 1, 'reinforced_energy_cube': 2, 'resonant_energy_cube': 3}
+PREVIOUS_TIER = {'reinforced_energy_cube': 'energy_cube', 'resonant_energy_cube': 'reinforced_energy_cube'}
 CRYSTAL = 'ember'
+SHARED_CORE = 'rematter:energy_core'
 RECIPES = {
-    'energy_cube': (['RER', 'KFK', 'RVR'], {'R': 'rematter:rhevon_ingot', 'E': 'rematter:ember_matrix_crystal',
-                    'K': 'rematter:matter_cable', 'F': 'rematter:machine_frame', 'V': 'rematter:virelite_ceramic'}),
-    'reinforced_energy_cube': (['LEL', 'OFO', 'VKV'], {'L': 'rematter:lumivex_ingot', 'E': 'rematter:ember_matrix_crystal',
-                    'O': 'rematter:optical_circuit', 'F': 'rematter:machine_frame', 'V': 'rematter:ender_conductor', 'K': 'rematter:reinforced_matter_cable'}),
-    'resonant_energy_cube': (['NEN', 'DFD', 'KGK'], {'N': 'rematter:netherite_sheath', 'E': 'rematter:ember_matrix_crystal',
-                    'D': 'rematter:diamond_lattice', 'F': 'rematter:machine_frame', 'K': 'rematter:resonant_matter_cable', 'G': 'rematter:matrix_cluster'}),
+    'energy_cube': ('minecraft:crafting_shaped', ['RKR', 'MFM', 'RKR'], {
+        'R': 'rematter:rhevon_ingot', 'K': SHARED_CORE,
+        'M': 'rematter:matter_cable', 'F': 'rematter:machine_frame'}),
+    'reinforced_energy_cube': ('rematter:energy_upgrade_shaped', ['KCK', 'LBL', 'OEO'], {
+        'K': SHARED_CORE, 'C': 'rematter:reinforced_matter_cable',
+        'L': 'rematter:lumivex_ingot', 'B': 'rematter:energy_cube',
+        'O': 'rematter:optical_circuit', 'E': 'rematter:ender_conductor'}),
+    'resonant_energy_cube': ('rematter:energy_upgrade_shaped', ['KCK', 'NBN', 'DGD'], {
+        'K': SHARED_CORE, 'C': 'rematter:resonant_matter_cable',
+        'N': 'rematter:netherite_sheath', 'B': 'rematter:reinforced_energy_cube',
+        'D': 'rematter:diamond_lattice', 'G': 'rematter:matrix_cluster'}),
 }
 
 
@@ -276,14 +283,21 @@ def disabled_horizontal_model(local):
 
 
 def check_recipes():
-    # These are independent crafts, so stored FE or charging-slot contents cannot disappear into a tier upgrade.
-    for name, (_, keys) in RECIPES.items():
-        if any(ingredient.removeprefix('rematter:') in TIERS for ingredient in keys.values()):
-            raise ValueError(f'{name}: do not consume a previous energy cube')
+    # Higher Energy Cube tiers upgrade the previous tier through EnergyUpgradeRecipe so stored FE,
+    # configured side modes, and charging/discharging slot contents transfer cleanly.
+    for name, (recipe_type, _, keys) in RECIPES.items():
+        previous = PREVIOUS_TIER.get(name)
+        if previous is not None:
+            if 'rematter:' + previous not in keys.values():
+                raise ValueError(f'{name}: must upgrade from previous tier {previous}')
+            if recipe_type != 'rematter:energy_upgrade_shaped':
+                raise ValueError(f'{name}: tier upgrade must use rematter:energy_upgrade_shaped to preserve stored FE')
+        elif any(ingredient.removeprefix('rematter:') in TIERS for ingredient in keys.values()):
+            raise ValueError(f'{name}: base tier cannot depend on another energy cube')
+        if SHARED_CORE not in keys.values():
+            raise ValueError(f'{name}: must share the common {SHARED_CORE} building block with Portable Energy Cell')
         if 'rematter:' + ENERGY_CABLE_TIERS[name] not in keys.values():
             raise ValueError(f'{name}: its tier band requires its matching cable ingredient')
-        if f'rematter:{CRYSTAL}_matrix_crystal' not in keys.values():
-            raise ValueError(f'{name}: recipe hue differs from its sprite')
         for ingredient in keys.values():
             if ingredient.startswith('rematter:') and not (ART / 'items' / (ingredient.split(':')[1] + '.json')).is_file():
                 raise ValueError(f'{name}: unregistered ingredient asset {ingredient}')
@@ -377,8 +391,8 @@ def generate(check=False):
     for folder, files in (('models/block', family.models), ('blockstates', family.blockstates), ('items', family.items)):
         for name, value in files.items():
             out.json(ART / folder / f'{name}.json', value)
-    for name, (pattern, keys) in RECIPES.items():
-        out.json(DATA / f'recipe/{name}.json', {'type': 'minecraft:crafting_shaped', 'category': 'misc', 'pattern': pattern,
+    for name, (recipe_type, pattern, keys) in RECIPES.items():
+        out.json(DATA / f'recipe/{name}.json', {'type': recipe_type, 'category': 'misc', 'pattern': pattern,
                  'key': keys, 'result': {'id': 'rematter:' + name, 'count': 1}})
         out.json(DATA / f'advancement/recipes/{name}.json', shaped_discovery(name, pattern, keys))
         out.json(DATA / f'loot_table/blocks/{name}.json', {'type': 'minecraft:block', 'pools': [{'rolls': 1,

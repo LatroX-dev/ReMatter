@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "GDG",
+    "GRG",
     "BCB",
     "FMF"
   ],
   "key": {
     "G": "minecraft:glass",
-    "D": "rematter:diamond_lattice",
+    "R": "rematter:rhevon_ingot",
     "B": "rematter:structural_bars",
     "C": "rematter:control_circuit",
     "F": "rematter:machine_frame",

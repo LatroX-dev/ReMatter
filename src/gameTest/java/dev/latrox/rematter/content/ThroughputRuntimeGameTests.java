@@ -104,6 +104,7 @@ public final class ThroughputRuntimeGameTests {
     }
     private static void combinedInput(GameTestHelper h){
         var owner=owner(h);var receiver=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
+        receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
         var nativeBasic=cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.BASIC,owner);
         var nativeFast=cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.RESONANT,owner);
         var north=energy(h,receiver.getBlockPos(),Direction.EAST);var south=energy(h,receiver.getBlockPos(),Direction.SOUTH);
@@ -136,7 +137,7 @@ public final class ThroughputRuntimeGameTests {
         h.setBlock(6,2,6,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.FIELD_COIL).get());
         h.setBlock(6,6,6,ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.REACTION_CHAMBER).get());
         h.assertTrue(IndustrialStructure.inspect(reactor).formed(),"Parallel fixture failed: "+IndustrialStructure.inspect(reactor).diagnostic());
-        var drive=machine(h,new BlockPos(2,2,6),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        var drive=machine(h,new BlockPos(2,2,6),MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
         cable(h,new BlockPos(3,2,6),MatterCableBlock.Tier.BASIC,owner);cable(h,new BlockPos(4,2,6),MatterCableBlock.Tier.BASIC,owner);
         h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.WATER,4_000L)),"Water fixture did not fit");
         reactor.setItem(2,new ItemStack(ModContent.SPEED_UPGRADE.get(),4));reactor.setItem(MachineCellAccess.PARALLEL_SLOT,new ItemStack(ModContent.PARALLEL_UPGRADE.get(),3));
@@ -184,17 +185,17 @@ public final class ThroughputRuntimeGameTests {
         h.assertTrue(extract(energy(h,gen.getBlockPos(),Direction.SOUTH),2_048)==768,"Final real output was not the exact one-crystal value");h.succeed();
     }
     private static void generatorOutput(GameTestHelper h){
-        var gen=generator(h,owner(h));gen.energy().set(MachineBlockEntity.ENERGY_CAPACITY);nextTick(h,gen);
+        var gen=generator(h,owner(h));int cap=gen.energyCapacity();gen.energy().set(cap);nextTick(h,gen);
         h.assertTrue(gen.getItem(0).getCount()==1&&remaining(gen)==0,"A full FE buffer consumed a fresh crystal");
         var north=energy(h,gen.getBlockPos(),Direction.EAST);var south=energy(h,gen.getBlockPos(),Direction.SOUTH);
         try(var outer=Transaction.openRoot()){
             try(var nested=Transaction.open(outer)){h.assertTrue(north.extract(2_048,nested)==2_048,"Generator nested simulation failed");}
-            h.assertTrue(gen.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Nested abort did not return generator FE");
+            h.assertTrue(gen.energy().getAmountAsLong()==cap,"Nested abort did not return generator FE");
             h.assertTrue(north.extract(2_000,outer)==2_000&&south.extract(2_000,outer)==48,"Generator sides did not share one2,048FE output allowance");outer.commit();
         }
         h.assertTrue(extract(energy(h,gen.getBlockPos(),Direction.EAST),2_048)==0,"A third side bypassed the spent output allowance");
         gen.serverTick();h.assertTrue(gen.getItem(0).isEmpty()&&remaining(gen)==640,"Space did not consume exactly one new crystal");
-        h.assertTrue(gen.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY-2_048+128,"Generated buffer energy was not exact");
+        h.assertTrue(gen.energy().getAmountAsLong()==cap-2_048+128,"Generated buffer energy was not exact");
         h.assertTrue(extract(north,2_048)==0,"Generation reset the same-tick output journal");nextTick(h);
         h.assertTrue(extract(north,2_048)==2_048,"Generator output budget did not reset next tick");h.succeed();
     }
@@ -203,7 +204,7 @@ public final class ThroughputRuntimeGameTests {
         block.setPlacedBy(h.getLevel(),absolute,block.defaultBlockState(),owner,new ItemStack(block));return absolute;
     }
     private static MachineBlockEntity drive(GameTestHelper h,BlockPos relative,Player owner,long water){
-        var drive=machine(h,relative,MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        var drive=machine(h,relative,MachineKind.DRIVE,owner);drive.setItem(0,new ItemStack(ModContent.MATTER_CELL_4M.get()));
         h.assertTrue(drive.matterStore().apply(Map.of(),Map.of(BuiltinChemistry.WATER,water)),"Drive fixture did not fit");return drive;
     }
     private static void linkRepair(GameTestHelper h){
@@ -247,6 +248,7 @@ public final class ThroughputRuntimeGameTests {
     /** The origin tier must not disguise a slower cable in the middle of the actual route. */
     private static void nativeRouteTier(GameTestHelper h){
         var owner=owner(h);var receiver=machine(h,new BlockPos(7,3,5),MachineKind.REACTOR,owner);
+        receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
         var input=cable(h,new BlockPos(3,3,5),MatterCableBlock.Tier.RESONANT,owner);
         cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.BASIC,owner);
         cable(h,new BlockPos(5,3,5),MatterCableBlock.Tier.RESONANT,owner);cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.RESONANT,owner);
@@ -262,6 +264,7 @@ public final class ThroughputRuntimeGameTests {
         var input=cable(h,new BlockPos(3,3,5),MatterCableBlock.Tier.RESONANT,owner);
         cable(h,new BlockPos(21,3,5),MatterCableBlock.Tier.RESONANT,owner);
         var receiver=machine(h,new BlockPos(22,3,5),MachineKind.REACTOR,owner);
+        receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
         h.assertTrue(insert(input,131_072)==0,"Unpaired FE component reached the remote receiver");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,b,owner.getUUID()),"FE pair fixture failed");
         var direct=energy(h,a,Direction.UP);
@@ -290,10 +293,11 @@ public final class ThroughputRuntimeGameTests {
         h.assertTrue(right.energy().getAmountAsLong()+north.energy().getAmountAsLong()==2_048,"Multiple receiver sides created or lost FE");
         var local=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
         // Fill the remote recipients explicitly so the next accepted FE must cross the pair in reverse.
-        right.energy().set(MachineBlockEntity.ENERGY_CAPACITY);north.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        int rightCap=right.energyCapacity(),northCap=north.energyCapacity();
+        right.energy().set(rightCap);north.energy().set(northCap);
         h.assertTrue(insert(energy(h,b,Direction.UP),131_072)==0&&local.energy().getAmountAsLong()==0,"Reverse flow granted the pair a second directional budget");
         nextTick(h);h.assertTrue(insert(energy(h,b,Direction.UP),131_072)==2_048,"Reverse flow could not reuse a fresh tick's shared allowance");
-        h.assertTrue(local.energy().getAmountAsLong()==2_048&&right.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY&&north.energy().getAmountAsLong()==MachineBlockEntity.ENERGY_CAPACITY,"Fresh reverse transfer did not reach the actual opposite-side MBE exactly");h.succeed();
+        h.assertTrue(local.energy().getAmountAsLong()==2_048&&right.energy().getAmountAsLong()==rightCap&&north.energy().getAmountAsLong()==northCap,"Fresh reverse transfer did not reach the actual opposite-side MBE exactly");h.succeed();
     }
     private static void linkFeRepair(GameTestHelper h){
         var owner=owner(h);var foreign=owner(h);var a=link(h,new BlockPos(4,3,5),owner);var b=link(h,new BlockPos(20,3,5),owner);var c=link(h,new BlockPos(20,3,11),owner);

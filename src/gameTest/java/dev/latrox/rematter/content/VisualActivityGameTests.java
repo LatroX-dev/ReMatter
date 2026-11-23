@@ -61,9 +61,9 @@ public final class VisualActivityGameTests {
     private static void processing(GameTestHelper h) {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var drive = machine(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, owner);
-        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var worker = machine(h, new BlockPos(3, 2, 2), MachineKind.DECOMPOSER, owner);
-        worker.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        worker.energy().set(worker.energyCapacity());
         worker.setItem(0, new ItemStack(Items.SAND));
         worker.serverTick();
         h.assertTrue(worker.visualProgress() > 0 && worker.getBlockState().getValue(MachineBlock.ACTIVE), "Fixture did no real work");
@@ -158,9 +158,10 @@ public final class VisualActivityGameTests {
         var module = h.getBlockEntity(new BlockPos(4, 2, 4), IndustrialModuleBlockEntity.class);
         h.assertTrue(IndustrialStructure.inspect(controller).formed(), "Visual-job chamber fixture did not form");
         var drive = machine(h, new BlockPos(2, 2, 4), MachineKind.DRIVE, owner);
-        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_4M.get()));
         h.assertTrue(drive.matterStore().apply(Map.of(), Map.of(dev.latrox.rematter.chemistry.BuiltinChemistry.WATER, 1000L)), "Module fixture lacks water");
-        controller.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        int controllerCap = controller.energyCapacity();
+        controller.energy().set(controllerCap);
         h.assertTrue(controller.selectRecipe("rematter:water_freezing") && controller.requestBatch(), "Module fixture cannot request one real batch");
         long cost = controller.cost(dev.latrox.rematter.ReMatter.chemistry().recipe(dev.latrox.rematter.chemistry.SubstanceId.parse("rematter:water_freezing")).orElseThrow().energy());
         int[] paused = {0};
@@ -172,8 +173,8 @@ public final class VisualActivityGameTests {
                     "Module does not publish the controller raw work and base rate");
             paused[0] = module.visualWorkProgress();
             pausedEnergy[0] = controller.energy().getAmountAsLong();
-            h.assertTrue(pausedEnergy[0] < MachineBlockEntity.ENERGY_CAPACITY
-                    && pausedEnergy[0] + controller.work().energyPaid == MachineBlockEntity.ENERGY_CAPACITY,
+            h.assertTrue(pausedEnergy[0] < controllerCap
+                    && pausedEnergy[0] + controller.work().energyPaid == controllerCap,
                     "Active module batch did not account tick FE before pause");
             controller.toggleRunning();
         });
@@ -181,7 +182,7 @@ public final class VisualActivityGameTests {
             h.assertTrue(module.visualWorkDuration() > 0 && module.visualWorkProgress() == paused[0]
                     && !module.getBlockState().getValue(IndustrialModuleBlock.ACTIVE), "Paused module lost its job or gained work");
             h.assertTrue(controller.energy().getAmountAsLong() == pausedEnergy[0]
-                    && controller.energy().getAmountAsLong() + controller.work().energyPaid == MachineBlockEntity.ENERGY_CAPACITY
+                    && controller.energy().getAmountAsLong() + controller.work().energyPaid == controllerCap
                     && drive.matterStore().amount(dev.latrox.rematter.chemistry.BuiltinChemistry.WATER) == 1000L,
                     "Visual module hold paid or consumed the paused batch");
             controller.toggleRunning();
@@ -192,7 +193,7 @@ public final class VisualActivityGameTests {
                     && !module.getBlockState().getValue(IndustrialModuleBlock.ACTIVE), "Idle formed module kept a loaded job");
             h.assertTrue(drive.matterStore().amount(dev.latrox.rematter.chemistry.BuiltinChemistry.ICE) == 1000L
                     && drive.matterStore().amount(dev.latrox.rematter.chemistry.BuiltinChemistry.WATER) == 0L
-                    && controller.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - cost,
+                    && controller.energy().getAmountAsLong() == controllerCap - cost,
                     "Module visual lifecycle lost quantities or changed the one-batch FE price");
             h.succeed();
         });

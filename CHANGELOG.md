@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.9.0
+
+### Breaking & Migration Notes
+- **Matter Cell Tier Rename & 64× Storage Rebalance:** Ordinary Matter Cells now scale to match Applied Energistics 2 (`1k`/`4k`/`16k`/`64k`) and Refined Storage (`4k`/`16k`/`64k`/`256k`) storage ratios while preserving exact `1,000 u = 1 ingot / 1 bucket` chemistry conservation:
+  - `rematter:matter_cell_64k` (`64,000 u`) → **`rematter:matter_cell_4m`** (`4,000,000 u` = 4,000 ingots/buckets)
+  - `rematter:matter_cell_256k` (`256,000 u`) → **`rematter:matter_cell_16m`** (`16,000,000 u` = 16,000 ingots/buckets)
+  - `rematter:matter_cell_1m` (`1,000,000 u`) → **`rematter:matter_cell_64m`** (`64,000,000 u` = 64,000 ingots/buckets)
+  - New Tier 4 endgame cell: **`rematter:matter_cell_256m`** (`256,000,000 u` = 256,000 ingots/buckets; a full 6-bay Matter Drive holds `1,536,000,000 u`)
+  - **Automatic world migration:** NeoForge item registry aliases automatically migrate existing `matter_cell_64k`, `matter_cell_256k` and `matter_cell_1m` cells to `matter_cell_4m`, `matter_cell_16m` and `matter_cell_64m` without losing any stored substances or partitions. Previously crafted `rematter:matter_cell_4m` cells remain valid at `4,000,000 u` as the new Tier 1 cell (all stored contents remain intact; craft `matter_cell_256m` for the new Tier 4 tier). Pack authors and datapacks referencing old Matter Cell IDs (quests, tags, scripts) should update to `matter_cell_4m`, `matter_cell_16m`, `matter_cell_64m` and `matter_cell_256m`.
+
+### Gameplay & Balance
+- **Shared Energy Core & Tiered Energy Cube Upgrades:** Add `rematter:energy_core` as the shared building block across the Portable Energy Cell, Wireless Matter Terminal and all three Energy Cubes. Higher Energy Cube tiers now upgrade the previous tier (`energy_cube` → `reinforced_energy_cube` → `resonant_energy_cube`) via `rematter:energy_upgrade_shaped`, transferring exact stored FE, configured side modes and Charge/Discharge bay items safely (with JEI & EMI support).
+- **Dedicated Machine Upgrades Tab:** Move Speed, Efficiency, Pressure Module and Parallel upgrade slots into a dedicated Mekanism-style **Upgrades** tab on the machine screen rail with live effect readouts, automatic migration of previously installed upgrades, and full player inventory access (`Shift+Click` and `Sneak+Right-Click` installation preserved).
+- **Recipe Rebalancing:**
+  - Fix the Matter Cell cost progression across all four tiers (`16M` uses Rhevon instead of Ender Conductors; `64M` uses 2 Clusters and drops Netherite; `256M` scales strictly above `64M`).
+  - Make **Speed** and **Efficiency Upgrades** accessible in Tier 1 metallurgy (Structural Bars, Rhevon, Control Circuit and Rhedon/Virelite Ceramic — no Diamonds or Lumivex).
+  - Remove Ender Conductors from the basic wired **Matter Terminal** and Diamond Lattice from the **Analyzer**.
+  - Upgrade **Reinforced** and **Resonant Matter Cables** to Mekanism-style 8-cable rings (`8×` cables around `1× Ender Conductor` / `1× Diamond Lattice` → `8` cables, removing Netherite from bulk cabling).
+  - Lower **Configuration Card** to Control Circuit + Structural Bars and **Atmospheric Collector** to `1× Mint Matrix Crystal`.
+- **AE2 Byte Scaling Fix:** Set `MatterKey.TYPE.getAmountPerByte()` to `8,000` (matching AE2 fluids) so `1,000 u` consumes the same byte budget as 1 item or 1 bucket of fluid in AE2 storage/crafting.
+- Format Matter Cell tooltip totals with thousands separators for readability.
+
+### Visuals & Animations
+- **PCB-Trace Matter Cables & Calm Signal Pulse:** Redesign all three Matter Cable tiers around dark graphite 4 × 4 shafts carrying dual routed PCB traces with bends and over/under bridge crossovers, seamless glowing 90° corner pads and matching PCB junction hubs (`{tier}_glow.png`). A calm 32-frame GPU-interpolated signal sweep (`single_pulse`) glides smoothly along the traces with a generous resting pause so dense cable halls stay legible and calm without flickering.
+- **Zero-Particle 3D Matter Transfer Wave:** Replace floating transfer particle dots with a single batched additive 3D light sleeve (`RenderTypes.lightning`) hugging the cable shaft and hubs during active **Matter** transfers (continuous FE supply stays quiet on the PCB traces, eliminating server FE path-lookup and network pulse traffic; respects Minecraft's `ParticleStatus`).
+- **Icon Redesigns:** Refresh illustrated icons for Structural Bars (forged square bar bundle), Netherite Sheath, Ender Conductor, unified cartridge-chassis Upgrades & Modules, microchip-style Control & Optical Circuits, upright Portable Energy Cell and the new Energy Core.
+
 ## 0.8.1
 
 - Add the early-game **Spectrometer Lens** (`rematter:spectrometer_lens`, crafted with an Ice Matrix Crystal, Glass Pane, Structural Bars and Control Circuit) as the optical precursor to the endgame **Discovery Lens**, which now upgrades directly from a Spectrometer Lens in the Industrial Preparation Reactor.

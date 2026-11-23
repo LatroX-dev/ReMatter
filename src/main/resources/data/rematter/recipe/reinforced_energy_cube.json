@@ -1,18 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
+  "type": "rematter:energy_upgrade_shaped",
   "category": "misc",
   "pattern": [
-    "LEL",
-    "OFO",
-    "VKV"
+    "KCK",
+    "LBL",
+    "OEO"
   ],
   "key": {
+    "K": "rematter:energy_core",
+    "C": "rematter:reinforced_matter_cable",
     "L": "rematter:lumivex_ingot",
-    "E": "rematter:ember_matrix_crystal",
+    "B": "rematter:energy_cube",
     "O": "rematter:optical_circuit",
-    "F": "rematter:machine_frame",
-    "V": "rematter:ender_conductor",
-    "K": "rematter:reinforced_matter_cable"
+    "E": "rematter:ender_conductor"
   },
   "result": {
     "id": "rematter:reinforced_energy_cube",

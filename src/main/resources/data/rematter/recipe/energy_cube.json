@@ -2,16 +2,15 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "RER",
-    "KFK",
-    "RVR"
+    "RKR",
+    "MFM",
+    "RKR"
   ],
   "key": {
     "R": "rematter:rhevon_ingot",
-    "E": "rematter:ember_matrix_crystal",
-    "K": "rematter:matter_cable",
-    "F": "rematter:machine_frame",
-    "V": "rematter:virelite_ceramic"
+    "K": "rematter:energy_core",
+    "M": "rematter:matter_cable",
+    "F": "rematter:machine_frame"
   },
   "result": {
     "id": "rematter:energy_cube",

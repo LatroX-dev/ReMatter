@@ -31,14 +31,14 @@ public final class MatterCellItem extends Item {
         var inventory = open(stack);
         if (inventory.isEmpty()) {
             tooltip.accept(Component.translatable("item.rematter.matter_cell.locked"));
-            tooltip.accept(Component.translatable("item.rematter.matter_cell.capacity",capacity));
+            tooltip.accept(Component.translatable("item.rematter.matter_cell.capacity", formatUnits(capacity)));
             return;
         }
         // One read of the opened copy keeps the total, the type count and the rows consistent.
         var snapshot=inventory.get().snapshot();
         var rows=snapshot.contents();
         long total=rows.stream().mapToLong(SubstanceStack::quantity).sum();
-        tooltip.accept(Component.translatable("item.rematter.matter_cell.usage",total,capacity));
+        tooltip.accept(Component.translatable("item.rematter.matter_cell.usage", formatUnits(total), formatUnits(capacity)));
         tooltip.accept(Component.translatable("item.rematter.matter_cell.types",rows.size(),MatterCellData.MAX_TYPES));
         var status=CellStatus.of(true,true,total,capacity,rows.size(),MatterCellData.MAX_TYPES);
         tooltip.accept(Component.translatable("item.rematter.matter_cell.light",
@@ -49,6 +49,10 @@ public final class MatterCellItem extends Item {
         var registry=ChemistryText.catalogue(context.level());
         rows.stream().limit(3).forEach(row -> tooltip.accept(ChemistryText.row(registry,row.key(),row.quantity())));
         if(rows.size()>3)tooltip.accept(Component.translatable("item.rematter.matter_cell.more",rows.size()-3));
+    }
+
+    private static String formatUnits(long value) {
+        return String.format(java.util.Locale.ROOT, "%,d", value);
     }
 
 }

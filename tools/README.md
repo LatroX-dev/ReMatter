@@ -29,6 +29,7 @@ python3 tools/generate_device_assets.py --check
 python3 tools/generate_illustrated_icons.py --check
 python3 tools/generate_research_data.py --check
 python3 tools/generate_sound_assets.py --check
+python3 tools/generate_logo.py --check
 python3 tools/generate_primal_assets.py --check
 python3 tools/generate_progression_assets.py --check
 python3 tools/generate_energy_assets.py --check
@@ -75,6 +76,15 @@ python3 -m unittest discover -s integrations/reforging/tests -p 'test_*.py'
 - `check_visual_style.py` checks the shipped assets against the [visual style guide](../docs/visual-style.md): the size of every texture by asset class, the palette of block and GUI sprites, the form of item icons, block-style items for mounted hardware, the half-pixel grid and texel density of models, animation metadata (at least sixteen interpolated frames for glows, liquids and energy; only the red fault blink and the named Primal signature use hard steps), the vanilla host, light, animation and spectrum of the ores, colour literals in client code, and textures or models that nothing uses or that are missing. It reads the recipes for the colour rule: the result of a recipe shows the exact hue of every coloured Matrix Crystal in it, nothing shows a crystal hue without the crystal in its recipe chain, and the crystal table of the guide, `FAMILY`, and `machineAccent` in `UiPalette.java` agree with the recipes. It also compares the palette tables of the guide with the palette modules, and the port table of the guide with the block states: a disabled side is the plain face, a ring has the Machine Port sprite of its role, the ring colours of `MachinePortMode.java` are `PORT_MODES`, and no body model draws a face that belongs to its port plates. It uses only the standard library and writes nothing. Each finding names the rule and the fix; `--list` prints the texture inventory, `--hues` prints which crystal every recipe result holds and how many texels of each hue it shows, `--json FILE` writes the findings, and `--selftest` runs the rules against synthetic cases. Its `EXCEPTIONS` table holds the documented exceptions, each with a reason; an entry that no longer applies is reported.
 
 `component_drawing.py`, `generated_files.py`, `machine_palette.py`, `recipe_discovery.py` and `material_tiles.py` are shared helpers of these generators. `recipe_discovery.py` builds exact ingredient-count discovery and recipe rewards for generated vanilla crafting recipes. `family_palette.py` holds the colours, `renderer_parts.py` the checked moving hardware, `work_sprites.py` the work-strip painters, `family_sprites.py` the pixel art and `family_geometry.py` the box, texture mapping and z-fighting checks. `hardware_sprites.py` holds the tile packer, painters, module hue assignments and animated Primal run shared by the hardware generators. The older bench housings in `artwork/machines/` remain artwork references; shipping bench geometry is defined by `bench_showpieces.py`. Module models are generated assets, and `data/material_catalogue.json` is the authored chemistry source. The original painted material icons are canonical PNG artwork recorded by checksum in `artwork/painted-icon-sources.json`; new or changed icons need an SVG or deterministic painter. The registry is a closed provenance exception, not an exception to the visual rules.
+
+## Logo
+
+`generate_logo.py` draws the ReMatter logo: the block mark, the wordmark and the side-by-side and stacked lockups.
+It writes the SVG files to `artwork/logo/`, renders PNG files at the sizes listing pages need (mark 64, 128, 400 and
+1024 pixels) with previews on a dark and a light background, and records their checksums in
+`artwork/logo/rendered.json`. `LOGO_LOOK` selects the steel block with material veins (recommended), `mosaic` or
+`strata`; `--all` also writes the other two under `artwork/logo/alternatives/`. Rendering needs CairoSVG; the
+`--check` mode does not.
 
 ## Sound sets
 

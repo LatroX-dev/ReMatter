@@ -44,9 +44,10 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:preparation_reactor_controller`
 - `rematter:sinter_furnace`
 - `rematter:network_interface`
-- `rematter:matter_cell_64k`
-- `rematter:matter_cell_256k`
-- `rematter:matter_cell_1m`
+- `rematter:matter_cell_4m`
+- `rematter:matter_cell_16m`
+- `rematter:matter_cell_64m`
+- `rematter:matter_cell_256m`
 - `rematter:recovered_matter`
 - `rematter:automation_pattern`
 - `rematter:primal_converter`

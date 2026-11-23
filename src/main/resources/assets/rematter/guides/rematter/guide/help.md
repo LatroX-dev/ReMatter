@@ -27,7 +27,7 @@ Press **Start** on the Decomposer. On the Synthesizer, open **Choose recipe** or
 
 ## Supply power
 
-The Material Preparator, Sinter Furnace and chemistry processors need FE from a Crystal Generator or another power source. Matter Cables forward FE that a generator or energy store pushes into them; nothing can pull FE out of a cable. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE. Processing machines draw FE tick by tick while working and pause safely if power drops; interrupted or unloaded batches return their uncommitted FE to the buffer. Every single batch also fits the 2,400,000 FE buffer, even with four Speed Upgrades.
+The Material Preparator, Sinter Furnace and chemistry processors need FE from a Crystal Generator or another power source. Matter Cables forward FE that a generator or energy store pushes into them; nothing can pull FE out of a cable. The Drive needs no FE. Hover the lightning symbol on a powered machine for its stored FE, buffer capacity and active upgrade summary. Compact processors start with a **32,000 FE** buffer (up to **512,000 FE** with four Efficiency Upgrades), and industrial controllers start at **128,000 FE** (up to **2,048,000 FE**). Processing machines, Analyzer research and the Primal Converter draw FE tick by tick while working and pause safely if power drops; stationary machines keep their paid batch progress across chunk reloads, while cancelling or picking up a machine returns uncommitted FE up to its buffer capacity.
 
 ## Add missing material
 

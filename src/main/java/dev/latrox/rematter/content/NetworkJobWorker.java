@@ -106,7 +106,7 @@ final class NetworkJobWorker {
             long stepPerBatch = MachineEnergyPolicy.stepEnergy(required, resumedProgress, speed, duration, 0);
             int affordable = stepPerBatch == 0 ? maxLanes : (int) Math.min(maxLanes, energy.getAmountAsLong() / stepPerBatch);
             if (resumedProgress > 0) {
-                while (affordable > 1 && MachineEnergyPolicy.stepEnergy(Math.multiplyExact(required, affordable), resumedProgress, speed, duration, 0) > MachineBlockEntity.ENERGY_CAPACITY)
+                while (affordable > 1 && MachineEnergyPolicy.stepEnergy(Math.multiplyExact(required, affordable), resumedProgress, speed, duration, 0) > machine.energyCapacity())
                     affordable--;
             }
             parallelBatches = affordable;

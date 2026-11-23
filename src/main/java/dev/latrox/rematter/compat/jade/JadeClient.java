@@ -140,6 +140,16 @@ final class JadeClient {
                             .withStyle(generator ? ChatFormatting.GREEN : ChatFormatting.GOLD));
                 }
             }
+            if (accessor.showDetails()) {
+                int spd = data.getIntOr("speedUpgrades", 0);
+                int eff = data.getIntOr("efficiencyUpgrades", 0);
+                if (spd > 0 || eff > 0) {
+                    tooltip.add(Component.translatable("jade.rematter.upgrades",
+                            spd, dev.latrox.rematter.content.MachineEnergyPolicy.MAX_UPGRADES,
+                            eff, dev.latrox.rematter.content.MachineEnergyPolicy.MAX_UPGRADES)
+                            .withStyle(ChatFormatting.AQUA));
+                }
+            }
             if (data.getBooleanOr("pressureInstalled", false)) {
                 tooltip.add(Component.translatable("jade.rematter.pressure_installed").withStyle(ChatFormatting.AQUA));
             }

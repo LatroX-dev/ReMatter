@@ -4,14 +4,14 @@
   "pattern": [
     " B ",
     "ETE",
-    "OCO"
+    "OKO"
   ],
   "key": {
     "B": "rematter:blue_matrix_crystal",
     "E": "rematter:ender_conductor",
     "T": "rematter:matter_terminal",
     "O": "rematter:optical_circuit",
-    "C": "rematter:energy_cube"
+    "K": "rematter:energy_core"
   },
   "result": {
     "id": "rematter:wireless_matter_terminal",

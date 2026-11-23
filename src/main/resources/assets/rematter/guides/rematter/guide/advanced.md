@@ -83,9 +83,9 @@ Put one blend in the Sinter Furnace's input.
 
 | Blend | Component | Base cost | Used in |
 | --- | --- | --- | --- |
-| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 20 seconds | Analyzer, Chemical Processor, Network Interface, Preparation Reactor, Optical Circuits, upgrades, Cutters, Filters, Foci, 1M Cell |
-| Ender Conductor Blend | <ItemLink id="rematter:ender_conductor" /> | 16,000 FE, 24 seconds | 256k and 1M Cells, Matter Terminal, Network Interface, Machine Ports, Reinforced Matter Cable |
-| Netherite Sheath Blend | <ItemLink id="rematter:netherite_sheath" /> | 24,000 FE, 28 seconds | 1M Cell, Chemical Reactor, Resonant Matter Cable |
+| Diamond Matrix Blend | <ItemLink id="rematter:diamond_lattice" /> | 12,000 FE, 20 seconds | Chemical Processor, Network Interface, Preparation Reactor, Optical Circuits, Pressure/Parallel upgrades, Cutters, Filters, Foci, 64M Cell, Resonant Matter Cable |
+| Ender Conductor Blend | <ItemLink id="rematter:ender_conductor" /> | 16,000 FE, 24 seconds | 64M and 256M Cells, Wireless Terminal & Access Point, Network Interface, Machine Ports, Reinforced Matter Cable |
+| Netherite Sheath Blend | <ItemLink id="rematter:netherite_sheath" /> | 24,000 FE, 28 seconds | 256M Cell, Resonant Energy Cube, Chemical Reactor |
 
 Inputs are consumed only when the complete output fits. The Lattice, Conductor and Sheath stay physical parts; they never enter a Cell as stored matter.
 

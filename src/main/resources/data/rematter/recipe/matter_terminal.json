@@ -3,12 +3,12 @@
   "category": "misc",
   "pattern": [
     "GGG",
-    "PCP",
+    "BCB",
     "FMF"
   ],
   "key": {
     "G": "minecraft:glass",
-    "P": "rematter:ender_conductor",
+    "B": "rematter:structural_bars",
     "C": "rematter:control_circuit",
     "F": "rematter:machine_frame",
     "M": "rematter:mint_matrix_crystal"

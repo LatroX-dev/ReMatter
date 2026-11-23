@@ -33,7 +33,7 @@ Choose evaporation, condensation, mineral melting or solidification in the same 
 
 ## Crystal outputs
 
-Use the **Material Synthesizer** for explicitly approved crystal-family products. Install **one Pressure Module** in its dedicated Pressure slot beside the upgrade slot for tier 2, required for **every diamond form**, including native AE2/RS crafting patterns. Speed or Efficiency Upgrades stay available in the main upgrade slot at the same time. Ender Pearls and other permitted materials remain Synthesizer products.
+Use the **Material Synthesizer** for explicitly approved crystal-family products. Install **one Pressure Module** in its dedicated Pressure slot for tier 2, required for **every diamond form**, including native AE2/RS crafting patterns. Both Speed and Efficiency Upgrades stay available in their dedicated slots at the same time. Ender Pearls and other permitted materials remain Synthesizer products.
 
 <RecipeFor id="rematter:pressure_module" />
 

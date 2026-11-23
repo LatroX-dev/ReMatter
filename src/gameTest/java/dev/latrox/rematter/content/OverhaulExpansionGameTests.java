@@ -101,10 +101,11 @@ public final class OverhaulExpansionGameTests {
         BlockPos driveRel = new BlockPos(2, 2, 2);
         BlockPos collectorRel = new BlockPos(3, 2, 2);
         var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
 
         var collector = placeMachine(h, collectorRel, MachineKind.ATMOSPHERIC_COLLECTOR, Direction.NORTH, owner);
-        collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        int collectorCap = collector.energyCapacity();
+        collector.energy().set(collectorCap);
         h.assertTrue(collector.selectRecipe("rematter:air_oxygen"), "Atmospheric Collector should select air_oxygen");
 
         // The skylight engine runs off-thread. Start each phase after the intake sees the roof change.
@@ -117,7 +118,7 @@ public final class OverhaulExpansionGameTests {
                 .thenExecuteAfter(40, () -> {
                     var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
                     h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 0L, "Roofed collector must not harvest oxygen");
-                    h.assertTrue(collector.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY,
+                    h.assertTrue(collector.energy().getAmountAsLong() == collectorCap,
                             "Roofed collector must not spend FE");
                     h.setBlock(roof, Blocks.AIR);
                 })
@@ -129,13 +130,13 @@ public final class OverhaulExpansionGameTests {
                     h.assertTrue(inv.amount(BuiltinChemistry.OXYGEN) == 200L, "Expected 200 oxygen from one batch");
                 })
                 .thenExecute(() -> {
-                    h.assertTrue(collector.energy().getAmountAsLong() == MachineBlockEntity.ENERGY_CAPACITY - 8_000L,
+                    h.assertTrue(collector.energy().getAmountAsLong() == collectorCap - 8_000L,
                             "Collector must spend half the 16,000 FE base cost");
                     h.setBlock(roof, Blocks.STONE);
                 })
                 .thenWaitUntil(() -> h.assertFalse(h.getLevel().canSeeSky(intake), "Waiting for the cave roof"))
                 .thenExecute(() -> {
-                    collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+                    collector.energy().set(collectorCap);
                     h.assertTrue(collector.selectRecipe("rematter:cavern_vapor"), "Select cavern vapor");
                     h.assertTrue(collector.requestBatch(), "Queue the roofed cavern batch");
                 })
@@ -147,9 +148,9 @@ public final class OverhaulExpansionGameTests {
     }
 
     private static ItemStack cell64kWith(Map<SubstanceKey, Long> contents) {
-        ItemStack stack = new ItemStack(ModContent.MATTER_CELL_64K.get());
+        ItemStack stack = new ItemStack(ModContent.MATTER_CELL_4M.get());
         if (!contents.isEmpty()) {
-            MatterInventory inv = new MatterInventory(MatterLimits.CELL_64K);
+            MatterInventory inv = new MatterInventory(MatterLimits.CELL_4M);
             inv.apply(Map.of(), contents);
             stack.set(MatterCellData.TYPE.get(), MatterCellData.from(inv));
         }
@@ -159,7 +160,7 @@ public final class OverhaulExpansionGameTests {
     private static Map<SubstanceKey, Long> readCell64k(ItemStack stack) {
         MatterCellData data = stack.get(MatterCellData.TYPE.get());
         if (data == null) return Map.of();
-        return data.open(MatterLimits.CELL_64K).orElseThrow().contents();
+        return data.open(MatterLimits.CELL_4M).orElseThrow().contents();
     }
 
     private static void driveCellConsolidation(GameTestHelper h) {
@@ -180,7 +181,7 @@ public final class OverhaulExpansionGameTests {
         ItemStack cell2 = cell64kWith(Map.of(BuiltinChemistry.GOLD, 40_000L));
 
         // Bay 3 is explicitly partitioned for COPPER only and starts empty.
-        ItemStack partitionedCopperCell = new ItemStack(ModContent.MATTER_CELL_64K.get());
+        ItemStack partitionedCopperCell = new ItemStack(ModContent.MATTER_CELL_4M.get());
         partitionedCopperCell.set(CellPartitionData.TYPE.get(), CellPartitionData.allowOnly(Set.of(BuiltinChemistry.COPPER)));
 
         drive.setItem(drive.cellSlotForBay(0), cell0);
@@ -290,7 +291,7 @@ public final class OverhaulExpansionGameTests {
                 3);
         var drive = Objects.requireNonNull((MachineBlockEntity) h.getLevel().getBlockEntity(driveWorld));
         drive.placedBy(owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         reactor.serverTick();
         portBe.refreshNow();
 
@@ -325,7 +326,7 @@ public final class OverhaulExpansionGameTests {
         // Build compact connected row: DRIVE(1,2,2) - ATMOSPHERIC_COLLECTOR(2,2,2) - REACTOR(3,2,2) - SYNTHESIZER(4,2,2)
         // and TERMINAL at (1,2,3) facing SOUTH so its rear face (NORTH) connects directly to DRIVE's rear face (SOUTH)!
         var drive = placeMachine(h, new BlockPos(1, 2, 2), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var collector = placeMachine(h, new BlockPos(2, 2, 2), MachineKind.ATMOSPHERIC_COLLECTOR, Direction.NORTH, owner);
         var reactor = placeMachine(h, new BlockPos(3, 2, 2), MachineKind.REACTOR, Direction.NORTH, owner);
         var synth = placeMachine(h, new BlockPos(4, 2, 2), MachineKind.SYNTHESIZER, Direction.NORTH, owner);
@@ -335,9 +336,9 @@ public final class OverhaulExpansionGameTests {
         collector.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         reactor.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         synth.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
-        collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
-        reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
-        synth.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        collector.energy().set(collector.energyCapacity());
+        reactor.energy().set(reactor.energyCapacity());
+        synth.energy().set(synth.energyCapacity());
 
         var net = terminal.matterNetwork(true);
         var inv = Objects.requireNonNull(net.inventory(), "Terminal network inventory should be ready");
@@ -368,9 +369,9 @@ public final class OverhaulExpansionGameTests {
 
         // Keep worker FE topped up while real server ticks advance ControllerThroughput and ServerTickEvent.Post!
         h.onEachTick(() -> {
-            collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
-            reactor.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
-            synth.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+            collector.energy().set(collector.energyCapacity());
+            reactor.energy().set(reactor.energyCapacity());
+            synth.energy().set(synth.energyCapacity());
         });
 
         h.succeedWhen(() -> {
@@ -415,10 +416,10 @@ public final class OverhaulExpansionGameTests {
         ResearchService.ledger(level.getServer()).learnSubstances(
                 ResearchService.context(level.getServer(), ownerId), Set.of(BuiltinChemistry.OXYGEN));
         var drive = placeMachine(h, new BlockPos(1, 2, 2), MachineKind.DRIVE, Direction.NORTH, owner);
-        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var collector = placeMachine(h, new BlockPos(2, 2, 2), MachineKind.ATMOSPHERIC_COLLECTOR, Direction.NORTH, owner);
         var terminal = placeMachine(h, new BlockPos(1, 2, 3), MachineKind.TERMINAL, Direction.SOUTH, owner);
-        collector.energy().set(MachineBlockEntity.ENERGY_CAPACITY);
+        collector.energy().set(collector.energyCapacity());
         collector.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         var kind = TerminalBatchPlanner.TargetKind.SUBSTANCE;
         var plan = TerminalBatchPlanner.plan(ReMatter.chemistry(), kind, "rematter:oxygen", "gas", 256,
@@ -490,7 +491,7 @@ public final class OverhaulExpansionGameTests {
         // 2. Terminal inventory canister fill + drain & solid-phase exclusion.
         BlockPos termDriveRel = new BlockPos(1, 2, 1);
         var termDrive = placeMachine(h, termDriveRel, MachineKind.DRIVE, Direction.NORTH, owner);
-        termDrive.setItem(termDrive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+        termDrive.setItem(termDrive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var termNet = termDrive.matterNetwork(true);
         var termInv = Objects.requireNonNull(termNet.inventory());
         h.assertTrue(termInv.apply(Map.of(), Map.of(BuiltinChemistry.HYDROGEN, 12_000L, BuiltinChemistry.COPPER, 8_000L)),
@@ -536,7 +537,7 @@ public final class OverhaulExpansionGameTests {
             if (mekTankItem.isPresent()) {
                 BlockPos driveRel = new BlockPos(3, 2, 4);
                 var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.NORTH, owner);
-                drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_64K.get()));
+                drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
                 var driveInv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
                 h.assertTrue(driveInv.apply(Map.of(), Map.of(BuiltinChemistry.OXYGEN, 4_000L)), "Seed 4,000 OXYGEN");
                 drive.matterNetwork(true).markChanged();

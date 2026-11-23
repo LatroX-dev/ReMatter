@@ -5,6 +5,7 @@ navigation:
   parent: index.md
   position: 21
 item_ids:
+  - rematter:energy_core
   - rematter:energy_cube
   - rematter:reinforced_energy_cube
   - rematter:resonant_energy_cube
@@ -12,7 +13,11 @@ item_ids:
 ---
 # Store power and charge items
 
-An Energy Cube keeps FE available between generation and use. Its recessed core and segmented charge display show its reserve. The three tiers share the same Ember crystal identity; copper, turquoise and mauve bands match their Matter Cable tiers. Four identical horizontal ports accept the same centered cable connector on every side.
+An **Energy Core** is the shared Ember capacitor building block behind every Energy Cube tier, the Portable Energy Cell, and the Wireless Matter Terminal.
+
+<RecipeFor id="rematter:energy_core" />
+
+An Energy Cube keeps FE available between generation and use. Its recessed core and segmented charge display show its reserve. The three tiers build directly on each other (**Energy Cube** → **Reinforced Energy Cube** → **Resonant Energy Cube**), sharing the same Ember crystal identity while copper, turquoise and mauve bands match their Matter Cable tiers. Four identical horizontal ports accept the same centered cable connector on every side.
 
 | Cube | Stored energy | Shared transfer limit | Charge + Discharge bays |
 | --- | --- | --- | --- |
@@ -30,8 +35,8 @@ The core's pulses move **up while charging** and **down while discharging**, the
 
 Insert a compatible FE item into a **Charge** slot to fill it from the cube, or into a **Discharge** slot to drain stored FE from the item into the cube. All outputs and Charge slots share the tier's output allowance, while external inputs and Discharge slots share its input limit.
 
-Craft a **Portable Energy Cell** (8,000,000 FE, 16,384 FE/t) to power a Wireless Matter Terminal or charge FE tools in your inventory and equipped **Curios** slots when toggled with **Sneak + Right-Click**. With Curios installed, the Portable Energy Cell can also sit in a Curio, Charm, or Belt slot and recharge your gear continuously.
+Craft a **Portable Energy Cell** (4,000,000 FE, 16,000 FE/t) from two **Energy Cores** to power a Wireless Matter Terminal or charge FE tools in your inventory and equipped **Curios** slots when toggled with **Sneak + Right-Click**. With Curios installed, the Portable Energy Cell can also sit in a Curio, Charm, or Belt slot and recharge your gear continuously.
 
 <RecipeFor id="rematter:portable_energy_cell" />
 
-Moving a cube preserves its stored energy, side settings and docked items. Unreadable contents remain protected. Each tier is crafted independently, so crafting a larger cube does not consume an energy-filled smaller cube.
+Moving **or upgrading** an Energy Cube to the next tier preserves its stored FE, side configuration and docked Charge/Discharge items. Cubes with unreadable or unknown-schema data are safely refused by upgrade recipes so protected contents are never lost.

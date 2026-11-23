@@ -143,8 +143,8 @@ class ReForgingDataTest {
         Set<String> expected = Arrays.stream(MachineKind.values()).map(kind -> "rematter:" + kind.id()).collect(Collectors.toSet());
         Arrays.stream(dev.latrox.rematter.energy.EnergyCubeTier.values()).forEach(tier->expected.add("rematter:"+tier.id()));
         expected.add("rematter:cell_transfer_station");
-        expected.addAll(Set.of("rematter:matter_cell_64k", "rematter:matter_cell_256k", "rematter:matter_cell_1m",
-                "rematter:matter_cell_4m", "rematter:void_matter_cell",
+        expected.addAll(Set.of("rematter:matter_cell_4m", "rematter:matter_cell_16m", "rematter:matter_cell_64m",
+                "rematter:matter_cell_256m", "rematter:void_matter_cell",
                 "rematter:recovered_matter", "rematter:automation_pattern", "rematter:configuration_card",
                 "rematter:wireless_access_point", "rematter:wireless_matter_terminal",
                 "rematter:portable_energy_cell", "rematter:matter_level_emitter", "rematter:pressurized_canister"));
