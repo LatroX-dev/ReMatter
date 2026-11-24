@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Rematter Copper Matrix Crystal",
+  "items": [
+    "rematter:copper_matrix_crystal"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

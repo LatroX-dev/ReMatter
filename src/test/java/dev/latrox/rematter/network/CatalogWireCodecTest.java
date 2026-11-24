@@ -27,6 +27,8 @@ class CatalogWireCodecTest {
         assertEquals(java.util.List.copyOf(original.processes()), java.util.List.copyOf(received.processes()));
         assertFalse(original.synthesisPolicy().entries().isEmpty());
         assertEquals(original.synthesisPolicy().entries(), received.synthesisPolicy().entries());
+        assertFalse(original.synthesisPolicy().canonicalAliases().isEmpty());
+        assertEquals(original.synthesisPolicy().canonicalAliases(), received.synthesisPolicy().canonicalAliases());
         assertFalse(received.synthesisPolicy().category("example:copper_sample").isPresent());
         ProcessRecipe electrolysis = received.recipe(SubstanceId.parse("rematter:water_electrolysis")).orElseThrow();
         assertEquals(Map.of(BuiltinChemistry.HYDROGEN, 1_000L, BuiltinChemistry.OXYGEN, 500L), electrolysis.outputs());

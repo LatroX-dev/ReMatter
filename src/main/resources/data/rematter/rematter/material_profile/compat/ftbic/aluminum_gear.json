@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:aluminum_gear",
+  "matter": [
+    {
+      "substance": "rematter:aluminum",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 800
+}

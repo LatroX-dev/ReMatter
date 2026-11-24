@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:efficiency_upgrade",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1062
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2226
+    }
+  ],
+  "decomposition_energy": 40000,
+  "synthesis_energy": 80000,
+  "ticks": 96
+}

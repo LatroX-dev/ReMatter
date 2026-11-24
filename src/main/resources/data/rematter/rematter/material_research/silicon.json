@@ -2,14 +2,17 @@
   "schema": 1,
   "name": "Silicon",
   "items": [
+    "ae2:printed_silicon",
     "ae2:silicon",
+    "enderio:silicon",
     "energizedpower:silicon",
     "energizedpower:silicon_block",
     "extendedae:silicon_block",
     "ftbic:silicon_gem",
     "oritech:silicon",
     "oritech:silicon_block",
-    "refinedstorage:silicon"
+    "refinedstorage:silicon",
+    "stellaris:silicon"
   ],
   "substances": [
     {

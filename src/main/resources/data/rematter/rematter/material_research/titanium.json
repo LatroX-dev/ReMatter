@@ -3,6 +3,8 @@
   "name": "Titanium",
   "items": [
     "jaopca:dusts.titanium",
+    "jaopca:oritech_small_clumps.titanium",
+    "jaopca:tiny_dusts.titanium",
     "stellaris:deepslate_titanium_ore",
     "stellaris:moon_titanium_ore",
     "stellaris:raw_titanium",

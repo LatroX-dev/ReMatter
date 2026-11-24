@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:lime_dye",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 4000,
+  "ticks": 40
+}

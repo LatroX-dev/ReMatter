@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:purpur_block",
+  "matter": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 120
+}

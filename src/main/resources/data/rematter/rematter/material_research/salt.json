@@ -9,9 +9,14 @@
     "alltheores:salt_block",
     "alltheores:salt_dust",
     "alltheores:salt_ore",
+    "bakeries:salt",
+    "croptopia:salt",
+    "croptopia:salt_ore",
     "jaopca:storage_blocks.salt",
+    "mekanism:block_salt",
     "mekanism:salt",
-    "nautec:salt"
+    "nautec:salt",
+    "refurbished_furniture:sea_salt"
   ],
   "substances": [
     {

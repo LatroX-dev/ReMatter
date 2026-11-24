@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "advanced_ae",
+  "item": "advanced_ae:quantum_alloy_plate",
+  "matter": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 32000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 256000,
+  "synthesis_energy": 512000,
+  "ticks": 600
+}

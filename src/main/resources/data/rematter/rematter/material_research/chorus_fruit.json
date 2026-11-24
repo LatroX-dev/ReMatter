@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Chorus Fruit",
+  "items": [
+    "minecraft:chorus_fruit",
+    "minecraft:popped_chorus_fruit",
+    "minecraft:purpur_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": "minecraft:the_end"
+}

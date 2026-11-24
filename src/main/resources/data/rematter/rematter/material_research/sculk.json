@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Sculk",
+  "items": [
+    "minecraft:sculk",
+    "minecraft:sculk_vein"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:soil",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

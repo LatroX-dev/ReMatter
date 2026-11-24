@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Raw Meat",
+  "items": [
+    "minecraft:beef",
+    "minecraft:chicken",
+    "minecraft:cod",
+    "minecraft:mutton",
+    "minecraft:porkchop",
+    "minecraft:pufferfish",
+    "minecraft:rabbit",
+    "minecraft:salmon",
+    "minecraft:tropical_fish"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

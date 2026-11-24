@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:alloy_reinforced",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 125
+    }
+  ],
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 220
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "required_mod": "rematter",
+  "item": "rematter:security_card",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 562
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1228
+    }
+  ],
+  "decomposition_energy": 30000,
+  "synthesis_energy": 60000,
+  "ticks": 88
+}

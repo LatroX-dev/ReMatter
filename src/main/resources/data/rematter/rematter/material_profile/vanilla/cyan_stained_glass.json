@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:cyan_stained_glass",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 12
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

@@ -7,6 +7,14 @@
         "items": [
           {
             "items": [
+              "#rematter:full_ender_pearl_powders"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
               "minecraft:copper_ingot"
             ],
             "count": {
@@ -27,14 +35,6 @@
             ],
             "count": {
               "min": 1
-            }
-          },
-          {
-            "items": [
-              "rematter:ender_pearl_powder"
-            ],
-            "count": {
-              "min": 2
             }
           }
         ]

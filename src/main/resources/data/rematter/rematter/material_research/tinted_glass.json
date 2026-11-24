@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Tinted Glass",
+  "items": [
+    "minecraft:tinted_glass"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

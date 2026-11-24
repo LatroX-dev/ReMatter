@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:block_salt",
+  "matter": [
+    {
+      "substance": "rematter:salt",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 128000,
+  "synthesis_energy": 256000,
+  "ticks": 800
+}

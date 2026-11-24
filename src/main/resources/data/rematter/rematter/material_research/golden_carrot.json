@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Golden Carrot",
+  "items": [
+    "minecraft:golden_carrot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:starch",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

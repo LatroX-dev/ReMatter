@@ -118,7 +118,7 @@ public final class ConfigurationCardInteractions {
 
     private static InteractionResult interactLink(Player player, ServerLevel server, BlockPos pos, ItemStack stack) {
         if (!(server.getBlockEntity(pos) instanceof EntangledLinkBlockEntity link)) return InteractionResult.FAIL;
-        if (link.owner() == null || !link.owner().equals(player.getUUID())) {
+        if (!link.canAccess(player)) {
             player.sendOverlayMessage(Component.translatable("message.rematter.private_machine"));
             return InteractionResult.FAIL;
         }
@@ -151,7 +151,7 @@ public final class ConfigurationCardInteractions {
             player.sendOverlayMessage(Component.translatable("message.rematter.config_card.link_unloaded"));
             return InteractionResult.FAIL;
         }
-        if (!EntangledLinks.pair(server, origin.pos(), pos, player.getUUID())) {
+        if (!EntangledLinks.pair(server, origin.pos(), pos, player)) {
             player.sendOverlayMessage(Component.translatable("message.rematter.private_machine"));
             return InteractionResult.FAIL;
         }

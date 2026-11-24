@@ -4,5 +4,6 @@
   "item": "enderio:powdered_quartz",
   "synthesis_machine": "material_synthesizer",
   "crystallization_tier": 1,
-  "category": "raw_material"
+  "category": "raw_material",
+  "synthesis_group": "dust:quartz"
 }

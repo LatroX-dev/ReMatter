@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "required_mod": "refurbished_furniture",
+  "item": "refurbished_furniture:sea_salt",
+  "synthesis_machine": "material_synthesizer",
+  "crystallization_tier": 1,
+  "category": "raw_material",
+  "synthesis_group": "dust:salt"
+}

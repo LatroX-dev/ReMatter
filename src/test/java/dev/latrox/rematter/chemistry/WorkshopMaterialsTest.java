@@ -237,7 +237,8 @@ class WorkshopMaterialsTest {
         assertEquals("rematter:lumivex_ingot", recipe("optical_circuit").getAsJsonObject("key").get("L").getAsString());
         assertEquals("rematter:virelite_ceramic", recipe("reaction_chamber").getAsJsonObject("key").get("V").getAsString());
         for (String component : List.of("sinter_furnace", "grinding_unit", "separation_unit", "mixing_basin", "field_coil", "optical_circuit", "reaction_chamber")) {
-            assertFalse(Files.exists(DATA.resolve("rematter/rematter/synthesis/compat/rematter/" + component + ".json")));
+            assertTrue(json("rematter/rematter/synthesis/compat/rematter/" + component + ".json").get("disabled").getAsBoolean(), component);
+            assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + component), component);
         }
     }
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "item": "rematter:optical_circuit",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 781
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 3031
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 88
+}

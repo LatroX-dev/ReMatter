@@ -2,11 +2,13 @@
   "schema": 1,
   "name": "Redstone",
   "items": [
+    "mekanism:enriched_redstone",
     "minecraft:deepslate_redstone_ore",
     "minecraft:redstone",
     "minecraft:redstone_block",
     "minecraft:redstone_ore",
-    "regions_unexplored:raw_redstone_block"
+    "regions_unexplored:raw_redstone_block",
+    "rematter:rhedon"
   ],
   "substances": [
     {

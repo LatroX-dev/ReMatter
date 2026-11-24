@@ -3,7 +3,8 @@
   "name": "Advanced Alloy",
   "items": [
     "energizedpower:advanced_alloy_block",
-    "energizedpower:advanced_alloy_ingot"
+    "energizedpower:advanced_alloy_ingot",
+    "energizedpower:advanced_alloy_plate"
   ],
   "substances": [
     {

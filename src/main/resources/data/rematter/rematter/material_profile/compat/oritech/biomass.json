@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:biomass",
+  "item_count": 4,
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 1500,
+  "synthesis_energy": 3000,
+  "ticks": 40
+}

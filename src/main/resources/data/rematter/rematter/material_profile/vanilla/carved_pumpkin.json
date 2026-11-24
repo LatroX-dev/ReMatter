@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:carved_pumpkin",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 400
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 400
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

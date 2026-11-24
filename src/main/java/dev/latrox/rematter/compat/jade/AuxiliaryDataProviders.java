@@ -91,9 +91,7 @@ final class AuxiliaryDataProviders {
         @Override public void appendServerData(CompoundTag data, BlockAccessor accessor) {
             if (!(accessor.getBlockEntity() instanceof EntangledLinkBlockEntity link)) return;
             CompoundTag view = new CompoundTag();
-            var player = accessor.getPlayer();
-            boolean allowed = link.canRemove(player)
-                    || (!(player instanceof FakePlayer) && TeamAccess.shared(link.owner(), player.getUUID()));
+            boolean allowed = link.canAccess(accessor.getPlayer());
             view.putBoolean("locked", !allowed);
             if (allowed && accessor.getLevel() instanceof ServerLevel server) {
                 var diag = EntangledLinks.inspect(server, link);

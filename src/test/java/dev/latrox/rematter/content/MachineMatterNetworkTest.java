@@ -73,7 +73,7 @@ class MachineMatterNetworkTest {
     private static MachineMatterNetwork network(UUID owner, List<MachineMatterNetwork.Node> nodes) {
         var sorted = new ArrayList<>(nodes);
         sorted.sort(java.util.Comparator.comparing(MachineMatterNetwork.Node::position));
-        return new MachineMatterNetwork(owner, sorted, Set.of(), List.of(), "ready", 0, List.of(), null);
+        return new MachineMatterNetwork(owner, SecurityMode.PUBLIC, sorted, Set.of(), List.of(), "ready", 0, List.of(), null);
     }
     private static MachineMatterNetwork.Node device(int x, String block, List<MatterInventory> inventories) {
         return new MachineMatterNetwork.Node(new BlockPos(x, 64, 0), block, -1, null, null, null, "", "ready", inventories);

@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "farmersdelight",
+  "item": "farmersdelight:straw",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 750,
+  "synthesis_energy": 1500,
+  "ticks": 20
+}

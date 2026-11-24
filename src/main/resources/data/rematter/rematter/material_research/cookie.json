@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Cookie",
+  "items": [
+    "minecraft:cookie"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:starch",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

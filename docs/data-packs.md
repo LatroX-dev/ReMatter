@@ -67,6 +67,8 @@ A profile alone permits decomposition. Synthesis requires an explicit permission
 
 Use `raw_material` or `natural_material` for approved item outputs. Machines, equipment, plates, wires, gears, circuits, and other manufactured components are outside ReMatter's synthesis rules. Classifying an item as a raw material is a deliberate pack-author decision; do not derive it automatically from recipes.
 
+Cross-mod duplicate item outputs may declare an optional `"synthesis_group"` string (for example, `"dust:copper"` or `"ingot:steel"`). When `synthesis.unifyOutputs` is enabled in `rematter-common.toml` (enabled by default), the server collapses each active group to one canonical output chosen by `synthesis.modPriority`, with alphabetical ID order as tie-breaker. All variants remain accepted by the Decomposer and Analyzer, and saved Synthesizer selections or Configuration Cards targeting a collapsed alias automatically migrate to the canonical output. Distinct natural materials (such as different wood species, stone vs. cobblestone, or differently sized storage blocks) do not share a `synthesis_group`.
+
 The catalogue also distinguishes `fluid` and `gas` export permissions. These require an implemented adapter; an allowlist entry by itself does not make a substance compatible with an arbitrary tank or pipe. A gas permission names the stored substance in its `item` field. This entry lets osmium leave a Drive as a Mekanism chemical:
 
 ```json

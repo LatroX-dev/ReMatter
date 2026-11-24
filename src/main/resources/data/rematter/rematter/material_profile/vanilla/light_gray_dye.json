@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:light_gray_dye",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 150
+    }
+  ],
+  "decomposition_energy": 1500,
+  "synthesis_energy": 3000,
+  "ticks": 30
+}

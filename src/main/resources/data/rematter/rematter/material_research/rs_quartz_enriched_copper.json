@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Rs Quartz Enriched Copper",
+  "items": [
+    "refinedstorage:quartz_enriched_copper"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

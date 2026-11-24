@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:material_preparator",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1624
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2579
+    }
+  ],
+  "decomposition_energy": 55000,
+  "synthesis_energy": 110000,
+  "ticks": 112
+}

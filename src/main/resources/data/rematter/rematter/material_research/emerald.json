@@ -3,6 +3,13 @@
   "name": "Emerald",
   "items": [
     "appflux:emerald_dust",
+    "enderio:ender_crystal",
+    "enderio:ender_crystal_powder",
+    "enderio:enticing_crystal",
+    "enderio:prescient_crystal",
+    "enderio:prescient_powder",
+    "enderio:vibrant_crystal",
+    "enderio:vibrant_powder",
     "ftbic:emerald_dust",
     "mekanism:dust_emerald",
     "minecraft:deepslate_emerald_ore",

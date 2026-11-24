@@ -10,9 +10,12 @@
     "alltheores:raw_zinc_block",
     "alltheores:zinc_block",
     "alltheores:zinc_dust",
+    "alltheores:zinc_gear",
     "alltheores:zinc_ingot",
     "alltheores:zinc_nugget",
     "alltheores:zinc_ore",
+    "alltheores:zinc_plate",
+    "alltheores:zinc_rod",
     "hextale:deepslate_sphalerite_ore",
     "hextale:raw_zinc",
     "hextale:raw_zinc_block",
@@ -27,7 +30,12 @@
     "infinity_nexus_mod:zinc_dust",
     "infinity_nexus_mod:zinc_ingot",
     "infinity_nexus_mod:zinc_nugget",
-    "infinity_nexus_mod:zinc_ore"
+    "infinity_nexus_mod:zinc_ore",
+    "infinity_nexus_mod:zinc_rod",
+    "infinity_nexus_mod:zinc_sheet",
+    "infinity_nexus_mod:zinc_wire",
+    "jaopca:oritech_small_clumps.zinc",
+    "jaopca:tiny_dusts.zinc"
   ],
   "substances": [
     {

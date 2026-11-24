@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:potato",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 300
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 3000,
+  "synthesis_energy": 6000,
+  "ticks": 60
+}

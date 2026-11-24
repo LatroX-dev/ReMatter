@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "rematter:leaf_matrix_crystal",
+  "matter": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:emerald",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 80
+}

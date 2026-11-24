@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Ae2 Quartz Vibrant Glass",
+  "items": [
+    "ae2:quartz_vibrant_glass"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

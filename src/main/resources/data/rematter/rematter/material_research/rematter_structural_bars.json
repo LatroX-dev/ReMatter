@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Rematter Structural Bars",
+  "items": [
+    "rematter:structural_bars"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

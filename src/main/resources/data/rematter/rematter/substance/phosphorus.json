@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.phosphorus",
+  "symbol": "P",
+  "kind": "element",
+  "composition": {
+    "rematter:phosphorus": 1
+  },
+  "phases": [
+    "solid"
+  ]
+}

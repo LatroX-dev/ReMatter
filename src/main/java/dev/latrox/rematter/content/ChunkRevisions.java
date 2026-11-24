@@ -74,6 +74,8 @@ public final class ChunkRevisions {
         if (chunk != null) touch(chunk);
     }
     public static long epoch() { return EPOCH.get(); }
+    /** Invalidates cached observations globally when cross-chunk security trust changes. */
+    public static void touchGlobal() { EPOCH.incrementAndGet(); }
 
     /**
      * Whether a block change can alter any ReMatter observation: networks, shells and cable endpoints depend on

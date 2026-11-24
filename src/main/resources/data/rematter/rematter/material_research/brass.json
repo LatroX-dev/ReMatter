@@ -4,8 +4,11 @@
   "items": [
     "alltheores:brass_block",
     "alltheores:brass_dust",
+    "alltheores:brass_gear",
     "alltheores:brass_ingot",
     "alltheores:brass_nugget",
+    "alltheores:brass_plate",
+    "alltheores:brass_rod",
     "hextale:brass_block",
     "hextale:brass_ingot",
     "hextale:brass_nugget",
@@ -13,9 +16,13 @@
     "infinity_nexus_mod:brass_dust",
     "infinity_nexus_mod:brass_ingot",
     "infinity_nexus_mod:brass_nugget",
+    "infinity_nexus_mod:brass_rod",
+    "infinity_nexus_mod:brass_sheet",
+    "infinity_nexus_mod:brass_wire",
     "thaumaturge:ingot_brass",
     "thaumaturge:metal_brass",
-    "thaumaturge:nugget_brass"
+    "thaumaturge:nugget_brass",
+    "thaumaturge:plate_brass"
   ],
   "substances": [
     {

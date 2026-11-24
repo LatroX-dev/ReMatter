@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "name": "Rematter Reinforced Matter Cable",
+  "items": [
+    "rematter:reinforced_matter_cable"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

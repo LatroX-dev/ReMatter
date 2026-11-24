@@ -30,7 +30,8 @@ class StarterProgressionTest {
             assertFalse(leaves.isEmpty());
             assertTrue(leaves.stream().allMatch(id -> id.startsWith("minecraft:") || id.startsWith("#minecraft:")));
             assertEquals("rematter:" + name, recipe(name).getAsJsonObject("result").get("id").getAsString());
-            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty(), "An internal module is manufactured equipment");
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isPresent(), "An internal module can be decomposed into its base matter");
+            assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + name), "An internal module cannot be synthesized");
             assertEquals("rematter:" + name, json("data/rematter/advancement/recipes/" + name + ".json")
                     .getAsJsonObject("rewards").getAsJsonArray("recipes").get(0).getAsString());
         }
@@ -96,7 +97,8 @@ class StarterProgressionTest {
         assertEquals(4, cluster.get("rematter:matrix_crystal"));
         assertTrue(cluster.keySet().containsAll(Set.of("rematter:rhedon", "rematter:virel")));
         for (String name : List.of("matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin")) {
-            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isEmpty());
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + name).isPresent(), name);
+            assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + name), name);
         }
     }
 
@@ -162,7 +164,7 @@ class StarterProgressionTest {
     @Test void componentsStorageAndUnprofiledMatrixMaterialsCannotBeSynthesized() throws Exception {
         for (String component : List.of("hand_preparator", "material_preparator", "preparation_reactor_controller", "sinter_furnace", "machine_frame", "structural_bars", "control_circuit", "optical_circuit", "energy_core", "cell_housing", "matter_drive", "matter_cell_4m", "matter_cell_16m", "matter_cell_64m", "matter_cell_256m", "void_matter_cell", "matrix_blend", "matrix_crystal", "matrix_cluster", "silith", "argil", "rhedon", "virel", "lumin", "diamond_lattice", "ender_conductor", "netherite_sheath")) {
             assertFalse(ShippedChemistry.standalone().synthesisPolicy().allowsItem("rematter:" + component));
-            assertTrue(ShippedChemistry.standalone().profile("rematter:" + component).isEmpty(), component);
+            assertTrue(ShippedChemistry.standalone().profile("rematter:" + component).isPresent(), component);
         }
         Set<String> forbidden = Set.of("rematter:hand_preparator", "rematter:material_preparator", "rematter:preparation_reactor_controller", "rematter:sinter_furnace", "rematter:machine_frame", "rematter:structural_bars", "rematter:control_circuit", "rematter:optical_circuit", "rematter:energy_core", "rematter:cell_housing", "rematter:matter_drive",
                 "rematter:matter_cell_4m", "rematter:matter_cell_16m", "rematter:matter_cell_64m", "rematter:matter_cell_256m", "rematter:void_matter_cell",

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:structural_bars",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 166
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

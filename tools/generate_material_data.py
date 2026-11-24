@@ -22,7 +22,14 @@ ROOT = Path(__file__).resolve().parents[1]
 ID = re.compile(r"[a-z0-9_.-]+:[a-z0-9_./-]+")
 DATA = ROOT / "src/main/resources/data/rematter/rematter"
 GENERATED_DIRECTORIES = ("substance", "material_profile", "fluid_profile", "synthesis", "environment_source", "process")
-FORMS = {"ingot", "dust", "nugget", "material_block", "material", "gem", "natural", "raw", "ore"}
+FORMS = {
+    "ingot", "dust", "nugget", "material_block", "material", "gem", "natural", "raw", "ore",
+    "small_dust", "plate", "gear", "rod", "wire", "intermediate", "component", "device",
+}
+NON_SYNTH_FORMS = {
+    "raw", "ore", "small_dust", "plate", "gear", "rod", "wire", "intermediate", "component", "device",
+}
+GROUP_ID = re.compile(r"[a-z0-9_.:/-]{1,128}")
 TEMPLATE = ROOT / "tools/data/material_coverage_template.md"
 COVERAGE = ROOT / "docs/material-coverage.md"
 COVERAGE_LIST = ROOT / "docs/material-coverage.csv"
@@ -108,7 +115,7 @@ def batches(row, family_name, family):
         raise ValueError(f"Fractional per-item ratio for {item}: use item_count for a whole multiple of the {family_name} batch")
     count = multiples.pop()
     pieces = row.get("item_count", 1)
-    per_base = {"ingot": 1, "nugget": 9}.get(row["form"])
+    per_base = {"ingot": 1, "nugget": 9, "small_dust": 9}.get(row["form"])
     if per_base and pieces != count * batch["items"] * per_base:
         raise ValueError(f"Item count of {item} does not match its share of the {family_name} batch")
     return count
@@ -129,10 +136,16 @@ def items(catalogue, check, written, limit):
             raise ValueError(f"Unknown material family for {item}: {row['family']}")
         if row["form"] not in FORMS:
             raise ValueError(f"Not a supported material form: {item}")
-        if row["synthesis"] and row["form"] in {"raw", "ore"}:
-            raise ValueError(f"Ore enrichment products cannot be synthesized: {item}")
+        if row["synthesis"] and row["form"] in NON_SYNTH_FORMS:
+            raise ValueError(f"Form {row['form']} cannot be synthesized: {item}")
         if row["synthesis"] and not families[row["family"]]["synthesis"]:
             raise ValueError(f"Synthesis is disabled for the family of {item}")
+        if "synthesis_group" in row:
+            group = row["synthesis_group"]
+            if not row["synthesis"]:
+                raise ValueError(f"synthesis_group requires synthesis=True: {item}")
+            if not isinstance(group, str) or not GROUP_ID.fullmatch(group):
+                raise ValueError(f"Invalid synthesis_group for {item}: {group}")
         pieces = row.get("item_count", 1)
         if not isinstance(pieces, int) or not 1 <= pieces <= 64:
             raise ValueError(f"Invalid item count: {item}")
@@ -160,6 +173,8 @@ def items(catalogue, check, written, limit):
             for field in ("synthesis_machine", "crystallization_tier", "requires_advancement"):
                 if field in family: allowance[field] = family[field]
             allowance["category"] = "natural_material" if row["form"] == "natural" else "raw_material"
+            if "synthesis_group" in row:
+                allowance["synthesis_group"] = row["synthesis_group"]
         else:
             allowance["disabled"] = True
         output(DATA / "synthesis" / relative, allowance, check, written)

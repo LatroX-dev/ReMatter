@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:wet_sponge",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 10000,
+  "synthesis_energy": 20000,
+  "ticks": 180
+}

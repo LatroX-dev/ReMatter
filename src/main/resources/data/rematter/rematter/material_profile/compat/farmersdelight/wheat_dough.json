@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "farmersdelight",
+  "item": "farmersdelight:wheat_dough",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 400
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

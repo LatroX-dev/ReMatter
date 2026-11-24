@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Soil",
   "items": [
+    "exdeorum:compressed_dirt",
     "minecraft:dirt"
   ],
   "substances": [

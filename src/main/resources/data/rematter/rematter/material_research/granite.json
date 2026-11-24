@@ -2,7 +2,9 @@
   "schema": 1,
   "name": "Granite",
   "items": [
-    "minecraft:granite"
+    "exdeorum:compressed_granite",
+    "minecraft:granite",
+    "minecraft:polished_granite"
   ],
   "substances": [
     {

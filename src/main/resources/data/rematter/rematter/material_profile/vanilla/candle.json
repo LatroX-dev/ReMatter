@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:candle",
+  "matter": [
+    {
+      "substance": "rematter:beeswax",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 120
+}

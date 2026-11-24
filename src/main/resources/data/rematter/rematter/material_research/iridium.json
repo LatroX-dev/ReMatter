@@ -6,9 +6,12 @@
     "alltheores:end_iridium_ore",
     "alltheores:iridium_block",
     "alltheores:iridium_dust",
+    "alltheores:iridium_gear",
     "alltheores:iridium_ingot",
     "alltheores:iridium_nugget",
     "alltheores:iridium_ore",
+    "alltheores:iridium_plate",
+    "alltheores:iridium_rod",
     "alltheores:nether_iridium_ore",
     "alltheores:other_iridium_ore",
     "alltheores:raw_iridium",
@@ -16,11 +19,17 @@
     "ftbic:iridium_block",
     "ftbic:iridium_deepslate_ore",
     "ftbic:iridium_dust",
+    "ftbic:iridium_gear",
     "ftbic:iridium_ingot",
+    "ftbic:iridium_plate",
     "ftbic:iridium_raw_block",
     "ftbic:iridium_raw_ore",
+    "ftbic:iridium_rod",
     "ftbic:iridium_stone_ore",
-    "infinity_nexus_mod:iridium_ingot"
+    "ftbic:iridium_wire",
+    "infinity_nexus_mod:iridium_ingot",
+    "jaopca:oritech_small_clumps.iridium",
+    "jaopca:tiny_dusts.iridium"
   ],
   "substances": [
     {

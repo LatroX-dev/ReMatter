@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.nitrogen",
+  "symbol": "N₂",
+  "kind": "element",
+  "composition": {
+    "rematter:nitrogen": 2
+  },
+  "phases": [
+    "gas"
+  ]
+}

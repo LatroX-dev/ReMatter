@@ -256,12 +256,15 @@ public final class OptimizationAndIndustrialGameTests {
         h.assertTrue(WirelessMatterTerminalItem.prepareHotkeyOpen(player) == null,
                 "Uncharged terminal must not open");
 
-        // Foreign player carrying a charged copy of the same link must be refused.
+        // Foreign player carrying a charged copy of the same link is allowed on PUBLIC AP, refused on PRIVATE AP.
         ItemStack stolen = terminal.copy();
         WirelessMatterTerminalItem.setEnergy(stolen, WirelessMatterTerminalItem.OPEN_COST * 10);
         stranger.getInventory().setItem(12, stolen);
+        h.assertTrue(WirelessMatterTerminalItem.prepareHotkeyOpen(stranger) != null,
+                "PUBLIC AP should allow other players with a bound terminal");
+        ap.setSecurityMode(player, SecurityMode.PRIVATE);
         h.assertTrue(WirelessMatterTerminalItem.prepareHotkeyOpen(stranger) == null,
-                "Stranger carrying a bound terminal must be refused by AP ownership");
+                "Stranger carrying a bound terminal must be refused by PRIVATE AP");
 
         // Charge owner's terminal in inventory slot 12 -> hotkey resolves anchor, deducts OPEN_COST, and produces valid wireless MachineMenu!
         int initialEnergy = WirelessMatterTerminalItem.OPEN_COST * 10;
@@ -281,37 +284,47 @@ public final class OptimizationAndIndustrialGameTests {
         var owner = h.makeMockPlayer(GameType.SURVIVAL);
         var stranger = h.makeMockPlayer(GameType.SURVIVAL);
 
-        // Verify ownership isolation across all auxiliary devices exposed to Jade.
+        // Verify default PUBLIC access and PRIVATE isolation across all auxiliary devices exposed to Jade.
         BlockPos cubePos = new BlockPos(1, 2, 2);
         h.setBlock(cubePos, ModContent.ENERGY_CUBES.get(EnergyCubeTier.BASIC).get().defaultBlockState().setValue(EnergyCubeBlock.FACING, Direction.NORTH));
         var cube = h.getBlockEntity(cubePos, EnergyCubeBlockEntity.class);
         cube.placedBy(owner);
-        h.assertTrue(cube.canAccess(owner) && !cube.canAccess(stranger), "Energy Cube ownership mismatch");
+        h.assertTrue(cube.canAccess(owner) && cube.canAccess(stranger) && !cube.canManageSecurity(stranger), "Energy Cube PUBLIC default mismatch");
+        cube.setSecurityMode(owner, SecurityMode.PRIVATE);
+        h.assertTrue(cube.canAccess(owner) && !cube.canAccess(stranger), "Energy Cube PRIVATE isolation mismatch");
 
         BlockPos apPos = new BlockPos(2, 2, 2);
         h.setBlock(apPos, ModContent.WIRELESS_ACCESS_POINT.get().defaultBlockState());
         var ap = h.getBlockEntity(apPos, WirelessAccessPointBlockEntity.class);
         ap.placedBy(owner);
-        h.assertTrue(ap.canAccess(owner) && !ap.canAccess(stranger), "Wireless AP ownership mismatch");
+        h.assertTrue(ap.canAccess(owner) && ap.canAccess(stranger) && !ap.canManageSecurity(stranger), "Wireless AP PUBLIC default mismatch");
+        ap.setSecurityMode(owner, SecurityMode.PRIVATE);
+        h.assertTrue(ap.canAccess(owner) && !ap.canAccess(stranger), "Wireless AP PRIVATE isolation mismatch");
 
         BlockPos emitterPos = new BlockPos(3, 2, 2);
         h.setBlock(emitterPos, ModContent.MATTER_LEVEL_EMITTER.get().defaultBlockState());
         var emitter = h.getBlockEntity(emitterPos, MatterLevelEmitterBlockEntity.class);
         emitter.placedBy(owner);
-        h.assertTrue(emitter.canAccess(owner) && !emitter.canAccess(stranger), "Level Emitter ownership mismatch");
+        h.assertTrue(emitter.canAccess(owner) && emitter.canAccess(stranger) && !emitter.canManageSecurity(stranger), "Level Emitter PUBLIC default mismatch");
+        emitter.setSecurityMode(owner, SecurityMode.PRIVATE);
+        h.assertTrue(emitter.canAccess(owner) && !emitter.canAccess(stranger), "Level Emitter PRIVATE isolation mismatch");
 
         BlockPos linkPos = new BlockPos(4, 2, 2);
         var linkState = PrimalContent.ENTANGLED_LINK.get().defaultBlockState();
         h.setBlock(linkPos, linkState);
         PrimalContent.ENTANGLED_LINK.get().setPlacedBy(h.getLevel(), h.absolutePos(linkPos), linkState, owner, new ItemStack(PrimalContent.ENTANGLED_LINK.get()));
         var link = h.getBlockEntity(linkPos, EntangledLinkBlockEntity.class);
-        h.assertTrue(link.canRemove(owner) && !link.canRemove(stranger), "Entangled Link ownership mismatch");
+        h.assertTrue(link.canRemove(owner) && link.canRemove(stranger) && !link.canManageSecurity(stranger), "Entangled Link PUBLIC default mismatch");
+        link.setSecurityMode(owner, SecurityMode.PRIVATE);
+        h.assertTrue(link.canRemove(owner) && !link.canRemove(stranger), "Entangled Link PRIVATE isolation mismatch");
 
         BlockPos stationPos = new BlockPos(5, 2, 2);
         h.setBlock(stationPos, ModContent.CELL_TRANSFER_STATION.get().defaultBlockState().setValue(CellTransferStationBlock.FACING, Direction.NORTH));
         var station = h.getBlockEntity(stationPos, CellTransferStationBlockEntity.class);
         station.placedBy(owner);
-        h.assertTrue(station.canAccess(owner) && !station.canAccess(stranger), "Cell Transfer Station ownership mismatch");
+        h.assertTrue(station.canAccess(owner) && station.canAccess(stranger) && !station.canManageSecurity(stranger), "Cell Transfer Station PUBLIC default mismatch");
+        station.setSecurityMode(owner, SecurityMode.PRIVATE);
+        h.assertTrue(station.canAccess(owner) && !station.canAccess(stranger), "Cell Transfer Station PRIVATE isolation mismatch");
 
         // Verify live currentEnergyRate() on a working Decomposer returns > 0 FE/t while active and 0 once idle.
         var drive = placeMachine(h, new BlockPos(2, 2, 4), MachineKind.DRIVE, Direction.NORTH, owner);

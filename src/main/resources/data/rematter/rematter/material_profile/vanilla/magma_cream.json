@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:magma_cream",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 12000,
+  "synthesis_energy": 24000,
+  "ticks": 160
+}

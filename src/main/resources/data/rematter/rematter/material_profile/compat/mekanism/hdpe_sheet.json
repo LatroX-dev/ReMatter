@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:hdpe_sheet",
+  "matter": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 300
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 300
+    }
+  ],
+  "decomposition_energy": 12000,
+  "synthesis_energy": 24000,
+  "ticks": 240
+}

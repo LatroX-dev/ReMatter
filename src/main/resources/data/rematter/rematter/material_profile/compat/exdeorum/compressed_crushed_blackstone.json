@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "exdeorum",
+  "item": "exdeorum:compressed_crushed_blackstone",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 10350
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 9900
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 6750
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 1800
+}

@@ -10,6 +10,8 @@ import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MatterCableBlock;
 import dev.latrox.rematter.content.MatterWrenchItem;
 import dev.latrox.rematter.content.PortSides;
+import dev.latrox.rematter.content.SecurityCardItem;
+import dev.latrox.rematter.content.SecurityMode;
 import dev.latrox.rematter.content.WrenchInteractions;
 import dev.latrox.rematter.content.WrenchMode;
 import dev.latrox.rematter.energy.EnergyCubeBlock;
@@ -146,13 +148,15 @@ public final class WrenchHudOverlay {
     }
 
     private static ItemStack activeTool(ItemStack mainHand, ItemStack offHand) {
-        if (mainHand.getItem() instanceof MatterWrenchItem || mainHand.getItem() instanceof ConfigurationCardItem) {
-            return mainHand;
-        }
-        if (offHand.getItem() instanceof MatterWrenchItem || offHand.getItem() instanceof ConfigurationCardItem) {
-            return offHand;
-        }
+        if (isTool(mainHand)) return mainHand;
+        if (isTool(offHand)) return offHand;
         return ItemStack.EMPTY;
+    }
+
+    private static boolean isTool(ItemStack stack) {
+        return stack.getItem() instanceof MatterWrenchItem
+                || stack.getItem() instanceof ConfigurationCardItem
+                || stack.getItem() instanceof SecurityCardItem;
     }
 
     private static Line toolHeader(ItemStack tool) {
@@ -164,6 +168,16 @@ public final class WrenchHudOverlay {
                 case DISMANTLE -> UiPalette.EMBER;
             };
             String label = Component.translatable("screen.rematter.wrench_hud.mode", mode.label()).getString();
+            return new Line(label, color);
+        }
+        if (tool.getItem() instanceof SecurityCardItem) {
+            SecurityMode mode = SecurityCardItem.mode(tool);
+            int color = switch (mode) {
+                case PUBLIC -> UiPalette.ACCENT;
+                case TRUSTED -> UiPalette.PORT_ENERGY_INPUT;
+                case PRIVATE -> UiPalette.EMBER;
+            };
+            String label = Component.translatable("screen.rematter.wrench_hud.security_card", mode.label()).getString();
             return new Line(label, color);
         }
         var data = tool.get(ConfigurationCardData.TYPE.get());

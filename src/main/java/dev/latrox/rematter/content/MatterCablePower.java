@@ -105,6 +105,18 @@ public final class MatterCablePower {
         return null;
     }
 
+    private static SecurityMode endpointMode(ServerLevel level, BlockPos position) {
+        var entity = level.getBlockEntity(position);
+        if (entity instanceof MachineBlockEntity machine) return machine.securityMode();
+        if (entity instanceof EnergyCubeBlockEntity cube) return cube.securityMode();
+        if (entity instanceof WirelessAccessPointBlockEntity ap) return ap.securityMode();
+        if (entity instanceof MachinePortBlockEntity port) {
+            var controller = port.controller(null);
+            return controller == null ? SecurityMode.PRIVATE : controller.securityMode();
+        }
+        return SecurityMode.PUBLIC;
+    }
+
     record Candidate<T>(T endpoint, @Nullable UUID owner, int distance, BlockPos position) {}
 
     /**
@@ -176,11 +188,13 @@ public final class MatterCablePower {
                 if (component.endpoints == null) return 0;
                 UUID cableOwner=component.owner;
                 if(cableOwner==null)return 0;
-                if(incomingChunk.getBlockEntity(adjacent) instanceof EnergyCubeBlockEntity cube&&!cableOwner.equals(cube.owner()))return 0;
+                if(incomingChunk.getBlockEntity(adjacent) instanceof EnergyCubeBlockEntity cube
+                        && !MachineAccess.canConnect(level, cableOwner, component.mode, cube.owner(), cube.securityMode()))return 0;
                 var routes=component.routes(origin);
                 var candidates = new ArrayList<Candidate<Endpoint>>();
                 for (var endpoint : component.endpoints.active()) {
-                    if (endpoint.position.equals(adjacent)||!cableOwner.equals(owner(level,endpoint.position)))continue;
+                    if (endpoint.position.equals(adjacent)
+                            || !MachineAccess.canConnect(level, cableOwner, component.mode, owner(level, endpoint.position), endpointMode(level, endpoint.position)))continue;
                     int distance=endpoint.faces.stream().mapToInt(face->routes.distance(face.cable)).min().orElse(Integer.MAX_VALUE);
                     candidates.add(new Candidate<>(endpoint,cableOwner,distance,endpoint.position));
                 }
@@ -365,10 +379,11 @@ public final class MatterCablePower {
     }
 
     /** Safe public peer observations: no lookup here may request a chunk. */
-    private record LinkState(EntangledLinkBlockEntity entity,UUID owner,Optional<BlockPos> peer){
+    private record LinkState(EntangledLinkBlockEntity entity,UUID owner,SecurityMode mode,Optional<BlockPos> peer){
         boolean current(ServerLevel level,BlockPos pos){
             var link=EntangledLinks.loaded(level,pos).orElse(null);
-            return link==entity&&owner.equals(link.owner())&&peer.equals(EntangledLinks.peer(level,pos,owner));
+            return link==entity&&MachineAccess.canConnect(level,owner,mode,link.owner(),link.securityMode())
+                    &&peer.equals(EntangledLinks.peer(level,pos,owner,mode));
         }
     }
 
@@ -376,6 +391,7 @@ public final class MatterCablePower {
     private static final class Component {
         private final Set<BlockPos> cables;
         private final @Nullable UUID owner;
+        private final SecurityMode mode;
         private final @Nullable Endpoints endpoints;
         private final List<ChunkRevisions.Stamp> stamps;
         private final Map<BlockPos,List<BlockPos>> neighbors;
@@ -385,9 +401,9 @@ public final class MatterCablePower {
             @Override protected boolean removeEldestEntry(Map.Entry<BlockPos,Routes> eldest){return size()>MAX_CACHED_ORIGINS;}
         };
         private long checkedTick=Long.MIN_VALUE,checkedEpoch;
-        private Component(Set<BlockPos> cables,@Nullable UUID owner,@Nullable Endpoints endpoints,List<ChunkRevisions.Stamp> stamps,
+        private Component(Set<BlockPos> cables,@Nullable UUID owner,SecurityMode mode,@Nullable Endpoints endpoints,List<ChunkRevisions.Stamp> stamps,
                           Map<BlockPos,List<BlockPos>> neighbors,Map<BlockPos,Integer> rates,Map<BlockPos,LinkState> links){
-            this.cables=cables;this.owner=owner;this.endpoints=endpoints;this.stamps=stamps;
+            this.cables=cables;this.owner=owner;this.mode=mode;this.endpoints=endpoints;this.stamps=stamps;
             this.neighbors=neighbors;this.rates=rates;this.links=links;
         }
         private boolean current(ServerLevel level){
@@ -445,11 +461,12 @@ public final class MatterCablePower {
         private final Map<BlockPos,Integer> rates=new HashMap<>();
         private final Map<BlockPos,LinkState> links=new HashMap<>();
         private @Nullable UUID cableOwner;
+        private SecurityMode cableMode=SecurityMode.PUBLIC;
         private Discovery(ServerLevel level,@Nullable Endpoints previous){this.level=level;this.previous=previous;}
         private Component scan(BlockPos origin){
             var initial=read(origin);
-            if(initial.getBlock() instanceof MatterCableBlock)cableOwner=CableOwners.owner(level,origin);
-            else cableOwner=EntangledLinks.loaded(level,origin).map(EntangledLinkBlockEntity::owner).orElse(null);
+            if(initial.getBlock() instanceof MatterCableBlock){cableOwner=CableOwners.owner(level,origin);cableMode=CableOwners.mode(level,origin);}
+            else{var initLink=EntangledLinks.loaded(level,origin).orElse(null);cableOwner=initLink==null?null:initLink.owner();cableMode=initLink==null?SecurityMode.PUBLIC:initLink.securityMode();}
             if(cableOwner==null||!transport(origin))return result(Set.of(),null);
             var cables=new LinkedHashSet<BlockPos>();var ends=new LinkedHashMap<BlockPos,List<EndpointSide>>();
             var queue=new ArrayDeque<BlockPos>();cables.add(origin);queue.add(origin);
@@ -485,18 +502,18 @@ public final class MatterCablePower {
         private boolean transport(BlockPos pos){
             var state=read(pos);
             if(state.getBlock() instanceof MatterCableBlock cable){
-                if(!cableOwner.equals(CableOwners.owner(level,pos)))return false;
+                if(!MachineAccess.canConnect(level,cableOwner,cableMode,CableOwners.owner(level,pos),CableOwners.mode(level,pos)))return false;
                 rates.put(pos,cable.tier().energyRate());return true;
             }
             var link=EntangledLinks.loaded(level,pos).orElse(null);
-            if(link==null||!cableOwner.equals(link.owner()))return false;
+            if(link==null||!MachineAccess.canConnect(level,cableOwner,cableMode,link.owner(),link.securityMode()))return false;
             rates.put(pos,MatterCableBlock.Tier.BASIC.energyRate());
-            links.put(pos,new LinkState(link,cableOwner,EntangledLinks.peer(level,pos,cableOwner)));return true;
+            links.put(pos,new LinkState(link,cableOwner,cableMode,EntangledLinks.peer(level,pos,cableOwner,cableMode)));return true;
         }
         private Component result(Set<BlockPos> cables,@Nullable Endpoints endpoints){
             var adjacency=new HashMap<BlockPos,List<BlockPos>>();neighbors.forEach((pos,list)->adjacency.put(pos,List.copyOf(list)));
-            var component=new Component(Set.copyOf(cables),cableOwner,endpoints,List.copyOf(stamps.values()),Map.copyOf(adjacency),Map.copyOf(rates),Map.copyOf(links));
-            return component.current(level)?component:new Component(Set.of(),null,null,List.of(),Map.of(),Map.of(),Map.of());
+            var component=new Component(Set.copyOf(cables),cableOwner,cableMode,endpoints,List.copyOf(stamps.values()),Map.copyOf(adjacency),Map.copyOf(rates),Map.copyOf(links));
+            return component.current(level)?component:new Component(Set.of(),null,SecurityMode.PUBLIC,null,List.of(),Map.of(),Map.of(),Map.of());
         }
         private BlockState read(BlockPos pos){
             return observed.computeIfAbsent(pos,position->{

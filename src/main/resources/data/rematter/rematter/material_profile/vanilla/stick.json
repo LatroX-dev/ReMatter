@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:stick",
+  "item_count": 2,
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 1500,
+  "synthesis_energy": 3000,
+  "ticks": 40
+}

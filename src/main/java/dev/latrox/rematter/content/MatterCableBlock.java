@@ -95,20 +95,25 @@ public final class MatterCableBlock extends PipeBlock {
     }
     private static boolean connects(LevelReader level, BlockPos position, BlockState neighbor, Direction towardsNeighbor) {
         if(level instanceof ServerLevel server) {
-            var owner=CableOwners.owner(server,position.relative(towardsNeighbor.getOpposite()));
+            BlockPos selfPos=position.relative(towardsNeighbor.getOpposite());
+            var owner=CableOwners.owner(server,selfPos);
             if(owner==null)return false;
-            if(neighbor.getBlock() instanceof MatterCableBlock&&!owner.equals(CableOwners.owner(server,position)))return false;
-            if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!owner.equals(machine.networkOwner()))return false;
-            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!owner.equals(cube.owner()))return false;
-            if(level.getBlockEntity(position) instanceof WirelessAccessPointBlockEntity ap&&!owner.equals(ap.owner()))return false;
-            if(level.getBlockEntity(position) instanceof MatterLevelEmitterBlockEntity emitter&&!owner.equals(emitter.owner()))return false;
-            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!owner.equals(link.owner()))return false;
+            var mode=CableOwners.mode(server,selfPos);
+            if(neighbor.getBlock() instanceof MatterCableBlock&&!MachineAccess.canConnect(server,owner,mode,CableOwners.owner(server,position),CableOwners.mode(server,position)))return false;
+            if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!MachineAccess.canConnect(server,owner,mode,machine.networkOwner(),machine.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!MachineAccess.canConnect(server,owner,mode,cube.owner(),cube.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof WirelessAccessPointBlockEntity ap&&!MachineAccess.canConnect(server,owner,mode,ap.owner(),ap.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof MatterLevelEmitterBlockEntity emitter&&!MachineAccess.canConnect(server,owner,mode,emitter.owner(),emitter.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!MachineAccess.canConnect(server,owner,mode,link.owner(),link.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof MachinePortBlockEntity port) {
-                var controller=port.controller(null);if(controller==null||!owner.equals(controller.networkOwner()))return false;
+                var controller=port.controller(null);if(controller==null||!MachineAccess.canConnect(server,owner,mode,controller.networkOwner(),controller.securityMode()))return false;
             }
         }
         if (neighbor.getBlock() instanceof MatterCableBlock) return true;
-        if(level instanceof ServerLevel server&&level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link)return link.owner()!=null&&link.owner().equals(CableOwners.owner(server,position.relative(towardsNeighbor.getOpposite())));
+        if(level instanceof ServerLevel server&&level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link) {
+            BlockPos selfPos=position.relative(towardsNeighbor.getOpposite());
+            return MachineAccess.canConnect(server,CableOwners.owner(server,selfPos),CableOwners.mode(server,selfPos),link.owner(),link.securityMode());
+        }
         Direction outward = towardsNeighbor.getOpposite();
         if (neighbor.getBlock() instanceof WirelessAccessPointBlock) {
             return WirelessAccessPointBlock.connectsSide(neighbor, outward);
@@ -142,7 +147,7 @@ public final class MatterCableBlock extends PipeBlock {
             net.minecraft.world.item.ItemStack stack) {
         super.setPlacedBy(level,pos,state,placer,stack);
         if(level instanceof ServerLevel server&&placer instanceof net.minecraft.world.entity.player.Player player)
-            CableOwners.placedBy(server,pos,player.getUUID());
+            CableOwners.placedBy(server,pos,player.getUUID(),MachineAccess.placementDefault(server,player));
     }
     @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         // Also runs when a protection event restores the block captured before placement.

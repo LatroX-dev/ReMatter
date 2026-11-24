@@ -22,7 +22,7 @@ class ResearchCatalogueTest {
         var source = JsonParser.parseString(Files.readString(Path.of("tools/data/material_catalogue.json"))).getAsJsonObject();
         var expected = new HashMap<String, Set<String>>();
         source.getAsJsonArray("items").forEach(e -> { var row = e.getAsJsonObject(); expected.computeIfAbsent(row.get("family").getAsString(), ignored -> new HashSet<>()).add(row.get("item").getAsString()); });
-        assertEquals(175, expected.size()); var actual = new HashMap<String, Set<String>>(); int discoveries = 0;
+        assertEquals(326, expected.size()); var actual = new HashMap<String, Set<String>>(); int discoveries = 0;
         try (var paths = Files.list(Path.of("src/main/resources/data/rematter/rematter/material_research"))) {
             for (var path : paths.filter(p -> p.toString().endsWith(".json")).toList()) {
                 var doc = JsonParser.parseString(Files.readString(path)).getAsJsonObject(); var items = new HashSet<String>(); doc.getAsJsonArray("items").forEach(e -> items.add(e.getAsString()));
@@ -31,7 +31,7 @@ class ResearchCatalogueTest {
                 if (doc.get("discovery_tier").getAsInt() > 0) discoveries++;
             }
         }
-        assertEquals(expected, actual); assertEquals(63, discoveries);
+        assertEquals(expected, actual); assertEquals(80, discoveries);
         assertEquals(0, read("echo").get("discovery_tier").getAsInt());
         assertEquals(0, read("stellarite").get("discovery_tier").getAsInt());
         assertEquals(0, read("rhevon").get("discovery_tier").getAsInt());

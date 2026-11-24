@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:network_interface",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1312
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 2655
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 7728
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 2125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4312
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1750
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 8424
+    }
+  ],
+  "decomposition_energy": 133000,
+  "synthesis_energy": 266000,
+  "ticks": 192
+}

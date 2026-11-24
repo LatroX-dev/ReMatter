@@ -4,11 +4,18 @@
   "items": [
     "alltheores:invar_block",
     "alltheores:invar_dust",
+    "alltheores:invar_gear",
     "alltheores:invar_ingot",
     "alltheores:invar_nugget",
+    "alltheores:invar_plate",
+    "alltheores:invar_rod",
     "ftbic:invar_block",
     "ftbic:invar_dust",
-    "ftbic:invar_ingot"
+    "ftbic:invar_gear",
+    "ftbic:invar_ingot",
+    "ftbic:invar_plate",
+    "ftbic:invar_rod",
+    "ftbic:invar_wire"
   ],
   "substances": [
     {

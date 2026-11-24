@@ -4,6 +4,7 @@
   "items": [
     "ae2:certus_quartz_crystal",
     "ae2:certus_quartz_dust",
+    "ae2:printed_calculation_processor",
     "ae2:quartz_block"
   ],
   "substances": [

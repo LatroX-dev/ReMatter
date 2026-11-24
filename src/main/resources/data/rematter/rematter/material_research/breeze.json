@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Breeze",
+  "items": [
+    "minecraft:breeze_rod",
+    "minecraft:wind_charge"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas"
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

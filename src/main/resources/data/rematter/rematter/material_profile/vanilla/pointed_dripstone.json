@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:pointed_dripstone",
+  "matter": [
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 4000,
+  "ticks": 50
+}

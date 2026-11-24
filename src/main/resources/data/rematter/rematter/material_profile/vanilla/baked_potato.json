@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:baked_potato",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 300
+    }
+  ],
+  "decomposition_energy": 3000,
+  "synthesis_energy": 6000,
+  "ticks": 60
+}

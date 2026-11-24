@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.sucrose",
+  "symbol": "C₁₂H₂₂O₁₁",
+  "kind": "compound",
+  "composition": {
+    "rematter:carbon": 12,
+    "rematter:hydrogen": 22,
+    "rematter:oxygen": 11
+  },
+  "phases": [
+    "solid"
+  ]
+}

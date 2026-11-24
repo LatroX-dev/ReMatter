@@ -26,6 +26,7 @@ public final class ReMatter {
 
     public ReMatter(IEventBus modBus, ModContainer container) {
         dev.latrox.rematter.research.ResearchConfig.register(container);
+        dev.latrox.rematter.chemistry.SynthesisConfig.register(container);
         ModContent.register(modBus);
         dev.latrox.rematter.primal.PrimalContent.register(modBus);
         modBus.addListener(dev.latrox.rematter.network.MachineActionPayload::register);

@@ -2,7 +2,9 @@
   "schema": 1,
   "name": "Prismarine Shard",
   "items": [
+    "minecraft:dark_prismarine",
     "minecraft:prismarine",
+    "minecraft:prismarine_bricks",
     "minecraft:prismarine_shard"
   ],
   "substances": [

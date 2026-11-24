@@ -4,11 +4,18 @@
   "items": [
     "alltheores:electrum_block",
     "alltheores:electrum_dust",
+    "alltheores:electrum_gear",
     "alltheores:electrum_ingot",
     "alltheores:electrum_nugget",
+    "alltheores:electrum_plate",
+    "alltheores:electrum_rod",
     "ftbic:electrum_block",
     "ftbic:electrum_dust",
+    "ftbic:electrum_gear",
     "ftbic:electrum_ingot",
+    "ftbic:electrum_plate",
+    "ftbic:electrum_rod",
+    "ftbic:electrum_wire",
     "oritech:electrum",
     "oritech:electrum_dust",
     "oritech:electrum_ingot"

@@ -547,15 +547,20 @@ public final class StorageAndGadgetsGameTests {
         net.markChanged();
         emitter.serverTick();
 
-        // 1. WrenchDiagnostics enforces ownership: stranger gets locked zeroed payload; owner gets live metrics.
+        // 1. WrenchDiagnostics respects security modes: default PUBLIC allows telemetry; PRIVATE locks and zeroes for strangers.
         BlockPos absDrive = h.absolutePos(driveRel);
+        var publicStrangerDiag = Objects.requireNonNull(WrenchDiagnostics.inspect(h.getLevel(), absDrive, Direction.NORTH, stranger));
+        h.assertTrue(!publicStrangerDiag.locked() && publicStrangerDiag.matterUsed() == 1_000L,
+                "PUBLIC Drive WrenchDiagnostics should be visible to other players");
+        drive.setSecurityMode(owner, SecurityMode.PRIVATE);
         var strangerDiag = Objects.requireNonNull(WrenchDiagnostics.inspect(h.getLevel(), absDrive, Direction.NORTH, stranger));
         h.assertTrue(strangerDiag.locked() && strangerDiag.matterUsed() == 0 && strangerDiag.matterCapacity() == 0,
-                "Non-owner WrenchDiagnostics must be locked and zeroed");
+                "Non-owner WrenchDiagnostics on PRIVATE Drive must be locked and zeroed");
         var ownerDiag = Objects.requireNonNull(WrenchDiagnostics.inspect(h.getLevel(), absDrive, Direction.NORTH, owner));
         h.assertTrue(!ownerDiag.locked() && ownerDiag.matterUsed() == 1_000L
                         && ownerDiag.matterCapacity() == MatterLimits.CELL_4M && ownerDiag.networkNodes() >= 3,
                 "Owner WrenchDiagnostics missed live storage/network telemetry: " + ownerDiag);
+        drive.setSecurityMode(owner, SecurityMode.PUBLIC);
 
         // 2. TerminalMonitorCollector reports drives, finite/void cells, target caps, emitters, and rolling rates.
         var rateTracker = new NetworkRateTracker();

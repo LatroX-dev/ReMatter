@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:biomass_block",
+  "item_count": 4,
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 1800
+    }
+  ],
+  "decomposition_energy": 13500,
+  "synthesis_energy": 27000,
+  "ticks": 360
+}

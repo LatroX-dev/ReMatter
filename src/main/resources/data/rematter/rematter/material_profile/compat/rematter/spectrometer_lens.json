@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "item": "rematter:spectrometer_lens",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 812
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2519
+    }
+  ],
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 80
+}

@@ -4,10 +4,15 @@
   "items": [
     "ftbic:plutonium_block",
     "ftbic:plutonium_dust",
+    "ftbic:plutonium_gear",
     "ftbic:plutonium_ingot",
+    "ftbic:plutonium_plate",
     "ftbic:plutonium_raw_block",
     "ftbic:plutonium_raw_ore",
-    "oritech:plutonium_dust"
+    "ftbic:plutonium_rod",
+    "ftbic:plutonium_wire",
+    "oritech:plutonium_dust",
+    "oritech:small_plutonium_dust"
   ],
   "substances": [
     {

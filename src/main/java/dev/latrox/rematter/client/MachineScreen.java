@@ -138,7 +138,6 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         repeat=addRenderableWidget(DarkButton.icon(UiIcon.LOOP_OFF,ui("repeat_off"),tr("continuous_hint"),leftPos+86,topPos+102,18,18,b->send(5)));
         pause=addRenderableWidget(DarkButton.icon(UiIcon.PAUSE,tr("pause"),tr("pause_hint"),leftPos+108,topPos+102,18,18,b->send(2)));
         cancel=addRenderableWidget(DarkButton.icon(UiIcon.CANCEL,tr("cancel_job"),tr("cancel_job_hint"),leftPos+130,topPos+102,18,18,b->send(MachineMenu.CANCEL_JOB)));
-        cancel.setAccent(WARNING);
         buildHint=button(ui("missing_part"),tr("locate_part_hint"),24,102,138,b->{if(menu.structurePreviewEnabled())ClientStructureHints.clear();send(MachineMenu.TOGGLE_STRUCTURE_PREVIEW);});
         back=addRenderableWidget(DarkButton.icon(UiIcon.BACK,tr("terminal.return"),tr("terminal.return_hint"),leftPos+171,topPos+2,17,16,b->send(MachineMenu.RETURN_TO_TERMINAL)));
         stockRows.clear();for(int i=0;i<8;i++){var row=new StockRow();stockRows.add(addRenderableWidget(row));}
@@ -179,7 +178,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
     }
     private void refresh(){
         if(search==null)return;var s=menu.snapshot();boolean ready=s.containerId()==menu.containerId;
-        for(var control:List.of(machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,buildHint,back))control.setAccent(machineAccent(menu.kind()));
+        for(var control:List.of(machineTab,devicesTab,monitorTab,researchTab,upgradesTab,settingsTab,canisterDrain,terminalRequest,consolidateCells,choose,primary,repeat,pause,cancel,buildHint,back))control.setAccent(machineAccent(menu.kind()));
 
         var labGoal = PinnedLabGoal.current();
         labGoalTab.visible = ready && labGoal != null && (menu.kind() == MachineKind.DRIVE || menu.kind() == MachineKind.REACTOR);
@@ -806,7 +805,7 @@ public final class MachineScreen extends AbstractContainerScreen<MachineMenu> im
         private final DarkButton queue=DarkButton.icon(UiIcon.QUEUE_ADD,ui("queue_one"),tr("add_batch_hint"),leftPos+141,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.QUEUE_BATCH));
         private final DarkButton cancel=DarkButton.icon(UiIcon.CANCEL,tr("cancel_job"),tr("cancel_job_hint"),leftPos+121,topPos+42,18,18,b->deviceAction(device,TerminalDeviceActionPayload.Action.CANCEL_JOB));
         private int y;
-        DeviceRow(){cancel.setAccent(WARNING);}
+        DeviceRow(){int a=accent();open.setAccent(a);queue.setAccent(a);cancel.setAccent(a);}
         void show(TerminalDevicesPayload.Device value,int y){
             device=value;this.y=y;
             open.visible=open.active=value!=null;

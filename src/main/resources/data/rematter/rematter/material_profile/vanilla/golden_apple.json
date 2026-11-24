@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:golden_apple",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 8000
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 64000,
+  "synthesis_energy": 128000,
+  "ticks": 400
+}

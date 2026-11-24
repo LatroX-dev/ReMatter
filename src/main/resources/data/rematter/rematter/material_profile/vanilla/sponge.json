@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:sponge",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 160
+}

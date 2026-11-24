@@ -94,12 +94,25 @@ class ReForgingDataTest {
     @Test
     void allQuartzFormsShareTheProtectedIdentityAndExactBatchRatios() throws Exception {
         ChemistryRegistry registry = integration();
-        Map<String, Long> amounts = Map.of(
-                "minecraft:quartz", 1_000L, "minecraft:quartz_block", 4_000L,
-                "enderio:powdered_quartz", 1_000L, "ftbic:quartz_dust", 1_000L,
-                "mekanism:dust_quartz", 1_000L, "oritech:quartz_dust", 1_000L,
-                "thaumaturge:nugget_quartz", 1_000L, "minecraft:nether_quartz_ore", 1_000L,
-                "thaumaturge:ore_quartz", 1_000L, "thaumaturge:deepslate_ore_quartz", 1_000L);
+        Map<String, Long> amounts = new TreeMap<>();
+        amounts.put("minecraft:quartz", 1_000L);
+        amounts.put("minecraft:quartz_block", 4_000L);
+        amounts.put("minecraft:smooth_quartz", 4_000L);
+        amounts.put("minecraft:quartz_bricks", 4_000L);
+        amounts.put("minecraft:quartz_pillar", 4_000L);
+        amounts.put("minecraft:chiseled_quartz_block", 4_000L);
+        amounts.put("enderio:fused_quartz", 4_000L);
+        amounts.put("rematter:virel", 1_000L);
+        amounts.put("enderio:powdered_quartz", 1_000L);
+        amounts.put("ftbic:quartz_dust", 1_000L);
+        amounts.put("mekanism:dust_quartz", 1_000L);
+        amounts.put("oritech:quartz_dust", 1_000L);
+        amounts.put("thaumaturge:nugget_quartz", 1_000L);
+        amounts.put("minecraft:nether_quartz_ore", 1_000L);
+        amounts.put("thaumaturge:ore_quartz", 1_000L);
+        amounts.put("thaumaturge:deepslate_ore_quartz", 1_000L);
+        Set<String> canonicalSynth = Set.of("minecraft:quartz", "minecraft:quartz_block", "mekanism:dust_quartz", "thaumaturge:nugget_quartz");
+        Set<String> aliasedDusts = Set.of("enderio:powdered_quartz", "ftbic:quartz_dust", "oritech:quartz_dust");
         Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().keySet().equals(Set.of(CRYSTAL)))
                 .map(MaterialProfile::itemId).collect(Collectors.toSet());
         assertEquals(amounts.keySet(), actual);
@@ -107,7 +120,10 @@ class ReForgingDataTest {
             var profile = registry.profile(item).orElseThrow();
             assertEquals(Map.of(CRYSTAL, amount), profile.matter(), item);
             assertEquals(item.equals("thaumaturge:nugget_quartz") ? 9 : 1, profile.itemCount(), item);
-            assertEquals(!item.contains("ore"), registry.synthesisPolicy().category(item).isPresent(), item);
+            assertEquals(canonicalSynth.contains(item), registry.synthesisPolicy().category(item).isPresent(), item);
+            if (aliasedDusts.contains(item)) {
+                assertEquals("mekanism:dust_quartz", registry.synthesisPolicy().canonicalTarget(item), item);
+            }
         });
     }
 

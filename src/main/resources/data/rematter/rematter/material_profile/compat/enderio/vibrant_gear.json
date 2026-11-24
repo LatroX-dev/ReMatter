@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:vibrant_gear",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2500
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 400
+}

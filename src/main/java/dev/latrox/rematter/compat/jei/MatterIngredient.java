@@ -45,7 +45,11 @@ public record MatterIngredient(SubstanceKey key, long amount) {
         @Override public IIngredientType<MatterIngredient> getIngredientType() { return TYPE; }
         @Override public String getDisplayName(MatterIngredient ingredient) { return ChemistryViewer.matterName(ingredient.key).getString(); }
         @Override public Object getUid(MatterIngredient ingredient, UidContext context) { return ingredient.key; }
-        @Override public Identifier getIdentifier(MatterIngredient ingredient) { return Identifier.parse(ingredient.key.id().toString()); }
+        @Override public Identifier getIdentifier(MatterIngredient ingredient) {
+            return Identifier.fromNamespaceAndPath(
+                    ingredient.key.id().namespace(),
+                    ingredient.key.id().path() + "/" + ingredient.key.phase().name().toLowerCase(java.util.Locale.ROOT));
+        }
         @Override public long getAmount(MatterIngredient ingredient) { return ingredient.amount; }
         @Override public MatterIngredient copyWithAmount(MatterIngredient ingredient, long amount) { return new MatterIngredient(ingredient.key, amount); }
         @Override public MatterIngredient copyIngredient(MatterIngredient ingredient) { return ingredient; }

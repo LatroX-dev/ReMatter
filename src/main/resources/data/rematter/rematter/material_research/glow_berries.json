@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Glow Berries",
+  "items": [
+    "minecraft:glow_berries"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

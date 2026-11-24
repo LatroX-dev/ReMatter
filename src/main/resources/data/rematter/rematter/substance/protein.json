@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.protein",
+  "symbol": "",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 4,
+    "rematter:hydrogen": 8,
+    "rematter:nitrogen": 1,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

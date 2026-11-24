@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:white_carpet",
+  "item_count": 3,
+  "matter": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 320
+}

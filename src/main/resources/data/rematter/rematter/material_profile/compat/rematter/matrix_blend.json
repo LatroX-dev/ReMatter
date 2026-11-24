@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:matrix_blend",
+  "matter": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

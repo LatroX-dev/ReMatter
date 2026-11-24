@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "rematter:control_circuit",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 562
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 562
+    }
+  ],
+  "decomposition_energy": 11000,
+  "synthesis_energy": 22000,
+  "ticks": 80
+}

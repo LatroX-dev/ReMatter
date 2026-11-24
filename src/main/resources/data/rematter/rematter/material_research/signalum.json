@@ -4,8 +4,11 @@
   "items": [
     "alltheores:signalum_block",
     "alltheores:signalum_dust",
+    "alltheores:signalum_gear",
     "alltheores:signalum_ingot",
-    "alltheores:signalum_nugget"
+    "alltheores:signalum_nugget",
+    "alltheores:signalum_plate",
+    "alltheores:signalum_rod"
   ],
   "substances": [
     {

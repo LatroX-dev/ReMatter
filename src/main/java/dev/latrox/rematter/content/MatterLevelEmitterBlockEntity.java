@@ -71,13 +71,33 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         return cachedNetwork;
     }
 
+    private SecurityMode securityMode = SecurityMode.PUBLIC;
+
+    public SecurityMode securityMode() { return securityMode; }
+
+    public boolean canManageSecurity(Player player) { return MachineAccess.canManage(owner, player); }
+
+    public boolean setSecurityMode(Player player, SecurityMode next) {
+        if (!networkLive() || player.isSpectator() || !canManageSecurity(player) || next == null) return false;
+        if (securityMode == next) return true;
+        securityMode = next;
+        cachedNetwork = null;
+        setChanged();
+        touchTopology();
+        refreshOutputNow();
+        return true;
+    }
+
+    public boolean cycleSecurityMode(Player player, boolean forward) {
+        return setSecurityMode(player, forward ? securityMode.next() : securityMode.previous());
+    }
+
     public boolean canRemove(Player player) {
-        if (player instanceof FakePlayer) return player.getUUID().equals(owner);
-        return owner == null || player.getUUID().equals(owner) || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+        return canAccess(player);
     }
 
     public boolean canAccess(Player player) {
-        return canRemove(player) || !(player instanceof FakePlayer) && dev.latrox.rematter.compat.TeamAccess.shared(owner, player.getUUID());
+        return MachineAccess.allows(level, owner, securityMode, player);
     }
 
     public boolean stillValid(Player player) {
@@ -85,6 +105,9 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        if (securityMode == SecurityMode.PUBLIC) {
+            securityMode = MachineAccess.placementDefault(level, placer);
+        }
         assignOwner(placer instanceof Player player && !(player instanceof FakePlayer) ? player.getUUID() : null);
     }
 
@@ -212,6 +235,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         super.saveAdditional(output);
         output.putInt("schema", 1);
         if (owner != null) output.putString("owner", owner.toString());
+        if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
         if (target != null) {
             output.putString("target_id", target.id().toString());
             output.putString("target_phase", target.phase().name().toLowerCase(Locale.ROOT));
@@ -224,6 +248,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         super.loadAdditional(input);
         cachedNetwork = null;
         owner = null;
+        securityMode = SecurityMode.PUBLIC;
         target = null;
         threshold = DEFAULT_THRESHOLD;
         emitWhenBelow = false;
@@ -233,6 +258,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         input.getString("owner").ifPresent(raw -> {
             try { owner = UUID.fromString(raw); } catch (IllegalArgumentException ignored) { owner = null; }
         });
+        securityMode = input.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
         var rawId = input.getString("target_id");
         var rawPhase = input.getString("target_phase");
         if (rawId.isPresent() && rawPhase.isPresent() && rawId.get().length() <= CellPartitionData.MAX_ID_LENGTH) {

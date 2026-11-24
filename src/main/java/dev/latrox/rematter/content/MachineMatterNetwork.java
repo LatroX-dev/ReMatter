@@ -39,6 +39,7 @@ final class MachineMatterNetwork {
     private static final int WITHDRAWAL = 1;
     private static final int DEPOSIT = 2;
     private final UUID owner;
+    private final SecurityMode originMode;
     private final List<Node> nodes;
     private final List<Node> endpoints;
     private final List<Node> associated;
@@ -56,10 +57,11 @@ final class MachineMatterNetwork {
     private final @Nullable MatterNetworkInventory inventory;
     private long checkedTick = Long.MIN_VALUE, checkedEpoch, rereadTick = Long.MIN_VALUE;
 
-    MachineMatterNetwork(UUID owner, List<Node> nodes, Set<Edge> edges, List<ChunkRevisions.Stamp> chunks,
+    MachineMatterNetwork(UUID owner, SecurityMode originMode, List<Node> nodes, Set<Edge> edges, List<ChunkRevisions.Stamp> chunks,
                          String status, int storageCount, List<MachineBlockEntity> stores,
                          @Nullable MatterNetworkInventory inventory) {
         this.owner = owner;
+        this.originMode = Objects.requireNonNull(originMode);
         this.nodes = List.copyOf(nodes);
         this.endpoints = this.nodes.stream().filter(node -> !node.cable()).toList();
         this.associated = this.nodes.stream().filter(node -> node.entity instanceof MachinePortBlockEntity || node.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity
@@ -217,18 +219,21 @@ final class MachineMatterNetwork {
      */
     boolean current(MachineBlockEntity origin, boolean deep) {
         if (!members.contains(origin) || !origin.networkLive() || !Objects.equals(owner, origin.networkOwner())
+                || originMode != origin.securityMode()
                 || !(origin.getLevel() instanceof ServerLevel level)) return false;
         return checkLoadedNodes(level, deep);
     }
 
     boolean current(WirelessAccessPointBlockEntity origin, boolean deep) {
         if (!members.contains(origin) || !origin.networkLive() || !Objects.equals(owner, origin.owner())
+                || originMode != origin.securityMode()
                 || !(origin.getLevel() instanceof ServerLevel level)) return false;
         return checkLoadedNodes(level, deep);
     }
 
     boolean current(MatterLevelEmitterBlockEntity origin, boolean deep) {
         if (!members.contains(origin) || !origin.networkLive() || !Objects.equals(owner, origin.owner())
+                || originMode != origin.securityMode()
                 || !(origin.getLevel() instanceof ServerLevel level)) return false;
         return checkLoadedNodes(level, deep);
     }
@@ -237,11 +242,11 @@ final class MachineMatterNetwork {
         long tick = level.getGameTime(), epoch = ChunkRevisions.epoch();
         if (checkedTick != tick || checkedEpoch != epoch) {
             if (!chunks.stream().allMatch(stamp -> stamp.matches(level))) return false;
-            for (Node node : associated) if (!node.matches(level, owner)) return false;
+            for (Node node : associated) if (!node.matches(level, owner, originMode)) return false;
             checkedTick = tick; checkedEpoch = epoch;
         }
         if (deep && rereadTick != tick) {
-            for (Node node : nodes) if (!node.matches(level, owner)) return false;
+            for (Node node : nodes) if (!node.matches(level, owner, originMode)) return false;
             rereadTick = tick;
         }
         return true;
@@ -249,27 +254,27 @@ final class MachineMatterNetwork {
 
     static MachineMatterNetwork discover(MachineBlockEntity origin) {
         if (!origin.networkLive() || !(origin.getLevel() instanceof ServerLevel level))
-            return new MachineMatterNetwork(origin.networkOwner(), List.of(), Set.of(), List.of(),
+            return new MachineMatterNetwork(origin.networkOwner(), origin.securityMode(), List.of(), Set.of(), List.of(),
                     "network_invalid", 0, List.of(), null);
-        return runScan(level, origin.networkOwner(), origin.getBlockPos());
+        return runScan(level, origin.networkOwner(), origin.securityMode(), origin.getBlockPos());
     }
 
     static MachineMatterNetwork discover(WirelessAccessPointBlockEntity origin) {
         if (!origin.networkLive() || !(origin.getLevel() instanceof ServerLevel level))
-            return new MachineMatterNetwork(origin.owner(), List.of(), Set.of(), List.of(),
+            return new MachineMatterNetwork(origin.owner(), origin.securityMode(), List.of(), Set.of(), List.of(),
                     "network_invalid", 0, List.of(), null);
-        return runScan(level, origin.owner(), origin.getBlockPos());
+        return runScan(level, origin.owner(), origin.securityMode(), origin.getBlockPos());
     }
 
     static MachineMatterNetwork discover(MatterLevelEmitterBlockEntity origin) {
         if (!origin.networkLive() || !(origin.getLevel() instanceof ServerLevel level))
-            return new MachineMatterNetwork(origin.owner(), List.of(), Set.of(), List.of(),
+            return new MachineMatterNetwork(origin.owner(), origin.securityMode(), List.of(), Set.of(), List.of(),
                     "network_invalid", 0, List.of(), null);
-        return runScan(level, origin.owner(), origin.getBlockPos());
+        return runScan(level, origin.owner(), origin.securityMode(), origin.getBlockPos());
     }
 
-    private static MachineMatterNetwork runScan(ServerLevel level, UUID owner, BlockPos originPos) {
-        var network = new Scan(level, owner).run(originPos);
+    private static MachineMatterNetwork runScan(ServerLevel level, UUID owner, SecurityMode originMode, BlockPos originPos) {
+        var network = new Scan(level, owner, originMode).run(originPos);
         // A fresh scan read every node in this tick.
         network.checkedTick = network.rereadTick = level.getGameTime();
         network.checkedEpoch = ChunkRevisions.epoch();
@@ -319,12 +324,12 @@ final class MachineMatterNetwork {
         }
         Node { inventories = List.copyOf(inventories); Objects.requireNonNull(voidPolicy, "voidPolicy"); }
         boolean cable() { return cableTier >= 0; }
-        boolean matches(ServerLevel level, UUID owner) {
+        boolean matches(ServerLevel level, UUID owner, SecurityMode originMode) {
             if (level.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4) == null
                     || level.getBlockState(position).getBlock() != block || level.getBlockEntity(position) != entity) return false;
-            if(cable()&&!owner.equals(CableOwners.owner(level,position)))return false;
+            if(cable()&&!MachineAccess.canConnect(level,owner,originMode,CableOwners.owner(level,position),CableOwners.mode(level,position)))return false;
             if (entity instanceof MachineBlockEntity machine) {
-                if (!machine.networkLive() || !Objects.equals(owner, machine.networkOwner())) return false;
+                if (!machine.networkLive() || !MachineAccess.canConnect(level, owner, originMode, machine.networkOwner(), machine.securityMode())) return false;
                 if (machine.kind().isStorage() && (!localStatus.equals(machine.networkStorageStatus())
                         || !inventories.equals(machine.localMatterMembers())
                         || !voidPolicy.equals(machine.localVoidPolicy()))) return false;
@@ -333,13 +338,15 @@ final class MachineMatterNetwork {
                     return formation.formed() && structure.equals(formation.layoutFingerprint());
                 }
             } else if (entity instanceof WirelessAccessPointBlockEntity ap) {
-                return ap.networkLive() && Objects.equals(owner, ap.owner());
+                return ap.networkLive() && MachineAccess.canConnect(level, owner, originMode, ap.owner(), ap.securityMode());
             } else if (entity instanceof MatterLevelEmitterBlockEntity emitter) {
-                return emitter.networkLive() && Objects.equals(owner, emitter.owner());
+                return emitter.networkLive() && MachineAccess.canConnect(level, owner, originMode, emitter.owner(), emitter.securityMode());
             } else if(entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link){
-                return Objects.equals(owner,link.owner())&&localStatus.equals(dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner).map(p->Long.toString(p.asLong())).orElse(""));
+                return MachineAccess.canConnect(level,owner,originMode,link.owner(),link.securityMode())
+                        &&localStatus.equals(dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner,originMode).map(p->Long.toString(p.asLong())).orElse(""));
             } else if (entity instanceof MachinePortBlockEntity port) {
-                return !port.isRemoved() && port.acceptsMatter() && port.controller(null) == controller && port.outward() == outward;
+                return !port.isRemoved() && port.acceptsMatter() && port.controller(null) == controller && port.outward() == outward
+                        && controller != null && MachineAccess.canConnect(level, owner, originMode, controller.networkOwner(), controller.securityMode());
             }
             return true;
         }
@@ -348,6 +355,7 @@ final class MachineMatterNetwork {
     private static final class Scan {
         private final ServerLevel level;
         private final UUID owner;
+        private final SecurityMode originMode;
         private final Map<Long, ChunkRevisions.Stamp> chunks = new LinkedHashMap<>();
         private final Map<BlockPos, Node> observed = new HashMap<>();
         private final Set<BlockPos> unloadedPositions = new HashSet<>();
@@ -358,7 +366,7 @@ final class MachineMatterNetwork {
         private boolean unloaded;
         private boolean truncated;
 
-        Scan(ServerLevel level, UUID owner) { this.level = level; this.owner = owner; }
+        Scan(ServerLevel level, UUID owner, SecurityMode originMode) { this.level = level; this.owner = owner; this.originMode = originMode; }
 
         MachineMatterNetwork run(BlockPos originPos) {
             Node root = read(originPos);
@@ -424,7 +432,7 @@ final class MachineMatterNetwork {
             }
             // A failed/oversized observation never advertises a partial resource total.
             List<MachineBlockEntity> exposedStores = stores.size() <= MAX_STORAGES ? stores : List.of();
-            return new MachineMatterNetwork(owner, nodes, edges, new ArrayList<>(chunks.values()), diagnostic,
+            return new MachineMatterNetwork(owner, originMode, nodes, edges, new ArrayList<>(chunks.values()), diagnostic,
                     Math.min(MAX_STORAGES, storageNodes.size()), exposedStores, inventory);
         }
 
@@ -440,9 +448,11 @@ final class MachineMatterNetwork {
             BlockEntity entity = level.getBlockEntity(position);
             Node result = null;
             var noVoid = dev.latrox.rematter.chemistry.VoidPolicy.NONE;
-            if (state.getBlock() instanceof MatterCableBlock cable&&owner.equals(CableOwners.owner(level,position)))
+            if (state.getBlock() instanceof MatterCableBlock cable
+                    && MachineAccess.canConnect(level, owner, originMode, CableOwners.owner(level, position), CableOwners.mode(level, position)))
                 result = new Node(position, cable, cable.tier().ordinal(), entity, null, null, "", "", List.of(), noVoid);
-            else if (entity instanceof MachineBlockEntity machine && machine.networkLive() && Objects.equals(owner, machine.networkOwner())) {
+            else if (entity instanceof MachineBlockEntity machine && machine.networkLive()
+                    && MachineAccess.canConnect(level, owner, originMode, machine.networkOwner(), machine.securityMode())) {
                 String structure = "";
                 if (IndustrialStructure.isIndustrial(machine.kind())) {
                     var formation = IndustrialStructure.inspect(machine);
@@ -452,16 +462,20 @@ final class MachineMatterNetwork {
                 String status = machine.kind().isStorage() ? machine.networkStorageStatus() : "";
                 result = new Node(position, state.getBlock(), -1, machine, null, null, structure, status,
                         machine.localMatterMembers(), machine.localVoidPolicy());
-            } else if (entity instanceof WirelessAccessPointBlockEntity ap && ap.networkLive() && Objects.equals(owner, ap.owner())) {
+            } else if (entity instanceof WirelessAccessPointBlockEntity ap && ap.networkLive()
+                    && MachineAccess.canConnect(level, owner, originMode, ap.owner(), ap.securityMode())) {
                 result = new Node(position, state.getBlock(), -1, ap, null, null, "", "", List.of(), noVoid);
-            } else if (entity instanceof MatterLevelEmitterBlockEntity emitter && emitter.networkLive() && Objects.equals(owner, emitter.owner())) {
+            } else if (entity instanceof MatterLevelEmitterBlockEntity emitter && emitter.networkLive()
+                    && MachineAccess.canConnect(level, owner, originMode, emitter.owner(), emitter.securityMode())) {
                 result = new Node(position, state.getBlock(), -1, emitter, null, null, "", "", List.of(), noVoid);
-            } else if(entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&owner.equals(link.owner())){
-                String peer=dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner).map(p->Long.toString(p.asLong())).orElse("");
+            } else if(entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link
+                    && MachineAccess.canConnect(level, owner, originMode, link.owner(), link.securityMode())){
+                String peer=dev.latrox.rematter.primal.EntangledLinks.peer(level,position,owner,originMode).map(p->Long.toString(p.asLong())).orElse("");
                 result=new Node(position,state.getBlock(),-1,link,null,null,"",peer,List.of(),noVoid);
             } else if (entity instanceof MachinePortBlockEntity port && port.acceptsMatter()) {
                 var controller = port.controller(null); Direction outward = port.outward();
-                if (controller != null && outward != null && Objects.equals(owner, controller.networkOwner()))
+                if (controller != null && outward != null
+                        && MachineAccess.canConnect(level, owner, originMode, controller.networkOwner(), controller.securityMode()))
                     result = new Node(position, state.getBlock(), -1, port, controller, outward, "", "", List.of(), noVoid);
             }
             observed.put(position, result);
@@ -471,7 +485,7 @@ final class MachineMatterNetwork {
         private List<BlockPos> neighbors(Node node) {
             if(node.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity){
                 var result=new ArrayList<>(java.util.Arrays.stream(Direction.values()).map(node.position::relative).toList());
-                dev.latrox.rematter.primal.EntangledLinks.peer(level,node.position,owner).ifPresent(result::add);return result;
+                dev.latrox.rematter.primal.EntangledLinks.peer(level,node.position,owner,originMode).ifPresent(result::add);return result;
             }
             if (node.entity instanceof MachinePortBlockEntity) return List.of(node.controller.getBlockPos(), node.position.relative(node.outward));
             if (node.entity instanceof WirelessAccessPointBlockEntity ap) {
@@ -489,7 +503,7 @@ final class MachineMatterNetwork {
             return java.util.Arrays.stream(Direction.values()).map(node.position::relative).toList();
         }
         private boolean acceptsFrom(Node target, Node source) {
-            if(target.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity)return target.position.distManhattan(source.position)==1||dev.latrox.rematter.primal.EntangledLinks.peer(level,target.position,owner).filter(source.position::equals).isPresent();
+            if(target.entity instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity)return target.position.distManhattan(source.position)==1||dev.latrox.rematter.primal.EntangledLinks.peer(level,target.position,owner,originMode).filter(source.position::equals).isPresent();
             if (target.entity instanceof MachinePortBlockEntity)
                 return source.position.equals(target.controller.getBlockPos()) || source.position.equals(target.position.relative(target.outward));
             if (target.entity instanceof WirelessAccessPointBlockEntity ap) {

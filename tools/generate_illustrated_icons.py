@@ -34,6 +34,8 @@ WRENCH_LOOKS = ('caliper', 'open_jaw', 'socket')
 WRENCH_LOOK = 'caliper'
 CONFIGURATION_CARD_LOOKS = ('smart_module', 'punched_bus')
 CONFIGURATION_CARD_LOOK = 'smart_module'
+SECURITY_CARD_LOOKS = ('shield_key', 'lock_badge', 'access_token')
+SECURITY_CARD_LOOK = 'shield_key'
 WIRELESS_TERMINAL_LOOKS = ('field_slate', 'transceiver_deck')
 WIRELESS_TERMINAL_LOOK = 'field_slate'
 PORTABLE_ENERGY_CELL_LOOKS = ('upright_battery', 'twin_cell_pack', 'hex_capacitor')
@@ -361,6 +363,114 @@ def configuration_card(look=None):
             drawing.stroke([(ox + 3, oy), (ox + 29, oy + 14.5)], ivory if idx == 1 else steel, 1.8)
     else:
         raise ValueError(f'Unknown Configuration Card look: {look}')
+    return drawing.svg()
+
+
+def security_card(look=None, mode='public'):
+    """Dedicated Security Card: shares the exact Configuration Card chassis (graphite housing, steel grip,
+    copper connector pins and recessed bezel) with an isometric padlock emblem and subtle status-LED indicator.
+    No coloured Matrix Crystal enters its recipe, so only neutrals, material copper and status LED hues appear."""
+    look = look or SECURITY_CARD_LOOK
+    ivory = hex_color(IVORY)
+    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
+    casing_hi, casing, casing_lo, well = (hex_color(c) for c in (HIGHLIGHT, BASE, SHADE, WELL))
+    port_hi, port = hex_color(PORT_LIGHT), hex_color(PORT_METAL)
+    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
+    mode_rgb = {'public': LED['green'], 'trusted': LED['blue'], 'private': LED['red']}[mode]
+    acc_hi = hex_color(lighten(mode_rgb, .28))
+    acc = hex_color(mode_rgb)
+    acc_lo = hex_color(scale(mode_rgb, .68))
+
+    drawing = Composition(.95, (0, 0))
+    body_grad = drawing.gradient('sc-body', (22, 24), (104, 98), (port_hi, port, casing, casing_lo))
+    bezel_grad = drawing.gradient('sc-bezel', (32, 30), (90, 78), (light, steel, shade, deep))
+    pin_grad = drawing.gradient('sc-pin', (66, 80), (108, 108), (cu_hi, cu, cu_lo))
+    led_grad = drawing.gradient('sc-led', (36, 40), (88, 72), (acc_hi, acc, acc_lo))
+
+    # Exact Configuration Card chassis: isometric three-quarter card body, 5 copper pins, steel grip handle.
+    card_top = [(14, 58), (58, 22), (112, 52), (112, 62), (72, 98), (22, 70)]
+    drawing.shape(card_top, body_grad, joint=2.5)
+    drawing.fill([(17, 57), (58, 24.5), (109, 53), (70, 86)], casing)
+    drawing.fill([(17, 58), (70, 87), (70, 95.5), (22, 69)], shade)
+    drawing.fill([(70, 87), (110, 53), (110, 61), (70, 95.5)], casing_lo)
+    drawing.stroke([(19, 56.5), (58, 25.5), (107, 52.5)], casing_hi, 2.0)
+
+    # Identical 5 copper edge-connector pins along the lower-right insertion lip.
+    tongue = [(64, 90), (106, 56), (115, 62), (115, 70), (74, 104), (64, 98)]
+    drawing.shape(tongue, casing_lo, joint=2.2)
+    for step in range(5):
+        px, py = 69 + step * 8.2, 91 - step * 6.7
+        drawing.fill([(px, py), (px + 5.4, py - 4.4), (px + 9.2, py - 1.8), (px + 3.8, py + 2.6)], pin_grad)
+        drawing.stroke([(px + .6, py - .4), (px + 5.0, py - 4.0)], cu_hi, 1.4)
+
+    # Identical steel grip handle at upper-left, with a slim recessed mode-status LED indicator strip.
+    drawing.shape([(20, 51), (48, 28), (58, 34), (30, 57)], bezel_grad, joint=2.0)
+    drawing.stroke([(23, 50), (48, 30)], light, 1.8)
+    drawing.fill([(28, 52.2), (48.5, 35.5), (52.5, 37.8), (32, 54.5)], well)
+    drawing.fill([(29.5, 52.0), (48.2, 36.8), (50.8, 38.3), (32.1, 53.5)], acc)
+
+    # Identical recessed window frame as Configuration Card.
+    drawing.shape([(36, 56), (62, 35), (92, 52), (66, 73)], bezel_grad, joint=2.0)
+    drawing.fill([(40, 56), (62, 38.5), (88, 52.5), (66, 70)], well)
+
+    # Isometric card-plane helper: u runs left-to-right across the window (parallel to grip),
+    # v runs top-to-bottom (from grip toward copper pins), so every padlock edge aligns with the card.
+    def plane(u, v):
+        return (64.0 + u * 11.0 + v * 12.5, 54.25 - u * 8.8 + v * 6.8)
+
+    if look == 'shield_key':
+        # Padlock lying cleanly on the card's isometric plane: arch toward upper-left grip, body toward pins.
+        body = [plane(-.52, -.02), plane(.52, -.02), plane(.52, .68), plane(-.52, .68)]
+        drawing.fill(body, led_grad)
+        drawing.stroke([plane(-.50, -.01), plane(.50, -.01)], acc_hi, 1.4)
+        drawing.stroke([plane(-.50, .66), plane(.50, .66), plane(.50, .00)], acc_lo, 1.3)
+
+        if mode == 'public':
+            # Smooth open shackle arch lifted away on the right side.
+            shackle = [
+                plane(-.30, -.02), plane(-.30, -.46), plane(-.20, -.68),
+                plane(.00, -.76), plane(.20, -.68), plane(.32, -.48),
+            ]
+            drawing.stroke(shackle, ivory, 3.0)
+            # Crisp open keyhole centered in the padlock body.
+            drawing.fill([plane(-.12, .24), plane(.12, .24), plane(.12, .44), plane(-.12, .44)], well)
+        elif mode == 'trusted':
+            # Closed shackle arch + twin ivory trust pips inside the padlock body.
+            shackle = [
+                plane(-.30, -.02), plane(-.30, -.42), plane(-.19, -.64),
+                plane(.00, -.72), plane(.19, -.64), plane(.30, -.42), plane(.30, -.02),
+            ]
+            drawing.stroke(shackle, ivory, 3.0)
+            drawing.fill([plane(-.24, .22), plane(-.06, .22), plane(-.06, .44), plane(-.24, .44)], ivory)
+            drawing.fill([plane(.06, .22), plane(.24, .22), plane(.24, .44), plane(.06, .44)], ivory)
+        else:
+            # Closed heavy shackle + dark keyhole slot (locked solid).
+            shackle = [
+                plane(-.30, -.02), plane(-.30, -.42), plane(-.19, -.64),
+                plane(.00, -.72), plane(.19, -.64), plane(.30, -.42), plane(.30, -.02),
+            ]
+            drawing.stroke(shackle, ivory, 3.2)
+            drawing.fill([plane(-.13, .16), plane(.13, .16), plane(.13, .36), plane(-.13, .36)], well)
+            drawing.fill([plane(-.07, .34), plane(.07, .34), plane(.09, .54), plane(-.09, .54)], well)
+    elif look == 'lock_badge':
+        # Same card chassis with a brighter ivory padlock body and coloured mode keyhole & shackle trim.
+        body = [plane(-.52, -.02), plane(.52, -.02), plane(.52, .68), plane(-.52, .68)]
+        drawing.fill(body, ivory)
+        shackle = [plane(-.30, -.02), plane(-.30, -.42), plane(-.19, -.64), plane(.00, -.72),
+                   plane(.19, -.64), plane(.30, -.42)] + ([] if mode == 'public' else [plane(.30, -.02)])
+        drawing.stroke(shackle, steel, 3.0)
+        drawing.fill([plane(-.16, .18), plane(.16, .18), plane(.16, .50), plane(-.16, .50)], acc)
+    elif look == 'access_token':
+        # Same card chassis with padlock rotated toward the upper-right bevel.
+        def diag(u, v):
+            return (64.0 + u * 12.5 - v * 11.0, 54.25 + u * 6.8 + v * 8.8)
+        drawing.fill([diag(-.52, -.02), diag(.52, -.02), diag(.52, .68), diag(-.52, .68)], led_grad)
+        shackle = [diag(-.30, -.02), diag(-.30, -.42), diag(-.19, -.64), diag(.00, -.72),
+                   diag(.19, -.64), diag(.30, -.42)] + ([] if mode == 'public' else [diag(.30, -.02)])
+        drawing.stroke(shackle, ivory, 3.0)
+        drawing.fill([diag(-.12, .22), diag(.12, .22), diag(.12, .48), diag(-.12, .48)], well)
+    else:
+        raise ValueError(f'Unknown Security Card look: {look}')
     return drawing.svg()
 
 
@@ -871,6 +981,9 @@ def generate(check=False):
                          ('matter_wrench_rotate', wrench(mode='rotate')),
                          ('matter_wrench_dismantle', wrench(mode='dismantle')),
                          ('configuration_card', configuration_card()),
+                         ('security_card', security_card(mode='public')),
+                         ('security_card_trusted', security_card(mode='trusted')),
+                         ('security_card_private', security_card(mode='private')),
                          ('wireless_booster', wireless_booster()),
                          ('wireless_matter_terminal', wireless_terminal()),
                          ('energy_core', energy_core()),
@@ -891,7 +1004,7 @@ def generate(check=False):
     out.json(RECORD, expected)
     print(f"{'Verified' if check else 'Generated'} {len(expected)} illustrated icons ({technical_sprites.UPGRADE_CHASSIS_LOOK} upgrade "
           f"chassis, {MATRIX_CLUSTER_LOOK} Matrix Cluster, {WRENCH_LOOK} Matter Wrench, "
-          f"{CONFIGURATION_CARD_LOOK} Configuration Card, {WIRELESS_TERMINAL_LOOK} Wireless Terminal, "
+          f"{CONFIGURATION_CARD_LOOK} Configuration Card, {SECURITY_CARD_LOOK} Security Card, {WIRELESS_TERMINAL_LOOK} Wireless Terminal, "
           f"{ENERGY_CORE_LOOK} Energy Core, {PORTABLE_ENERGY_CELL_LOOK} Portable Energy Cell, "
           f"{CANISTER_LOOK} Pressurized Canister)")
 

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:fermented_spider_eye",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 120
+}

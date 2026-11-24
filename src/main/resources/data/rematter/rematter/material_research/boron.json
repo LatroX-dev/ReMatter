@@ -8,7 +8,9 @@
     "colossal_reactors:boron_ore",
     "colossal_reactors:boron_raw",
     "colossal_reactors:deep_boron_ore",
-    "colossal_reactors:raw_boron_block"
+    "colossal_reactors:raw_boron_block",
+    "jaopca:oritech_small_clumps.boron",
+    "jaopca:tiny_dusts.boron"
   ],
   "substances": [
     {

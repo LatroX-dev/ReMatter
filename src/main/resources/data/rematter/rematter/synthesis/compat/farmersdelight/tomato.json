@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "farmersdelight",
+  "item": "farmersdelight:tomato",
+  "category": "natural_material"
+}

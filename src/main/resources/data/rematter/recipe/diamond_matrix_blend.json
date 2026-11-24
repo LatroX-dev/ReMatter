@@ -3,7 +3,7 @@
   "primary": "#c:dusts/diamond",
   "secondary": "rematter:matrix_blend",
   "secondary_count": 2,
-  "tertiary": "rematter:gold_dust",
+  "tertiary": "#c:dusts/gold",
   "energy": 8000,
   "ticks": 320,
   "minimum_tier": 1,

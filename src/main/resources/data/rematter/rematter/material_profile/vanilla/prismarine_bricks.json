@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:prismarine_bricks",
+  "matter": [
+    {
+      "substance": "rematter:prismarine_shard",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 144000,
+  "synthesis_energy": 288000,
+  "ticks": 1800
+}

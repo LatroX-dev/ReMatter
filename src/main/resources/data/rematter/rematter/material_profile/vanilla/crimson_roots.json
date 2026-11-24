@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:crimson_roots",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 1500,
+  "synthesis_energy": 3000,
+  "ticks": 40
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:cell_housing",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2332
+    }
+  ],
+  "decomposition_energy": 14000,
+  "synthesis_energy": 28000,
+  "ticks": 80
+}

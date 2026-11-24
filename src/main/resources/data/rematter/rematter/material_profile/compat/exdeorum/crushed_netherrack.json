@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "exdeorum",
+  "item": "exdeorum:crushed_netherrack",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 180
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 20
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 800
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

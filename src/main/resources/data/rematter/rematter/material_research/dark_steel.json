@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Dark Steel",
   "items": [
+    "enderio:dark_bimetal_gear",
     "enderio:dark_steel_block",
     "enderio:dark_steel_ingot",
     "enderio:dark_steel_nugget"

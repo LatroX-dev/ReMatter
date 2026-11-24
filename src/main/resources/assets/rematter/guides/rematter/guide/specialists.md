@@ -47,6 +47,7 @@ Choose an environmental source on a Chemical Processor or Chemical Reactor. The 
 | --- | --- | --- | --- |
 | Air Separation | minecraft:overworld | Open sky | 200 Oxygen |
 | Atmospheric CO2 capture | minecraft:overworld | Open sky | 150 Oxygen, 50 Carbon Dioxide |
+| Atmospheric nitrogen capture | minecraft:overworld | Open sky | 400 Nitrogen |
 | Subterranean vapor condensation | minecraft:overworld | Covered or open | 250 Water Vapor, 50 Carbon Dioxide |
 | Void atmosphere intake | minecraft:the_end | Open sky | 150 Hydrogen, 50 Oxygen |
 | Nether fume extraction | minecraft:the_nether | Covered or open | 150 Sulfur Dioxide, 100 Carbon Dioxide |

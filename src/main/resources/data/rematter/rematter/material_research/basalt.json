@@ -2,7 +2,9 @@
   "schema": 1,
   "name": "Basalt",
   "items": [
-    "minecraft:basalt"
+    "minecraft:basalt",
+    "minecraft:polished_basalt",
+    "minecraft:smooth_basalt"
   ],
   "substances": [
     {

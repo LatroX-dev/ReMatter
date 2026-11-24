@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:spider_eye",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

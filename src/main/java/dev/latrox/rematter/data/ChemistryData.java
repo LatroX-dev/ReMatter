@@ -70,6 +70,7 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         Map<String, SynthesisCategory> synthesis = new TreeMap<>();
         Map<String, SynthesisRequirement> requirements = new TreeMap<>();
+        Map<String, String> synthesisGroups = new TreeMap<>();
         Map<SubstanceId, EnvironmentSource> sources = new TreeMap<>();
         Map<String, Identifier> profileSources = new HashMap<>();
         Map<String, Identifier> fluidSources = new HashMap<>();
@@ -126,10 +127,14 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             if (disabled(json)) {
                 synthesis.remove(item);
                 requirements.remove(item);
+                synthesisGroups.remove(item);
                 return;
             }
             synthesis.put(item, ChemistryDocuments.synthesisCategory(json));
             requirements.put(item, ChemistryDocuments.synthesisRequirement(json));
+            String group = ChemistryDocuments.synthesisGroup(json);
+            if (group.isEmpty()) synthesisGroups.remove(item);
+            else synthesisGroups.put(item, group);
         });
 
         readDirectory(manager, "rematter/environment_source", (id, json) -> {
@@ -138,12 +143,17 @@ public final class ChemistryData extends SimplePreparableReloadListener<Chemistr
             else sources.put(key, ChemistryDocuments.environmentSource(key, json));
         });
 
+        SynthesisUnifier.Result unified = SynthesisUnifier.apply(
+                synthesis, requirements, synthesisGroups,
+                SynthesisConfig.unifyOutputs(), SynthesisConfig.modPriority());
+
         ChemistryRegistry.Builder builder = ChemistryRegistry.builder();
         substances.values().forEach(builder::addSubstance);
         profiles.values().forEach(builder::addProfile);
         fluids.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
-        synthesis.forEach((id, category) -> builder.allowSynthesis(id, category, requirements.get(id)));
+        unified.allowed().forEach((id, category) -> builder.allowSynthesis(id, category, unified.requirements().get(id)));
+        builder.canonicalAliases(unified.aliases());
         sources.values().forEach(builder::addEnvironmentSource);
         ChemistryRegistry result = builder.build();
         SynthesisOutputs.validate(result, this::defaultsFor);

@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:carrot",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 3000,
+  "synthesis_energy": 6000,
+  "ticks": 60
+}

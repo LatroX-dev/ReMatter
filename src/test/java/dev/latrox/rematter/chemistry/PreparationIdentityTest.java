@@ -42,7 +42,7 @@ class PreparationIdentityTest {
                 var result=entry.getAsJsonObject();String item=result.get("id").getAsString();
                 if(!hasMatter(item,producers,new java.util.HashSet<>())){profiled=false;break;}
                 long count=result.has("count")?result.get("count").getAsLong():1;
-                matter(item,producers).forEach((key,amount)->outputs.merge(key,Math.multiplyExact(amount,count),Math::addExact));
+                matter(item,count,producers).forEach((key,amount)->outputs.merge(key,amount,Math::addExact));
             }
             if(!profiled)continue;
             assertEquals(ingredients(recipe,producers),outputs,results.toString());checked++;
@@ -78,27 +78,34 @@ class PreparationIdentityTest {
         for (String slot : List.of("primary", "secondary", "tertiary")) {
             if (!recipe.has(slot)) continue;
             long count = recipe.has(slot + "_count") ? recipe.get(slot + "_count").getAsLong() : 1;
-            matter(recipe.get(slot).getAsString(), producers).forEach((key, amount) ->
-                    total.merge(key, Math.multiplyExact(amount, count), Math::addExact));
+            matter(recipe.get(slot).getAsString(), count, producers).forEach((key, amount) ->
+                    total.merge(key, amount, Math::addExact));
         }
         return total;
     }
 
-    /** One item of an ingredient: its own profile, or its single preparation source divided exactly by the yield. */
-    private static Map<SubstanceKey, Long> matter(String ingredient, Map<String, JsonObject> producers) {
+    /** Exact matter for {@code count} items of an ingredient: its batched profile or preparation source. */
+    private static Map<SubstanceKey, Long> matter(String ingredient, long count, Map<String, JsonObject> producers) {
         String item = ingredient.startsWith("#") ? taggedProfile(ingredient.substring(1)) : ingredient;
         var profile = REGISTRY.profile(item);
         if (profile.isPresent()) {
-            assertEquals(1, profile.orElseThrow().itemCount(), item);
-            return profile.orElseThrow().matter();
+            long batch = profile.orElseThrow().itemCount();
+            Map<SubstanceKey, Long> share = new TreeMap<>();
+            profile.orElseThrow().matter().forEach((key, amount) -> {
+                long scaled = Math.multiplyExact(amount, count);
+                assertEquals(0, scaled % batch, "Fractional batch share of " + key + " in " + count + "x " + item);
+                share.put(key, scaled / batch);
+            });
+            return share;
         }
         JsonObject source = producers.get(item);
         assertNotNull(source, "Ingredient without a profile or preparation source: " + item);
         long yield = source.getAsJsonObject("result").get("count").getAsLong();
         Map<SubstanceKey, Long> share = new TreeMap<>();
         ingredients(source, producers).forEach((key, amount) -> {
-            assertEquals(0, amount % yield, "Fractional share of " + key + " in " + item);
-            share.put(key, amount / yield);
+            long scaled = Math.multiplyExact(amount, count);
+            assertEquals(0, scaled % yield, "Fractional share of " + key + " in " + item);
+            share.put(key, scaled / yield);
         });
         return share;
     }

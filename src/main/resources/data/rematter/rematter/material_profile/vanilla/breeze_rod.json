@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:breeze_rod",
+  "matter": [
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas",
+      "amount": 960
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 480
+    }
+  ],
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 480
+}

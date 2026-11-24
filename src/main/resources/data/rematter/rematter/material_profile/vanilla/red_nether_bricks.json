@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:red_nether_bricks",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 360
+    },
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 400
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 240
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1600
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 240
+}

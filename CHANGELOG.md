@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.10.0
+
+### Multiplayer Security & Security Card
+- **Mekanism-Style Security Modes (`Public` / `Trusted` / `Private`):** Every ReMatter machine, Energy Cube, Cell Transfer Station, Wireless Access Point, Matter Level Emitter, Entangled Link, and Matter Cable now supports per-device security modes:
+  - **`Public`** *(default)*: Anyone can operate, configure, connect coop cables/networks, and wrench/break devices, while only the owner (or a server operator) can change security modes.
+  - **`Trusted`**: Accessible to the owner, live **FTB Teams** teammates, and players added via `/rematter trust` — with shared coop Matter/FE networks and Entangled Links across trusted players.
+  - **`Private`**: Strictly isolated to the owner (and server operators); foreign cables, networks, FE routing, Entangled Links, Wrench diagnostics, and Jade details are blocked.
+- **Dedicated Security Card (`rematter:security_card`):** Craft a dedicated Security Card (matching the Configuration Card chassis with an isometric padlock icon and live emerald/amber/rose LED status for `Public`/`Trusted`/`Private`):
+  - **Right-Click air** (or **Sneak + Right-Click air**) to cycle the card's target security mode.
+  - **Right-Click** any owned device or formed Machine Port to stamp that device's mode.
+  - **Sneak + Right-Click** any device, Machine Port, or Matter Cable to apply the mode across your entire connected loaded network (including Matter Cables and paired Entangled Links), automatically skipping other players' devices.
+  - The **Configuration Card** remains dedicated purely to technical setups (ports, Redstone, targets, filters, Entangled Link pairing) and never overwrites security modes.
+- **Player Commands (no operator permission required):**
+  - `/rematter trust add|remove|list|clear` manages your persistent Overworld-saved trusted player list for `Trusted` mode (complementing optional FTB Teams).
+  - `/rematter security default [public|trusted|private]` sets your personal default security mode for newly placed ReMatter devices and cables (global default remains `Public`).
+- **In-Device Security Controls:** Added cycling `Security` controls (left-click forward, right-click or Shift+left-click backward, locked for non-owners) directly in **Settings → Access** and on Energy Cubes, Cell Transfer Stations, Wireless Access Points, and Matter Level Emitters.
+
+### Unified Synthesis & Expanded Material Catalogue
+- **Cross-Mod Synthesis & Viewer Unification:** Cross-mod duplicate synthesis outputs now declare explicit `synthesis_group` keys (69 groups, e.g. `dust:copper`, `ingot:steel`, `dust:salt`). With `synthesis.unifyOutputs = true` (default in `rematter-common.toml`), the server collapses each group to a single canonical output following `synthesis.modPriority` across the Material Synthesizer, Industrial Synthesizer, Network Interface (AE2/RS), and JEI/EMI recipe viewers — while the **Decomposer** and **Analyzer** continue accepting every mod variant seamlessly.
+- **Massive Material Catalogue Expansion:** Expanded the reviewed exact-ID catalogue from 1,043 to **1,989 item profiles across 41 namespaces** with **747 explicit item synthesis outputs**, **14 fluids**, **14 gas outputs**, **90 substances**, and **326 research families**:
+  - Expanded vanilla natural blocks, woods, stones, dyes, crops, and food/salt chemistry (`bakeries:salt`, `croptopia:salt`, `croptopia:salt_ore`, `refurbished_furniture:sea_salt`, `alltheores:salt_dust`, `mekanism:salt`, `nautec:salt` unified under `dust:salt` with standalone fallback).
+  - Added **Atmospheric Nitrogen** collection in the Atmospheric Collector / Industrial Reactor.
+  - Added conservative recovery-only decomposition profiles for all **97 non-Primal ReMatter items and empty devices** (including empty machines, Energy Cubes, Cell Transfer Stations, emptied unpartitioned Matter Cells, Matter Wrench, Configuration Card, and Security Card — strictly rejecting filled, powered, partitioned, linked, or unreadable items).
+  - Broadened optional exact-ID mod coverage across major tech, storage, and worldgen mods while keeping manufactured components, tools, armor, weapons, and machines strictly outside synthesis.
+
+### Recipe Viewers (JEI / JEI++ & EMI / SEMI) & UI Polish
+- **Full JEI / JEI++ Parity:** Implemented native JEI `SubstanceDetails.Viewer` opening (`R`/`U` recipe & usage lookup with live JEI key bindings), generic `AbstractContainerScreen` hover support for `SubstanceHoverProvider` screens and Pressurized Canisters, `IScreenHandler` bounds & hover support for `ProcessSelectionScreen`, `PrimalTargetScreen`, and `SubstanceDetailsScreen`, phase-distinct `MatterIngredient` identifiers (`<ns>:<path>/<phase>`), and complete GUI exclusion areas across all ReMatter device screens in both JEI and EMI.
+- **UI Fixes:** Tinted all Cancel buttons across machine, terminal, process selection, and Primal target screens with the active device accent colour, and fixed text/button clearance on the Decomposer, Synthesizer, and Preparator **Settings → Access** panel.
+
 ## 0.9.0
 
 ### Breaking & Migration Notes

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:ink_sac",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 800
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 120
+}

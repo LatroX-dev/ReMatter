@@ -82,14 +82,15 @@ def optional(mod, data, *conditions):
 def advanced_materials():
     materials = (
         ("diamond_powder", "minecraft:diamond", "#c:dusts/diamond", "diamond_matrix_blend",
-         "matrix_blend", "gold_dust", "diamond_lattice", 6000, 8000, 12000, 120, 160, 200),
+         "matrix_blend", "#c:dusts/gold", "diamond_lattice", 6000, 8000, 12000, 120, 160, 200),
         ("ender_pearl_powder", "minecraft:ender_pearl", "#rematter:full_ender_pearl_powders", "ender_conductor_blend",
-         "lumivex_dust", "copper_dust", "ender_conductor", 8000, 10000, 16000, 140, 180, 240),
+         "lumivex_dust", "#c:dusts/copper", "ender_conductor", 8000, 10000, 16000, 140, 180, 240),
         ("netherite_powder", "minecraft:netherite_ingot", "#c:dusts/netherite", "netherite_sheath_blend",
          "rhevon_dust", "virelite_blend", "netherite_sheath", 12000, 14000, 24000, 180, 220, 280),
     )
     for powder, raw, shared, blend, binder, additive, result, grind_fe, mix_fe, sinter_fe, grind_t, mix_t, sinter_t in materials:
-        binder, additive = "rematter:" + binder, "rematter:" + additive
+        binder = binder if binder.startswith("#") else "rematter:" + binder
+        additive = additive if additive.startswith("#") else "rematter:" + additive
         preparation(powder, [(raw, 1)], powder, energy=grind_fe, ticks=grind_t)
         preparation(blend, [(shared, 1), (binder, 2), (additive, 1)], blend, energy=mix_fe, ticks=mix_t,
                     minimum_tier=2 if blend == "netherite_sheath_blend" else 1,
@@ -114,7 +115,7 @@ def advanced_materials():
     tag("rematter", "full_ender_pearl_powders", ["rematter:ender_pearl_powder", {"id": "ae2:ender_dust", "required": False}])
     recipe("compat/enderio/ender_conductor_blend_from_fragments", optional("enderio", {
         "type": "rematter:preparation", "primary": "enderio:powdered_ender_pearl", "primary_count": 9,
-        "secondary": "rematter:lumivex_dust", "secondary_count": 2, "tertiary": "rematter:copper_dust",
+        "secondary": "rematter:lumivex_dust", "secondary_count": 2, "tertiary": "#c:dusts/copper",
         "result": {"id": "rematter:ender_conductor_blend", "count": 1}, "energy": 10000, "ticks": 180, "minimum_tier": 1,
     }, registered("item", "enderio:powdered_ender_pearl")))
 

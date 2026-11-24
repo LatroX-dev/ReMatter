@@ -19,6 +19,7 @@ item_ids:
   - rematter:wireless_matter_terminal
   - rematter:matter_level_emitter
   - rematter:configuration_card
+  - rematter:security_card
   - rematter:matter_wrench
   - rematter:network_interface
   - rematter:automation_pattern
@@ -144,8 +145,12 @@ If a recipe changes, outdated jobs return their inputs to the external network. 
 
 <RecipeFor id="rematter:network_interface" />
 
-## Ownership and teams
+## Ownership and security
 
-Place every machine and Matter Cable for one stock network as the same owner. Foreign and unowned cables do not connect. FE travels only to the cable owner's devices. Current FTB Teams members may operate machines, but removal, disposal settings and held-delivery recovery remain owner/operator actions. Team membership does not merge stock networks or share advancements.
+Devices default to **Public** so co-op players can share machines and cable networks right away. Only a device's owner (or a server operator) can change its security mode between **Public**, **Trusted** (owner, current FTB Teams teammates, and players added via `/rematter trust`), and **Private** (owner only; isolates from other players' networks). You can also set your personal default for newly placed devices with `/rematter security default public|trusted|private`.
+
+Craft a **Security Card** to stamp a security mode quickly: right-click in the air to select **Public**, **Trusted**, or **Private**, right-click a device to update that block, or **Sneak + Right-Click** any device, Machine Port, or Matter Cable to apply the mode across all of your own devices on the connected network in one click.
+
+<RecipeFor id="rematter:security_card" />
 
 Use **Production settings** for a hard stock target. Matter processes count the selected substance and phase across the connected ReMatter network. Physical outputs count only the local output buffer. Set a multiple of the complete batch yield. AE2 and RS stock is outside this target.

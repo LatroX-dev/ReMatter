@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:pumpkin_pie",
+  "matter": [
+    {
+      "substance": "rematter:calcium_phosphate",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 400
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 140
+}

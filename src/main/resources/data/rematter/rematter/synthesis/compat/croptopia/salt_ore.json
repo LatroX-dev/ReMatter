@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "croptopia",
+  "item": "croptopia:salt_ore",
+  "disabled": true
+}

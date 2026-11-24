@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:machine_port",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 312
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1916
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1643
+    }
+  ],
+  "decomposition_energy": 29000,
+  "synthesis_energy": 58000,
+  "ticks": 88
+}

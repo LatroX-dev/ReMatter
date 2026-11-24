@@ -28,6 +28,7 @@ public final class CellTransferStationBlockEntity extends BlockEntity implements
     private final NonNullList<ItemStack> items=NonNullList.withSize(SLOTS,ItemStack.EMPTY);
     private final PrimalCells.Journal[] primalJournals=new PrimalCells.Journal[SLOTS];
     private @Nullable UUID owner;
+    private SecurityMode securityMode = SecurityMode.PUBLIC;
     private @Nullable CompoundTag unsupportedData;
     private CellTransferSelection selection=CellTransferSelection.ALL;
     private long revision,movedRevision=-1,movedOrdinary,movedPrimal;
@@ -49,10 +50,21 @@ public final class CellTransferStationBlockEntity extends BlockEntity implements
     }
     public boolean locked(){return unsupportedData!=null;}
     public @Nullable UUID owner(){return owner;}
-    public boolean canRemove(Player player){return player instanceof FakePlayer?player.getUUID().equals(owner):owner==null||owner.equals(player.getUUID())||player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);}
-    public boolean canAccess(Player player){return canRemove(player)||!(player instanceof FakePlayer)&&dev.latrox.rematter.compat.TeamAccess.shared(owner,player.getUUID());}
+    public SecurityMode securityMode(){return securityMode;}
+    public boolean canManageSecurity(Player player){return MachineAccess.canManage(owner,player);}
+    public boolean setSecurityMode(Player player,SecurityMode next){
+        if(!installed()||locked()||player.isSpectator()||!canManageSecurity(player)||next==null)return false;
+        if(securityMode==next)return true;
+        securityMode=next;advanceRevision();setChanged();return true;
+    }
+    public boolean cycleSecurityMode(Player player,boolean forward){return setSecurityMode(player,forward?securityMode.next():securityMode.previous());}
+    public boolean canRemove(Player player){return canAccess(player);}
+    public boolean canAccess(Player player){return MachineAccess.allows(level,owner,securityMode,player);}
     private boolean canAct(Player player){return installed()&&!locked()&&!player.isSpectator()&&canAccess(player)&&Container.stillValidBlockEntity(this,player);}
-    public void placedBy(@Nullable LivingEntity placer){owner=placer instanceof Player player?player.getUUID():null;advanceRevision();setChanged();}
+    public void placedBy(@Nullable LivingEntity placer){
+        if(securityMode==SecurityMode.PUBLIC&&!locked())securityMode=MachineAccess.placementDefault(level,placer);
+        owner=placer instanceof Player player?player.getUUID():null;advanceRevision();setChanged();
+    }
     public boolean interact(Player player){if(owner==null&&!player.isSpectator()&&!(player instanceof FakePlayer)){owner=player.getUUID();advanceRevision();setChanged();}return canAccess(player);}
     private void advanceRevision(){revision=Math.incrementExact(revision);}
     private void refreshRevision(){
@@ -270,12 +282,13 @@ public final class CellTransferStationBlockEntity extends BlockEntity implements
     @Override protected void saveAdditional(ValueOutput output){
         super.saveAdditional(output);if(locked()){output.store(CellTransferData.RAW,unsupportedData);return;}
         output.putInt("schema",CellTransferData.SCHEMA);if(owner!=null)output.putString("owner",owner.toString());
+        if(securityMode!=SecurityMode.PUBLIC)output.putString("security",securityMode.getSerializedName());
         output.store("items",ItemStack.OPTIONAL_CODEC.listOf(),List.copyOf(items));output.putBoolean("all",selection.all());output.putBoolean("primal_selected",selection.primalSelected());output.store("selection",CellTransferData.TAG,CellTransferData.keys(selection));
     }
     @Override protected void loadAdditional(ValueInput input){
         super.loadAdditional(input);var raw=input.read(CellTransferData.RAW).orElseGet(CompoundTag::new);var decoded=CellTransferData.read(raw,input.lookup());
-        items.replaceAll(s->ItemStack.EMPTY);selection=CellTransferSelection.ALL;owner=raw.getString("owner").map(CellTransferData::owner).orElse(null);unsupportedData=decoded.isPresent()?null:raw;
-        if(decoded.isPresent()){var state=decoded.get();for(int i=0;i<SLOTS;i++)items.set(i,state.items().get(i));selection=state.selection();owner=state.owner();}
+        items.replaceAll(s->ItemStack.EMPTY);selection=CellTransferSelection.ALL;owner=raw.getString("owner").map(CellTransferData::owner).orElse(null);securityMode=SecurityMode.PUBLIC;unsupportedData=decoded.isPresent()?null:raw;
+        if(decoded.isPresent()){var state=decoded.get();for(int i=0;i<SLOTS;i++)items.set(i,state.items().get(i));selection=state.selection();owner=state.owner();securityMode=state.securityMode();}
         observed=null;advanceRevision();publishedMask=publishedTiers=publishedStatuses=-1;
     }
     public boolean hasStoredContents(){return locked()||items.stream().anyMatch(s->!s.isEmpty())||!selection.equals(CellTransferSelection.ALL);}

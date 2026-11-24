@@ -25,6 +25,6 @@ public final class EntangledLinkBlock extends Block implements EntityBlock {
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) { return new EntangledLinkBlockEntity(pos, state); }
     @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide() && placer instanceof Player player && !(player instanceof net.neoforged.neoforge.common.util.FakePlayer) && level.getBlockEntity(pos) instanceof EntangledLinkBlockEntity link) link.claim(player.getUUID());
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof EntangledLinkBlockEntity link) link.placedBy(placer);
     }
 }

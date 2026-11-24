@@ -2,6 +2,7 @@ package dev.latrox.rematter.celltransfer;
 
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.ModContent;
+import dev.latrox.rematter.content.SecurityMode;
 import dev.latrox.rematter.network.*;
 import java.util.*;
 import net.minecraft.core.BlockPos;
@@ -17,12 +18,15 @@ import org.jspecify.annotations.Nullable;
 /** Two physical Cell slots (0 = Source, 1 = Target), a revision-checked selection and persistent per-Cell policies. */
 public final class CellTransferMenu extends AbstractContainerMenu {
     public static final int WIDTH = 256, HEIGHT = 224, FIRST_PLAYER_SLOT = 2, PLAYER_X = 48, PLAYER_Y = 143, HOTBAR_Y = 201;
+    public static final int CYCLE_SECURITY = 1, CYCLE_SECURITY_BACK = 2;
     public static final int[] CELL_X = {16, 170};
     public static final int CELL_Y = 39;
     private final Container inventory;
     private final @Nullable CellTransferStationBlockEntity station;
     private final Player player;
     private final BlockPos position;
+    private final DataSlot securityMode = DataSlot.standalone();
+    private final DataSlot canManageSecurity = DataSlot.standalone();
     private @Nullable CellTransferPayload received, sent;
     private long nextUpdate, acknowledgement;
     private boolean partitionView;
@@ -59,7 +63,13 @@ public final class CellTransferMenu extends AbstractContainerMenu {
                 addSlot(new Slot(playerInventory, column + row * 9 + 9, PLAYER_X + column * 18, PLAYER_Y + row * 18));
         for (int column = 0; column < 9; column++)
             addSlot(new Slot(playerInventory, column, PLAYER_X + column * 18, HOTBAR_Y));
+        securityMode.set(station != null ? station.securityMode().ordinal() : SecurityMode.PUBLIC.ordinal());
+        addDataSlot(securityMode);
+        canManageSecurity.set(station != null && station.canManageSecurity(player) ? 1 : 0);
+        addDataSlot(canManageSecurity);
     }
+    public SecurityMode securityMode() { return station != null ? station.securityMode() : SecurityMode.byIndex(securityMode.get()); }
+    public boolean canManageSecurity() { return station != null ? station.canManageSecurity(player) : canManageSecurity.get() != 0; }
     private boolean stationLocked() {
         return station != null ? station.locked()
                 : received != null && received.locked() && received.slots().stream().allMatch(v -> v.kind() == 0);
@@ -107,6 +117,11 @@ public final class CellTransferMenu extends AbstractContainerMenu {
         sent = null; nextUpdate = 0; broadcastChanges(); return changed;
     }
     @Override public boolean clickMenuButton(Player actor, int action) {
+        if ((action == CYCLE_SECURITY || action == CYCLE_SECURITY_BACK) && station != null && actor.containerMenu == this && stillValid(actor)) {
+            boolean changed = station.cycleSecurityMode(actor, action == CYCLE_SECURITY);
+            if (changed) { sent = null; nextUpdate = 0; broadcastChanges(); }
+            return changed;
+        }
         return action == 0 && sent != null && configure(actor, new CellTransferConfigPayload(containerId, sent.revision(), CellTransferConfigPayload.Action.TRANSFER, -1, null, false));
     }
     @Override public boolean stillValid(Player actor) { return station == null || station.stillValid(actor); }
@@ -126,6 +141,10 @@ public final class CellTransferMenu extends AbstractContainerMenu {
         return before;
     }
     @Override public void broadcastChanges() {
+        if (station != null) {
+            securityMode.set(station.securityMode().ordinal());
+            canManageSecurity.set(station.canManageSecurity(player) ? 1 : 0);
+        }
         super.broadcastChanges();
         if (station == null || !(player instanceof ServerPlayer server) || !stillValid(player)) return;
         long time = server.level().getGameTime();

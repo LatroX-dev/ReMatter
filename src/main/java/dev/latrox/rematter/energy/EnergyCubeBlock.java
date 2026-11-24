@@ -74,7 +74,7 @@ public final class EnergyCubeBlock extends Block implements EntityBlock {
     }
     public ItemStack storedDrop(EnergyCubeBlockEntity cube,HolderLookup.Provider registries){
         var result=new ItemStack(this);result.applyComponents(cube.collectComponents());
-        var data=cube.saveCustomOnly(registries);data.remove("owner");
+        var data=cube.saveCustomOnly(registries);data.remove("owner");data.remove("security");
         result.set(DataComponents.BLOCK_ENTITY_DATA,TypedEntityData.of(cube.getType(),data));
         return result;
     }

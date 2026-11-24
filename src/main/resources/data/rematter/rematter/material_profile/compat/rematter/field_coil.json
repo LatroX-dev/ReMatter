@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:field_coil",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 937
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 5750
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1519
+    }
+  ],
+  "decomposition_energy": 53000,
+  "synthesis_energy": 106000,
+  "ticks": 112
+}

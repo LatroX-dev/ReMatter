@@ -3,6 +3,10 @@
   "name": "Amber",
   "items": [
     "jaopca:dusts.amber",
+    "minecraft:resin_block",
+    "minecraft:resin_brick",
+    "minecraft:resin_bricks",
+    "minecraft:resin_clump",
     "thaumaturge:amber",
     "thaumaturge:amber_block",
     "thaumaturge:deepslate_ore_amber",

@@ -2,9 +2,21 @@
   "schema": 1,
   "name": "Sand & Glass",
   "items": [
+    "ae2:quartz_glass",
+    "enderio:clear_glass",
+    "exdeorum:compressed_dust",
+    "exdeorum:compressed_gravel",
+    "exdeorum:compressed_sand",
+    "exdeorum:dust",
+    "minecraft:chiseled_sandstone",
+    "minecraft:cut_sandstone",
     "minecraft:glass",
+    "minecraft:glass_pane",
+    "minecraft:gravel",
     "minecraft:sand",
-    "minecraft:sandstone"
+    "minecraft:sandstone",
+    "minecraft:smooth_sandstone",
+    "rematter:silith"
   ],
   "substances": [
     {

@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:chemical_processor",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1437
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4101
+    }
+  ],
+  "decomposition_energy": 57000,
+  "synthesis_energy": 114000,
+  "ticks": 116
+}

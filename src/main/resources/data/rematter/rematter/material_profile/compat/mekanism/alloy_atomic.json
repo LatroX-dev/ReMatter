@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:alloy_atomic",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 32
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 312
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 48000,
+  "synthesis_energy": 96000,
+  "ticks": 300
+}

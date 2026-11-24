@@ -84,14 +84,70 @@ class ChemistryViewerTest {
     }
 
     @Test void decompositionExplainsWhetherSynthesisIsAllowedAndKeepsTheExactBatch() {
-        var entries = entries(ShippedChemistry.standalone());
-        var copper = entries.stream().filter(entry -> entry.id().getPath().equals("/decomposition/item/minecraft/raw_copper")).findFirst().orElseThrow();
-        assertEquals(ChemistryViewer.Category.DECOMPOSITION, copper.category());
-        assertTrue(copper.consumed().isPresent() && copper.produced().isEmpty() && copper.inputs().isEmpty());
-        assertFalse(copper.outputs().isEmpty());
+        var registry = ShippedChemistry.standalone();
+        var entries = entries(registry);
+        var rawCopper = entries.stream()
+                .filter(entry -> entry.category() == ChemistryViewer.Category.DECOMPOSITION
+                        && entry.consumedChoices().stream().anyMatch(r -> r.id().equals(Identifier.parse("minecraft:raw_copper"))))
+                .findFirst().orElseThrow();
+        assertEquals(ChemistryViewer.Category.DECOMPOSITION, rawCopper.category());
+        assertTrue(rawCopper.consumed().isPresent() && rawCopper.produced().isEmpty() && rawCopper.inputs().isEmpty());
+        assertFalse(rawCopper.outputs().isEmpty());
+        assertFalse(rawCopper.synthesisAllowed());
+        assertTrue(rawCopper.researchTargets().isEmpty());
         assertTrue(entries.stream().noneMatch(entry -> entry.id().getPath().equals("/synthesis/item/minecraft/raw_copper")));
         assertTrue(entries.stream().filter(entry -> entry.category() == ChemistryViewer.Category.SYNTHESIS)
                 .allMatch(entry -> entry.synthesisAllowed() && entry.produced().isPresent() && entry.outputs().isEmpty()));
+    }
+
+    @Test void decompositionUnificationCollapsesIdenticalVariantsWhileIndexingEveryModItem() {
+        var registry = ShippedChemistry.standalone();
+        var unified = entries(registry);
+        var ununified = ChemistryViewer.entries(registry, id -> !id.getPath().startsWith("missing"), id -> true,
+                false, dev.latrox.rematter.chemistry.SynthesisConfig.DEFAULT_MOD_PRIORITY);
+
+        long unifiedDecompItems = unified.stream()
+                .filter(e -> e.category() == ChemistryViewer.Category.DECOMPOSITION && e.consumed().filter(r -> !r.fluid()).isPresent())
+                .count();
+        long ununifiedDecompItems = ununified.stream()
+                .filter(e -> e.category() == ChemistryViewer.Category.DECOMPOSITION && e.consumed().filter(r -> !r.fluid()).isPresent())
+                .count();
+        assertTrue(unifiedDecompItems < ununifiedDecompItems / 2,
+                "Expected unified Decomposer view to collapse >50% of duplicate entries: " + unifiedDecompItems + " vs " + ununifiedDecompItems);
+
+        // Every registered item profile appears in exactly one Decomposer entry (nothing lost from U-uses lookup).
+        var covered = new HashSet<String>();
+        for (var entry : unified) {
+            if (entry.category() != ChemistryViewer.Category.DECOMPOSITION) continue;
+            for (var choice : entry.consumedChoices()) {
+                if (!choice.fluid()) assertTrue(covered.add(choice.id().toString()), "Duplicate item across Decomposer entries: " + choice.id());
+            }
+        }
+        long expectedItems = registry.profiles().stream().filter(p -> !Identifier.parse(p.itemId()).getPath().startsWith("missing")).count();
+        assertEquals(expectedItems, covered.size(), "Every registered item must remain indexed for viewer Uses");
+
+        // Copper ingot + all copper dusts share one synthesizable Decomposer entry ordered by priority;
+        // copper ores + raw copper + copper plates stay in a separate decomposition-only entry.
+        var copperSynthDecomp = unified.stream()
+                .filter(e -> e.category() == ChemistryViewer.Category.DECOMPOSITION
+                        && e.consumedChoices().stream().anyMatch(r -> r.id().equals(Identifier.parse("mekanism:dust_copper"))))
+                .findFirst().orElseThrow();
+        assertTrue(copperSynthDecomp.synthesisAllowed());
+        assertEquals(Identifier.parse("minecraft:copper_ingot"), copperSynthDecomp.consumed().orElseThrow().id());
+        var synthIds = copperSynthDecomp.consumedChoices().stream().map(r -> r.id().toString()).toList();
+        assertTrue(synthIds.containsAll(List.of("minecraft:copper_ingot", "alltheores:copper_dust", "mekanism:dust_copper", "rematter:copper_dust")));
+        assertFalse(synthIds.contains("minecraft:copper_ore"));
+        assertTrue(copperSynthDecomp.researchTargets().stream().allMatch(registry.synthesisPolicy()::allowsItem),
+                "Research targets must contain only active canonical synthesis IDs: " + copperSynthDecomp.researchTargets());
+
+        var copperRecoveryDecomp = unified.stream()
+                .filter(e -> e.category() == ChemistryViewer.Category.DECOMPOSITION
+                        && e.consumedChoices().stream().anyMatch(r -> r.id().equals(Identifier.parse("alltheores:copper_plate"))))
+                .findFirst().orElseThrow();
+        assertFalse(copperRecoveryDecomp.synthesisAllowed());
+        var recoveryIds = copperRecoveryDecomp.consumedChoices().stream().map(r -> r.id().toString()).toList();
+        assertTrue(recoveryIds.containsAll(List.of("minecraft:copper_ore", "minecraft:raw_copper", "alltheores:copper_plate")));
+        assertFalse(recoveryIds.contains("minecraft:copper_ingot"));
     }
 
     private static SubstanceDefinition element(SubstanceId id) {

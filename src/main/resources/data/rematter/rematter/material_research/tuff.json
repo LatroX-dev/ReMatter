@@ -2,7 +2,11 @@
   "schema": 1,
   "name": "Tuff",
   "items": [
-    "minecraft:tuff"
+    "minecraft:chiseled_tuff",
+    "minecraft:chiseled_tuff_bricks",
+    "minecraft:polished_tuff",
+    "minecraft:tuff",
+    "minecraft:tuff_bricks"
   ],
   "substances": [
     {

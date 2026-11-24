@@ -56,6 +56,7 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
     private EditBox searchBox;
     private DarkButton modeButton;
     private DarkButton clearButton;
+    private DarkButton securityBtn;
     private ChemistryRegistry catalogue;
     private List<SubstanceKey> filtered = List.of();
     private boolean updatingThresholdBox;
@@ -74,6 +75,18 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
     @Override
     protected void init() {
         super.init();
+        leftPos = Math.max(23, leftPos);
+
+        securityBtn = addRenderableWidget(DarkButton.icon(
+                SecurityUi.icon(menu.securityMode()), SecurityUi.label(menu.securityMode()), menu.securityMode().meaning(),
+                leftPos - 22, topPos + 18, 24, 22,
+                b -> {}));
+        securityBtn.setStepAction(forward -> {
+            if (minecraft != null && minecraft.gameMode != null) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                        forward ? MatterLevelEmitterMenu.CYCLE_SECURITY : MatterLevelEmitterMenu.CYCLE_SECURITY_BACK);
+            }
+        });
 
         modeButton = addRenderableWidget(DarkButton.labelIcon(
                 UiIcon.REDSTONE,
@@ -121,6 +134,13 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
         bar.setBounds(leftPos + GRID_X + COLUMNS * PITCH + 5, topPos + GRID_Y, 5, ROWS * PITCH);
         lastSyncedTarget = menu.target();
         rebuild();
+    }
+
+    public List<Rect2i> viewerExclusionAreas() {
+        if (securityBtn != null && securityBtn.visible) {
+            return List.of(new Rect2i(securityBtn.getX(), securityBtn.getY(), securityBtn.getWidth(), securityBtn.getHeight()));
+        }
+        return List.of();
     }
 
     private static Component modeLabel(boolean emitBelow) {
@@ -201,6 +221,9 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
         modeButton.setMessage(modeLabel(menu.emitWhenBelow()));
         modeButton.setTooltip(Tooltip.create(modeLabel(menu.emitWhenBelow()).copy().append("\n").append(modeHint(menu.emitWhenBelow()))));
         clearButton.active = menu.target() != null;
+        if (securityBtn != null) {
+            SecurityUi.configure(securityBtn, menu.securityMode(), menu.canManageSecurity(), true, ACCENT);
+        }
 
         if (!thresholdBox.isFocused() && menu.threshold() != lastSyncedThreshold) {
             updatingThresholdBox = true;

@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "name": "Grain",
+  "items": [
+    "farmersdelight:cabbage_seeds",
+    "farmersdelight:rice",
+    "farmersdelight:rice_panicle",
+    "farmersdelight:tomato_seeds",
+    "farmersdelight:wheat_dough",
+    "minecraft:baked_potato",
+    "minecraft:beetroot_seeds",
+    "minecraft:bread",
+    "minecraft:hay_block",
+    "minecraft:melon_seeds",
+    "minecraft:pitcher_pod",
+    "minecraft:pumpkin_seeds",
+    "minecraft:torchflower_seeds",
+    "minecraft:wheat",
+    "minecraft:wheat_seeds"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

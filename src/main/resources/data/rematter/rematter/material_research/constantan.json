@@ -4,11 +4,18 @@
   "items": [
     "alltheores:constantan_block",
     "alltheores:constantan_dust",
+    "alltheores:constantan_gear",
     "alltheores:constantan_ingot",
     "alltheores:constantan_nugget",
+    "alltheores:constantan_plate",
+    "alltheores:constantan_rod",
     "ftbic:constantan_block",
     "ftbic:constantan_dust",
-    "ftbic:constantan_ingot"
+    "ftbic:constantan_gear",
+    "ftbic:constantan_ingot",
+    "ftbic:constantan_plate",
+    "ftbic:constantan_rod",
+    "ftbic:constantan_wire"
   ],
   "substances": [
     {

@@ -8,7 +8,9 @@
     "colossal_reactors:chromium_ore",
     "colossal_reactors:chromium_raw",
     "colossal_reactors:chromium_raw_block",
-    "colossal_reactors:deep_chromium_ore"
+    "colossal_reactors:deep_chromium_ore",
+    "jaopca:oritech_small_clumps.chromium",
+    "jaopca:tiny_dusts.chromium"
   ],
   "substances": [
     {

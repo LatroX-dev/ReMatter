@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.calcium_phosphate",
+  "symbol": "Ca₃(PO₄)₂",
+  "kind": "compound",
+  "composition": {
+    "rematter:calcium": 3,
+    "rematter:phosphorus": 2,
+    "rematter:oxygen": 8
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:wireless_access_point",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1562
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1874
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 7978
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 2125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3562
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1750
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 9893
+    }
+  ],
+  "decomposition_energy": 129000,
+  "synthesis_energy": 258000,
+  "ticks": 188
+}

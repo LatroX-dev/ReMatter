@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:polished_granite",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 350
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1900
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

@@ -8,19 +8,26 @@
     "alltheores:other_platinum_ore",
     "alltheores:platinum_block",
     "alltheores:platinum_dust",
+    "alltheores:platinum_gear",
     "alltheores:platinum_ingot",
     "alltheores:platinum_nugget",
     "alltheores:platinum_ore",
+    "alltheores:platinum_plate",
+    "alltheores:platinum_rod",
     "alltheores:raw_platinum",
     "alltheores:raw_platinum_block",
     "oritech:deepslate_platinum_ore",
     "oritech:endstone_platinum_ore",
     "oritech:platinum",
+    "oritech:platinum_clump",
     "oritech:platinum_dust",
+    "oritech:platinum_gem",
     "oritech:platinum_ingot",
     "oritech:platinum_nugget",
     "oritech:raw_platinum",
-    "oritech:raw_platinum_block"
+    "oritech:raw_platinum_block",
+    "oritech:small_platinum_clump",
+    "oritech:small_platinum_dust"
   ],
   "substances": [
     {

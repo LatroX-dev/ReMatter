@@ -24,13 +24,13 @@ public final class EntangledLinkItem extends BlockItem {
         if (!(context.getLevel() instanceof ServerLevel level)) return InteractionResult.SUCCESS;
         if (player.isSpectator() || !player.mayUseItemAt(context.getClickedPos(), context.getClickedFace(), context.getItemInHand())) return InteractionResult.FAIL;
         var link = EntangledLinks.loaded(level, context.getClickedPos()).orElse(null);
-        if (link == null || !player.getUUID().equals(link.owner())) return InteractionResult.FAIL;
+        if (link == null || !link.canAccess(player)) return InteractionResult.FAIL;
         var stack = context.getItemInHand(); var data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
         var saved = data.getCompound(BINDING);
         boolean paired = false;
         if (saved.isPresent() && saved.get().getString("dimension").orElse("").equals(level.dimension().identifier().toString())) {
             var origin = BlockPos.of(saved.get().getLongOr("position", 0));
-            paired = EntangledLinks.pair(level, origin, context.getClickedPos(), player.getUUID());
+            paired = EntangledLinks.pair(level, origin, context.getClickedPos(), player);
         }
         if (paired) { data.remove(BINDING); dev.latrox.rematter.content.ModSounds.play(level, context.getClickedPos(), dev.latrox.rematter.content.ModSounds.ENTANGLED_PAIR); }
         else { var origin = new CompoundTag(); origin.putString("dimension", level.dimension().identifier().toString()); origin.putLong("position", context.getClickedPos().asLong()); data.put(BINDING, origin); }

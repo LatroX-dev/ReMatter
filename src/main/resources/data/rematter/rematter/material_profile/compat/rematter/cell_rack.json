@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "item": "rematter:cell_rack",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 562
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1560
+    }
+  ],
+  "decomposition_energy": 21000,
+  "synthesis_energy": 42000,
+  "ticks": 80
+}

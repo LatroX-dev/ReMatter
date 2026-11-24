@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Ghast Tear",
+  "items": [
+    "minecraft:ghast_tear"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

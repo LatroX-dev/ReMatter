@@ -41,7 +41,7 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
     private final ScrollBar bar = new ScrollBar(scroll);
     private final List<SubstanceTile> tiles = new ArrayList<>();
 
-    private DarkButton transferTab, partitionTab;
+    private DarkButton transferTab, partitionTab, securityBtn;
     private DarkButton transferBtn, swapBtn, allBtn;
     private DarkButton sourceSlotBtn, targetSlotBtn, cellAnyBtn, cellContentsBtn, cellClearBtn, clearSearchBtn;
     private EditBox search;
@@ -77,6 +77,16 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
                 UiIcon.TARGET, tr("partition"), tr("partition_hint"),
                 leftPos - 22, topPos + 42, 24, 22,
                 b -> setMode(true)));
+        securityBtn = addRenderableWidget(DarkButton.icon(
+                SecurityUi.icon(menu.securityMode()), SecurityUi.label(menu.securityMode()), menu.securityMode().meaning(),
+                leftPos - 22, topPos + 66, 24, 22,
+                b -> {}));
+        securityBtn.setStepAction(forward -> {
+            if (minecraft != null && minecraft.gameMode != null) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                        forward ? CellTransferMenu.CYCLE_SECURITY : CellTransferMenu.CYCLE_SECURITY_BACK);
+            }
+        });
 
         // Tab 1 (Transfer) controls: spacious center Transfer + Swap buttons, and contextual All reset
         transferBtn = addRenderableWidget(DarkButton.create(
@@ -141,6 +151,16 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
                             .bounds(leftPos + GRID_X + (i % COLUMNS) * PITCH, topPos + FILTER_GRID_Y + (i / COLUMNS) * PITCH, PITCH, PITCH))));
         }
         rebuild();
+    }
+
+    public List<net.minecraft.client.renderer.Rect2i> viewerExclusionAreas() {
+        var areas = new ArrayList<net.minecraft.client.renderer.Rect2i>(3);
+        for (var button : List.of(transferTab, partitionTab, securityBtn)) {
+            if (button != null && button.visible) {
+                areas.add(new net.minecraft.client.renderer.Rect2i(button.getX(), button.getY(), button.getWidth(), button.getHeight()));
+            }
+        }
+        return areas;
     }
 
     private void selectPartitionSlot(int slot) {
@@ -295,6 +315,7 @@ public final class CellTransferScreen extends AbstractContainerScreen<CellTransf
                 sourceSlotBtn, targetSlotBtn, cellAnyBtn, cellContentsBtn, cellClearBtn, clearSearchBtn)) {
             b.setAccent(ACCENT);
         }
+        SecurityUi.configure(securityBtn, menu.securityMode(), menu.canManageSecurity(), !menu.locked(), ACCENT);
 
         int visibleTileLimit = COLUMNS * (partition ? FILTER_ROWS : TRANSFER_ROWS);
         int gridY = partition ? FILTER_GRID_Y : TRANSFER_GRID_Y;

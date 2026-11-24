@@ -20,11 +20,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 /** Structural validation precedes reading any stored energy or items. Rejected data is carried unchanged. */
-final class EnergyCubeData {
+public final class EnergyCubeData {
     static final int SCHEMA = 1;
     // LevelChunk adds keepPacked when persisting a block entity; it is not device payload.
     private static final Set<String> METADATA = Set.of("id", "x", "y", "z", "components", "keepPacked");
-    private static final Set<String> KEYS = Set.of("schema", "energy", "items", "discharge_items", "side_modes", "owner");
+    private static final Set<String> KEYS = Set.of("schema", "energy", "items", "discharge_items", "side_modes", "owner", "security");
 
     static final MapCodec<CompoundTag> RAW = new MapCodec<>() {
         @Override public <T> Stream<T> keys(DynamicOps<T> ops) { return Stream.empty(); }
@@ -67,7 +67,31 @@ final class EnergyCubeData {
         if (raw.contains("owner") && (!(raw.get("owner") instanceof StringTag) || owner(raw.getStringOr("owner", "")) == null)) {
             return "invalid owner";
         }
+        if (raw.contains("security") && (!(raw.get("security") instanceof StringTag) || !dev.latrox.rematter.content.SecurityMode.validName(raw.getStringOr("security", "")))) {
+            return "invalid security mode";
+        }
         return null;
+    }
+
+    /** Strict structural empty check without registry decoding: every slot must be an empty compound and energy zero. */
+    public static boolean isEmptyTag(CompoundTag raw, EnergyCubeTier tier) {
+        if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != SCHEMA) return false;
+        if (!KEYS.containsAll(raw.keySet())) return false;
+        if (!(raw.get("energy") instanceof IntTag) || raw.getIntOr("energy", -1) != 0) return false;
+        if (!(raw.get("side_modes") instanceof IntTag) || !validModes(raw.getIntOr("side_modes", -1))) return false;
+        if (raw.contains("owner") && (!(raw.get("owner") instanceof StringTag) || owner(raw.getStringOr("owner", "")) == null)) return false;
+        if (raw.contains("security") && (!(raw.get("security") instanceof StringTag) || !dev.latrox.rematter.content.SecurityMode.validName(raw.getStringOr("security", "")))) return false;
+        if (!allEmptyCompounds(raw.get("items"), tier.chargingSlots())) return false;
+        if (raw.contains("discharge_items") && !allEmptyCompounds(raw.get("discharge_items"), tier.dischargingSlots())) return false;
+        return true;
+    }
+
+    private static boolean allEmptyCompounds(net.minecraft.nbt.@Nullable Tag tag, int expectedSize) {
+        if (!(tag instanceof ListTag list) || list.size() != expectedSize) return false;
+        for (var element : list) {
+            if (!(element instanceof CompoundTag compound) || !compound.isEmpty()) return false;
+        }
+        return true;
     }
 
     static Optional<List<ItemStack>> items(CompoundTag raw, HolderLookup.Provider registries) {

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:grass_block",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:soil",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 120
+}

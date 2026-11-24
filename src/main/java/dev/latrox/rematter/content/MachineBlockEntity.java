@@ -98,6 +98,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private final MachineStructureLink structure = new MachineStructureLink(this);
     private @Nullable CompoundTag unsupportedData;
     private UUID owner;
+    private SecurityMode securityMode = SecurityMode.PUBLIC;
     private boolean automation;
     private boolean autoEject;
     private boolean pushingOutputs;
@@ -632,6 +633,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
      * for the owner whose UUID it carries; a placement without any player leaves the machine unowned.
      */
     void placedBy(@Nullable LivingEntity placer) {
+        if (securityMode == SecurityMode.PUBLIC && unsupportedData == null) {
+            securityMode = MachineAccess.placementDefault(level, placer);
+        }
         assignOwner(placer instanceof Player player&&!(player instanceof FakePlayer)?player.getUUID():null);
         if(kind()==MachineKind.HAND_PREPARATOR&&placer instanceof Player player&&!(player instanceof FakePlayer)&&!player.isSpectator())
             guidance(dev.latrox.rematter.guide.GuidanceEvent.START_WORKSHOP);
@@ -648,12 +652,26 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (level != null) level.invalidateCapabilities(worldPosition);
         if (level instanceof ServerLevel server) MatterCableBlock.refreshLoadedAround(server, worldPosition);
     }
+    public SecurityMode securityMode() { return securityMode; }
+    public boolean canManageSecurity(Player player) { return MachineAccess.canManage(owner, player); }
+    public boolean setSecurityMode(Player player, SecurityMode next) {
+        if (!isLiveServerMachine() || player.isSpectator() || !canManageSecurity(player) || next == null) return false;
+        if (securityMode == next) return true;
+        securityMode = next;
+        setChanged();
+        touchObservations();
+        if (level != null) level.invalidateCapabilities(worldPosition);
+        if (level instanceof ServerLevel server) MatterCableBlock.refreshLoadedAround(server, worldPosition);
+        return true;
+    }
+    public boolean cycleSecurityMode(Player player, boolean forward) {
+        return setSecurityMode(player, forward ? securityMode.next() : securityMode.previous());
+    }
     public boolean canAccess(Player player) {
-        return canRemove(player)||!(player instanceof FakePlayer)&&level instanceof ServerLevel
-                &&dev.latrox.rematter.compat.TeamAccess.shared(owner,player.getUUID());
+        return MachineAccess.allows(level, owner, securityMode, player);
     }
     public boolean canRemove(Player player) {
-        return MachineAccess.allows(owner,player.getUUID(),player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER),player instanceof FakePlayer);
+        return canAccess(player);
     }
     /** A deliberate interaction: an unowned machine becomes the player's, then the usual access check applies. */
     public boolean interact(Player player) {
@@ -1549,6 +1567,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.putInt("schema", MachineSchema.VERSION);
         if(preparationRecoveryMask!=0)output.putInt("preparation_recovery_mask",preparationRecoveryMask);
         if (owner != null) output.putString("owner", owner.toString());
+        if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
         output.putBoolean("automation", automation);
         if (autoEject && supportsAutoEject(kind())) output.putBoolean("auto_eject", true);
         sides.save(output);
@@ -1639,7 +1658,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
             return;
         }
         owner = input.getString("owner").map(MachineSchema::owner).orElse(null);
+        securityMode = SecurityMode.PUBLIC;
         try {
+            securityMode = input.getString("security").map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
             settings=new MachineSettings(input.getLongOr("target",0),input.getStringOr("target_substance",""),
                     input.getStringOr("target_phase",""),Set.copyOf(input.read("vented_gases",Codec.STRING.listOf()).orElse(List.of())));
             ventedTotal=input.getLongOr("vented_total",0);if(ventedTotal<0)throw new IllegalArgumentException("Invalid vent counter");

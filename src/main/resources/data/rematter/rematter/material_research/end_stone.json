@@ -2,8 +2,12 @@
   "schema": 1,
   "name": "End Stone",
   "items": [
+    "exdeorum:compressed_crushed_end_stone",
+    "exdeorum:compressed_end_stone",
+    "exdeorum:crushed_end_stone",
     "jaopca:storage_blocks.end_stone",
     "minecraft:end_stone",
+    "minecraft:end_stone_bricks",
     "occultism:crushed_end_stone"
   ],
   "substances": [

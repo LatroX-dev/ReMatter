@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Candle",
+  "items": [
+    "minecraft:candle"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:beeswax",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "rematter:diamond_lattice",
+  "matter": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 12000,
+  "synthesis_energy": 24000,
+  "ticks": 80
+}

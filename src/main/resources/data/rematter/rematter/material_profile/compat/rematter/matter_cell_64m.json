@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:matter_cell_64m",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 3781
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 6250
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 14027
+    }
+  ],
+  "decomposition_energy": 160000,
+  "synthesis_energy": 320000,
+  "ticks": 216
+}

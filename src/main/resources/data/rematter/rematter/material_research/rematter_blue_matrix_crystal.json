@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Rematter Blue Matrix Crystal",
+  "items": [
+    "rematter:blue_matrix_crystal"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -10,12 +10,18 @@ import java.util.TreeMap;
 public final class SynthesisPolicy {
     private final Map<String, SynthesisCategory> allowed;
     private final Map<String, SynthesisRequirement> requirements;
+    private final Map<String, String> canonicalAliases;
 
     public SynthesisPolicy(Map<String, SynthesisCategory> allowed) {
-        this(allowed, Map.of());
+        this(allowed, Map.of(), Map.of());
     }
 
     public SynthesisPolicy(Map<String, SynthesisCategory> allowed, Map<String, SynthesisRequirement> requirements) {
+        this(allowed, requirements, Map.of());
+    }
+
+    public SynthesisPolicy(Map<String, SynthesisCategory> allowed, Map<String, SynthesisRequirement> requirements,
+                           Map<String, String> canonicalAliases) {
         TreeMap<String, SynthesisCategory> checked = new TreeMap<>();
         allowed.forEach((id, category) -> {
             SubstanceId.parse(id);
@@ -29,6 +35,27 @@ public final class SynthesisPolicy {
         if (!checked.keySet().containsAll(requirements.keySet()))
             throw new IllegalArgumentException("Conditions require an explicit synthesis permission");
         this.requirements = Map.copyOf(requirements);
+        TreeMap<String, String> checkedAliases = new TreeMap<>();
+        Objects.requireNonNull(canonicalAliases, "canonicalAliases").forEach((from, to) -> {
+            SubstanceId.parse(from);
+            SubstanceId.parse(to);
+            if (!checked.containsKey(to)) {
+                throw new IllegalArgumentException("Canonical alias target must be permitted: " + from + " -> " + to);
+            }
+            if (checked.containsKey(from)) {
+                throw new IllegalArgumentException("Canonical alias source cannot also be active: " + from);
+            }
+            checkedAliases.put(from, to);
+        });
+        this.canonicalAliases = Collections.unmodifiableMap(checkedAliases);
+    }
+
+    public String canonicalTarget(String exactId) {
+        return canonicalAliases.getOrDefault(exactId, exactId);
+    }
+
+    public Map<String, String> canonicalAliases() {
+        return canonicalAliases;
     }
 
     public boolean allowsItem(String exactId) {

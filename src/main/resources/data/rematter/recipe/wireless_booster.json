@@ -8,7 +8,7 @@
   ],
   "key": {
     "B": "rematter:blue_matrix_crystal",
-    "E": "rematter:ender_pearl_powder",
+    "E": "#rematter:full_ender_pearl_powders",
     "C": "rematter:control_circuit",
     "P": "minecraft:copper_ingot"
   },

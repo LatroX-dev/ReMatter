@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "name": "Carbon",
+  "items": [
+    "mekanism:enriched_carbon",
+    "oritech:carbon_fibre_strands"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

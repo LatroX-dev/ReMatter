@@ -16,9 +16,13 @@ import org.jspecify.annotations.Nullable;
 
 /** Configuration menu for Matter Level Emitter with live S2C stock/signal sync. */
 public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
+    public static final int CYCLE_SECURITY = 0;
+    public static final int CYCLE_SECURITY_BACK = 1;
     private final Player viewer;
     private final @Nullable MatterLevelEmitterBlockEntity emitter;
     private final BlockPos position;
+    private final net.minecraft.world.inventory.DataSlot securityMode = net.minecraft.world.inventory.DataSlot.standalone();
+    private final net.minecraft.world.inventory.DataSlot canManageSecurity = net.minecraft.world.inventory.DataSlot.standalone();
     private @Nullable SubstanceKey target;
     private long threshold;
     private boolean emitWhenBelow;
@@ -38,6 +42,8 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         this.observedStock = Math.max(0L, buf.readVarLong());
         this.networkReady = buf.readBoolean();
         this.emitting = buf.readBoolean();
+        addDataSlot(securityMode);
+        addDataSlot(canManageSecurity);
     }
 
     public MatterLevelEmitterMenu(int id, Inventory playerInventory, MatterLevelEmitterBlockEntity emitter) {
@@ -51,6 +57,10 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         this.observedStock = emitter.observedStock();
         this.networkReady = emitter.networkReady();
         this.emitting = emitter.emitting();
+        securityMode.set(emitter.securityMode().ordinal());
+        addDataSlot(securityMode);
+        canManageSecurity.set(emitter.canManageSecurity(viewer) ? 1 : 0);
+        addDataSlot(canManageSecurity);
     }
 
     public BlockPos position() { return position; }
@@ -60,6 +70,17 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
     public long observedStock() { return observedStock; }
     public boolean networkReady() { return networkReady; }
     public boolean emitting() { return emitting; }
+    public SecurityMode securityMode() { return emitter != null ? emitter.securityMode() : SecurityMode.byIndex(securityMode.get()); }
+    public boolean canManageSecurity() { return emitter != null ? emitter.canManageSecurity(viewer) : canManageSecurity.get() != 0; }
+
+    @Override
+    public boolean clickMenuButton(Player player, int action) {
+        if (emitter == null || player.containerMenu != this || player.isSpectator() || !stillValid(player)) return false;
+        if (action != CYCLE_SECURITY && action != CYCLE_SECURITY_BACK) return false;
+        boolean changed = emitter.cycleSecurityMode(player, action == CYCLE_SECURITY);
+        if (changed) broadcastChanges();
+        return changed;
+    }
 
     public void acceptState(MatterLevelEmitterPayload.State state) {
         this.target = state.target();
@@ -78,6 +99,10 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
 
     @Override
     public void broadcastChanges() {
+        if (emitter != null) {
+            securityMode.set(emitter.securityMode().ordinal());
+            canManageSecurity.set(emitter.canManageSecurity(viewer) ? 1 : 0);
+        }
         super.broadcastChanges();
         if (emitter == null || !(viewer instanceof ServerPlayer serverPlayer)) return;
         var curTarget = emitter.target();

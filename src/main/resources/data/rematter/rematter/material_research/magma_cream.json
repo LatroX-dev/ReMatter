@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Magma Cream",
+  "items": [
+    "minecraft:magma_cream"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

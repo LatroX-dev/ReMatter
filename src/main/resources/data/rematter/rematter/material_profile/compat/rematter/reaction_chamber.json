@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reaction_chamber",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 2156
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 7570
+    }
+  ],
+  "decomposition_energy": 85000,
+  "synthesis_energy": 170000,
+  "ticks": 144
+}

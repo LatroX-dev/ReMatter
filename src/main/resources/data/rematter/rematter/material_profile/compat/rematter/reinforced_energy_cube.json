@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reinforced_energy_cube",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 7500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1562
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 4624
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 26310
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3562
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 11250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 18975
+    }
+  ],
+  "decomposition_energy": 316000,
+  "synthesis_energy": 632000,
+  "ticks": 395
+}

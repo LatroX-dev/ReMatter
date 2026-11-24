@@ -3,6 +3,7 @@ package dev.latrox.rematter.network;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.content.ConfigurationCardItem;
 import dev.latrox.rematter.content.MatterWrenchItem;
+import dev.latrox.rematter.content.SecurityCardItem;
 import dev.latrox.rematter.content.WrenchDiagnostics;
 import java.util.Objects;
 import net.minecraft.core.BlockPos;
@@ -48,7 +49,9 @@ public record WrenchDiagnosticQueryPayload(BlockPos pos, Direction face) impleme
     }
 
     private static boolean isTool(ItemStack stack) {
-        return stack.getItem() instanceof MatterWrenchItem || stack.getItem() instanceof ConfigurationCardItem;
+        return stack.getItem() instanceof MatterWrenchItem
+                || stack.getItem() instanceof ConfigurationCardItem
+                || stack.getItem() instanceof SecurityCardItem;
     }
 
     public static void register(RegisterPayloadHandlersEvent event) {

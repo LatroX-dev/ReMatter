@@ -3,5 +3,6 @@
   "required_mod": "jaopca",
   "required_item": "jaopca:storage_blocks.netherite_scrap",
   "item": "jaopca:storage_blocks.netherite_scrap",
-  "category": "raw_material"
+  "category": "raw_material",
+  "synthesis_group": "material_block:netherite_scrap"
 }

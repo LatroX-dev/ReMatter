@@ -72,6 +72,20 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     public int energy() { return (int) energy.getAmountAsLong(); }
     public boolean locked() { return unsupportedData != null; }
     public @Nullable UUID owner() { return owner; }
+    private SecurityMode securityMode = SecurityMode.PUBLIC;
+    public SecurityMode securityMode() { return securityMode; }
+    public boolean canManageSecurity(Player player) { return MachineAccess.canManage(owner, player); }
+    public boolean setSecurityMode(Player player, SecurityMode next) {
+        if (!live() || player.isSpectator() || !canManageSecurity(player) || next == null) return false;
+        if (securityMode == next) return true;
+        securityMode = next;
+        setChanged();
+        touchTopology();
+        return true;
+    }
+    public boolean cycleSecurityMode(Player player, boolean forward) {
+        return setSecurityMode(player, forward ? securityMode.next() : securityMode.previous());
+    }
     public int packedSideModes() { return sideModes; }
     public EnergyCubeSideMode sideMode(MachinePortMode.Side side) { return EnergyCubeSideMode.values()[(sideModes >>> (side.ordinal() * 2)) & 3]; }
     public EnergyCubeSideMode sideMode(Direction side) { return sideMode(local(side)); }
@@ -94,15 +108,17 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     private boolean live() { return installed() && !locked() && owner != null; }
 
     public boolean canRemove(Player player) {
-        if (player instanceof FakePlayer) return player.getUUID().equals(owner);
-        return owner == null || player.getUUID().equals(owner) || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+        return canAccess(player);
     }
 
     public boolean canAccess(Player player) {
-        return canRemove(player) || !(player instanceof FakePlayer) && dev.latrox.rematter.compat.TeamAccess.shared(owner, player.getUUID());
+        return MachineAccess.allows(level, owner, securityMode, player);
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        if (securityMode == SecurityMode.PUBLIC && !locked()) {
+            securityMode = MachineAccess.placementDefault(level, placer);
+        }
         assignOwner(placer instanceof Player player ? player.getUUID() : null);
         publishCharge();
     }
@@ -339,7 +355,8 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
                     && gameTime - lastDirectInputTick[side.ordinal()] <= 1) continue;
             BlockPos target = worldPosition.relative(side);
             if (level.getChunkSource().getChunkNow(target.getX() >> 4, target.getZ() >> 4) == null) continue;
-            if (level.getBlockEntity(target) instanceof EnergyCubeBlockEntity cube && !Objects.equals(owner, cube.owner)) continue;
+            if (level.getBlockEntity(target) instanceof EnergyCubeBlockEntity cube
+                    && !MachineAccess.canConnect(level, owner, securityMode, cube.owner, cube.securityMode)) continue;
             var sink = level.getCapability(Capabilities.Energy.BLOCK, target, side.getOpposite());
             if (sink != null) {
                 if (mode == EnergyCubeSideMode.INPUT_OUTPUT) bidirectionalPushDepth++;
@@ -394,6 +411,7 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         output.putInt("energy", energy());
         output.putInt("side_modes", sideModes);
         if (owner != null) output.putString("owner", owner.toString());
+        if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
         int chargeCount = tier.chargingSlots();
         output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items.subList(0, chargeCount)));
         var dischargeSubList = items.subList(chargeCount, tier.totalSlots());
@@ -414,7 +432,9 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
                 decodedDischarge.isPresent(), hasDischargeTag ? decodedDischarge.map(List::size).orElse(-1) : tier.dischargingSlots());
         unsupportedData = rejection == null ? null : raw;
         owner = raw.getString("owner").map(EnergyCubeData::owner).orElse(null);
+        securityMode = SecurityMode.PUBLIC;
         if (!locked()) {
+            securityMode = raw.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
             energy.set(raw.getIntOr("energy", 0));
             sideModes = raw.getIntOr("side_modes", 0);
             items.replaceAll(stack -> ItemStack.EMPTY);

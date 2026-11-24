@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:silicon",
+  "category": "raw_material",
+  "synthesis_group": "dust:silicon"
+}

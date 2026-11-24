@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "enderio",
+  "item": "enderio:ender_crystal_powder",
+  "disabled": true
+}

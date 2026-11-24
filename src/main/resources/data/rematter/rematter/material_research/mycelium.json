@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Mycelium",
+  "items": [
+    "minecraft:mycelium"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:soil",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

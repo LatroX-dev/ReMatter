@@ -7,7 +7,7 @@
     "FQF"
   ],
   "key": {
-    "C": "rematter:copper_dust",
+    "C": "#c:dusts/copper",
     "L": "rematter:lumivex_ingot",
     "M": "rematter:violet_matrix_crystal",
     "Q": "rematter:control_circuit",

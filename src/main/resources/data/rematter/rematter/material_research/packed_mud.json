@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "name": "Packed Mud",
+  "items": [
+    "minecraft:mud_bricks",
+    "minecraft:packed_mud"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:soil",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:starch",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

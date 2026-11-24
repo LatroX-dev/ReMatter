@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:wireless_booster",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 406
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1406
+    }
+  ],
+  "decomposition_energy": 19000,
+  "synthesis_energy": 38000,
+  "ticks": 80
+}

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Spider Eye",
+  "items": [
+    "minecraft:spider_eye"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -2,7 +2,9 @@
   "schema": 1,
   "name": "Andesite",
   "items": [
-    "minecraft:andesite"
+    "exdeorum:compressed_andesite",
+    "minecraft:andesite",
+    "minecraft:polished_andesite"
   ],
   "substances": [
     {

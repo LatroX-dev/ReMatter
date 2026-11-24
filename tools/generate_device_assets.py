@@ -265,7 +265,7 @@ def generate(check):
                 "R": "rematter:rhevon_ingot", "P": "minecraft:copper_ingot"}, category="equipment")
         elif name == "wireless_booster":
             recipe(out, name, [" B ", "ECE", " P "], {
-                "B": "rematter:blue_matrix_crystal", "E": "rematter:ender_pearl_powder",
+                "B": "rematter:blue_matrix_crystal", "E": "#rematter:full_ender_pearl_powders",
                 "C": "rematter:control_circuit", "P": "minecraft:copper_ingot"}, count=2)
         elif name == "wireless_matter_terminal":
             recipe(out, name, [" B ", "ETE", "OKO"], {
@@ -314,6 +314,29 @@ def generate(check):
             "type": "minecraft:block",
             "pools": [{"rolls": 1, "entries": [{"type": "minecraft:item", "name": f"rematter:{block_name}"}],
                        "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+
+    for suffix in ("", "_trusted", "_private"):
+        stem = "security_card" + suffix
+        out.json(ASSETS / f"models/item/{stem}.json", {
+            "parent": "minecraft:item/generated",
+            "textures": {"layer0": f"rematter:item/{stem}"}})
+    out.json(ASSETS / "items/security_card.json", {
+        "model": {
+            "type": "minecraft:select",
+            "property": "minecraft:component",
+            "component": "rematter:security_card_mode",
+            "cases": [
+                {"when": "public", "model": {"type": "minecraft:model", "model": "rematter:item/security_card"}},
+                {"when": "trusted", "model": {"type": "minecraft:model", "model": "rematter:item/security_card_trusted"}},
+                {"when": "private", "model": {"type": "minecraft:model", "model": "rematter:item/security_card_private"}},
+            ],
+            "fallback": {"type": "minecraft:model", "model": "rematter:item/security_card"},
+        }
+    })
+    recipe(out, "security_card", [" S ", "RCR", " I "], {
+        "S": "rematter:structural_bars", "R": "rematter:rhevon_ingot",
+        "C": "rematter:control_circuit", "I": "minecraft:iron_ingot"},
+        category="equipment")
 
     for suffix in ("", "_rotate", "_dismantle"):
         stem = "matter_wrench" + suffix

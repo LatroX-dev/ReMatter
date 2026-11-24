@@ -4,6 +4,10 @@
   "items": [
     "enderio:powdered_obsidian",
     "ftbic:obsidian_dust",
+    "ftbic:obsidian_gear",
+    "ftbic:obsidian_plate",
+    "ftbic:obsidian_rod",
+    "ftbic:obsidian_wire",
     "jaopca:storage_blocks.obsidian",
     "mekanism:dust_obsidian",
     "minecraft:obsidian",

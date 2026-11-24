@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:dense_copper_plate",
+  "matter": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 8000
+    }
+  ],
+  "decomposition_energy": 64000,
+  "synthesis_energy": 128000,
+  "ticks": 1600
+}

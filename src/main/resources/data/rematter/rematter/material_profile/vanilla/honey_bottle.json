@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:honey_bottle",
+  "matter": [
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 600
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

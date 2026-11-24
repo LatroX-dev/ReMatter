@@ -2,6 +2,9 @@
   "schema": 1,
   "name": "Soulium Essence",
   "items": [
+    "jaopca:dusts.soulium",
+    "jaopca:oritech_small_clumps.soulium",
+    "jaopca:tiny_dusts.soulium",
     "mysticalagriculture:soulium_block",
     "mysticalagriculture:soulium_dust",
     "mysticalagriculture:soulium_ore"

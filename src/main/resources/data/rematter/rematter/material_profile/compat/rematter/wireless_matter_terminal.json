@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "item": "rematter:wireless_matter_terminal",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 2500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 3499
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 13000
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 5500
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 16163
+    }
+  ],
+  "decomposition_energy": 209000,
+  "synthesis_energy": 418000,
+  "ticks": 268
+}

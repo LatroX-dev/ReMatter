@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:wind_charge",
+  "matter": [
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas",
+      "amount": 160
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 80
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

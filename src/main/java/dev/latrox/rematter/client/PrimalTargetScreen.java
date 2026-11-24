@@ -51,8 +51,8 @@ public final class PrimalTargetScreen extends SubstanceScreenLayer {
             int index=row;rows.add(addRenderableWidget(new TargetButton(Button.builder(Component.empty(),b->focus(index)).bounds(left+8,listTop+row*ROW,panelWidth-22,ROW))));
         }
         confirm=addRenderableWidget(DarkButton.labelIcon(UiIcon.CONFIRM,tr("use_target"),tr("use_target_hint"),left+8,footer,panelWidth-64,18,b->choose()));
-        addRenderableWidget(DarkButton.icon(UiIcon.CANCEL,tr("close"),tr("close_hint"),left+panelWidth-26,footer,18,18,b->onClose()));
-        confirm.setAccent(UiPalette.PRIMAL);clear.setAccent(UiPalette.PRIMAL);bar.setBounds(left+panelWidth-12,listTop,5,scroll.visibleRows()*ROW);
+        var close=addRenderableWidget(DarkButton.icon(UiIcon.CANCEL,tr("close"),tr("close_hint"),left+panelWidth-26,footer,18,18,b->onClose()));
+        confirm.setAccent(UiPalette.PRIMAL);clear.setAccent(UiPalette.PRIMAL);close.setAccent(UiPalette.PRIMAL);bar.setBounds(left+panelWidth-12,listTop,5,scroll.visibleRows()*ROW);
         reload();setInitialFocus(search);
     }
     private void reload(){source=menu.extras();language=net.minecraft.locale.Language.getInstance();targets=PrimalConverterView.targets(source).stream().sorted(Comparator.comparing(PrimalConverterView.Target::known).reversed().thenComparing(t->label(t.id()),String.CASE_INSENSITIVE_ORDER)).toList();filter();}

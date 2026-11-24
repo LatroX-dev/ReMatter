@@ -2,6 +2,9 @@
   "schema": 1,
   "name": "Prosperity Essence",
   "items": [
+    "jaopca:dusts.prosperity",
+    "jaopca:oritech_small_clumps.prosperity",
+    "jaopca:tiny_dusts.prosperity",
     "mysticalagradditions:end_prosperity_ore",
     "mysticalagradditions:nether_prosperity_ore",
     "mysticalagriculture:deepslate_prosperity_ore",

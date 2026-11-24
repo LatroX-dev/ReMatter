@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:netherite_gear",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 4000
+    }
+  ],
+  "decomposition_energy": 144000,
+  "synthesis_energy": 288000,
+  "ticks": 800
+}

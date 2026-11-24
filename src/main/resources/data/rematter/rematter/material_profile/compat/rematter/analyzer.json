@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "item": "rematter:analyzer",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 937
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4750
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4851
+    }
+  ],
+  "decomposition_energy": 51000,
+  "synthesis_energy": 102000,
+  "ticks": 108
+}

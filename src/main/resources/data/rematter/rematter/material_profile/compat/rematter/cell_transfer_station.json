@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:cell_transfer_station",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1436
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 4598
+    }
+  ],
+  "decomposition_energy": 59000,
+  "synthesis_energy": 118000,
+  "ticks": 116
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:melon_slice",
+  "matter": [
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 4000,
+  "ticks": 40
+}

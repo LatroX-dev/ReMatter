@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Shulker Shell",
+  "items": [
+    "minecraft:shulker_shell"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:calcium_phosphate",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

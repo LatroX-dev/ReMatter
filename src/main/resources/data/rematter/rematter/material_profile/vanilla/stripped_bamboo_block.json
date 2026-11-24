@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:stripped_bamboo_block",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 900
+    }
+  ],
+  "decomposition_energy": 6750,
+  "synthesis_energy": 13500,
+  "ticks": 180
+}

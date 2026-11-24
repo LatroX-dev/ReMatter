@@ -229,6 +229,7 @@ public class MachineBlock extends Block implements EntityBlock {
         var data=machine.saveCustomOnly(registries);
         // A machine item is a portable container: the next placer becomes its owner.
         data.remove("owner");
+        data.remove("security");
         data.remove("industrial_claim");
         if (data.contains("work")) {
             long paid = data.getCompoundOrEmpty("work").getLongOr("energy_paid", 0L);

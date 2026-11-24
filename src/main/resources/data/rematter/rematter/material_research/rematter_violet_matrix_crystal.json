@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Rematter Violet Matrix Crystal",
+  "items": [
+    "rematter:violet_matrix_crystal"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

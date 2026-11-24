@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Organic Fiber",
+  "items": [
+    "minecraft:cobweb",
+    "minecraft:feather",
+    "minecraft:leather",
+    "minecraft:phantom_membrane",
+    "minecraft:rabbit_hide",
+    "minecraft:rotten_flesh",
+    "minecraft:string",
+    "minecraft:white_carpet",
+    "minecraft:white_wool"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

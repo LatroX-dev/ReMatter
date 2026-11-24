@@ -29,10 +29,18 @@ public final class ShippedChemistry {
     }
 
     public static ChemistryRegistry load(Path... roots) {
-        return load(mod -> true, roots);
+        return load(mod -> true, true, roots);
+    }
+
+    public static ChemistryRegistry loadUnunified(Path... roots) {
+        return load(mod -> true, false, roots);
     }
 
     public static ChemistryRegistry load(java.util.function.Predicate<String> mods, Path... roots) {
+        return load(mods, true, roots);
+    }
+
+    public static ChemistryRegistry load(java.util.function.Predicate<String> mods, boolean unify, Path... roots) {
         ChemistryRegistry core = BuiltinChemistry.create();
         Map<SubstanceId, SubstanceDefinition> substances = new TreeMap<>();
         Map<String, MaterialProfile> profiles = new TreeMap<>();
@@ -40,6 +48,7 @@ public final class ShippedChemistry {
         Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         Map<String, SynthesisCategory> permissions = new TreeMap<>();
         Map<String, SynthesisRequirement> requirements = new TreeMap<>();
+        Map<String, String> synthesisGroups = new TreeMap<>();
         Map<SubstanceId, EnvironmentSource> sources = new TreeMap<>();
         core.substances().forEach(value -> substances.put(value.id(), value));
         core.processes().forEach(value -> processes.put(value.id(), value));
@@ -77,10 +86,16 @@ public final class ShippedChemistry {
                 }
                 case "synthesis" -> {
                     String target = unique(targets, directory, ChemistryDocuments.string(json, "item"), document.getKey());
-                    if (disabled) permissions.remove(target);
-                    else {
+                    if (disabled) {
+                        permissions.remove(target);
+                        requirements.remove(target);
+                        synthesisGroups.remove(target);
+                    } else {
                         permissions.put(target, ChemistryDocuments.synthesisCategory(json));
                         requirements.put(target, ChemistryDocuments.synthesisRequirement(json));
+                        String group = ChemistryDocuments.synthesisGroup(json);
+                        if (group.isEmpty()) synthesisGroups.remove(target);
+                        else synthesisGroups.put(target, group);
                     }
                 }
                 case "environment_source" -> {
@@ -91,12 +106,15 @@ public final class ShippedChemistry {
                 default -> throw new IllegalStateException("Unexpected chemistry directory: " + document.getKey());
             }
         }
+        var unified = SynthesisUnifier.apply(permissions, requirements, synthesisGroups,
+                unify, SynthesisConfig.DEFAULT_MOD_PRIORITY);
         var builder = ChemistryRegistry.builder();
         substances.values().forEach(builder::addSubstance);
         profiles.values().forEach(builder::addProfile);
         fluids.values().forEach(builder::addFluidProfile);
         processes.values().forEach(builder::addProcess);
-        permissions.forEach((id, category) -> builder.allowSynthesis(id, category, requirements.get(id)));
+        unified.allowed().forEach((id, category) -> builder.allowSynthesis(id, category, unified.requirements().get(id)));
+        builder.canonicalAliases(unified.aliases());
         sources.values().forEach(builder::addEnvironmentSource);
         return builder.build();
     }

@@ -31,6 +31,18 @@
     "svg": "d5b777da6aafd6e5034f1a877ccc9ace09c96ad786cc5174035cdb3594651cee",
     "png": "509cc3af5a7dcc63b4c191e4631ad20fa2b0083fc201a378283a466466d2c0af"
   },
+  "security_card": {
+    "svg": "3be3585b4cf1e1fac357cd42b43af1f67ab40dc63b6c14541a951b00066e211f",
+    "png": "b613bdfd0b3feb68b26d98e961bb6780b46f9292852ea9e9a3ff634a5818b33d"
+  },
+  "security_card_trusted": {
+    "svg": "fbb3bd49c8c399f62c5aa44a7776c151364bb1768e8f9a0334b3340017ebbdfd",
+    "png": "f9aa1aa5679764ea0fac54104fc2c32fc36f4d1a7c3cec2239dd1df09b65ade3"
+  },
+  "security_card_private": {
+    "svg": "5eaf87b36cede3e85daf98af7b34213d08070d4b94b510db21ac450e674bca83",
+    "png": "9dc2050540cbf15a4e6a801b49a141b36e6d080df7a2279931fef971a2aec22c"
+  },
   "wireless_booster": {
     "svg": "3f7f5bf09903ff8eaa2db7c8c1bf2f7359be6609f962b3870d832e95ead71c1a",
     "png": "ed06089d5529adad85a460ec6d14c5a25e7fc6e35908b0b6d9b5a48fcb5c45c9"

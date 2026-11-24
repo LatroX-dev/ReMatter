@@ -70,13 +70,14 @@ final class MachineControl {
         select(options.get(index).id());
     }
     boolean select(String exactId) {
+        String target = resolveCanonical(ReMatter.chemistry(), exactId);
         var options = choices();
         for (int i = 0; i < options.size(); i++) {
-            if (!options.get(i).id().equals(exactId)) continue;
+            if (!options.get(i).id().equals(target)) continue;
             selection = i;
-            if (!selectedId.equals(exactId)) {
+            if (!selectedId.equals(target)) {
                 machine.interruptTerminalStep();
-                selectedId = exactId;
+                selectedId = target;
                 runState = MachineRunState.manual();
                 machine.resetProgress();
                 machine.setChanged();
@@ -89,7 +90,8 @@ final class MachineControl {
     /** Re-resolves the saved selection after a catalogue reload. Returns false when it no longer exists. */
     boolean restore(ChemistryRegistry registry) {
         String previous = selectedId;
-        var restored = RecipeSelection.restore(selectedId, choices().stream().map(MachineChoices.Choice::id).toList(),
+        String target = resolveCanonical(registry, selectedId);
+        var restored = RecipeSelection.restore(target, choices().stream().map(MachineChoices.Choice::id).toList(),
                 !batchControl(machine.kind()) || runState.repeat());
         selection = restored.index();
         selectedId = restored.id();
@@ -98,6 +100,11 @@ final class MachineControl {
         runState = runState.pause();
         machine.setChanged();
         return false;
+    }
+
+    private String resolveCanonical(ChemistryRegistry registry, String id) {
+        if (id.isEmpty() || !machine.kind().synthesis() || id.startsWith(MachineChoices.FLUID_PREFIX)) return id;
+        return registry.synthesisPolicy().canonicalTarget(id);
     }
 
     void load(MachineRunState state, String savedId) {

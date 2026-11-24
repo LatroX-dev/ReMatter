@@ -1,5 +1,6 @@
 package dev.latrox.rematter.client;
 
+import dev.latrox.rematter.client.ui.DarkButton;
 import dev.latrox.rematter.content.WirelessAccessPointBlockEntity;
 import dev.latrox.rematter.content.WirelessAccessPointMenu;
 import java.util.List;
@@ -10,11 +11,50 @@ import net.minecraft.world.entity.player.Inventory;
 
 /** AE2-style console for Wireless Access Point showing status, FE reserve, range, FE/t draw, Boosters, and Terminal dock. */
 public final class WirelessAccessPointScreen extends AbstractContainerScreen<WirelessAccessPointMenu> {
+    private DarkButton securityBtn;
+
     public WirelessAccessPointScreen(WirelessAccessPointMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, 216, 216);
     }
 
     private static Component tr(String key, Object... args) { return Component.translatable("screen.rematter.wireless_ap." + key, args); }
+
+    @Override
+    protected void init() {
+        super.init();
+        leftPos = Math.max(23, leftPos);
+        securityBtn = addRenderableWidget(DarkButton.icon(
+                SecurityUi.icon(menu.securityMode()), SecurityUi.label(menu.securityMode()), menu.securityMode().meaning(),
+                leftPos - 22, topPos + 18, 24, 22,
+                b -> {}));
+        securityBtn.setStepAction(forward -> {
+            if (minecraft != null && minecraft.gameMode != null) {
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                        forward ? WirelessAccessPointMenu.CYCLE_SECURITY : WirelessAccessPointMenu.CYCLE_SECURITY_BACK);
+            }
+        });
+        refreshSecurity();
+    }
+
+    public List<net.minecraft.client.renderer.Rect2i> viewerExclusionAreas() {
+        if (securityBtn != null && securityBtn.visible) {
+            return List.of(new net.minecraft.client.renderer.Rect2i(
+                    securityBtn.getX(), securityBtn.getY(), securityBtn.getWidth(), securityBtn.getHeight()));
+        }
+        return List.of();
+    }
+
+    private void refreshSecurity() {
+        if (securityBtn != null) {
+            SecurityUi.configure(securityBtn, menu.securityMode(), menu.canManageSecurity(), true, UiPalette.PORT_ENERGY_INPUT);
+        }
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        refreshSecurity();
+    }
 
     @Override
     public void extractBackground(GuiGraphicsExtractor g, int mx, int my, float partial) {

@@ -15,6 +15,10 @@ class EnvironmentSourceTest {
         assertEquals(Map.of(BuiltinChemistry.OXYGEN,200L),source.outputs());
         var decoded=CatalogWireCodec.decode(CatalogWireCodec.encode(registry));
         assertEquals(source,decoded.environmentSource(source.id()).orElseThrow());
+        var nitrogen=registry.environmentSource(SubstanceId.parse("rematter:atmospheric_nitrogen")).orElseThrow();
+        assertEquals(Map.of(SubstanceKey.of("rematter:nitrogen",Phase.GAS),400L),nitrogen.outputs());
+        assertEquals(Set.of("minecraft:overworld"),nitrogen.dimensions());assertTrue(nitrogen.requiresOpenAir());
+        assertEquals(nitrogen,decoded.environmentSource(nitrogen.id()).orElseThrow());
         assertEquals(registry.synthesisPolicy().requirement("minecraft:diamond"),decoded.synthesisPolicy().requirement("minecraft:diamond"));
         assertThrows(IllegalArgumentException.class,()->new ProcessRecipe(source.id(),ProcessType.REACTION,Map.of(),source.outputs(),source.energy(),source.ticks()));
     }

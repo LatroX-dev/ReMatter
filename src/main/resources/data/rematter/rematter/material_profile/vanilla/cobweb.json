@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:cobweb",
+  "matter": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 2250
+    }
+  ],
+  "decomposition_energy": 18000,
+  "synthesis_energy": 36000,
+  "ticks": 360
+}

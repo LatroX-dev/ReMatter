@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:hay_block",
+  "matter": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 3600
+    }
+  ],
+  "decomposition_energy": 36000,
+  "synthesis_energy": 72000,
+  "ticks": 720
+}

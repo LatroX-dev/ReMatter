@@ -11,6 +11,7 @@ import dev.latrox.rematter.content.MachineSoundLevel;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.content.PortSides;
 import dev.latrox.rematter.content.RedstoneMode;
+import dev.latrox.rematter.content.SecurityMode;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.network.MachineActionPayload;
 import dev.latrox.rematter.network.MachineConfigurationPayload;
@@ -60,11 +61,11 @@ final class MachineSettingsPanel {
     private List<String> gases = List.of();
     private MachineSettings lastServerSettings;
     private EditBox target;
-    private PanelButton apply, product, gasCycle, vent, automation, autoEject, jobs, redstone, backend, release, soundMute;
+    private PanelButton apply, product, gasCycle, vent, automation, autoEject, jobs, redstone, backend, release, soundMute, securityButton;
     private PanelButton previewToggle, blueprintBuild, blueprintReset, portDown, portUp, widthDown, widthUp, depthDown, depthUp, heightDown, heightUp;
     private final PanelButton[] modDown = new PanelButton[3];
     private final PanelButton[] modUp = new PanelButton[3];
-    private int productIndex, gasIndex;
+    private int productIndex, gasIndex, accessHintY, visibleTabCount;
     private boolean visible = true, dirty, updating;
     private Component error = Component.empty();
 
@@ -101,6 +102,14 @@ final class MachineSettingsPanel {
         soundMute.inputAction = input -> {
             boolean backward = input.hasShiftDown() || input instanceof MouseButtonEvent click && click.button() == 1;
             sendMenu(backward ? MachineMenu.CYCLE_SOUND_BACK : MachineMenu.TOGGLE_SOUND_MUTE);
+        };
+        securityButton = button(Component.empty(), left + width - 42, top, 20, 16, b -> {});
+        securityButton.iconOnly = true;
+        securityButton.allowRightClick = true;
+        securityButton.inputAction = input -> {
+            if (!menu.canManageSecurity()) return;
+            boolean backward = input.hasShiftDown() || input instanceof MouseButtonEvent click && click.button() == 1;
+            sendMenu(backward ? MachineMenu.CYCLE_SECURITY_BACK : MachineMenu.CYCLE_SECURITY);
         };
 
         // Structure blueprint controls (only shown on Industrial Reactor & Industrial Preparator).
@@ -346,10 +355,11 @@ final class MachineSettingsPanel {
                     : available(Section.PRODUCTION) ? Section.PRODUCTION : Section.ACCESS;
         }
         var available = java.util.Arrays.stream(Section.values()).filter(this::available).toList();
+        visibleTabCount = available.size();
         for (var value : Section.values()) {
             var tab = tabs.get(value); int index = available.indexOf(value);
             tab.visible = visible && !singlePage && index >= 0; tab.active = tab.visible; tab.selected = section == value;
-            if (index >= 0) { tab.setX(left + index * 28); tab.setWidth(24); }
+            if (index >= 0) { tab.setX(left + index * 24); tab.setWidth(22); }
             for (var widget : groups.get(value)) { widget.visible = visible && section == value; widget.active = widget.visible && canEdit(); }
         }
         boolean hasAudio = dev.latrox.rematter.content.ModSounds.workingSound(menu.kind()) != null;
@@ -373,6 +383,16 @@ final class MachineSettingsPanel {
             Component label = tr("settings.sound", stateLabel);
             soundMute.setMessage(label);
             soundMute.setTooltip(Tooltip.create(label.copy().append("\n").append(tr("settings.sound_hint"))));
+        }
+        securityButton.visible = visible && !singlePage;
+        securityButton.setX(left + width - (soundMute.visible ? 42 : 20));
+        securityButton.active = securityButton.visible && canEdit() && menu.canManageSecurity();
+        if (securityButton.visible) {
+            SecurityMode mode = menu.securityMode();
+            securityButton.icon = SecurityUi.icon(mode);
+            securityButton.selected = mode != SecurityMode.PUBLIC;
+            securityButton.setMessage(SecurityUi.label(mode));
+            securityButton.setTooltip(Tooltip.create(SecurityUi.tooltip(mode, menu.canManageSecurity())));
         }
         if (visible && section == Section.STRUCTURE && IndustrialStructure.isIndustrial(menu.kind())) {
             var bp = currentBlueprint();
@@ -429,9 +449,13 @@ final class MachineSettingsPanel {
             vent.selected = on;
         }
         boolean access = visible && section == Section.ACCESS;
-        int nextAccessY = top + CONTENT_Y;
         boolean hasAutoEject = dev.latrox.rematter.content.MachineBlockEntity.supportsAutoEject(menu.kind());
-        int accessStep = hasAutoEject ? 21 : ROW;
+        boolean hasJobs = menu.kind().selectable() || PreparationTier.isPreparation(menu.kind());
+        boolean hasRedstone = RedstoneMode.controllable(menu.kind());
+        boolean hasInterface = menu.kind() == MachineKind.NETWORK_INTERFACE;
+        int accessCount = 1 + (hasAutoEject ? 1 : 0) + (hasJobs ? 1 : 0) + (hasRedstone ? 1 : 0) + (hasInterface ? 2 : 0);
+        int nextAccessY = top + (accessCount >= 3 ? 20 : CONTENT_Y);
+        int accessStep = accessCount >= 3 ? 20 : ROW;
         automation.visible = access;
         automation.setY(nextAccessY);
         automation.setMessage(tr("settings.pipes", tr(menu.snapshot().automation() ? "settings.allowed" : "settings.blocked")));
@@ -446,7 +470,7 @@ final class MachineSettingsPanel {
             autoEject.selected = menu.autoEject();
             nextAccessY += accessStep;
         }
-        jobs.visible = access && (menu.kind().selectable() || PreparationTier.isPreparation(menu.kind()));
+        jobs.visible = access && hasJobs;
         jobs.active = jobs.visible && canEdit();
         if (jobs.visible) {
             jobs.setY(nextAccessY);
@@ -454,7 +478,7 @@ final class MachineSettingsPanel {
             jobs.setTooltip(Tooltip.create(tr("network_jobs_hint"))); jobs.selected = menu.snapshot().networkJobs();
             nextAccessY += accessStep;
         }
-        redstone.visible = access && RedstoneMode.controllable(menu.kind());
+        redstone.visible = access && hasRedstone;
         redstone.active = redstone.visible && canEdit();
         if (redstone.visible) {
             var mode = menu.redstoneMode();
@@ -464,7 +488,7 @@ final class MachineSettingsPanel {
             redstone.selected = mode != RedstoneMode.IGNORED;
             nextAccessY += accessStep;
         }
-        backend.visible = access && menu.kind() == MachineKind.NETWORK_INTERFACE;
+        backend.visible = access && hasInterface;
         backend.active = backend.visible && canEdit();
         if (backend.visible) {
             backend.setY(nextAccessY);
@@ -475,12 +499,14 @@ final class MachineSettingsPanel {
             backend.setTooltip(Tooltip.create(tr("backend_hint")));
             nextAccessY += accessStep;
         }
-        release.visible = access && menu.kind() == MachineKind.NETWORK_INTERFACE;
+        release.visible = access && hasInterface;
         release.active = release.visible && canEdit() && !menu.snapshot().orders().held().isEmpty();
         if (release.visible) {
             release.setY(nextAccessY);
             release.setTooltip(Tooltip.create(tr("release_held_hint")));
+            nextAccessY += accessStep;
         }
+        accessHintY = nextAccessY + 2;
     }
 
     private static void configureStepPair(PanelButton down, PanelButton up, IndustrialBlueprint bp,
@@ -545,8 +571,11 @@ final class MachineSettingsPanel {
             ScreenChrome.icon(g, UiIcon.STRUCTURE, left, top, UiPalette.machineAccent(menu.kind()));
             ScreenChrome.text(g, font, header, left + 18, top + 4, width - 18, UiPalette.TEXT);
         } else {
-            int titleWidth = soundMute != null && soundMute.visible ? width - 112 : width - 88;
-            ScreenChrome.text(g,font,tr("settings.section."+section.name().toLowerCase(java.util.Locale.ROOT)).getString(),left+88,top+5,titleWidth,UiPalette.TEXT);
+            int titleX = left + visibleTabCount * 24 + 2;
+            int rightEdge = securityButton != null && securityButton.visible ? securityButton.getX() - 2
+                    : soundMute != null && soundMute.visible ? soundMute.getX() - 2 : left + width;
+            int titleWidth = Math.max(0, rightEdge - titleX);
+            ScreenChrome.text(g, font, tr("settings.section." + section.name().toLowerCase(java.util.Locale.ROOT)).getString(), titleX, top + 5, titleWidth, UiPalette.TEXT);
         }
         if (section == Section.STRUCTURE && IndustrialStructure.isIndustrial(menu.kind())) {
             extractStructureControls(g, mouseX, mouseY);
@@ -567,10 +596,9 @@ final class MachineSettingsPanel {
             Component label = error.getString().isEmpty() ? tr("stock_target") : error;
             ScreenChrome.text(g,font,label.getString(),left,top+23,width,error.getString().isEmpty()?UiPalette.MUTED:UiPalette.WARNING);
             if (gases.isEmpty()) g.text(font, tr("no_gas_outputs"), left, top + 83, UiPalette.MUTED, false);
-        } else if (section == Section.ACCESS && !jobs.visible && !backend.visible) {
-            int hintY = redstone.visible ? top + CONTENT_Y + ROW * 2 + 5 : top + 51;
+        } else if (section == Section.ACCESS && !jobs.visible && !backend.visible && accessHintY + 18 <= top + 102) {
             ScreenChrome.twoLines(g, font, tr(IndustrialStructure.isIndustrial(menu.kind())
-                    ? "settings.industrial_ports" : "automation_hint").getString(), left, hintY, width, UiPalette.MUTED);
+                    ? "settings.industrial_ports" : "automation_hint").getString(), left, accessHintY, width, UiPalette.MUTED);
         }
     }
 

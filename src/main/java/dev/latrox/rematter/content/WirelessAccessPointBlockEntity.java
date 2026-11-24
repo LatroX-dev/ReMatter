@@ -121,16 +121,38 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         return cachedNetwork;
     }
 
+    private SecurityMode securityMode = SecurityMode.PUBLIC;
+
+    public SecurityMode securityMode() { return securityMode; }
+
+    public boolean canManageSecurity(Player player) { return MachineAccess.canManage(owner, player); }
+
+    public boolean setSecurityMode(Player player, SecurityMode next) {
+        if (!networkLive() || player.isSpectator() || !canManageSecurity(player) || next == null) return false;
+        if (securityMode == next) return true;
+        securityMode = next;
+        cachedNetwork = null;
+        setChanged();
+        touchTopology();
+        return true;
+    }
+
+    public boolean cycleSecurityMode(Player player, boolean forward) {
+        return setSecurityMode(player, forward ? securityMode.next() : securityMode.previous());
+    }
+
     public boolean canRemove(Player player) {
-        if (player instanceof FakePlayer) return player.getUUID().equals(owner);
-        return owner == null || player.getUUID().equals(owner) || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+        return canAccess(player);
     }
 
     public boolean canAccess(Player player) {
-        return canRemove(player) || !(player instanceof FakePlayer) && dev.latrox.rematter.compat.TeamAccess.shared(owner, player.getUUID());
+        return MachineAccess.allows(level, owner, securityMode, player);
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        if (securityMode == SecurityMode.PUBLIC) {
+            securityMode = MachineAccess.placementDefault(level, placer);
+        }
         assignOwner(placer instanceof Player player && !(player instanceof FakePlayer) ? player.getUUID() : null);
     }
 
@@ -238,6 +260,7 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         output.putInt("schema", 1);
         output.putInt("energy", energy());
         if (owner != null) output.putString("owner", owner.toString());
+        if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
         if (!isEmpty()) {
             output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
         }
@@ -247,12 +270,14 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         super.loadAdditional(input);
         cachedNetwork = null;
         owner = null;
+        securityMode = SecurityMode.PUBLIC;
         energy.set(0);
         items.replaceAll(stack -> ItemStack.EMPTY);
         if (input.getIntOr("schema", -1) != 1) return;
         input.getString("owner").ifPresent(raw -> {
             try { owner = UUID.fromString(raw); } catch (IllegalArgumentException ignored) { owner = null; }
         });
+        securityMode = input.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
         input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).ifPresent(loaded -> {
             for (int i = 0; i < Math.min(items.size(), loaded.size()); i++) {
                 items.set(i, loaded.get(i));

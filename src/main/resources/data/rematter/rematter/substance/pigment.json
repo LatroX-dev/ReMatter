@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.pigment",
+  "symbol": "C₆H₆O₂",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 6,
+    "rematter:hydrogen": 6,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "solid"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reactor_glass",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1416
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 80
+}

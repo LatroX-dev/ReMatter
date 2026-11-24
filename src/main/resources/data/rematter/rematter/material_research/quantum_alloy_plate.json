@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Quantum Alloy Plate",
+  "items": [
+    "advanced_ae:quantum_alloy_plate"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

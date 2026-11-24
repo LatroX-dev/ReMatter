@@ -13,7 +13,7 @@ public final class CatalogWireCodec {
     private static final int MAX_RAW_BYTES = 16_777_216;
     private static final int MAX_RECORDS = ChemistryRegistry.MAX_SYNTHESIS_ENTRIES;
     private static final int MAX_AMOUNTS = 1_024;
-    private static final int VERSION = 9;
+    private static final int VERSION = 10;
 
     private CatalogWireCodec() {}
 
@@ -64,6 +64,10 @@ public final class CatalogWireCodec {
                 string(out, entry.getKey()); string(out, entry.getValue().name());
                 var requirement = registry.synthesisPolicy().requirement(entry.getKey());
                 string(out, requirement.machine()); out.writeInt(requirement.tier()); string(out, requirement.advancement());
+            }
+            writeCount(out, registry.synthesisPolicy().canonicalAliases().size(), MAX_RECORDS);
+            for (var alias : registry.synthesisPolicy().canonicalAliases().entrySet()) {
+                string(out, alias.getKey()); string(out, alias.getValue());
             }
             out.flush();
             BoundedBytes compressed = new BoundedBytes(MAX_COMPRESSED_BYTES);
@@ -129,6 +133,16 @@ public final class CatalogWireCodec {
             for (int i = 0; i < permissions; i++) {
                 String id = string(in); var category = SynthesisCategory.valueOf(string(in));
                 builder.allowSynthesis(id, category, new SynthesisRequirement(string(in), in.readInt(), string(in)));
+            }
+            int aliasCount = count(in, MAX_RECORDS);
+            if (aliasCount > 0) {
+                Map<String, String> aliases = new TreeMap<>();
+                for (int i = 0; i < aliasCount; i++) {
+                    if (aliases.putIfAbsent(string(in), string(in)) != null) {
+                        throw new IllegalArgumentException("Duplicate canonical alias in catalogue");
+                    }
+                }
+                builder.canonicalAliases(aliases);
             }
             if (in.read() != -1) throw new IllegalArgumentException("Trailing chemistry catalogue data");
             return builder.build();

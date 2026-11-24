@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Gunpowder",
+  "items": [
+    "minecraft:gunpowder"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas"
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": ""
+}

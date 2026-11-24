@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "farmersdelight",
+  "item": "farmersdelight:cabbage_seeds",
+  "category": "natural_material"
+}

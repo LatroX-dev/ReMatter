@@ -14,11 +14,15 @@ import org.jspecify.annotations.Nullable;
 
 /** Fixed tier-aware slot layout with dedicated Charge (+) and Discharge (-) bays; server validates all transfers. */
 public final class EnergyCubeMenu extends AbstractContainerMenu {
+    public static final int CYCLE_SECURITY = 12;
+    public static final int CYCLE_SECURITY_BACK = 13;
     private final EnergyCubeTier tier;
     private final Container inventory;
     private final @Nullable EnergyCubeBlockEntity cube;
     private final Player player;
     private final BlockPos position;
+    private final DataSlot securityMode = DataSlot.standalone();
+    private final DataSlot canManageSecurity = DataSlot.standalone();
     private @Nullable EnergyCubePayload received, sent;
     private long nextUpdate;
     private boolean settings;
@@ -81,6 +85,10 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
         for (int column = 0; column < 9; column++) {
             addSlot(new Slot(playerInventory, column, 18 + column * 18, 193));
         }
+        securityMode.set(cube != null ? cube.securityMode().ordinal() : SecurityMode.PUBLIC.ordinal());
+        addDataSlot(securityMode);
+        canManageSecurity.set(cube != null && cube.canManageSecurity(player) ? 1 : 0);
+        addDataSlot(canManageSecurity);
     }
 
     public EnergyCubeTier tier() { return tier; }
@@ -89,6 +97,8 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
     public int transferRate() { return tier.transferRate(); }
     public boolean locked() { return cube != null ? cube.locked() : received != null && received.locked(); }
     public BlockPos position() { return position; }
+    public SecurityMode securityMode() { return cube != null ? cube.securityMode() : SecurityMode.byIndex(securityMode.get()); }
+    public boolean canManageSecurity() { return cube != null ? cube.canManageSecurity(player) : canManageSecurity.get() != 0; }
 
     public EnergyCubeSideMode sideMode(MachinePortMode.Side side) {
         int packed = cube != null ? cube.packedSideModes() : received == null ? EnergyCubeSideMode.OUTPUT.ordinal() : received.sideModes();
@@ -103,9 +113,15 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int action) {
+        if (cube == null || player.containerMenu != this || player.isSpectator() || !stillValid(player)) return false;
+        if (action == CYCLE_SECURITY || action == CYCLE_SECURITY_BACK) {
+            boolean changed = cube.cycleSecurityMode(player, action == CYCLE_SECURITY);
+            if (changed) { nextUpdate = 0; broadcastChanges(); }
+            return changed;
+        }
         // Six ids step a side forward, the six after them step it backward.
         int sides = MachinePortMode.Side.values().length;
-        if (cube == null || player.containerMenu != this || player.isSpectator() || action < 0 || action >= 2 * sides || !stillValid(player)) return false;
+        if (action < 0 || action >= 2 * sides) return false;
         boolean changed = cube.cycleSide(player, MachinePortMode.Side.values()[action % sides], action < sides);
         if (changed) { nextUpdate = 0; broadcastChanges(); }
         return changed;
@@ -141,6 +157,10 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
 
     @Override
     public void broadcastChanges() {
+        if (cube != null) {
+            securityMode.set(cube.securityMode().ordinal());
+            canManageSecurity.set(cube.canManageSecurity(player) ? 1 : 0);
+        }
         super.broadcastChanges();
         if (cube == null || !(player instanceof ServerPlayer server) || !stillValid(player)) return;
         long time = server.level().getGameTime();

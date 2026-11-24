@@ -3,10 +3,14 @@ package dev.latrox.rematter.client.ui;
 import dev.latrox.rematter.client.ScreenChrome;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.UiIcon;
+import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
@@ -16,6 +20,7 @@ public class DarkButton extends Button {
     private final boolean iconOnly;
     private boolean selected;
     private int accent = UiPalette.ACCENT;
+    private @Nullable Consumer<Boolean> stepAction;
 
     protected DarkButton(Builder builder,@Nullable UiIcon icon,boolean iconOnly) {
         super(builder);this.icon=icon;this.iconOnly=iconOnly;
@@ -40,6 +45,18 @@ public class DarkButton extends Button {
     }
     public void setAccent(int accent) { this.accent=accent; }
     public void setSelected(boolean selected) { this.selected=selected; }
+    public void setStepAction(@Nullable Consumer<Boolean> stepAction) { this.stepAction=stepAction; }
+    @Override protected boolean isValidClickButton(MouseButtonInfo info) {
+        return info.button()==0||(stepAction!=null&&info.button()==1);
+    }
+    @Override public void onPress(InputWithModifiers input) {
+        if(stepAction!=null) {
+            boolean backward=input.hasShiftDown()||(input instanceof MouseButtonEvent click&&click.button()==1);
+            stepAction.accept(!backward);
+            return;
+        }
+        super.onPress(input);
+    }
     @Override public boolean shouldTakeFocusAfterInteraction() { return visible; }
     @Override protected void extractContents(GuiGraphicsExtractor g,int mouseX,int mouseY,float partialTick) {
         var font=Minecraft.getInstance().font;

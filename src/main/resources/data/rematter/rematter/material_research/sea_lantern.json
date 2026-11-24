@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Sea Lantern",
+  "items": [
+    "minecraft:sea_lantern"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prismarine_crystal",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:prismarine_shard",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

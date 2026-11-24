@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:bamboo",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 750,
+  "synthesis_energy": 1500,
+  "ticks": 20
+}

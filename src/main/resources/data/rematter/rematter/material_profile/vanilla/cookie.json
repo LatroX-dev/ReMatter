@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:cookie",
+  "item_count": 8,
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 800
+    },
+    {
+      "substance": "rematter:starch",
+      "phase": "solid",
+      "amount": 800
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 120
+}

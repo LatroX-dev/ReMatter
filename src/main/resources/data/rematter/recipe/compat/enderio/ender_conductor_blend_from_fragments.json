@@ -15,7 +15,7 @@
   "primary_count": 9,
   "secondary": "rematter:lumivex_dust",
   "secondary_count": 2,
-  "tertiary": "rematter:copper_dust",
+  "tertiary": "#c:dusts/copper",
   "result": {
     "id": "rematter:ender_conductor_blend",
     "count": 1

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:bubble_coral",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 50
+    },
+    {
+      "substance": "rematter:seashell",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 2500,
+  "synthesis_energy": 5000,
+  "ticks": 50
+}

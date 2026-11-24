@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Glow Ink Sac",
+  "items": [
+    "minecraft:glow_ink_sac"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

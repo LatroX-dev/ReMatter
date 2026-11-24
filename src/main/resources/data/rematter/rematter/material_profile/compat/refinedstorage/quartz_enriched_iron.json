@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "required_mod": "refinedstorage",
+  "item": "refinedstorage:quartz_enriched_iron",
+  "item_count": 4,
+  "matter": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 240
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:blaze_rod",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 480
+}

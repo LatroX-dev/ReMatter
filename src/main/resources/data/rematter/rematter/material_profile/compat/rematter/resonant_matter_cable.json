@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:resonant_matter_cable",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 478
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 187
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 415
+    }
+  ],
+  "decomposition_energy": 7000,
+  "synthesis_energy": 14000,
+  "ticks": 80
+}

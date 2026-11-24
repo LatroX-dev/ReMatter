@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Blaze",
+  "items": [
+    "minecraft:blaze_powder",
+    "minecraft:blaze_rod"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": "minecraft:the_nether"
+}

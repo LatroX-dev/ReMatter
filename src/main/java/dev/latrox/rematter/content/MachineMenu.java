@@ -41,6 +41,8 @@ public final class MachineMenu extends AbstractContainerMenu {
     public static final int CONSOLIDATE_DRIVE_CELLS = 19;
     public static final int TOGGLE_AUTO_EJECT = 20;
     public static final int CANCEL_JOB = 21;
+    public static final int CYCLE_SECURITY = 22;
+    public static final int CYCLE_SECURITY_BACK = 23;
     /** Six ids step a side forward; the six after them step it backward. */
     public static final int CYCLE_PORT = 40;
     public static final int CYCLE_PORT_BACK = 46;
@@ -58,6 +60,8 @@ public final class MachineMenu extends AbstractContainerMenu {
     private final DataSlot soundVolume = DataSlot.standalone();
     private final DataSlot structurePreview = DataSlot.standalone();
     private final DataSlot autoEject = DataSlot.standalone();
+    private final DataSlot securityMode = DataSlot.standalone();
+    private final DataSlot canManageSecurity = DataSlot.standalone();
     private final DataSlot[] portModes = new DataSlot[MachinePortMode.Side.values().length];
     private boolean wirelessBatteryDepleted;
     /** Server: the last views sent. Client: the last views received. */
@@ -121,6 +125,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         soundVolume.set(buf.readVarInt());
         structurePreview.set(buf.readBoolean() ? 1 : 0);
         autoEject.set(buf.readBoolean() ? 1 : 0);
+        securityMode.set(buf.readVarInt());
         for (var side : MachinePortMode.Side.values()) {
             portModes[side.ordinal()].set(buf.readVarInt());
         }
@@ -143,6 +148,7 @@ public final class MachineMenu extends AbstractContainerMenu {
         buf.writeVarInt(machine.soundLevel().level());
         buf.writeBoolean(machine.structurePreviewEnabled());
         buf.writeBoolean(machine.autoEject());
+        buf.writeVarInt(machine.securityMode().ordinal());
         for (var side : MachinePortMode.Side.values()) {
             buf.writeVarInt(machine.portMode(side).ordinal());
         }
@@ -262,6 +268,10 @@ public final class MachineMenu extends AbstractContainerMenu {
         addDataSlot(structurePreview);
         autoEject.set(machine != null && machine.autoEject() ? 1 : 0);
         addDataSlot(autoEject);
+        securityMode.set(machine != null ? machine.securityMode().ordinal() : SecurityMode.PUBLIC.ordinal());
+        addDataSlot(securityMode);
+        canManageSecurity.set(machine != null && machine.canManageSecurity(player) ? 1 : 0);
+        addDataSlot(canManageSecurity);
         for (var side : MachinePortMode.Side.values()) {
             var mode = DataSlot.standalone();
             if (machine != null) mode.set(machine.portMode(side).ordinal());
@@ -311,6 +321,8 @@ public final class MachineMenu extends AbstractContainerMenu {
     public boolean soundMuted() { return soundLevel().muted(); }
     public boolean structurePreviewEnabled() { return structurePreview.get() != 0; }
     public boolean autoEject() { return autoEject.get() != 0; }
+    public SecurityMode securityMode() { return SecurityMode.byIndex(securityMode.get()); }
+    public boolean canManageSecurity() { return canManageSecurity.get() != 0; }
     private boolean acceptsPlacement(int slot, ItemStack stack) {
         if (machine != null) return inventory.canPlaceItem(slot, stack);
         if (snapshot.containerId() != containerId || snapshot.networkJobs() && slot != 2 && slot != MachineCellAccess.EFFICIENCY_SLOT && slot != MachineCellAccess.PARALLEL_SLOT) return false;
@@ -576,6 +588,8 @@ public final class MachineMenu extends AbstractContainerMenu {
             soundVolume.set(machine.soundLevel().level());
             structurePreview.set(machine.structurePreviewEnabled() ? 1 : 0);
             autoEject.set(machine.autoEject() ? 1 : 0);
+            securityMode.set(machine.securityMode().ordinal());
+            canManageSecurity.set(machine.canManageSecurity(player) ? 1 : 0);
             for (var side : MachinePortMode.Side.values()) {
                 portModes[side.ordinal()].set(machine.portMode(side).ordinal());
             }
@@ -766,6 +780,12 @@ public final class MachineMenu extends AbstractContainerMenu {
             }
             case CANCEL_JOB -> {
                 if (!machine.cancelJob()) return false;
+            }
+            case CYCLE_SECURITY -> {
+                if (!machine.cycleSecurityMode(player, true)) return false;
+            }
+            case CYCLE_SECURITY_BACK -> {
+                if (!machine.cycleSecurityMode(player, false)) return false;
             }
             default -> { return false; }
         }

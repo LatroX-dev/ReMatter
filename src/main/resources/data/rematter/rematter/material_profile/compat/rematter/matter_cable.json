@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "rematter:matter_cable",
+  "matter": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 166
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 166
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

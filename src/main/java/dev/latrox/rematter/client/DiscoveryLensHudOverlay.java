@@ -6,6 +6,7 @@ import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.ReservedSubstances;
 import dev.latrox.rematter.content.ConfigurationCardItem;
 import dev.latrox.rematter.content.MatterWrenchItem;
+import dev.latrox.rematter.content.SecurityCardItem;
 import dev.latrox.rematter.network.ClientChemistry;
 import dev.latrox.rematter.primal.PrimalContent;
 import java.util.ArrayList;
@@ -272,7 +273,9 @@ public final class DiscoveryLensHudOverlay {
     private static boolean isWrenchOverlayActive(ItemStack mainHand, ItemStack offHand) {
         return mainHand.getItem() instanceof MatterWrenchItem
                 || mainHand.getItem() instanceof ConfigurationCardItem
+                || mainHand.getItem() instanceof SecurityCardItem
                 || offHand.getItem() instanceof MatterWrenchItem
-                || offHand.getItem() instanceof ConfigurationCardItem;
+                || offHand.getItem() instanceof ConfigurationCardItem
+                || offHand.getItem() instanceof SecurityCardItem;
     }
 }

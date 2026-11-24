@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Fermented Spider Eye",
+  "items": [
+    "minecraft:fermented_spider_eye"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -197,8 +197,12 @@ public final class ReMatterGameTests {
     }
     private static void ownership(GameTestHelper h) {
         var r=rig(h,MachineKind.SYNTHESIZER);var foreign=h.makeMockPlayer(GameType.SURVIVAL);
+        h.assertTrue(r.machine.securityMode()==SecurityMode.PUBLIC,"Machines should default to PUBLIC");
         h.assertTrue(r.machine.canAccess(r.owner),"Owner denied");
-        h.assertTrue(!r.machine.canAccess(foreign),"Foreign player gained access");
+        h.assertTrue(r.machine.canAccess(foreign),"Public machine denied foreign player");
+        h.assertTrue(!r.machine.canManageSecurity(foreign),"Foreign player could manage security");
+        h.assertTrue(r.machine.setSecurityMode(r.owner,SecurityMode.PRIVATE),"Owner could not set PRIVATE");
+        h.assertTrue(!r.machine.canAccess(foreign),"Foreign player gained access to PRIVATE machine");
         var fake=net.neoforged.neoforge.common.util.FakePlayerFactory.get(h.getLevel(),new com.mojang.authlib.GameProfile(r.owner.getUUID(),"OwnerAutomation"));
         h.assertTrue(r.machine.canAccess(fake),"Owner fake player denied");
         var spectator=h.makeMockPlayer(GameType.SPECTATOR);var watched=place(h,new BlockPos(5,2,2),MachineKind.SYNTHESIZER,spectator);
@@ -302,17 +306,21 @@ public final class ReMatterGameTests {
         h.setBlock(3,2,2,ModContent.MATTER_CABLE.get());h.setBlock(3,2,3,ModContent.MATTER_CABLE.get());
         var cable=h.absolutePos(new BlockPos(3,2,2));var other=h.absolutePos(new BlockPos(3,2,3));
         CableOwners.set(h.getLevel(),cable,owner.getUUID());CableOwners.set(h.getLevel(),other,foreign.getUUID());
-        h.assertTrue(!CableOwners.canRemove(h.getLevel(),cable,foreign),"Foreign player may break owned cable");
+        h.assertTrue(CableOwners.canRemove(h.getLevel(),cable,foreign),"Public cable should be removable in coop");
         h.assertTrue(processor.matterNetwork(true).ready(),"Owner cable did not connect storage");
+        h.assertTrue(outsider.matterNetwork(true).ready(),"Coop PUBLIC network did not connect across players");
+        drive.setSecurityMode(owner,SecurityMode.PRIVATE);
+        processor.setSecurityMode(owner,SecurityMode.PRIVATE);
+        outsider.setSecurityMode(foreign,SecurityMode.PRIVATE);
         var handler=h.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK,cable,net.minecraft.core.Direction.UP);
         try(var tx=net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
             h.assertTrue(handler.insert(1000,tx)==1000,"Owned cable refused FE");tx.commit();
         }
-        h.assertTrue(processor.energy().getAmountAsLong()==1000&&outsider.energy().getAmountAsLong()==0,"FE crossed an ownership boundary");
+        h.assertTrue(processor.energy().getAmountAsLong()==1000&&outsider.energy().getAmountAsLong()==0,"FE crossed a PRIVATE ownership boundary");
         try(var tx=net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {handler.insert(500,tx);}
         h.assertTrue(processor.energy().getAmountAsLong()==1000,"Aborted cable transfer leaked FE");
         CableOwners.set(h.getLevel(),cable,foreign.getUUID());
-        h.assertTrue(!processor.matterNetwork(true).ready(),"Ownership change left a cached foreign network");h.succeed();
+        h.assertTrue(!processor.matterNetwork(true).ready(),"Ownership change left a cached foreign network on PRIVATE machine");h.succeed();
     }
     private static void placeItem(GameTestHelper h, BlockPos relative, net.minecraft.world.entity.player.Player player, ItemStack stack) {
         var pos = h.absolutePos(relative);
@@ -370,8 +378,12 @@ public final class ReMatterGameTests {
             h.assertTrue(!arm(h.getBlockState(center),side),"Removed cable left an arm");
             h.assertTrue(CableOwners.owner(h.getLevel(),h.absolutePos(neighbor))==null,"Removed cable kept its owner");
             h.assertTrue(useItemAt(h,neighbor,foreign,new ItemStack(cable)).consumesAction(),"Foreign cable placement failed");
+            h.assertTrue(arm(h.getBlockState(center),side)&&arm(h.getBlockState(neighbor),side.getOpposite()),
+                    "Default PUBLIC cables should connect across coop players");
+            h.assertTrue(CableOwners.setSecurityMode(h.getLevel(),h.absolutePos(center),owner,SecurityMode.PRIVATE),
+                    "Owner could not lock cable to PRIVATE");
             h.assertTrue(!arm(h.getBlockState(center),side)&&!arm(h.getBlockState(neighbor),side.getOpposite()),
-                    "Player-placed cables crossed an ownership boundary");
+                    "PRIVATE cable stayed connected across an ownership boundary");
             h.setBlock(neighbor,Blocks.AIR);h.setBlock(center,Blocks.AIR);
         }
         h.succeed();
@@ -380,6 +392,7 @@ public final class ReMatterGameTests {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var foreign=h.makeMockPlayer(GameType.SURVIVAL);
         var anchor=new BlockPos(3,3,3);var target=anchor.east();var absolute=h.absolutePos(target);
         h.assertTrue(useItemAt(h,anchor,owner,new ItemStack(ModContent.MATTER_CABLE.get())).consumesAction(),"Anchor placement failed");
+        h.assertTrue(CableOwners.setSecurityMode(h.getLevel(),h.absolutePos(anchor),owner,SecurityMode.PRIVATE),"Could not lock anchor cable");
         var stack=new ItemStack(ModContent.REINFORCED_MATTER_CABLE.get(),2);
         boolean[] intercepted={false};
         Consumer<net.neoforged.neoforge.event.level.BlockEvent.EntityPlaceEvent> listener=event->{

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:flint",
+  "matter": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 100
+}

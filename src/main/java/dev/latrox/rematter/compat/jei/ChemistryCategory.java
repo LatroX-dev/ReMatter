@@ -40,7 +40,10 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryViewer.Entry> 
 
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, ChemistryViewer.Entry recipe, IFocusGroup focuses) {
-        recipe.consumed().ifPresent(resource -> addResource(builder.addInputSlot(9, 27).setStandardSlotBackground(), resource));
+        if (!recipe.consumedChoices().isEmpty()) {
+            var slot = builder.addInputSlot(9, 27).setStandardSlotBackground();
+            for (var resource : recipe.consumedChoices()) addResource(slot, resource);
+        }
         recipe.produced().ifPresent(resource -> addResource(builder.addOutputSlot(106, 27).setOutputSlotBackground(), resource));
         addMatter(builder, recipe.inputs(), RecipeIngredientRole.INPUT, 9);
         addMatter(builder, recipe.outputs(), RecipeIngredientRole.OUTPUT, 106);
@@ -92,7 +95,7 @@ final class ChemistryCategory implements IRecipeCategory<ChemistryViewer.Entry> 
             side(tooltip,recipe.produced(),recipe.outputs(),"produced");
         } else if (inside(mouseX,mouseY,160,119)) {
             recipe.notes().forEach(tooltip::add);
-            ChemistryViewer.researchTarget(recipe).ifPresent(target -> tooltip.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));
+            if (!recipe.researchTargets().isEmpty()) tooltip.add(dev.latrox.rematter.client.ResearchDisplay.note(recipe.researchTargets()));
         }
     }
     private static void side(ITooltipBuilder tooltip,Optional<ChemistryViewer.Resource> resource,List<ChemistryViewer.Matter> matter,String role) {

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Bamboo",
+  "items": [
+    "farmersdelight:canvas",
+    "farmersdelight:straw",
+    "minecraft:bamboo",
+    "minecraft:bamboo_block",
+    "minecraft:stripped_bamboo_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 1,
+  "requires_dimension": ""
+}

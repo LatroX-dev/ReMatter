@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "alltheores",
+  "item": "alltheores:enderium_plate",
+  "matter": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:lead",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

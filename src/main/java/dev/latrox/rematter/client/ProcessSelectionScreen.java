@@ -93,8 +93,8 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
                     .bounds(resultsX,resultsTop+row*RESULT_PITCH,resultsWidth-7,RESULT_PITCH))));
         }
         confirm=addRenderableWidget(DarkButton.labelIcon(UiIcon.CONFIRM,tr("use"),tr("use_hint"),detailX,footerY,detailWidth-52,18,b->selectFocused()));
-        addRenderableWidget(DarkButton.labelIcon(UiIcon.CANCEL,tr("close"),tr("close_hint"),detailX+detailWidth-48,footerY,48,18,b->onClose()));
-        confirm.setAccent(accent);clear.setAccent(accent);
+        var close=addRenderableWidget(DarkButton.labelIcon(UiIcon.CANCEL,tr("close"),tr("close_hint"),detailX+detailWidth-48,footerY,48,18,b->onClose()));
+        confirm.setAccent(accent);clear.setAccent(accent);close.setAccent(accent);
         resultBar.setBounds(resultsX+resultsWidth-5,resultsTop,5,results.visibleRows()*RESULT_PITCH);
         materialBar.setBounds(detailX+detailWidth-5,ingredientTop,5,materials.visibleRows()*MATERIAL_PITCH);
         loadChoices();setInitialFocus(search);

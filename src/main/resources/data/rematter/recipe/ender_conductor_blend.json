@@ -3,7 +3,7 @@
   "primary": "#rematter:full_ender_pearl_powders",
   "secondary": "rematter:lumivex_dust",
   "secondary_count": 2,
-  "tertiary": "rematter:copper_dust",
+  "tertiary": "#c:dusts/copper",
   "energy": 10000,
   "ticks": 360,
   "minimum_tier": 1,

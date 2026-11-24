@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Gourd",
+  "items": [
+    "minecraft:carved_pumpkin",
+    "minecraft:pumpkin"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:starch",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

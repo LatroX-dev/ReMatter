@@ -2,5 +2,6 @@
   "schema_version": 1,
   "required_mod": "occultism",
   "item": "occultism:gold_dust",
-  "category": "raw_material"
+  "category": "raw_material",
+  "synthesis_group": "dust:gold"
 }

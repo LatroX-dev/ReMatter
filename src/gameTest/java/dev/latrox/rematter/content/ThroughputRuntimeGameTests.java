@@ -226,11 +226,16 @@ public final class ThroughputRuntimeGameTests {
         var owner=owner(h);var foreign=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
         h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.EAST),32)==32,"Real origin capability failed");
         var a=link(h,new BlockPos(4,3,4),owner);var edge=link(h,new BlockPos(36,3,4),owner);var far=link(h,new BlockPos(37,3,4),owner);var hostile=link(h,new BlockPos(5,3,4),foreign);
+        // Default PUBLIC links allow coop pairing; PRIVATE links enforce strict owner isolation.
+        h.assertTrue(EntangledLinks.pair(h.getLevel(),a,hostile,owner.getUUID()),"Default PUBLIC coop links did not pair");
+        EntangledLinks.loaded(h.getLevel(),hostile).orElseThrow().setSecurityMode(foreign,SecurityMode.PRIVATE);
+        EntangledLinks.loaded(h.getLevel(),a).orElseThrow().setSecurityMode(owner,SecurityMode.PRIVATE);
+        EntangledLinks.loaded(h.getLevel(),edge).orElseThrow().setSecurityMode(owner,SecurityMode.PRIVATE);
         h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,far,owner.getUUID()),"33-block link was accepted");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,edge,owner.getUUID()),"Exactly32 blocks should be allowed for loaded own links");
-        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,hostile,owner.getUUID()),"Foreign endpoint could be paired");
-        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,edge,foreign.getUUID())&&EntangledLinks.peer(h.getLevel(),a,foreign.getUUID()).isEmpty(),"Foreign owner traversed an existing pair");
-        h.assertTrue(EntangledLinks.peer(h.getLevel(),a,owner.getUUID()).filter(edge::equals).isPresent(),"Denied pairing modified the previous owned pair");h.succeed();
+        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,hostile,owner.getUUID()),"Foreign PRIVATE endpoint could be paired");
+        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,edge,foreign.getUUID())&&EntangledLinks.peer(h.getLevel(),a,foreign.getUUID()).isEmpty(),"Foreign owner traversed an existing PRIVATE pair");
+        h.assertTrue(EntangledLinks.peer(h.getLevel(),a,owner.getUUID(),SecurityMode.PRIVATE).filter(edge::equals).isPresent(),"Denied pairing modified the previous owned pair");h.succeed();
     }
     private static void linkDimension(GameTestHelper h){
         var owner=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
@@ -304,6 +309,7 @@ public final class ThroughputRuntimeGameTests {
         var input=cable(h,new BlockPos(3,3,5),MatterCableBlock.Tier.RESONANT,owner);
         var old=machine(h,new BlockPos(21,3,5),MachineKind.REACTOR,owner);var target=machine(h,new BlockPos(21,3,11),MachineKind.REACTOR,owner);
         var stranger=machine(h,new BlockPos(20,3,10),MachineKind.REACTOR,foreign);
+        stranger.setSecurityMode(foreign,SecurityMode.PRIVATE);
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,b,owner.getUUID())&&insert(input,1_024)==1_024,"Initial FE route failed");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,c,owner.getUUID()),"FE re-pair failed");
         h.assertTrue(insert(input,131_072)==1_024&&insert(input,131_072)==0,"Re-pair refreshed the already spent physical Link budget");

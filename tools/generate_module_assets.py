@@ -290,7 +290,7 @@ RECIPES = {
     'grinding_unit': (['DMD', 'RBR', 'VFV'], {'D': 'rematter:diamond_lattice', 'M': CRYSTAL, 'R': 'rematter:rhevon_ingot', 'B': 'rematter:structural_bars', 'V': 'rematter:virelite_ceramic', 'F': 'rematter:machine_frame'}),
     'separation_unit': (['VMV', 'DOD', 'RFR'], {'V': 'rematter:virelite_ceramic', 'M': CRYSTAL, 'D': 'rematter:diamond_lattice', 'O': 'rematter:optical_circuit', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
     'mixing_basin': (['M M', 'VMV', 'RFR'], {'M': CRYSTAL, 'V': 'rematter:virelite_ceramic', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
-    'field_coil': (['CLC', 'CMC', 'FQF'], {'C': 'rematter:copper_dust', 'L': 'rematter:lumivex_ingot', 'M': CRYSTAL, 'Q': 'rematter:control_circuit', 'F': 'rematter:machine_frame'}),
+    'field_coil': (['CLC', 'CMC', 'FQF'], {'C': '#c:dusts/copper', 'L': 'rematter:lumivex_ingot', 'M': CRYSTAL, 'Q': 'rematter:control_circuit', 'F': 'rematter:machine_frame'}),
     'reaction_chamber': (['GDG', 'VMV', 'FOF'], {'G': 'rematter:reactor_glass', 'D': 'rematter:diamond_lattice', 'V': 'rematter:virelite_ceramic', 'M': CRYSTAL, 'F': 'rematter:machine_frame', 'O': 'rematter:optical_circuit'}),
 }
 

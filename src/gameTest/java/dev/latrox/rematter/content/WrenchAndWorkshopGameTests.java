@@ -54,6 +54,7 @@ public final class WrenchAndWorkshopGameTests {
         TESTS.put("wireless_terminal_charges_binds_and_opens_network_session", WrenchAndWorkshopGameTests::wirelessTerminalOperations);
         TESTS.put("energy_cube_input_output_prevents_same_tick_feedback_oscillation", WrenchAndWorkshopGameTests::bidirectionalCubeAntiOscillation);
         TESTS.put("unformed_reactor_controller_locks_to_single_configuration_page_and_unlocks_when_formed", WrenchAndWorkshopGameTests::unformedReactorSingleConfigurationPage);
+        TESTS.put("security_card_stamps_single_network_and_player_default", WrenchAndWorkshopGameTests::securityCardAndPlayerDefault);
     }
 
     private static Identifier id(String path) { return Identifier.fromNamespaceAndPath("rematter_tests", path); }
@@ -129,22 +130,24 @@ public final class WrenchAndWorkshopGameTests {
                 && h.getBlockState(cubePos).getValue(EnergyCubeBlock.FACING) == Direction.EAST,
                 "Wrench ROTATE mode did not rotate Energy Cube");
 
-        // Sneak + Right-Click switches to DISMANTLE; stranger is rejected, owner dismantles into inventory.
+        // Sneak + Right-Click switches to DISMANTLE; stranger is rejected on PRIVATE devices, owner dismantles into inventory.
         owner.setShiftKeyDown(true);
         WrenchInteractions.interact(owner, h.getLevel(), absPos, wrench, hit(h, relPos, Direction.EAST));
         owner.setShiftKeyDown(false);
         h.assertTrue(MatterWrenchItem.mode(wrench) == WrenchMode.DISMANTLE, "Wrench did not switch to DISMANTLE");
 
+        decomposer.setSecurityMode(owner, SecurityMode.PRIVATE);
         h.assertTrue(!WrenchInteractions.interact(stranger, h.getLevel(), absPos, wrench, hit(h, relPos, Direction.EAST)).consumesAction(),
-                "Stranger dismantled another player's machine");
+                "Stranger dismantled another player's PRIVATE machine");
         h.assertTrue(!h.getBlockState(relPos).isAir(), "Machine disappeared after denied dismantle");
 
         BlockPos linkPos = new BlockPos(4, 2, 2);
         var linkBlock = dev.latrox.rematter.primal.PrimalContent.ENTANGLED_LINK.get();
         h.setBlock(linkPos, linkBlock);
         linkBlock.setPlacedBy(h.getLevel(), h.absolutePos(linkPos), h.getBlockState(linkPos), owner, new ItemStack(linkBlock));
+        h.getBlockEntity(linkPos, EntangledLinkBlockEntity.class).setSecurityMode(owner, SecurityMode.PRIVATE);
         h.assertTrue(!WrenchInteractions.interact(stranger, h.getLevel(), h.absolutePos(linkPos), wrench, hit(h, linkPos, Direction.UP)).consumesAction(),
-                "Stranger dismantled another player's Entangled Link");
+                "Stranger dismantled another player's PRIVATE Entangled Link");
 
         decomposer.setItem(0, new ItemStack(Items.COBBLESTONE, 5));
         h.assertTrue(WrenchInteractions.interact(owner, h.getLevel(), absPos, wrench, hit(h, relPos, Direction.EAST)).consumesAction(),
@@ -585,6 +588,128 @@ public final class WrenchAndWorkshopGameTests {
         clientMenu.setView(MachineMenu.View.CONFIGURATION);
         h.assertTrue(clientMenu.view() == MachineMenu.View.CONFIGURATION,
                 "Formed Industrial Reactor must allow switching between MAIN and CONFIGURATION");
+        h.succeed();
+    }
+
+    private static void securityCardAndPlayerDefault(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var trustedFriend = h.makeMockPlayer(GameType.SURVIVAL);
+        var stranger = h.makeMockPlayer(GameType.SURVIVAL);
+
+        // 1. Security Card cycles cleanly PUBLIC -> TRUSTED -> PRIVATE -> PUBLIC and backwards
+        ItemStack card = new ItemStack(ModContent.SECURITY_CARD.get());
+        h.assertTrue(SecurityCardItem.mode(card) == SecurityMode.PUBLIC, "Fresh Security Card must default to PUBLIC");
+        SecurityCardItem.cycleMode(card, true, owner, h.getLevel());
+        h.assertTrue(SecurityCardItem.mode(card) == SecurityMode.TRUSTED, "Forward cycle did not select TRUSTED");
+        SecurityCardItem.cycleMode(card, true, owner, h.getLevel());
+        h.assertTrue(SecurityCardItem.mode(card) == SecurityMode.PRIVATE, "Forward cycle did not select PRIVATE");
+        SecurityCardItem.cycleMode(card, false, owner, h.getLevel());
+        h.assertTrue(SecurityCardItem.mode(card) == SecurityMode.TRUSTED, "Backward cycle did not return to TRUSTED");
+
+        // 2. Build connected network spanning Drive, Cable, Synthesizer, Energy Cube, AP, Level Emitter, paired Entangled Links + a foreign device
+        BlockPos driveRel = new BlockPos(2, 2, 2);
+        BlockPos cableRel = new BlockPos(3, 2, 2);
+        BlockPos synthRel = new BlockPos(4, 2, 2);
+        BlockPos cubeRel = new BlockPos(3, 2, 3);
+        BlockPos apRel = new BlockPos(3, 2, 1);
+        BlockPos emitterRel = new BlockPos(3, 3, 2);
+        BlockPos linkARel = new BlockPos(2, 2, 3);
+        BlockPos linkBRel = new BlockPos(7, 2, 3);
+        BlockPos remoteMachRel = new BlockPos(8, 2, 3);
+        BlockPos foreignRel = new BlockPos(5, 2, 2);
+
+        var drive = placeMachine(h, driveRel, MachineKind.DRIVE, Direction.NORTH, owner);
+        drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        h.setBlock(cableRel, ModContent.MATTER_CABLE.get());
+        CableOwners.placedBy(h.getLevel(), h.absolutePos(cableRel), owner.getUUID(), SecurityMode.PUBLIC);
+        var synth = placeMachine(h, synthRel, MachineKind.SYNTHESIZER, Direction.NORTH, owner);
+        var foreignMach = placeMachine(h, foreignRel, MachineKind.DECOMPOSER, Direction.NORTH, stranger);
+
+        h.setBlock(cubeRel, ModContent.ENERGY_CUBES.get(EnergyCubeTier.BASIC).get().defaultBlockState().setValue(EnergyCubeBlock.FACING, Direction.SOUTH));
+        var cube = h.getBlockEntity(cubeRel, EnergyCubeBlockEntity.class);
+        cube.placedBy(owner);
+
+        h.setBlock(apRel, ModContent.WIRELESS_ACCESS_POINT.get().defaultBlockState().setValue(WirelessAccessPointBlock.FACING, Direction.NORTH));
+        var ap = h.getBlockEntity(apRel, WirelessAccessPointBlockEntity.class);
+        ap.placedBy(owner);
+
+        h.setBlock(emitterRel, ModContent.MATTER_LEVEL_EMITTER.get().defaultBlockState().setValue(MatterLevelEmitterBlock.FACING, Direction.NORTH));
+        var emitter = h.getBlockEntity(emitterRel, MatterLevelEmitterBlockEntity.class);
+        emitter.placedBy(owner);
+
+        var linkBlock = dev.latrox.rematter.primal.PrimalContent.ENTANGLED_LINK.get();
+        h.setBlock(linkARel, linkBlock);
+        linkBlock.setPlacedBy(h.getLevel(), h.absolutePos(linkARel), h.getBlockState(linkARel), owner, new ItemStack(linkBlock));
+        h.setBlock(linkBRel, linkBlock);
+        linkBlock.setPlacedBy(h.getLevel(), h.absolutePos(linkBRel), h.getBlockState(linkBRel), owner, new ItemStack(linkBlock));
+        h.assertTrue(dev.latrox.rematter.primal.EntangledLinks.pair(h.getLevel(), h.absolutePos(linkARel), h.absolutePos(linkBRel), owner),
+                "Failed to pair test Entangled Links");
+        var linkA = h.getBlockEntity(linkARel, EntangledLinkBlockEntity.class);
+        var linkB = h.getBlockEntity(linkBRel, EntangledLinkBlockEntity.class);
+        var remoteMach = placeMachine(h, remoteMachRel, MachineKind.REACTOR, Direction.NORTH, owner);
+
+        BlockPos absDrive = h.absolutePos(driveRel);
+        BlockPos absCable = h.absolutePos(cableRel);
+        owner.setPos(absCable.getX() + 0.5, absCable.getY(), absCable.getZ() + 0.5);
+        stranger.setPos(absCable.getX() + 0.5, absCable.getY(), absCable.getZ() + 0.5);
+
+        // 3. Single Right-Click stamps one device for owner, refuses stranger
+        owner.setShiftKeyDown(false);
+        stranger.setShiftKeyDown(false);
+        h.assertTrue(!SecurityCardInteractions.interact(stranger, h.getLevel(), absDrive, card, hit(h, driveRel, Direction.UP)).consumesAction(),
+                "Stranger stamped Security Card onto another player's Drive");
+        h.assertTrue(drive.securityMode() == SecurityMode.PUBLIC, "Denied Security Card click changed Drive mode");
+        h.assertTrue(SecurityCardInteractions.interact(owner, h.getLevel(), absDrive, card, hit(h, driveRel, Direction.UP)).consumesAction(),
+                "Owner failed to stamp TRUSTED onto single Drive");
+        h.assertTrue(drive.securityMode() == SecurityMode.TRUSTED && synth.securityMode() == SecurityMode.PUBLIC,
+                "Single click did not stay scoped to Drive only");
+
+        // 4. TRUSTED mode allows /rematter trust friend and blocks untrusted stranger
+        var trustData = SecurityTrustSavedData.get(h.getLevel().getServer());
+        h.assertTrue(!drive.canAccess(trustedFriend) && !drive.canAccess(stranger),
+                "TRUSTED Drive must deny untrusted players before trust grant");
+        h.assertTrue(trustData.add(owner.getUUID(), trustedFriend.getUUID(), "Friend"),
+                "Failed to add trusted player");
+        h.assertTrue(drive.canAccess(trustedFriend) && !drive.canAccess(stranger),
+                "TRUSTED Drive did not grant access solely to trusted friend");
+
+        // 5. Sneak + Right-Click sweeps entire connected network (including cables and paired Entangled Link) while skipping foreign machine
+        SecurityCardItem.cycleMode(card, true, owner, h.getLevel());
+        h.assertTrue(SecurityCardItem.mode(card) == SecurityMode.PRIVATE, "Card did not cycle to PRIVATE");
+        owner.setShiftKeyDown(true);
+        var sweep = SecurityCardInteractions.sweepNetwork(h.getLevel(), owner, absCable, SecurityMode.PRIVATE);
+        h.assertTrue(sweep.totalOwned() == 8 && sweep.changed() == 8 && sweep.skippedOthers() == 1,
+                "Unexpected network sweep result: " + sweep);
+        h.assertTrue(drive.securityMode() == SecurityMode.PRIVATE
+                        && synth.securityMode() == SecurityMode.PRIVATE
+                        && cube.securityMode() == SecurityMode.PRIVATE
+                        && ap.securityMode() == SecurityMode.PRIVATE
+                        && emitter.securityMode() == SecurityMode.PRIVATE
+                        && linkA.securityMode() == SecurityMode.PRIVATE
+                        && linkB.securityMode() == SecurityMode.PRIVATE
+                        && remoteMach.securityMode() == SecurityMode.PRIVATE
+                        && CableOwners.mode(h.getLevel(), absCable) == SecurityMode.PRIVATE,
+                "Network sweep missed at least one owned device or cable");
+        h.assertTrue(foreignMach.securityMode() == SecurityMode.PUBLIC,
+                "Network sweep must never alter a foreign player's device");
+        h.assertTrue(!drive.canAccess(trustedFriend) && !drive.canAccess(stranger),
+                "PRIVATE Drive must block even previously trusted friends");
+        h.assertTrue(drive.matterNetwork(true).ready() && !drive.matterNetwork(true).machines().contains(foreignMach),
+                "PRIVATE network must remain functional for owner while isolating foreign device");
+
+        // 6. Per-player default (/rematter security default) applies automatically to newly placed machines and cables
+        trustData.setDefaultMode(owner.getUUID(), SecurityMode.TRUSTED);
+        var freshOwnerMach = placeMachine(h, new BlockPos(1, 2, 5), MachineKind.DECOMPOSER, Direction.NORTH, owner);
+        BlockPos ownerCableRel = new BlockPos(2, 2, 5);
+        h.setBlock(ownerCableRel, ModContent.MATTER_CABLE.get());
+        ModContent.MATTER_CABLE.get().setPlacedBy(h.getLevel(), h.absolutePos(ownerCableRel), h.getBlockState(ownerCableRel), owner, new ItemStack(ModContent.MATTER_CABLE.get()));
+        var freshStrangerMach = placeMachine(h, new BlockPos(4, 2, 5), MachineKind.DECOMPOSER, Direction.NORTH, stranger);
+        h.assertTrue(freshOwnerMach.securityMode() == SecurityMode.TRUSTED
+                        && CableOwners.mode(h.getLevel(), h.absolutePos(ownerCableRel)) == SecurityMode.TRUSTED,
+                "Player placement default TRUSTED did not apply to newly placed machine and cable");
+        h.assertTrue(freshStrangerMach.securityMode() == SecurityMode.PUBLIC,
+                "Other player's default must remain global PUBLIC");
+        trustData.setDefaultMode(owner.getUUID(), SecurityMode.PUBLIC);
         h.succeed();
     }
 }

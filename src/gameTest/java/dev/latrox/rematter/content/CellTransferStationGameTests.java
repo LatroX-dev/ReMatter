@@ -168,6 +168,7 @@ public final class CellTransferStationGameTests {
         h.assertTrue(!station.configure(owner, new CellTransferConfigPayload(1, old, CellTransferConfigPayload.Action.GLOBAL_TOGGLE, -1, IRON, false)),
                 "Stale selection applied to a replacement Cell");
         h.assertTrue(station.transfer(owner, old) == 0 && amount(station.getItem(0), WATER) == 20, "Stale Transfer changed replacement contents");
+        station.setSecurityMode(owner, dev.latrox.rematter.content.SecurityMode.PRIVATE);
         var stranger = FakePlayerFactory.get(h.getLevel(), new GameProfile(UUID.randomUUID(), "ForeignCellTest"));
         stranger.setPos(owner.getX(), owner.getY(), owner.getZ());
         h.assertTrue(!action(station, stranger, CellTransferConfigPayload.Action.GLOBAL_CLEAR, -1, null, false) && station.transfer(stranger, station.revision()) == 0,

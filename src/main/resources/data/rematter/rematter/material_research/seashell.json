@@ -3,7 +3,8 @@
   "name": "Seashell",
   "items": [
     "ecologics:seashell",
-    "ecologics:seashell_block"
+    "ecologics:seashell_block",
+    "minecraft:nautilus_shell"
   ],
   "substances": [
     {

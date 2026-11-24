@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:white_terracotta",
+  "matter": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 12
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 200
+}

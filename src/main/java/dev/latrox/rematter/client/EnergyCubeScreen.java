@@ -14,7 +14,7 @@ import org.jspecify.annotations.Nullable;
 /** A storage readout, Charge (+) and Discharge (-) item bays, and a Mekanism-style side map; all changes go through the server menu. */
 public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMenu> {
     private SideDiagram diagram;
-    private DarkButton storageTab,settingsTab;
+    private DarkButton storageTab,settingsTab,securityBtn;
     private boolean settings;
 
     public EnergyCubeScreen(EnergyCubeMenu menu,Inventory inventory,Component title) {
@@ -25,6 +25,8 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         super.init();leftPos=Math.max(23,leftPos);
         storageTab=addRenderableWidget(DarkButton.icon(UiIcon.ENERGY,tr("storage"),tr("storage_hint"),leftPos-22,topPos+18,24,22,b->{settings=false;refresh();}));
         settingsTab=addRenderableWidget(DarkButton.icon(UiIcon.SIDES,tr("sides"),tr("sides_hint"),leftPos-22,topPos+42,24,22,b->{settings=true;refresh();}));
+        securityBtn=addRenderableWidget(DarkButton.icon(SecurityUi.icon(menu.securityMode()),SecurityUi.label(menu.securityMode()),menu.securityMode().meaning(),leftPos-22,topPos+66,24,22,b->{}));
+        securityBtn.setStepAction(forward->{if(minecraft!=null&&minecraft.gameMode!=null)minecraft.gameMode.handleInventoryButtonClick(menu.containerId,forward?EnergyCubeMenu.CYCLE_SECURITY:EnergyCubeMenu.CYCLE_SECURITY_BACK);});
         // The same diagram as every device; on a cube all six sides are connections, the front included.
         diagram=new SideDiagram(new SideDiagram.Host() {
             @Override public SideDiagram.Look look(MachinePortMode.Side side) {
@@ -46,10 +48,20 @@ public final class EnergyCubeScreen extends AbstractContainerScreen<EnergyCubeMe
         if(!state.hasProperty(EnergyCubeBlock.FACING))return null;
         return SideDiagram.inspectNeighbor(minecraft.level,menu.position(),state.getValue(EnergyCubeBlock.FACING),side);
     }
+    public java.util.List<net.minecraft.client.renderer.Rect2i> viewerExclusionAreas() {
+        var areas = new java.util.ArrayList<net.minecraft.client.renderer.Rect2i>(3);
+        for (var button : java.util.List.of(storageTab, settingsTab, securityBtn)) {
+            if (button != null && button.visible) {
+                areas.add(new net.minecraft.client.renderer.Rect2i(button.getX(), button.getY(), button.getWidth(), button.getHeight()));
+            }
+        }
+        return areas;
+    }
     private void refresh() {
         menu.setSettings(settings);
         storageTab.setAccent(UiPalette.EMBER);settingsTab.setAccent(UiPalette.EMBER);
         storageTab.setSelected(!settings);settingsTab.setSelected(settings);
+        SecurityUi.configure(securityBtn,menu.securityMode(),menu.canManageSecurity(),!menu.locked(),UiPalette.EMBER);
         diagram.update(settings);
     }
     @Override protected void containerTick(){super.containerTick();refresh();}

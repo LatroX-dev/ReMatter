@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Golden Apple",
+  "items": [
+    "minecraft:golden_apple"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

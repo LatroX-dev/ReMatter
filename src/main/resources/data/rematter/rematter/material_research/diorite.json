@@ -2,7 +2,9 @@
   "schema": 1,
   "name": "Diorite",
   "items": [
-    "minecraft:diorite"
+    "exdeorum:compressed_diorite",
+    "minecraft:diorite",
+    "minecraft:polished_diorite"
   ],
   "substances": [
     {

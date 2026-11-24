@@ -2,8 +2,18 @@
   "schema": 1,
   "name": "Deepslate",
   "items": [
+    "exdeorum:compressed_cobbled_deepslate",
+    "exdeorum:compressed_crushed_deepslate",
+    "exdeorum:compressed_deepslate",
+    "exdeorum:crushed_deepslate",
+    "minecraft:chiseled_deepslate",
     "minecraft:cobbled_deepslate",
-    "minecraft:deepslate"
+    "minecraft:cracked_deepslate_bricks",
+    "minecraft:cracked_deepslate_tiles",
+    "minecraft:deepslate",
+    "minecraft:deepslate_bricks",
+    "minecraft:deepslate_tiles",
+    "minecraft:polished_deepslate"
   ],
   "substances": [
     {

@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Egg",
+  "items": [
+    "minecraft:blue_egg",
+    "minecraft:brown_egg",
+    "minecraft:egg"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:calcium_phosphate",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

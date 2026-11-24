@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "name": "Cooked Meat",
+  "items": [
+    "minecraft:cooked_beef",
+    "minecraft:cooked_chicken",
+    "minecraft:cooked_cod",
+    "minecraft:cooked_mutton",
+    "minecraft:cooked_porkchop",
+    "minecraft:cooked_rabbit",
+    "minecraft:cooked_salmon"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

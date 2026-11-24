@@ -38,18 +38,18 @@ At the **Matter Terminal**, search the stock by name or filter it by phase. Open
 | What you want to do | Mods and setup |
 | --- | --- |
 | Order chemistry from your storage grid | Connect a ReMatter **Network Interface** to [Applied Energistics 2](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2) or [Refined Storage](https://www.curseforge.com/minecraft/mc-mods/refined-storage). Select your storage system in the interface settings, enable **Automation**, then enable **Network jobs** on the machines that should accept orders. |
-| Look up a recipe | [Just Enough Items](https://www.curseforge.com/minecraft/mc-mods/jei) and [SEMI (Seasonal EMI)](https://www.curseforge.com/minecraft/mc-mods/semi-seasonal-emi) show exact batch inputs, yields, base energy with `FE/t` rates and durations in seconds and ticks. |
+| Look up a recipe | [Just Enough Items](https://www.curseforge.com/minecraft/mc-mods/jei) (including JEI++) and [SEMI (Seasonal EMI)](https://www.curseforge.com/minecraft/mc-mods/semi-seasonal-emi) show exact batch inputs, yields, base energy with `FE/t` rates, durations in seconds and ticks, unified cross-mod outputs, and live substance hover/recipe lookups across all ReMatter screens. |
 | Read machines and layouts in-game | [Jade](https://www.curseforge.com/minecraft/mc-mods/jade) shows live `FE/t` draw, machine status, Energy Cubes, Wireless Access Points, Level Emitters, Entangled Links and Cell Transfer Stations. [GuideME](https://www.curseforge.com/minecraft/mc-mods/guideme) adds interactive 3D layouts to the ReMatter Guide. |
 | Wear portable gear & use hotkeys | With [Curios](https://www.curseforge.com/minecraft/mc-mods/curios), equip the **Wireless Matter Terminal** (`charm`), **Portable Energy Cell** (`belt`), and **Spectrometer Lens** or **Discovery Lens** (`head`/`charm`). Bind **Open Wireless Matter Terminal** and **Toggle Spectrometer Lens** in Controls to use your terminal or toggle the live spectrometer HUD and Shift composition tooltips without switching hotbar slots. |
 | Supply a chemical line | With [Mekanism: Version Locked](https://www.curseforge.com/minecraft/mc-mods/mekanism-version-locked), enable **Automation** on the Matter Drive and connect a Pressurized Tube to move supported chemicals such as hydrogen, oxygen, chlorine, brine and sodium. |
 | Process ReMatter alloys and dusts | Optional recipes support [Oritech](https://www.curseforge.com/minecraft/mc-mods/oritech), [Ender IO](https://www.curseforge.com/minecraft/mc-mods/ender-io), [FTB Industrial Contraptions](https://www.curseforge.com/minecraft/mc-mods/ftb-industrial-contraptions-forge), [Energized Power](https://www.curseforge.com/minecraft/mc-mods/energized-power) and Mekanism machines for alloy smelting and dust grinding. |
-| Run a shared facility | With [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge), teammates can operate your machines. The player who placed a machine keeps ownership. |
+| Run a shared or private facility | Every device and cable supports **Public** *(default)*, **Trusted** and **Private** security modes via the device screen, the **Security Card** (single block or Sneak + Right-Click network sweep), `/rematter trust`, `/rematter security default`, and optional [FTB Teams](https://www.curseforge.com/minecraft/mc-mods/ftb-teams-forge). |
 
 See the [integration guide](docs/integrations.md) for supported API versions and details on connecting external storage and chemical networks.
 
 ## Install, build and get help
 
-ReMatter 0.9.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
+ReMatter 0.10.x targets **Minecraft 26.1.2, NeoForge 26.1.2.126 and Java 25**. For multiplayer, put the same ReMatter JAR in the server's and each client's `mods` folder.
 
 To build from source, run `./gradlew build` on macOS or Linux, or `gradlew.bat build` on Windows. The JAR is written to `build/libs/`. Pack authors can define new material profiles, permitted synthesis outputs and processes with [chemistry data packs](docs/data-packs.md).
 

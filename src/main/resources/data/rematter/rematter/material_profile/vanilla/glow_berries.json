@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:glow_berries",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 50
+    },
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 2500,
+  "synthesis_energy": 5000,
+  "ticks": 50
+}

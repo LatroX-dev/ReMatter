@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "ftbic",
+  "item": "ftbic:electrum_plate",
+  "matter": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

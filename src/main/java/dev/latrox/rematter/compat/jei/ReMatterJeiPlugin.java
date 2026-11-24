@@ -1,7 +1,18 @@
 package dev.latrox.rematter.compat.jei;
 
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
+import dev.latrox.rematter.client.CellTransferScreen;
+import dev.latrox.rematter.client.EnergyCubeScreen;
 import dev.latrox.rematter.client.MachineScreen;
+import dev.latrox.rematter.client.MatterLevelEmitterScreen;
+import dev.latrox.rematter.client.PrimalTargetScreen;
+import dev.latrox.rematter.client.ProcessSelectionScreen;
+import dev.latrox.rematter.client.SubstanceDetails;
+import dev.latrox.rematter.client.SubstanceDetailsScreen;
+import dev.latrox.rematter.client.SubstanceHoverProvider;
+import dev.latrox.rematter.client.SubstanceScreenLayer;
+import dev.latrox.rematter.client.UiPalette;
+import dev.latrox.rematter.client.WirelessAccessPointScreen;
 import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
@@ -13,19 +24,29 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
+import mezz.jei.api.gui.handlers.IGuiProperties;
+import mezz.jei.api.gui.handlers.IScreenHandler;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IModIngredientRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.runtime.IClickableIngredient;
+import mezz.jei.api.runtime.IJeiKeyMapping;
 import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.fml.ModList;
@@ -68,19 +89,35 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         if (!enabled()) return;
         registration.addGuiContainerHandler(MachineScreen.class, new IGuiContainerHandler<MachineScreen>() {
-            @Override public List<Rect2i> getGuiExtraAreas(MachineScreen screen) {
-                return screen.viewerExclusionAreas();
-            }
+            @Override public List<Rect2i> getGuiExtraAreas(MachineScreen screen) { return screen.viewerExclusionAreas(); }
         });
-        registration.addGuiContainerHandler(
-                (Class) net.minecraft.client.gui.screens.inventory.AbstractContainerScreen.class,
-                new IGuiContainerHandler<net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>>() {
+        registration.addGuiContainerHandler(EnergyCubeScreen.class, new IGuiContainerHandler<EnergyCubeScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(EnergyCubeScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(CellTransferScreen.class, new IGuiContainerHandler<CellTransferScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(CellTransferScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(WirelessAccessPointScreen.class, new IGuiContainerHandler<WirelessAccessPointScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(WirelessAccessPointScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(MatterLevelEmitterScreen.class, new IGuiContainerHandler<MatterLevelEmitterScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(MatterLevelEmitterScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGenericGuiContainerHandler(
+                AbstractContainerScreen.class,
+                new IGuiContainerHandler<AbstractContainerScreen<?>>() {
                     @Override
-                    public java.util.Optional<? extends mezz.jei.api.runtime.IClickableIngredient<?>> getClickableIngredientUnderMouse(
-                            mezz.jei.api.gui.builder.IClickableIngredientFactory builder,
-                            net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> screen,
+                    public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(
+                            IClickableIngredientFactory builder,
+                            AbstractContainerScreen<?> screen,
                             double mouseX,
                             double mouseY) {
+                        if (screen instanceof SubstanceHoverProvider provider) {
+                            var hovered = provider.substanceAt(mouseX, mouseY);
+                            if (hovered.isPresent()) {
+                                return clickableMatter(builder, hovered.get(), mouseX, mouseY);
+                            }
+                        }
                         var slot = screen.getSlotUnderMouse();
                         if (slot != null && slot.hasItem()
                                 && dev.latrox.rematter.content.PressurizedCanisterData.read(slot.getItem())
@@ -88,9 +125,43 @@ public final class ReMatterJeiPlugin implements IModPlugin {
                             return builder.createBuilder(MatterIngredient.TYPE, new MatterIngredient(matter.key(), 1))
                                     .buildWithArea((int) mouseX - 8, (int) mouseY - 8, 16, 16);
                         }
-                        return java.util.Optional.empty();
+                        return Optional.empty();
                     }
                 });
+        registration.addGuiScreenHandler(ProcessSelectionScreen.class, substanceLayerHandler());
+        registration.addGuiScreenHandler(PrimalTargetScreen.class, substanceLayerHandler());
+        registration.addGuiScreenHandler(SubstanceDetailsScreen.class, substanceLayerHandler());
+    }
+
+    private static Optional<? extends IClickableIngredient<?>> clickableMatter(
+            IClickableIngredientFactory builder, SubstanceDetails.Hover hover, double mouseX, double mouseY) {
+        return builder.createBuilder(MatterIngredient.TYPE, new MatterIngredient(hover.key(), Math.max(1, hover.amount())))
+                .buildWithArea((int) mouseX - 8, (int) mouseY - 8, 16, 16);
+    }
+
+    private static <T extends SubstanceScreenLayer> IScreenHandler<T> substanceLayerHandler() {
+        return new IScreenHandler<>() {
+            @Override
+            public IGuiProperties apply(T screen) {
+                Rect2i bounds = screen.substancePanelBounds();
+                return new IGuiProperties() {
+                    @Override public Class<? extends Screen> screenClass() { return screen.getClass(); }
+                    @Override public int guiLeft() { return bounds.getX(); }
+                    @Override public int guiTop() { return bounds.getY(); }
+                    @Override public int guiXSize() { return bounds.getWidth(); }
+                    @Override public int guiYSize() { return bounds.getHeight(); }
+                    @Override public int screenWidth() { return screen.width; }
+                    @Override public int screenHeight() { return screen.height; }
+                };
+            }
+
+            @Override
+            public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(
+                    IClickableIngredientFactory builder, T screen, double mouseX, double mouseY) {
+                return screen.substanceAt(mouseX, mouseY)
+                        .flatMap(hover -> clickableMatter(builder, hover, mouseX, mouseY));
+            }
+        };
     }
 
     @Override
@@ -157,6 +228,13 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     @Override public void onRuntimeAvailable(IJeiRuntime runtime) {
         if (!enabled()) return;
         this.runtime = runtime;
+        SubstanceDetails.installViewer(new SubstanceDetails.Viewer() {
+            @Override public boolean available() { return ReMatterJeiPlugin.this.runtime != null; }
+            @Override public Optional<Component> recipesKey() { return keyLabel(ReMatterJeiPlugin.this.runtime, true); }
+            @Override public Optional<Component> usesKey() { return keyLabel(ReMatterJeiPlugin.this.runtime, false); }
+            @Override public void recipes(SubstanceDetails.Hover value) { showMatter(value, false); }
+            @Override public void uses(SubstanceDetails.Hover value) { showMatter(value, true); }
+        });
         ClientChemistry.removeListener(catalogueListener);
         ClientChemistry.addListener(catalogueListener);
         PreparationRecipes.removeClientListener(preparationListener);
@@ -166,6 +244,23 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         refresh(ClientChemistry.current());
         refreshPreparation(PreparationRecipes.clientRecipes());
         refreshCrystalFuels(dev.latrox.rematter.network.ClientCrystalFuels.current());
+    }
+
+    private static Optional<Component> keyLabel(IJeiRuntime rt, boolean recipes) {
+        if (rt == null) return Optional.empty();
+        IJeiKeyMapping mapping = recipes ? rt.getKeyMappings().getShowRecipe() : rt.getKeyMappings().getShowUses();
+        if (mapping == null || mapping.isUnbound()) return Optional.empty();
+        return Optional.of(mapping.getTranslatedKeyMessage().copy()
+                .withStyle(style -> style.withColor(UiPalette.MUTED & 0xffffff)));
+    }
+
+    private void showMatter(SubstanceDetails.Hover value, boolean uses) {
+        IJeiRuntime rt = this.runtime;
+        if (rt == null) return;
+        var role = uses ? RecipeIngredientRole.INPUT : RecipeIngredientRole.OUTPUT;
+        var focus = rt.getJeiHelpers().getFocusFactory().createFocus(
+                role, MatterIngredient.TYPE, new MatterIngredient(value.key(), Math.max(1, value.amount())));
+        rt.getRecipesGui().show(focus);
     }
     @Override public void onRuntimeUnavailable() {
         ClientChemistry.removeListener(catalogueListener);

@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:clay_catalyst_beads",
+  "item_count": 16,
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 12000,
+  "synthesis_energy": 24000,
+  "ticks": 160
+}

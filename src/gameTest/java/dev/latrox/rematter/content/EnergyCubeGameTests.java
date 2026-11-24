@@ -117,6 +117,7 @@ public final class EnergyCubeGameTests {
         h.assertTrue(fill(cube,2048)==2048,"Cable source empty");cube.serverTick();
         h.assertTrue(cube.energy()==0&&receiver.energy().getAmountAsLong()==2048,"Cube could not feed owned machine through native cable");
         var target=place(h,new BlockPos(7,3,3),EnergyCubeTier.BASIC,owner);
+        target.setSecurityMode(owner,SecurityMode.PRIVATE);
         var cable=h.absolutePos(new BlockPos(7,3,4));h.setBlock(new BlockPos(7,3,4),ModContent.MATTER_CABLE.get());h.setBlock(new BlockPos(7,3,5),Blocks.STONE);
         CableOwners.set(h.getLevel(),cable,UUID.randomUUID());var incoming=Objects.requireNonNull(MatterCablePower.capability(h.getLevel(),cable,Direction.SOUTH));
         try(var tx=Transaction.openRoot()){h.assertTrue(incoming.insert(2048,tx)==0,"Foreign cable reached private cube");tx.commit();}

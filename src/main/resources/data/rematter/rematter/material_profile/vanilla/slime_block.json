@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:slime_block",
+  "matter": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 1800
+    }
+  ],
+  "decomposition_energy": 36000,
+  "synthesis_energy": 72000,
+  "ticks": 720
+}

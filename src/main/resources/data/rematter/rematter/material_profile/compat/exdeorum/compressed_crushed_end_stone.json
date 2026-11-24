@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "exdeorum",
+  "item": "exdeorum:compressed_crushed_end_stone",
+  "matter": [
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 900
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 6300
+    }
+  ],
+  "decomposition_energy": 72000,
+  "synthesis_energy": 144000,
+  "ticks": 1800
+}

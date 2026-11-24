@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "Mekanism Substrate",
+  "items": [
+    "mekanism:substrate"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas"
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -131,6 +131,15 @@ public final class ChemistryDocuments {
         return enumValue(SynthesisCategory.class, string(json, "category"));
     }
 
+    public static String synthesisGroup(JsonObject json) {
+        if (!json.has("synthesis_group")) return "";
+        String group = string(json, "synthesis_group");
+        if (group.isEmpty() || group.length() > 128 || !group.matches("[a-z0-9_.:/-]+")) {
+            throw new IllegalArgumentException("Invalid synthesis_group: " + group);
+        }
+        return group;
+    }
+
     public static String string(JsonObject json, String field) {
         JsonElement value = json.get(field);
         if (value == null || !value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {

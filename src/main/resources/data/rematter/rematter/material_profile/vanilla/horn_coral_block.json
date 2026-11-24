@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:horn_coral_block",
+  "matter": [
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:seashell",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 10000,
+  "synthesis_energy": 20000,
+  "ticks": 200
+}

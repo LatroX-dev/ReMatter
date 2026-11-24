@@ -4,8 +4,11 @@
   "items": [
     "alltheores:lumium_block",
     "alltheores:lumium_dust",
+    "alltheores:lumium_gear",
     "alltheores:lumium_ingot",
-    "alltheores:lumium_nugget"
+    "alltheores:lumium_nugget",
+    "alltheores:lumium_plate",
+    "alltheores:lumium_rod"
   ],
   "substances": [
     {

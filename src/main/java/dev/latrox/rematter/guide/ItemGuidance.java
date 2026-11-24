@@ -48,6 +48,7 @@ public final class ItemGuidance {
         items.put("rematter:resonant_matter_cable", cable(8192, 131072));
         add(items, "matter_wrench", Role.LINK, "matter_wrench");
         add(items, "configuration_card", Role.LINK, "configuration_card");
+        add(items, "security_card", Role.LINK, "security_card");
         add(items, "wireless_access_point", Role.LINK, "wireless_access_point");
         add(items, "wireless_booster", Role.LINK, "wireless_booster");
         add(items, "wireless_matter_terminal", Role.STORAGE, "wireless_matter_terminal");

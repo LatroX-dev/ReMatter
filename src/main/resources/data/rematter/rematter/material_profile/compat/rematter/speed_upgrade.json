@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "item": "rematter:speed_upgrade",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 562
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 3726
+    }
+  ],
+  "decomposition_energy": 50000,
+  "synthesis_energy": 100000,
+  "ticks": 108
+}

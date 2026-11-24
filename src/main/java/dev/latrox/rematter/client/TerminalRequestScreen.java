@@ -226,7 +226,7 @@ public final class TerminalRequestScreen extends SubstanceScreenLayer {
             row.cancel = addRenderableWidget(DarkButton.icon(UiIcon.CANCEL, tr("cancel_job"), tr("cancel_job_hint"),
                     rightColX + rightColWidth - 27, jobsTop + ROW_H * i, 18, 18,
                     b -> { if (row.job != null) cancelJob(row.job.jobId()); }));
-            row.cancel.setAccent(UiPalette.WARNING);
+            row.cancel.setAccent(accent);
             jobRows.add(row);
         }
 

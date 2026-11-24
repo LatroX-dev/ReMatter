@@ -118,6 +118,7 @@ public final class EnergyCubePortGameTests {
             var tier=EnergyCubeTier.values()[index/HORIZONTAL.length];var front=HORIZONTAL[index%HORIZONTAL.length];
             for(var side:HORIZONTAL){
             var cube=place(h,pos,tier,front,owner);
+            cube.setSecurityMode(owner,SecurityMode.PRIVATE);
             for(var face:Direction.values())mode(h,cube,owner,face,face==side?EnergyCubeSideMode.INPUT:EnergyCubeSideMode.DISABLED);
             var wire=pos.relative(side);var outside=pos.relative(side,2);var absolute=h.absolutePos(wire);
             h.setBlock(outside,Blocks.STONE);h.setBlock(wire,cable(tier));CableOwners.set(h.getLevel(),absolute,owner.getUUID());
@@ -133,6 +134,7 @@ public final class EnergyCubePortGameTests {
             try(var tx=Transaction.openRoot()){h.assertTrue(incoming.insert(1,tx)==0,"Cable input bypassed horizontal OUTPUT role");}
             h.setBlock(outside,ModContent.MACHINES.get(MachineKind.DECOMPOSER).get().defaultBlockState().setValue(MachineBlock.FACING,side));
             var receiver=h.getBlockEntity(outside,MachineBlockEntity.class);receiver.placedBy(owner);
+            receiver.setSecurityMode(owner,SecurityMode.PRIVATE);
             receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new net.minecraft.world.item.ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
             CableOwners.set(h.getLevel(),absolute,UUID.randomUUID());cube.serverTick();
             h.assertTrue(cube.energy()==tier.transferRate()&&receiver.energy().getAmountAsLong()==0,"Foreign cable accepted Cube output");

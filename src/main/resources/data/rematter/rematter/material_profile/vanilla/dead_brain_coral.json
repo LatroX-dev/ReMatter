@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:dead_brain_coral",
+  "matter": [
+    {
+      "substance": "rematter:seashell",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 4000,
+  "ticks": 40
+}

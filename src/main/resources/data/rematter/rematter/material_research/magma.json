@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "name": "Magma",
+  "items": [
+    "minecraft:magma_block"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:mineral_mix",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 2,
+  "requires_dimension": "minecraft:the_nether"
+}

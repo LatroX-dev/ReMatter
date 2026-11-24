@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Oritech Silicon Wafer",
+  "items": [
+    "oritech:silicon_wafer"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

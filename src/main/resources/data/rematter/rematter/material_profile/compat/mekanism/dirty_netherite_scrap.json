@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "mekanism",
+  "item": "mekanism:dirty_netherite_scrap",
+  "item_count": 3,
+  "matter": [
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 200
+}

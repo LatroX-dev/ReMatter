@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:tall_dry_grass",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 400
+    }
+  ],
+  "decomposition_energy": 3000,
+  "synthesis_energy": 6000,
+  "ticks": 80
+}

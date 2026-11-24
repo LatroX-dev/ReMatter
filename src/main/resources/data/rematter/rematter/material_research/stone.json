@@ -2,8 +2,15 @@
   "schema": 1,
   "name": "Stone",
   "items": [
+    "exdeorum:compressed_cobblestone",
+    "minecraft:chiseled_stone_bricks",
     "minecraft:cobblestone",
-    "minecraft:stone"
+    "minecraft:cracked_stone_bricks",
+    "minecraft:mossy_cobblestone",
+    "minecraft:mossy_stone_bricks",
+    "minecraft:smooth_stone",
+    "minecraft:stone",
+    "minecraft:stone_bricks"
   ],
   "substances": [
     {

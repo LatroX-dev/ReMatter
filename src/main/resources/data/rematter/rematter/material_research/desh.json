@@ -3,6 +3,8 @@
   "name": "Desh",
   "items": [
     "jaopca:dusts.desh",
+    "jaopca:oritech_small_clumps.desh",
+    "jaopca:tiny_dusts.desh",
     "stellaris:desh_block",
     "stellaris:desh_ingot",
     "stellaris:moon_desh_ore",

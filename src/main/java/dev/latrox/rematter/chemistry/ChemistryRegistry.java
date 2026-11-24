@@ -28,7 +28,7 @@ public final class ChemistryRegistry {
         var liveProcesses = new TreeMap<>(builder.processes);
         processes = Collections.unmodifiableMap(liveProcesses);
         environmentSources = Collections.unmodifiableMap(new TreeMap<>(builder.environmentSources));
-        synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis, builder.synthesisRequirements);
+        synthesisPolicy = new SynthesisPolicy(builder.allowedSynthesis, builder.synthesisRequirements, builder.canonicalAliases);
         validate();
         // Dependency-filtered profiles and permissions describe the items actually available to this reload.
         boolean changed;
@@ -182,6 +182,7 @@ public final class ChemistryRegistry {
         private final Map<SubstanceId, ProcessRecipe> processes = new TreeMap<>();
         private final Map<String, SynthesisCategory> allowedSynthesis = new TreeMap<>();
         private final Map<String, SynthesisRequirement> synthesisRequirements = new TreeMap<>();
+        private final Map<String, String> canonicalAliases = new TreeMap<>();
         private final Map<SubstanceId, EnvironmentSource> environmentSources = new TreeMap<>();
 
         public Builder addSubstance(SubstanceDefinition definition) {
@@ -230,6 +231,17 @@ public final class ChemistryRegistry {
                 throw new IllegalArgumentException("Duplicate synthesis entry: " + exactId);
             }
             synthesisRequirements.put(exactId, Objects.requireNonNull(requirement));
+            return this;
+        }
+
+        public Builder canonicalAliases(Map<String, String> aliases) {
+            Objects.requireNonNull(aliases, "aliases").forEach((from, to) -> {
+                SubstanceId.parse(from);
+                SubstanceId.parse(to);
+                if (canonicalAliases.putIfAbsent(from, to) != null) {
+                    throw new IllegalArgumentException("Duplicate canonical alias: " + from);
+                }
+            });
             return this;
         }
 

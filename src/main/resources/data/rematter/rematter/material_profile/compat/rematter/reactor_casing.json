@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reactor_casing",
+  "matter": [
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 7
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 687
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 194
+    }
+  ],
+  "decomposition_energy": 4000,
+  "synthesis_energy": 8000,
+  "ticks": 80
+}

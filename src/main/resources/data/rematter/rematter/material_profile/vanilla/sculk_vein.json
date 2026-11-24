@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:sculk_vein",
+  "item_count": 4,
+  "matter": [
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:soil",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 160
+}

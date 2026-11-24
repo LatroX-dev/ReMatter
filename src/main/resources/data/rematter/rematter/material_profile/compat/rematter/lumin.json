@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:lumin",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

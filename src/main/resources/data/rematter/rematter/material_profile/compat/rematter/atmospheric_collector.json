@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:atmospheric_collector",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 874
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1704
+    }
+  ],
+  "decomposition_energy": 38000,
+  "synthesis_energy": 76000,
+  "ticks": 96
+}

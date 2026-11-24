@@ -2,5 +2,6 @@
   "schema_version": 1,
   "required_mod": "mekanism",
   "item": "mekanism:dust_iron",
-  "category": "raw_material"
+  "category": "raw_material",
+  "synthesis_group": "dust:iron"
 }

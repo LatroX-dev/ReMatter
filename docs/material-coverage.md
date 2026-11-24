@@ -2,7 +2,7 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **1043 item profiles** across **36 namespaces**, with **455 explicit item synthesis outputs**. It also covers **14 fluids** (14 with synthesis) and **14 gas outputs**, and defines 83 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
+The data catalogue contains **1989 item profiles** across **41 namespaces**, with **747 explicit item synthesis outputs**. It also covers **14 fluids** (14 with synthesis) and **14 gas outputs**, and defines 90 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
 
 ## Quantities and material states
 
@@ -23,7 +23,8 @@ The data catalogue contains **1043 item profiles** across **36 namespaces**, wit
 - Netherite scrap and scrap dust both contain Netherium (`Nt`), a fictional constituent. Native routes make a Netherite Ingot from as little as one gold ingot and one scrap or one eighth of a gold dust and four scrap, so an ingot or dust recovers the smallest share of each, 500 gold and 1,000 Netherium, and none of them can be synthesized. Scrap storage blocks contain nine scrap batches. Ancient Debris provides one scrap batch through decomposition.
 - Prismarine shards and crystals retain separate identities. Natural Prismarine contains four shards; the JAOPCA crystal block contains nine crystals. Ecologics Seashell Blocks contain nine shells; decorative shell tiles are outside this catalogue.
 - Coal, charcoal, graphite, uraninite and combustible candidates remain decomposition-only until their complete energy cycles have been reviewed. Nuclear fuel rods and isotope mixtures are outside these generic material profiles.
-- Unenchanted damageable items with an explicit single-item profile may be decomposed in the Decomposer when item damage is their only nondefault component; recovered constituents scale strictly down by remaining durability, and zero-yield salvage is rejected. All other nondefault item components are rejected: profiles never authorize consuming stored energy, inventories, patterns, enchantments, trims or custom item data. Vanilla Copper, Iron and Golden tools and armor recover their metal inputs only and remain synthesis-disabled; Diamond and Netherite gear stay excluded so villager equipment trades cannot mint progression-gated materials. Machines and manufactured components are not synthesis outputs.
+- Unenchanted damageable items with an explicit single-item profile may be decomposed in the Decomposer when item damage is their only nondefault component; recovered constituents scale strictly down by remaining durability, and zero-yield salvage is rejected. Empty ReMatter machines, Energy Cubes, Cell Transfer Stations, emptied unpartitioned Matter Cells and Matter Wrenches may also be decomposed into conservative floor shares of their crafting inputs while rejecting any stored items, fluids, energy, matter, fuel, partitions, links, active jobs, or unreadable data. All other nondefault item components are rejected. Machines, semi-finished metal parts (plates, gears, rods, wires), ore intermediates, and manufactured components remain strictly outside synthesis.
+- Cross-mod duplicate synthesis outputs declare an explicit `synthesis_group` (e.g. `dust:copper`, `ingot:steel`). When `synthesis.unifyOutputs` is enabled in `rematter-common.toml` (default), the server collapses each group to a single canonical output according to `synthesis.modPriority` while the Decomposer and Analyzer continue accepting every variant.
 
 ## Alloys, compounds and mixtures
 
@@ -39,11 +40,11 @@ End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. T
 
 Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
 
-- **Arcanium** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Charged Redstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Redstone Crystal, Supremium Essence, Tertium Essence; held directly by 30 item profiles.
-- **Astrion** (`Ast`): Sky Stone, Stellarite; held directly by 30 item profiles.
-- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 23 item profiles.
-- **Enderion** (`Edr`): Dimensional Shard Material; held directly by 29 item profiles.
-- **Netherium** (`Nt`): held directly by 19 item profiles.
+- **Arcanium** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Charged Redstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Redstone Crystal, Supremium Essence, Tertium Essence; held directly by 95 item profiles.
+- **Astrion** (`Ast`): Sky Stone, Stellarite; held directly by 32 item profiles.
+- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 72 item profiles.
+- **Enderion** (`Edr`): Dimensional Shard Material; held directly by 60 item profiles.
+- **Netherium** (`Nt`): held directly by 37 item profiles.
 - **Quantium** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
 - **Vitalium** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
 
@@ -57,42 +58,47 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 
 | Namespace | Profiles | Synthesis outputs |
 | --- | ---: | ---: |
-| `advanced_ae` | 2 | 0 |
-| `ae2` | 10 | 6 |
+| `advanced_ae` | 3 | 0 |
+| `ae2` | 18 | 7 |
 | `ae2omnicells` | 1 | 1 |
-| `alltheores` | 205 | 83 |
+| `alltheores` | 277 | 83 |
 | `appflux` | 7 | 2 |
 | `appgen` | 6 | 2 |
 | `aquaculture` | 3 | 0 |
+| `bakeries` | 1 | 1 |
 | `colossal_reactors` | 36 | 12 |
+| `croptopia` | 2 | 1 |
 | `ecologics` | 2 | 2 |
-| `enderio` | 33 | 24 |
-| `energizedpower` | 20 | 12 |
+| `enderio` | 52 | 25 |
+| `energizedpower` | 39 | 12 |
+| `exdeorum` | 25 | 0 |
 | `extendedae` | 5 | 1 |
+| `farmersdelight` | 11 | 8 |
 | `forbidden_arcanus` | 17 | 3 |
-| `ftbic` | 86 | 41 |
+| `ftbic` | 163 | 41 |
 | `hextale` | 18 | 3 |
-| `infinity_nexus_mod` | 78 | 41 |
-| `jaopca` | 38 | 17 |
+| `infinity_nexus_mod` | 114 | 41 |
+| `jaopca` | 66 | 17 |
 | `justdirethings` | 12 | 0 |
-| `mekanism` | 67 | 38 |
-| `mekanism_extras` | 8 | 0 |
-| `mekmm` | 8 | 4 |
-| `minecraft` | 136 | 64 |
+| `mekanism` | 115 | 38 |
+| `mekanism_extras` | 10 | 0 |
+| `mekmm` | 13 | 4 |
+| `minecraft` | 611 | 342 |
 | `mysticalagradditions` | 11 | 0 |
 | `mysticalagriculture` | 61 | 37 |
 | `nautec` | 4 | 1 |
 | `occultism` | 36 | 18 |
-| `oritech` | 53 | 26 |
+| `oritech` | 81 | 26 |
 | `powah` | 15 | 0 |
 | `productivebees` | 2 | 0 |
-| `refinedstorage` | 1 | 1 |
+| `refinedstorage` | 3 | 1 |
+| `refurbished_furniture` | 1 | 1 |
 | `regions_unexplored` | 1 | 0 |
-| `rematter` | 15 | 7 |
+| `rematter` | 97 | 7 |
 | `replication` | 5 | 0 |
 | `rftoolsbase` | 4 | 1 |
-| `stellaris` | 19 | 3 |
-| `thaumaturge` | 18 | 5 |
+| `stellaris` | 20 | 4 |
+| `thaumaturge` | 21 | 5 |
 
 The complete list of item, fluid and gas entries is [material-coverage.csv](material-coverage.csv). Its `batch` column counts items for item profiles and millibuckets for fluid profiles. A zero synthesis count still permits analysis and supported decomposition.
 

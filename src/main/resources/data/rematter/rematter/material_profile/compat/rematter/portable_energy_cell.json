@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:portable_energy_cell",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1062
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 3062
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 13478
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3062
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 13747
+    }
+  ],
+  "decomposition_energy": 182000,
+  "synthesis_energy": 364000,
+  "ticks": 240
+}

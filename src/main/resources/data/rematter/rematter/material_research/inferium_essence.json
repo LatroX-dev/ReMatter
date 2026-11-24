@@ -2,6 +2,9 @@
   "schema": 1,
   "name": "Inferium Essence",
   "items": [
+    "jaopca:dusts.inferium",
+    "jaopca:oritech_small_clumps.inferium",
+    "jaopca:tiny_dusts.inferium",
     "mysticalagradditions:end_inferium_ore",
     "mysticalagradditions:nether_inferium_ore",
     "mysticalagriculture:deepslate_inferium_ore",

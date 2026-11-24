@@ -8,15 +8,17 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'src/main/resources/data/rematter/rematter/material_research'
 # Explicit natural-material Discovery allowlist. Manufactured alloys, components, essences and boss loot stay absent.
 TIERS = {
-    1: set('aluminum amber andesite beeswax boron calcite cellulose charcoal chromium clay coal copper deepslate diorite granite graphite iron lead natural_ice nickel salt silica silicon soil stone sulfur tin tuff zinc'.split()),
-    2: set('amethyst basalt blackstone certus_quartz cinnabar emerald end_stone ender_pearl fluorite glowstone gold lapis lithium netherrack obsidian osmium peridot platinum quartz quicksilver redstone ruby sapphire seashell silver titanium uraninite uranium'.split()),
+    1: set('aluminum amber andesite bamboo beeswax bone boron calcite cellulose charcoal chromium clay coal copper deepslate diorite dripstone flint grain granite graphite ink_sac iron lead mud natural_ice nickel organic_dye organic_fiber salt silica silicon slime soil stone sugar sulfur tin tuff zinc'.split()),
+    2: set('amethyst basalt blackstone blaze certus_quartz chorus_fruit cinnabar emerald end_stone ender_pearl fluorite glowstone gold gunpowder lapis lithium magma netherrack nether_wart obsidian osmium peridot platinum quartz quicksilver redstone ruby sapphire seashell silver soul_sand titanium uraninite uranium'.split()),
     3: set('arcane_crystal diamond dimensional_shard iridium netherite_scrap sky_stone'.split()),
 }
 DIMENSIONS = {
     'basalt': 'minecraft:the_nether', 'blackstone': 'minecraft:the_nether',
-    'glowstone': 'minecraft:the_nether', 'netherrack': 'minecraft:the_nether',
-    'quartz': 'minecraft:the_nether', 'netherite_scrap': 'minecraft:the_nether',
-    'end_stone': 'minecraft:the_end',
+    'blaze': 'minecraft:the_nether', 'glowstone': 'minecraft:the_nether',
+    'magma': 'minecraft:the_nether', 'netherrack': 'minecraft:the_nether',
+    'nether_wart': 'minecraft:the_nether', 'quartz': 'minecraft:the_nether',
+    'netherite_scrap': 'minecraft:the_nether', 'soul_sand': 'minecraft:the_nether',
+    'chorus_fruit': 'minecraft:the_end', 'end_stone': 'minecraft:the_end',
 }
 NAMES = {'silica': 'Sand & Glass', 'natural_ice': 'Ice', 'soil': 'Soil', 'netherite_scrap': 'Ancient Debris & Netherite Scrap'}
 

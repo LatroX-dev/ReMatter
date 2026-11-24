@@ -3,6 +3,7 @@
   "name": "Refined Obsidian",
   "items": [
     "mekanism:block_refined_obsidian",
+    "mekanism:enriched_refined_obsidian",
     "mekanism:ingot_refined_obsidian",
     "mekanism:nugget_refined_obsidian"
   ],

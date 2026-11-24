@@ -117,6 +117,7 @@ public final class CellTransferStationBlock extends Block implements EntityBlock
         drop.applyComponents(station.collectComponents());
         var raw = station.saveCustomOnly(registries);
         raw.remove("owner");
+        raw.remove("security");
         drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(station.getType(), raw));
         return drop;
     }

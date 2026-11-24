@@ -2,8 +2,15 @@
   "schema": 1,
   "name": "Blackstone",
   "items": [
+    "exdeorum:compressed_blackstone",
+    "exdeorum:compressed_crushed_blackstone",
+    "exdeorum:crushed_blackstone",
     "jaopca:storage_blocks.blackstone",
     "minecraft:blackstone",
+    "minecraft:chiseled_polished_blackstone",
+    "minecraft:cracked_polished_blackstone_bricks",
+    "minecraft:polished_blackstone",
+    "minecraft:polished_blackstone_bricks",
     "occultism:crushed_blackstone"
   ],
   "substances": [

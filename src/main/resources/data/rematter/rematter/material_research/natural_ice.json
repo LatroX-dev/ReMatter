@@ -4,6 +4,9 @@
   "items": [
     "jaopca:storage_blocks.ice",
     "minecraft:ice",
+    "minecraft:snow",
+    "minecraft:snow_block",
+    "minecraft:snowball",
     "occultism:crushed_ice"
   ],
   "substances": [

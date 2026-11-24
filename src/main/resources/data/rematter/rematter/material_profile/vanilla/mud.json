@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:mud",
+  "matter": [
+    {
+      "substance": "rematter:soil",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 120
+}

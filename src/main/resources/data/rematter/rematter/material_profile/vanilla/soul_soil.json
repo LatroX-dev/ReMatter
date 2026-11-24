@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:soul_soil",
+  "matter": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 20
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

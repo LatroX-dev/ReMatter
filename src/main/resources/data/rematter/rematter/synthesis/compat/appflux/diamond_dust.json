@@ -4,5 +4,6 @@
   "item": "appflux:diamond_dust",
   "synthesis_machine": "material_synthesizer",
   "crystallization_tier": 2,
-  "category": "raw_material"
+  "category": "raw_material",
+  "synthesis_group": "dust:diamond"
 }

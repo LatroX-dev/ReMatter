@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " S ",
+    "RCR",
+    " I "
+  ],
+  "key": {
+    "S": "rematter:structural_bars",
+    "R": "rematter:rhevon_ingot",
+    "C": "rematter:control_circuit",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "rematter:security_card",
+    "count": 1
+  }
+}

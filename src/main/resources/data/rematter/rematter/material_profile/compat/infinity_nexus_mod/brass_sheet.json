@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "required_mod": "infinity_nexus_mod",
+  "item": "infinity_nexus_mod:brass_sheet",
+  "item_count": 3,
+  "matter": [
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 600
+}

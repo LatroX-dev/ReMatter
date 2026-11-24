@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:glow_ink_sac",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 800
+    },
+    {
+      "substance": "rematter:protein",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 14000,
+  "synthesis_energy": 28000,
+  "ticks": 240
+}

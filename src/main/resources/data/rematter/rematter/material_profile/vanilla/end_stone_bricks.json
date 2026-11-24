@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:end_stone_bricks",
+  "matter": [
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 700
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}

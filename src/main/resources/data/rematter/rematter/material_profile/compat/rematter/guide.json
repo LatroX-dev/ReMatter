@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "item": "rematter:guide",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 600
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 7000,
+  "synthesis_energy": 14000,
+  "ticks": 80
+}

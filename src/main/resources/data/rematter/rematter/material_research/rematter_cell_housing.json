@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Rematter Cell Housing",
+  "items": [
+    "rematter:cell_housing"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

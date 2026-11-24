@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Mekanism Enriched Iron",
+  "items": [
+    "mekanism:enriched_iron"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

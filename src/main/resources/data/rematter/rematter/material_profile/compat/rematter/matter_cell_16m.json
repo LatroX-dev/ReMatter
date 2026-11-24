@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:matter_cell_16m",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1812
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 5976
+    }
+  ],
+  "decomposition_energy": 64000,
+  "synthesis_energy": 128000,
+  "ticks": 120
+}

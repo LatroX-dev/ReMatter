@@ -17,11 +17,12 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIngredient> inputs,
-                          List<EmiStack> outputs, long energy, int ticks, List<Component> notes, Optional<String> researchTarget) implements EmiRecipe {
+                          List<EmiStack> outputs, long energy, int ticks, List<Component> notes, List<String> researchTargets) implements EmiRecipe {
     ChemistryEmiRecipe {
         inputs = List.copyOf(inputs);
         outputs = List.copyOf(outputs);
         notes = List.copyOf(notes);
+        researchTargets = List.copyOf(researchTargets);
     }
     @Override public EmiRecipeCategory getCategory() { return category; }
     @Override public Identifier getId() { return id; }
@@ -62,7 +63,7 @@ record ChemistryEmiRecipe(EmiRecipeCategory category, Identifier id, List<EmiIng
         EmiWidgets.value(widgets,Quantities.durationWithTicks(ticks).getString(),18,footer+12,144,UiPalette.MUTED);
         EmiWidgets.dynamicIcon(widgets,UiIcon.INFO,164,footer+10,()->{
             var current = new java.util.ArrayList<>(notes);
-            researchTarget.ifPresent(target -> current.add(dev.latrox.rematter.client.ResearchDisplay.note(target)));
+            if (!researchTargets.isEmpty()) current.add(dev.latrox.rematter.client.ResearchDisplay.note(researchTargets));
             return current;
         });
     }

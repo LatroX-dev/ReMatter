@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:dark_oak_wood",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 1200
+    }
+  ],
+  "decomposition_energy": 9000,
+  "synthesis_energy": 18000,
+  "ticks": 240
+}

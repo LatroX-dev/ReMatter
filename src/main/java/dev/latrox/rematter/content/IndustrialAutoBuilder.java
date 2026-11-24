@@ -211,7 +211,7 @@ public final class IndustrialAutoBuilder {
             if (other == controller) continue;
             if (IndustrialStructure.inspect(other).formed()
                     || !other.canRemove(player)
-                    || !Objects.equals(other.networkOwner(), controller.networkOwner())) {
+                    || !MachineAccess.canConnect(level, other.networkOwner(), other.securityMode(), controller.networkOwner(), controller.securityMode())) {
                 return true;
             }
         }

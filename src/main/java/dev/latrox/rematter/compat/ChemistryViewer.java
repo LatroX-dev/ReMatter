@@ -1,13 +1,18 @@
 package dev.latrox.rematter.compat;
 
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
+import dev.latrox.rematter.chemistry.MaterialProfile;
 import dev.latrox.rematter.chemistry.ProcessType;
 import dev.latrox.rematter.chemistry.SubstanceKey;
+import dev.latrox.rematter.chemistry.SynthesisConfig;
 import dev.latrox.rematter.client.Quantities;
 import dev.latrox.rematter.client.SubstanceNames;
 import dev.latrox.rematter.content.ChemistryText;
 import dev.latrox.rematter.content.MachineKind;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,7 +31,11 @@ public final class ChemistryViewer {
 
     /** Viewer knowledge is informational. Recipe membership continues to come only from the synthesis allowlist. */
     public static Optional<String> researchTarget(Entry entry) {
-        return entry.synthesisAllowed() ? entry.produced().or(entry::consumed).map(resource -> resource.id().toString()) : Optional.empty();
+        return entry.researchTargets().isEmpty() ? Optional.empty() : Optional.of(entry.researchTargets().getFirst());
+    }
+
+    public static List<String> researchTargets(Entry entry) {
+        return entry.researchTargets();
     }
 
     public enum Category {
@@ -66,17 +75,36 @@ public final class ChemistryViewer {
 
     public record Matter(SubstanceKey key, long amount) {}
 
+    private record DecomposeGroupKey(int itemCount, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed) {}
+
     /** {@code process} names the chemical process that a reaction, separation or phase change entry shows. */
-    public record Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
+    public record Entry(Category category, Identifier id, Optional<Component> process, List<Resource> consumedChoices, Optional<Resource> produced,
                        List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
-                       String requiresAdvancement,int requiredTier) {
-        public Entry(Category category,Identifier id,Optional<Component> process,Optional<Resource> consumed,Optional<Resource> produced,
-                List<Matter> inputs,List<Matter> outputs,long energy,int ticks,boolean synthesisAllowed) {
-            this(category,id,process,consumed,produced,inputs,outputs,energy,ticks,synthesisAllowed,"",1);
+                       String requiresAdvancement, int requiredTier, List<String> researchTargets) {
+        public Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
+                List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed) {
+            this(category, id, process, consumed.map(List::of).orElse(List.of()), produced, inputs, outputs, energy, ticks,
+                    synthesisAllowed, "", 1, defaultResearchTargets(synthesisAllowed, consumed, produced));
+        }
+        public Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
+                List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
+                String requiresAdvancement, int requiredTier) {
+            this(category, id, process, consumed.map(List::of).orElse(List.of()), produced, inputs, outputs, energy, ticks,
+                    synthesisAllowed, requiresAdvancement, requiredTier, defaultResearchTargets(synthesisAllowed, consumed, produced));
         }
         public Entry {
+            consumedChoices = List.copyOf(consumedChoices);
             inputs = List.copyOf(inputs);
             outputs = List.copyOf(outputs);
+            researchTargets = List.copyOf(researchTargets);
+        }
+
+        public Optional<Resource> consumed() {
+            return consumedChoices.isEmpty() ? Optional.empty() : Optional.of(consumedChoices.getFirst());
+        }
+
+        private static List<String> defaultResearchTargets(boolean synthesisAllowed, Optional<Resource> consumed, Optional<Resource> produced) {
+            return synthesisAllowed ? produced.or(() -> consumed).map(resource -> List.of(resource.id().toString())).orElse(List.of()) : List.of();
         }
 
         /** The same explanation in every viewer: the synthesis permission, the exact batch and where amounts are shown. */
@@ -91,7 +119,7 @@ public final class ChemistryViewer {
                 case AIR_SEPARATION -> "gui.rematter.viewer.renewable_air";
                 default -> "gui.rematter.viewer.conserves_elements";
             }));
-            Stream.of(consumed, produced).flatMap(Optional::stream).filter(resource -> !resource.fluid() && resource.amount() > 1)
+            Stream.of(consumed(), produced).flatMap(Optional::stream).filter(resource -> !resource.fluid() && resource.amount() > 1)
                     .forEach(resource -> notes.add(Component.translatable("gui.rematter.viewer.exact_batch", resource.amount())));
             notes.add(Component.translatable("gui.rematter.viewer.amount_hint"));
             return notes;
@@ -104,37 +132,81 @@ public final class ChemistryViewer {
 
     /** Profiles whose item or fluid is not registered in this game are left out together with their matter. */
     static List<Entry> entries(ChemistryRegistry registry, Predicate<Identifier> itemExists, Predicate<Identifier> fluidExists) {
+        return entries(registry, itemExists, fluidExists, SynthesisConfig.unifyOutputs(), SynthesisConfig.modPriority());
+    }
+
+    static List<Entry> entries(ChemistryRegistry registry, Predicate<Identifier> itemExists, Predicate<Identifier> fluidExists,
+                               boolean unifyDecomposition, List<String> modPriority) {
         List<Entry> result = new ArrayList<>();
+        var policy = registry.synthesisPolicy();
+        Map<DecomposeGroupKey, List<MaterialProfile>> decomposeGroups = new LinkedHashMap<>();
         for (var profile : registry.profiles()) {
             Identifier item = Identifier.tryParse(profile.itemId());
             if (item == null || !itemExists.test(item)) continue;
-            var resource = new Resource(false, item, profile.itemCount());
             var matter = matter(profile.matter());
-            boolean allowed = registry.synthesisPolicy().allowsItem(profile.itemId());
-            result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", item), Optional.empty(), Optional.of(resource),
-                    Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(), allowed));
-            var synthesis=Category.SYNTHESIS;
-            if (allowed) result.add(new Entry(synthesis, recipeId(synthesis, "item", item), Optional.empty(), Optional.empty(),
-                    Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true,
-                    registry.synthesisPolicy().requirement(profile.itemId()).advancement(),registry.synthesisPolicy().requirement(profile.itemId()).tier()));
+            boolean allowedDirect = policy.allowsItem(profile.itemId());
+            boolean allowedCanonical = allowedDirect || policy.allowsItem(policy.canonicalTarget(profile.itemId()));
+            if (unifyDecomposition) {
+                var key = new DecomposeGroupKey(profile.itemCount(), matter, profile.decompositionEnergy(), profile.ticks(), allowedCanonical);
+                decomposeGroups.computeIfAbsent(key, ignored -> new ArrayList<>()).add(profile);
+            } else {
+                var resource = new Resource(false, item, profile.itemCount());
+                List<String> targets = allowedCanonical ? List.of(policy.canonicalTarget(profile.itemId())) : List.of();
+                result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", item), Optional.empty(),
+                        List.of(resource), Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(),
+                        allowedCanonical, "", 1, targets));
+            }
+            if (allowedDirect) {
+                var resource = new Resource(false, item, profile.itemCount());
+                var synthesis = Category.SYNTHESIS;
+                var req = policy.requirement(profile.itemId());
+                result.add(new Entry(synthesis, recipeId(synthesis, "item", item), Optional.empty(), Optional.empty(),
+                        Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true,
+                        req.advancement(), req.tier()));
+            }
+        }
+        if (unifyDecomposition) {
+            Map<String, Integer> rankByMod = new HashMap<>();
+            for (int i = 0; i < modPriority.size(); i++) rankByMod.putIfAbsent(modPriority.get(i), i);
+            int fallbackRank = modPriority.size();
+            Comparator<MaterialProfile> order = Comparator
+                    .<MaterialProfile>comparingInt(p -> policy.allowsItem(p.itemId()) ? 0 : 1)
+                    .thenComparingInt(p -> rankByMod.getOrDefault(namespace(p.itemId()), fallbackRank))
+                    .thenComparing(MaterialProfile::itemId);
+            for (var grouped : decomposeGroups.entrySet()) {
+                var key = grouped.getKey();
+                var members = new ArrayList<>(grouped.getValue());
+                members.sort(order);
+                Identifier primaryId = Identifier.parse(members.getFirst().itemId());
+                List<Resource> choices = members.stream()
+                        .map(p -> new Resource(false, Identifier.parse(p.itemId()), p.itemCount()))
+                        .toList();
+                List<String> targets = key.synthesisAllowed()
+                        ? members.stream().map(p -> policy.canonicalTarget(p.itemId()))
+                                .filter(policy::allowsItem).distinct().toList()
+                        : List.of();
+                result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "item", primaryId), Optional.empty(),
+                        choices, Optional.empty(), List.of(), key.outputs(), key.energy(), key.ticks(),
+                        key.synthesisAllowed(), "", 1, targets));
+            }
         }
         for (var profile : registry.fluidProfiles()) {
             Identifier fluid = Identifier.tryParse(profile.fluidId());
             if (fluid == null || !fluidExists.test(fluid)) continue;
             var resource = new Resource(true, fluid, profile.amount());
             var matter = matter(profile.matter());
-            boolean allowed = registry.synthesisPolicy().allowsFluid(profile.fluidId());
+            boolean allowed = policy.allowsFluid(profile.fluidId());
             result.add(new Entry(Category.DECOMPOSITION, recipeId(Category.DECOMPOSITION, "fluid", fluid), Optional.empty(), Optional.of(resource),
                     Optional.empty(), List.of(), matter, profile.decompositionEnergy(), profile.ticks(), allowed));
             if (allowed) result.add(new Entry(Category.SYNTHESIS, recipeId(Category.SYNTHESIS, "fluid", fluid), Optional.empty(), Optional.empty(),
                     Optional.of(resource), matter, List.of(), profile.synthesisEnergy(), profile.ticks(), true,
-                    registry.synthesisPolicy().requirement(profile.fluidId()).advancement(),registry.synthesisPolicy().requirement(profile.fluidId()).tier()));
+                    policy.requirement(profile.fluidId()).advancement(), policy.requirement(profile.fluidId()).tier()));
         }
         for (var process : registry.processes()) {
             var category = Category.of(process.type());
             var source = Identifier.fromNamespaceAndPath(process.id().namespace(), process.id().path());
             result.add(new Entry(category, recipeId(category, "process", source), Optional.of(ChemistryText.process(process)), Optional.empty(), Optional.empty(),
-                    matter(process.inputs()), matter(process.outputs()), process.energy(), process.ticks(), false,process.requiresAdvancement(),1));
+                    matter(process.inputs()), matter(process.outputs()), process.energy(), process.ticks(), false, process.requiresAdvancement(), 1));
         }
         for(var source:registry.environmentSources()) {
             var id=Identifier.parse(source.id().toString());
@@ -142,6 +214,11 @@ public final class ChemistryViewer {
                     Optional.of(Component.translatable(source.translationKey())),Optional.empty(),Optional.empty(),List.of(),matter(source.outputs()),source.energy(),source.ticks(),false));
         }
         return List.copyOf(result);
+    }
+
+    private static String namespace(String itemId) {
+        int colon = itemId.indexOf(':');
+        return colon > 0 ? itemId.substring(0, colon) : "";
     }
 
     /** Matter that some listed recipe consumes or yields. Substances that no active content reaches stay out of the viewers. */

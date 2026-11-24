@@ -73,10 +73,7 @@ public final class WrenchDiagnostics {
                     0, 0, 0, 0, false, -1);
         }
         if (be instanceof EntangledLinkBlockEntity link) {
-            boolean allowed = link.canRemove(player)
-                    || (!(player instanceof FakePlayer)
-                            && dev.latrox.rematter.compat.TeamAccess.shared(link.owner(), player.getUUID()));
-            if (!allowed) return WrenchDiagnosticPayload.locked(pos, face);
+            if (!link.canAccess(player)) return WrenchDiagnosticPayload.locked(pos, face);
             var diag = EntangledLinks.inspect(level, link);
             String status = switch (diag.state()) {
                 case PAIRED -> "paired";
@@ -89,14 +86,7 @@ public final class WrenchDiagnostics {
         }
         if (state.getBlock() instanceof MatterCableBlock cable) {
             var cableOwner = CableOwners.owner(level, pos);
-            boolean allowed = MachineAccess.allows(
-                            cableOwner,
-                            player.getUUID(),
-                            player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER),
-                            player instanceof FakePlayer)
-                    || (!(player instanceof FakePlayer)
-                            && dev.latrox.rematter.compat.TeamAccess.shared(cableOwner, player.getUUID()));
-            if (!allowed) return WrenchDiagnosticPayload.locked(pos, face);
+            if (!MachineAccess.allows(level, cableOwner, CableOwners.mode(level, pos), player)) return WrenchDiagnosticPayload.locked(pos, face);
             var tier = cable.tier();
             int nodes = 0;
             int cells = 0;

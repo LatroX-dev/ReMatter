@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:gunpowder",
+  "matter": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 12000,
+  "synthesis_energy": 24000,
+  "ticks": 200
+}

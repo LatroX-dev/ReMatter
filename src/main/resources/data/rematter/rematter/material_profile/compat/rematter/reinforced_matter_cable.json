@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reinforced_matter_cable",
+  "matter": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 478
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 353
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 80
+}

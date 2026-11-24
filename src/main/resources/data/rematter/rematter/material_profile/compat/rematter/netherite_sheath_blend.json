@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:netherite_sheath_blend",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 750
+    }
+  ],
+  "decomposition_energy": 21000,
+  "synthesis_energy": 42000,
+  "ticks": 80
+}

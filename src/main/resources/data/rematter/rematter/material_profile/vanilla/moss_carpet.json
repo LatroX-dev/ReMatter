@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "item": "minecraft:moss_carpet",
+  "item_count": 3,
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 800
+    }
+  ],
+  "decomposition_energy": 6000,
+  "synthesis_energy": 12000,
+  "ticks": 160
+}

@@ -4,7 +4,8 @@
   "items": [
     "jaopca:storage_blocks.glowstone",
     "minecraft:glowstone",
-    "minecraft:glowstone_dust"
+    "minecraft:glowstone_dust",
+    "rematter:lumin"
   ],
   "substances": [
     {

@@ -13,13 +13,17 @@ import dev.emi.emi.api.stack.EmiStackInteraction;
 import dev.emi.emi.api.widget.Bounds;
 import dev.emi.emi.runtime.EmiReloadManager;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
+import dev.latrox.rematter.client.CellTransferScreen;
+import dev.latrox.rematter.client.EnergyCubeScreen;
 import dev.latrox.rematter.client.MachineScreen;
+import dev.latrox.rematter.client.MatterLevelEmitterScreen;
 import dev.latrox.rematter.client.PrimalTargetScreen;
 import dev.latrox.rematter.client.ProcessSelectionScreen;
 import dev.latrox.rematter.client.SubstanceDetails;
 import dev.latrox.rematter.client.SubstanceDetailsScreen;
 import dev.latrox.rematter.client.SubstanceHoverProvider;
 import dev.latrox.rematter.client.SubstanceScreenLayer;
+import dev.latrox.rematter.client.WirelessAccessPointScreen;
 import dev.latrox.rematter.compat.ChemistryViewer;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
@@ -116,6 +120,22 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
             for (var area : screen.viewerExclusionAreas())
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
         });
+        registry.addExclusionArea(EnergyCubeScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(CellTransferScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(WirelessAccessPointScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(MatterLevelEmitterScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
         ChemistryRegistry catalogue = ClientChemistry.current();
         displayed = catalogue;
         displayedPreparation = PreparationRecipes.clientRecipes();
@@ -159,13 +179,13 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         ChemistryViewer.substances(entries).forEach(key -> registry.addEmiStack(new MatterEmiStack(key, 1)));
         for (var entry : entries) {
             var inputs = new ArrayList<EmiIngredient>();
-            entry.consumed().ifPresent(resource -> inputs.add(stack(resource)));
+            if (!entry.consumedChoices().isEmpty()) inputs.add(ingredient(entry.consumedChoices()));
             entry.inputs().forEach(matter -> inputs.add(new MatterEmiStack(matter.key(), matter.amount())));
             var outputs = new ArrayList<EmiStack>();
             entry.produced().ifPresent(resource -> outputs.add(stack(resource)));
             entry.outputs().forEach(matter -> outputs.add(new MatterEmiStack(matter.key(), matter.amount())));
             registry.addRecipe(new ChemistryEmiRecipe(categories.get(entry.category()), entry.id(), inputs, outputs,
-                    entry.energy(), entry.ticks(), entry.notes(), ChemistryViewer.researchTarget(entry)));
+                    entry.energy(), entry.ticks(), entry.notes(), entry.researchTargets()));
         }
     }
 
@@ -240,6 +260,14 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         if (hover.isEmpty()) return;
         event.setCanceled(true);
         showMatter(hover.get(), !recipes && uses);
+    }
+
+    private static EmiIngredient ingredient(List<ChemistryViewer.Resource> resources) {
+        if (resources.size() == 1) return stack(resources.getFirst());
+        long amount = resources.getFirst().amount();
+        return EmiIngredient.of(resources.stream()
+                .map(resource -> EmiStack.of(BuiltInRegistries.ITEM.getValue(resource.id())))
+                .toList(), amount);
     }
 
     private static EmiStack stack(ChemistryViewer.Resource resource) {

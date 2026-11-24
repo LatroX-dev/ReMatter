@@ -3,6 +3,8 @@
   "name": "Sky Stone",
   "items": [
     "ae2:sky_dust",
+    "ae2:sky_stone_block",
+    "ae2:smooth_sky_stone_block",
     "jaopca:storage_blocks.sky_stone"
   ],
   "substances": [

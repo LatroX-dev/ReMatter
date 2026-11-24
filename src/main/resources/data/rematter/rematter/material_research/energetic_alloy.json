@@ -4,7 +4,8 @@
   "items": [
     "enderio:energetic_alloy_block",
     "enderio:energetic_alloy_ingot",
-    "enderio:energetic_alloy_nugget"
+    "enderio:energetic_alloy_nugget",
+    "enderio:energized_gear"
   ],
   "substances": [
     {

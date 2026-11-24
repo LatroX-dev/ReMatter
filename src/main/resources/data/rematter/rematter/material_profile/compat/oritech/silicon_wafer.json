@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "oritech",
+  "item": "oritech:silicon_wafer",
+  "matter": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 250
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 120
+}

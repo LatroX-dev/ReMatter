@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "item": "rematter:pressurized_canister",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 3582
+    }
+  ],
+  "decomposition_energy": 42000,
+  "synthesis_energy": 84000,
+  "ticks": 100
+}

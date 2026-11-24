@@ -14,13 +14,18 @@ import org.jspecify.annotations.Nullable;
 
 /** AE2-style menu for Wireless Access Point: Range Booster slot, Terminal Link/Charge dock, and live telemetry. */
 public final class WirelessAccessPointMenu extends AbstractContainerMenu {
+    public static final int CYCLE_SECURITY = 0;
+    public static final int CYCLE_SECURITY_BACK = 1;
     private final Container inventory;
     private final @Nullable WirelessAccessPointBlockEntity accessPoint;
+    private final Player viewer;
     private final BlockPos position;
     private final DataSlot energyLow = DataSlot.standalone();
     private final DataSlot energyHigh = DataSlot.standalone();
     private final DataSlot boosterCount = DataSlot.standalone();
     private final DataSlot statusFlags = DataSlot.standalone();
+    private final DataSlot securityMode = DataSlot.standalone();
+    private final DataSlot canManageSecurity = DataSlot.standalone();
 
     public WirelessAccessPointMenu(int id, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
         this(id, playerInventory, new SimpleContainer(2), null, buf.readBlockPos());
@@ -35,12 +40,17 @@ public final class WirelessAccessPointMenu extends AbstractContainerMenu {
         super(ModContent.WIRELESS_ACCESS_POINT_MENU.get(), id);
         this.inventory = inventory;
         this.accessPoint = accessPoint;
+        this.viewer = playerInventory.player;
         this.position = position;
 
         addDataSlot(energyLow);
         addDataSlot(energyHigh);
         addDataSlot(boosterCount);
         addDataSlot(statusFlags);
+        securityMode.set(accessPoint != null ? accessPoint.securityMode().ordinal() : SecurityMode.PUBLIC.ordinal());
+        addDataSlot(securityMode);
+        canManageSecurity.set(accessPoint != null && accessPoint.canManageSecurity(viewer) ? 1 : 0);
+        addDataSlot(canManageSecurity);
 
         addSlot(new Slot(inventory, WirelessAccessPointBlockEntity.SLOT_BOOSTER, 72, 86) {
             @Override public boolean mayPlace(ItemStack stack) {
@@ -106,6 +116,23 @@ public final class WirelessAccessPointMenu extends AbstractContainerMenu {
         return accessPoint != null ? accessPoint.matterReady() : (statusFlags.get() & 2) != 0;
     }
 
+    public SecurityMode securityMode() {
+        return accessPoint != null ? accessPoint.securityMode() : SecurityMode.byIndex(securityMode.get());
+    }
+
+    public boolean canManageSecurity() {
+        return accessPoint != null ? accessPoint.canManageSecurity(viewer) : canManageSecurity.get() != 0;
+    }
+
+    @Override
+    public boolean clickMenuButton(Player player, int action) {
+        if (accessPoint == null || player.containerMenu != this || player.isSpectator() || !stillValid(player)) return false;
+        if (action != CYCLE_SECURITY && action != CYCLE_SECURITY_BACK) return false;
+        boolean changed = accessPoint.cycleSecurityMode(player, action == CYCLE_SECURITY);
+        if (changed) broadcastChanges();
+        return changed;
+    }
+
     @Override
     public void broadcastChanges() {
         if (accessPoint != null) {
@@ -115,6 +142,8 @@ public final class WirelessAccessPointMenu extends AbstractContainerMenu {
             boosterCount.set(accessPoint.boosterCount());
             int flags = (accessPoint.powered() ? 1 : 0) | (accessPoint.matterReady() ? 2 : 0);
             statusFlags.set(flags);
+            securityMode.set(accessPoint.securityMode().ordinal());
+            canManageSecurity.set(accessPoint.canManageSecurity(viewer) ? 1 : 0);
         }
         super.broadcastChanges();
     }
