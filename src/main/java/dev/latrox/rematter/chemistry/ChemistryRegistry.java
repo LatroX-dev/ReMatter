@@ -157,7 +157,11 @@ public final class ChemistryRegistry {
                 throw new IllegalArgumentException("Process exceeds the eightfold unit bound: "+recipe.id());
             Map<SubstanceId, Long> inputElements = elementAmounts(recipe.inputs());
             Map<SubstanceId, Long> outputElements = elementAmounts(recipe.outputs());
-            if (!inputElements.equals(outputElements)) {
+            if (recipe.type() == ProcessType.TRANSMUTATION) {
+                if (recipe.minField() == 0 || recipe.product() == null) {
+                    throw new IllegalArgumentException("Transmutation requires industrial field and explicit product: " + recipe.id());
+                }
+            } else if (!inputElements.equals(outputElements)) {
                 throw new IllegalArgumentException("Unbalanced process " + recipe.id()
                         + ": " + inputElements + " -> " + outputElements);
             }

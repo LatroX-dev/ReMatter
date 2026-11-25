@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:golden_planks",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    }
+  ],
+  "decomposition_energy": 1500,
+  "synthesis_energy": 3000,
+  "ticks": 40
+}

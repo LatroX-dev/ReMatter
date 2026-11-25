@@ -11,12 +11,14 @@ public final class MatterLimits {
     public static final long CELL_64M = 64_000_000L;
     public static final long CELL_256M = 256_000_000L;
     public static final int CELL_TYPES = 512;
-    public static final int COMPACT_MACHINE_ENERGY = 32_000;
-    public static final int INDUSTRIAL_MACHINE_ENERGY = 128_000;
-    public static final int GENERATOR_ENERGY = 32_000;
-    public static final int INDUSTRIAL_GENERATOR_ENERGY = 128_000;
-    public static final int CONVERTER_ENERGY = 128_000;
-    public static final int MAX_MACHINE_ENERGY = 2_048_000;
+    public static final int COMPACT_MACHINE_ENERGY = 64_000;
+    public static final int INDUSTRIAL_MACHINE_ENERGY = 512_000;
+    public static final int TRANSMUTATION_REACTOR_ENERGY = 2_000_000;
+    public static final int PRIMAL_REACTOR_ENERGY = 8_000_000;
+    public static final int GENERATOR_ENERGY = 64_000;
+    public static final int INDUSTRIAL_GENERATOR_ENERGY = 512_000;
+    public static final int CONVERTER_ENERGY = 512_000;
+    public static final int MAX_MACHINE_ENERGY = 128_000_000;
     public static final int MACHINE_FLUID = 16_000;
     private MatterLimits() {}
 }

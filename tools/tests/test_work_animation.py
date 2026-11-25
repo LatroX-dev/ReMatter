@@ -16,7 +16,7 @@ from family_sprites import sprites,ANIMATIONS
 
 class RendererHardwareTests(unittest.TestCase):
     def test_rest_and_stroke_ends_fit_baked_hardware_and_the_generated_source_is_current(self):
-        self.assertEqual(renderer_parts.validate(),20)
+        self.assertEqual(renderer_parts.validate(),23)
         self.assertEqual(renderer_parts.JAVA.read_text(),renderer_parts.java_source())
 
     def test_world_has_moving_hardware_once_and_item_keeps_its_static_showpiece(self):

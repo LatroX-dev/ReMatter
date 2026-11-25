@@ -15,6 +15,21 @@ public final class ControllerThroughput {
         paid+=accepted;spent+=accepted;
         return paid==required;
     }
+
+    /** Advances work with a shared per-tick allowance (which may be 0 when a shared relay is saturated) and returns units accepted. */
+    long advanceBounded(String signature, long total, long gameTick, long maxRate, long sharedAllowance) {
+        if (total < 0 || maxRate <= 0) throw new IllegalArgumentException("Invalid transfer work");
+        if (!operation.equals(signature) || required != total) { operation = signature; required = total; paid = 0; }
+        if (tick != gameTick) { tick = gameTick; spent = 0; }
+        long localRemaining = Math.max(0L, maxRate - spent);
+        long allowance = Math.min(localRemaining, Math.max(0L, sharedAllowance));
+        long accepted = Math.min(required - paid, allowance);
+        paid += accepted;
+        spent += accepted;
+        return accepted;
+    }
+
+    boolean isComplete() { return paid == required; }
     /** Completion discards that job's work; another completion in the same tick gets only the remainder. */
     public void completed(){operation="";required=paid=0;}
     public long paid(){return paid;}
@@ -43,5 +58,64 @@ public final class ControllerThroughput {
             }
         }
         return Math.max(0,best);
+    }
+
+    record Route<N>(int rate, List<N> path) {
+        boolean reachable() { return rate > 0 && !path.isEmpty(); }
+    }
+
+    /** Widest exact rate across cables and inline valves; equal routes never add their rates. */
+    static <N> int bestRate(N origin,Set<N> destinations,Map<N,Integer> nodeRates,Map<N,List<N>> neighbors,int defaultRate) {
+        var route = bestRoute(origin, destinations, nodeRates, neighbors, defaultRate);
+        return route.rate() <= 0 ? defaultRate : route.rate();
+    }
+
+    /** Widest directed route across cables and inline valves, returning both bottleneck rate and traversed nodes. */
+    static <N> Route<N> bestRoute(N origin, Set<N> destinations, Map<N, Integer> nodeRates, Map<N, List<N>> neighbors, int defaultRate) {
+        record Visit<N>(N node, int rate, int hops) {}
+        var queue = new PriorityQueue<Visit<N>>(Comparator.<Visit<N>>comparingInt(Visit::rate).reversed()
+                .thenComparingInt(Visit::hops));
+        var rates = new HashMap<N, Integer>();
+        var hops = new HashMap<N, Integer>();
+        var prev = new HashMap<N, N>();
+        rates.put(origin, Integer.MAX_VALUE);
+        hops.put(origin, 0);
+        queue.add(new Visit<>(origin, Integer.MAX_VALUE, 0));
+        int bestRate = -1;
+        int bestHops = Integer.MAX_VALUE;
+        N bestDest = null;
+        while (!queue.isEmpty()) {
+            var current = queue.remove();
+            if (current.rate() != rates.get(current.node()) || current.hops() != hops.get(current.node())) continue;
+            if (destinations.contains(current.node())) {
+                int eff = current.rate() == Integer.MAX_VALUE ? defaultRate : current.rate();
+                if (eff > bestRate || (eff == bestRate && current.hops() < bestHops)) {
+                    bestRate = eff;
+                    bestHops = current.hops();
+                    bestDest = current.node();
+                }
+            }
+            for (var next : neighbors.getOrDefault(current.node(), List.of())) {
+                int candidate = Math.min(current.rate(), nodeRates.getOrDefault(next, Integer.MAX_VALUE));
+                if (candidate <= 0) continue;
+                int nextHops = current.hops() + 1;
+                int prevRate = rates.getOrDefault(next, -1);
+                int prevHops = hops.getOrDefault(next, Integer.MAX_VALUE);
+                if (candidate > prevRate || (candidate == prevRate && nextHops < prevHops)) {
+                    rates.put(next, candidate);
+                    hops.put(next, nextHops);
+                    prev.put(next, current.node());
+                    queue.add(new Visit<>(next, candidate, nextHops));
+                }
+            }
+        }
+        if (bestDest == null || bestRate <= 0) return new Route<>(0, List.of());
+        var path = new ArrayList<N>();
+        for (N cur = bestDest; cur != null; cur = prev.get(cur)) {
+            path.add(cur);
+            if (cur.equals(origin)) break;
+        }
+        Collections.reverse(path);
+        return new Route<>(bestRate, List.copyOf(path));
     }
 }

@@ -140,6 +140,12 @@ class MachineSnapshotTest {
         var snapshot = industrialSnapshot(MachineKind.INDUSTRIAL_PREPARATOR, structure);
         assertEquals(snapshot, roundTrip(MachineSnapshot.CODEC, snapshot));
         assertThrows(IllegalArgumentException.class,()->industrialSnapshot(MachineKind.INDUSTRIAL_REACTOR, structure));
+        var transView = new MachineSnapshot.StructureView(5, 5, 5, 2, 4, "ready", 0, 0, 0, 4, 4, 0);
+        assertEquals(industrialSnapshot(MachineKind.TRANSMUTATION_REACTOR, transView),
+                roundTrip(MachineSnapshot.CODEC, industrialSnapshot(MachineKind.TRANSMUTATION_REACTOR, transView)));
+        var primalView = new MachineSnapshot.StructureView(5, 5, 5, 2, 4, "ready", 0, 0, 0, 4, 4, 0);
+        assertEquals(industrialSnapshot(MachineKind.PRIMAL_REACTOR, primalView),
+                roundTrip(MachineSnapshot.CODEC, industrialSnapshot(MachineKind.PRIMAL_REACTOR, primalView)));
     }
     @Test void sixPhysicalBaysKeepTheirOrderAndUnreadableStateAcrossTheWire() {
         var primary = new MachineSnapshot.CellView(true,true,"rematter:matter_cell_4m",1000,64000,2,512);

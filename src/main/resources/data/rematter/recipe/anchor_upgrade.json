@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SBS",
+    "OCO",
+    "EBE"
+  ],
+  "key": {
+    "S": "rematter:structural_bars",
+    "B": "rematter:blue_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "C": "rematter:control_circuit",
+    "E": "rematter:ender_conductor"
+  },
+  "result": {
+    "id": "rematter:anchor_upgrade",
+    "count": 1
+  }
+}

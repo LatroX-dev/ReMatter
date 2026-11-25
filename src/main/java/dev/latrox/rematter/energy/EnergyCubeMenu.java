@@ -16,6 +16,9 @@ import org.jspecify.annotations.Nullable;
 public final class EnergyCubeMenu extends AbstractContainerMenu {
     public static final int CYCLE_SECURITY = 12;
     public static final int CYCLE_SECURITY_BACK = 13;
+    public static final int CYCLE_REDSTONE = 20;
+    public static final int CYCLE_REDSTONE_BACK = 21;
+    public static final int TOGGLE_AUTOMATION = 22;
     private final EnergyCubeTier tier;
     private final Container inventory;
     private final @Nullable EnergyCubeBlockEntity cube;
@@ -23,7 +26,11 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
     private final BlockPos position;
     private final DataSlot securityMode = DataSlot.standalone();
     private final DataSlot canManageSecurity = DataSlot.standalone();
+    private final DataSlot redstoneMode = DataSlot.standalone();
+    private final DataSlot automationAllowed = DataSlot.standalone();
+    private final DataSlot redstonePaused = DataSlot.standalone();
     private @Nullable EnergyCubePayload received, sent;
+    private String customName = "";
     private long nextUpdate;
     private boolean settings;
 
@@ -31,6 +38,9 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
 
     public EnergyCubeMenu(int id, Inventory inventory, RegistryFriendlyByteBuf data) {
         this(id, inventory, data.readBlockPos(), EnergyCubeTier.byIndex(data.readVarInt()));
+        if (data.readableBytes() > 0) {
+            customName = CustomNames.sanitize(data.readUtf(CustomNames.MAX_LENGTH));
+        }
     }
 
     private EnergyCubeMenu(int id, Inventory inventory, BlockPos position, EnergyCubeTier tier) {
@@ -39,6 +49,7 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
 
     public EnergyCubeMenu(int id, Inventory inventory, EnergyCubeBlockEntity cube) {
         this(id, inventory, cube, cube, cube.getBlockPos(), cube.tier());
+        this.customName = cube.customName();
     }
 
     public static int slotX(EnergyCubeTier tier, boolean discharge, int indexInGroup) {
@@ -89,16 +100,33 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
         addDataSlot(securityMode);
         canManageSecurity.set(cube != null && cube.canManageSecurity(player) ? 1 : 0);
         addDataSlot(canManageSecurity);
+        redstoneMode.set(cube != null ? cube.redstoneMode().ordinal() : RedstoneMode.IGNORED.ordinal());
+        addDataSlot(redstoneMode);
+        automationAllowed.set(cube == null || cube.automationAllowed() ? 1 : 0);
+        addDataSlot(automationAllowed);
+        redstonePaused.set(cube != null && cube.redstonePaused() ? 1 : 0);
+        addDataSlot(redstonePaused);
     }
 
     public EnergyCubeTier tier() { return tier; }
-    public int energy() { return cube != null ? cube.energy() : received == null ? 0 : received.energy(); }
-    public int capacity() { return tier.capacity(); }
+    public long energy() { return cube != null ? cube.energy() : received == null ? 0L : received.energy(); }
+    public long capacity() { return tier.capacity(); }
     public int transferRate() { return tier.transferRate(); }
     public boolean locked() { return cube != null ? cube.locked() : received != null && received.locked(); }
     public BlockPos position() { return position; }
+    public String customName() { return cube != null ? cube.customName() : received != null ? received.customName() : customName; }
+    public void setClientCustomName(String value) { customName = CustomNames.sanitize(value); }
+    public void renameFromClient(ServerPlayer sp, String nextName) {
+        if (cube == null || sp.containerMenu != this || sp.isSpectator() || !stillValid(sp) || !cube.canAccess(sp) || cube.locked()) return;
+        cube.setCustomName(nextName);
+        nextUpdate = 0;
+        broadcastChanges();
+    }
     public SecurityMode securityMode() { return cube != null ? cube.securityMode() : SecurityMode.byIndex(securityMode.get()); }
     public boolean canManageSecurity() { return cube != null ? cube.canManageSecurity(player) : canManageSecurity.get() != 0; }
+    public RedstoneMode redstoneMode() { return cube != null ? cube.redstoneMode() : RedstoneMode.byIndex(redstoneMode.get()); }
+    public boolean automationAllowed() { return cube != null ? cube.automationAllowed() : automationAllowed.get() != 0; }
+    public boolean redstonePaused() { return cube != null ? cube.redstonePaused() : redstonePaused.get() != 0; }
 
     public EnergyCubeSideMode sideMode(MachinePortMode.Side side) {
         int packed = cube != null ? cube.packedSideModes() : received == null ? EnergyCubeSideMode.OUTPUT.ordinal() : received.sideModes();
@@ -106,7 +134,10 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
     }
 
     public void accept(EnergyCubePayload payload) {
-        if (payload.containerId() == containerId && payload.tier() == tier.ordinal()) received = payload;
+        if (payload.containerId() == containerId && payload.tier() == tier.ordinal()) {
+            received = payload;
+            customName = payload.customName();
+        }
     }
 
     @Override public boolean stillValid(Player player) { return cube == null || cube.stillValid(player); }
@@ -116,6 +147,16 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
         if (cube == null || player.containerMenu != this || player.isSpectator() || !stillValid(player)) return false;
         if (action == CYCLE_SECURITY || action == CYCLE_SECURITY_BACK) {
             boolean changed = cube.cycleSecurityMode(player, action == CYCLE_SECURITY);
+            if (changed) { nextUpdate = 0; broadcastChanges(); }
+            return changed;
+        }
+        if (action == CYCLE_REDSTONE || action == CYCLE_REDSTONE_BACK) {
+            boolean changed = cube.cycleRedstoneMode(player, action == CYCLE_REDSTONE);
+            if (changed) { nextUpdate = 0; broadcastChanges(); }
+            return changed;
+        }
+        if (action == TOGGLE_AUTOMATION) {
+            boolean changed = cube.toggleAutomation(player);
             if (changed) { nextUpdate = 0; broadcastChanges(); }
             return changed;
         }
@@ -160,13 +201,16 @@ public final class EnergyCubeMenu extends AbstractContainerMenu {
         if (cube != null) {
             securityMode.set(cube.securityMode().ordinal());
             canManageSecurity.set(cube.canManageSecurity(player) ? 1 : 0);
+            redstoneMode.set(cube.redstoneMode().ordinal());
+            automationAllowed.set(cube.automationAllowed() ? 1 : 0);
+            redstonePaused.set(cube.redstonePaused() ? 1 : 0);
         }
         super.broadcastChanges();
         if (cube == null || !(player instanceof ServerPlayer server) || !stillValid(player)) return;
         long time = server.level().getGameTime();
         if (time < nextUpdate) return;
         nextUpdate = time + 4;
-        var payload = new EnergyCubePayload(containerId, tier.ordinal(), cube.energy(), cube.packedSideModes(), cube.locked());
+        var payload = new EnergyCubePayload(containerId, tier.ordinal(), cube.energy(), cube.packedSideModes(), cube.locked(), cube.customName());
         if (!payload.equals(sent)) {
             PacketDistributor.sendToPlayer(server, payload);
             sent = payload;

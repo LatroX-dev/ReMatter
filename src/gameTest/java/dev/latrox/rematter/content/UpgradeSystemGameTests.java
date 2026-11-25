@@ -110,7 +110,7 @@ public final class UpgradeSystemGameTests {
         h.assertTrue(prep.canPlaceItem(MachineCellAccess.EFFICIENCY_SLOT, new ItemStack(ModContent.EFFICIENCY_UPGRADE.get())),
                 "Compact Preparator rejected Efficiency Upgrade in dedicated Efficiency slot");
 
-        int[] expectedCaps = {32_000, 64_000, 128_000, 256_000, 512_000};
+        int[] expectedCaps = {64_000, 128_000, 256_000, 512_000, 1_024_000};
         for (int count = 0; count <= 4; count++) {
             prep.setItem(MachineCellAccess.EFFICIENCY_SLOT,
                     count == 0 ? ItemStack.EMPTY : new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(), count));
@@ -120,20 +120,20 @@ public final class UpgradeSystemGameTests {
                             + ", got " + prep.energyCapacity() + "/" + energyCap.getCapacityAsLong());
         }
 
-        // Fill upgraded buffer to 512k FE via real capability across ticks, then verify removal clamps safely.
-        prep.energy().set(512_000);
-        h.assertTrue(prep.energy().getAmountAsLong() == 512_000, "Failed to hold 512k FE at 4x Efficiency");
+        // Fill upgraded buffer to 1,024k FE via real capability across ticks, then verify removal clamps safely.
+        prep.energy().set(1_024_000);
+        h.assertTrue(prep.energy().getAmountAsLong() == 1_024_000, "Failed to hold 1,024k FE at 4x Efficiency");
         prep.setItem(MachineCellAccess.EFFICIENCY_SLOT, new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(), 2));
-        h.assertTrue(prep.energyCapacity() == 128_000 && prep.energy().getAmountAsLong() == 128_000,
-                "Removing Efficiency Upgrades did not clamp stored FE to 128k: " + prep.energy().getAmountAsLong());
+        h.assertTrue(prep.energyCapacity() == 256_000 && prep.energy().getAmountAsLong() == 256_000,
+                "Removing Efficiency Upgrades did not clamp stored FE to 256k: " + prep.energy().getAmountAsLong());
         prep.setItem(MachineCellAccess.EFFICIENCY_SLOT, ItemStack.EMPTY);
-        h.assertTrue(prep.energyCapacity() == 32_000 && prep.energy().getAmountAsLong() == 32_000,
-                "Removing all Efficiency Upgrades did not clamp stored FE to 32k: " + prep.energy().getAmountAsLong());
+        h.assertTrue(prep.energyCapacity() == 64_000 && prep.energy().getAmountAsLong() == 64_000,
+                "Removing all Efficiency Upgrades did not clamp stored FE to 64k: " + prep.energy().getAmountAsLong());
 
         // 4 Speed + 4 Efficiency simultaneously: 10x speed (32 ticks) at exact 100% base FE (4,000 FE)!
         prep.setItem(MachineCellAccess.SPEED_SLOT, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
         prep.setItem(MachineCellAccess.EFFICIENCY_SLOT, new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(), 4));
-        h.assertTrue(prep.speed() == 10 && prep.cost(4_000) == 4_000 && prep.energyCapacity() == 512_000,
+        h.assertTrue(prep.speed() == 10 && prep.cost(4_000) == 4_000 && prep.energyCapacity() == 1_024_000,
                 "4 Speed + 4 Efficiency did not cancel surcharge 1:1");
         prep.energy().set(4_000);
         prep.setItem(0, rematterItem("matrix_crystal", 1));
@@ -177,7 +177,7 @@ public final class UpgradeSystemGameTests {
         h.assertTrue(decomposer.getItem(MachineCellAccess.EFFICIENCY_SLOT).is(ModContent.EFFICIENCY_UPGRADE.get())
                         && decomposer.getItem(MachineCellAccess.EFFICIENCY_SLOT).getCount() == 4,
                 "Legacy Efficiency Upgrades were not migrated into Slot 10");
-        h.assertTrue(decomposer.energyCapacity() == 512_000 && decomposer.energy().getAmountAsLong() == 400_000,
+        h.assertTrue(decomposer.energyCapacity() == 1_024_000 && decomposer.energy().getAmountAsLong() == 400_000,
                 "Migrated buffer capacity or stored FE was lost: cap=" + decomposer.energyCapacity()
                         + " stored=" + decomposer.energy().getAmountAsLong());
         h.succeed();
@@ -210,7 +210,7 @@ public final class UpgradeSystemGameTests {
                 "Sneak+Right-Click Pressure Module failed");
         h.assertTrue(synth.speedUpgradeCount() == 4 && synth.efficiencyUpgradeCount() == 4 && synth.crystallizationTier() == 2,
                 "Quick-installed upgrades did not land in all three dedicated Synthesizer slots");
-        h.assertTrue(synth.energyCapacity() == 512_000, "Quick-installed Efficiency did not update buffer capacity");
+        h.assertTrue(synth.energyCapacity() == 1_024_000, "Quick-installed Efficiency did not update buffer capacity");
 
         // Extra Speed Upgrade on full 4/4 must not be consumed AND must not cycle side port mode!
         owner.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModContent.SPEED_UPGRADE.get(), 1));
@@ -229,16 +229,16 @@ public final class UpgradeSystemGameTests {
         owner.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(), 1));
         h.assertTrue(h.getBlockState(genPos).useItemOn(owner.getMainHandItem(), h.getLevel(), owner, InteractionHand.MAIN_HAND, genHit).consumesAction(),
                 "Unsupported upgrade on Crystal Generator did not consume click");
-        h.assertTrue(owner.getMainHandItem().getCount() == 1 && gen.energyCapacity() == 32_000
+        h.assertTrue(owner.getMainHandItem().getCount() == 1 && gen.energyCapacity() == 64_000
                         && gen.portMode(MachinePortMode.Side.local(Direction.NORTH, Direction.EAST)) == genEastBefore,
                 "Crystal Generator unexpectedly accepted Efficiency Upgrade or cycled port mode");
 
-        // Industrial Reactor accepts Parallel + Efficiency and scales buffer up to 2,048,000 FE.
+        // Industrial Reactor accepts Parallel + Efficiency and scales buffer up to 8,192,000 FE.
         var indPos = new BlockPos(7, 2, 3);
         var ind = place(h, indPos, MachineKind.INDUSTRIAL_REACTOR, owner);
         var absInd = h.absolutePos(indPos);
         var indHit = new BlockHitResult(absInd.getCenter(), Direction.EAST, absInd, false);
-        h.assertTrue(ind.energyCapacity() == 128_000, "Industrial base buffer should be 128,000 FE");
+        h.assertTrue(ind.energyCapacity() == 512_000, "Industrial base buffer should be 512,000 FE");
         for (int i = 0; i < 3; i++) {
             owner.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ModContent.PARALLEL_UPGRADE.get(), 1));
             h.assertTrue(h.getBlockState(indPos).useItemOn(owner.getMainHandItem(), h.getLevel(), owner, InteractionHand.MAIN_HAND, indHit).consumesAction(),
@@ -249,8 +249,8 @@ public final class UpgradeSystemGameTests {
             h.assertTrue(h.getBlockState(indPos).useItemOn(owner.getMainHandItem(), h.getLevel(), owner, InteractionHand.MAIN_HAND, indHit).consumesAction(),
                     "Industrial Efficiency quick-install failed");
         }
-        h.assertTrue(ind.parallelUpgradeCount() == 3 && ind.efficiencyUpgradeCount() == 4 && ind.energyCapacity() == 2_048_000,
-                "Industrial upgrades did not reach 3 Parallel / 4 Efficiency / 2,048,000 FE: cap=" + ind.energyCapacity());
+        h.assertTrue(ind.parallelUpgradeCount() == 3 && ind.efficiencyUpgradeCount() == 4 && ind.energyCapacity() == 8_192_000,
+                "Industrial upgrades did not reach 3 Parallel / 4 Efficiency / 8,192,000 FE: cap=" + ind.energyCapacity());
         h.succeed();
     }
 
@@ -262,7 +262,7 @@ public final class UpgradeSystemGameTests {
         var drive = place(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, owner);
         drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var synth = place(h, new BlockPos(3, 2, 2), MachineKind.SYNTHESIZER, owner);
-        h.assertTrue(synth.energyCapacity() == 32_000, "Unupgraded compact Synthesizer should have 32,000 FE base buffer");
+        h.assertTrue(synth.energyCapacity() == 64_000, "Unupgraded compact Synthesizer should have 64,000 FE base buffer");
 
         var profile = ReMatter.chemistry().profile("minecraft:gold_block").orElseThrow();
         h.assertTrue(profile.synthesisEnergy() == 144_000L, "Expected 144,000 FE Gold Block synthesis profile");
@@ -271,29 +271,29 @@ public final class UpgradeSystemGameTests {
         }
         drive.setChanged();
 
-        // Start a 144,000 FE batch on a 32,000 FE buffer with zero Efficiency Upgrades.
-        synth.energy().set(32_000);
+        // Start a 144,000 FE batch on a 64,000 FE buffer with zero Efficiency Upgrades.
+        synth.energy().set(64_000);
         h.assertTrue(synth.selectRecipe("minecraft:gold_block") && synth.requestBatch(), "Failed to request Gold Block");
         int guard = 0;
         while (synth.energy().getAmountAsLong() > 0 && guard++ < profile.ticks()) nextTick(h, synth);
         nextTick(h, synth);
         int savedProgress = synth.work().progress;
         long savedPaid = synth.work().energyPaid;
-        h.assertTrue(savedProgress > 0 && savedPaid == 32_000L && synth.energy().getAmountAsLong() == 0
+        h.assertTrue(savedProgress > 0 && savedPaid == 64_000L && synth.energy().getAmountAsLong() == 0
                         && "insufficient_energy".equals(synth.work().status),
-                "Batch did not drain exact 32,000 FE and pause cleanly: progress=" + savedProgress
+                "Batch did not drain exact 64,000 FE and pause cleanly: progress=" + savedProgress
                         + " paid=" + savedPaid + " status=" + synth.work().status);
 
-        // Stationary save/reload MUST preserve paid progress beyond the 32k buffer with zero FE loss!
+        // Stationary save/reload MUST preserve paid progress beyond the 64k buffer with zero FE loss!
         var registries = h.getLevel().registryAccess();
         var savedTag = synth.saveCustomOnly(registries);
         synth.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registries, savedTag));
-        h.assertTrue(synth.work().progress == savedProgress && synth.work().energyPaid == 32_000L,
+        h.assertTrue(synth.work().progress == savedProgress && synth.work().energyPaid == 64_000L,
                 "Stationary chunk reload lost mid-batch progress or paid FE: progress=" + synth.work().progress
                         + " paid=" + synth.work().energyPaid);
 
-        // Supply remaining 112,000 FE in chunks (32k + 32k + 32k + 16k) and finish exact 144,000 FE batch!
-        for (int chunk : new int[]{32_000, 32_000, 32_000, 16_000}) {
+        // Supply remaining 80,000 FE in chunks (64k + 16k) and finish exact 144,000 FE batch!
+        for (int chunk : new int[]{64_000, 16_000}) {
             synth.energy().set(chunk);
             guard = 0;
             while (synth.energy().getAmountAsLong() > 0 && synth.getItem(1).isEmpty() && guard++ < profile.ticks()) nextTick(h, synth);
@@ -303,22 +303,22 @@ public final class UpgradeSystemGameTests {
         h.assertTrue(synth.energy().getAmountAsLong() == 0 && synth.work().energyPaid == 0,
                 "Total Gold Block FE debit was not exact 144,000 FE");
 
-        // Second batch: pay 40,000 FE (> 32k capacity), then break machine -> portable drop strips work & clamps refund to 32k!
+        // Second batch: pay 72,000 FE (> 64k capacity), then break machine -> portable drop strips work & clamps refund to 64k!
         synth.setItem(1, ItemStack.EMPTY);
-        synth.energy().set(32_000);
+        synth.energy().set(64_000);
         h.assertTrue(synth.requestBatch(), "Failed to request second Gold Block");
         guard = 0;
         while (synth.energy().getAmountAsLong() > 0 && guard++ < profile.ticks()) nextTick(h, synth);
         synth.energy().set(8_000);
         guard = 0;
         while (synth.energy().getAmountAsLong() > 0 && guard++ < profile.ticks()) nextTick(h, synth);
-        h.assertTrue(synth.work().energyPaid == 40_000L, "Expected 40,000 FE paid before drop");
+        h.assertTrue(synth.work().energyPaid == 72_000L, "Expected 72,000 FE paid before drop");
         var drops = Block.getDrops(synth.getBlockState(), h.getLevel(), synth.getBlockPos(), synth);
         var portable = new MachineBlockEntity(synth.getBlockPos(), synth.getBlockState());
         drops.getFirst().get(DataComponents.BLOCK_ENTITY_DATA).loadInto(portable, registries);
         h.assertTrue(portable.work().progress == 0 && portable.work().energyPaid == 0
-                        && portable.energy().getAmountAsLong() == 32_000L,
-                "Portable drop did not strip work and clamp refunded FE to 32,000: energy=" + portable.energy().getAmountAsLong());
+                        && portable.energy().getAmountAsLong() == 64_000L,
+                "Portable drop did not strip work and clamp refunded FE to 64,000: energy=" + portable.energy().getAmountAsLong());
         h.succeed();
     }
 

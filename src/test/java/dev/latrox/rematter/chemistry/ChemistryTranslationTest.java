@@ -58,6 +58,8 @@ class ChemistryTranslationTest {
             }
         }
         ShippedChemistry.standalone().environmentSources().forEach(source->required.add(source.translationKey()));
+        dev.latrox.rematter.content.PrimalReactorRecipes.CONDENSATION_TIERS.forEach(tier -> required.add(tier.translationKey()));
+        required.add("process.rematter.primal_manifest");
         JsonObject language = read(Path.of("src/main/resources/assets/rematter/lang/en_us.json"));
         Set<String> missing = new TreeSet<>(required);
         missing.removeIf(key -> language.has(key) && !language.get(key).getAsString().isBlank());

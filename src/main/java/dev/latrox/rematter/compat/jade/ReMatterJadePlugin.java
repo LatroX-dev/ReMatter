@@ -23,6 +23,9 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
     static final Identifier ACCESS_POINT = id("wireless_access_point");
     static final Identifier EMITTER = id("matter_level_emitter");
     static final Identifier ENTANGLED_LINK = id("entangled_link");
+    static final Identifier DIMENSIONAL_LINK = id("dimensional_entangled_link");
+    static final Identifier SPATIAL_ANCHOR = id("spatial_anchor");
+    static final Identifier CABLE_RELAY = id("matter_cable_relay");
     static final Identifier CELL_TRANSFER_STATION = id("cell_transfer_station");
     static final Identifier ITEMS = id("private_items");
     static final Identifier FLUIDS = id("private_fluids");
@@ -36,6 +39,10 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
         registration.registerBlockDataProvider(AuxiliaryDataProviders.ACCESS_POINT, dev.latrox.rematter.content.WirelessAccessPointBlockEntity.class);
         registration.registerBlockDataProvider(AuxiliaryDataProviders.EMITTER, dev.latrox.rematter.content.MatterLevelEmitterBlockEntity.class);
         registration.registerBlockDataProvider(AuxiliaryDataProviders.ENTANGLED_LINK, dev.latrox.rematter.primal.EntangledLinkBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.DIMENSIONAL_LINK, dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.SPATIAL_ANCHOR, dev.latrox.rematter.content.SpatialAnchorBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.CABLE_RELAY, dev.latrox.rematter.content.MatterCableRelayBlockEntity.class);
+        registration.registerBlockDataProvider(AuxiliaryDataProviders.CABLE, MatterCableBlock.class);
         registration.registerBlockDataProvider(AuxiliaryDataProviders.CELL_TRANSFER_STATION, dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity.class);
         // Stop generic capability/container readers. The guarded provider below supplies this machine's HUD.
         // An empty (not null) result also prevents fallback readers from leaking a locked machine's contents.
@@ -48,13 +55,16 @@ public final class ReMatterJadePlugin implements IWailaPlugin {
         registration.registerItemStorage(items, dev.latrox.rematter.energy.EnergyCubeBlockEntity.class);
         registration.registerItemStorage(items, dev.latrox.rematter.content.MachinePortBlockEntity.class);
         registration.registerItemStorage(items, dev.latrox.rematter.content.WirelessAccessPointBlockEntity.class);
+        registration.registerItemStorage(items, dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity.class);
         registration.registerFluidStorage(fluids, MachineBlockEntity.class);
         registration.registerFluidStorage(fluids, dev.latrox.rematter.content.MachinePortBlockEntity.class);
         registration.registerEnergyStorage(energy, MachineBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.energy.EnergyCubeBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.content.MachinePortBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.content.WirelessAccessPointBlockEntity.class);
+        registration.registerEnergyStorage(energy, dev.latrox.rematter.content.SpatialAnchorBlockEntity.class);
         registration.registerEnergyStorage(energy, dev.latrox.rematter.primal.EntangledLinkBlock.class);
+        registration.registerEnergyStorage(energy, dev.latrox.rematter.primal.DimensionalEntangledLinkBlock.class);
         // The cable forwards FE; its API capacity hint must not look like a battery in Jade.
         registration.registerEnergyStorage(energy, MatterCableBlock.class);
         registration.registerProgress(progress, MachineBlockEntity.class);

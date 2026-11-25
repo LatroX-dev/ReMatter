@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "item": "rematter:primal_energy_cube",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 5000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 21000
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 5186
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 14810
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 64766
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 6000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 6250
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 7375
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 13436
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 24750
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 56699
+    }
+  ],
+  "decomposition_energy": 640000,
+  "synthesis_energy": 1280000,
+  "ticks": 720
+}

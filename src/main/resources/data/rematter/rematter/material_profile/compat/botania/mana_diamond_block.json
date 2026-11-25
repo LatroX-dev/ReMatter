@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:mana_diamond_block",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 144000,
+  "synthesis_energy": 288000,
+  "ticks": 1800
+}

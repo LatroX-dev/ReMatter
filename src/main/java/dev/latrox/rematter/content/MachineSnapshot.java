@@ -57,9 +57,25 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
                     : structure.coils() < 1 || structure.chambers() < 1 || structure.grinding() != 0 || structure.mixing() != 0 || structure.separation() != 0)
                 throw new IllegalArgumentException("Modules do not match their controller");
             int cores = preparation ? structure.grinding() : structure.chambers();
-            var hardware = new IndustrialPerformance(structure.grinding(), structure.mixing(), structure.separation(), structure.coils(), structure.chambers());
+            var hardware = machineKind == MachineKind.PRIMAL_REACTOR
+                    ? new IndustrialPerformance(0, 0, 0, 0, 0, structure.coils(), structure.chambers())
+                    : machineKind == MachineKind.TRANSMUTATION_REACTOR
+                    ? new IndustrialPerformance(0, 0, 0, structure.coils(), 0, structure.chambers(), 0)
+                    : machineKind == MachineKind.ENERGY_REACTOR
+                    ? IndustrialPerformance.energyReactor(structure.chambers(), structure.coils())
+                    : machineKind == MachineKind.ENERGY_MATRIX
+                    ? IndustrialPerformance.energyMatrix(structure.chambers(), structure.coils(), 0L, 0L)
+                    : new IndustrialPerformance(structure.grinding(), structure.mixing(), structure.separation(), structure.coils(), structure.chambers());
             if (structure.moduleCount() != cores)
                 throw new IllegalArgumentException("Structure bonuses do not match its modules");
+            if (!machineKind.isEnergyMatrix()) {
+                int area = (structure.width() - 2) * (structure.depth() - 2);
+                int total = structure.grinding() + structure.mixing() + structure.separation() + structure.coils() + structure.chambers();
+                if (total > 2 * area || structure.coils() > IndustrialPerformance.MAX_PARTS_PER_TYPE
+                        || structure.chambers() > IndustrialPerformance.MAX_PARTS_PER_TYPE) {
+                    throw new IllegalArgumentException("Mounted modules exceed floor/ceiling area");
+                }
+            }
             int base = hardware.workRate(machineKind);
             int maxMultiplier = MachineEnergyPolicy.speed(1, MachineEnergyPolicy.Upgrade.SPEED, MachineEnergyPolicy.MAX_UPGRADES);
             if (structure.workRate() % base != 0 || structure.workRate() / base > maxMultiplier)
@@ -102,14 +118,19 @@ public record MachineSnapshot(int containerId, int kind, String status, int sele
         public StructureView {
             boolean noShape = width == 0 && depth == 0 && height == 0;
             int area = noShape ? 0 : (width - 2) * (depth - 2);
+            int volume = noShape ? 0 : area * (height - 2);
+            boolean matrixShape = grinding == 0 && mixing == 0 && separation == 0 && workRate == 2 && energySavingPercent == 0;
+            int maxMounted = IndustrialPerformance.MAX_PARTS_PER_TYPE;
+            int maxParts = matrixShape ? IndustrialPerformance.MAX_MATRIX_PARTS : maxMounted;
+            int maxTotal = matrixShape ? Math.max(2 * area, volume) : 2 * area;
             int total = grinding + mixing + separation + coils + chambers;
             if (!IndustrialStructure.DIAGNOSTICS.contains(diagnostic)
                     || !noShape && (width < 3 || width > 9 || depth < 3 || depth > 9 || height < 3 || height > 9)
-                    || moduleCount < 0 || moduleCount > 98 || workRate < 0 || workRate > 980
-                    || grinding < 0 || grinding > 98 || mixing < 0 || mixing > 98 || separation < 0 || separation > 98
-                    || coils < 0 || coils > 98 || chambers < 0 || chambers > 98
+                    || moduleCount < 0 || moduleCount > maxParts || workRate < 0 || workRate > 980
+                    || grinding < 0 || grinding > maxMounted || mixing < 0 || mixing > maxMounted || separation < 0 || separation > maxMounted
+                    || coils < 0 || coils > maxParts || chambers < 0 || chambers > maxParts
                     || energySavingPercent < 0 || energySavingPercent >= 25
-                    || diagnostic.equals("ready") && (noShape || moduleCount < 1 || moduleCount > total || workRate < 2 || total > 2 * area)
+                    || diagnostic.equals("ready") && (noShape || moduleCount < 1 || moduleCount > total || workRate < 2 || total > maxTotal)
                     || !diagnostic.equals("ready") && (moduleCount != 0 || workRate != 0 || total != 0 || energySavingPercent != 0))
                 throw new IllegalArgumentException("Invalid structure view");
         }

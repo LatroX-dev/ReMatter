@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.void_condensate",
+  "symbol": "C₂SiO₂EdrAst",
+  "kind": "mixture",
+  "composition": {
+    "rematter:carbon": 2,
+    "rematter:silicon": 1,
+    "rematter:oxygen": 2,
+    "rematter:enderion": 1,
+    "rematter:astrion": 1
+  },
+  "phases": [
+    "gas"
+  ]
+}

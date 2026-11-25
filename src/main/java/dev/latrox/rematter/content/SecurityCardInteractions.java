@@ -5,6 +5,8 @@ import dev.latrox.rematter.celltransfer.CellTransferStationBlock;
 import dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity;
 import dev.latrox.rematter.energy.EnergyCubeBlock;
 import dev.latrox.rematter.energy.EnergyCubeBlockEntity;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlock;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinkBlock;
 import dev.latrox.rematter.primal.EntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinks;
@@ -60,7 +62,10 @@ public final class SecurityCardInteractions {
                 || block instanceof CellTransferStationBlock
                 || block instanceof WirelessAccessPointBlock
                 || block instanceof MatterLevelEmitterBlock
+                || block instanceof MatterCableRelayBlock
+                || block instanceof SpatialAnchorBlock
                 || block instanceof EntangledLinkBlock
+                || block instanceof DimensionalEntangledLinkBlock
                 || block instanceof MachinePortBlock
                 || block instanceof MatterCableBlock;
     }
@@ -220,7 +225,14 @@ public final class SecurityCardInteractions {
                 return neighbors;
             }
         }
-        for (Direction dir : Direction.values()) neighbors.add(pos.relative(dir));
+        for (Direction dir : Direction.values()) {
+            if (block instanceof MatterCableBlock && CableOwners.isSideBlocked(server, pos, dir)) continue;
+            BlockPos adj = pos.relative(dir);
+            if (server.getChunkSource().getChunkNow(adj.getX() >> 4, adj.getZ() >> 4) != null
+                    && server.getBlockState(adj).getBlock() instanceof MatterCableBlock
+                    && CableOwners.isSideBlocked(server, adj, dir.getOpposite())) continue;
+            neighbors.add(adj);
+        }
         if (be instanceof MachinePortBlockEntity port) {
             var controller = port.controller(null);
             if (controller != null) neighbors.add(controller.getBlockPos());
@@ -236,7 +248,10 @@ public final class SecurityCardInteractions {
                 || be instanceof CellTransferStationBlockEntity
                 || be instanceof WirelessAccessPointBlockEntity
                 || be instanceof MatterLevelEmitterBlockEntity
-                || be instanceof EntangledLinkBlockEntity;
+                || be instanceof MatterCableRelayBlockEntity
+                || be instanceof SpatialAnchorBlockEntity
+                || be instanceof EntangledLinkBlockEntity
+                || be instanceof DimensionalEntangledLinkBlockEntity;
     }
 
     private static boolean canAccess(BlockEntity be, Player player) {
@@ -245,7 +260,10 @@ public final class SecurityCardInteractions {
         if (be instanceof CellTransferStationBlockEntity station) return station.canAccess(player) && !station.locked();
         if (be instanceof WirelessAccessPointBlockEntity ap) return ap.canAccess(player);
         if (be instanceof MatterLevelEmitterBlockEntity emitter) return emitter.canAccess(player);
+        if (be instanceof MatterCableRelayBlockEntity valve) return valve.canAccess(player);
+        if (be instanceof SpatialAnchorBlockEntity anchor) return anchor.canAccess(player);
         if (be instanceof EntangledLinkBlockEntity link) return link.canAccess(player);
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) return dlink.canAccess(player);
         return false;
     }
 
@@ -255,7 +273,10 @@ public final class SecurityCardInteractions {
         if (be instanceof CellTransferStationBlockEntity station) return !station.locked() && station.canManageSecurity(player);
         if (be instanceof WirelessAccessPointBlockEntity ap) return ap.canManageSecurity(player);
         if (be instanceof MatterLevelEmitterBlockEntity emitter) return emitter.canManageSecurity(player);
+        if (be instanceof MatterCableRelayBlockEntity valve) return valve.canManageSecurity(player);
+        if (be instanceof SpatialAnchorBlockEntity anchor) return anchor.canManageSecurity(player);
         if (be instanceof EntangledLinkBlockEntity link) return link.canManageSecurity(player);
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) return dlink.canManageSecurity(player);
         return false;
     }
 
@@ -265,7 +286,10 @@ public final class SecurityCardInteractions {
         if (be instanceof CellTransferStationBlockEntity station) return station.securityMode();
         if (be instanceof WirelessAccessPointBlockEntity ap) return ap.securityMode();
         if (be instanceof MatterLevelEmitterBlockEntity emitter) return emitter.securityMode();
+        if (be instanceof MatterCableRelayBlockEntity valve) return valve.securityMode();
+        if (be instanceof SpatialAnchorBlockEntity anchor) return anchor.securityMode();
         if (be instanceof EntangledLinkBlockEntity link) return link.securityMode();
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) return dlink.securityMode();
         return SecurityMode.PUBLIC;
     }
 
@@ -275,7 +299,10 @@ public final class SecurityCardInteractions {
         if (be instanceof CellTransferStationBlockEntity station) return station.setSecurityMode(player, mode);
         if (be instanceof WirelessAccessPointBlockEntity ap) return ap.setSecurityMode(player, mode);
         if (be instanceof MatterLevelEmitterBlockEntity emitter) return emitter.setSecurityMode(player, mode);
+        if (be instanceof MatterCableRelayBlockEntity valve) return valve.setSecurityMode(player, mode);
+        if (be instanceof SpatialAnchorBlockEntity anchor) return anchor.setSecurityMode(player, mode);
         if (be instanceof EntangledLinkBlockEntity link) return link.setSecurityMode(player, mode);
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) return dlink.setSecurityMode(player, mode);
         return false;
     }
 
@@ -285,6 +312,10 @@ public final class SecurityCardInteractions {
         if (be instanceof CellTransferStationBlockEntity station) return station.getDisplayName();
         if (be instanceof WirelessAccessPointBlockEntity ap) return ap.getDisplayName();
         if (be instanceof MatterLevelEmitterBlockEntity emitter) return emitter.getDisplayName();
+        if (be instanceof MatterCableRelayBlockEntity valve) return valve.getDisplayName();
+        if (be instanceof SpatialAnchorBlockEntity anchor) return anchor.getDisplayName();
+        if (be instanceof EntangledLinkBlockEntity link) return link.getDisplayName();
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) return dlink.getDisplayName();
         return server.getBlockState(be.getBlockPos()).getBlock().getName();
     }
 }

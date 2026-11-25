@@ -1,0 +1,117 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/casing_plain",
+    "work": "rematter:block/bench_deep_extractor_work"
+  },
+  "elements": [
+    {
+      "name": "extractor_coil_left",
+      "from": [
+        5,
+        7,
+        5
+      ],
+      "to": [
+        6,
+        13,
+        7
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "extractor_coil_right",
+      "from": [
+        10,
+        7,
+        5
+      ],
+      "to": [
+        11,
+        13,
+        7
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            6
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            2,
+            6
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            1,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

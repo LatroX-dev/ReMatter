@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RMR",
+    "ECE",
+    "RKR"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "M": "rematter:matter_cable",
+    "E": "rematter:ember_matrix_crystal",
+    "C": "rematter:energy_cube",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:energy_matrix_cell",
+    "count": 1
+  }
+}

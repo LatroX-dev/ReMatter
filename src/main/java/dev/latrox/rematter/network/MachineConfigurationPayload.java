@@ -23,11 +23,13 @@ public record MachineConfigurationPayload(int containerId,MachineSettings settin
         long target=b.readVarLong();String substance=b.readUtf(256),phase=b.readUtf(16);int count=b.readVarInt();
         if(count<0||count>32)throw new IllegalArgumentException("Too many gas settings");
         var gases=new HashSet<String>();for(int i=0;i<count;i++)if(!gases.add(b.readUtf(256)))throw new IllegalArgumentException("Duplicate gas setting");
-        return new MachineSettings(target,substance,phase,gases);
+        long reserve=b.readVarLong();
+        return new MachineSettings(target,substance,phase,gases,reserve);
     }
     public static void write(RegistryFriendlyByteBuf b,MachineSettings s) {
         b.writeVarLong(s.target());b.writeUtf(s.targetSubstance(),256);b.writeUtf(s.targetPhase(),16);b.writeVarInt(s.ventedGases().size());
         for(String gas:new TreeSet<>(s.ventedGases()))b.writeUtf(gas,256);
+        b.writeVarLong(s.networkReserve());
     }
     public static void register(RegisterPayloadHandlersEvent event) {
         var registrar=event.registrar("1");

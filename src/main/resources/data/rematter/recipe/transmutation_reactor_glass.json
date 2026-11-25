@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GNG",
+    "V E",
+    "GNG"
+  ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "N": "rematter:netherite_sheath",
+    "V": "rematter:violet_matrix_crystal",
+    "E": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:transmutation_reactor_glass",
+    "count": 4
+  }
+}

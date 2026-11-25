@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "item": "rematter:particle_emitter",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 4750
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 3250
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 2843
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 16750
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 5000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 5750
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 6000
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 17759
+    }
+  ],
+  "decomposition_energy": 137000,
+  "synthesis_energy": 274000,
+  "ticks": 200
+}

@@ -15,7 +15,7 @@ public enum RedstoneMode implements StringRepresentable {
     private static final RedstoneMode[] VALUES = values();
 
     public static boolean controllable(MachineKind kind) {
-        return (kind.processes() || kind.generator()) && !PreparationTier.manual(kind);
+        return (kind.processes() || kind.generator() || kind.isEnergyMatrix() || kind.isEnergyReactor()) && !PreparationTier.manual(kind);
     }
 
     public static RedstoneMode byIndex(int index) {
@@ -31,6 +31,23 @@ public enum RedstoneMode implements StringRepresentable {
 
     public RedstoneMode next() {
         return VALUES[(ordinal() + 1) % VALUES.length];
+    }
+
+    /** Cycles through the three continuous gating states (Ignored / High / Low) used by non-pulsed devices. */
+    public RedstoneMode stepSimple(boolean forward) {
+        return switch (this) {
+            case IGNORED -> forward ? HIGH : LOW;
+            case HIGH -> forward ? LOW : IGNORED;
+            default -> forward ? IGNORED : HIGH;
+        };
+    }
+
+    public static boolean validSimpleName(String raw) {
+        return "ignored".equals(raw) || "high".equals(raw) || "low".equals(raw);
+    }
+
+    public static RedstoneMode loadSimple(String raw) {
+        return validSimpleName(raw) ? load(raw) : IGNORED;
     }
 
     public boolean permits(boolean powered, boolean pulsePending) {

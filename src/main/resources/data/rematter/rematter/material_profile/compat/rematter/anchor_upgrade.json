@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "item": "rematter:anchor_upgrade",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 52000,
+  "synthesis_energy": 104000,
+  "ticks": 100
+}

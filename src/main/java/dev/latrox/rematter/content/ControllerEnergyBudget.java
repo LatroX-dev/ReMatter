@@ -6,7 +6,7 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /** All sides and ports share this journal, including simulated and nested transfers. */
 final class ControllerEnergyBudget extends SnapshotJournal<ControllerEnergyBudget.State> {
-    static final int MAX_INPUT = 131_072;
+    static final int MAX_INPUT = 524_288;
     record State(long tick,int total,int nativeSpent,int nativeRate){}
     private State state=new State(Long.MIN_VALUE,0,0,0);
     int insert(long tick,int requested,int nativeRate,TransactionContext tx,IntUnaryOperator delegate) {

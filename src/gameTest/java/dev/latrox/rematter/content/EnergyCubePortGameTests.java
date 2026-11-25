@@ -101,7 +101,7 @@ public final class EnergyCubePortGameTests {
         h.succeed();
     }
     private static MatterCableBlock cable(EnergyCubeTier tier){return switch(tier){
-        case BASIC->ModContent.MATTER_CABLE.get();case REINFORCED->ModContent.REINFORCED_MATTER_CABLE.get();case RESONANT->ModContent.RESONANT_MATTER_CABLE.get();
+        case BASIC->ModContent.MATTER_CABLE.get();case REINFORCED->ModContent.REINFORCED_MATTER_CABLE.get();case RESONANT,PRIMAL->ModContent.RESONANT_MATTER_CABLE.get();
     };}
     private static void arm(GameTestHelper h,BlockPos pos,Direction towardCube,boolean connected){
         var state=h.getBlockState(pos);
@@ -139,7 +139,8 @@ public final class EnergyCubePortGameTests {
             CableOwners.set(h.getLevel(),absolute,UUID.randomUUID());cube.serverTick();
             h.assertTrue(cube.energy()==tier.transferRate()&&receiver.energy().getAmountAsLong()==0,"Foreign cable accepted Cube output");
             CableOwners.set(h.getLevel(),absolute,owner.getUUID());cube.serverTick();
-            h.assertTrue(cube.energy()==0&&receiver.energy().getAmountAsLong()==tier.transferRate(),"Horizontal Cube output failed native cable delivery");
+            int moved=Math.min(tier.transferRate(),cable(tier).tier().energyRate());
+            h.assertTrue(cube.energy()==tier.transferRate()-moved&&receiver.energy().getAmountAsLong()==moved,"Horizontal Cube output failed native cable delivery");
             h.setBlock(outside,Blocks.AIR);h.setBlock(wire,Blocks.AIR);h.setBlock(pos,Blocks.AIR);
             }
             if(index==EnergyCubeTier.values().length*HORIZONTAL.length-1)h.succeed();

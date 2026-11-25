@@ -14,17 +14,23 @@ import dev.emi.emi.api.widget.Bounds;
 import dev.emi.emi.runtime.EmiReloadManager;
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.client.CellTransferScreen;
+import dev.latrox.rematter.client.DimensionalEntangledLinkScreen;
+import dev.latrox.rematter.client.EntangledLinkScreen;
 import dev.latrox.rematter.client.EnergyCubeScreen;
 import dev.latrox.rematter.client.MachineScreen;
 import dev.latrox.rematter.client.MatterLevelEmitterScreen;
+import dev.latrox.rematter.client.MatterCableRelayScreen;
+import dev.latrox.rematter.client.NetworkReservesScreen;
 import dev.latrox.rematter.client.PrimalTargetScreen;
 import dev.latrox.rematter.client.ProcessSelectionScreen;
+import dev.latrox.rematter.client.SpatialAnchorScreen;
 import dev.latrox.rematter.client.SubstanceDetails;
 import dev.latrox.rematter.client.SubstanceDetailsScreen;
 import dev.latrox.rematter.client.SubstanceHoverProvider;
 import dev.latrox.rematter.client.SubstanceScreenLayer;
 import dev.latrox.rematter.client.WirelessAccessPointScreen;
 import dev.latrox.rematter.compat.ChemistryViewer;
+import dev.latrox.rematter.compat.EnergyReactorDisplay;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.compat.PreparationDisplay;
@@ -116,6 +122,7 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         registry.addScreenBoundsProvider(ProcessSelectionScreen.class, ReMatterEmiPlugin::substanceBounds);
         registry.addScreenBoundsProvider(PrimalTargetScreen.class, ReMatterEmiPlugin::substanceBounds);
         registry.addScreenBoundsProvider(SubstanceDetailsScreen.class, ReMatterEmiPlugin::substanceBounds);
+        registry.addScreenBoundsProvider(NetworkReservesScreen.class, ReMatterEmiPlugin::substanceBounds);
         registry.addExclusionArea(MachineScreen.class, (screen, consumer) -> {
             for (var area : screen.viewerExclusionAreas())
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
@@ -133,6 +140,22 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
         });
         registry.addExclusionArea(MatterLevelEmitterScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(MatterCableRelayScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(SpatialAnchorScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(DimensionalEntangledLinkScreen.class, (screen, consumer) -> {
+            for (var area : screen.viewerExclusionAreas())
+                consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
+        });
+        registry.addExclusionArea(EntangledLinkScreen.class, (screen, consumer) -> {
             for (var area : screen.viewerExclusionAreas())
                 consumer.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight()));
         });
@@ -164,6 +187,15 @@ public final class ReMatterEmiPlugin implements EmiPlugin {
         }
         for (var fuel : dev.latrox.rematter.compat.CrystalFuelDisplay.from(displayedCrystalFuels))
             registry.addRecipe(new CrystalFuelEmiRecipe(crystalFuelCategories.get(fuel.machine()), fuel));
+        var energyReactorCategory = new EmiRecipeCategory(Identifier.fromNamespaceAndPath("rematter", "energy_reactor"),
+                EmiStack.of(ModContent.MACHINES.get(MachineKind.ENERGY_REACTOR).get())) {
+            @Override public Component getName() { return Component.translatable("block.rematter.energy_reactor_controller"); }
+        };
+        registry.addCategory(energyReactorCategory);
+        registry.addWorkstation(energyReactorCategory, (EmiStack) energyReactorCategory.icon);
+        for (var reactorEntry : EnergyReactorDisplay.entries(catalogue)) {
+            registry.addRecipe(new EnergyReactorEmiRecipe(energyReactorCategory, reactorEntry));
+        }
         var categories = new EnumMap<ChemistryViewer.Category, EmiRecipeCategory>(ChemistryViewer.Category.class);
         for (var value : ChemistryViewer.Category.values()) {
             var machines = value.machines();

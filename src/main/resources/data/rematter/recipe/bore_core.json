@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RDR",
+    "DSD",
+    "C C"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "D": "rematter:diamond_lattice",
+    "S": "rematter:structural_bars",
+    "C": "minecraft:copper_ingot"
+  },
+  "result": {
+    "id": "rematter:bore_core",
+    "count": 1
+  }
+}

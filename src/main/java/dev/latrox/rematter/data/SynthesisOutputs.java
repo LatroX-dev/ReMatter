@@ -37,7 +37,9 @@ final class SynthesisOutputs {
             "rematter:diamond_lattice", "rematter:ender_conductor", "rematter:netherite_sheath",
             "rematter:matrix_blend", "rematter:diamond_matrix_blend", "rematter:ender_conductor_blend",
             "rematter:netherite_sheath_blend", "rematter:matrix_cluster", "rematter:cell_housing", "rematter:reactor_glass",
-            "rematter:machine_port", "rematter:silith", "rematter:argil", "rematter:rhedon", "rematter:virel", "rematter:lumin",
+            "rematter:machine_port", "rematter:transmutation_reactor_glass", "rematter:transmutation_machine_port",
+            "rematter:primal_reactor_glass", "rematter:primal_machine_port",
+            "rematter:silith", "rematter:argil", "rematter:rhedon", "rematter:virel", "rematter:lumin",
             "rematter:rhevon_ingot", "rematter:lumivex_ingot", "rematter:automation_pattern", "rematter:recovered_matter",
             "rematter:guide");
     private static final Set<String> SPECIAL_LOOT = Set.of(

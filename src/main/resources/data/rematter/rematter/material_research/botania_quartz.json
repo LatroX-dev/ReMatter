@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "name": "Botania Quartz",
+  "items": [
+    "botania:blaze_quartz",
+    "botania:dark_quartz",
+    "botania:elf_quartz",
+    "botania:lavender_quartz",
+    "botania:mana_quartz",
+    "botania:quartz_blaze",
+    "botania:quartz_dark",
+    "botania:quartz_elven",
+    "botania:quartz_lavender",
+    "botania:quartz_mana",
+    "botania:quartz_red",
+    "botania:quartz_shimmer",
+    "botania:quartz_sunny",
+    "botania:red_quartz",
+    "botania:shimmer_quartz",
+    "botania:sunny_quartz"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

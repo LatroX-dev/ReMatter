@@ -39,23 +39,46 @@ public final class PrimalContent {
     public static final DeferredItem<PrimalCellItem> PRIMAL_CELL_64K = ITEMS.registerItem("primal_cell_64k", p -> new PrimalCellItem(p, 64000));
     public static final DeferredItem<PrimalCellItem> PRIMAL_CELL_256K = ITEMS.registerItem("primal_cell_256k", p -> new PrimalCellItem(p, 256000));
     public static final DeferredItem<PrimalCellItem> PRIMAL_CELL_1M = ITEMS.registerItem("primal_cell_1m", p -> new PrimalCellItem(p, 1000000));
+    public static final DeferredItem<PrimalCellItem> PRIMAL_CELL_4M = ITEMS.registerItem("primal_cell_4m", p -> new PrimalCellItem(p, 4000000));
     public static final DeferredItem<Item> PRIMAL_CRYSTAL = ITEMS.registerSimpleItem("primal_crystal");
+    public static final DeferredItem<Item> PRIMAL_MATRIX_CORE = ITEMS.registerSimpleItem("primal_matrix_core");
     public static final DeferredItem<Item> DISCOVERY_LENS = ITEMS.registerSimpleItem("discovery_lens", p -> p.stacksTo(1));
     public static final DeferredBlock<EntangledLinkBlock> ENTANGLED_LINK = BLOCKS.registerBlock("entangled_link", EntangledLinkBlock::new,
             p -> p.mapColor(MapColor.COLOR_PURPLE).strength(4, 12).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<EntangledLinkItem> ENTANGLED_LINK_ITEM = ITEMS.registerItem("entangled_link", p -> new EntangledLinkItem(ENTANGLED_LINK.get(), p.useBlockDescriptionPrefix()));
     public static final Supplier<BlockEntityType<EntangledLinkBlockEntity>> ENTANGLED_LINK_ENTITY = ENTITIES.register("entangled_link",
             () -> new BlockEntityType<>(EntangledLinkBlockEntity::new, false, ENTANGLED_LINK.get()));
+    public static final DeferredBlock<DimensionalEntangledLinkBlock> DIMENSIONAL_ENTANGLED_LINK = BLOCKS.registerBlock("dimensional_entangled_link", DimensionalEntangledLinkBlock::new,
+            p -> p.mapColor(MapColor.COLOR_BLUE).strength(5, 18).sound(SoundType.METAL).noOcclusion()
+                    .lightLevel(state -> state.getValue(DimensionalEntangledLinkBlock.LINKED) ? 6 : 0).pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> DIMENSIONAL_ENTANGLED_LINK_ITEM = ITEMS.registerSimpleBlockItem(DIMENSIONAL_ENTANGLED_LINK);
+    public static final Supplier<BlockEntityType<DimensionalEntangledLinkBlockEntity>> DIMENSIONAL_ENTANGLED_LINK_ENTITY = ENTITIES.register("dimensional_entangled_link",
+            () -> new BlockEntityType<>(DimensionalEntangledLinkBlockEntity::new, false, DIMENSIONAL_ENTANGLED_LINK.get()));
     private static DeferredBlock<DropExperienceBlock> ore(String id, MapColor color, SoundType sound) {
         return BLOCKS.registerBlock(id, p -> new DropExperienceBlock(UniformInt.of(3, 7), p),
                 p -> p.mapColor(color).strength(4.5F, 3).sound(sound).requiresCorrectToolForDrops().lightLevel(state -> 3));
     }
     public static List<Item> creativeItems() {
         return List.of(DEEPSLATE_PRIMAL_ORE_ITEM.get(), NETHER_PRIMAL_ORE_ITEM.get(), END_PRIMAL_ORE_ITEM.get(), PRIMAL_SHARD.get(),
-                PRIMAL_CELL_16K.get(), PRIMAL_CELL_64K.get(), PRIMAL_CELL_256K.get(), PRIMAL_CELL_1M.get(), PRIMAL_CRYSTAL.get(), DISCOVERY_LENS.get(), ENTANGLED_LINK_ITEM.get());
+                PRIMAL_CELL_16K.get(), PRIMAL_CELL_64K.get(), PRIMAL_CELL_256K.get(), PRIMAL_CELL_1M.get(), PRIMAL_CELL_4M.get(),
+                PRIMAL_CRYSTAL.get(), PRIMAL_MATRIX_CORE.get(), DISCOVERY_LENS.get(), ENTANGLED_LINK_ITEM.get(),
+                DIMENSIONAL_ENTANGLED_LINK_ITEM.get());
     }
     private static void capabilities(RegisterCapabilitiesEvent event){
-        event.registerBlock(Capabilities.Energy.BLOCK,(level,pos,state,entity,side)->dev.latrox.rematter.content.MatterCablePower.capability(level,pos,side),ENTANGLED_LINK.get());
+        event.registerBlock(Capabilities.Energy.BLOCK,(level,pos,state,entity,side)->{
+            if(side==null)return null;
+            if(state.getBlock() instanceof EntangledLinkBlock) {
+                boolean allowed = entity instanceof EntangledLinkBlockEntity link
+                        ? link.allowsPower(side) : EntangledLinkBlock.connectsSide(state, side);
+                if (!allowed) return null;
+            }
+            if(state.getBlock() instanceof DimensionalEntangledLinkBlock) {
+                boolean allowed = entity instanceof DimensionalEntangledLinkBlockEntity dlink
+                        ? dlink.allowsPower(side) : DimensionalEntangledLinkBlock.connectsSide(state, side);
+                if (!allowed) return null;
+            }
+            return dev.latrox.rematter.content.MatterCablePower.capability(level,pos,side);
+        }, ENTANGLED_LINK.get(), DIMENSIONAL_ENTANGLED_LINK.get());
     }
     public static void register(IEventBus bus) { bus.addListener(PrimalContent::capabilities); BLOCKS.register(bus); ITEMS.register(bus); ENTITIES.register(bus); PLACEMENTS.register(bus); PrimalCellData.register(bus); }
     private PrimalContent() {}

@@ -18,12 +18,14 @@ public enum UiIcon {
     DEVICES("devices"),
     DISABLED("disabled"),
     DISCOVER("discover"),
+    EDIT("edit"),
     EJECT("eject"),
     ENERGY("energy"),
     EXCHANGE("exchange"),
     FAMILIES("families"),
     FUEL("fuel"),
     GAS("gas"),
+    GENERAL("general"),
     HELP("help"),
     HOPPER("hopper"),
     INFO("info"),
@@ -114,9 +116,10 @@ public enum UiIcon {
             case ITEM_OUTPUT -> PORT_ITEM_OUT;
             case FLUID_INPUT -> PORT_FLUID_IN;
             case FLUID_OUTPUT -> PORT_FLUID_OUT;
-            case POWER -> ENERGY;
+            case POWER, POWER_OUTPUT -> ENERGY;
             case MATTER -> MATTER;
             case CHEMICAL -> CHEMICAL;
+            case REDSTONE -> REDSTONE;
             case DISABLED -> DISABLED;
         };
     }

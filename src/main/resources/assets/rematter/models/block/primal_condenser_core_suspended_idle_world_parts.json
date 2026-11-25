@@ -1,0 +1,253 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_primal_condenser_core_work"
+  },
+  "elements": [
+    {
+      "name": "core_base",
+      "from": [
+        6,
+        9.5,
+        6
+      ],
+      "to": [
+        10,
+        11.5,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            10,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "singularity",
+      "from": [
+        5,
+        4.5,
+        5
+      ],
+      "to": [
+        11,
+        9.5,
+        11
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "core_neck",
+      "from": [
+        6,
+        3,
+        6
+      ],
+      "to": [
+        10,
+        4.5,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            10,
+            0,
+            14,
+            1.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "apex_spire",
+      "from": [
+        6.5,
+        0,
+        6.5
+      ],
+      "to": [
+        9.5,
+        2,
+        9.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            14,
+            3,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            14,
+            3,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            14,
+            3,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            14,
+            3,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            11,
+            3,
+            14
+          ],
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

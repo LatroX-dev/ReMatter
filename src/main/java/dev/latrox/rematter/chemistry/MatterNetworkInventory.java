@@ -22,8 +22,33 @@ import org.jspecify.annotations.Nullable;
  */
 public final class MatterNetworkInventory implements MatterStore {
     public static final int MAX_MEMBERS = 384;
+
+    /** Per-member withdrawal and deposit permissions derived from relay direction and filters. */
+    public interface MemberPolicy {
+        MemberPolicy UNRESTRICTED = new UnrestrictedPolicy();
+        boolean canWithdraw(SubstanceKey key);
+        boolean canDeposit(SubstanceKey key);
+        boolean allowsAnyWithdraw();
+        boolean allowsAnyDeposit();
+    }
+
+    private record UnrestrictedPolicy() implements MemberPolicy {
+        @Override public boolean canWithdraw(SubstanceKey key) { return true; }
+        @Override public boolean canDeposit(SubstanceKey key) { return true; }
+        @Override public boolean allowsAnyWithdraw() { return true; }
+        @Override public boolean allowsAnyDeposit() { return true; }
+    }
+
+    public record VoidRule(VoidPolicy policy, MemberPolicy access) {
+        public VoidRule { Objects.requireNonNull(policy); Objects.requireNonNull(access); }
+        public boolean accepts(SubstanceKey key) { return policy.accepts(key) && access.canDeposit(key); }
+    }
+
     private final List<MatterInventory> members;
+    private final List<MemberPolicy> policies;
     private final VoidPolicy voidPolicy;
+    private final List<VoidRule> voidRules;
+    private final boolean restricted;
     private long aggregatedRevision = -1;
     private @Nullable Map<SubstanceKey, Long> aggregatedContents;
 
@@ -32,8 +57,28 @@ public final class MatterNetworkInventory implements MatterStore {
     }
 
     public MatterNetworkInventory(List<MatterInventory> members, VoidPolicy voidPolicy) {
+        this(members, voidPolicy, Collections.nCopies(members.size(), MemberPolicy.UNRESTRICTED),
+                voidPolicy.present() ? List.of(new VoidRule(voidPolicy, MemberPolicy.UNRESTRICTED)) : List.of());
+    }
+
+    public MatterNetworkInventory(List<MatterInventory> members, VoidPolicy voidPolicy,
+                                  List<MemberPolicy> policies, List<VoidRule> voidRules) {
         this.members = List.copyOf(members);
+        this.policies = List.copyOf(policies);
         this.voidPolicy = Objects.requireNonNull(voidPolicy, "voidPolicy");
+        this.voidRules = List.copyOf(voidRules);
+        if (this.policies.size() != this.members.size())
+            throw new IllegalArgumentException("Member policy count mismatch");
+        boolean anyRestricted = false;
+        for (var policy : this.policies) {
+            if (policy != MemberPolicy.UNRESTRICTED) { anyRestricted = true; break; }
+        }
+        if (!anyRestricted) {
+            for (var rule : this.voidRules) {
+                if (rule.access() != MemberPolicy.UNRESTRICTED) { anyRestricted = true; break; }
+            }
+        }
+        this.restricted = anyRestricted;
         if ((this.members.isEmpty() && !voidPolicy.present()) || this.members.size() > MAX_MEMBERS)
             throw new IllegalArgumentException("Invalid network size");
         var identities = Collections.newSetFromMap(new IdentityHashMap<MatterInventory, Boolean>());
@@ -42,13 +87,57 @@ public final class MatterNetworkInventory implements MatterStore {
     }
 
     @Override public List<MatterInventory> members() { return members; }
-    @Override public boolean voidsOverflow(SubstanceKey key) { return voidPolicy.accepts(key); }
-    @Override public Object voidSignature() { return voidPolicy; }
-    @Override public long capacity() { return sum(MatterInventory::capacity); }
-    @Override public long total() { return sum(MatterInventory::total); }
-    @Override public long freeSpace() { return sum(MatterInventory::freeSpace); }
+    @Override public boolean canDepositMember(int index, SubstanceKey key) { return policies.get(index).canDeposit(key); }
+    @Override public boolean voidsOverflow(SubstanceKey key) {
+        if (!restricted) return voidPolicy.accepts(key);
+        for (var rule : voidRules) if (rule.accepts(key)) return true;
+        return false;
+    }
+    @Override public Object voidSignature() {
+        return restricted ? List.of(voidPolicy, policies, voidRules) : voidPolicy;
+    }
+    @Override public long capacity() {
+        if (!restricted) return sum(MatterInventory::capacity);
+        synchronized (MatterInventory.MUTATION_LOCK) {
+            validateTotals();
+            long total = 0;
+            for (int i = 0; i < members.size(); i++) {
+                var p = policies.get(i);
+                if (p.allowsAnyWithdraw() || p.allowsAnyDeposit()) total = Math.addExact(total, members.get(i).capacity());
+            }
+            return total;
+        }
+    }
+    @Override public long total() {
+        if (!restricted) return sum(MatterInventory::total);
+        long sum = 0;
+        for (long amt : contents().values()) sum = Math.addExact(sum, amt);
+        return sum;
+    }
+    @Override public long freeSpace() {
+        if (!restricted) return sum(MatterInventory::freeSpace);
+        synchronized (MatterInventory.MUTATION_LOCK) {
+            validateTotals();
+            long total = 0;
+            for (int i = 0; i < members.size(); i++) {
+                if (policies.get(i).allowsAnyDeposit()) total = Math.addExact(total, members.get(i).freeSpace());
+            }
+            return total;
+        }
+    }
     @Override public int typeCount() { return contents().size(); }
-    @Override public long amount(SubstanceKey key) { Objects.requireNonNull(key); return sum(member -> member.amount(key)); }
+    @Override public long amount(SubstanceKey key) {
+        Objects.requireNonNull(key);
+        if (!restricted) return sum(member -> member.amount(key));
+        synchronized (MatterInventory.MUTATION_LOCK) {
+            validateTotals();
+            long total = 0;
+            for (int i = 0; i < members.size(); i++) {
+                if (policies.get(i).canWithdraw(key)) total = Math.addExact(total, members.get(i).amount(key));
+            }
+            return total;
+        }
+    }
     @Override public Map<SubstanceKey, Long> contents() {
         synchronized (MatterInventory.MUTATION_LOCK) {
             // Aggregates are rebuilt only after a member changed; repeated reads of unchanged stock share one map.
@@ -56,7 +145,13 @@ public final class MatterNetworkInventory implements MatterStore {
             long revision = revision();
             if (revision == aggregatedRevision && aggregatedContents != null) return aggregatedContents;
             var result = new TreeMap<SubstanceKey, Long>();
-            for (var member : members) member.contents().forEach((key, amount) -> result.merge(key, amount, Math::addExact));
+            for (int i = 0; i < members.size(); i++) {
+                var policy = policies.get(i);
+                if (!policy.allowsAnyWithdraw()) continue;
+                members.get(i).contents().forEach((key, amount) -> {
+                    if (policy.canWithdraw(key)) result.merge(key, amount, Math::addExact);
+                });
+            }
             aggregatedContents = Collections.unmodifiableMap(result);
             aggregatedRevision = revision;
             return aggregatedContents;
@@ -133,16 +228,23 @@ public final class MatterNetworkInventory implements MatterStore {
     private boolean aggregateFits(Map<SubstanceKey, Long> inputs, Map<SubstanceKey, Long> outputs, boolean typesOnly) {
         for (var input : inputs.entrySet()) {
             long available = 0;
-            for (var member : members) available = Math.addExact(available, member.amount(input.getKey()));
+            for (int i = 0; i < members.size(); i++) {
+                if (policies.get(i).canWithdraw(input.getKey())) available = Math.addExact(available, members.get(i).amount(input.getKey()));
+            }
             if (available < input.getValue()) return false;
         }
         if (typesOnly) return true;
         long nonVoidOutput = 0;
         for (var entry : outputs.entrySet()) {
-            if (!voidPolicy.accepts(entry.getKey())) nonVoidOutput = Math.addExact(nonVoidOutput, entry.getValue());
+            if (!voidsOverflow(entry.getKey())) {
+                if (restricted && !acceptsDeposit(entry.getKey())) return false;
+                nonVoidOutput = Math.addExact(nonVoidOutput, entry.getValue());
+            }
         }
         long room = MatterAmounts.total(inputs);
-        for (var member : members) room = Math.addExact(room, member.freeSpace());
+        for (int i = 0; i < members.size(); i++) {
+            if (policies.get(i).allowsAnyDeposit()) room = Math.addExact(room, members.get(i).freeSpace());
+        }
         return room >= nonVoidOutput;
     }
 
@@ -165,7 +267,7 @@ public final class MatterNetworkInventory implements MatterStore {
                     long remaining=input.getValue();
                     while(remaining>0) {
                         var candidates=new ArrayList<Integer>();
-                        for(int i=0;i<copies.size();i++)if(copies.get(i).amount(input.getKey())>0)candidates.add(i);
+                        for(int i=0;i<copies.size();i++)if(policies.get(i).canWithdraw(input.getKey())&&copies.get(i).amount(input.getKey())>0)candidates.add(i);
                         if(candidates.isEmpty())return null; // Total input availability does not depend on allocation.
                         candidates.sort(Comparator.<Integer>comparingLong(i -> copies.get(i).amount(input.getKey())).thenComparingInt(i -> i));
                         int step=decisions.size();int choice=step<selected.size()?selected.get(step):0;
@@ -178,7 +280,8 @@ public final class MatterNetworkInventory implements MatterStore {
                         if (withdrawn != null && extracted > 0) withdrawn[member] = true;
                     }
                 }
-                var allocation=MatterOutputAllocator.allocate(copies,checkedOutputs,typesOnly,voidPolicy,budget);
+                var allocation=MatterOutputAllocator.allocate(copies,checkedOutputs,typesOnly,this::voidsOverflow,
+                        (c, k) -> policies.get(c).canDeposit(k), budget);
                 if(allocation!=null) {
                     if(!typesOnly)for(int i=0;i<copies.size();i++)
                         if(!allocation.get(i).isEmpty()&&!copies.edit(i).apply(Map.of(),allocation.get(i)))throw new IllegalStateException("Invalid output allocation");

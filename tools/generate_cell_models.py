@@ -52,6 +52,7 @@ FACES = {
     'primal_cell_64k': 'drive_primal_cell_64k',
     'primal_cell_256k': 'drive_primal_cell_256k',
     'primal_cell_1m': 'drive_primal_cell_1m',
+    'primal_cell_4m': 'drive_primal_cell_4m',
 }
 MODEL_NAMES = tuple(FACES)
 # Status of the item property -> light sprite, the ones the Drive shows over a bay.

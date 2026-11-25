@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "item": "rematter:deep_extractor",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 4874
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 6000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 8000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 6500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 6704
+    }
+  ],
+  "decomposition_energy": 85000,
+  "synthesis_energy": 170000,
+  "ticks": 170
+}

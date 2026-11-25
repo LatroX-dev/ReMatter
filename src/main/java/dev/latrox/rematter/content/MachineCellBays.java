@@ -95,6 +95,27 @@ final class MachineCellBays {
     }
     long primalAmount(){long sum=0;for(int bay=0;bay<count();bay++)sum=Math.addExact(sum,PrimalCells.view(stack(bay)).amount());return sum;}
     long primalCapacity(){long sum=0;for(int bay=0;bay<count();bay++)sum=Math.addExact(sum,PrimalCells.view(stack(bay)).capacity());return sum;}
+    long primalFreeSpace(){long sum=0;for(int bay=0;bay<count();bay++){var v=PrimalCells.view(stack(bay));if(v.readable())sum=Math.addExact(sum,Math.max(0L,v.capacity()-v.amount()));}return sum;}
+    long creditPrimal(long amount,net.neoforged.neoforge.transfer.transaction.TransactionContext tx){
+        long remaining=amount;
+        for(int bay=0;bay<count()&&remaining>0;bay++){
+            int b=bay;
+            if(!(stack(b).getItem() instanceof PrimalCellItem))continue;
+            long added=PrimalCells.credit(new PrimalCells.Journal(()->stack(b)),remaining,tx);
+            remaining-=added;
+        }
+        return amount-remaining;
+    }
+    long debitPrimal(long amount,net.neoforged.neoforge.transfer.transaction.TransactionContext tx){
+        long remaining=amount;
+        for(int bay=0;bay<count()&&remaining>0;bay++){
+            int b=bay;
+            if(!(stack(b).getItem() instanceof PrimalCellItem))continue;
+            long taken=PrimalCells.debit(new PrimalCells.Journal(()->stack(b)),remaining,tx);
+            remaining-=taken;
+        }
+        return amount-remaining;
+    }
     List<MachineSnapshot.CellView> views() { return IntStream.range(0, count()).mapToObj(this::view).toList(); }
 
     int visibleMask() {
@@ -102,14 +123,14 @@ final class MachineCellBays {
         for (int bay = 0; bay < count(); bay++) if (!stack(bay).isEmpty()) mask |= 1 << bay;
         return mask;
     }
-    /** 0 absent, 1/2/3/8 Matter tiers, 4 unreadable, 5/6/7/9 Primal tiers, 10 Void cell. */
+    /** 0 absent, 1/2/3/8 Matter tiers, 4 unreadable, 5/6/7/9/11 Primal tiers, 10 Void cell. */
     int visibleTier(int bay) {
         var stack = stack(bay);
         if (stack.isEmpty()) return 0;
         if (stack.getItem() instanceof VoidMatterCellItem) return VoidMatterCellItem.policy(stack).isPresent() ? 10 : 4;
         if (stack.getItem() instanceof PrimalCellItem cell) {
             return PrimalCells.view(stack).readable()
-                    ? (cell.capacity() <= 16_000 ? 5 : cell.capacity() <= 64_000 ? 6 : cell.capacity() <= 256_000 ? 7 : 9) : 4;
+                    ? (cell.capacity() <= 16_000 ? 5 : cell.capacity() <= 64_000 ? 6 : cell.capacity() <= 256_000 ? 7 : cell.capacity() <= 1_000_000 ? 9 : 11) : 4;
         }
         if (!cells.mount(bay).readable(stack) || !(stack.getItem() instanceof MatterCellItem item)) return 4;
         return item.capacity() <= MatterLimits.CELL_4M ? 1

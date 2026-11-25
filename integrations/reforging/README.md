@@ -2,6 +2,8 @@
 
 This optional integration applies ReForging's pack balance rules, bonus-free milling overrides, crystal fuels and Embers Questing chapter. It is separate from the standalone mod and is not bundled or activated by the ReMatter JAR. ReForging no longer ships Replication or Equivox; the Replication deny tags and `merge_equivox.py` helper below remain included as optional coexistence safeguards for third-party modpacks that do install Replication or Equivox alongside ReMatter.
 
+> **Process gating notice:** In this reference pack, the 21 newer industrial chemistry routes added in ReMatter 0.50.0 (including the 13 Transmutation Reactor routes, Deep-Core refining routes, ammonia synthesis, and cellulose synthesis) are intentionally disabled by explicit `disabled: true` overrides under `datapack/data/rematter/rematter/process/` until ReForging performs its own pack-specific progression and balance audit for them. Standalone ReMatter enables all of these routes by default.
+
 ## Quartz and silicon
 
 Quartz decomposes into 1,000 units of `rematter:crystalline_silica`, exactly as in the standalone mod. Its dusts, nuggets and blocks synthesize from the same quantities. The gem is synthesizable in the Material Synthesizer. The standalone mod disables it while Ender IO is loaded; this integration explicitly restores it together with the bonus-free milling override below. Sand uses `rematter:silica`; the two substances share the SiO₂ composition but keep separate identities. The integration adds no second crystalline-silica substance and overrides no material profile.
@@ -36,8 +38,13 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:chemical_processor`
 - `rematter:matter_terminal`
 - `rematter:chemical_reactor_controller`
-- `rematter:industrial_decomposer_controller`
-- `rematter:industrial_synthesizer_controller`
+- `rematter:decomposer_reactor_controller`
+- `rematter:synthesizer_reactor_controller`
+- `rematter:transmutation_reactor_controller`
+- `rematter:primal_reactor_controller`
+- `rematter:energy_matrix_controller`
+- `rematter:energy_reactor_controller`
+- `rematter:deep_extractor`
 - `rematter:matter_drive`
 - `rematter:material_preparator`
 - `rematter:hand_preparator`
@@ -56,6 +63,7 @@ These machines, Matter Cells, recovery items and automation patterns are exclude
 - `rematter:energy_cube`
 - `rematter:reinforced_energy_cube`
 - `rematter:resonant_energy_cube`
+- `rematter:primal_energy_cube`
 - `rematter:cell_transfer_station`
 
 The exclusions cover empty and filled variants of those exact items. The `reforging:rematter/stateful_machines` tag lists them. Foreign machines, pipes, casings, upgrades, and the guide are unchanged. Existing tag entries and unrelated custom EMC values are preserved.

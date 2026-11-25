@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:black_iridescent_log",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 1200
+    }
+  ],
+  "decomposition_energy": 9000,
+  "synthesis_energy": 18000,
+  "ticks": 240
+}

@@ -5,5 +5,6 @@ public enum ProcessType {
     REACTION,
     SEPARATION,
     PHASE_CHANGE,
-    CRYSTALLIZATION
+    CRYSTALLIZATION,
+    TRANSMUTATION
 }

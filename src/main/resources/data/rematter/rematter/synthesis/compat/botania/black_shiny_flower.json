@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:black_shiny_flower",
+  "disabled": true
+}

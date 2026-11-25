@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "type": "reaction",
+  "inputs": [
+    {
+      "substance": "rematter:carbon_dioxide",
+      "phase": "gas",
+      "amount": 6000
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 5000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 6000
+    }
+  ],
+  "energy": 96000,
+  "ticks": 800,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": false,
+    "product": "rematter:cellulose"
+  }
+}

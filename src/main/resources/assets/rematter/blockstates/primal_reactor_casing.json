@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "rematter:block/primal_reactor_casing"
+    }
+  }
+}

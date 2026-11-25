@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CEC",
+    "BKB",
+    "CEC"
+  ],
+  "key": {
+    "C": "rematter:energy_matrix_casing",
+    "E": "rematter:ember_matrix_crystal",
+    "B": "rematter:blue_matrix_crystal",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:energy_matrix_port",
+    "count": 2
+  }
+}

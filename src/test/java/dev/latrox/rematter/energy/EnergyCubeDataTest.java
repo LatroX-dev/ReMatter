@@ -7,21 +7,22 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class EnergyCubeDataTest {
     private static CompoundTag valid(EnergyCubeTier tier){
-        var raw=new CompoundTag();raw.putInt("schema",1);raw.putInt("energy",tier.capacity());raw.putInt("side_modes",1);
+        var raw=new CompoundTag();raw.putInt("schema",1);raw.putLong("energy",tier.capacity());raw.putInt("side_modes",1);
         var items=new ListTag();for(int i=0;i<tier.chargingSlots();i++)items.add(new CompoundTag());raw.put("items",items);return raw;
     }
     @Test void allTiersAcceptExactBoundsAndTheirOwnInventorySize(){
         for(var tier:EnergyCubeTier.values()){
             var raw=valid(tier);assertNull(EnergyCubeData.rejection(raw,tier,true,tier.chargingSlots()));
+            raw.putLong("energy",0L);assertNull(EnergyCubeData.rejection(raw,tier,true,tier.chargingSlots()));
             raw.putInt("energy",0);assertNull(EnergyCubeData.rejection(raw,tier,true,tier.chargingSlots()));
         }
     }
     @Test void invalidEnergyIsProtectedInsteadOfBeingClamped(){
-        for(var tier:EnergyCubeTier.values())for(int amount:new int[]{-1,tier.capacity()+1,Integer.MAX_VALUE}){
-            var raw=valid(tier);raw.putInt("energy",amount);var before=raw.copy();
+        for(var tier:EnergyCubeTier.values())for(long amount:new long[]{-1L,tier.capacity()+1L,Long.MAX_VALUE}){
+            var raw=valid(tier);raw.putLong("energy",amount);var before=raw.copy();
             assertNotNull(EnergyCubeData.rejection(raw,tier,true,tier.chargingSlots()));assertEquals(before,raw);
         }
-        var raw=valid(EnergyCubeTier.BASIC);raw.putLong("energy",1);
+        var raw=valid(EnergyCubeTier.BASIC);raw.putString("energy","1");
         assertNotNull(EnergyCubeData.rejection(raw,EnergyCubeTier.BASIC,true,1));
     }
     @Test void futureFieldsSchemasAndUnreadableItemsArePreserved(){

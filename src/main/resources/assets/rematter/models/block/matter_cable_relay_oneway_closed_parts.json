@@ -1,0 +1,65 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable_relay_disp_oneway_closed",
+    "disp": "rematter:block/matter_cable_relay_disp_oneway_closed"
+  },
+  "elements": [
+    {
+      "name": "display_core",
+      "from": [
+        5,
+        5,
+        3.5
+      ],
+      "to": [
+        11,
+        11,
+        12.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "east": {
+          "texture": "#disp",
+          "uv": [
+            12.5,
+            5,
+            3.5,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#disp",
+          "uv": [
+            3.5,
+            5,
+            12.5,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#disp",
+          "uv": [
+            3.5,
+            11,
+            12.5,
+            5
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#disp",
+          "uv": [
+            12.5,
+            11,
+            3.5,
+            5
+          ],
+          "rotation": 90
+        }
+      }
+    }
+  ]
+}

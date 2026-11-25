@@ -55,6 +55,18 @@ public final class OptimizationAndIndustrialGameTests {
                 OptimizationAndIndustrialGameTests::industrialDecomposerChamber);
         TESTS.put("industrial_synthesizer_crystallizes_diamonds_in_parallel_without_pressure_module",
                 OptimizationAndIndustrialGameTests::industrialSynthesizerChamber);
+        TESTS.put("legacy_controller_registry_aliases_resolve_to_reactor_controllers",
+                OptimizationAndIndustrialGameTests::legacyControllerAliases);
+        TESTS.put("deep_extractor_extracts_mineral_slurry_over_deepslate",
+                OptimizationAndIndustrialGameTests::deepExtractorOverDeepslate);
+        TESTS.put("transmutation_reactor_forms_and_transmutes_iron_to_gold",
+                OptimizationAndIndustrialGameTests::transmutationReactor);
+        TESTS.put("primal_reactor_forms_and_condenses_into_4m_primal_cell",
+                OptimizationAndIndustrialGameTests::primalReactor);
+        TESTS.put("energy_matrix_buffers_64bit_fe_silently_and_connects_glass",
+                OptimizationAndIndustrialGameTests::energyMatrixAndConnectedGlass);
+        TESTS.put("energy_reactor_generates_across_modes_with_coolant_and_feeds_matrix",
+                OptimizationAndIndustrialGameTests::energyReactorModesCoolantAndMatrixFeed);
     }
 
     private OptimizationAndIndustrialGameTests() {}
@@ -226,14 +238,17 @@ public final class OptimizationAndIndustrialGameTests {
         var player = h.makeMockPlayer(GameType.SURVIVAL);
         var stranger = h.makeMockPlayer(GameType.SURVIVAL);
         BlockPos drivePos = new BlockPos(2, 2, 2);
-        BlockPos apPos = new BlockPos(2, 2, 3);
+        BlockPos cablePos = new BlockPos(2, 2, 3);
+        BlockPos apPos = new BlockPos(2, 3, 3);
         player.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(2.5, 2.0, 2.5)));
         stranger.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(2.5, 2.0, 2.5)));
 
         var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.NORTH, player);
         drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        h.setBlock(cablePos, ModContent.MATTER_CABLE.get());
+        CableOwners.set(h.getLevel(), h.absolutePos(cablePos), player.getUUID());
 
-        h.setBlock(apPos, ModContent.WIRELESS_ACCESS_POINT.get().defaultBlockState().setValue(WirelessAccessPointBlock.FACING, Direction.SOUTH));
+        h.setBlock(apPos, ModContent.WIRELESS_ACCESS_POINT.get().defaultBlockState().setValue(WirelessAccessPointBlock.FACING, Direction.NORTH));
         var ap = h.getBlockEntity(apPos, WirelessAccessPointBlockEntity.class);
         ap.placedBy(player);
         var powerCap = h.getLevel().getCapability(Capabilities.Energy.BLOCK, h.absolutePos(apPos), Direction.DOWN);
@@ -480,6 +495,562 @@ public final class OptimizationAndIndustrialGameTests {
                                 "Failed to extract 4,000 mB Water via Machine Port");
                         tx.commit();
                     }
+                })
+                .thenSucceed();
+    }
+
+    private static void legacyControllerAliases(GameTestHelper h) {
+        var oldDecomp = Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_decomposer_controller");
+        var oldSynth = Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_synthesizer_controller");
+        h.assertTrue(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(oldDecomp)
+                        == ModContent.MACHINES.get(MachineKind.INDUSTRIAL_DECOMPOSER).get(),
+                "Legacy industrial_decomposer_controller block alias must resolve to Decomposer Reactor Controller");
+        h.assertTrue(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(oldDecomp)
+                        == ModContent.MACHINES.get(MachineKind.INDUSTRIAL_DECOMPOSER).get().asItem(),
+                "Legacy industrial_decomposer_controller item alias must resolve to Decomposer Reactor Controller");
+        h.assertTrue(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getValue(oldSynth)
+                        == ModContent.MACHINES.get(MachineKind.INDUSTRIAL_SYNTHESIZER).get(),
+                "Legacy industrial_synthesizer_controller block alias must resolve to Synthesizer Reactor Controller");
+        h.assertTrue(net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(oldSynth)
+                        == ModContent.MACHINES.get(MachineKind.INDUSTRIAL_SYNTHESIZER).get().asItem(),
+                "Legacy industrial_synthesizer_controller item alias must resolve to Synthesizer Reactor Controller");
+        h.succeed();
+    }
+
+    private static void deepExtractorOverDeepslate(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos extPos = new BlockPos(3, 3, 3);
+        BlockPos drivePos = extPos.east();
+        // Verify ordinary cobblestone is rejected under genuine-site rules, then switch to Deepslate (y <= 0 in test flat world).
+        h.setBlock(extPos.below(), Blocks.COBBLESTONE);
+        var extractor = placeMachine(h, extPos, MachineKind.DEEP_EXTRACTOR, Direction.NORTH, owner);
+        var drive = placeMachine(h, drivePos, MachineKind.DRIVE, Direction.NORTH, owner);
+        drive.setItem(drive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        extractor.energy().set(extractor.energyCapacity());
+        extractor.setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
+        extractor.setItem(MachineCellAccess.PARALLEL_SLOT, new ItemStack(ModContent.EXTRACTION_FOCUS_UPGRADE.get(), 1));
+        h.assertTrue(extractor.selectRecipe("rematter:deep_mineral_extraction"), "Failed to select deep_mineral_extraction");
+        h.assertTrue(extractor.requestBatch(), "Failed to queue deep_mineral_extraction batch");
+
+        var slurry = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:mineral_slurry", dev.latrox.rematter.chemistry.Phase.LIQUID);
+        var brine = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:saline_brine", dev.latrox.rematter.chemistry.Phase.LIQUID);
+        h.startSequence()
+                .thenWaitUntil(() -> h.assertTrue("requires_probe_target".equals(extractor.work().status),
+                        "Cobblestone must be rejected with requires_probe_target, got " + extractor.work().status))
+                .thenExecute(() -> {
+                    h.setBlock(extPos.below(), Blocks.DEEPSLATE);
+                    extractor.energy().set(extractor.energyCapacity());
+                })
+                .thenWaitUntil(() -> {
+                    extractor.energy().set(extractor.energyCapacity());
+                    var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(slurry) >= 250L,
+                            "Deep-Core Extractor should extract >= 250 u mineral_slurry over Deepslate at y<=0, got "
+                                    + inv.amount(slurry) + " (status=" + extractor.work().status + ")");
+                })
+                .thenExecute(() -> {
+                    // Verify shallow 1-deep water is rejected for Brine Pumping, then 2-deep water source succeeds!
+                    h.setBlock(extPos.below(), Blocks.WATER);
+                    h.setBlock(extPos.below(2), Blocks.DEEPSLATE);
+                    h.assertTrue(extractor.selectRecipe("rematter:brine_pumping"), "Failed to select brine_pumping");
+                    h.assertTrue(extractor.requestBatch(), "Failed to queue brine_pumping");
+                })
+                .thenWaitUntil(() -> h.assertTrue("requires_probe_target".equals(extractor.work().status),
+                        "1-deep water puddle must be rejected for brine_pumping, got " + extractor.work().status))
+                .thenExecute(() -> {
+                    h.setBlock(extPos.below(2), Blocks.WATER);
+                    extractor.energy().set(extractor.energyCapacity());
+                })
+                .thenWaitUntil(() -> {
+                    extractor.energy().set(extractor.energyCapacity());
+                    var inv = Objects.requireNonNull(drive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(brine) >= 250L,
+                            "Deep-Core Extractor should extract >= 250 u saline_brine over 2-deep water source, got "
+                                    + inv.amount(brine) + " (status=" + extractor.work().status + ")");
+                })
+                .thenSucceed();
+    }
+
+    private static Chamber build5x5x5Reactor(GameTestHelper h, BlockPos origin, MachineKind kind,
+                                             IndustrialModuleKind floorMod, IndustrialModuleKind ceilMod,
+                                             int floorCount, int ceilCount, Player owner) {
+        int size = 5;
+        var casingBlock = ModContent.reactorCasing(kind);
+        var glassBlock = ModContent.reactorGlass(kind);
+        var portBlock = ModContent.machinePort(kind);
+        for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+                for (int dz = 0; dz < size; dz++) {
+                    boolean boundary = dx == 0 || dx == size - 1 || dy == 0 || dy == size - 1 || dz == 0 || dz == size - 1;
+                    if (!boundary) continue;
+                    boolean edge = (dy == 0 || dy == size - 1) || ((dx == 0 || dx == size - 1) && (dz == 0 || dz == size - 1));
+                    h.setBlock(origin.offset(dx, dy, dz), edge ? casingBlock : glassBlock);
+                }
+            }
+        }
+        var controller = placeMachine(h, origin.offset(2, 1, 0), kind, Direction.NORTH, owner);
+        int placedFloor = 0, placedCeil = 0;
+        for (int dx = 1; dx <= 3 && placedFloor < floorCount; dx++) {
+            for (int dz = 1; dz <= 3 && placedFloor < floorCount; dz++) {
+                h.setBlock(origin.offset(dx, 1, dz),
+                        ModContent.INDUSTRIAL_MODULES.get(floorMod).get().defaultBlockState().setValue(IndustrialModuleBlock.SUSPENDED, false));
+                placedFloor++;
+            }
+        }
+        for (int dx = 1; dx <= 3 && placedCeil < ceilCount; dx++) {
+            for (int dz = 1; dz <= 3 && placedCeil < ceilCount; dz++) {
+                h.setBlock(origin.offset(dx, size - 2, dz),
+                        ModContent.INDUSTRIAL_MODULES.get(ceilMod).get().defaultBlockState().setValue(IndustrialModuleBlock.SUSPENDED, true));
+                placedCeil++;
+            }
+        }
+        BlockPos powerPos = origin.offset(0, 1, 2);
+        BlockPos matterPos = origin.offset(size - 1, 1, 2);
+        h.setBlock(powerPos, portBlock);
+        h.setBlock(matterPos, portBlock);
+        var powerPort = h.getBlockEntity(powerPos, MachinePortBlockEntity.class);
+        var matterPort = h.getBlockEntity(matterPos, MachinePortBlockEntity.class);
+        powerPort.refreshNow();
+        matterPort.refreshNow();
+        return new Chamber(controller, powerPort, matterPort, powerPort, matterPort, powerPos, matterPos, powerPos, matterPos);
+    }
+
+    private static void transmutationReactor(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(), h.getLevel().dimension().identifier().toString());
+        h.assertTrue(ResearchService.learn(h.getLevel(), owner.getUUID(), "minecraft:gold_ingot", LearningPath.ANALYSIS),
+                "Owner failed to learn gold research");
+        h.assertTrue(ResearchService.learn(h.getLevel(), owner.getUUID(), "minecraft:blaze_rod", LearningPath.ANALYSIS),
+                "Owner failed to learn cinderium research");
+
+        // Transmutation Reactor (5x5x5, 8 Field Coils + 4 Particle Emitters -> Field 12) transmuting
+        // Tier 2 Gold (Particle Resonator OR backward-compatible Primal Matrix Core) and verifying Tier 3 requires Primal Matrix Core.
+        owner.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(3.5, 2.0, 3.5)));
+        Chamber trans = build5x5x5Reactor(h, new BlockPos(1, 1, 1), MachineKind.TRANSMUTATION_REACTOR,
+                IndustrialModuleKind.FIELD_COIL, IndustrialModuleKind.PARTICLE_EMITTER, 8, 4, owner);
+        h.assertTrue(trans.controller().industrialStructureReady(),
+                "Transmutation Reactor failed to form: " + IndustrialStructure.inspect(trans.controller()).diagnostic());
+        // Strict tier progression check: standard Reactor Casing must NOT satisfy Transmutation Reactor frame.
+        h.setBlock(new BlockPos(1, 1, 1), ModContent.REACTOR_CASING.get());
+        h.assertTrue(!trans.controller().industrialStructureReady(),
+                "Transmutation Reactor must reject standard Reactor Casing under strict tier progression");
+        h.setBlock(new BlockPos(1, 1, 1), ModContent.TRANSMUTATION_REACTOR_CASING.get());
+        h.assertTrue(trans.controller().industrialStructureReady(),
+                "Transmutation Reactor should reform after restoring Transmutation Reactor Casing");
+        setBlockPortMode(trans.powerPort(), owner, Direction.WEST, MachinePortMode.POWER);
+        setBlockPortMode(trans.matterPort(), owner, Direction.EAST, MachinePortMode.MATTER);
+
+        var silver = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:silver", dev.latrox.rematter.chemistry.Phase.SOLID);
+        var zinc = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:zinc", dev.latrox.rematter.chemistry.Phase.SOLID);
+        var nitrogen = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:nitrogen", dev.latrox.rematter.chemistry.Phase.GAS);
+        var sulfur = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:sulfur", dev.latrox.rematter.chemistry.Phase.SOLID);
+        var titanium = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:titanium", dev.latrox.rematter.chemistry.Phase.SOLID);
+
+        var transDrive = placeMachine(h, trans.matterPos().east(), MachineKind.DRIVE, Direction.NORTH, owner);
+        transDrive.setItem(transDrive.cellSlotForBay(0), new ItemStack(ModContent.MATTER_CELL_16M.get()));
+        var transNet = transDrive.matterNetwork(true);
+        h.assertTrue(Objects.requireNonNull(transNet.inventory()).apply(Map.of(),
+                Map.of(silver, 6_000L, zinc, 2_000L, nitrogen, 5_000L, BuiltinChemistry.HYDROGEN, 5_000L,
+                        BuiltinChemistry.OXYGEN, 3_000L, sulfur, 2_000L, titanium, 2_000L)), "Failed to seed Ag/Zn/S/Ti/N2/H2/O2");
+        transNet.markChanged();
+
+        trans.controller().setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
+        trans.controller().energy().set(trans.controller().energyCapacity());
+        h.assertTrue(trans.controller().selectRecipe("rematter:transmute_gold"), "Failed to select transmute_gold");
+        h.assertTrue(trans.controller().requestBatch(), "Failed to queue transmute_gold");
+
+        // 1. Tier 2 refuses without Focus Catalyst.
+        // 2. Tier 2 succeeds with Particle Resonator (not consumed, zero byproducts).
+        // 3. Tier 2 ALSO succeeds with Primal Matrix Core (backward compatibility!).
+        // 4. Tier 3 (transmute_cinderium) refuses Particle Resonator (requires_catalyst) and succeeds with Primal Matrix Core!
+        h.startSequence()
+                .thenWaitUntil(() -> h.assertTrue("requires_catalyst".equals(trans.controller().work().status),
+                        "Expected requires_catalyst without Particle Resonator, got " + trans.controller().work().status))
+                .thenExecute(() -> {
+                    trans.controller().setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(ModContent.PARTICLE_RESONATOR.get()));
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                })
+                .thenWaitUntil(() -> {
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                    var inv = Objects.requireNonNull(transDrive.matterNetwork(true).inventory());
+                    long gold = inv.amount(BuiltinChemistry.GOLD);
+                    h.assertTrue(gold >= 1_000L,
+                            "Expected >= 1,000 u Gold with Particle Resonator (got " + gold + ", status=" + trans.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    h.assertTrue(trans.controller().getItem(MachineCellAccess.DISCOVERY_SLOT).is(ModContent.PARTICLE_RESONATOR.get()),
+                            "Focus Catalyst must not be consumed");
+                    var inv = Objects.requireNonNull(transDrive.matterNetwork(true).inventory());
+                    h.assertTrue(inv.amount(silver) == 3_000L && inv.amount(zinc) == 1_000L
+                            && inv.amount(nitrogen) == 3_500L && inv.amount(BuiltinChemistry.HYDROGEN) == 3_500L,
+                            "Expected exact input consumption with zero extra outputs");
+                    // Swap to Primal Matrix Core and run a second Tier 2 Gold batch -> must be backward-compatible!
+                    trans.controller().setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(PrimalContent.PRIMAL_MATRIX_CORE.get()));
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                    h.assertTrue(trans.controller().requestBatch(), "Failed to queue second transmute_gold batch");
+                })
+                .thenWaitUntil(() -> {
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                    var inv = Objects.requireNonNull(transDrive.matterNetwork(true).inventory());
+                    long gold = inv.amount(BuiltinChemistry.GOLD);
+                    h.assertTrue(gold >= 2_000L,
+                            "Primal Matrix Core must be backward-compatible for Tier 2 Gold (got " + gold + ", status=" + trans.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    // Now test Tier 3 Cinderium: Particle Resonator must be rejected (requires_catalyst)!
+                    trans.controller().setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(ModContent.PARTICLE_RESONATOR.get()));
+                    h.assertTrue(trans.controller().selectRecipe("rematter:transmute_cinderium"), "Failed to select transmute_cinderium");
+                    h.assertTrue(trans.controller().requestBatch(), "Failed to queue transmute_cinderium");
+                })
+                .thenWaitUntil(() -> h.assertTrue("requires_catalyst".equals(trans.controller().work().status),
+                        "Tier 3 Cinderium must reject Particle Resonator with requires_catalyst, got " + trans.controller().work().status))
+                .thenExecute(() -> {
+                    trans.controller().setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(PrimalContent.PRIMAL_MATRIX_CORE.get()));
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                })
+                .thenWaitUntil(() -> {
+                    trans.controller().energy().set(trans.controller().energyCapacity());
+                    var inv = Objects.requireNonNull(transDrive.matterNetwork(true).inventory());
+                    long cinder = inv.amount(dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:cinderium", dev.latrox.rematter.chemistry.Phase.SOLID));
+                    h.assertTrue(cinder >= 1_000L,
+                            "Tier 3 Cinderium must succeed with Primal Matrix Core (got " + cinder + ", status=" + trans.controller().work().status + ")");
+                })
+                .thenSucceed();
+    }
+
+    private static void primalReactor(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        ResearchService.ledger(h.getLevel().getServer()).visit(owner.getUUID(), h.getLevel().dimension().identifier().toString());
+        h.assertTrue(ResearchService.learn(h.getLevel(), owner.getUUID(), "minecraft:gold_ingot", LearningPath.ANALYSIS),
+                "Owner failed to learn gold research");
+        h.assertTrue(ResearchService.learn(h.getLevel(), owner.getUUID(), "minecraft:blaze_rod", LearningPath.ANALYSIS),
+                "Owner failed to learn cinderium research");
+
+        // Primal Reactor (5x5x5, 2 Particle Emitters + 2 Primal Condenser Cores + Singularity Seed + Mass Compression Upgrade)
+        // Mode A: 3-phase Raw Mass Collapse (SiO2 + H2O + H2) + FE -> Primal Matter + Stability ramp.
+        // Mode B: Automated Bulk Primal Manifestation (Ur + FE -> 4,000 u Gold).
+        owner.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(3.5, 2.0, 3.5)));
+        Chamber primal = build5x5x5Reactor(h, new BlockPos(1, 1, 1), MachineKind.PRIMAL_REACTOR,
+                IndustrialModuleKind.PARTICLE_EMITTER, IndustrialModuleKind.PRIMAL_CONDENSER_CORE, 2, 2, owner);
+        h.assertTrue(primal.controller().industrialStructureReady(),
+                "Primal Reactor failed to form: " + IndustrialStructure.inspect(primal.controller()).diagnostic());
+        // Strict tier progression check: Transmutation Casing must NOT satisfy Primal Reactor frame.
+        h.setBlock(new BlockPos(1, 1, 1), ModContent.TRANSMUTATION_REACTOR_CASING.get());
+        h.assertTrue(!primal.controller().industrialStructureReady(),
+                "Primal Reactor must reject Transmutation Reactor Casing under strict tier progression");
+        h.setBlock(new BlockPos(1, 1, 1), ModContent.PRIMAL_REACTOR_CASING.get());
+        h.assertTrue(primal.controller().industrialStructureReady(),
+                "Primal Reactor should reform after restoring Primal Reactor Casing");
+        setBlockPortMode(primal.powerPort(), owner, Direction.WEST, MachinePortMode.POWER);
+        setBlockPortMode(primal.matterPort(), owner, Direction.EAST, MachinePortMode.MATTER);
+
+        var primalDrive = placeMachine(h, primal.matterPos().east(), MachineKind.DRIVE, Direction.NORTH, owner);
+        primalDrive.setItem(primalDrive.cellSlotForBay(0), new ItemStack(PrimalContent.PRIMAL_CELL_4M.get()));
+        primalDrive.setItem(primalDrive.cellSlotForBay(1), new ItemStack(ModContent.MATTER_CELL_16M.get()));
+        var primalNet = primalDrive.matterNetwork(true);
+        h.assertTrue(Objects.requireNonNull(primalNet.inventory()).apply(Map.of(),
+                Map.of(BuiltinChemistry.SILICA, 40_000L, BuiltinChemistry.WATER, 15_000L, BuiltinChemistry.HYDROGEN, 15_000L)),
+                "Failed to seed 3-phase collapse matter");
+        primalNet.markChanged();
+
+        primal.controller().setItem(2, new ItemStack(ModContent.SPEED_UPGRADE.get(), 4));
+        primal.controller().setItem(MachineCellAccess.MASS_COMPRESSION_SLOT, new ItemStack(ModContent.MASS_COMPRESSION_UPGRADE.get(), 1));
+        primal.controller().energy().set(primal.controller().energyCapacity());
+        h.assertTrue(primal.controller().selectRecipe(PrimalReactorRecipes.COLLAPSE_RAW), "Failed to select primal_collapse_raw");
+        primal.controller().toggleRepeat();
+
+        h.startSequence()
+                .thenWaitUntil(() -> h.assertTrue("requires_seed".equals(primal.controller().work().status),
+                        "Expected requires_seed without Singularity Seed, got " + primal.controller().work().status))
+                .thenExecute(() -> {
+                    primal.controller().setItem(MachineCellAccess.DISCOVERY_SLOT, new ItemStack(PrimalContent.PRIMAL_MATRIX_CORE.get()));
+                    primal.controller().energy().set(primal.controller().energyCapacity());
+                })
+                .thenWaitUntil(() -> {
+                    primal.controller().energy().set(primal.controller().energyCapacity());
+                    long primalStored = dev.latrox.rematter.primal.PrimalCells.view(primalDrive.getItem(primalDrive.cellSlotForBay(0))).amount();
+                    h.assertTrue(primalStored >= 8_000L,
+                            "Expected >= 8,000 u Primal Matter in 4M Primal Cell (got " + primalStored + ", status=" + primal.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    long remainingSilica = Objects.requireNonNull(primalDrive.matterNetwork(true).inventory()).amount(BuiltinChemistry.SILICA);
+                    h.assertTrue(remainingSilica < 20_000L,
+                            "3-phase collapse must consume Silica, remaining: " + remainingSilica);
+                    h.assertTrue(primal.controller().primalStability() > 0,
+                            "Singularity stability should ramp up under continuous operation, got " + primal.controller().primalStability());
+                    // Switch to Mode B: automated bulk Primal Manifestation of Gold (4,000 u Gold per batch)
+                    h.assertTrue(primal.controller().selectRecipe(PrimalReactorRecipes.MANIFEST_PREFIX + "rematter:gold"),
+                            "Failed to select Gold manifestation");
+                    if (!primal.controller().running()) primal.controller().toggleRepeat();
+                })
+                .thenWaitUntil(() -> {
+                    primal.controller().energy().set(primal.controller().energyCapacity());
+                    long gold = Objects.requireNonNull(primalDrive.matterNetwork(true).inventory()).amount(BuiltinChemistry.GOLD);
+                    h.assertTrue(gold >= PrimalReactorRecipes.MANIFEST_BATCH,
+                            "Expected >= 4,000 u manifested Gold (got " + gold + ", status=" + primal.controller().work().status + ")");
+                })
+                .thenSucceed();
+    }
+
+    private static void energyMatrixAndConnectedGlass(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        owner.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(3.5, 2.0, 3.5)));
+        BlockPos origin = new BlockPos(1, 1, 1);
+        int size = 5;
+        for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+                for (int dz = 0; dz < size; dz++) {
+                    boolean boundary = dx == 0 || dx == size - 1 || dy == 0 || dy == size - 1 || dz == 0 || dz == size - 1;
+                    if (!boundary) continue;
+                    boolean edge = (dy == 0 || dy == size - 1) || ((dx == 0 || dx == size - 1) && (dz == 0 || dz == size - 1));
+                    h.setBlock(origin.offset(dx, dy, dz), edge ? ModContent.ENERGY_MATRIX_CASING.get() : ModContent.ENERGY_MATRIX_GLASS.get());
+                }
+            }
+        }
+        var controller = placeMachine(h, origin.offset(2, 1, 0), MachineKind.ENERGY_MATRIX, Direction.NORTH, owner);
+
+        // Stack mixed-tier Cells and Providers freely in 3D inside the hollow 3x3x3 cavity!
+        h.setBlock(origin.offset(1, 1, 1), ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.BASIC).get());
+        h.setBlock(origin.offset(1, 2, 1), ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.REINFORCED).get());
+        h.setBlock(origin.offset(1, 3, 1), ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.RESONANT).get());
+        h.setBlock(origin.offset(2, 2, 2), ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.PRIMAL).get());
+        h.setBlock(origin.offset(3, 1, 1), ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.BASIC).get());
+        h.setBlock(origin.offset(3, 2, 1), ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.RESONANT).get());
+
+        // One side Power Port + one roof Power Port (Energy Matrix allows ports on any wall face including top/bottom).
+        BlockPos powerPos = origin.offset(0, 1, 2);
+        BlockPos topPortPos = origin.offset(2, size - 1, 2);
+        h.setBlock(powerPos, ModContent.ENERGY_MATRIX_PORT.get());
+        h.setBlock(topPortPos, ModContent.ENERGY_MATRIX_PORT.get());
+        var powerPort = h.getBlockEntity(powerPos, MachinePortBlockEntity.class);
+        var topPort = h.getBlockEntity(topPortPos, MachinePortBlockEntity.class);
+        powerPort.refreshNow();
+        topPort.refreshNow();
+
+        h.assertTrue(controller.industrialStructureReady(),
+                "Energy Matrix failed to form: " + IndustrialStructure.inspect(controller).diagnostic());
+        h.assertTrue(ModSounds.workingSound(MachineKind.ENERGY_MATRIX) == null && ModSounds.accentSound(MachineKind.ENERGY_MATRIX) == null,
+                "Energy Matrix must be completely silent");
+        long expectedCap = 64_000_000L + 512_000_000L + 4_096_000_000L + 32_768_000_000L; // 37.44G FE
+        long expectedRate = 262_144L + 4_194_304L; // 4,456,448 FE/t
+        h.assertTrue(controller.matrixCapacity() == expectedCap,
+                "Expected " + expectedCap + " FE mixed-tier matrix capacity, got " + controller.matrixCapacity());
+        h.assertTrue(controller.matrixTransferRate() == expectedRate,
+                "Expected " + expectedRate + " FE/t mixed-tier transfer rate, got " + controller.matrixTransferRate());
+
+        // Verify Connected Glass FORMED property + strict shell separation (Primal Reactor Casing MUST NOT form Energy Matrix!)
+        controller.serverTick();
+        BlockPos glassPos = origin.offset(1, 2, 0);
+        h.assertTrue(h.getBlockState(glassPos).getValue(ReactorGlassBlock.FORMED),
+                "Side glass on formed Energy Matrix must have FORMED=true");
+        h.setBlock(origin, ModContent.PRIMAL_REACTOR_CASING.get());
+        controller.serverTick();
+        h.assertTrue(!controller.industrialStructureReady(),
+                "Energy Matrix must reject Primal Reactor Casing under strict shell separation");
+        h.assertTrue(!h.getBlockState(glassPos).getValue(ReactorGlassBlock.FORMED),
+                "Deformed Energy Matrix glass must reset FORMED=false");
+        h.setBlock(origin, ModContent.ENERGY_MATRIX_CASING.get());
+        controller.serverTick();
+        h.assertTrue(controller.industrialStructureReady(), "Restoring Energy Matrix Casing must reform Energy Matrix");
+        h.assertTrue(h.getBlockState(glassPos).getValue(ReactorGlassBlock.FORMED),
+                "Reformed Energy Matrix glass must restore FORMED=true");
+
+        // Mixed Glass + Casing on Energy Matrix roof: open spot (2,4,1) accepts Glass with FORMED=true,
+        // while replacing Casing directly over ceiling Cell (1,3,1) at (1,4,1) with Glass must deform!
+        BlockPos openRoofGlass = origin.offset(2, size - 1, 1);
+        BlockPos cellRoofSpot = origin.offset(1, size - 1, 1);
+        h.setBlock(openRoofGlass, ModContent.ENERGY_MATRIX_GLASS.get());
+        controller.serverTick();
+        h.assertTrue(controller.industrialStructureReady(),
+                "Energy Matrix must allow Glass on open roof spot without directly touching a Cell/Provider");
+        h.assertTrue(h.getBlockState(openRoofGlass).getValue(ReactorGlassBlock.FORMED),
+                "Open roof Glass on formed Energy Matrix must immediately receive FORMED=true");
+        h.setBlock(cellRoofSpot, ModContent.ENERGY_MATRIX_GLASS.get());
+        controller.serverTick();
+        h.assertTrue(!controller.industrialStructureReady(),
+                "Energy Matrix must reject Glass directly above a Cell touching the roof");
+        h.setBlock(cellRoofSpot, ModContent.ENERGY_MATRIX_CASING.get());
+        controller.serverTick();
+        h.assertTrue(controller.industrialStructureReady(),
+                "Restoring Casing directly above roof-touching Cell must reform Energy Matrix");
+        h.assertTrue(h.getBlockState(openRoofGlass).getValue(ReactorGlassBlock.FORMED),
+                "Reformed Energy Matrix must restore FORMED=true on mixed roof Glass");
+
+        setBlockPortMode(powerPort, owner, Direction.WEST, MachinePortMode.POWER);
+        // Verify exact per-tick shared transfer rate limit (4,456,448 FE/t) on the real Power Port
+        var energyCap = h.getLevel().getCapability(Capabilities.Energy.BLOCK, h.absolutePos(powerPos), Direction.WEST);
+        h.assertTrue(energyCap != null, "Energy Matrix POWER port must expose FE capability");
+        try (var tx = Transaction.openRoot()) {
+            h.assertTrue(energyCap.insert(4_000_000, tx) == 4_000_000, "First 4M FE insert failed");
+            h.assertTrue(energyCap.insert(4_000_000, tx) == 456_448, "Second insert did not clamp to exact 4,456,448 FE/t cap");
+            h.assertTrue(energyCap.insert(1, tx) == 0, "Third insert bypassed exhausted per-tick rate cap");
+            tx.commit();
+        }
+        h.assertTrue(controller.matrixEnergy() == expectedRate,
+                "Expected " + expectedRate + " FE after first tick cap, got " + controller.matrixEnergy());
+
+        // Verify 64-bit NBT persistence > Integer.MAX_VALUE (2.4G FE) + live port insertion above 2^31-1 + item charging
+        var registries = h.getLevel().registryAccess();
+        var saved = controller.saveCustomOnly(registries);
+        saved.putLong("matrix_energy", 2_400_000_000L);
+        controller.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
+                net.minecraft.util.ProblemReporter.DISCARDING, registries, saved));
+        h.assertTrue(controller.matrixEnergy() == 2_400_000_000L,
+                "Expected exact 64-bit 2.4G FE (> Integer.MAX_VALUE), got " + controller.matrixEnergy());
+
+        // Insert empty Portable Energy Cell into Charge slot (1) and verify next-tick port insert + item charging!
+        controller.setItem(1, new ItemStack(ModContent.PORTABLE_ENERGY_CELL.get()));
+        h.startSequence()
+                .thenIdle(2)
+                .thenExecute(() -> {
+                    try (var tx = Transaction.openRoot()) {
+                        int added = energyCap.insert(1_000_000, tx);
+                        h.assertTrue(added == 1_000_000, "Expected 1M FE insert above Integer.MAX_VALUE, got " + added);
+                        tx.commit();
+                    }
+                    h.assertTrue(controller.matrixEnergy() > 2_380_000_000L,
+                            "64-bit matrix energy corrupted after >2^31 port insert: " + controller.matrixEnergy());
+                })
+                .thenWaitUntil(() -> {
+                    ItemStack cell = controller.getItem(1);
+                    int stored = PortableEnergyCellItem.energy(cell);
+                    h.assertTrue(stored >= 1_000_000,
+                            "Expected Portable Energy Cell in Matrix charge slot to charge >= 1M FE, got " + stored);
+                })
+                .thenSucceed();
+    }
+
+    private static void energyReactorModesCoolantAndMatrixFeed(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        owner.setPos(h.absoluteVec(new net.minecraft.world.phys.Vec3(4.5, 2.0, 3.5)));
+
+        // 1. Build 5x5x5 Energy Reactor at (1, 1, 1) with 2 Reactor Fuel Cores + 2 Reactor Induction Coils
+        BlockPos reactorOrigin = new BlockPos(1, 1, 1);
+        Chamber reactor = build5x5x5Reactor(h, reactorOrigin, MachineKind.ENERGY_REACTOR,
+                IndustrialModuleKind.REACTOR_FUEL_CORE, IndustrialModuleKind.REACTOR_INDUCTION_COIL, 2, 2, owner);
+        h.assertTrue(reactor.controller().industrialStructureReady(),
+                "Energy Reactor failed to form: " + IndustrialStructure.inspect(reactor.controller()).diagnostic());
+        h.assertTrue(ModSounds.workingSound(MachineKind.ENERGY_REACTOR) != null,
+                "Energy Reactor must expose its dedicated sound event");
+        h.assertTrue(reactor.controller().reactorCapacity() == 1_024_000_000L,
+                "Expected 1.024G FE buffer for 2 Fuel Cores, got " + reactor.controller().reactorCapacity());
+        h.assertTrue(reactor.controller().reactorMaxOutputRate() == 2_097_152L,
+                "Expected 2,097,152 FE/t output rate for 2 Induction Coils, got " + reactor.controller().reactorMaxOutputRate());
+
+        // Strict shell separation: Energy Matrix Casing must NOT satisfy Energy Reactor shell!
+        reactor.controller().serverTick();
+        BlockPos reactorGlassPos = reactorOrigin.offset(1, 2, 0);
+        h.assertTrue(h.getBlockState(reactorGlassPos).getValue(ReactorGlassBlock.FORMED),
+                "Formed Energy Reactor glass must have FORMED=true");
+        h.setBlock(reactorOrigin, ModContent.ENERGY_MATRIX_CASING.get());
+        reactor.controller().serverTick();
+        h.assertTrue(!reactor.controller().industrialStructureReady(),
+                "Energy Reactor must reject Energy Matrix Casing");
+        h.setBlock(reactorOrigin, ModContent.ENERGY_REACTOR_CASING.get());
+        reactor.controller().serverTick();
+        h.assertTrue(reactor.controller().industrialStructureReady(),
+                "Restoring Energy Reactor Casing must reform Energy Reactor");
+
+        // Configure West port as MATTER (connected to Matter Drive) and East port as POWER_OUTPUT (feeding adjacent Energy Matrix!)
+        setBlockPortMode(reactor.powerPort(), owner, Direction.WEST, MachinePortMode.MATTER);
+        setBlockPortMode(reactor.matterPort(), owner, Direction.EAST, MachinePortMode.POWER_OUTPUT);
+
+        var drive = placeMachine(h, reactor.powerPos().west(), MachineKind.DRIVE, Direction.NORTH, owner);
+        var primalCell = new ItemStack(PrimalContent.PRIMAL_CELL_4M.get());
+        ItemStack[] cellHolder = {primalCell};
+        var journal = new dev.latrox.rematter.primal.PrimalCells.Journal(() -> cellHolder[0]);
+        try (var tx = Transaction.openRoot()) {
+            dev.latrox.rematter.primal.PrimalCells.credit(journal, 500_000L, tx);
+            tx.commit();
+        }
+        drive.setItem(drive.cellSlotForBay(0), cellHolder[0]);
+        drive.setItem(drive.cellSlotForBay(1), new ItemStack(ModContent.MATTER_CELL_16M.get()));
+        var matterNet = drive.matterNetwork(true);
+        var voidGas = dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:void_condensate", dev.latrox.rematter.chemistry.Phase.GAS);
+        h.assertTrue(Objects.requireNonNull(matterNet.inventory()).apply(Map.of(),
+                Map.of(voidGas, 20_000L, BuiltinChemistry.WATER, 20_000L)),
+                "Failed to seed void_condensate + water coolant");
+        matterNet.markChanged();
+
+        // 2. Build an adjacent 4x3x3 Energy Matrix directly touching Reactor's East POWER port at (6, 2, 3)!
+        BlockPos matrixOrigin = new BlockPos(6, 1, 2);
+        for (int dx = 0; dx < 4; dx++) {
+            for (int dy = 0; dy < 3; dy++) {
+                for (int dz = 0; dz < 3; dz++) {
+                    boolean boundary = dx == 0 || dx == 3 || dy == 0 || dy == 2 || dz == 0 || dz == 2;
+                    if (!boundary) continue;
+                    boolean edge = (dy == 0 || dy == 2) || ((dx == 0 || dx == 3) && (dz == 0 || dz == 2));
+                    h.setBlock(matrixOrigin.offset(dx, dy, dz), edge ? ModContent.ENERGY_MATRIX_CASING.get() : ModContent.ENERGY_MATRIX_GLASS.get());
+                }
+            }
+        }
+        var matrixCtrl = placeMachine(h, matrixOrigin.offset(1, 1, 0), MachineKind.ENERGY_MATRIX, Direction.NORTH, owner);
+        h.setBlock(matrixOrigin.offset(1, 1, 1), ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.RESONANT).get());
+        h.setBlock(matrixOrigin.offset(2, 1, 1), ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.RESONANT).get());
+        BlockPos matrixInPortPos = matrixOrigin.offset(0, 1, 1); // (6, 2, 3) == reactor.matterPos().east()!
+        BlockPos matrixOutPortPos = matrixOrigin.offset(3, 1, 1);
+        h.setBlock(matrixInPortPos, ModContent.ENERGY_MATRIX_PORT.get());
+        h.setBlock(matrixOutPortPos, ModContent.ENERGY_MATRIX_PORT.get());
+        var matrixInPort = h.getBlockEntity(matrixInPortPos, MachinePortBlockEntity.class);
+        var matrixOutPort = h.getBlockEntity(matrixOutPortPos, MachinePortBlockEntity.class);
+        matrixInPort.refreshNow();
+        matrixOutPort.refreshNow();
+        setBlockPortMode(matrixInPort, owner, Direction.WEST, MachinePortMode.POWER);
+        setBlockPortMode(matrixOutPort, owner, Direction.EAST, MachinePortMode.POWER);
+        h.assertTrue(matrixCtrl.industrialStructureReady(),
+                "Adjacent Energy Matrix failed to form: " + IndustrialStructure.inspect(matrixCtrl).diagnostic());
+
+        // 3. Seed Crystal Fuel in Slot 0 (mode defaults to CRYSTAL) and test Crystal -> Matter+Coolant -> Primal -> Safe Pause!
+        var emberCrystal = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "ember_matrix_crystal"));
+        reactor.controller().setItem(0, new ItemStack(emberCrystal, 64));
+
+        long[] afterCrystal = {0L};
+        long[] afterMatter = {0L};
+        h.startSequence()
+                .thenWaitUntil(() -> {
+                    h.assertTrue(matrixCtrl.matrixEnergy() >= 50_000L && reactor.controller().reactorFlux() > 0,
+                            "Expected Crystal mode to ramp flux and push >= 50k FE into Energy Matrix (matrixFe="
+                                    + matrixCtrl.matrixEnergy() + ", flux=" + reactor.controller().reactorFlux()
+                                    + ", status=" + reactor.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    afterCrystal[0] = matrixCtrl.matrixEnergy();
+                    // Switch to MATTER mode (draws void_condensate + water Coolant Overdrive!)
+                    h.assertTrue(reactor.controller().extensions().action(owner,
+                            new dev.latrox.rematter.network.MachineActionPayload(0,
+                                    dev.latrox.rematter.network.MachineActionPayload.Action.SET_REACTOR_FUEL_MODE, "matter", 0)),
+                            "Failed to switch Energy Reactor to MATTER mode");
+                })
+                .thenWaitUntil(() -> {
+                    h.assertTrue(reactor.controller().reactorCooled()
+                                    && matrixCtrl.matrixEnergy() >= afterCrystal[0] + 500_000L,
+                            "Expected Matter + Coolant Overdrive to deliver +500k FE (cooled="
+                                    + reactor.controller().reactorCooled() + ", matrixFe=" + matrixCtrl.matrixEnergy()
+                                    + ", status=" + reactor.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    afterMatter[0] = matrixCtrl.matrixEnergy();
+                    // Switch to PRIMAL mode (draws 8 Primal/t/core from connected Matter Drive's 4M Primal Cell!)
+                    h.assertTrue(reactor.controller().extensions().action(owner,
+                            new dev.latrox.rematter.network.MachineActionPayload(0,
+                                    dev.latrox.rematter.network.MachineActionPayload.Action.SET_REACTOR_FUEL_MODE, "primal", 0)),
+                            "Failed to switch Energy Reactor to PRIMAL mode");
+                })
+                .thenWaitUntil(() -> {
+                    h.assertTrue(matrixCtrl.matrixEnergy() >= afterMatter[0] + 1_000_000L,
+                            "Expected Primal mode to push +1M FE into Energy Matrix (matrixFe="
+                                    + matrixCtrl.matrixEnergy() + ", status=" + reactor.controller().work().status + ")");
+                })
+                .thenExecute(() -> {
+                    // Pause via Run/Pause toggle -> must safely throttle to "paused" with zero explosion
+                    reactor.controller().toggleRunning();
+                })
+                .thenWaitUntil(() -> {
+                    h.assertTrue("paused".equals(reactor.controller().work().status)
+                                    && reactor.controller().industrialStructureReady(),
+                            "Expected safe paused auto-throttle while staying formed, got status="
+                                    + reactor.controller().work().status);
                 })
                 .thenSucceed();
     }

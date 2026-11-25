@@ -18,6 +18,7 @@ PARTS = {
  'SCAN_RIGHT': ((4.5,10.5,4.5),(5.5,11.5,6.5)),
  'SCAN_LEFT': ((10.5,10.5,4.5),(11.5,11.5,6.5)),
  'PESTLE': ((4,8.5,4.5),(6,9,6.5)),
+ 'BORE_BIT': ((6.5,10.5,4.5),(9.5,14,6.5)),
  'MIX_CHARGE': ((10,7,3),(12,8.5,7)),
  'LIQUID_RIGHT': ((3,7,3),(6,9,8)),
  'LIQUID_LEFT': ((10,7,3),(13,9,8)),
@@ -40,7 +41,7 @@ PARTS = {
  'FIELD_CORE': ((-1,-1,-1),(1,1,1)),
 }
 BENCH_PARTS = {'decomposer':('RAM_RIGHT','RAM_LEFT'), 'analyzer':('SCAN_FRONT','SCAN_BACK','SCAN_RIGHT','SCAN_LEFT'),
- 'material_preparator':('PESTLE',), 'chemical_processor':('LIQUID_RIGHT','LIQUID_LEFT','GLASS_RIGHT','GLASS_LEFT','SHUTTLE')}
+ 'material_preparator':('PESTLE',), 'deep_extractor':('BORE_BIT',), 'chemical_processor':('LIQUID_RIGHT','LIQUID_LEFT','GLASS_RIGHT','GLASS_LEFT','SHUTTLE')}
 
 def box(name,lo=None,hi=None):
  a,b=PARTS[name];return Box(name,lo or a,hi or b,step=min(y-x for x,y in zip(lo or a,hi or b))<1,flat=True)
@@ -57,6 +58,8 @@ def poses(device):
    elif p.name.startswith('SCAN_'):
     for a in (lo,hi):a[1]-=4 if end>0 else 0
    elif p.name=='PESTLE':lo[1]-=1.5 if end>0 else 0
+   elif p.name=='BORE_BIT':
+    if end>0:lo[1]-=2;hi[1]-=2
    elif p.name.startswith('LIQUID_'):hi[1]+=end*(1 if p.name.endswith('RIGHT') else -1)
    elif p.name.startswith('GLASS_'):lo[1]+=end*(1 if p.name.endswith('RIGHT') else -1)
    elif p.name=='SHUTTLE':lo[0]+=3*end;hi[0]+=3*end

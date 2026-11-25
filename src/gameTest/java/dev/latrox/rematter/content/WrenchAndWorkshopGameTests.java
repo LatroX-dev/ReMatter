@@ -55,6 +55,10 @@ public final class WrenchAndWorkshopGameTests {
         TESTS.put("energy_cube_input_output_prevents_same_tick_feedback_oscillation", WrenchAndWorkshopGameTests::bidirectionalCubeAntiOscillation);
         TESTS.put("unformed_reactor_controller_locks_to_single_configuration_page_and_unlocks_when_formed", WrenchAndWorkshopGameTests::unformedReactorSingleConfigurationPage);
         TESTS.put("security_card_stamps_single_network_and_player_default", WrenchAndWorkshopGameTests::securityCardAndPlayerDefault);
+        TESTS.put("matrix_parts_and_formed_multiblock_dismantle_whole_structure_safely", WrenchAndWorkshopGameTests::matrixPartsAndFormedMultiblockDismantle);
+        TESTS.put("auto_build_lifts_ground_controller_once_and_never_lifts_over_air_or_casing", WrenchAndWorkshopGameTests::autoBuildGroundLiftBehavior);
+        TESTS.put("partial_reactor_is_detected_and_completed_by_auto_build", WrenchAndWorkshopGameTests::partialReactorDetectionAndCompletion);
+        TESTS.put("pre_release_protection_reserves_autobuild_veto_and_exact_matrix_dismantle", WrenchAndWorkshopGameTests::preReleaseSafeguardsAndExactRebuild);
     }
 
     private static Identifier id(String path) { return Identifier.fromNamespaceAndPath("rematter_tests", path); }
@@ -394,8 +398,8 @@ public final class WrenchAndWorkshopGameTests {
         h.assertTrue(WirelessMatterTerminalItem.energy(charged) == WirelessMatterTerminalItem.MAX_CHARGE_RATE,
                 "Wireless Matter Terminal did not charge inside Energy Cube: " + WirelessMatterTerminalItem.energy(charged));
 
-        // 2. Build Matter Network with Drive + Synthesizer + powered Wireless Access Point
-        BlockPos apPos = new BlockPos(4, 2, 2);
+        // 2. Build Matter Network with Drive + Synthesizer + bottom-connected powered Wireless Access Point
+        BlockPos apPos = new BlockPos(4, 3, 3);
         BlockPos cablePos = new BlockPos(4, 2, 3);
         BlockPos drivePos = new BlockPos(3, 2, 3);
         BlockPos synthPos = new BlockPos(5, 2, 3);
@@ -408,9 +412,10 @@ public final class WrenchAndWorkshopGameTests {
         drive.setItem(MachineCellAccess.slotForBay(MachineKind.DRIVE, 0), new ItemStack(ModContent.MATTER_CELL_4M.get()));
         var synth = placeMachine(h, synthPos, MachineKind.SYNTHESIZER, Direction.NORTH, owner);
 
+        h.assertTrue(ap.sidedEnergy(Direction.SOUTH) == null, "Wireless Access Point back face must no longer accept FE");
         try (var tx = Transaction.openRoot()) {
-            h.assertTrue(Objects.requireNonNull(ap.sidedEnergy(Direction.SOUTH)).insert(1_000, tx) == 1_000,
-                    "Wireless Access Point back port did not accept FE");
+            h.assertTrue(Objects.requireNonNull(ap.sidedEnergy(Direction.DOWN)).insert(1_000, tx) == 1_000,
+                    "Wireless Access Point bottom port did not accept FE");
             tx.commit();
         }
         ap.serverTick();
@@ -443,13 +448,13 @@ public final class WrenchAndWorkshopGameTests {
         // 4. Wireless Booster range scaling (128 -> 512 blocks) and Terminal dock auto-bind + charge
         owner.setPos(h.absolutePos(apPos).getX() + 300.5, h.absolutePos(apPos).getY(), h.absolutePos(apPos).getZ() + 0.5);
         h.assertTrue(!TerminalNetwork.isValidAnchor(anchor, owner), "Base AP without boosters should reject 300-block distance");
-        ap.setItem(WirelessAccessPointBlockEntity.SLOT_BOOSTER, new ItemStack(ModContent.WIRELESS_BOOSTER.get(), 16));
+        ap.setItem(WirelessAccessPointBlockEntity.SLOT_RANGE, new ItemStack(ModContent.WIRELESS_BOOSTER.get(), 16));
         h.assertTrue(ap.effectiveRange() == WirelessAccessPointBlockEntity.MAX_RANGE,
                 "16 Wireless Boosters did not scale AP range to 512: " + ap.effectiveRange());
         h.assertTrue(TerminalNetwork.isValidAnchor(anchor, owner), "Boosted AP should accept 300-block distance");
 
         try (var tx = Transaction.openRoot()) {
-            Objects.requireNonNull(ap.sidedEnergy(Direction.SOUTH)).insert(16_000, tx);
+            Objects.requireNonNull(ap.sidedEnergy(Direction.DOWN)).insert(16_000, tx);
             tx.commit();
         }
         ItemStack freshTerminal = new ItemStack(ModContent.WIRELESS_MATTER_TERMINAL.get());
@@ -611,8 +616,8 @@ public final class WrenchAndWorkshopGameTests {
         BlockPos cableRel = new BlockPos(3, 2, 2);
         BlockPos synthRel = new BlockPos(4, 2, 2);
         BlockPos cubeRel = new BlockPos(3, 2, 3);
-        BlockPos apRel = new BlockPos(3, 2, 1);
-        BlockPos emitterRel = new BlockPos(3, 3, 2);
+        BlockPos apRel = new BlockPos(3, 3, 2);
+        BlockPos emitterRel = new BlockPos(3, 2, 1);
         BlockPos linkARel = new BlockPos(2, 2, 3);
         BlockPos linkBRel = new BlockPos(7, 2, 3);
         BlockPos remoteMachRel = new BlockPos(8, 2, 3);
@@ -638,9 +643,9 @@ public final class WrenchAndWorkshopGameTests {
         emitter.placedBy(owner);
 
         var linkBlock = dev.latrox.rematter.primal.PrimalContent.ENTANGLED_LINK.get();
-        h.setBlock(linkARel, linkBlock);
+        h.setBlock(linkARel, linkBlock.defaultBlockState().setValue(dev.latrox.rematter.primal.EntangledLinkBlock.FACING, Direction.SOUTH));
         linkBlock.setPlacedBy(h.getLevel(), h.absolutePos(linkARel), h.getBlockState(linkARel), owner, new ItemStack(linkBlock));
-        h.setBlock(linkBRel, linkBlock);
+        h.setBlock(linkBRel, linkBlock.defaultBlockState().setValue(dev.latrox.rematter.primal.EntangledLinkBlock.FACING, Direction.NORTH));
         linkBlock.setPlacedBy(h.getLevel(), h.absolutePos(linkBRel), h.getBlockState(linkBRel), owner, new ItemStack(linkBlock));
         h.assertTrue(dev.latrox.rematter.primal.EntangledLinks.pair(h.getLevel(), h.absolutePos(linkARel), h.absolutePos(linkBRel), owner),
                 "Failed to pair test Entangled Links");
@@ -711,5 +716,381 @@ public final class WrenchAndWorkshopGameTests {
                 "Other player's default must remain global PUBLIC");
         trustData.setDefaultMode(owner.getUUID(), SecurityMode.PUBLIC);
         h.succeed();
+    }
+
+    private static void matrixPartsAndFormedMultiblockDismantle(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var stranger = h.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack wrench = new ItemStack(ModContent.MATTER_WRENCH.get());
+        MatterWrenchItem.cycleMode(wrench, owner, h.getLevel());
+        MatterWrenchItem.cycleMode(wrench, owner, h.getLevel());
+        h.assertTrue(MatterWrenchItem.mode(wrench) == WrenchMode.DISMANTLE, "Wrench did not switch to DISMANTLE");
+
+        // 1. Standalone Energy Matrix Cell and Provider can be dismantled cleanly with Matter Wrench.
+        BlockPos soloCell = new BlockPos(6, 2, 2);
+        BlockPos soloProv = new BlockPos(6, 2, 4);
+        var reinforcedCell = ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.REINFORCED).get();
+        var resonantProv = ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.RESONANT).get();
+        h.setBlock(soloCell, reinforcedCell);
+        h.setBlock(soloProv, resonantProv);
+        h.assertTrue(WrenchInteractions.interact(owner, h.getLevel(), h.absolutePos(soloCell), wrench, hit(h, soloCell, Direction.UP)).consumesAction(),
+                "Matter Wrench DISMANTLE failed on Energy Matrix Cell");
+        h.assertTrue(WrenchInteractions.interact(owner, h.getLevel(), h.absolutePos(soloProv), wrench, hit(h, soloProv, Direction.UP)).consumesAction(),
+                "Matter Wrench DISMANTLE failed on Energy Matrix Provider");
+        h.assertTrue(h.getBlockState(soloCell).isAir() && h.getBlockState(soloProv).isAir(),
+                "Dismantled Matrix Cell / Provider remained in world");
+        h.assertTrue(countItem(owner, reinforcedCell.asItem()) == 1 && countItem(owner, resonantProv.asItem()) == 1,
+                "Dismantled Matrix Cell / Provider did not enter owner inventory");
+
+        // 2. Build a formed PRIVATE 4x3x3 Energy Matrix (36 total blocks: 1 controller, 1 cell, 1 provider, 2 ports, 3 glass, 28 casing).
+        BlockPos ctrlRel = new BlockPos(2, 3, 1);
+        var casing = ModContent.ENERGY_MATRIX_CASING.get();
+        var glass = ModContent.ENERGY_MATRIX_GLASS.get();
+        var port = ModContent.ENERGY_MATRIX_PORT.get();
+        var basicCell = ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.BASIC).get();
+        var basicProv = ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.BASIC).get();
+        for (int x = 1; x <= 4; x++) {
+            for (int y = 2; y <= 4; y++) {
+                for (int z = 1; z <= 3; z++) {
+                    BlockPos p = new BlockPos(x, y, z);
+                    if (p.equals(ctrlRel)) continue;
+                    boolean interior = x >= 2 && x <= 3 && y == 3 && z == 2;
+                    if (interior) continue;
+                    boolean sideWall = y == 3 && ((x == 1 || x == 4) && z == 2 || (z == 1 || z == 3) && x >= 2 && x <= 3);
+                    if (y == 3 && (x == 1 || x == 4) && z == 2) {
+                        h.setBlock(p, port.defaultBlockState().setValue(MachinePortBlock.FACING, x == 1 ? Direction.WEST : Direction.EAST));
+                    } else if (sideWall) {
+                        h.setBlock(p, glass);
+                    } else {
+                        h.setBlock(p, casing);
+                    }
+                }
+            }
+        }
+        h.setBlock(new BlockPos(2, 3, 2), basicCell);
+        h.setBlock(new BlockPos(3, 3, 2), basicProv);
+        var ctrl = placeMachine(h, ctrlRel, MachineKind.ENERGY_MATRIX, Direction.NORTH, owner);
+        ctrl.setSecurityMode(owner, SecurityMode.PRIVATE);
+        ctrl.serverTick();
+        h.assertTrue(IndustrialStructure.inspect(ctrl).formed(), "4x3x3 Energy Matrix failed to form before dismantle test");
+
+        // Stranger cannot dismantle PRIVATE controller or interior Matrix Cell / Provider.
+        h.assertTrue(!WrenchInteractions.interact(stranger, h.getLevel(), h.absolutePos(ctrlRel), wrench, hit(h, ctrlRel, Direction.NORTH)).consumesAction(),
+                "Stranger dismantled PRIVATE formed Energy Matrix controller");
+        h.assertTrue(!WrenchInteractions.interact(stranger, h.getLevel(), h.absolutePos(new BlockPos(2, 3, 2)), wrench, hit(h, new BlockPos(2, 3, 2), Direction.UP)).consumesAction(),
+                "Stranger dismantled PRIVATE Energy Matrix Cell");
+        h.assertTrue(!WrenchInteractions.interact(stranger, h.getLevel(), h.absolutePos(new BlockPos(3, 3, 2)), wrench, hit(h, new BlockPos(3, 3, 2), Direction.UP)).consumesAction(),
+                "Stranger dismantled PRIVATE Energy Matrix Provider");
+        h.assertTrue(IndustrialStructure.inspect(ctrl).formed(), "Denied stranger dismantle must leave structure intact");
+
+        // Owner dismantles formed controller -> whole 4x3x3 structure dismantled cleanly into inventory with blueprint preserved!
+        owner.getInventory().clearContent();
+        h.assertTrue(WrenchInteractions.interact(owner, h.getLevel(), h.absolutePos(ctrlRel), wrench, hit(h, ctrlRel, Direction.NORTH)).consumesAction(),
+                "Owner failed to dismantle formed Energy Matrix via controller");
+        for (int x = 1; x <= 4; x++) {
+            for (int y = 2; y <= 4; y++) {
+                for (int z = 1; z <= 3; z++) {
+                    h.assertTrue(h.getBlockState(new BlockPos(x, y, z)).isAir(),
+                            "Block remained after full-structure dismantle at " + x + "," + y + "," + z);
+                }
+            }
+        }
+        h.assertTrue(countItem(owner, ModContent.MACHINES.get(MachineKind.ENERGY_MATRIX).get().asItem()) == 1, "Missing dismantled Matrix controller");
+        h.assertTrue(countItem(owner, basicCell.asItem()) == 1, "Missing dismantled Matrix Cell");
+        h.assertTrue(countItem(owner, basicProv.asItem()) == 1, "Missing dismantled Matrix Provider");
+        h.assertTrue(countItem(owner, port.asItem()) == 2, "Missing dismantled Matrix Ports");
+        h.assertTrue(countItem(owner, glass.asItem()) == 3, "Missing dismantled Matrix Glass");
+        h.assertTrue(countItem(owner, casing.asItem()) == 28, "Missing dismantled Matrix Casing");
+        h.succeed();
+    }
+
+    private static void autoBuildGroundLiftBehavior(GameTestHelper h) {
+        var player = h.makeMockPlayer(GameType.CREATIVE);
+        var level = h.getLevel();
+
+        // 1. Controller placed directly on a solid floor (Polished Deepslate) -> lifts +1 cleanly and builds on top of the floor!
+        for (int x = 1; x <= 3; x++) {
+            for (int z = 1; z <= 3; z++) {
+                h.setBlock(new BlockPos(x, 1, z), Blocks.POLISHED_DEEPSLATE);
+            }
+        }
+        BlockPos groundCtrlRel = new BlockPos(2, 2, 1);
+        var groundCtrl = placeMachine(h, groundCtrlRel, MachineKind.INDUSTRIAL_REACTOR, Direction.NORTH, player);
+        groundCtrl.setCustomName("Ground Lift Reactor");
+        h.assertTrue(IndustrialAutoBuilder.shouldLiftFromGround(level, groundCtrl),
+                "Controller resting on solid floor must trigger ground lift");
+        // Verify 3D preview box sits ON TOP of the floor (minY == groundCtrlRel.y), not inside the floor!
+        var hint = IndustrialStructure.hintFor(0, groundCtrl);
+        h.assertTrue(hint.present() && hint.minBounds().getY() == h.absolutePos(groundCtrlRel).getY(),
+                "Preview bounds for ground-placed controller must start on top of the floor");
+
+        // Block directly above -> atomic abort, controller must NOT lift!
+        h.setBlock(groundCtrlRel.above(), Blocks.STONE);
+        var blocked = IndustrialAutoBuilder.build(level, player, groundCtrl);
+        h.assertTrue(blocked.obstructed() > 0 && blocked.placed() == 0 && !blocked.formed(),
+                "Ground lift must abort atomically when space above controller is obstructed");
+        h.assertTrue(level.getBlockEntity(h.absolutePos(groundCtrlRel)) == groundCtrl,
+                "Controller must stay in place when lift is obstructed");
+        h.setBlock(groundCtrlRel.above(), Blocks.AIR);
+
+        // Unobstructed ground lift -> lifts to y=3, places floor casing at y=2, preserves floor at y=1, preserves custom name!
+        var liftedRes = IndustrialAutoBuilder.build(level, player, groundCtrl);
+        h.assertTrue(liftedRes.formed() && liftedRes.placed() > 0, "Ground-lift Auto-Build must form complete reactor");
+        h.assertTrue(h.getBlockState(groundCtrlRel).is(ModContent.REACTOR_CASING.get()),
+                "Old ground controller spot must now hold floor Reactor Casing");
+        h.assertTrue(h.getBlockState(groundCtrlRel.below()).is(Blocks.POLISHED_DEEPSLATE),
+                "Base floor beneath the reactor must remain untouched");
+        var liftedCtrl = h.getBlockEntity(groundCtrlRel.above(), MachineBlockEntity.class);
+        h.assertTrue(IndustrialStructure.inspect(liftedCtrl).formed() && "Ground Lift Reactor".equals(liftedCtrl.customName()),
+                "Lifted controller at y+1 must be formed and keep its custom name");
+
+        // 2. Controller placed with AIR underneath -> must NOT lift!
+        BlockPos airCtrlRel = new BlockPos(6, 3, 1);
+        var airCtrl = placeMachine(h, airCtrlRel, MachineKind.INDUSTRIAL_REACTOR, Direction.NORTH, player);
+        h.assertFalse(IndustrialAutoBuilder.shouldLiftFromGround(level, airCtrl),
+                "Controller over AIR must never lift");
+        var airRes = IndustrialAutoBuilder.build(level, player, airCtrl);
+        h.assertTrue(airRes.formed() && level.getBlockEntity(h.absolutePos(airCtrlRel)) == airCtrl,
+                "Controller over AIR must form in-place without lifting");
+
+        // 3. Controller placed on matching Reactor Casing -> must NOT lift!
+        BlockPos casingCtrlRel = new BlockPos(6, 3, 5);
+        h.setBlock(casingCtrlRel.below(), ModContent.REACTOR_CASING.get());
+        var casingCtrl = placeMachine(h, casingCtrlRel, MachineKind.INDUSTRIAL_REACTOR, Direction.NORTH, player);
+        h.assertFalse(IndustrialAutoBuilder.shouldLiftFromGround(level, casingCtrl),
+                "Controller resting on matching Reactor Casing must never lift");
+        var casingRes = IndustrialAutoBuilder.build(level, player, casingCtrl);
+        h.assertTrue(casingRes.formed() && level.getBlockEntity(h.absolutePos(casingCtrlRel)) == casingCtrl,
+                "Controller on matching Reactor Casing must form in-place without lifting");
+        h.succeed();
+    }
+
+    private static void partialReactorDetectionAndCompletion(GameTestHelper h) {
+        var player = h.makeMockPlayer(GameType.CREATIVE);
+        var level = h.getLevel();
+
+        // Build ~60% of a 5x6x5 Industrial Reactor (default is 3x4x3!):
+        // full 5x5 floor at y=1, front/left/right frame pillars up to y=6, left & right ports at y=2, roof & rear wall missing!
+        var casing = ModContent.REACTOR_CASING.get();
+        var glass = ModContent.REACTOR_GLASS.get();
+        var port = ModContent.MACHINE_PORT.get();
+        for (int x = 1; x <= 5; x++) {
+            for (int z = 1; z <= 5; z++) {
+                h.setBlock(new BlockPos(x, 1, z), casing);
+            }
+        }
+        // Front-left, front-right, rear-left pillars up to y=6 (height 6), plus left wall glass on y=2..4
+        for (int y = 2; y <= 6; y++) {
+            h.setBlock(new BlockPos(1, y, 1), casing);
+            h.setBlock(new BlockPos(5, y, 1), casing);
+            h.setBlock(new BlockPos(1, y, 5), casing);
+        }
+        for (int y = 2; y <= 4; y++) {
+            for (int z = 2; z <= 4; z++) {
+                h.setBlock(new BlockPos(1, y, z), glass);
+            }
+        }
+        h.setBlock(new BlockPos(1, 2, 3), port.defaultBlockState().setValue(MachinePortBlock.FACING, Direction.WEST));
+        h.setBlock(new BlockPos(5, 2, 3), port.defaultBlockState().setValue(MachinePortBlock.FACING, Direction.EAST));
+
+        // Place controller off-center at (2, 2, 1) -> column = 1 in a 5x6x5 chamber!
+        BlockPos ctrlRel = new BlockPos(2, 2, 1);
+        var ctrl = placeMachine(h, ctrlRel, MachineKind.INDUSTRIAL_REACTOR, Direction.NORTH, player);
+        h.assertFalse(IndustrialStructure.inspect(ctrl).formed(), "Partial reactor must not be formed yet");
+
+        var bp = ctrl.industrialBlueprint();
+        h.assertTrue(bp.width() == 5 && bp.height() == 6 && bp.depth() == 5 && bp.controllerColumn() == 1,
+                "Partial 5x6x5 reactor was not inferred accurately: " + bp);
+        var hint = IndustrialStructure.hintFor(0, ctrl);
+        h.assertTrue(hint.present() && hint.maxBounds().getY() - hint.minBounds().getY() + 1 == 6,
+                "Structure preview must reflect inferred 5x6x5 completion bounds");
+
+        // Auto-Build completes the remaining roof, walls, and interior modules without disturbing already-placed blocks!
+        var res = IndustrialAutoBuilder.build(level, player, ctrl);
+        h.assertTrue(res.formed() && res.placed() > 0, "Auto-Build failed to complete inferred 5x6x5 partial reactor");
+        var formed = IndustrialStructure.inspect(ctrl);
+        h.assertTrue(formed.formed() && formed.shape() != null
+                        && formed.shape().width() == 5 && formed.shape().height() == 6 && formed.shape().depth() == 5
+                        && formed.shape().controllerColumn() == 1,
+                "Completed reactor shape mismatch: " + formed.shape());
+        h.succeed();
+    }
+
+    private static void preReleaseSafeguardsAndExactRebuild(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var stranger = h.makeMockPlayer(GameType.SURVIVAL);
+        var level = h.getLevel();
+
+        // 1. MachineProtection: ALL 5 auxiliary owned devices must reject stranger BreakBlockEvent & withstand explosions!
+        BlockPos apRel = new BlockPos(1, 2, 1);
+        BlockPos emRel = new BlockPos(2, 2, 1);
+        BlockPos rlRel = new BlockPos(3, 2, 1);
+        BlockPos saRel = new BlockPos(4, 2, 1);
+        BlockPos dlRel = new BlockPos(5, 2, 1);
+
+        h.setBlock(apRel, ModContent.WIRELESS_ACCESS_POINT.get());
+        var ap = h.getBlockEntity(apRel, WirelessAccessPointBlockEntity.class);
+        ap.placedBy(owner, ItemStack.EMPTY);
+        ap.setSecurityMode(owner, SecurityMode.PRIVATE);
+
+        h.setBlock(emRel, ModContent.MATTER_LEVEL_EMITTER.get());
+        var em = h.getBlockEntity(emRel, MatterLevelEmitterBlockEntity.class);
+        em.placedBy(owner);
+        em.setSecurityMode(owner, SecurityMode.PRIVATE);
+
+        h.setBlock(rlRel, ModContent.MATTER_CABLE_RELAY.get());
+        var rl = h.getBlockEntity(rlRel, MatterCableRelayBlockEntity.class);
+        rl.placedBy(owner, ItemStack.EMPTY);
+        rl.setSecurityMode(owner, SecurityMode.PRIVATE);
+
+        h.setBlock(saRel, ModContent.SPATIAL_ANCHOR.get());
+        var sa = h.getBlockEntity(saRel, SpatialAnchorBlockEntity.class);
+        sa.placedBy(owner, ItemStack.EMPTY);
+        sa.setSecurityMode(owner, SecurityMode.PRIVATE);
+
+        h.setBlock(dlRel, dev.latrox.rematter.primal.PrimalContent.DIMENSIONAL_ENTANGLED_LINK.get());
+        var dl = h.getBlockEntity(dlRel, dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity.class);
+        dl.placedBy(owner, ItemStack.EMPTY);
+        dl.setSecurityMode(owner, SecurityMode.PRIVATE);
+
+        for (BlockPos rel : java.util.List.of(apRel, emRel, rlRel, saRel, dlRel)) {
+            BlockPos world = h.absolutePos(rel);
+            var st = level.getBlockState(world);
+            var strangerBreak = net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                    new net.neoforged.neoforge.event.level.block.BreakBlockEvent(level, world, st, stranger));
+            h.assertTrue(strangerBreak.isCanceled(), "Stranger BreakBlockEvent was not canceled on PRIVATE " + st.getBlock());
+            var ownerBreak = net.neoforged.neoforge.common.NeoForge.EVENT_BUS.post(
+                    new net.neoforged.neoforge.event.level.block.BreakBlockEvent(level, world, st, owner));
+            h.assertFalse(ownerBreak.isCanceled(), "Owner BreakBlockEvent was wrongly canceled on " + st.getBlock());
+            h.assertTrue(MachineProtection.withstandsExplosion(level, world),
+                    "Owned device must withstand explosions: " + st.getBlock());
+        }
+
+        // 2. Global Network Reserves: stranger on PUBLIC Terminal must NOT modify owner's global reserves!
+        BlockPos termRel = new BlockPos(1, 2, 3);
+        var term = placeMachine(h, termRel, MachineKind.TERMINAL, Direction.NORTH, owner);
+        term.setSecurityMode(owner, SecurityMode.PUBLIC);
+        var ironKey = new MachineSnapshot.StockKey("rematter:iron", "solid");
+        var reserves = NetworkReservesSavedData.get(level.getServer());
+        reserves.set(owner.getUUID(), ironKey, 4_000L);
+        h.assertTrue(MachineAccess.canManage(owner.getUUID(), owner), "Owner must be able to manage own reserves");
+        h.assertFalse(MachineAccess.canManage(owner.getUUID(), stranger), "Stranger must not manage owner's reserves");
+        h.assertTrue(new TerminalAnchor.Wired(term).owner().equals(owner.getUUID()), "Wired anchor must expose terminal owner");
+        h.assertTrue(new TerminalAnchor.Wireless(ap, 0).owner().equals(owner.getUUID()), "Wireless anchor must expose AP owner");
+        h.assertTrue(reserves.amount(owner.getUUID(), dev.latrox.rematter.chemistry.SubstanceKey.of("rematter:iron", dev.latrox.rematter.chemistry.Phase.SOLID)) == 4_000L,
+                "Owner's global reserve must stay intact");
+
+        // 3. IndustrialAutoBuilder: EntityPlaceEvent veto must roll back atomically (0 leftover blocks, 0 lost items)!
+        for (int x = 1; x <= 3; x++) {
+            for (int z = 5; z <= 7; z++) {
+                h.setBlock(new BlockPos(x, 1, z), Blocks.POLISHED_DEEPSLATE);
+            }
+        }
+        BlockPos vetoCtrlRel = new BlockPos(2, 2, 5);
+        var vetoCtrl = placeMachine(h, vetoCtrlRel, MachineKind.INDUSTRIAL_REACTOR, Direction.NORTH, owner);
+        owner.getInventory().clearContent();
+        owner.getInventory().add(new ItemStack(ModContent.REACTOR_CASING.get(), 64));
+        owner.getInventory().add(new ItemStack(ModContent.REACTOR_GLASS.get(), 64));
+        owner.getInventory().add(new ItemStack(ModContent.MACHINE_PORT.get(), 4));
+        owner.getInventory().add(new ItemStack(ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.REACTION_CHAMBER).get(), 2));
+        owner.getInventory().add(new ItemStack(ModContent.INDUSTRIAL_MODULES.get(IndustrialModuleKind.FIELD_COIL).get(), 2));
+        BlockPos vetoSpot = h.absolutePos(new BlockPos(1, 3, 5));
+        java.util.function.Consumer<net.neoforged.neoforge.event.level.BlockEvent.EntityPlaceEvent> vetoListener = ev -> {
+            if (ev.getPos().equals(vetoSpot)) ev.setCanceled(true);
+        };
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(vetoListener);
+        try {
+            var vetoRes = IndustrialAutoBuilder.build(level, owner, vetoCtrl);
+            h.assertTrue(vetoRes.obstructed() > 0 && vetoRes.placed() == 0 && !vetoRes.formed(),
+                    "EntityPlaceEvent veto must abort Auto-Build cleanly");
+            h.assertTrue(level.getBlockEntity(h.absolutePos(vetoCtrlRel)) instanceof MachineBlockEntity,
+                    "Rollback after EntityPlaceEvent veto must restore controller at original ground position");
+            h.assertTrue(h.getBlockState(vetoCtrlRel.above()).isAir(),
+                    "Rollback must clear lifted controller position");
+            h.assertTrue(countItem(owner, ModContent.REACTOR_CASING.get().asItem()) == 64,
+                    "Rollback must refund all consumed casings, got " + countItem(owner, ModContent.REACTOR_CASING.get().asItem()));
+        } finally {
+            net.neoforged.neoforge.common.NeoForge.EVENT_BUS.unregister(vetoListener);
+        }
+
+        // 4. Exact Matrix Tier + Mixed-Glass preservation across Wrench Dismantle -> Auto-Build!
+        BlockPos mCtrlRel = new BlockPos(7, 3, 2);
+        var mCasing = ModContent.ENERGY_MATRIX_CASING.get();
+        var mGlass = ModContent.ENERGY_MATRIX_GLASS.get();
+        var mPort = ModContent.ENERGY_MATRIX_PORT.get();
+        var resCell = ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.RESONANT).get();
+        var priProv = ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.PRIMAL).get();
+        for (int x = 6; x <= 9; x++) {
+            for (int y = 2; y <= 4; y++) {
+                for (int z = 2; z <= 4; z++) {
+                    BlockPos p = new BlockPos(x, y, z);
+                    if (p.equals(mCtrlRel)) continue;
+                    boolean interior = x >= 7 && x <= 8 && y == 3 && z == 3;
+                    if (interior) continue;
+                    if (y == 3 && (x == 6 || x == 9) && z == 3) {
+                        h.setBlock(p, mPort.defaultBlockState().setValue(MachinePortBlock.FACING, x == 6 ? Direction.WEST : Direction.EAST));
+                    } else if (y == 3 && z == 4 && x == 7) {
+                        h.setBlock(p, mGlass); // Mixed: 1 glass + casings on side walls!
+                    } else {
+                        h.setBlock(p, mCasing);
+                    }
+                }
+            }
+        }
+        h.setBlock(new BlockPos(7, 3, 3), resCell);
+        h.setBlock(new BlockPos(8, 3, 3), priProv);
+        var mCtrl = placeMachine(h, mCtrlRel, MachineKind.ENERGY_MATRIX, Direction.NORTH, owner);
+        mCtrl.serverTick();
+        h.assertTrue(IndustrialStructure.inspect(mCtrl).formed(), "Tiered 4x3x3 Energy Matrix failed to form");
+
+        owner.getInventory().clearContent();
+        ItemStack wrench = new ItemStack(ModContent.MATTER_WRENCH.get());
+        MatterWrenchItem.cycleMode(wrench, owner, level);
+        MatterWrenchItem.cycleMode(wrench, owner, level);
+        h.assertTrue(WrenchInteractions.interact(owner, level, h.absolutePos(mCtrlRel), wrench, hit(h, mCtrlRel, Direction.NORTH)).consumesAction(),
+                "Dismantle of tiered Energy Matrix failed");
+
+        // Place dismantled controller item back at mCtrlRel -> verify exact blueprint restores Resonant Cell + Primal Provider + 1 Glass!
+        ItemStack ctrlItem = ItemStack.EMPTY;
+        for (int i = 0; i < owner.getInventory().getContainerSize(); i++) {
+            ItemStack st = owner.getInventory().getItem(i);
+            if (st.is(ModContent.MACHINES.get(MachineKind.ENERGY_MATRIX).get().asItem())) {
+                ctrlItem = st.split(1);
+                break;
+            }
+        }
+        h.assertFalse(ctrlItem.isEmpty(), "Dismantled Energy Matrix controller item missing from inventory");
+        h.setBlock(mCtrlRel, ModContent.MACHINES.get(MachineKind.ENERGY_MATRIX).get().defaultBlockState().setValue(MachineBlock.FACING, Direction.NORTH));
+        var rebuiltCtrl = h.getBlockEntity(mCtrlRel, MachineBlockEntity.class);
+        var blockData = ctrlItem.get(net.minecraft.core.component.DataComponents.BLOCK_ENTITY_DATA);
+        if (blockData != null) {
+            rebuiltCtrl.loadCustomOnly(net.minecraft.world.level.storage.TagValueInput.create(
+                    net.minecraft.util.ProblemReporter.DISCARDING, level.registryAccess(), blockData.copyTagWithoutId()));
+        }
+        rebuiltCtrl.placedBy(owner, ctrlItem);
+
+        var reqCounts = rebuiltCtrl.industrialBlueprint().requiredCounts();
+        h.assertTrue(reqCounts.getOrDefault(IndustrialStructure.Material.RESONANT_ENERGY_MATRIX_CELL, 0) == 1,
+                "Rebuilt BOM must require 1 Resonant Energy Matrix Cell, got " + reqCounts);
+        h.assertTrue(reqCounts.getOrDefault(IndustrialStructure.Material.PRIMAL_ENERGY_MATRIX_PROVIDER, 0) == 1,
+                "Rebuilt BOM must require 1 Primal Energy Matrix Provider, got " + reqCounts);
+        h.assertTrue(reqCounts.getOrDefault(IndustrialStructure.Material.GLASS, 0) == 1,
+                "Rebuilt BOM must preserve exact 1 Glass block, got " + reqCounts);
+
+        var rebuildRes = IndustrialAutoBuilder.build(level, owner, rebuiltCtrl);
+        h.assertTrue(rebuildRes.formed(), "Auto-Build must reconstruct exact tiered Energy Matrix from dismantled items");
+        h.assertTrue(h.getBlockState(new BlockPos(7, 3, 3)).is(resCell), "Resonant Cell was not reconstructed at exact position");
+        h.assertTrue(h.getBlockState(new BlockPos(8, 3, 3)).is(priProv), "Primal Provider was not reconstructed at exact position");
+        h.assertTrue(h.getBlockState(new BlockPos(7, 3, 4)).is(mGlass), "Mixed Glass block was not reconstructed at exact position");
+        h.succeed();
+    }
+
+    private static int countItem(Player player, net.minecraft.world.item.Item item) {
+        int total = 0;
+        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack s = player.getInventory().getItem(i);
+            if (s.is(item)) total += s.getCount();
+        }
+        return total;
     }
 }

@@ -1,0 +1,184 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/energy_matrix_casing",
+    "casing": "rematter:block/energy_matrix_casing",
+    "front": "rematter:block/energy_matrix_controller_front",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "core",
+      "from": [
+        0,
+        0,
+        2
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": "#casing",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#casing",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#casing",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "post_left",
+      "from": [
+        15,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#casing",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "post_right",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "west": {
+          "texture": "#casing",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "plinth",
+      "from": [
+        1,
+        0,
+        0
+      ],
+      "to": [
+        15,
+        2,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#inner"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "name": "cap",
+      "from": [
+        1,
+        15,
+        0
+      ],
+      "to": [
+        15,
+        16,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "panel",
+      "from": [
+        1,
+        2,
+        1
+      ],
+      "to": [
+        15,
+        15,
+        2
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        }
+      }
+    }
+  ]
+}

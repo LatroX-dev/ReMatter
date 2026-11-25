@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LML",
+    "BKB",
+    "EOE"
+  ],
+  "key": {
+    "L": "rematter:lumivex_ingot",
+    "M": "rematter:reinforced_matter_cable",
+    "B": "rematter:blue_matrix_crystal",
+    "K": "rematter:energy_core",
+    "E": "rematter:ender_conductor",
+    "O": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:reinforced_energy_matrix_provider",
+    "count": 1
+  }
+}

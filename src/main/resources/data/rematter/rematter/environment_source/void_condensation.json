@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "rematter:void_condensation",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:void_condensate",
+      "phase": "gas",
+      "amount": 150
+    }
+  ],
+  "energy": 64000,
+  "ticks": 500,
+  "dimensions": [
+    "minecraft:the_end"
+  ],
+  "requires_open_air": false,
+  "probe_below": "void"
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "VPV",
+    "EFE",
+    "NQN"
+  ],
+  "key": {
+    "V": "rematter:violet_matrix_crystal",
+    "P": "rematter:particle_resonator",
+    "E": "rematter:ember_matrix_crystal",
+    "F": "rematter:machine_frame",
+    "N": "rematter:netherite_sheath",
+    "Q": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:transmutation_reactor_controller",
+    "count": 1
+  }
+}

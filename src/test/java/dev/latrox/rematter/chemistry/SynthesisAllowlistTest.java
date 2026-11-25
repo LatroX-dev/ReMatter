@@ -16,11 +16,16 @@ class SynthesisAllowlistTest {
                 "mysticalagriculture:supremium_essence", "mysticalagriculture:supremium_ingot", "mysticalagriculture:supremium_gemstone",
                 "mysticalagradditions:insanium_essence", "mysticalagriculture:awakened_supremium_essence",
                 "mysticalagriculture:awakened_supremium_block", "forbidden_arcanus:deorum_ingot", "forbidden_arcanus:stellarite_piece",
-                "forbidden_arcanus:corrupted_arcane_crystal", "occultism:obsidian_dust", "enderio:powdered_ender_pearl")) {
+                "forbidden_arcanus:corrupted_arcane_crystal", "occultism:obsidian_dust", "enderio:powdered_ender_pearl",
+                "botania:manasteel_ingot", "botania:elementium_ingot", "botania:terrasteel_ingot", "botania:gaia_ingot",
+                "botania:life_essence", "botania:livingrock", "botania:livingwood_log", "botania:mana_diamond",
+                "botania:dragonstone", "botania:mana_pearl", "botania:pixie_dust", "botania:blaze_block")) {
             assertTrue(REGISTRY.profile(item).isPresent(), item);
             assertFalse(REGISTRY.synthesisPolicy().category(item).isPresent(), item);
         }
-        for (String item : List.of("minecraft:ender_pearl", "mysticalagriculture:imperium_essence")) {
+        for (String item : List.of("minecraft:ender_pearl", "mysticalagriculture:imperium_essence",
+                "botania:white_petal", "botania:white_mystical_flower", "botania:white_mushroom",
+                "botania:metamorphic_forest_stone")) {
             assertTrue(REGISTRY.synthesisPolicy().allowsItem(item), item);
         }
     }

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "VKV",
+    "CPC"
+  ],
+  "key": {
+    "C": "rematter:primal_reactor_casing",
+    "P": "rematter:transmutation_machine_port",
+    "V": "rematter:violet_matrix_crystal",
+    "K": "rematter:primal_crystal"
+  },
+  "result": {
+    "id": "rematter:primal_machine_port",
+    "count": 2
+  }
+}

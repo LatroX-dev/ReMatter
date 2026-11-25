@@ -95,12 +95,12 @@ public final class ThroughputRuntimeGameTests {
     private static void nativeInputs(GameTestHelper h){
         var owner=owner(h);var receiver=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
         var first=cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.BASIC,owner);
-        h.assertTrue(insert(first,20_000)==2_048,"One Basic native input did not get exactly 2,048 FE");
+        h.assertTrue(insert(first,20_000)==4_096,"One Basic native input did not get exactly 4,096 FE");
         var second=cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.BASIC,owner);
         h.assertTrue(insert(second,20_000)==0,"Another equal cable added a new controller allowance in the same tick");
-        h.assertTrue(receiver.energy().getAmountAsLong()==2_048,"Native FE was duplicated or lost");
-        nextTick(h);h.assertTrue(insert(first,20_000)+insert(second,20_000)==2_048,"Two Basic origins exceeded the shared allowance next tick");
-        h.assertTrue(receiver.energy().getAmountAsLong()==4_096,"A new tick did not reset exactly one allowance");h.succeed();
+        h.assertTrue(receiver.energy().getAmountAsLong()==4_096,"Native FE was duplicated or lost");
+        nextTick(h);h.assertTrue(insert(first,20_000)+insert(second,20_000)==4_096,"Two Basic origins exceeded the shared allowance next tick");
+        h.assertTrue(receiver.energy().getAmountAsLong()==8_192,"A new tick did not reset exactly one allowance");h.succeed();
     }
     private static void combinedInput(GameTestHelper h){
         var owner=owner(h);var receiver=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
@@ -109,20 +109,20 @@ public final class ThroughputRuntimeGameTests {
         var nativeFast=cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.RESONANT,owner);
         var north=energy(h,receiver.getBlockPos(),Direction.EAST);var south=energy(h,receiver.getBlockPos(),Direction.SOUTH);
         try(var outer=Transaction.openRoot()){
-            try(var nested=Transaction.open(outer)){h.assertTrue(nativeBasic.insert(2_048,nested)==2_048,"Native simulation failed");h.assertTrue(north.insert(100_000,nested)==100_000,"Foreign nested simulation failed");}
+            try(var nested=Transaction.open(outer)){h.assertTrue(nativeBasic.insert(4_096,nested)==4_096,"Native simulation failed");h.assertTrue(north.insert(400_000,nested)==400_000,"Foreign nested simulation failed");}
             h.assertTrue(receiver.energy().getAmountAsLong()==0,"Aborted nested transfer changed the real buffer");
-            h.assertTrue(nativeBasic.insert(2_048,outer)==2_048,"Nested abort consumed native allowance");
-            h.assertTrue(north.insert(100_000,outer)==100_000,"Nested abort consumed total allowance");
-            h.assertTrue(south.insert(100_000,outer)==29_024,"Native + foreign did not share the absolute 131,072 cap");
+            h.assertTrue(nativeBasic.insert(4_096,outer)==4_096,"Nested abort consumed native allowance");
+            h.assertTrue(north.insert(400_000,outer)==400_000,"Nested abort consumed total allowance");
+            h.assertTrue(south.insert(400_000,outer)==120_192,"Native + foreign did not share the absolute 524,288 cap");
             h.assertTrue(nativeFast.insert(100_000,outer)==0,"A better native input bypassed the exhausted total cap");
         }
         h.assertTrue(receiver.energy().getAmountAsLong()==0,"Aborted root transfer changed energy");
-        h.assertTrue(insert(nativeBasic,2_048)==2_048,"Root abort consumed native allowance");
-        h.assertTrue(insert(north,100_000)==100_000&&insert(south,100_000)==29_024,"Simulation/rollback did not restore the full total budget");
-        h.assertTrue(receiver.energy().getAmountAsLong()==131_072,"Combined input did not retain the exact accepted energy");
-        nextTick(h);h.assertTrue(insert(north,128_000)==128_000,"Next tick foreign cap did not reset");
-        h.assertTrue(insert(nativeFast,131_072)==3_072,"Native rate was added above the foreign absolute cap");
-        h.assertTrue(receiver.energy().getAmountAsLong()==262_144,"Second mixed tick has an incorrect total");h.succeed();
+        h.assertTrue(insert(nativeBasic,4_096)==4_096,"Root abort consumed native allowance");
+        h.assertTrue(insert(north,400_000)==400_000&&insert(south,400_000)==120_192,"Simulation/rollback did not restore the full total budget");
+        h.assertTrue(receiver.energy().getAmountAsLong()==524_288,"Combined input did not retain the exact accepted energy");
+        nextTick(h);h.assertTrue(insert(north,490_000)==490_000,"Next tick foreign cap did not reset");
+        h.assertTrue(insert(nativeFast,524_288)==9_712,"Native rate was added above the buffer/cap limit");
+        h.assertTrue(receiver.energy().getAmountAsLong()==1_024_000,"Second mixed tick has an incorrect total");h.succeed();
     }
     private static void parallelMatter(GameTestHelper h){parallelMatter(h,false);}
     private static void parallelMatter(GameTestHelper h,boolean changeTopology){
@@ -225,14 +225,14 @@ public final class ThroughputRuntimeGameTests {
     private static void linkRangeOwner(GameTestHelper h){
         var owner=owner(h);var foreign=owner(h);var origin=machine(h,new BlockPos(2,3,2),MachineKind.REACTOR,owner);
         h.assertTrue(insert(energy(h,origin.getBlockPos(),Direction.EAST),32)==32,"Real origin capability failed");
-        var a=link(h,new BlockPos(4,3,4),owner);var edge=link(h,new BlockPos(36,3,4),owner);var far=link(h,new BlockPos(37,3,4),owner);var hostile=link(h,new BlockPos(5,3,4),foreign);
+        var a=link(h,new BlockPos(4,3,4),owner);var edge=link(h,new BlockPos(68,3,4),owner);var far=link(h,new BlockPos(69,3,4),owner);var hostile=link(h,new BlockPos(5,3,4),foreign);
         // Default PUBLIC links allow coop pairing; PRIVATE links enforce strict owner isolation.
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,hostile,owner.getUUID()),"Default PUBLIC coop links did not pair");
         EntangledLinks.loaded(h.getLevel(),hostile).orElseThrow().setSecurityMode(foreign,SecurityMode.PRIVATE);
         EntangledLinks.loaded(h.getLevel(),a).orElseThrow().setSecurityMode(owner,SecurityMode.PRIVATE);
         EntangledLinks.loaded(h.getLevel(),edge).orElseThrow().setSecurityMode(owner,SecurityMode.PRIVATE);
-        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,far,owner.getUUID()),"33-block link was accepted");
-        h.assertTrue(EntangledLinks.pair(h.getLevel(),a,edge,owner.getUUID()),"Exactly32 blocks should be allowed for loaded own links");
+        h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,far,owner.getUUID()),"65-block link was accepted");
+        h.assertTrue(EntangledLinks.pair(h.getLevel(),a,edge,owner.getUUID()),"Exactly 64 blocks should be allowed for loaded own links");
         h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,hostile,owner.getUUID()),"Foreign PRIVATE endpoint could be paired");
         h.assertTrue(!EntangledLinks.pair(h.getLevel(),a,edge,foreign.getUUID())&&EntangledLinks.peer(h.getLevel(),a,foreign.getUUID()).isEmpty(),"Foreign owner traversed an existing PRIVATE pair");
         h.assertTrue(EntangledLinks.peer(h.getLevel(),a,owner.getUUID(),SecurityMode.PRIVATE).filter(edge::equals).isPresent(),"Denied pairing modified the previous owned pair");h.succeed();
@@ -257,12 +257,12 @@ public final class ThroughputRuntimeGameTests {
         var input=cable(h,new BlockPos(3,3,5),MatterCableBlock.Tier.RESONANT,owner);
         cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.BASIC,owner);
         cable(h,new BlockPos(5,3,5),MatterCableBlock.Tier.RESONANT,owner);cable(h,new BlockPos(6,3,5),MatterCableBlock.Tier.RESONANT,owner);
-        h.assertTrue(insert(input,131_072)==2_048&&insert(input,131_072)==0,"Fast origin bypassed the actual Basic cable or reset its allowance");
+        h.assertTrue(insert(input,524_288)==4_096&&insert(input,524_288)==0,"Fast origin bypassed the actual Basic cable or reset its allowance");
         nextTick(h);cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.REINFORCED,owner);
-        h.assertTrue(insert(input,131_072)==16_384,"Cached route did not adopt the actual Reinforced bottleneck");
+        h.assertTrue(insert(input,524_288)==65_536,"Cached route did not adopt the actual Reinforced bottleneck");
         cable(h,new BlockPos(4,3,5),MatterCableBlock.Tier.RESONANT,owner);
-        h.assertTrue(insert(input,131_072)==114_688,"Faster re-route did not retain this tick's already spent controller/cable FE");
-        h.assertTrue(receiver.energy().getAmountAsLong()==133_120,"Mixed-route transfer did not preserve the exact accepted FE");h.succeed();
+        h.assertTrue(insert(input,524_288)==458_752,"Faster re-route did not retain this tick's already spent controller/cable FE");
+        h.assertTrue(receiver.energy().getAmountAsLong()==528_384,"Mixed-route transfer did not preserve the exact accepted FE");h.succeed();
     }
     private static void linkFeTransactions(GameTestHelper h){
         var owner=owner(h);var a=link(h,new BlockPos(4,3,5),owner);var b=link(h,new BlockPos(20,3,5),owner);
@@ -270,39 +270,39 @@ public final class ThroughputRuntimeGameTests {
         cable(h,new BlockPos(21,3,5),MatterCableBlock.Tier.RESONANT,owner);
         var receiver=machine(h,new BlockPos(22,3,5),MachineKind.REACTOR,owner);
         receiver.setItem(MachineCellAccess.EFFICIENCY_SLOT,new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(),4));
-        h.assertTrue(insert(input,131_072)==0,"Unpaired FE component reached the remote receiver");
+        h.assertTrue(insert(input,524_288)==0,"Unpaired FE component reached the remote receiver");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,b,owner.getUUID()),"FE pair fixture failed");
-        var direct=energy(h,a,Direction.UP);
+        var direct=energy(h,a,Direction.DOWN);
         try(var outer=Transaction.openRoot()){
-            try(var child=Transaction.open(outer)){h.assertTrue(input.insert(131_072,child)==2_048,"Real Link nested FE simulation failed");}
+            try(var child=Transaction.open(outer)){h.assertTrue(input.insert(524_288,child)==4_096,"Real Link nested FE simulation failed");}
             h.assertTrue(receiver.energy().getAmountAsLong()==0,"Link nested abort retained FE");
-            h.assertTrue(input.insert(1_000,outer)==1_000&&direct.insert(131_072,outer)==1_048,"Cable and Link origins did not share one pair budget after nested abort");
-            h.assertTrue(receiver.energy().getAmountAsLong()==2_048,"Provisional Link input did not reach the actual MBE");
+            h.assertTrue(input.insert(1_000,outer)==1_000&&direct.insert(524_288,outer)==3_096,"Cable and Link origins did not share one pair budget after nested abort");
+            h.assertTrue(receiver.energy().getAmountAsLong()==4_096,"Provisional Link input did not reach the actual MBE");
         }
         h.assertTrue(receiver.energy().getAmountAsLong()==0,"Root abort retained remote energy");
-        h.assertTrue(insert(input,131_072)==2_048&&insert(direct,131_072)==0,"Root abort did not restore exactly one shared Basic allowance");
-        h.assertTrue(insert(energy(h,receiver.getBlockPos(),Direction.EAST),131_072)==129_024,"Link FE escaped the native+foreign controller absolute cap");
-        h.assertTrue(receiver.energy().getAmountAsLong()==131_072,"Controller did not keep the exact total input");
-        nextTick(h);h.assertTrue(insert(direct,131_072)==2_048,"Link allowance did not reset next tick");h.succeed();
+        h.assertTrue(insert(input,524_288)==4_096&&insert(direct,524_288)==0,"Root abort did not restore exactly one shared Basic allowance");
+        h.assertTrue(insert(energy(h,receiver.getBlockPos(),Direction.EAST),524_288)==520_192,"Link FE escaped the native+foreign controller absolute cap");
+        h.assertTrue(receiver.energy().getAmountAsLong()==524_288,"Controller did not keep the exact total input");
+        nextTick(h);h.assertTrue(insert(direct,524_288)==4_096,"Link allowance did not reset next tick");h.succeed();
     }
     private static void linkFeEndpoints(GameTestHelper h){
         var owner=owner(h);var a=link(h,new BlockPos(4,3,5),owner);var b=link(h,new BlockPos(20,3,5),owner);
         var first=cable(h,new BlockPos(3,3,5),MatterCableBlock.Tier.RESONANT,owner);
-        var second=cable(h,new BlockPos(4,3,4),MatterCableBlock.Tier.RESONANT,owner);
+        var second=cable(h,new BlockPos(4,3,6),MatterCableBlock.Tier.RESONANT,owner);
         var right=machine(h,new BlockPos(21,3,5),MachineKind.REACTOR,owner);
-        var north=machine(h,new BlockPos(20,3,4),MachineKind.REACTOR,owner);
-        // A second real side of the same receiver is reachable behind the remote Link.
-        cable(h,new BlockPos(20,3,6),MatterCableBlock.Tier.RESONANT,owner);cable(h,new BlockPos(21,3,6),MatterCableBlock.Tier.RESONANT,owner);
+        var south=machine(h,new BlockPos(20,3,6),MachineKind.REACTOR,owner);
+        // A second real side of the same receiver is reachable behind the remote Link (via DOWN port).
+        cable(h,new BlockPos(20,2,5),MatterCableBlock.Tier.RESONANT,owner);cable(h,new BlockPos(21,2,5),MatterCableBlock.Tier.RESONANT,owner);
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,b,owner.getUUID()),"Multi-endpoint FE pair failed");
-        h.assertTrue(insert(first,1_000)==1_000&&insert(second,131_072)==1_048,"Two source origins/endpoints multiplied Link throughput");
-        h.assertTrue(right.energy().getAmountAsLong()+north.energy().getAmountAsLong()==2_048,"Multiple receiver sides created or lost FE");
+        h.assertTrue(insert(first,1_000)==1_000&&insert(second,524_288)==3_096,"Two source origins/endpoints multiplied Link throughput");
+        h.assertTrue(right.energy().getAmountAsLong()+south.energy().getAmountAsLong()==4_096,"Multiple receiver sides created or lost FE");
         var local=machine(h,new BlockPos(5,3,5),MachineKind.REACTOR,owner);
         // Fill the remote recipients explicitly so the next accepted FE must cross the pair in reverse.
-        int rightCap=right.energyCapacity(),northCap=north.energyCapacity();
-        right.energy().set(rightCap);north.energy().set(northCap);
-        h.assertTrue(insert(energy(h,b,Direction.UP),131_072)==0&&local.energy().getAmountAsLong()==0,"Reverse flow granted the pair a second directional budget");
-        nextTick(h);h.assertTrue(insert(energy(h,b,Direction.UP),131_072)==2_048,"Reverse flow could not reuse a fresh tick's shared allowance");
-        h.assertTrue(local.energy().getAmountAsLong()==2_048&&right.energy().getAmountAsLong()==rightCap&&north.energy().getAmountAsLong()==northCap,"Fresh reverse transfer did not reach the actual opposite-side MBE exactly");h.succeed();
+        int rightCap=right.energyCapacity(),southCap=south.energyCapacity();
+        right.energy().set(rightCap);south.energy().set(southCap);
+        h.assertTrue(insert(energy(h,b,Direction.WEST),524_288)==0&&local.energy().getAmountAsLong()==0,"Reverse flow granted the pair a second directional budget");
+        nextTick(h);h.assertTrue(insert(energy(h,b,Direction.WEST),524_288)==4_096,"Reverse flow could not reuse a fresh tick's shared allowance");
+        h.assertTrue(local.energy().getAmountAsLong()==4_096&&right.energy().getAmountAsLong()==rightCap&&south.energy().getAmountAsLong()==southCap,"Fresh reverse transfer did not reach the actual opposite-side MBE exactly");h.succeed();
     }
     private static void linkFeRepair(GameTestHelper h){
         var owner=owner(h);var foreign=owner(h);var a=link(h,new BlockPos(4,3,5),owner);var b=link(h,new BlockPos(20,3,5),owner);var c=link(h,new BlockPos(20,3,11),owner);
@@ -312,15 +312,15 @@ public final class ThroughputRuntimeGameTests {
         stranger.setSecurityMode(foreign,SecurityMode.PRIVATE);
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,b,owner.getUUID())&&insert(input,1_024)==1_024,"Initial FE route failed");
         h.assertTrue(EntangledLinks.pair(h.getLevel(),a,c,owner.getUUID()),"FE re-pair failed");
-        h.assertTrue(insert(input,131_072)==1_024&&insert(input,131_072)==0,"Re-pair refreshed the already spent physical Link budget");
-        h.assertTrue(old.energy().getAmountAsLong()==1_024&&target.energy().getAmountAsLong()==1_024&&stranger.energy().getAmountAsLong()==0,"Re-pair retained a stale/foreign FE recipient");
-        nextTick(h);h.assertTrue(insert(input,131_072)==2_048,"Repaired route failed on a new tick");
+        h.assertTrue(insert(input,524_288)==3_072&&insert(input,524_288)==0,"Re-pair refreshed the already spent physical Link budget");
+        h.assertTrue(old.energy().getAmountAsLong()==1_024&&target.energy().getAmountAsLong()==3_072&&stranger.energy().getAmountAsLong()==0,"Re-pair retained a stale/foreign FE recipient");
+        nextTick(h);h.assertTrue(insert(input,524_288)==4_096,"Repaired route failed on a new tick");
         h.getLevel().setBlockAndUpdate(c,Blocks.AIR.defaultBlockState());
-        h.assertTrue(insert(input,131_072)==0,"Removed peer still forwarded through cached FE graph");
+        h.assertTrue(insert(input,524_288)==0,"Removed peer still forwarded through cached FE graph");
         var replacement=link(h,new BlockPos(20,3,11),owner);
-        h.assertTrue(insert(input,131_072)==0,"An unpaired replacement inherited the old Link edge");
-        h.assertTrue(EntangledLinks.pair(h.getLevel(),a,replacement,owner.getUUID())&&insert(input,131_072)==0,"Same-tick replacement refreshed the origin Link allowance");
-        nextTick(h);h.assertTrue(insert(input,131_072)==2_048&&stranger.energy().getAmountAsLong()==0,"Replacement edge was not refreshed safely");h.succeed();
+        h.assertTrue(insert(input,524_288)==0,"An unpaired replacement inherited the old Link edge");
+        h.assertTrue(EntangledLinks.pair(h.getLevel(),a,replacement,owner.getUUID())&&insert(input,524_288)==0,"Same-tick replacement refreshed the origin Link allowance");
+        nextTick(h);h.assertTrue(insert(input,524_288)==4_096&&stranger.energy().getAmountAsLong()==0,"Replacement edge was not refreshed safely");h.succeed();
     }
     private static void linkGeneratorPush(GameTestHelper h){
         var owner=owner(h);var gen=machine(h,new BlockPos(3,3,5),MachineKind.CRYSTAL_GENERATOR,owner);
@@ -345,7 +345,7 @@ public final class ThroughputRuntimeGameTests {
         var link=EntangledLinks.loaded(level,local).orElseThrow();var raw=link.saveCustomOnly(level.registryAccess());
         raw.putString("pair",UUID.randomUUID().toString());raw.putLong("peer",absent.asLong());
         link.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING,level.registryAccess(),raw));
-        var input=energy(h,local,Direction.UP);
+        var input=energy(h,local,Direction.SOUTH);
         try(var outer=Transaction.openRoot()){
             try(var nested=Transaction.open(outer)){h.assertTrue(input.insert(131_072,nested)==0,"Unloaded peer accepted simulated FE");}
             h.assertTrue(input.insert(131_072,outer)==0,"Unloaded peer accepted committed FE");outer.commit();

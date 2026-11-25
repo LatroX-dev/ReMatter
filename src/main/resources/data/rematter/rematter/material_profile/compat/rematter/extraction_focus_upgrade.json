@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:extraction_focus_upgrade",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 2874
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3500
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 8374
+    }
+  ],
+  "decomposition_energy": 57000,
+  "synthesis_energy": 114000,
+  "ticks": 114
+}

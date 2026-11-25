@@ -61,7 +61,7 @@ class PrimalPolicyTest {
         assertFalse(PrimalPlacementPolicy.permits("minecraft:the_end", "minecraft:the_end", 1040, 1024, 0));
         assertFalse(PrimalPlacementPolicy.permits("pack:resource_world", "minecraft:overworld", 0, 20000, 20000));
         assertTrue(PrimalPlacementPolicy.permits("minecraft:overworld", "minecraft:overworld", 0, 0, 0));
-        assertTrue(EntangledLinks.withinRange(new net.minecraft.core.BlockPos(0, 0, 0), new net.minecraft.core.BlockPos(32, 0, 0)));
-        assertFalse(EntangledLinks.withinRange(new net.minecraft.core.BlockPos(0, 0, 0), new net.minecraft.core.BlockPos(32, 1, 0)));
+        assertTrue(EntangledLinks.withinRange(new net.minecraft.core.BlockPos(0, 0, 0), new net.minecraft.core.BlockPos(64, 0, 0)));
+        assertFalse(EntangledLinks.withinRange(new net.minecraft.core.BlockPos(0, 0, 0), new net.minecraft.core.BlockPos(64, 1, 0)));
     }
 }

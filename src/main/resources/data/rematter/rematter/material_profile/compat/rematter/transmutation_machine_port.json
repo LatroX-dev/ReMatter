@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "item": "rematter:transmutation_machine_port",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 2250
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 374
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1199
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 2790
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 874
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 4874
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 5028
+    }
+  ],
+  "decomposition_energy": 40000,
+  "synthesis_energy": 80000,
+  "ticks": 80
+}

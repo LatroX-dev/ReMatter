@@ -26,15 +26,14 @@ final class TerminalNetwork {
                     && terminal.canAccess(player) && Container.stillValidBlockEntity(terminal, player);
             case TerminalAnchor.Wireless wireless -> {
                 var ap = wireless.accessPoint();
-                if (!ap.networkLive() || ap.getLevel() != player.level() || !ap.powered() || !ap.canAccess(player)
-                        || !ap.withinRange(player)) {
+                if (!ap.networkLive() || !ap.powered() || !ap.canAccess(player) || !ap.canReach(player)) {
                     yield false;
                 }
                 ItemStack held = wireless.resolveStack(player);
                 if (!(held.getItem() instanceof WirelessMatterTerminalItem)) yield false;
                 var link = held.get(WirelessTerminalData.LINK.get());
                 var target = link == null ? null : link.target().orElse(null);
-                yield target != null && target.dimension().equals(player.level().dimension())
+                yield target != null && ap.getLevel() != null && target.dimension().equals(ap.getLevel().dimension())
                         && target.pos().equals(ap.getBlockPos());
             }
         };
@@ -47,12 +46,19 @@ final class TerminalNetwork {
     }
 
     static boolean canManage(TerminalAnchor anchor, MachineBlockEntity device, Player player) {
-        return isValidAnchor(anchor, player) && device.networkLive() && device.getLevel() == player.level()
+        return isValidAnchor(anchor, player) && device.networkLive()
                 && device.canAccess(player) && anchor.matterNetwork(false).canManage(device);
     }
 
     static @Nullable MachineBlockEntity resolve(TerminalAnchor anchor, Player player, BlockPos position) {
-        return devices(anchor, player, true).stream().filter(machine -> machine.getBlockPos().equals(position))
+        return resolve(anchor, player, "", position);
+    }
+
+    static @Nullable MachineBlockEntity resolve(TerminalAnchor anchor, Player player, String dimensionId, BlockPos position) {
+        return devices(anchor, player, true).stream()
+                .filter(machine -> machine.getBlockPos().equals(position)
+                        && (dimensionId == null || dimensionId.isEmpty()
+                            || (machine.getLevel() != null && machine.getLevel().dimension().identifier().toString().equals(dimensionId))))
                 .findFirst().orElse(null);
     }
 

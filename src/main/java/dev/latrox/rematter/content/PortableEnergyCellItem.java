@@ -26,8 +26,8 @@ import org.jspecify.annotations.Nullable;
  * items (including Wireless Matter Terminals and cross-mod tools/equipment) in the player's inventory.
  */
 public final class PortableEnergyCellItem extends Item {
-    public static final int CAPACITY = 4_000_000;
-    public static final int MAX_TRANSFER = 16_000;
+    public static final int CAPACITY = 16_000_000;
+    public static final int MAX_TRANSFER = 64_000;
     private static final int BAR_COLOR = 0xEA4848;
     private static final int BAR_ACTIVE_COLOR = 0x4FE18E;
 

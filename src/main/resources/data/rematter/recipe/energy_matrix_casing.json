@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RSR",
+    "KEK",
+    "RSR"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "S": "rematter:structural_bars",
+    "K": "rematter:energy_core",
+    "E": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_matrix_casing",
+    "count": 4
+  }
+}

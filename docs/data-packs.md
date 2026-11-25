@@ -1,6 +1,6 @@
 # Chemistry data packs
 
-Pack authors can add ReMatter chemistry for existing items and fluids with a standard Minecraft data pack. ReMatter reads it on server startup and `/reload`. Material profiles, substance definitions, chemical processes, synthesis permissions and material research families are separate resources. This documents ReMatter 0.7.0 for Minecraft 26.1.2; ReMatter versions are independent of pack versions.
+Pack authors can add ReMatter chemistry for existing items and fluids with a standard Minecraft data pack. ReMatter reads it on server startup and `/reload`. Material profiles, substance definitions, chemical processes, synthesis permissions and material research families are separate resources. This documents ReMatter 0.50.0 for Minecraft 26.1.2; ReMatter versions are independent of pack versions.
 
 ## Start from the example
 
@@ -169,7 +169,7 @@ Disabling a definition does not delete stored quantities; they stay marked as un
 
 ## Quantities and specialist requirements
 
-1,000 units is a standard convention for defined basic forms, not a universal mass scale. The complete profile of a batch is authoritative. Existing ratios and documented exceptions remain: silicon uses 250 units per item; water and lava use one unit per mB. Derive block and nugget amounts from actual crafting and return routes. Cells hold 64,000, 256,000 or 1,000,000 units and at most 512 substance-ID/phase pairs.
+1,000 units is a standard convention for defined basic forms, not a universal mass scale. The complete profile of a batch is authoritative. Existing ratios and documented exceptions remain: silicon uses 250 units per item; water and lava use one unit per mB. Derive block and nugget amounts from actual crafting and return routes. Ordinary Matter Cells hold 4,000,000, 16,000,000, 64,000,000 or 256,000,000 units and at most 512 substance-ID/phase pairs.
 
 Synthesis entries may declare `"synthesis_machine": "material_synthesizer"` and `"crystallization_tier": 1` or `2`. Tier 1 is the default; tier 2 requires a Pressure Module in the Synthesizer. Every approved form of a crystal family must carry the same tier; alternate dusts or blocks cannot bypass it. These fields restrict an existing explicit permission; they never grant permission by tags or recipe inference. Only `material_synthesizer` is a valid synthesis machine.
 
@@ -248,9 +248,9 @@ The fuel catalogue accepts only plain Matrix Crystal plus its eight coloured var
 
 The standalone defaults and ReForging integration enable nine fuels. One plain Matrix Crystal yields 768 FE and the Mint variant yields 2,816 FE. The [crystal fuel audit](crystal-fuel-audit.md) lists every yield and the minimum energy needed to close each crystal’s production cycle. When setting your own yields, check your pack’s renewable materials, crafting and duplication routes as well.
 
-`rematter:primal_matter` and the Primal source items are reserved. Ordinary profiles, processes, synthesis, fluid adapters and Matter Cells cannot create, spend or export them. Existing unknown or unreadable stored contents remain preserved rather than being reinterpreted. Primal Cells have their own versioned state, payment slot, exact transfers and 16k/64k/256k/1M capacities. Converter targets and 1:1/2:1/4:1 prices are an explicit implementation allowlist in 0.7.0; there is no inferred or data-pack-defined converter target category.
+`rematter:primal_matter` and the Primal source items are reserved. Ordinary profiles, processes, synthesis, fluid adapters and Matter Cells cannot create, spend or export them. Existing unknown or unreadable stored contents remain preserved rather than being reinterpreted. Primal Cells have their own versioned state, payment slot, exact transfers and 16k/64k/256k/1M/4M capacities. Converter targets and 1:1/2:1/4:1 prices are an explicit implementation allowlist; there is no inferred or data-pack-defined converter target category.
 
-Primal Ores use dimension-explicit world generation for Overworld Deepslate, Nether Netherrack and outer End islands, excluding the central island. They appear in newly generated terrain only; existing chunks are not refilled. ReMatter 0.7.0 does not migrate older pre-release machine or Cell schemas. A removed ordinary substance definition still leaves its stored ID, phase and exact amount preserved.
+Primal Ores use dimension-explicit world generation for Overworld Deepslate, Nether Netherrack and outer End islands, excluding the central island. They appear in newly generated terrain only; existing chunks are not refilled. A removed ordinary substance definition still leaves its stored ID, phase and exact amount preserved.
 
 ## Authoring with KubeJS
 

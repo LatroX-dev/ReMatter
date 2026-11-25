@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Blaze",
   "items": [
+    "botania:blaze_block",
     "minecraft:blaze_powder",
     "minecraft:blaze_rod"
   ],

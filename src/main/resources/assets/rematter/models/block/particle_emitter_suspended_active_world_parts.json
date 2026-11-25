@@ -1,0 +1,196 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_particle_emitter_work_active"
+  },
+  "elements": [
+    {
+      "name": "core_column",
+      "from": [
+        6,
+        6,
+        6
+      ],
+      "to": [
+        10,
+        11,
+        10
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            4,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            4,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            4,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            5,
+            4,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "emitter_lens",
+      "from": [
+        5.5,
+        2,
+        5.5
+      ],
+      "to": [
+        10.5,
+        4.5,
+        10.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            12.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            12.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            12.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            12.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            5,
+            5
+          ]
+        }
+      }
+    },
+    {
+      "name": "emitter_tip",
+      "from": [
+        7,
+        0,
+        7
+      ],
+      "to": [
+        9,
+        2,
+        9
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            12.5,
+            2,
+            14.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            12.5,
+            2,
+            14.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            12.5,
+            2,
+            14.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            12.5,
+            2,
+            14.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            12.5,
+            2,
+            14.5
+          ],
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

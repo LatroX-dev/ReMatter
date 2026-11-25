@@ -8,12 +8,12 @@ class ControllerEnergyBudgetTest {
     @Test void nativeAndForeignSidesShareAbsoluteControllerLimit(){
         var budget=new ControllerEnergyBudget();
         try(var tx=Transaction.openRoot()){
-            assertEquals(2048,budget.insert(1,100000,2048,tx,n->n));
-            assertEquals(0,budget.insert(1,100000,2048,tx,n->n));
-            assertEquals(129024,budget.insert(1,200000,0,tx,n->n));
-            assertEquals(0,budget.insert(1,200000,131072,tx,n->n));tx.commit();
+            assertEquals(4096,budget.insert(1,100000,4096,tx,n->n));
+            assertEquals(0,budget.insert(1,100000,4096,tx,n->n));
+            assertEquals(520192,budget.insert(1,600000,0,tx,n->n));
+            assertEquals(0,budget.insert(1,600000,524288,tx,n->n));tx.commit();
         }
-        try(var tx=Transaction.openRoot()){assertEquals(131072,budget.insert(2,200000,131072,tx,n->n));tx.commit();}
+        try(var tx=Transaction.openRoot()){assertEquals(524288,budget.insert(2,600000,524288,tx,n->n));tx.commit();}
     }
     @Test void simulationAndNestedAbortDoNotConsumeAllowances(){
         var budget=new ControllerEnergyBudget();

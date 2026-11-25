@@ -18,6 +18,9 @@ final class MachineStructureLink {
     private IndustrialStructure.@Nullable ProtectionClaim claim;
     private List<IndustrialStructure.Port> ports = List.of();
     private List<IndustrialStructure.Module> modules = List.of();
+    private String layoutFingerprint = "";
+    private List<BlockPos> glassPositions = List.of();
+    private IndustrialStructure.@Nullable Formation lastFormation;
     private boolean publishedWorking;
     private boolean previewEnabled;
     private @Nullable IndustrialBlueprint blueprint;
@@ -50,6 +53,8 @@ final class MachineStructureLink {
                 return new IndustrialBlueprint(machine.kind(), s.width(), s.height(), s.depth(), s.controllerColumn(),
                         def.ports(), def.chambers(), def.coils(), def.grinding(), def.mixing(), def.separation());
             }
+            var inferred = IndustrialStructure.inferPartialBlueprint(machine);
+            if (inferred.isPresent()) return inferred.get();
         }
         return IndustrialBlueprint.defaultFor(machine.kind());
     }
@@ -106,14 +111,40 @@ final class MachineStructureLink {
             var next = new IndustrialStructure.ProtectionClaim(current.shape(), machine.getBlockState().getValue(MachineBlock.FACING));
             if (!next.equals(claim)) { claim = next; machine.setChanged(); machine.touchObservations(); }
         }
+        if (current == lastFormation) return false;
+        lastFormation = current;
         if (formed == current.formed() && Objects.equals(shape, current.shape()) && ports.equals(current.ports())
-                && modules.equals(current.modules())) return false;
+                && modules.equals(current.modules()) && layoutFingerprint.equals(current.layoutFingerprint())) {
+            if (formed) {
+                var nextGlass = collectGlassPositions();
+                if (!nextGlass.equals(glassPositions)) {
+                    var nextSet = new HashSet<>(nextGlass);
+                    if (level instanceof ServerLevel server && server.getServer().isSameThread()) {
+                        for (var oldPos : glassPositions) {
+                            if (!nextSet.contains(oldPos) && server.hasChunkAt(oldPos)) {
+                                var st = server.getBlockState(oldPos);
+                                if (st.getBlock() instanceof ReactorGlassBlock && st.getValue(ReactorGlassBlock.FORMED)) {
+                                    server.setBlock(oldPos, st.setValue(ReactorGlassBlock.FORMED, false), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+                                }
+                            }
+                        }
+                    }
+                    glassPositions = nextGlass;
+                    updateGlass(true);
+                }
+            }
+            return false;
+        }
         clearModules();
+        updateGlass(false);
         publishedWorking = false;
         var changed = new HashSet<BlockPos>();
         ports.forEach(port -> changed.add(port.position()));
         current.ports().forEach(port -> changed.add(port.position()));
         formed = current.formed(); shape = current.shape(); ports = current.ports(); modules = current.modules();
+        layoutFingerprint = current.layoutFingerprint();
+        glassPositions = collectGlassPositions();
+        updateGlass(true);
         bindModules(false);
         changed.stream().filter(level::hasChunkAt).forEach(level::invalidateCapabilities);
         level.invalidateCapabilities(machine.getBlockPos());
@@ -138,6 +169,32 @@ final class MachineStructureLink {
 
     void removed() {
         clearModules();
+        updateGlass(false);
+        glassPositions = List.of();
+    }
+
+    private List<BlockPos> collectGlassPositions() {
+        if (!formed || shape == null || !(machine.getLevel() instanceof ServerLevel server)) return List.of();
+        var facing = machine.getBlockState().getValue(MachineBlock.FACING);
+        var glassBlock = ModContent.reactorGlass(machine.kind());
+        var out = new java.util.ArrayList<BlockPos>();
+        for (var cell : IndustrialStructure.layout(shape)) {
+            if (cell.role() != IndustrialStructure.Role.WALL) continue;
+            var pos = IndustrialStructure.worldPosition(machine.getBlockPos(), facing, cell);
+            if (server.hasChunkAt(pos) && server.getBlockState(pos).is(glassBlock)) out.add(pos.immutable());
+        }
+        return List.copyOf(out);
+    }
+
+    private void updateGlass(boolean nextFormed) {
+        if (!(machine.getLevel() instanceof ServerLevel server) || !server.getServer().isSameThread()) return;
+        for (var pos : glassPositions) {
+            if (!server.hasChunkAt(pos)) continue;
+            var state = server.getBlockState(pos);
+            if (state.getBlock() instanceof ReactorGlassBlock && state.getValue(ReactorGlassBlock.FORMED) != nextFormed) {
+                server.setBlock(pos, state.setValue(ReactorGlassBlock.FORMED, nextFormed), net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+            }
+        }
     }
 
     private void clearModules() {

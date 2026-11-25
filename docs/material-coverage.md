@@ -2,7 +2,7 @@
 
 ReMatter uses reviewed, exact item IDs. The catalogue is maintained in [material_catalogue.json](../tools/data/material_catalogue.json); [generate_material_data.py](../tools/generate_material_data.py) reproduces the shipped item and fluid profiles, their separate synthesis permissions, the gas permissions, this page and its list. Tags help investigate candidates but never grant support at runtime.
 
-The data catalogue contains **1989 item profiles** across **41 namespaces**, with **747 explicit item synthesis outputs**. It also covers **14 fluids** (14 with synthesis) and **14 gas outputs**, and defines 90 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
+The data catalogue contains **2278 item profiles** across **42 namespaces**, with **846 explicit item synthesis outputs**. It also covers **14 fluids** (14 with synthesis) and **14 gas outputs**, and defines 95 substances in addition to the built-in core elements and compounds. Installing a supported mod does not imply that every item from it is supported. These are declared permissions before dependency filtering. Quartz gems and obsidian are disabled while Ender IO is loaded, unless a pack explicitly overrides them. Crystal-family outputs use the Material Synthesizer; every diamond form requires tier 2. The CSV includes dependency conditions, required machines, tiers and advancements.
 
 ## Quantities and material states
 
@@ -40,13 +40,13 @@ End Stone adds a small amount of Enderion (`Edr`) to silica and calcium oxide. T
 
 Fictional constituents have element-like symbols that never duplicate a real element. Each is conserved like an element; normal processes do not create or convert them. The list names the substances that contain each one:
 
-- **Arcanium** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Charged Redstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Redstone Crystal, Supremium Essence, Tertium Essence; held directly by 95 item profiles.
-- **Astrion** (`Ast`): Sky Stone, Stellarite; held directly by 32 item profiles.
-- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 72 item profiles.
-- **Enderion** (`Edr`): Dimensional Shard Material; held directly by 60 item profiles.
-- **Netherium** (`Nt`): held directly by 37 item profiles.
+- **Arcanium** (`Arc`): Arcane Crystal, Awakened Supremium Essence, Burnt Otherrock, Burnt Otherstone, Charged Redstone, Corrupted Arcane Crystal, Echo Dust Material, Imperium Essence, Inferium Essence, Insanium Essence, Otherworld Ashes, Prosperity Shard Material, Prudentium Essence, Redstone Crystal, Supremium Essence, Tertium Essence; held directly by 136 item profiles.
+- **Astrion** (`Ast`): Sky Stone, Stellarite, Void Condensate; held directly by 32 item profiles.
+- **Cinderium** (`Cdr`): Corrupted Arcane Crystal, Ember Crystal Material, Soulium Dust Material; held directly by 119 item profiles.
+- **Enderion** (`Edr`): Dimensional Shard Material, Void Condensate; held directly by 85 item profiles.
+- **Netherium** (`Nt`): held directly by 60 item profiles.
 - **Quantium** (`Qnt`): Dimensional Shard Material, Echo Dust Material, Entro Crystal, Fluxite; held directly by 16 item profiles.
-- **Vitalium** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 3 item profiles.
+- **Vitalium** (`Vt`): Awakened Supremium Essence, Imperium Essence, Inferium Essence, Insanium Essence, Prismarine Crystal Material, Prismarine Shard Material, Prosperity Shard Material, Prudentium Essence, Soulium Dust Material, Supremium Essence, Tertium Essence; held directly by 5 item profiles.
 
 Lapis Lazuli uses a simplified lazurite model with sodium, calcium, aluminum, silicon, oxygen and sulfur. Real lapis lazuli contains several minerals with variable proportions.
 
@@ -66,6 +66,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `appgen` | 6 | 2 |
 | `aquaculture` | 3 | 0 |
 | `bakeries` | 1 | 1 |
+| `botania` | 251 | 99 |
 | `colossal_reactors` | 36 | 12 |
 | `croptopia` | 2 | 1 |
 | `ecologics` | 2 | 2 |
@@ -94,7 +95,7 @@ Counts below describe the shipped exact-ID catalogue. Optional profiles load onl
 | `refinedstorage` | 3 | 1 |
 | `refurbished_furniture` | 1 | 1 |
 | `regions_unexplored` | 1 | 0 |
-| `rematter` | 97 | 7 |
+| `rematter` | 135 | 7 |
 | `replication` | 5 | 0 |
 | `rftoolsbase` | 4 | 1 |
 | `stellaris` | 20 | 4 |

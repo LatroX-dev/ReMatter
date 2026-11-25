@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/particle_emitter"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/particle_emitter_active_parts"
+      }
+    ]
+  }
+}

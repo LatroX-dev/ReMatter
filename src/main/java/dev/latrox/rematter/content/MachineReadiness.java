@@ -49,7 +49,7 @@ public final class MachineReadiness {
             if (store.amount(input.getKey()) < input.getValue()) return "missing_matter";
         }
         if(!store.canApply(inputs,outputs)) {
-            if(outputs.keySet().stream().anyMatch(key->!store.voidsOverflow(key)&&store.members().stream().noneMatch(member->member.accepts(key))))return "storage_filtered";
+            if(outputs.keySet().stream().anyMatch(key->!store.voidsOverflow(key)&&!store.acceptsDeposit(key)))return "storage_filtered";
             return store.hasTypeSpace(inputs,outputs)?"storage_full":"storage_types_full";
         }
         return "ready";

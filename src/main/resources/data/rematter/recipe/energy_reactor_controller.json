@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EAE",
+    "KFK",
+    "NQN"
+  ],
+  "key": {
+    "E": "rematter:ember_matrix_crystal",
+    "A": "rematter:amber_matrix_crystal",
+    "K": "rematter:energy_core",
+    "F": "rematter:machine_frame",
+    "N": "rematter:netherite_sheath",
+    "Q": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:energy_reactor_controller",
+    "count": 1
+  }
+}

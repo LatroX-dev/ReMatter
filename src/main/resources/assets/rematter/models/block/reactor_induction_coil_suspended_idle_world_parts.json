@@ -1,0 +1,136 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_reactor_induction_coil_work"
+  },
+  "elements": [
+    {
+      "name": "bus_rod",
+      "from": [
+        6,
+        2,
+        6
+      ],
+      "to": [
+        10,
+        11.5,
+        10
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            9.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            9.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            9.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            4,
+            9.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            9.5,
+            4,
+            13.5
+          ]
+        }
+      }
+    },
+    {
+      "name": "bus_tip",
+      "from": [
+        7,
+        0,
+        7
+      ],
+      "to": [
+        9,
+        2,
+        9
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13.5,
+            2,
+            15.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13.5,
+            2,
+            15.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13.5,
+            2,
+            15.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13.5,
+            2,
+            15.5
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13.5,
+            2,
+            15.5
+          ],
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Botania Manasteel",
+  "items": [
+    "botania:manasteel_block",
+    "botania:manasteel_ingot",
+    "botania:manasteel_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

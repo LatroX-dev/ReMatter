@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/primal_machine_port",
+  "textures": {
+    "particle": "rematter:block/primal_machine_port_power_output",
+    "face": "rematter:block/primal_machine_port_power_output"
+  }
+}

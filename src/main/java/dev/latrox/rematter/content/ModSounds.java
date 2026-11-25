@@ -56,6 +56,14 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CONVERTER_ACCENT = register("converter_accent");
     public static final DeferredHolder<SoundEvent, SoundEvent> ATMOSPHERIC_WORK = register("atmospheric_work");
     public static final DeferredHolder<SoundEvent, SoundEvent> ATMOSPHERIC_ACCENT = register("atmospheric_accent");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DEEP_EXTRACTOR_WORK = register("deep_extractor_work");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DEEP_EXTRACTOR_ACCENT = register("deep_extractor_accent");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRANSMUTATION_REACTOR_WORK = register("transmutation_reactor_work");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRANSMUTATION_REACTOR_ACCENT = register("transmutation_reactor_accent");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PRIMAL_REACTOR_WORK = register("primal_reactor_work");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PRIMAL_REACTOR_ACCENT = register("primal_reactor_accent");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENERGY_REACTOR_WORK = register("energy_reactor_work");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENERGY_REACTOR_ACCENT = register("energy_reactor_accent");
     public static final DeferredHolder<SoundEvent, SoundEvent> ANALYZER_COMPLETE = register("analyzer_complete");
     public static final DeferredHolder<SoundEvent, SoundEvent> ENTANGLED_PAIR = register("entangled_pair");
     public static final DeferredHolder<SoundEvent, SoundEvent> CELL_TRANSFER = register("cell_transfer");
@@ -72,6 +80,10 @@ public final class ModSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> GENERATOR_CYCLE = register("generator_cycle");
     public static final DeferredHolder<SoundEvent, SoundEvent> CONVERTER_CYCLE = register("converter_cycle");
     public static final DeferredHolder<SoundEvent, SoundEvent> ATMOSPHERIC_CYCLE = register("atmospheric_cycle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> DEEP_EXTRACTOR_CYCLE = register("deep_extractor_cycle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRANSMUTATION_REACTOR_CYCLE = register("transmutation_reactor_cycle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PRIMAL_REACTOR_CYCLE = register("primal_reactor_cycle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ENERGY_REACTOR_CYCLE = register("energy_reactor_cycle");
     // Interactions that used to borrow another action's sound.
     public static final DeferredHolder<SoundEvent, SoundEvent> WRENCH_ROTATE = register("wrench_rotate");
     public static final DeferredHolder<SoundEvent, SoundEvent> WRENCH_MODE = register("wrench_mode");
@@ -95,6 +107,9 @@ public final class ModSounds {
             case SYNTHESIZER -> SYNTHESIZER_WORK;
             case REACTOR -> PROCESSOR_WORK;
             case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> CHEMICAL_REACTOR_WORK;
+            case TRANSMUTATION_REACTOR -> TRANSMUTATION_REACTOR_WORK;
+            case PRIMAL_REACTOR -> PRIMAL_REACTOR_WORK;
+            case ENERGY_REACTOR -> ENERGY_REACTOR_WORK;
             case HAND_PREPARATOR -> HAND_PREPARATOR_WORK;
             case PREPARATOR -> PREPARATOR_WORK;
             case INDUSTRIAL_PREPARATOR -> PREPARATION_REACTOR_WORK;
@@ -102,7 +117,8 @@ public final class ModSounds {
             case CRYSTAL_GENERATOR, INDUSTRIAL_CRYSTAL_GENERATOR -> GENERATOR_WORK;
             case PRIMAL_CONVERTER -> CONVERTER_WORK;
             case ATMOSPHERIC_COLLECTOR -> ATMOSPHERIC_WORK;
-            case DRIVE, TERMINAL, NETWORK_INTERFACE -> null;
+            case DEEP_EXTRACTOR -> DEEP_EXTRACTOR_WORK;
+            case DRIVE, TERMINAL, NETWORK_INTERFACE, ENERGY_MATRIX -> null;
         };
     }
 
@@ -113,6 +129,9 @@ public final class ModSounds {
             case SYNTHESIZER -> SYNTHESIZER_ACCENT;
             case REACTOR -> PROCESSOR_ACCENT;
             case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> CHEMICAL_REACTOR_ACCENT;
+            case TRANSMUTATION_REACTOR -> TRANSMUTATION_REACTOR_ACCENT;
+            case PRIMAL_REACTOR -> PRIMAL_REACTOR_ACCENT;
+            case ENERGY_REACTOR -> ENERGY_REACTOR_ACCENT;
             case HAND_PREPARATOR -> HAND_PREPARATOR_ACCENT;
             case PREPARATOR -> PREPARATOR_ACCENT;
             case INDUSTRIAL_PREPARATOR -> PREPARATION_REACTOR_ACCENT;
@@ -120,7 +139,8 @@ public final class ModSounds {
             case CRYSTAL_GENERATOR, INDUSTRIAL_CRYSTAL_GENERATOR -> GENERATOR_ACCENT;
             case PRIMAL_CONVERTER -> CONVERTER_ACCENT;
             case ATMOSPHERIC_COLLECTOR -> ATMOSPHERIC_ACCENT;
-            case DRIVE, TERMINAL, NETWORK_INTERFACE -> null;
+            case DEEP_EXTRACTOR -> DEEP_EXTRACTOR_ACCENT;
+            case DRIVE, TERMINAL, NETWORK_INTERFACE, ENERGY_MATRIX -> null;
         };
     }
 

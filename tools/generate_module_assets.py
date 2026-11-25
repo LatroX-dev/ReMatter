@@ -16,7 +16,7 @@ from pathlib import Path
 import argparse
 
 from family_geometry import ROTATION, Box, GeometryError, build, check_boxes, check_composition, emitted, mapped_uv
-from hardware_sprites import (DARK_FACE, GUNMETAL_FACE, NATURAL, STEEL_FACE, STEEL_PLAIN, OwnedFiles, Sheet, blade, coil,
+from hardware_sprites import (DARK_FACE, GUNMETAL_FACE, NATURAL, STEEL_FACE, STEEL_PLAIN, OwnedFiles, Sheet, animated_primal_crystal, blade, coil,
                               collar_side, collar_top, crystal, cutting_edge, face_size, liquid, membrane,
                               module_crystal, module_hue, mount_front, mount_side, mount_top, well)
 
@@ -24,7 +24,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / 'src/main/resources'
 ASSETS = RES / 'assets/rematter'
 MODEL = 'rematter:block/'
-NAMES = ('grinding_unit', 'separation_unit', 'mixing_basin', 'field_coil', 'reaction_chamber')
+NAMES = ('grinding_unit', 'separation_unit', 'mixing_basin', 'field_coil', 'reaction_chamber',
+         'particle_emitter', 'primal_condenser_core', 'reactor_fuel_core', 'reactor_induction_coil')
 HORIZONTAL = ('north', 'east', 'south', 'west')
 # Most boxes a module may show at once: mount, mechanism and working parts together.
 BUDGET = 12
@@ -75,6 +76,43 @@ BODY = {
         ('arm_left', (12, 6, 6.5), (13, 11, 9.5), 'plain', {}),
         ('arm_right', (3, 6, 6.5), (4, 11, 9.5), 'plain', {}),
     ),
+    # Particle Emitter: four copper accelerator struts cradling an Ember focus nozzle.
+    'particle_emitter': (
+        ('pedestal', (5, 3, 5), (11, 5, 11), 'dark', {}),
+        ('strut_north', (6.5, 3, 3), (9.5, 10, 5), 'coil', {}),
+        ('strut_south', (6.5, 3, 11), (9.5, 10, 13), 'coil', {}),
+        ('strut_west', (3, 3, 6.5), (5, 10, 9.5), 'coil', {}),
+        ('strut_east', (11, 3, 6.5), (13, 10, 9.5), 'coil', {}),
+        ('focus_collar', (4.5, 10, 4.5), (11.5, 11.5, 11.5), 'steel', {}),
+    ),
+    # Primal Condenser Core: four armored corner pylons and copper crown caging a Primal singularity.
+    'primal_condenser_core': (
+        ('anchor_base', (5, 3, 5), (11, 4.5, 11), 'dark', {}),
+        ('pylon_nw', (3, 3, 3), (5, 13, 5), 'steel', {}),
+        ('pylon_ne', (11, 3, 3), (13, 13, 5), 'steel', {}),
+        ('pylon_sw', (3, 3, 11), (5, 13, 13), 'steel', {}),
+        ('pylon_se', (11, 3, 11), (13, 13, 13), 'steel', {}),
+        ('crown_ring', (4, 13, 4), (12, 14, 12), 'coil', {}),
+    ),
+    # Reactor Fuel Core: four armored thermal ribs cradling a tall Ember annihilation fuel stack.
+    'reactor_fuel_core': (
+        ('base_pad', (4, 3, 4), (12, 4.5, 12), 'dark', {}),
+        ('rib_nw', (3, 4.5, 3), (4.5, 13.5, 4.5), 'dark', {}),
+        ('rib_ne', (11.5, 4.5, 3), (13, 13.5, 4.5), 'dark', {}),
+        ('rib_sw', (3, 4.5, 11.5), (4.5, 13.5, 13), 'dark', {}),
+        ('rib_se', (11.5, 4.5, 11.5), (13, 13.5, 13), 'dark', {}),
+        ('cap_ring', (4, 13.5, 4), (12, 14.5, 12), 'steel', {}),
+    ),
+    # Reactor Induction Coil: wound induction ring + upper steel transfer yoke around a Blue high-current spindle.
+    'reactor_induction_coil': (
+        ('spindle_foot', (5.5, 3, 5.5), (10.5, 4.5, 10.5), 'dark', {}),
+        ('low_coil_n', (2.5, 5, 2.5), (13.5, 7.5, 4.5), 'coil', {}),
+        ('low_coil_s', (2.5, 5, 11.5), (13.5, 7.5, 13.5), 'coil', {}),
+        ('low_coil_w', (2.5, 5, 4.5), (4.5, 7.5, 11.5), 'coil', {}),
+        ('low_coil_e', (11.5, 5, 4.5), (13.5, 7.5, 11.5), 'coil', {}),
+        ('yoke_w', (3, 7.5, 6.5), (4.5, 13, 9.5), 'steel', {}),
+        ('yoke_e', (11.5, 7.5, 6.5), (13, 13, 9.5), 'steel', {}),
+    ),
 }
 # Working parts as (name, from, to, material). They change sprite and glow with the block state. A crystal that
 # stands free ends in a stepped tip, so it reads as a cut stone and not as a block of its colour.
@@ -106,6 +144,27 @@ WORK = {
         ('lens_front', (6, 8, 6.5), (10, 11, 7), 'crystal'),
         ('lens_back', (6, 8, 9), (10, 11, 9.5), 'crystal'),
     ),
+    'particle_emitter': (
+        ('core_column', (6, 5, 6), (10, 10, 10), 'crystal'),
+        ('emitter_lens', (5.5, 11.5, 5.5), (10.5, 14, 10.5), 'crystal'),
+        ('emitter_tip', (7, 14, 7), (9, 16, 9), 'crystal'),
+    ),
+    'primal_condenser_core': (
+        ('core_base', (6, 4.5, 6), (10, 6.5, 10), 'primal'),
+        ('singularity', (5, 6.5, 5), (11, 11.5, 11), 'primal'),
+        ('core_neck', (6, 11.5, 6), (10, 13, 10), 'primal'),
+        ('apex_spire', (6.5, 14, 6.5), (9.5, 16, 9.5), 'primal'),
+    ),
+    'reactor_fuel_core': (
+        ('fuel_low', (5, 4.5, 5), (11, 8.5, 11), 'crystal'),
+        ('fuel_mid', (5.5, 8.5, 5.5), (10.5, 11.5, 10.5), 'crystal'),
+        ('fuel_high', (5, 11.5, 5), (11, 13.5, 11), 'crystal'),
+        ('apex_node', (6.5, 14.5, 6.5), (9.5, 16, 9.5), 'crystal'),
+    ),
+    'reactor_induction_coil': (
+        ('bus_rod', (6, 4.5, 6), (10, 14, 10), 'crystal'),
+        ('bus_tip', (7, 14, 7), (9, 16, 9), 'crystal'),
+    ),
 }
 # Sprites of working parts that move while the module works.
 ANIMATED = {name: (16, {'animation': {'frametime': 3, 'interpolate': True}}) for name in NAMES}
@@ -115,9 +174,10 @@ def painters(name):
     """Painter of each material by whether the module hangs; only the blade is drawn differently upside down."""
     hue = module_hue(name)
     from work_sprites import animated_crystal,animated_liquid
-    style={'field_coil':'rise','separation_unit':'fall'}.get(name,'breath')
+    style={'field_coil':'rise','separation_unit':'fall','particle_emitter':'rise','reactor_fuel_core':'rise','reactor_induction_coil':'rise'}.get(name,'breath')
     fixed = {'steel': STEEL_FACE, 'plain': STEEL_PLAIN, 'dark': DARK_FACE, 'gunmetal': GUNMETAL_FACE, 'well': well,
              'membrane': membrane, 'coil': coil, 'edge': cutting_edge(hue), 'crystal': animated_crystal(hue,style),
+             'primal': animated_primal_crystal(),
              'liquid': animated_liquid(hue)}
     oriented = {'blade': blade}
 
@@ -292,6 +352,10 @@ RECIPES = {
     'mixing_basin': (['M M', 'VMV', 'RFR'], {'M': CRYSTAL, 'V': 'rematter:virelite_ceramic', 'R': 'rematter:rhevon_ingot', 'F': 'rematter:machine_frame'}),
     'field_coil': (['CLC', 'CMC', 'FQF'], {'C': '#c:dusts/copper', 'L': 'rematter:lumivex_ingot', 'M': CRYSTAL, 'Q': 'rematter:control_circuit', 'F': 'rematter:machine_frame'}),
     'reaction_chamber': (['GDG', 'VMV', 'FOF'], {'G': 'rematter:reactor_glass', 'D': 'rematter:diamond_lattice', 'V': 'rematter:virelite_ceramic', 'M': CRYSTAL, 'F': 'rematter:machine_frame', 'O': 'rematter:optical_circuit'}),
+    'particle_emitter': (['LPL', 'EME', 'NFN'], {'L': 'rematter:lumivex_ingot', 'P': 'rematter:particle_resonator', 'E': 'rematter:ender_conductor', 'M': CRYSTAL, 'N': 'rematter:netherite_sheath', 'F': 'rematter:machine_frame'}),
+    'primal_condenser_core': (['GKG', 'MPM', 'NFN'], {'G': 'rematter:reactor_glass', 'K': 'rematter:primal_matrix_core', 'M': CRYSTAL, 'P': 'rematter:primal_crystal', 'N': 'rematter:netherite_sheath', 'F': 'rematter:machine_frame'}),
+    'reactor_fuel_core': (['MEM', 'DKD', 'NFN'], {'M': CRYSTAL, 'E': 'rematter:energy_core', 'D': 'rematter:diamond_lattice', 'K': 'rematter:ender_conductor', 'N': 'rematter:netherite_sheath', 'F': 'rematter:machine_frame'}),
+    'reactor_induction_coil': (['RMR', 'ECE', 'DFD'], {'R': 'rematter:resonant_matter_cable', 'M': CRYSTAL, 'E': 'rematter:ender_conductor', 'C': 'rematter:energy_core', 'D': 'rematter:diamond_lattice', 'F': 'rematter:machine_frame'}),
 }
 
 
@@ -335,11 +399,15 @@ def generate(check, models=True, textures=True, data=True):
             out.json(ASSETS / f'blockstates/{module.name}.json', module.blockstate())
             out.json(ASSETS / f'items/{module.name}.json', module.item())
         # A module has no item model of its own: its item shows the block models.
-        out.sweep(ASSETS / 'models', [f'{folder}/{name}{rest}.json' for name in NAMES
+        out.sweep(ASSETS / 'models', [f'{folder}/{name}{rest}.json' for name in (*NAMES, 'energy_capacitor_core', 'energy_transfer_coil')
                                       for folder, rest in (('block', ''), ('block', '_*'), ('item', ''))])
+        out.sweep(ASSETS / 'blockstates', ['energy_capacitor_core.json', 'energy_transfer_coil.json'])
+        out.sweep(ASSETS / 'items', ['energy_capacitor_core.json', 'energy_transfer_coil.json'])
     if data:
         for path, value in data_files():
             out.json(path, value)
+        for folder in ('loot_table/blocks', 'recipe', 'advancement/recipes'):
+            out.sweep(RES / 'data/rematter' / folder, ['energy_capacitor_core.json', 'energy_transfer_coil.json'])
     return out.count, modules, art
 
 

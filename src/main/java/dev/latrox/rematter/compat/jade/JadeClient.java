@@ -41,6 +41,9 @@ final class JadeClient {
         registration.registerBlockComponent(new AccessPointTooltip(), dev.latrox.rematter.content.WirelessAccessPointBlock.class);
         registration.registerBlockComponent(new EmitterTooltip(), dev.latrox.rematter.content.MatterLevelEmitterBlock.class);
         registration.registerBlockComponent(new EntangledLinkTooltip(), dev.latrox.rematter.primal.EntangledLinkBlock.class);
+        registration.registerBlockComponent(new DimensionalLinkTooltip(), dev.latrox.rematter.primal.DimensionalEntangledLinkBlock.class);
+        registration.registerBlockComponent(new SpatialAnchorTooltip(), dev.latrox.rematter.content.SpatialAnchorBlock.class);
+        registration.registerBlockComponent(new CableRelayTooltip(), dev.latrox.rematter.content.MatterCableRelayBlock.class);
         registration.registerBlockComponent(new CellTransferTooltip(), dev.latrox.rematter.celltransfer.CellTransferStationBlock.class);
         registration.registerItemStorageClient(new EmptyView<ItemStack, ItemView>(ReMatterJadePlugin.ITEMS));
         registration.registerFluidStorageClient(new EmptyView<FluidView.Data, FluidView>(ReMatterJadePlugin.FLUIDS));
@@ -54,8 +57,24 @@ final class JadeClient {
             if (!(accessor.getBlockState().getBlock() instanceof MatterCableBlock cable)) return;
             tooltip.add(Component.translatable("jade.rematter.cable_channels").withStyle(ChatFormatting.AQUA));
             tooltip.add(Component.translatable("jade.rematter.cable_limit", cable.tier().networkLimit()).withStyle(ChatFormatting.AQUA));
+            if (accessor.getServerData().contains(AuxiliaryDataProviders.CABLE_KEY)) {
+                int mask = accessor.getServerData().getCompoundOrEmpty(AuxiliaryDataProviders.CABLE_KEY).getIntOr("blockedMask", 0);
+                if (mask != 0) {
+                    var sides = new java.util.ArrayList<String>();
+                    for (net.minecraft.core.Direction d : net.minecraft.core.Direction.values()) {
+                        if ((mask & (1 << d.get3DDataValue())) != 0) {
+                            sides.add(Component.translatable("direction.rematter." + d.getName()).getString());
+                        }
+                    }
+                    if (!sides.isEmpty()) {
+                        tooltip.add(Component.translatable("jade.rematter.cable_blocked_sides", String.join(", ", sides))
+                                .withStyle(ChatFormatting.GOLD));
+                    }
+                }
+            }
             if (accessor.showDetails()) {
                 tooltip.add(Component.translatable("jade.rematter.cable_connections", MatterCableBlock.connections(accessor.getBlockState())));
+                tooltip.add(Component.translatable("jade.rematter.cable_disconnect_hint").withStyle(ChatFormatting.GRAY));
                 tooltip.add(Component.translatable("jade.rematter.cable_limit_hint").withStyle(ChatFormatting.GRAY));
                 tooltip.add(Component.translatable("jade.rematter.cable_activity_hint").withStyle(ChatFormatting.GRAY));
             }
@@ -90,7 +109,17 @@ final class JadeClient {
                 tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
                 return;
             }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) {
+                tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
+            }
             tooltip.add(StatusText.of(data.getStringOr("status", "idle"), data.getIntOr("staleOrders", 0), data.getIntOr("heldOrders", 0)));
+            if (data.getBooleanOr("anchorInstalled", false)) {
+                boolean active = data.getBooleanOr("anchorActive", false);
+                tooltip.add(Component.translatable(active ? "jade.rematter.anchor_active" : "jade.rematter.anchor_inactive",
+                        data.getIntOr("anchorForced", 0), data.getIntOr("anchorTotal", 0), data.getIntOr("anchorMax", 16))
+                        .withStyle(active ? ChatFormatting.AQUA : ChatFormatting.GOLD));
+            }
             if(data.getLongOr("target",0)>0)tooltip.add(Component.translatable(data.getBooleanOr("targetNetwork",false)
                     ?"screen.rematter.target_network_count":"screen.rematter.target_local_count",
                     data.getLongOr("targetStock",-1)<0?"?":dev.latrox.rematter.client.Quantities.number(data.getLongOr("targetStock",0)),
@@ -104,23 +133,91 @@ final class JadeClient {
                 tooltip.add(closed != null ? Component.translatable("port.rematter.closed." + closed.name().toLowerCase(java.util.Locale.ROOT)).withStyle(ChatFormatting.GRAY)
                         : Component.translatable("port.rematter.mode_message", machine.portMode(side).label()));
             }
-            boolean industrial = accessor.getBlockState().getBlock() instanceof MachineBlock block
-                    && IndustrialStructure.isIndustrial(block.kind());
+            var machineKind = accessor.getBlockState().getBlock() instanceof MachineBlock block ? block.kind() : null;
+            boolean industrial = machineKind != null && IndustrialStructure.isIndustrial(machineKind);
+            if (data.getBooleanOr("energyMatrix", false)) {
+                long mEnergy = data.getLongOr("matrixEnergy", 0L);
+                long mCap = data.getLongOr("matrixCapacity", 0L);
+                tooltip.add(Component.translatable("jade.rematter.energy",
+                        dev.latrox.rematter.client.Quantities.compact(mEnergy),
+                        dev.latrox.rematter.client.Quantities.compact(mCap)).withStyle(ChatFormatting.GOLD));
+                long inRate = data.getLongOr("matrixInRate", 0L);
+                long outRate = data.getLongOr("matrixOutRate", 0L);
+                long maxRate = data.getLongOr("matrixTransferRate", 0L);
+                if (inRate > 0 || outRate > 0) {
+                    tooltip.add(Component.translatable("jade.rematter.matrix_flow",
+                            dev.latrox.rematter.client.Quantities.compact(inRate),
+                            dev.latrox.rematter.client.Quantities.compact(outRate)).withStyle(ChatFormatting.AQUA));
+                }
+                if (maxRate > 0) {
+                    tooltip.add(Component.translatable("jade.rematter.cube_rate",
+                            dev.latrox.rematter.client.Quantities.compact(maxRate)).withStyle(ChatFormatting.GRAY));
+                }
+            }
+            if (data.getBooleanOr("energyReactor", false)) {
+                long rEnergy = data.getLongOr("reactorEnergy", 0L);
+                long rCap = data.getLongOr("reactorCapacity", 0L);
+                tooltip.add(Component.translatable("jade.rematter.energy",
+                        dev.latrox.rematter.client.Quantities.compact(rEnergy),
+                        dev.latrox.rematter.client.Quantities.compact(rCap)).withStyle(ChatFormatting.GOLD));
+                long gen = data.getLongOr("reactorGenRate", 0L);
+                if (gen > 0L) {
+                    tooltip.add(Component.translatable("jade.rematter.energy_rate_gen",
+                            dev.latrox.rematter.client.Quantities.compact(gen)).withStyle(ChatFormatting.GREEN));
+                }
+                int flux = data.getIntOr("reactorFlux", 0);
+                String mode = data.getStringOr("reactorFuelMode", "crystal");
+                boolean cooled = data.getBooleanOr("reactorCooled", false);
+                tooltip.add(Component.translatable(cooled ? "jade.rematter.reactor_status_cooled" : "jade.rematter.reactor_status",
+                        Component.translatable("screen.rematter.energy_reactor.mode." + mode),
+                        flux / 10).withStyle(cooled ? ChatFormatting.AQUA : ChatFormatting.GOLD));
+            }
+            if (machineKind == dev.latrox.rematter.content.MachineKind.PRIMAL_REACTOR && data.contains("primalStability")) {
+                int stab = data.getIntOr("primalStability", 0);
+                int maxStab = data.getIntOr("primalMaxStability", 0);
+                tooltip.add(Component.translatable("jade.rematter.primal_stability", stab / 10, maxStab / 10)
+                        .withStyle(maxStab > 0 ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.GOLD));
+            }
             if (industrial && data.getIntOr("structureWidth", 0) > 0) {
                 tooltip.add(Component.translatable("screen.rematter.structure_size", data.getIntOr("structureWidth", 0),
                         data.getIntOr("structureDepth", 0), data.getIntOr("structureHeight", 0)).withStyle(ChatFormatting.AQUA));
                 if (accessor.showDetails() && data.getIntOr("structureColumns", 0) > 0) {
                     tooltip.add(Component.translatable("screen.rematter.structure_columns", data.getIntOr("structureColumns", 0)));
-                    tooltip.add(Component.translatable("screen.rematter.structure_speed", data.getIntOr("structureRate", 0)));
-                    if(!data.getBooleanOr("industrialPreparator",false)){
-                        tooltip.add(Component.translatable("screen.rematter.structure_field",data.getIntOr("coils",0)));
-                        tooltip.add(Component.translatable("screen.rematter.structure_room",dev.latrox.rematter.client.Quantities.number(16_000L*data.getIntOr("chambers",0))));
-                    }else tooltip.add(Component.translatable("screen.rematter.structure_precision",data.getIntOr("separation",0)));
-                    String[][] modules={{"grinding","grinding_unit"},{"mixing","mixing_basin"},{"separation","separation_unit"},
-                            {"coils","field_coil"},{"chambers","reaction_chamber"}};
-                    for (var module : modules) {
-                        int count=data.getIntOr(module[0],0);
-                        if(count>0)tooltip.add(Component.translatable("jade.rematter.module_count",count,Component.translatable("block.rematter."+module[1])));
+                    if (machineKind != dev.latrox.rematter.content.MachineKind.ENERGY_MATRIX
+                            && machineKind != dev.latrox.rematter.content.MachineKind.ENERGY_REACTOR) {
+                        tooltip.add(Component.translatable("screen.rematter.structure_speed", data.getIntOr("structureRate", 0)));
+                    }
+                    if (machineKind == dev.latrox.rematter.content.MachineKind.INDUSTRIAL_PREPARATOR) {
+                        tooltip.add(Component.translatable("screen.rematter.structure_precision", data.getIntOr("separation", 0)));
+                    } else if (machineKind == dev.latrox.rematter.content.MachineKind.ENERGY_MATRIX) {
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("chambers", 0), Component.translatable("block.rematter.energy_matrix_cell")));
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("coils", 0), Component.translatable("block.rematter.energy_matrix_provider")));
+                    } else if (machineKind == dev.latrox.rematter.content.MachineKind.ENERGY_REACTOR) {
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("chambers", 0), Component.translatable("block.rematter.reactor_fuel_core")));
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("coils", 0), Component.translatable("block.rematter.reactor_induction_coil")));
+                    } else {
+                        int field = machineKind == dev.latrox.rematter.content.MachineKind.TRANSMUTATION_REACTOR
+                                ? data.getIntOr("coils", 0) + data.getIntOr("chambers", 0)
+                                : data.getIntOr("coils", 0);
+                        tooltip.add(Component.translatable("screen.rematter.structure_field", field));
+                        tooltip.add(Component.translatable("screen.rematter.structure_room", dev.latrox.rematter.client.Quantities.number(16_000L * data.getIntOr("chambers", 0))));
+                    }
+                    if (machineKind == dev.latrox.rematter.content.MachineKind.INDUSTRIAL_PREPARATOR) {
+                        String[][] modules = {{"grinding", "grinding_unit"}, {"mixing", "mixing_basin"}, {"separation", "separation_unit"}};
+                        for (var module : modules) {
+                            int count = data.getIntOr(module[0], 0);
+                            if (count > 0) tooltip.add(Component.translatable("jade.rematter.module_count", count, Component.translatable("block.rematter." + module[1])));
+                        }
+                    } else if (machineKind == dev.latrox.rematter.content.MachineKind.TRANSMUTATION_REACTOR) {
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("chambers", 0), Component.translatable("block.rematter.particle_emitter")));
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("coils", 0), Component.translatable("block.rematter.field_coil")));
+                    } else if (machineKind == dev.latrox.rematter.content.MachineKind.PRIMAL_REACTOR) {
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("chambers", 0), Component.translatable("block.rematter.primal_condenser_core")));
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("coils", 0), Component.translatable("block.rematter.particle_emitter")));
+                    } else if (machineKind != dev.latrox.rematter.content.MachineKind.ENERGY_MATRIX
+                            && machineKind != dev.latrox.rematter.content.MachineKind.ENERGY_REACTOR) {
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("chambers", 0), Component.translatable("block.rematter.reaction_chamber")));
+                        tooltip.add(Component.translatable("jade.rematter.module_count", data.getIntOr("coils", 0), Component.translatable("block.rematter.field_coil")));
                     }
                 }
             }
@@ -197,8 +294,8 @@ final class JadeClient {
                 return;
             }
             tooltip.add(Component.translatable("jade.rematter.energy",
-                    dev.latrox.rematter.client.Quantities.number(data.getIntOr("energy", 0)),
-                    dev.latrox.rematter.client.Quantities.number(data.getIntOr("capacity", 0))));
+                    dev.latrox.rematter.client.Quantities.number(data.getLongOr("energy", 0L)),
+                    dev.latrox.rematter.client.Quantities.number(data.getLongOr("capacity", 0L))));
             tooltip.add(Component.translatable("jade.rematter.cube_rate",
                     dev.latrox.rematter.client.Quantities.number(data.getIntOr("rate", 0))).withStyle(ChatFormatting.AQUA));
             String flow = data.getStringOr("flow", "none");
@@ -223,6 +320,10 @@ final class JadeClient {
                 tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
                 return;
             }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) {
+                tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
+            }
             boolean powered = data.getBooleanOr("powered", false);
             boolean matterReady = data.getBooleanOr("matterReady", false);
             String status = powered ? (matterReady ? "ready" : "missing_network") : "missing_power";
@@ -230,8 +331,15 @@ final class JadeClient {
             tooltip.add(Component.translatable("jade.rematter.energy",
                     dev.latrox.rematter.client.Quantities.number(data.getIntOr("energy", 0)),
                     dev.latrox.rematter.client.Quantities.number(data.getIntOr("capacity", 0))));
-            tooltip.add(Component.translatable("jade.rematter.wireless_range",
-                    data.getIntOr("range", 0), data.getIntOr("boosters", 0)).withStyle(ChatFormatting.AQUA));
+            if (data.getBooleanOr("dimensional", false)) {
+                tooltip.add(Component.translatable("jade.rematter.wireless_dimensional").withStyle(ChatFormatting.AQUA));
+            } else {
+                tooltip.add(Component.translatable("jade.rematter.wireless_range",
+                        data.getIntOr("range", 0), data.getIntOr("boosters", 0)).withStyle(ChatFormatting.AQUA));
+            }
+            if (data.getBooleanOr("anchorActive", false)) {
+                tooltip.add(Component.translatable("jade.rematter.anchor_loaded_single").withStyle(ChatFormatting.AQUA));
+            }
             if (accessor.showDetails()) {
                 tooltip.add(Component.translatable("jade.rematter.energy_rate_draw",
                         dev.latrox.rematter.client.Quantities.number(data.getIntOr("drain", 0))).withStyle(ChatFormatting.GRAY));
@@ -275,6 +383,8 @@ final class JadeClient {
                 tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
                 return;
             }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
             String state = data.getStringOr("state", "unpaired");
             int dist = data.getIntOr("distance", 0);
             if (state.equals("paired")) {
@@ -283,6 +393,98 @@ final class JadeClient {
                 tooltip.add(Component.translatable("screen.rematter.wrench_hud.link_inactive", dist).withStyle(ChatFormatting.GOLD));
             } else {
                 tooltip.add(Component.translatable("screen.rematter.wrench_hud.link_unpaired").withStyle(ChatFormatting.GRAY));
+            }
+        }
+    }
+
+    private static final class DimensionalLinkTooltip implements IBlockComponentProvider {
+        @Override public Identifier getUid() { return ReMatterJadePlugin.DIMENSIONAL_LINK; }
+        @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            if (!accessor.getServerData().contains(AuxiliaryDataProviders.DIMENSIONAL_LINK_KEY)) return;
+            CompoundTag data = accessor.getServerData().getCompoundOrEmpty(AuxiliaryDataProviders.DIMENSIONAL_LINK_KEY);
+            if (data.getBooleanOr("locked", true)) {
+                tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
+                return;
+            }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
+            String state = data.getStringOr("state", "unpaired");
+            if (state.equals("paired")) {
+                tooltip.add(Component.translatable("screen.rematter.dimensional_link.state_linked").withStyle(ChatFormatting.GREEN));
+            } else if (state.equals("inactive")) {
+                tooltip.add(Component.translatable("screen.rematter.dimensional_link.state_remote_unloaded").withStyle(ChatFormatting.GOLD));
+            } else {
+                tooltip.add(Component.translatable("screen.rematter.dimensional_link.state_unpaired").withStyle(ChatFormatting.GRAY));
+            }
+            String peerDim = data.getStringOr("peerDim", "");
+            if (!peerDim.isEmpty()) {
+                var pos = net.minecraft.core.BlockPos.of(data.getLongOr("peerPos", 0L));
+                String dimLabel = dev.latrox.rematter.content.CustomNames.shortDimensionLabel(peerDim);
+                tooltip.add(Component.literal((dimLabel.isEmpty() ? "Overworld" : dimLabel)
+                        + " (" + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ")").withStyle(ChatFormatting.GRAY));
+            }
+            if (data.getBooleanOr("anchorActive", false)) {
+                tooltip.add(Component.translatable("jade.rematter.anchor_loaded_single").withStyle(ChatFormatting.AQUA));
+            }
+        }
+    }
+
+    private static final class SpatialAnchorTooltip implements IBlockComponentProvider {
+        @Override public Identifier getUid() { return ReMatterJadePlugin.SPATIAL_ANCHOR; }
+        @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            if (!accessor.getServerData().contains(AuxiliaryDataProviders.SPATIAL_ANCHOR_KEY)) return;
+            CompoundTag data = accessor.getServerData().getCompoundOrEmpty(AuxiliaryDataProviders.SPATIAL_ANCHOR_KEY);
+            if (data.getBooleanOr("locked", true)) {
+                tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
+                return;
+            }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
+            boolean active = data.getBooleanOr("active", false);
+            tooltip.add(Component.translatable("screen.rematter.spatial_anchor.reason." + data.getStringOr("reason", "idle"))
+                    .withStyle(active ? ChatFormatting.GREEN : ChatFormatting.GOLD));
+            tooltip.add(Component.translatable("jade.rematter.anchor_active",
+                    data.getIntOr("forced", 0), data.getIntOr("total", 0), data.getIntOr("max", 32))
+                    .withStyle(active ? ChatFormatting.AQUA : ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("jade.rematter.energy",
+                    dev.latrox.rematter.client.Quantities.number(data.getIntOr("energy", 0)),
+                    dev.latrox.rematter.client.Quantities.number(data.getIntOr("capacity", 0))));
+        }
+    }
+
+    private static final class CableRelayTooltip implements IBlockComponentProvider {
+        @Override public Identifier getUid() { return ReMatterJadePlugin.CABLE_RELAY; }
+        @Override public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            if (!accessor.getServerData().contains(AuxiliaryDataProviders.CABLE_RELAY_KEY)) return;
+            CompoundTag data = accessor.getServerData().getCompoundOrEmpty(AuxiliaryDataProviders.CABLE_RELAY_KEY);
+            if (data.getBooleanOr("locked", true)) {
+                tooltip.add(Component.translatable("message.rematter.private_machine").withStyle(ChatFormatting.GRAY));
+                return;
+            }
+            String customName = data.getStringOr("customName", "");
+            if (!customName.isEmpty()) tooltip.add(Component.literal(customName).withStyle(ChatFormatting.AQUA));
+            boolean open = data.getBooleanOr("open", true);
+            tooltip.add(Component.translatable(open ? "screen.rematter.cable_relay.state_open" : "screen.rematter.cable_relay.state_closed")
+                    .withStyle(open ? ChatFormatting.GREEN : ChatFormatting.GOLD));
+            String direction = data.getStringOr("direction", "bidirectional");
+            if (direction.equals("one_way")) {
+                tooltip.add(Component.translatable("screen.rematter.cable_relay.flow_endpoints",
+                        Component.translatable("direction.rematter." + data.getStringOr("inSide", "south")),
+                        Component.translatable("direction.rematter." + data.getStringOr("outSide", "north")))
+                        .withStyle(ChatFormatting.GREEN));
+            } else {
+                tooltip.add(Component.translatable("screen.rematter.cable_relay.direction.bidirectional")
+                        .withStyle(ChatFormatting.AQUA));
+            }
+            tooltip.add(Component.translatable("screen.rematter.cable_relay.channel." + data.getStringOr("channel", "both"))
+                    .withStyle(ChatFormatting.AQUA));
+            if (data.getBooleanOr("filterActive", false)) {
+                boolean wl = data.getBooleanOr("whitelist", false);
+                int count = data.getIntOr("filterCount", 0);
+                tooltip.add(Component.translatable("jade.rematter.cable_relay_filter",
+                        Component.translatable(wl ? "screen.rematter.cable_relay.filter_whitelist"
+                                : "screen.rematter.cable_relay.filter_blacklist"),
+                        count).withStyle(ChatFormatting.GOLD));
             }
         }
     }

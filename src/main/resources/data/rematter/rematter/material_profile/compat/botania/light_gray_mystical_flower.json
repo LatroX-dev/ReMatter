@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:light_gray_mystical_flower",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 2400
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 160
+}

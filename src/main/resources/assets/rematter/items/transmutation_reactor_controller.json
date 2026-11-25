@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/transmutation_reactor_controller"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/transmutation_reactor_controller_active_parts"
+      }
+    ]
+  }
+}

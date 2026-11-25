@@ -31,9 +31,9 @@ HORIZONTAL = ('north', 'east', 'south', 'west')
 # Model directions in which a sprite's u and v grow on a face seen from outside.
 NATURAL = {'north': ('-x', '-y'), 'south': ('+x', '-y'), 'west': ('+z', '-y'), 'east': ('-z', '-y'),
            'up': ('+x', '+z'), 'down': ('+x', '-z')}
-# Sprites that only the block entity renderer draws: mounted cell faceplates and status lights.
-RENDERER_SPRITES = ('drive_cell_4m', 'drive_cell_16m', 'drive_cell_64m', 'drive_cell_256m', 'drive_cell_unknown',
-                    'led_blue', 'led_green', 'led_amber', 'led_red', 'chemical_processor_columns_shuttle', 'chemical_processor_columns_liquid', 'chemical_processor_columns_glass', 'drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k', 'drive_primal_cell_1m', 'drive_void_matter_cell')
+# Sprites drawn by renderers or borrowed by sibling generators (industrial modules, wireless devices).
+RENDERER_SPRITES = ('casing_port', 'drive_cell_4m', 'drive_cell_16m', 'drive_cell_64m', 'drive_cell_256m', 'drive_cell_unknown',
+                    'led_blue', 'led_green', 'led_amber', 'led_red', 'chemical_processor_columns_shuttle', 'chemical_processor_columns_liquid', 'chemical_processor_columns_glass', 'drive_primal_cell_16k', 'drive_primal_cell_64k', 'drive_primal_cell_256k', 'drive_primal_cell_1m', 'drive_primal_cell_4m', 'drive_void_matter_cell')
 # Most boxes a block model of each kind may hold.
 BUDGET = {'bench_part': 4, 'network': 16, 'process': 24, 'part': 2, 'reactor_part': 3, 'cable': 4, 'cube': 1}
 
@@ -244,38 +244,77 @@ def network_interface(family):
 
 
 # --------------------------------------------------------------------------- industrial controllers
-def controller(family, name):
+def controller(family, name, casing='reactor_casing'):
     body = sealed_body(2) + [Box('panel', (1, 2, 1), (15, 15, 2))]
     display = [Box('display', (3, 8, .5), (13, 13, 1), step=True)]
     sides = dict.fromkeys(('south', 'east', 'west', 'down', 'up'), 'casing')
-    textures = {'casing': 'reactor_casing', 'front': name + '_front', 'inner': 'casing_inner'}
+    textures = {'casing': casing, 'front': name + '_front', 'inner': 'casing_inner'}
     with_parts(family, name, 'network', textures, body, sealed_skin(sides), display,
                {'idle': {'display': name + '_display', 'inner': 'casing_inner'},
                 'active': {'display': name + '_display_active', 'inner': 'casing_inner'}},
-               lambda box, face: 'display' if face == 'north' else 'inner', 'reactor_casing', plates=False)
+               lambda box, face: 'display' if face == 'north' else 'inner', casing, plates=False)
 
 
 # --------------------------------------------------------------------------- Machine Port, Casing, Glass
-def machine_port(family):
+def machine_port(family, block_name='machine_port', casing='reactor_casing', prefix='machine_port'):
     body = [Box('body', (0, 0, 0), (16, 16, 16))]
-    family.model('machine_port', 'cube', {'casing': 'reactor_casing', 'face': 'machine_port_unformed'}, body,
+    family.model(block_name, 'cube', {'casing': casing, 'face': prefix + '_unformed'}, body,
                  lambda box, face: 'face' if face == 'north' else 'casing')
-    states = [{'when': {'formed': 'false', 'facing': side}, 'apply': {'model': MODEL + 'machine_port', **rotation}}
+    states = [{'when': {'formed': 'false', 'facing': side}, 'apply': {'model': MODEL + block_name, **rotation}}
               for side, rotation in ROTATION.items()]
     for mode in PORT_MODES:
-        name = 'machine_port_' + mode
-        family.child(name, 'machine_port', {'face': name})
+        name = block_name + '_' + mode
+        family.child(name, block_name, {'face': prefix + '_' + mode})
         states += [{'when': {'formed': 'true', 'mode': mode, 'facing': side},
                     'apply': {'model': MODEL + name, **rotation}} for side, rotation in ROTATION.items()]
-    family.blockstates['machine_port'] = {'multipart': states}
-    family.items['machine_port'] = {'model': {'type': 'minecraft:model', 'model': MODEL + 'machine_port'}}
+    family.blockstates[block_name] = {'multipart': states}
+    family.items[block_name] = {'model': {'type': 'minecraft:model', 'model': MODEL + block_name}}
 
 
 def structure_cubes(family):
-    for name, texture in (('reactor_casing', 'reactor_casing'), ('reactor_glass', 'reactor_glass_pane')):
+    for name, texture in (
+            ('reactor_casing', 'reactor_casing'),
+            ('transmutation_reactor_casing', 'transmutation_reactor_casing'),
+            ('primal_reactor_casing', 'primal_reactor_casing'),
+            ('energy_matrix_casing', 'energy_matrix_casing'),
+            ('energy_reactor_casing', 'energy_reactor_casing')):
         family.model(name, 'cube', {'all': texture}, [Box('body', (0, 0, 0), (16, 16, 16))],
                      lambda box, face: 'all')
         family.cube(name)
+    for name, texture in (
+            ('reactor_glass', 'reactor_glass_pane'),
+            ('transmutation_reactor_glass', 'transmutation_reactor_glass_pane'),
+            ('primal_reactor_glass', 'primal_reactor_glass_pane'),
+            ('energy_matrix_glass', 'energy_matrix_glass_pane'),
+            ('energy_reactor_glass', 'energy_reactor_glass_pane')):
+        family.model(name, 'cube', {'all': texture}, [Box('body', (0, 0, 0), (16, 16, 16))],
+                     lambda box, face: 'all')
+        north_only = tuple(('body', face) for face in ('south', 'east', 'west', 'up', 'down'))
+        masks = []
+        for mask in range(15):
+            m_name = f'{name}_ctm_{mask}'
+            tex = texture if mask == 0 else f'{texture}_ctm_{mask}'
+            family.model(m_name, 'cube', {'face': tex}, [Box('body', (0, 0, 0), (16, 16, 16))],
+                         lambda box, face: 'face', skip=north_only, particle=texture)
+            masks.append({'model': MODEL + m_name})
+        corners = []
+        for corner in range(4):
+            c_name = f'{name}_corner_{corner}'
+            tex = f'{texture}_corner_{corner}'
+            family.model(c_name, 'cube', {'face': tex}, [Box('body', (0, 0, 0), (16, 16, 16))],
+                         lambda box, face: 'face', skip=north_only, particle=texture)
+            corners.append({'model': MODEL + c_name})
+        family.blockstates[name] = {
+            'variants': {
+                'formed=false': {'model': MODEL + name},
+                'formed=true': {
+                    'type': 'rematter:connected_glass',
+                    'masks': masks,
+                    'corners': corners,
+                },
+            }
+        }
+        family.items[name] = {'model': {'type': 'minecraft:model', 'model': MODEL + name}}
 
 
 # --------------------------------------------------------------------------- Matter Cables
@@ -300,7 +339,7 @@ def cable_skin(box, face):
         return ('glow', *region(box, face, GLOW_CAP))
     if name == 'core_glow':
         return ('glow', *region(box, face, CORE_CAP))
-    if name in ('arm', 'shaft', 'centre', 'run') and box.emissive:
+    if name in ('arm', 'shaft', 'centre', 'run', 'straight_full'):
         if face not in ('north', 'south'):
             return run_skin(box, face, 'glow', GLOW_STRIP_FULL)
         if family_sprites.CABLE_LOOK == 'pcb_traces':
@@ -333,9 +372,11 @@ def cable_geometry(look=None):
     flange = Box('flange', (5, 5, 0), (11, 11, 1.5))
 
     if look == 'pcb_traces':
-        # Dual PCB traces with bends & bridge crossovers on a dark graphite shaft, seamless glowing corners & PCB hubs.
+        # Dual PCB traces with bends & bridge crossovers on a dark graphite shaft, seamless 16-px straight runs,
+        # glowing corners & PCB hubs.
         core_glow = Box('core_glow', (6, 6, 6), (10, 10, 10), emissive=True)
         centre = Box('centre', (6, 6, 6), (10, 10, 10), emissive=True)
+        straight_full = Box('straight_full', (6, 6, 0), (10, 10, 16), emissive=True)
         hub = Box('hub_glow', (5, 5, 5), (11, 11, 11), emissive=True)
         arm = Box('arm', (6, 6, 0), (10, 10, 6), emissive=True)
         shaft = Box('shaft', (6, 6, 1.5), (10, 10, 6), emissive=True)
@@ -343,6 +384,7 @@ def cable_geometry(look=None):
         parts = {
             'core': ([core_glow], [core_glow], ()),
             'straight': ([centre], [centre, north_full, south_full], ()),
+            'straight_full': ([straight_full], [straight_full], {('straight_full', 'north'), ('straight_full', 'south')}),
             'junction': ([hub], [hub], ()),
             'arm': ([arm], [arm, core_glow], {('arm', 'north')}),
             'arm_device': ([flange, shaft], [flange, shaft, core_glow], ()),
@@ -456,17 +498,32 @@ def matter_cables(family):
         part_textures[part] = tuple(textures)
         drawn[part] = family.model('matter_cable_geometry_' + part, 'cable', textures, boxes,
                                    cable_skin, context=context, skip=skip, particle='matter_cable')
+        # Unpowered (powered=false) geometry keeps identical shape/UVs with dark outer rails & deep-hue quiet traces (light_emission=4).
+        dim_boxes = [Box(b.name, b.lo, b.hi, emissive=(4 if b.emissive else False), step=b.step, flat=b.flat) for b in boxes]
+        dim_textures = dict(textures)
+        if has_glow:
+            dim_textures['glow'] = 'matter_cable_dim'
+        family.model('matter_cable_geometry_' + part + '_dim', 'cable', dim_textures, dim_boxes,
+                     cable_skin, context=context, skip=skip, particle='matter_cable')
 
     # Every combination of free sides, cable arms and device arms that the block state can show.
+    has_full_straight = 'straight_full' in geometry
+    opposite = {'north': 'south', 'south': 'north', 'east': 'west', 'west': 'east', 'up': 'down', 'down': 'up'}
     for sides in product((None, 'arm', 'arm_device'), repeat=6):
         used = [(side, kind) for side, kind in zip(ROTATION, sides) if kind]
         connected = tuple(side for side, _ in used)
-        centre_part = 'junction' if len(used) > 2 else 'straight' if connected in CABLE_AXES else 'core'
-        parts = list(drawn[centre_part])
-        if centre_part == 'straight' and connected != CABLE_AXES[0]:
-            parts = turned_parts(parts, connected[0])
-        for side, kind in used:
-            parts += turned_parts(drawn[kind], side)
+        pure_straight = has_full_straight and connected in CABLE_AXES and all(kind == 'arm' for _, kind in used)
+        if pure_straight:
+            parts = list(drawn['straight_full'])
+            if connected != CABLE_AXES[0]:
+                parts = turned_parts(parts, connected[0])
+        else:
+            centre_part = 'junction' if len(used) > 2 else 'straight' if connected in CABLE_AXES else 'core'
+            parts = list(drawn[centre_part])
+            if centre_part == 'straight' and connected != CABLE_AXES[0]:
+                parts = turned_parts(parts, connected[0])
+            for side, kind in used:
+                parts += turned_parts(drawn[kind], side)
         check_composition('cable ' + ' '.join(f'{side}:{kind}' for side, kind in used), parts,
                           allowed_overlap=overlaps)
     family.compositions.append(f'cable ({look}): 729 side combinations')
@@ -477,24 +534,49 @@ def matter_cables(family):
     small = [group for count in range(3) for group in combinations(ROTATION, count) if group not in CABLE_AXES]
     for name in CABLE_TIERS:
         for part in geometry:
-            child_tex = {'particle': name}
-            if 'cable' in part_textures[part]:
-                child_tex['cable'] = name
-            if 'glow' in part_textures[part]:
-                child_tex['glow'] = name + '_glow'
-            family.child(name if part == 'core' else f'{name}_{part}', 'matter_cable_geometry_' + part, child_tex)
-        states = [
-            {'when': {'OR': [exact(group) for group in small]}, 'apply': {'model': MODEL + name}},
-            {'when': {'OR': [dict.fromkeys(group, 'true') for group in combinations(ROTATION, 3)]},
-             'apply': {'model': MODEL + name + '_junction'}},
-        ]
-        states += [{'when': exact(axis), 'apply': {'model': MODEL + name + '_straight', **ROTATION[axis[0]]}}
-                   for axis in CABLE_AXES]
-        for side, rotation in ROTATION.items():
-            states.append({'when': {side: 'true', side + '_device': 'false'},
-                           'apply': {'model': MODEL + name + '_arm', **rotation}})
-            states.append({'when': {side: 'true', side + '_device': 'true'},
-                           'apply': {'model': MODEL + name + '_arm_device', **rotation}})
+            for suffix, glow_tex, parent_suffix in (('', name + '_glow', ''), ('_dim', name + '_dim', '_dim')):
+                child_tex = {'particle': name}
+                if 'cable' in part_textures[part]:
+                    child_tex['cable'] = name
+                if 'glow' in part_textures[part]:
+                    child_tex['glow'] = glow_tex
+                model_name = (name + suffix) if part == 'core' else f'{name}_{part}{suffix}'
+                family.child(model_name, 'matter_cable_geometry_' + part + parent_suffix, child_tex)
+        states = []
+        for powered, suffix in (('true', ''), ('false', '_dim')):
+            states.append({'when': {'OR': [{**exact(group), 'powered': powered} for group in small]},
+                           'apply': {'model': MODEL + name + suffix}})
+            states.append({'when': {'OR': [{**dict.fromkeys(group, 'true'), 'powered': powered}
+                                           for group in combinations(ROTATION, 3)]},
+                           'apply': {'model': MODEL + name + '_junction' + suffix}})
+            if has_full_straight:
+                for axis in CABLE_AXES:
+                    a, b = axis
+                    states.append({'when': {**exact(axis), a + '_device': 'false', b + '_device': 'false', 'powered': powered},
+                                   'apply': {'model': MODEL + name + '_straight_full' + suffix, **ROTATION[a]}})
+                    states.append({'when': {'OR': [
+                        {**exact(axis), a + '_device': 'true', 'powered': powered},
+                        {**exact(axis), b + '_device': 'true', 'powered': powered},
+                    ]}, 'apply': {'model': MODEL + name + '_straight' + suffix, **ROTATION[a]}})
+                for side, rotation in ROTATION.items():
+                    opp = opposite[side]
+                    others = [other for other in ROTATION if other not in (side, opp)]
+                    states.append({'when': {'OR': [
+                        {side: 'true', side + '_device': 'false', 'powered': powered, opp: 'false'},
+                        {side: 'true', side + '_device': 'false', 'powered': powered, opp + '_device': 'true'},
+                        *({side: 'true', side + '_device': 'false', 'powered': powered, other: 'true'} for other in others),
+                    ]}, 'apply': {'model': MODEL + name + '_arm' + suffix, **rotation}})
+                    states.append({'when': {side: 'true', side + '_device': 'true', 'powered': powered},
+                                   'apply': {'model': MODEL + name + '_arm_device' + suffix, **rotation}})
+            else:
+                states += [{'when': {**exact(axis), 'powered': powered},
+                            'apply': {'model': MODEL + name + '_straight' + suffix, **ROTATION[axis[0]]}}
+                           for axis in CABLE_AXES]
+                for side, rotation in ROTATION.items():
+                    states.append({'when': {side: 'true', side + '_device': 'false', 'powered': powered},
+                                   'apply': {'model': MODEL + name + '_arm' + suffix, **rotation}})
+                    states.append({'when': {side: 'true', side + '_device': 'true', 'powered': powered},
+                                   'apply': {'model': MODEL + name + '_arm_device' + suffix, **rotation}})
         family.blockstates[name] = {'multipart': states}
         # The item shows one full straight run in the selected cable look.
         check_boxes(name + ' item', item_boxes)
@@ -586,7 +668,7 @@ def bench(family,name):
     light=Box('status_light',(11,1.5,.5),(13,2.5,1),step=True)
     parts=[light,*work]
     def part_skin(box,face):return 'light' if box.name=='status_light' else bench_work_skin(box,face)
-    accent_name='amber' if name in ('hand_preparator','material_preparator') else {'analyzer':'ice','decomposer':'copper','material_synthesizer':'leaf','sinter_furnace':'ember','atmospheric_collector':'mint'}[name]
+    accent_name='amber' if name in ('hand_preparator','material_preparator') else {'analyzer':'ice','decomposer':'copper','material_synthesizer':'leaf','sinter_furnace':'ember','atmospheric_collector':'mint','deep_extractor':'mint'}[name]
     # Every light name is generated here, even when another old writer once supplied it.
     part_textures={state:{'light':'status_off' if state=='idle' or name=='hand_preparator' else 'light_'+accent_name} for state in ('idle','active')}
     if work:
@@ -610,9 +692,17 @@ def family():
     network_interface(result)
     controller(result, 'chemical_reactor_controller')
     controller(result, 'preparation_reactor_controller')
-    controller(result, 'industrial_decomposer_controller')
-    controller(result, 'industrial_synthesizer_controller')
-    machine_port(result)
+    controller(result, 'decomposer_reactor_controller')
+    controller(result, 'synthesizer_reactor_controller')
+    controller(result, 'transmutation_reactor_controller', casing='transmutation_reactor_casing')
+    controller(result, 'primal_reactor_controller', casing='primal_reactor_casing')
+    controller(result, 'energy_matrix_controller', casing='energy_matrix_casing')
+    controller(result, 'energy_reactor_controller', casing='energy_reactor_casing')
+    machine_port(result, 'machine_port', 'reactor_casing', 'machine_port')
+    machine_port(result, 'transmutation_machine_port', 'transmutation_reactor_casing', 'transmutation_machine_port')
+    machine_port(result, 'primal_machine_port', 'primal_reactor_casing', 'primal_machine_port')
+    machine_port(result, 'energy_matrix_port', 'energy_matrix_casing', 'energy_matrix_port')
+    machine_port(result, 'energy_reactor_port', 'energy_reactor_casing', 'energy_reactor_port')
     structure_cubes(result)
     matter_cables(result)
     chemical_processor(result)
@@ -658,8 +748,11 @@ def check_references(result, art):
         if (frames > 1) != (name in animations):
             raise GeometryError(f'{name}: only animated sprites hold several frames')
         clear = any(sprite.pixel(x, y)[3] < 255 for y in range(sprite.height) for x in range(sprite.width))
-        if clear != (name == 'reactor_glass_pane'):
-            raise GeometryError(f'{name}: only the glass pane may hold transparent texels')
+        is_glass = any(name == p or name.startswith(p + '_ctm_') or name.startswith(p + '_corner_')
+                       for p in ('reactor_glass_pane', 'transmutation_reactor_glass_pane', 'primal_reactor_glass_pane',
+                                 'energy_matrix_glass_pane', 'energy_reactor_glass_pane'))
+        if clear != is_glass:
+            raise GeometryError(f'{name}: only the glass panes may hold transparent texels')
 
 
 def generate(check, cable_look=None, cable_anim=None):
@@ -684,8 +777,15 @@ def generate(check, cable_look=None, cable_anim=None):
         for name, value in files.items():
             out.json(ASSETS / folder / f'{name}.json', value)
     # Plate models that a changed PortSides.SEALED_TOP no longer needs are removed, or reported by --check.
-    out.sweep(ASSETS / 'models/block',list(port_plates.OWNED)+['chemical_processor_glass_cores.json']+[name+suffix+'.json' for name in (*BENCHES,'chemical_processor') for suffix in ('_idle_parts','_active_parts','_idle_world_parts','_active_world_parts')])
+    out.sweep(ASSETS / 'models/block',list(port_plates.OWNED)+['chemical_processor_glass_cores.json',
+              'industrial_decomposer_controller*.json','industrial_synthesizer_controller*.json',
+              'energy_matrix_reactor_controller*.json']+[name+suffix+'.json' for name in (*BENCHES,'chemical_processor') for suffix in ('_idle_parts','_active_parts','_idle_world_parts','_active_world_parts')])
+    out.sweep(ASSETS / 'blockstates', ['industrial_decomposer_controller.json', 'industrial_synthesizer_controller.json', 'energy_matrix_reactor_controller.json'])
+    out.sweep(ASSETS / 'items', ['industrial_decomposer_controller.json', 'industrial_synthesizer_controller.json', 'energy_matrix_reactor_controller.json'])
     out.sweep(ASSETS / 'textures/block',['light_blue.png', 'drive_cell_64k.png', 'drive_cell_256k.png', 'drive_cell_1m.png',
+                                         'industrial_decomposer_controller*.png', 'industrial_decomposer_controller*.png.mcmeta',
+                                         'industrial_synthesizer_controller*.png', 'industrial_synthesizer_controller*.png.mcmeta',
+                                         'energy_matrix_reactor_controller*.png', 'energy_matrix_reactor_controller*.png.mcmeta',
                                          'matter_cable_glow.png.mcmeta', 'reinforced_matter_cable_glow.png.mcmeta', 'resonant_matter_cable_glow.png.mcmeta'])
     print(('Verified' if check else 'Generated') + f' {out.count} family files;'
           f' {len(result.models)} block models passed the geometry checks in {len(result.compositions)} compositions.')

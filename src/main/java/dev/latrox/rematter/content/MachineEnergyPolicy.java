@@ -19,7 +19,7 @@ public final class MachineEnergyPolicy {
     /** Internal FE buffer multipliers for 0..4 Efficiency Upgrades (doubles per upgrade, up to 16x). */
     private static final int[] BUFFER_MULTIPLIERS = {1, 2, 4, 8, 16};
     /** The largest base price a catalogue entry may declare. Processing debits per tick, independent of buffer size. */
-    public static final long MAX_BATCH_ENERGY = 1_200_000L;
+    public static final long MAX_BATCH_ENERGY = 16_000_000L;
     public enum Upgrade { NONE, SPEED, EFFICIENCY }
 
     private MachineEnergyPolicy() {}
@@ -32,10 +32,12 @@ public final class MachineEnergyPolicy {
     /** Base internal FE capacity of a machine before Efficiency Upgrades. */
     public static int baseEnergyCapacity(MachineKind kind) {
         return switch (kind) {
-            case DRIVE, TERMINAL, NETWORK_INTERFACE, HAND_PREPARATOR -> 0;
+            case DRIVE, TERMINAL, NETWORK_INTERFACE, HAND_PREPARATOR, ENERGY_MATRIX, ENERGY_REACTOR -> 0;
             case CRYSTAL_GENERATOR -> MatterLimits.GENERATOR_ENERGY;
             case INDUSTRIAL_CRYSTAL_GENERATOR -> MatterLimits.INDUSTRIAL_GENERATOR_ENERGY;
             case PRIMAL_CONVERTER -> MatterLimits.CONVERTER_ENERGY;
+            case TRANSMUTATION_REACTOR -> MatterLimits.TRANSMUTATION_REACTOR_ENERGY;
+            case PRIMAL_REACTOR -> MatterLimits.PRIMAL_REACTOR_ENERGY;
             default -> IndustrialStructure.isIndustrial(kind)
                     ? MatterLimits.INDUSTRIAL_MACHINE_ENERGY
                     : MatterLimits.COMPACT_MACHINE_ENERGY;

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LPL",
+    "EME",
+    "NFN"
+  ],
+  "key": {
+    "L": "rematter:lumivex_ingot",
+    "P": "rematter:particle_resonator",
+    "E": "rematter:ender_conductor",
+    "M": "rematter:ember_matrix_crystal",
+    "N": "rematter:netherite_sheath",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:particle_emitter",
+    "count": 1
+  }
+}

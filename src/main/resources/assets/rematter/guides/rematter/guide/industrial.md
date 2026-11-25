@@ -6,17 +6,29 @@ navigation:
   position: 10
 item_ids:
   - rematter:chemical_reactor_controller
-  - rematter:industrial_decomposer_controller
-  - rematter:industrial_synthesizer_controller
+  - rematter:decomposer_reactor_controller
+  - rematter:synthesizer_reactor_controller
+  - rematter:transmutation_reactor_controller
+  - rematter:primal_reactor_controller
   - rematter:field_coil
   - rematter:reaction_chamber
+  - rematter:particle_emitter
+  - rematter:primal_condenser_core
+  - rematter:particle_resonator
+  - rematter:mass_compression_upgrade
   - rematter:reactor_casing
   - rematter:reactor_glass
   - rematter:machine_port
+  - rematter:transmutation_reactor_casing
+  - rematter:transmutation_reactor_glass
+  - rematter:transmutation_machine_port
+  - rematter:primal_reactor_casing
+  - rematter:primal_reactor_glass
+  - rematter:primal_machine_port
 ---
 # Build a working reactor
 
-A **Chemical Reactor**, **Industrial Decomposer**, or **Industrial Synthesizer** joins its crystal fittings into one shared reaction chamber. Fit at least one **Field Stabilizer** and one **Reaction Focus**.
+A **Chemical Reactor**, **Decomposer Reactor**, **Synthesizer Reactor**, **Transmutation Reactor**, or **Primal Reactor** joins its crystal fittings into one shared reaction chamber. Fit at least one **Field Stabilizer** and one **Reaction Focus** for Chemical, Decomposer, or Synthesizer chambers; **Field Stabilizer** + **Particle Emitter** for a Transmutation Reactor; or **Particle Emitter** + **Primal Condenser Core** inside a 5×5×5+ shell for a Primal Reactor.
 
 ## Fit the floor and crown
 
@@ -25,16 +37,30 @@ Both types can mount on either the inside floor or under the roof. Click a suppo
 Stabilizers use a crystal ring; Foci use one large focusing crystal. The same fitting looks mirrored at the ceiling. The field holds and transfers working material, so neither function relies on gravity. Keep the middle clear.
 
 <RecipeFor id="rematter:chemical_reactor_controller" />
-<RecipeFor id="rematter:industrial_decomposer_controller" />
-<RecipeFor id="rematter:industrial_synthesizer_controller" />
+<RecipeFor id="rematter:decomposer_reactor_controller" />
+<RecipeFor id="rematter:synthesizer_reactor_controller" />
+<RecipeFor id="rematter:transmutation_reactor_controller" />
+<RecipeFor id="rematter:primal_reactor_controller" />
 <RecipeFor id="rematter:field_coil" />
 <RecipeFor id="rematter:reaction_chamber" />
+<RecipeFor id="rematter:particle_emitter" />
+<RecipeFor id="rematter:primal_condenser_core" />
 
 ## Complete the shell
 
-Outer width and depth are **3–9 blocks**. Height is **4–9**, including floor and roof. Build the entire floor, roof, edges and corners from Reactor Casing. Fill the remaining wall panels with Reactor Glass or Reactor Casing and place at least two Machine Ports in those panels. The front controller sits one block above the base.
+Outer width and depth are **3–9 blocks** (**5–9** for a Primal Reactor). Height is **4–9** (**5–9** for Preparation and Primal Reactors), including floor and roof. Build the entire floor, roof, edges and corners from the matching tier's Reactor Casing, fill the remaining wall panels with matching Reactor Glass or Casing, and place at least two matching Machine Ports in those panels. The front controller sits one block above the base.
+
+- **Standard Reactors** (Chemical, Decomposer, Synthesizer, Preparation): Reactor Casing, Reactor Glass, Machine Port
+- **Transmutation Reactor** (Late-Game): Transmutation Reactor Casing, Transmutation Reactor Glass, Transmutation Machine Port
+- **Primal Reactor** (Endgame): Primal Reactor Casing, Primal Reactor Glass, Primal Machine Port
 
 <RecipeFor id="rematter:reactor_casing" />
+<RecipeFor id="rematter:transmutation_reactor_casing" />
+<RecipeFor id="rematter:transmutation_reactor_glass" />
+<RecipeFor id="rematter:transmutation_machine_port" />
+<RecipeFor id="rematter:primal_reactor_casing" />
+<RecipeFor id="rematter:primal_reactor_glass" />
+<RecipeFor id="rematter:primal_machine_port" />
 <RecipeFor id="rematter:reactor_glass" />
 <RecipeFor id="rematter:machine_port" />
 

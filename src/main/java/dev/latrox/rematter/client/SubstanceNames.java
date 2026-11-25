@@ -62,6 +62,23 @@ public final class SubstanceNames {
                 ? new ItemStack(BuiltInRegistries.ITEM.getValue(key)).getHoverName() : Component.literal(id);
     }
 
+    /** Formats a Focus Catalyst or Singularity Seed requirement, explicitly noting Primal Matrix Core backward compatibility. */
+    public static Component catalystRequirement(String catalystId) {
+        if ("rematter:particle_resonator".equals(catalystId) || "rematter:primal_crystal".equals(catalystId)) {
+            return Component.translatable("gui.rematter.viewer.catalyst_or_higher",
+                    item(catalystId), item("rematter:primal_matrix_core"));
+        }
+        return item(catalystId);
+    }
+
+    /** Formats a Deep-Core Extractor site requirement from its {@code probe_below} selector. */
+    public static Component probeRequirement(String probeBelow) {
+        return switch (probeBelow == null ? "" : probeBelow) {
+            case "deepslate", "water", "lava", "void" -> Component.translatable("status.rematter.requires_probe_" + probeBelow);
+            default -> Component.translatable("status.rematter.requires_probe_target");
+        };
+    }
+
     public static Component fluid(String id) {
         Identifier key = Identifier.tryParse(id);
         return key != null && BuiltInRegistries.FLUID.containsKey(key)

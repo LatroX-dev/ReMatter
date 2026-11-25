@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "type": "transmutation",
+  "inputs": [
+    {
+      "substance": "rematter:silver",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:zinc",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 1500
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 960000,
+  "ticks": 1600,
+  "industrial": {
+    "min_field": 8,
+    "requires_known_outputs": true,
+    "product": "rematter:gold",
+    "catalyst": "rematter:particle_resonator"
+  }
+}

@@ -1,5 +1,6 @@
 package dev.latrox.rematter.content;
 
+import java.util.UUID;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -7,10 +8,14 @@ import org.jspecify.annotations.Nullable;
 /** Unifies a wired Matter Terminal block and a handheld/Curios Wireless Matter Terminal session. */
 sealed interface TerminalAnchor permits TerminalAnchor.Wired, TerminalAnchor.Wireless {
     MachineMatterNetwork matterNetwork(boolean deep);
+    @Nullable UUID owner();
 
     record Wired(MachineBlockEntity terminal) implements TerminalAnchor {
         @Override public MachineMatterNetwork matterNetwork(boolean deep) {
             return terminal.matterNetwork(deep);
+        }
+        @Override public @Nullable UUID owner() {
+            return terminal.networkOwner();
         }
     }
 
@@ -30,6 +35,10 @@ sealed interface TerminalAnchor permits TerminalAnchor.Wired, TerminalAnchor.Wir
 
         @Override public MachineMatterNetwork matterNetwork(boolean deep) {
             return accessPoint.matterNetwork(deep);
+        }
+
+        @Override public @Nullable UUID owner() {
+            return accessPoint.owner();
         }
     }
 }

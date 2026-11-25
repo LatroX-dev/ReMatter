@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_cable_relay"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts"
+      }
+    ]
+  }
+}

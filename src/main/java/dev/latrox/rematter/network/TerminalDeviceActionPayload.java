@@ -12,12 +12,18 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /** A request to open a device, queue a batch of its selected recipe, or cancel its active/queued job. */
-public record TerminalDeviceActionPayload(int containerId, BlockPos position, Action action, String recipeId) implements CustomPacketPayload {
+public record TerminalDeviceActionPayload(int containerId, BlockPos position, Action action, String recipeId, String dimensionId) implements CustomPacketPayload {
     public enum Action { OPEN, QUEUE_BATCH, CANCEL_JOB }
+
+    public TerminalDeviceActionPayload(int containerId, BlockPos position, Action action, String recipeId) {
+        this(containerId, position, action, recipeId, "");
+    }
 
     public TerminalDeviceActionPayload {
         position = position.immutable();
-        if (recipeId.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || (action == Action.QUEUE_BATCH) == recipeId.isEmpty())
+        dimensionId = dimensionId == null ? "" : dimensionId;
+        if (recipeId.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || dimensionId.length() > 128
+                || (action == Action.QUEUE_BATCH) == recipeId.isEmpty())
             throw new IllegalArgumentException("Invalid terminal request");
     }
 
@@ -26,18 +32,19 @@ public record TerminalDeviceActionPayload(int containerId, BlockPos position, Ac
     public static final StreamCodec<RegistryFriendlyByteBuf, TerminalDeviceActionPayload> CODEC = new StreamCodec<>() {
         @Override public TerminalDeviceActionPayload decode(RegistryFriendlyByteBuf buffer) {
             return new TerminalDeviceActionPayload(buffer.readVarInt(), buffer.readBlockPos(), buffer.readEnum(Action.class),
-                    buffer.readUtf(MachineSnapshot.MAX_CHOICE_ID_LENGTH));
+                    buffer.readUtf(MachineSnapshot.MAX_CHOICE_ID_LENGTH), buffer.readUtf(128));
         }
         @Override public void encode(RegistryFriendlyByteBuf buffer, TerminalDeviceActionPayload payload) {
             buffer.writeVarInt(payload.containerId());
             buffer.writeBlockPos(payload.position());
             buffer.writeEnum(payload.action());
             buffer.writeUtf(payload.recipeId(), MachineSnapshot.MAX_CHOICE_ID_LENGTH);
+            buffer.writeUtf(payload.dimensionId(), 128);
         }
     };
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("2").playToServer(TYPE, CODEC, (payload, context) -> {
+        event.registrar("3").playToServer(TYPE, CODEC, (payload, context) -> {
             if (context.player() instanceof ServerPlayer player && player.containerMenu instanceof MachineMenu menu
                     && menu.containerId == payload.containerId()) {
                 menu.useTerminalDevice(player, payload);

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EPE",
+    "ONO",
+    "WBW"
+  ],
+  "key": {
+    "E": "rematter:ender_conductor",
+    "P": "rematter:primal_crystal",
+    "O": "rematter:optical_circuit",
+    "N": "rematter:netherite_sheath",
+    "W": "rematter:wireless_booster",
+    "B": "rematter:blue_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:dimensional_card",
+    "count": 1
+  }
+}

@@ -9,7 +9,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "true",
@@ -17,7 +18,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -25,7 +27,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -33,7 +36,8 @@
             "south": "true",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -41,7 +45,8 @@
             "south": "false",
             "west": "true",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -49,7 +54,8 @@
             "south": "false",
             "west": "false",
             "up": "true",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -57,7 +63,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "true",
@@ -65,7 +72,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "true",
@@ -73,7 +81,8 @@
             "south": "false",
             "west": "true",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "true",
@@ -81,7 +90,8 @@
             "south": "false",
             "west": "false",
             "up": "true",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "true",
@@ -89,7 +99,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -97,7 +108,8 @@
             "south": "true",
             "west": "false",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -105,7 +117,8 @@
             "south": "false",
             "west": "false",
             "up": "true",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -113,7 +126,8 @@
             "south": "false",
             "west": "false",
             "up": "false",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -121,7 +135,8 @@
             "south": "true",
             "west": "true",
             "up": "false",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -129,7 +144,8 @@
             "south": "true",
             "west": "false",
             "up": "true",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -137,7 +153,8 @@
             "south": "true",
             "west": "false",
             "up": "false",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -145,7 +162,8 @@
             "south": "false",
             "west": "true",
             "up": "true",
-            "down": "false"
+            "down": "false",
+            "powered": "true"
           },
           {
             "north": "false",
@@ -153,7 +171,8 @@
             "south": "false",
             "west": "true",
             "up": "false",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           }
         ]
       },
@@ -167,102 +186,122 @@
           {
             "north": "true",
             "east": "true",
-            "south": "true"
+            "south": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "east": "true",
-            "west": "true"
+            "west": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "east": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "east": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "south": "true",
-            "west": "true"
+            "west": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "south": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "south": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "west": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "west": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "north": "true",
             "up": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "south": "true",
-            "west": "true"
+            "west": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "south": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "south": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "west": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "west": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "east": "true",
             "up": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "south": "true",
             "west": "true",
-            "up": "true"
+            "up": "true",
+            "powered": "true"
           },
           {
             "south": "true",
             "west": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "south": "true",
             "up": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           },
           {
             "west": "true",
             "up": "true",
-            "down": "true"
+            "down": "true",
+            "powered": "true"
           }
         ]
       },
@@ -277,7 +316,39 @@
         "south": "true",
         "west": "false",
         "up": "false",
-        "down": "false"
+        "down": "false",
+        "north_device": "false",
+        "south_device": "false",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "north_device": "true",
+            "powered": "true"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "south_device": "true",
+            "powered": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_straight"
@@ -290,7 +361,40 @@
         "south": "false",
         "west": "true",
         "up": "false",
-        "down": "false"
+        "down": "false",
+        "east_device": "false",
+        "west_device": "false",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "east_device": "true",
+            "powered": "true"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "west_device": "true",
+            "powered": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_straight",
@@ -304,7 +408,40 @@
         "south": "false",
         "west": "false",
         "up": "true",
-        "down": "true"
+        "down": "true",
+        "up_device": "false",
+        "down_device": "false",
+        "powered": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "true",
+            "up_device": "true",
+            "powered": "true"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "true",
+            "down_device": "true",
+            "powered": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_straight",
@@ -313,8 +450,44 @@
     },
     {
       "when": {
-        "north": "true",
-        "north_device": "false"
+        "OR": [
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "south": "false"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "south_device": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "east": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "west": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "up": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "true",
+            "down": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm"
@@ -323,7 +496,8 @@
     {
       "when": {
         "north": "true",
-        "north_device": "true"
+        "north_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device"
@@ -331,8 +505,44 @@
     },
     {
       "when": {
-        "east": "true",
-        "east_device": "false"
+        "OR": [
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "west": "false"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "west_device": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "north": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "south": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "up": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "true",
+            "down": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm",
@@ -342,7 +552,8 @@
     {
       "when": {
         "east": "true",
-        "east_device": "true"
+        "east_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device",
@@ -351,8 +562,44 @@
     },
     {
       "when": {
-        "south": "true",
-        "south_device": "false"
+        "OR": [
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "north": "false"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "north_device": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "east": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "west": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "up": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "true",
+            "down": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm",
@@ -362,7 +609,8 @@
     {
       "when": {
         "south": "true",
-        "south_device": "true"
+        "south_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device",
@@ -371,8 +619,44 @@
     },
     {
       "when": {
-        "west": "true",
-        "west_device": "false"
+        "OR": [
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "east": "false"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "east_device": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "north": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "south": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "up": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "true",
+            "down": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm",
@@ -382,7 +666,8 @@
     {
       "when": {
         "west": "true",
-        "west_device": "true"
+        "west_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device",
@@ -391,8 +676,44 @@
     },
     {
       "when": {
-        "up": "true",
-        "up_device": "false"
+        "OR": [
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "down": "false"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "down_device": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "north": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "east": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "south": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "true",
+            "west": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm",
@@ -402,7 +723,8 @@
     {
       "when": {
         "up": "true",
-        "up_device": "true"
+        "up_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device",
@@ -411,8 +733,44 @@
     },
     {
       "when": {
-        "down": "true",
-        "down_device": "false"
+        "OR": [
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "up": "false"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "up_device": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "north": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "east": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "south": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "true",
+            "west": "true"
+          }
+        ]
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm",
@@ -422,10 +780,799 @@
     {
       "when": {
         "down": "true",
-        "down_device": "true"
+        "down_device": "true",
+        "powered": "true"
       },
       "apply": {
         "model": "rematter:block/matter_cable_arm_device",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "false",
+            "up": "false",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "true",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "true",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "true",
+            "up": "true",
+            "down": "false",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "true",
+            "powered": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_dim"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "east": "true",
+            "south": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "west": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "south": "true",
+            "west": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "south": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "south": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "west": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "west": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "up": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "south": "true",
+            "west": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "south": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "south": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "west": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "west": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "east": "true",
+            "up": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "west": "true",
+            "up": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "west": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "south": "true",
+            "up": "true",
+            "down": "true",
+            "powered": "false"
+          },
+          {
+            "west": "true",
+            "up": "true",
+            "down": "true",
+            "powered": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_junction_dim"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "east": "false",
+        "south": "true",
+        "west": "false",
+        "up": "false",
+        "down": "false",
+        "north_device": "false",
+        "south_device": "false",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full_dim"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "north_device": "true",
+            "powered": "false"
+          },
+          {
+            "north": "true",
+            "east": "false",
+            "south": "true",
+            "west": "false",
+            "up": "false",
+            "down": "false",
+            "south_device": "true",
+            "powered": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_dim"
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "east": "true",
+        "south": "false",
+        "west": "true",
+        "up": "false",
+        "down": "false",
+        "east_device": "false",
+        "west_device": "false",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full_dim",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "east_device": "true",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "true",
+            "south": "false",
+            "west": "true",
+            "up": "false",
+            "down": "false",
+            "west_device": "true",
+            "powered": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_dim",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "north": "false",
+        "east": "false",
+        "south": "false",
+        "west": "false",
+        "up": "true",
+        "down": "true",
+        "up_device": "false",
+        "down_device": "false",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_full_dim",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "true",
+            "up_device": "true",
+            "powered": "false"
+          },
+          {
+            "north": "false",
+            "east": "false",
+            "south": "false",
+            "west": "false",
+            "up": "true",
+            "down": "true",
+            "down_device": "true",
+            "powered": "false"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_straight_dim",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "south": "false"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "south_device": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "east": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "west": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "up": "true"
+          },
+          {
+            "north": "true",
+            "north_device": "false",
+            "powered": "false",
+            "down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim"
+      }
+    },
+    {
+      "when": {
+        "north": "true",
+        "north_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "west": "false"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "west_device": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "north": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "south": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "up": "true"
+          },
+          {
+            "east": "true",
+            "east_device": "false",
+            "powered": "false",
+            "down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "true",
+        "east_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "north": "false"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "north_device": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "east": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "west": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "up": "true"
+          },
+          {
+            "south": "true",
+            "south_device": "false",
+            "powered": "false",
+            "down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "true",
+        "south_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "east": "false"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "east_device": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "north": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "south": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "up": "true"
+          },
+          {
+            "west": "true",
+            "west_device": "false",
+            "powered": "false",
+            "down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "true",
+        "west_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "down": "false"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "down_device": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "north": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "east": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "south": "true"
+          },
+          {
+            "up": "true",
+            "up_device": "false",
+            "powered": "false",
+            "west": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "up": "true",
+        "up_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "up": "false"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "up_device": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "north": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "east": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "south": "true"
+          },
+          {
+            "down": "true",
+            "down_device": "false",
+            "powered": "false",
+            "west": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_dim",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "true",
+        "down_device": "true",
+        "powered": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_arm_device_dim",
         "x": 90
       }
     }

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:life_essence",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:vitalium",
+      "phase": "solid",
+      "amount": 500
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 400
+}

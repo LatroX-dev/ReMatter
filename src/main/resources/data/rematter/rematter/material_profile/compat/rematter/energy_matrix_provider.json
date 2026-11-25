@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "item": "rematter:energy_matrix_provider",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 906
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 3333
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 2375
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2239
+    }
+  ],
+  "decomposition_energy": 11600,
+  "synthesis_energy": 23200,
+  "ticks": 50
+}

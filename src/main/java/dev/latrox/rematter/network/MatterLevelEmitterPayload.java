@@ -3,6 +3,7 @@ package dev.latrox.rematter.network;
 import dev.latrox.rematter.ReMatter;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.content.CellPartitionData;
+import dev.latrox.rematter.content.CustomNames;
 import dev.latrox.rematter.content.MatterLevelEmitterBlockEntity;
 import dev.latrox.rematter.content.MatterLevelEmitterMenu;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -52,17 +53,39 @@ public final class MatterLevelEmitterPayload {
         @Override public Type<Configure> type() { return TYPE; }
     }
 
+    public record Rename(int containerId, String customName) implements CustomPacketPayload {
+        public static final Type<Rename> TYPE = new Type<>(
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_level_emitter_rename"));
+        public Rename { customName = CustomNames.sanitize(customName); }
+        public static final StreamCodec<RegistryFriendlyByteBuf, Rename> CODEC = new StreamCodec<>() {
+            @Override public Rename decode(RegistryFriendlyByteBuf buf) {
+                return new Rename(buf.readVarInt(), buf.readUtf(CustomNames.MAX_LENGTH));
+            }
+            @Override public void encode(RegistryFriendlyByteBuf buf, Rename payload) {
+                buf.writeVarInt(payload.containerId);
+                buf.writeUtf(payload.customName, CustomNames.MAX_LENGTH);
+            }
+        };
+        @Override public Type<Rename> type() { return TYPE; }
+    }
+
     public record State(int containerId, @Nullable SubstanceKey target, long threshold, boolean emitWhenBelow,
-                        long observedStock, boolean networkReady, boolean emitting)
+                        long observedStock, boolean networkReady, boolean emitting, String customName)
             implements CustomPacketPayload {
         public static final Type<State> TYPE = new Type<>(
                 Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_level_emitter_state"));
+
+        public State(int containerId, @Nullable SubstanceKey target, long threshold, boolean emitWhenBelow,
+                     long observedStock, boolean networkReady, boolean emitting) {
+            this(containerId, target, threshold, emitWhenBelow, observedStock, networkReady, emitting, "");
+        }
 
         public State {
             if (containerId < 0 || threshold < 0 || threshold > MatterLevelEmitterBlockEntity.MAX_THRESHOLD
                     || observedStock < 0 || target != null && target.id().toString().length() > CellPartitionData.MAX_ID_LENGTH) {
                 throw new IllegalArgumentException("Invalid Matter Level Emitter state");
             }
+            customName = CustomNames.sanitize(customName);
         }
 
         public static final StreamCodec<RegistryFriendlyByteBuf, State> CODEC = new StreamCodec<>() {
@@ -75,7 +98,8 @@ public final class MatterLevelEmitterPayload {
                 long stock = buf.readVarLong();
                 boolean ready = buf.readBoolean();
                 boolean emitting = buf.readBoolean();
-                return new State(id, target, threshold, below, stock, ready, emitting);
+                String name = buf.readUtf(CustomNames.MAX_LENGTH);
+                return new State(id, target, threshold, below, stock, ready, emitting, name);
             }
 
             @Override
@@ -88,6 +112,7 @@ public final class MatterLevelEmitterPayload {
                 buf.writeVarLong(payload.observedStock);
                 buf.writeBoolean(payload.networkReady);
                 buf.writeBoolean(payload.emitting);
+                buf.writeUtf(payload.customName, CustomNames.MAX_LENGTH);
             }
         };
 
@@ -101,6 +126,13 @@ public final class MatterLevelEmitterPayload {
                     && player.containerMenu instanceof MatterLevelEmitterMenu menu
                     && menu.containerId == payload.containerId()) {
                 menu.configureFromClient(player, payload);
+            }
+        });
+        registrar.playToServer(Rename.TYPE, Rename.CODEC, (payload, context) -> {
+            if (context.player() instanceof ServerPlayer player
+                    && player.containerMenu instanceof MatterLevelEmitterMenu menu
+                    && menu.containerId == payload.containerId()) {
+                menu.renameFromClient(player, payload.customName());
             }
         });
         registrar.playToClient(State.TYPE, State.CODEC, (payload, context) -> {

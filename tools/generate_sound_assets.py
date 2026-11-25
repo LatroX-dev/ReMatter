@@ -42,17 +42,18 @@ MOD_SOUNDS = ROOT / "src/main/java/dev/latrox/rematter/content/ModSounds.java"
 
 # ---------------------------------------------------------------------------------------------------------------
 # The switch. "studio-v10" is the set that shipped until 2026-11-17; "workshop-v11" follows the visible mechanisms.
-ACTIVE_SET = "workshop-v11"
+ACTIVE_SET = "workshop-v14"
 ROLE_OVERRIDES: dict[str, str] = {}      # for example {"generator": "studio-v10"}
 EVENT_OVERRIDES: dict[str, str] = {}     # for example {"wrench_configure": "studio-v10"}
 # ---------------------------------------------------------------------------------------------------------------
 
 # Newest first: an interaction event that the chosen set neither defines nor aliases comes from the first set here
 # that has it, so no registered event is ever without a sound.
-FALLBACK_ORDER = ("workshop-v11", "studio-v10")
+FALLBACK_ORDER = ("workshop-v14", "workshop-v13", "workshop-v12", "workshop-v11", "studio-v10")
 
 MACHINE_ROLES = ("sinter", "analyzer", "decomposer", "synthesizer", "processor", "chemical_reactor", "hand_preparator",
-                 "preparator", "preparation_reactor", "generator", "converter", "atmospheric")
+                 "preparator", "preparation_reactor", "generator", "converter", "atmospheric",
+                 "deep_extractor", "transmutation_reactor", "primal_reactor", "energy_reactor")
 ROLE_EVENT_SUFFIXES = ("work", "accent", "cycle")
 INTERACTION_EVENTS = (
     "wrench_configure", "wrench_rotate", "wrench_mode", "wrench_dismantle", "port_cycle",
@@ -65,16 +66,24 @@ INTERACTION_EVENTS = (
 MACHINE_KINDS = {
     "analyzer": "analyzer", "decomposer": "decomposer", "material_synthesizer": "synthesizer",
     "chemical_processor": "processor", "chemical_reactor_controller": "chemical_reactor",
-    "industrial_decomposer_controller": "chemical_reactor",
-    "industrial_synthesizer_controller": "chemical_reactor",
+    "decomposer_reactor_controller": "chemical_reactor",
+    "synthesizer_reactor_controller": "chemical_reactor",
+    "transmutation_reactor_controller": "transmutation_reactor",
+    "primal_reactor_controller": "primal_reactor",
+    "energy_reactor_controller": "energy_reactor",
     "hand_preparator": "hand_preparator", "material_preparator": "preparator",
     "preparation_reactor_controller": "preparation_reactor", "sinter_furnace": "sinter",
     "crystal_generator": "generator", "industrial_crystal_generator": "generator",
     "primal_converter": "converter", "atmospheric_collector": "atmospheric",
+    "deep_extractor": "deep_extractor",
 }
 PROFILE_ALIASES = {
-    "industrial_decomposer_controller": "chemical_reactor_controller",
-    "industrial_synthesizer_controller": "chemical_reactor_controller",
+    "decomposer_reactor_controller": "chemical_reactor_controller",
+    "synthesizer_reactor_controller": "chemical_reactor_controller",
+    "transmutation_reactor_controller": "chemical_reactor_controller",
+    "primal_reactor_controller": "primal_converter",
+    "energy_reactor_controller": "primal_converter",
+    "deep_extractor": "atmospheric_collector",
 }
 
 # Limits for clips that carry measurements in their set record (the earlier set carries only a few numbers).

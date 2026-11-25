@@ -6,7 +6,7 @@ one material; real items and the small mechanical crank remain renderer-owned.
 from family_geometry import Box, mapped_uv
 from family_palette import SEAM, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, accent, lighten, scale
 
-DEVICES=('analyzer','decomposer','material_synthesizer','material_preparator','hand_preparator','sinter_furnace','atmospheric_collector')
+DEVICES=('analyzer','decomposer','material_synthesizer','material_preparator','hand_preparator','sinter_furnace','atmospheric_collector','deep_extractor')
 NATURAL={'north':('-x','-y'),'south':('+x','-y'),'west':('+z','-y'),'east':('-z','-y'),'up':('+x','+z'),'down':('+x','-z')}
 # (name, lower corner, upper corner, material). Exactly one physical purpose per large silhouette.
 PARTS={
@@ -53,6 +53,12 @@ PARTS={
   ('intake_shroud_right',(11,6,3),(13,14,9),'metal'),
   ('intake_manifold',(5,6,7),(11,14,9),'dark'),
   ('intake_collar_front',(5,12,3),(11,14,5),'dark')),
+ 'deep_extractor':(
+  ('sump_tray',(3,4,2),(13,6,9),'plate'),
+  ('derrick_left',(3,6,4),(5,14,8),'metal'),
+  ('derrick_right',(11,6,4),(13,14,8),'metal'),
+  ('bore_crown',(3,14,4),(13,16,9),'dark'),
+  ('bore_back',(5,6,7),(11,14,9),'dark')),
 }
 # A colored functional inset changes with the public active state; no extra decorative fins.
 WORK={
@@ -63,6 +69,7 @@ WORK={
  'hand_preparator':(),
  'sinter_furnace':(('oven_heat',(5,6,8),(11,12,10)),),
  'atmospheric_collector':(('condenser_core',(5,6,5),(11,11,7)),),
+ 'deep_extractor':(('extractor_coil_left',(5,7,5),(6,13,7)),('extractor_coil_right',(10,7,5),(11,13,7))),
 }
 
 def color(device): return accent('material_preparator' if device=='hand_preparator' else device)
@@ -102,6 +109,6 @@ def bench_sprites(Sprite):
  from work_sprites import strip,flow_sheet,breath_sheet,heat_sheet
  for device in DEVICES:
   if not WORK[device]:continue
-  painter=(lambda f:heat_sheet(f)) if device=='sinter_furnace' else (lambda f,c=color(device):flow_sheet(c,f)) if device in ('decomposer','material_preparator','atmospheric_collector') else (lambda f,c=color(device):breath_sheet(c,f))
+  painter=(lambda f:heat_sheet(f)) if device=='sinter_furnace' else (lambda f,c=color(device):flow_sheet(c,f)) if device in ('decomposer','material_preparator','atmospheric_collector','deep_extractor') else (lambda f,c=color(device):breath_sheet(c,f))
   result['bench_'+device+'_work_active']=strip(painter(f) for f in range(16))
  return result

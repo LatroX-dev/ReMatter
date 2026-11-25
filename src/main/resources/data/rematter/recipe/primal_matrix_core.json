@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NPN",
+    "PRP",
+    "NPN"
+  ],
+  "key": {
+    "N": "rematter:netherite_sheath",
+    "P": "rematter:primal_crystal",
+    "R": "rematter:particle_resonator"
+  },
+  "result": {
+    "id": "rematter:primal_matrix_core",
+    "count": 1
+  }
+}

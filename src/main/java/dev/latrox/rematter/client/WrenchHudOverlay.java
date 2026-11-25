@@ -174,7 +174,7 @@ public final class WrenchHudOverlay {
             SecurityMode mode = SecurityCardItem.mode(tool);
             int color = switch (mode) {
                 case PUBLIC -> UiPalette.ACCENT;
-                case TRUSTED -> UiPalette.PORT_ENERGY_INPUT;
+                case TRUSTED -> UiPalette.BLUE;
                 case PRIVATE -> UiPalette.EMBER;
             };
             String label = Component.translatable("screen.rematter.wrench_hud.security_card", mode.label()).getString();

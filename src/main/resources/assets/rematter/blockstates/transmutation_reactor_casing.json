@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "rematter:block/transmutation_reactor_casing"
+    }
+  }
+}

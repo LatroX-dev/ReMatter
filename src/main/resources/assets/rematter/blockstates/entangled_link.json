@@ -1,7 +1,218 @@
 {
-  "variants": {
-    "": {
-      "model": "rematter:block/entangled_link"
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/entangled_link"
+      }
+    },
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "matter": "rematter:block/port_plain_left_matter",
+            "power": "rematter:block/port_plain_left_power",
+            "redstone": "rematter:block/port_plain_left_redstone"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "matter": "rematter:block/port_plain_right_matter",
+            "power": "rematter:block/port_plain_right_power",
+            "redstone": "rematter:block/port_plain_right_redstone"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "matter": "rematter:block/port_plain_back_matter",
+            "power": "rematter:block/port_plain_back_power",
+            "redstone": "rematter:block/port_plain_back_redstone"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "power": "rematter:block/port_plain_bottom_power",
+            "redstone": "rematter:block/port_plain_bottom_redstone"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/entangled_link",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 90,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "matter": "rematter:block/port_plain_left_matter",
+            "power": "rematter:block/port_plain_left_power",
+            "redstone": "rematter:block/port_plain_left_redstone"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "matter": "rematter:block/port_plain_right_matter",
+            "power": "rematter:block/port_plain_right_power",
+            "redstone": "rematter:block/port_plain_right_redstone"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "matter": "rematter:block/port_plain_back_matter",
+            "power": "rematter:block/port_plain_back_power",
+            "redstone": "rematter:block/port_plain_back_redstone"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "power": "rematter:block/port_plain_bottom_power",
+            "redstone": "rematter:block/port_plain_bottom_redstone"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/entangled_link",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 180,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "matter": "rematter:block/port_plain_left_matter",
+            "power": "rematter:block/port_plain_left_power",
+            "redstone": "rematter:block/port_plain_left_redstone"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "matter": "rematter:block/port_plain_right_matter",
+            "power": "rematter:block/port_plain_right_power",
+            "redstone": "rematter:block/port_plain_right_redstone"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "matter": "rematter:block/port_plain_back_matter",
+            "power": "rematter:block/port_plain_back_power",
+            "redstone": "rematter:block/port_plain_back_redstone"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "power": "rematter:block/port_plain_bottom_power",
+            "redstone": "rematter:block/port_plain_bottom_redstone"
+          }
+        }
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/entangled_link",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "type": "rematter:port_plates",
+        "y": 270,
+        "default": {
+          "left": "automatic",
+          "right": "automatic",
+          "back": "automatic",
+          "bottom": "automatic"
+        },
+        "sides": {
+          "left": {
+            "disabled": "rematter:block/port_plain_left_disabled",
+            "automatic": "rematter:block/port_plain_left_automatic",
+            "matter": "rematter:block/port_plain_left_matter",
+            "power": "rematter:block/port_plain_left_power",
+            "redstone": "rematter:block/port_plain_left_redstone"
+          },
+          "right": {
+            "disabled": "rematter:block/port_plain_right_disabled",
+            "automatic": "rematter:block/port_plain_right_automatic",
+            "matter": "rematter:block/port_plain_right_matter",
+            "power": "rematter:block/port_plain_right_power",
+            "redstone": "rematter:block/port_plain_right_redstone"
+          },
+          "back": {
+            "disabled": "rematter:block/port_plain_back_disabled",
+            "automatic": "rematter:block/port_plain_back_automatic",
+            "matter": "rematter:block/port_plain_back_matter",
+            "power": "rematter:block/port_plain_back_power",
+            "redstone": "rematter:block/port_plain_back_redstone"
+          },
+          "bottom": {
+            "disabled": "rematter:block/port_plain_bottom_disabled",
+            "automatic": "rematter:block/port_plain_bottom_automatic",
+            "matter": "rematter:block/port_plain_bottom_matter",
+            "power": "rematter:block/port_plain_bottom_power",
+            "redstone": "rematter:block/port_plain_bottom_redstone"
+          }
+        }
+      }
     }
-  }
+  ]
 }

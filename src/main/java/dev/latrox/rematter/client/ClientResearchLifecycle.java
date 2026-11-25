@@ -9,5 +9,5 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 @EventBusSubscriber(modid = ReMatter.MOD_ID, value = Dist.CLIENT)
 public final class ClientResearchLifecycle {
     private ClientResearchLifecycle() {}
-    @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) { ClientResearchState.clear(); ClientResearchToasts.clear(); PinnedLabGoal.clear(); }
+    @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) { ClientResearchState.clear(); ClientResearchToasts.clear(); PinnedLabGoal.clear(); ClientNetworkReserves.clear(); }
 }

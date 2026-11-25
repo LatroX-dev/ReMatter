@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "EAE",
+    "CPC"
+  ],
+  "key": {
+    "C": "rematter:energy_reactor_casing",
+    "P": "rematter:machine_port",
+    "E": "rematter:ember_matrix_crystal",
+    "A": "rematter:amber_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_reactor_port",
+    "count": 2
+  }
+}

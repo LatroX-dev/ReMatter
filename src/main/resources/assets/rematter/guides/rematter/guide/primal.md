@@ -13,8 +13,10 @@ item_ids:
   - rematter:primal_cell_64k
   - rematter:primal_cell_256k
   - rematter:primal_cell_1m
+  - rematter:primal_cell_4m
   - rematter:primal_converter
   - rematter:primal_crystal
+  - rematter:primal_matrix_core
 ---
 # A deliberately separate reserve
 

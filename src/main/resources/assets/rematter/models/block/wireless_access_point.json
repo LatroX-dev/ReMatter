@@ -17,7 +17,7 @@
       ],
       "to": [
         14,
-        3,
+        2.5,
         14
       ],
       "faces": {
@@ -43,24 +43,23 @@
       }
     },
     {
-      "name": "rear_port",
+      "name": "spine",
       "from": [
-        5,
-        5,
-        11
+        4.5,
+        2.5,
+        4.5
       ],
       "to": [
-        11,
-        11,
-        16
+        11.5,
+        8.5,
+        11.5
       ],
       "faces": {
         "north": {
           "texture": "#front"
         },
         "south": {
-          "texture": "#port",
-          "cullface": "south"
+          "texture": "#side"
         },
         "east": {
           "texture": "#side"
@@ -70,22 +69,100 @@
         },
         "up": {
           "texture": "#top"
-        },
-        "down": {
-          "texture": "#port"
         }
       }
     },
     {
-      "name": "pedestal",
+      "name": "fin_west",
       "from": [
-        4,
         3,
-        4
+        2.5,
+        7
       ],
       "to": [
-        12,
+        4.5,
         8,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "fin_east",
+      "from": [
+        11.5,
+        2.5,
+        7
+      ],
+      "to": [
+        13,
+        8,
+        9
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "fin_south",
+      "from": [
+        7,
+        2.5,
+        11.5
+      ],
+      "to": [
+        9,
+        8,
+        13
+      ],
+      "faces": {
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "collar",
+      "from": [
+        5,
+        8.5,
+        5
+      ],
+      "to": [
+        11,
+        10,
         11
       ],
       "faces": {
@@ -110,12 +187,12 @@
       "name": "mast",
       "from": [
         6.5,
-        8,
+        10,
         6.5
       ],
       "to": [
         9.5,
-        12,
+        11.5,
         9.5
       ],
       "faces": {
@@ -130,39 +207,6 @@
         },
         "west": {
           "texture": "#side"
-        }
-      }
-    },
-    {
-      "name": "collar",
-      "from": [
-        5,
-        12,
-        5
-      ],
-      "to": [
-        11,
-        13,
-        11
-      ],
-      "faces": {
-        "north": {
-          "texture": "#front"
-        },
-        "south": {
-          "texture": "#side"
-        },
-        "east": {
-          "texture": "#side"
-        },
-        "west": {
-          "texture": "#side"
-        },
-        "up": {
-          "texture": "#top"
-        },
-        "down": {
-          "texture": "#port"
         }
       }
     }

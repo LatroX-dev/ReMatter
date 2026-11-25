@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:brown_petal_block",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 900
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 10800
+    }
+  ],
+  "decomposition_energy": 36000,
+  "synthesis_energy": 72000,
+  "ticks": 720
+}

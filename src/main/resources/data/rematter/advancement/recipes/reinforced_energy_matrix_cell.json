@@ -1,0 +1,77 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_material": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "rematter:ember_matrix_crystal"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_core"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:lumivex_ingot"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:optical_circuit"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:reinforced_energy_cube"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:reinforced_matter_cable"
+            ],
+            "count": {
+              "min": 1
+            }
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "rematter:reinforced_energy_matrix_cell"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_material",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rematter:reinforced_energy_matrix_cell"
+    ]
+  }
+}

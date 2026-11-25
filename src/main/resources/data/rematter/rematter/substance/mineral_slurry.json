@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.mineral_slurry",
+  "symbol": "Si₂FeCuH₂O₅",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:iron": 1,
+    "rematter:copper": 1,
+    "rematter:hydrogen": 2,
+    "rematter:oxygen": 5
+  },
+  "phases": [
+    "liquid"
+  ]
+}

@@ -131,7 +131,7 @@ class MachineAudioProfileTest {
         var shipped = MachineAudioProfile.parse(Files.readString(Path.of("src/main/resources/assets/rematter/machine_audio.json")));
         assertNull(shipped.failure());
         assertTrue(shipped.rejected().isEmpty(), shipped.rejected().toString());
-        assertEquals(15, shipped.machines().size());
+        assertEquals(19, shipped.machines().size());
         // The archived set carries the behaviour before motion cues: timer accents with jitter 6 and three pitched kinds.
         var archive = com.google.gson.JsonParser.parseString(Files.readString(Path.of("artwork/sound-sets/studio-v10/set.json"))).getAsJsonObject();
         var wrapped = new com.google.gson.JsonObject();

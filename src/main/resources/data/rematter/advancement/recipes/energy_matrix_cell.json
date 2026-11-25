@@ -1,0 +1,69 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_material": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "rematter:ember_matrix_crystal"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_core"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_cube"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:matter_cable"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:rhevon_ingot"
+            ],
+            "count": {
+              "min": 4
+            }
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "rematter:energy_matrix_cell"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_material",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rematter:energy_matrix_cell"
+    ]
+  }
+}

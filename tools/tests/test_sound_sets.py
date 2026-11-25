@@ -15,6 +15,12 @@ def all_sets():
     return {p.name: gsa.load_set(p.name) for p in sorted(gsa.SETS.iterdir()) if (p / "set.json").is_file()}
 
 
+ARCHIVE_ROLES = (
+    "sinter", "analyzer", "decomposer", "synthesizer", "processor", "chemical_reactor",
+    "hand_preparator", "preparator", "preparation_reactor", "generator", "converter", "atmospheric",
+)
+
+
 class SoundSetTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -23,6 +29,9 @@ class SoundSetTests(unittest.TestCase):
     def test_both_sets_are_present_and_every_clip_matches_its_recorded_checksum(self):
         self.assertIn("studio-v10", self.sets)
         self.assertIn("workshop-v11", self.sets)
+        self.assertIn("workshop-v12", self.sets)
+        self.assertIn("workshop-v13", self.sets)
+        self.assertIn("workshop-v14", self.sets)
         for set_id, data in self.sets.items():
             on_disk = {p.relative_to(gsa.SETS / set_id / "clips").with_suffix("").as_posix()
                        for p in (gsa.SETS / set_id / "clips").rglob("*.ogg")}
@@ -35,7 +44,7 @@ class SoundSetTests(unittest.TestCase):
         archived = self.sets["studio-v10"]
         self.assertEqual(len(archived["clips"]), 71)
         self.assertEqual(len(archived["events"]), 35)
-        for role in gsa.MACHINE_ROLES:
+        for role in ARCHIVE_ROLES:
             self.assertIn(f"{role}_work", archived["events"])
             self.assertIn(f"{role}_accent", archived["events"])
 
@@ -72,7 +81,7 @@ class SoundSetTests(unittest.TestCase):
 
     def test_going_back_restores_the_earlier_sounds_and_the_earlier_behaviour(self):
         chosen, machines = gsa.resolve("studio-v10", {}, {}, self.sets)
-        for role in gsa.MACHINE_ROLES:
+        for role in ARCHIVE_ROLES:
             self.assertEqual(chosen[f"{role}_work"][0], "studio-v10")
             self.assertEqual(chosen[f"{role}_accent"][0], "studio-v10")
             self.assertNotIn(f"{role}_cycle", chosen, "the earlier set has no motion cues")
@@ -85,8 +94,8 @@ class SoundSetTests(unittest.TestCase):
         self.assertEqual(chosen["wrench_rotate"][1], self.sets["studio-v10"]["events"]["wrench_configure"])
         self.assertEqual(chosen["canister_empty"][1], self.sets["studio-v10"]["events"]["cell_insert"])
         # and the two that had none at all keep the newest one, so nothing is silent or vanilla
-        self.assertEqual(chosen["structure_formed"][0], "workshop-v11")
-        self.assertEqual(chosen["synthesizer_complete"][0], "workshop-v11")
+        self.assertEqual(chosen["structure_formed"][0], "workshop-v14")
+        self.assertEqual(chosen["synthesizer_complete"][0], "workshop-v14")
 
     def test_one_machine_or_one_interaction_can_come_from_another_set(self):
         chosen, machines = gsa.resolve("workshop-v11", {"generator": "studio-v10"}, {"wrench_configure": "studio-v10"}, self.sets)
@@ -112,8 +121,9 @@ class SoundSetTests(unittest.TestCase):
             self.assertEqual(digest, info["sha256"], name)
 
     def test_loops_of_the_new_set_are_seamless_audible_and_free_of_whistles(self):
-        for clip, info in self.sets["workshop-v11"]["clips"].items():
-            self.assertEqual(gsa.check_limits("workshop-v11", clip, info), [], clip)
+        for set_id in ("workshop-v11", "workshop-v12", "workshop-v13", "workshop-v14"):
+            for clip, info in self.sets[set_id]["clips"].items():
+                self.assertEqual(gsa.check_limits(set_id, clip, info), [], f"{set_id}/{clip}")
 
 
 if __name__ == "__main__":

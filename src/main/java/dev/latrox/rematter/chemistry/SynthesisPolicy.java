@@ -83,6 +83,7 @@ public final class SynthesisPolicy {
         if (!allowed.containsKey(exactId)) return false;
         String required = requirement(exactId).machine();
         return required.equals(machine)
-                || required.equals("material_synthesizer") && "industrial_synthesizer_controller".equals(machine);
+                || required.equals("material_synthesizer")
+                && ("synthesizer_reactor_controller".equals(machine) || "industrial_synthesizer_controller".equals(machine));
     }
 }

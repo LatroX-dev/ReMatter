@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GKG",
+    "MPM",
+    "NFN"
+  ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "K": "rematter:primal_matrix_core",
+    "M": "rematter:violet_matrix_crystal",
+    "P": "rematter:primal_crystal",
+    "N": "rematter:netherite_sheath",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:primal_condenser_core",
+    "count": 1
+  }
+}

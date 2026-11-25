@@ -22,4 +22,14 @@ public interface MatterStore {
     default boolean voidsOverflow(SubstanceKey key) { return false; }
     /** Structural identity of overflow voiding policy used to validate bound unpaid batches. */
     default Object voidSignature() { return VoidPolicy.NONE; }
+    /** True when physical member {@code index} may receive deposits of {@code key} through network relay filters. */
+    default boolean canDepositMember(int index, SubstanceKey key) { return true; }
+    /** True when at least one member accepts deposits of {@code key} through both cell and relay filters. */
+    default boolean acceptsDeposit(SubstanceKey key) {
+        var list = members();
+        for (int i = 0; i < list.size(); i++) {
+            if (canDepositMember(i, key) && list.get(i).accepts(key)) return true;
+        }
+        return false;
+    }
 }

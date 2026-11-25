@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "type": "transmutation",
+  "inputs": [
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:oxygen",
+      "phase": "gas",
+      "amount": 2000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 4800000,
+  "ticks": 2800,
+  "industrial": {
+    "min_field": 12,
+    "requires_known_outputs": true,
+    "product": "rematter:cinderium",
+    "catalyst": "rematter:primal_matrix_core"
+  }
+}

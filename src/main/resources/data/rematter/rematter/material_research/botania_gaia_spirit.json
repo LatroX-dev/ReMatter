@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Botania Gaia Spirit",
+  "items": [
+    "botania:life_essence"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:vitalium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

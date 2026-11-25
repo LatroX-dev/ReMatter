@@ -160,7 +160,7 @@ public class MachineBlock extends Block implements EntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof MachineBlockEntity machine) {
             machine.clearIndustrialProtectionClaim();
-            machine.placedBy(placer);
+            machine.placedBy(placer, stack);
         }
     }
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
@@ -243,6 +243,7 @@ public class MachineBlock extends Block implements EntityBlock {
             }
         }
         drop.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(machine.getType(), data));
+        CustomNames.applyToStack(drop, machine.customName());
         return List.of(drop);
     }
     @Override public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData, Player player) {

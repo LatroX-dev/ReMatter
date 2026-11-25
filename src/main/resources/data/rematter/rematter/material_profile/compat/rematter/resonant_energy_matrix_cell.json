@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "item": "rematter:resonant_energy_matrix_cell",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 8500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 843
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 5874
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 21383
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 2750
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 3125
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 687
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 4968
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 11625
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 18318
+    }
+  ],
+  "decomposition_energy": 80000,
+  "synthesis_energy": 160000,
+  "ticks": 54
+}

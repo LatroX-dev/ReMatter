@@ -20,7 +20,7 @@ final class ConverterDestination {
     private ConverterDestination(){}
     static View observe(MachineMatterNetwork network,SubstanceKey target,long amount){
         if(!network.ready())return missing(network.status());
-        for(var store:network.checkpointStores()){
+        for(var store:network.depositStores(target)){
             int bay=store.conversionBay(target,amount);
             if(bay<0)continue;
             var cell=store.cellViews().get(bay);

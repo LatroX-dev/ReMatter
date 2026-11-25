@@ -16,8 +16,12 @@ item_ids:
   - rematter:matter_terminal
   - rematter:wireless_access_point
   - rematter:wireless_booster
+  - rematter:dimensional_card
   - rematter:wireless_matter_terminal
   - rematter:matter_level_emitter
+  - rematter:matter_cable_relay
+  - rematter:anchor_upgrade
+  - rematter:spatial_anchor
   - rematter:configuration_card
   - rematter:security_card
   - rematter:matter_wrench
@@ -108,10 +112,11 @@ A Cluster combines four Crystals with Rhedon, Virel, Structural Bars and Matrix 
 
 Every Cell supports up to **512 substance/phase pairs**. Solids, liquids and gases share its space. Water and water vapor are different types.
 
-Crafting a new Cell gives you an empty Cell. Installed Cells keep their own contents, and the Drive pools their available stock. Connect a powered **Wireless Access Point** (optionally upgraded with **Wireless Boosters**) and sneak-use a charged **Wireless Matter Terminal** on it to browse your network within range. Assign a key in **Controls → ReMatter → Open Wireless Matter Terminal** to open a carried (or **Curios**-equipped) terminal from anywhere in range without switching hotbar slots.
+Crafting a new Cell gives you an empty Cell. Installed Cells keep their own contents, and the Drive pools their available stock. Connect a powered **Wireless Access Point** (optionally upgraded with **Wireless Boosters**, a **Dimensional Card** for unlimited cross-dimension range, or an **Anchor Upgrade** to keep the Access Point chunk loaded) and sneak-use a charged **Wireless Matter Terminal** on it to browse your network. Assign a key in **Controls → ReMatter → Open Wireless Matter Terminal** to open a carried (or **Curios**-equipped) terminal from anywhere in range without switching hotbar slots.
 
 <RecipeFor id="rematter:wireless_access_point" />
 <RecipeFor id="rematter:wireless_booster" />
+<RecipeFor id="rematter:dimensional_card" />
 <RecipeFor id="rematter:wireless_matter_terminal" />
 
 ## Extend the network
@@ -131,7 +136,26 @@ A **Pressurized Canister** holds up to **16,000 units** of a single liquid or ga
 <RecipeFor id="rematter:matter_cable" />
 <RecipeFor id="rematter:reinforced_matter_cable" />
 <RecipeFor id="rematter:resonant_matter_cable" />
+<RecipeFor id="rematter:matter_cable_relay" />
 <RecipeFor id="rematter:matter_terminal" />
+
+### Matter Cable Relay and Network Reserves
+
+Place a **Matter Cable Relay** inline between two Matter Cables to switch, separate, or throttle a cable branch without breaking the run. It connects only along its front-to-back axis, leaving all four side faces free for Redstone dust, levers, or a **Matter Level Emitter**. Right-click the relay to choose its Redstone gate (**Always Open**, **Open on Signal**, or **Cut on Signal**), its channel mode (**Power + Matter**, **Power Only (FE)** to share power while keeping Matter subnets separate, or **Matter Only** to block FE), and optional `FE/t` or `u/t` throughput caps.
+
+To prevent machines or an **Energy Reactor** from draining shared reserves, open **Network Reserves** from the right rail of any **Matter Terminal** to set global minimum stock floors per substance (including Primal Matter), or set a per-machine **Network reserve** in **Settings → Production**. Both limits work together (the higher floor wins), while manual canister and cell withdrawals remain allowed.
+
+### Chunkloading and Custom Device Names
+
+Minecraft loads the world in `16×16` chunks. ReMatter provides two native chunkloading tools controlled by the server quota (`rematter-chunkloading.toml`, default 16 chunks per player):
+
+- **Anchor Upgrade**: install one inside a machine's **Upgrades** tab (or Sneak+Right-Click), a **Dimensional Entangled Link**, or a **Wireless Access Point** to keep that device's `1×1` chunk loaded (or the `1–4` chunks covering a formed industrial multiblock).
+- **Spatial Anchor**: a standalone FE-powered chunkloader block offering selectable **1×1** (`16 FE/t`) or **3×3** (`128 FE/t`) chunk areas with Redstone gating (`Ignored`, `High`, `Low`).
+
+<RecipeFor id="rematter:anchor_upgrade" />
+<RecipeFor id="rematter:spatial_anchor" />
+
+You can assign a **Custom Name** to machines (in **Settings → Access**), **Matter Cable Relays**, **Dimensional Entangled Links**, **Wireless Access Points**, and **Spatial Anchors** (or via a vanilla Anvil). Custom names appear and are searchable in the **Matter Terminal → Devices** list alongside remote dimension tags, and are preserved when relocating blocks with a **Matter Wrench**.
 
 Item and fluid automation cannot move Cells or upgrades. Owners can use buckets manually. Enable Automation only for trusted external connections; it does not share private menu access.
 

@@ -88,23 +88,27 @@ ENERGY_CABLE_TIERS = {
     'energy_cube': 'matter_cable',
     'reinforced_energy_cube': 'reinforced_matter_cable',
     'resonant_energy_cube': 'resonant_matter_cable',
+    'primal_energy_cube': 'resonant_matter_cable',
 }
 
 
 # Machine Port modes in the order of the block state property.
+# All Inputs use cool hues (Blue / Cyan / Emerald Green); all Outputs use warm red/orange hues (Copper / Coral / Ember Red).
 PORT_MODES = {
     'automatic': PORT_AUTOMATIC,
-    'item_input': RGB['copper'],
-    'item_output': RGB['ember'],
-    'fluid_input': RGB['blue'],
-    'fluid_output': RGB['violet'],
-    'power': RGB['amber'],
+    'item_input': RGB['blue'],
+    'item_output': RGB['copper'],
+    'fluid_input': LED['blue'],
+    'fluid_output': LED['red'],
+    'power': LED['green'],
+    'power_output': RGB['ember'],
     'matter': RGB['mint'],
-    'chemical': RGB['leaf'],
+    'chemical': RGB['ice'],
+    'redstone': LED_RED_DIM,
     'disabled': SEAM,
 }
-# Direction is a functional marking; it does not replace the Cube's Ember core or inherited cable-tier band.
-PORT_ENERGY_INPUT = RGB['blue']
+# Direction is a functional marking shared across Energy Cubes and Machine Power Ports.
+PORT_ENERGY_INPUT = LED['green']
 PORT_ENERGY_OUTPUT = RGB['ember']
 ENERGY_PORT_MODES = ('energy_input', 'energy_output', 'energy_input_output')
 PORT_UNFORMED = SHADE

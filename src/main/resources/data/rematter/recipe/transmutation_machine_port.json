@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CEC",
+    "VPE",
+    "CPC"
+  ],
+  "key": {
+    "C": "rematter:transmutation_reactor_casing",
+    "E": "rematter:ember_matrix_crystal",
+    "V": "rematter:violet_matrix_crystal",
+    "P": "rematter:machine_port"
+  },
+  "result": {
+    "id": "rematter:transmutation_machine_port",
+    "count": 2
+  }
+}

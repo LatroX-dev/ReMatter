@@ -1,6 +1,27 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "rematter:block/entangled_link"
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/entangled_link"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_left_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_right_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_back_automatic"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/port_plain_bottom_automatic"
+      }
+    ]
   }
 }

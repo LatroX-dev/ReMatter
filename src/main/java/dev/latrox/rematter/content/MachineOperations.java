@@ -72,17 +72,23 @@ final class MachineOperations {
         if (kind.synthesis()) return synthesis(registry, choice,enforceAccess);
         if (MachineRouting.environmentSources(kind) && registry.environmentSource(SubstanceId.parse(choice.id())).isPresent()) {
             var source=registry.environmentSource(SubstanceId.parse(choice.id())).orElse(null);
-            if(source==null)return null;
-            long baseEnergy = kind == MachineKind.ATMOSPHERIC_COLLECTOR ? Math.max(1L, source.energy() / 2L) : source.energy();
+            if(source==null||!MachineRouting.supportsSource(kind,source))return null;
+            long baseEnergy = kind == MachineKind.ATMOSPHERIC_COLLECTOR ? Math.max(1L, source.energy() / 2L)
+                    : (kind == MachineKind.DEEP_EXTRACTOR && machine.hasExtractionFocus() ? Math.max(1L, source.energy() / 2L) : source.energy());
             int baseTicks = kind == MachineKind.ATMOSPHERIC_COLLECTOR ? Math.max(20, source.ticks() / 2) : source.ticks();
             return new Operation(choice.id(),Map.of(),source.outputs(),machine.cost(baseEnergy),baseTicks,
                     () -> source.dimensions().contains(machine.getLevel().dimension().identifier().toString())
-                            && (!source.requiresOpenAir()||machine.getLevel().getBlockState(airIntake()).isAir()
-                            && machine.getLevel().canSeeSky(airIntake())), () -> {});
+                            && (source.deepExtraction()
+                                ? machine.hasProbeBelow(source.probeBelow())
+                                : (!source.requiresOpenAir()||machine.getLevel().getBlockState(airIntake()).isAir()
+                                    && machine.getLevel().canSeeSky(airIntake()))), () -> {});
         }
         var recipe = registry.recipe(SubstanceId.parse(choice.id())).orElse(null);
         if (recipe == null || !MachineRouting.supports(kind,recipe)) return null;
-        if(enforceAccess&&!machine.allowsProcess(recipe)) {restriction=recipe.minField()>0?"requires_field":"requires_research";return null;}
+        if(enforceAccess) {
+            String blockReason = machine.processRestriction(recipe);
+            if (!blockReason.isEmpty()) { restriction = blockReason; return null; }
+        }
         if(enforceAccess&&!machine.progressAllows(recipe.requiresAdvancement())) { restriction="requires_advancement";return null; }
         return new Operation(choice.id(), recipe.inputs(), recipe.outputs(), machine.cost(recipe.energy()), recipe.ticks(),
                 () -> machine.progressAllows(recipe.requiresAdvancement())&&machine.allowsProcess(recipe), () -> machine.learnProcess(recipe.inputs(),recipe.outputs()));
@@ -200,9 +206,11 @@ final class MachineOperations {
 
     String readiness(boolean needsStorage, @Nullable MatterStore store, Operation operation, long requiredEnergy) {
         long energy = machine.energy().getAmountAsLong();
-        if(MachineRouting.environmentSources(machine.kind())
-                && dev.latrox.rematter.ReMatter.chemistry().environmentSources().stream().anyMatch(source -> source.id().toString().equals(operation.signature()))
-                && !operation.canFinish())return "requires_open_air";
+        if(MachineRouting.environmentSources(machine.kind())){
+            var source = dev.latrox.rematter.ReMatter.chemistry().environmentSources().stream()
+                    .filter(s -> s.id().toString().equals(operation.signature())).findFirst().orElse(null);
+            if (source != null && !operation.canFinish()) return source.deepExtraction() ? "requires_probe_target" : "requires_open_air";
+        }
         if (PreparationTier.isPreparation(machine.kind())) {
             if(!preparationRolesReady())return "output_blocked";
             ItemStack primary = machine.stack(0), secondary = machine.stack(3), tertiary = machine.stack(4);
@@ -210,7 +218,11 @@ final class MachineOperations {
                     primary.getComponentsPatch().isEmpty() && secondary.getComponentsPatch().isEmpty() && tertiary.getComponentsPatch().isEmpty(),
                     true, operation.canFinish(), energy, requiredEnergy);
         }
-        return readiness.checkRepeated(needsStorage, store, operation.inputs(), storedOutputs(operation), operation.canFinish(), energy, requiredEnergy);
+        String status = readiness.checkRepeated(needsStorage, store, operation.inputs(), storedOutputs(operation), operation.canFinish(), energy, requiredEnergy);
+        if (status.equals("ready") && needsStorage && machine.violatesNetworkReserve(store, operation.inputs())) {
+            return "network_reserve";
+        }
+        return status;
     }
 
     String inputStatus(ChemistryRegistry registry) {

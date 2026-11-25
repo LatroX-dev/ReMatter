@@ -12,9 +12,11 @@ import argparse
 from family_geometry import AXIS, FACES, OUTWARD, Box, mapped_uv, turned_parts
 from family_palette import (BADGE, BADGE_LIGHT, BASE, CABLE_TIERS, COPPER, COPPER_DARK, COPPER_LIGHT,
                             ENERGY_CABLE_TIERS, ENERGY_PORT_MODES, HIGHLIGHT, IVORY, PORT_DARK,
-                            PORT_ENERGY_INPUT, PORT_ENERGY_OUTPUT, PORT_LIGHT, PORT_METAL, SEAM, SHADE,
-                            STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, scale, lighten)
-from family_sprites import Sprite, casing_plain, sealed_frame, plinth, bolt, port_plate
+                            PORT_ENERGY_INPUT, PORT_ENERGY_OUTPUT, PORT_LIGHT, PORT_METAL,
+                            PRIMAL_BODY, PRIMAL_COOL, PRIMAL_CORE, PRIMAL_CORE_SOFT, PRIMAL_DEEP,
+                            PRIMAL_GOLD, PRIMAL_LIGHT, PRIMAL_TEAL, PRIMAL_WARM,
+                            SEAM, SHADE, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, scale, lighten)
+from family_sprites import PRIMAL_RING_CYCLE, Sprite, casing_plain, sealed_frame, plinth, bolt, port_plate
 from generate_family_assets import Family, HORIZONTAL, ROTATION, MODEL, NATURAL
 from hardware_sprites import OwnedFiles
 import port_plates
@@ -28,8 +30,12 @@ ENERGY_CUBE_LOOKS = ('recessed_core', 'capacitor_cabinet', 'cartridge_rack')
 ENERGY_CUBE_LOOK = 'recessed_core'
 ENERGY_PORT_SIZES = {'compact': 6, 'trimmed': 7, 'balanced': 8}
 ENERGY_PORT_STYLE = 'compact'
-TIERS = {'energy_cube': 1, 'reinforced_energy_cube': 2, 'resonant_energy_cube': 3}
-PREVIOUS_TIER = {'reinforced_energy_cube': 'energy_cube', 'resonant_energy_cube': 'reinforced_energy_cube'}
+TIERS = {'energy_cube': 1, 'reinforced_energy_cube': 2, 'resonant_energy_cube': 3, 'primal_energy_cube': 4}
+PREVIOUS_TIER = {
+    'reinforced_energy_cube': 'energy_cube',
+    'resonant_energy_cube': 'reinforced_energy_cube',
+    'primal_energy_cube': 'resonant_energy_cube',
+}
 CRYSTAL = 'ember'
 SHARED_CORE = 'rematter:energy_core'
 RECIPES = {
@@ -44,6 +50,55 @@ RECIPES = {
         'K': SHARED_CORE, 'C': 'rematter:resonant_matter_cable',
         'N': 'rematter:netherite_sheath', 'B': 'rematter:reinforced_energy_cube',
         'D': 'rematter:diamond_lattice', 'G': 'rematter:matrix_cluster'}),
+    'primal_energy_cube': ('rematter:energy_upgrade_shaped', ['KCK', 'PBP', 'RVR'], {
+        'K': SHARED_CORE, 'C': 'rematter:resonant_matter_cable',
+        'P': 'rematter:primal_matrix_core', 'B': 'rematter:resonant_energy_cube',
+        'R': 'rematter:particle_resonator', 'V': 'rematter:violet_matrix_crystal'}),
+}
+
+MATRIX_CELLS = {
+    'energy_matrix_cell': (1, 'matter_cable'),
+    'reinforced_energy_matrix_cell': (2, 'reinforced_matter_cable'),
+    'resonant_energy_matrix_cell': (3, 'resonant_matter_cable'),
+    'primal_energy_matrix_cell': (4, 'resonant_matter_cable'),
+}
+MATRIX_PROVIDERS = {
+    'energy_matrix_provider': (1, 'matter_cable'),
+    'reinforced_energy_matrix_provider': (2, 'reinforced_matter_cable'),
+    'resonant_energy_matrix_provider': (3, 'resonant_matter_cable'),
+    'primal_energy_matrix_provider': (4, 'resonant_matter_cable'),
+}
+MATRIX_RECIPES = {
+    'energy_matrix_cell': (['RMR', 'ECE', 'RKR'], {
+        'R': 'rematter:rhevon_ingot', 'M': 'rematter:matter_cable',
+        'E': 'rematter:ember_matrix_crystal', 'C': 'rematter:energy_cube', 'K': SHARED_CORE}),
+    'reinforced_energy_matrix_cell': (['LML', 'ECE', 'OKO'], {
+        'L': 'rematter:lumivex_ingot', 'M': 'rematter:reinforced_matter_cable',
+        'E': 'rematter:ember_matrix_crystal', 'C': 'rematter:reinforced_energy_cube',
+        'O': 'rematter:optical_circuit', 'K': SHARED_CORE}),
+    'resonant_energy_matrix_cell': (['NMN', 'ECE', 'DKD'], {
+        'N': 'rematter:netherite_sheath', 'M': 'rematter:resonant_matter_cable',
+        'E': 'rematter:ember_matrix_crystal', 'C': 'rematter:resonant_energy_cube',
+        'D': 'rematter:diamond_lattice', 'K': SHARED_CORE}),
+    'primal_energy_matrix_cell': (['PMP', 'ECE', 'VKV'], {
+        'P': 'rematter:primal_matrix_core', 'M': 'rematter:resonant_matter_cable',
+        'E': 'rematter:ember_matrix_crystal', 'C': 'rematter:primal_energy_cube',
+        'V': 'rematter:violet_matrix_crystal', 'K': SHARED_CORE}),
+    'energy_matrix_provider': (['RMR', 'BKB', 'RCR'], {
+        'R': 'rematter:rhevon_ingot', 'M': 'rematter:matter_cable',
+        'B': 'rematter:blue_matrix_crystal', 'K': SHARED_CORE, 'C': 'rematter:control_circuit'}),
+    'reinforced_energy_matrix_provider': (['LML', 'BKB', 'EOE'], {
+        'L': 'rematter:lumivex_ingot', 'M': 'rematter:reinforced_matter_cable',
+        'B': 'rematter:blue_matrix_crystal', 'K': SHARED_CORE,
+        'E': 'rematter:ender_conductor', 'O': 'rematter:optical_circuit'}),
+    'resonant_energy_matrix_provider': (['NMN', 'BKB', 'DGD'], {
+        'N': 'rematter:netherite_sheath', 'M': 'rematter:resonant_matter_cable',
+        'B': 'rematter:blue_matrix_crystal', 'K': SHARED_CORE,
+        'D': 'rematter:diamond_lattice', 'G': 'rematter:matrix_cluster'}),
+    'primal_energy_matrix_provider': (['PMP', 'BKB', 'VRV'], {
+        'P': 'rematter:primal_matrix_core', 'M': 'rematter:resonant_matter_cable',
+        'B': 'rematter:blue_matrix_crystal', 'K': SHARED_CORE,
+        'V': 'rematter:violet_matrix_crystal', 'R': 'rematter:particle_resonator'}),
 }
 
 
@@ -57,30 +112,62 @@ def frame_gauge_ticks(image):
         image.px(28, y - 1, STEEL_SHADE)
 
 
-def front(tier, look, cable):
+def front(tier, look, cable, frame=0):
     """The front face carries the maker's badge, Ember recipe plate and tier marks for clear orientation."""
     image = sealed_frame(BASE)
     plinth(image, 26)
     stripe = CABLE_TIERS[cable]['stripe']
-    image.row(2, 4, 28, stripe)
-    image.row(3, 4, 28, scale(stripe, .6))
-    frame_gauge_ticks(image)
-    # Recipe identity remains independent from the inherited cable-tier band, even at zero charge.
-    image.rect(13, 28, 19, 30, RGB[CRYSTAL])
-    for mark in range(tier):
-        image.rect(21 + mark * 3, 28, 23 + mark * 3, 30, IVORY)
+    if tier == 4:
+        # Tier 4 Primal Energy Cube: animated 5-stop Primal energy bar + resonant cable accents + Ember & Violet plates + 4 pips
+        image.row(2, 4, 6, stripe)
+        image.row(2, 26, 28, stripe)
+        shift = (frame * 20) // 16
+        for i in range(20):
+            x = 6 + i
+            pos = (i - shift) % 20
+            c = PRIMAL_CORE if pos == 0 else PRIMAL_CORE_SOFT if pos in (1, 19) else PRIMAL_RING_CYCLE[(pos * len(PRIMAL_RING_CYCLE)) // 20]
+            image.px(x, 2, c)
+            image.px(x, 3, PRIMAL_LIGHT if c in (PRIMAL_CORE, PRIMAL_CORE_SOFT) else PRIMAL_DEEP)
+        image.row(3, 4, 6, scale(stripe, .6))
+        image.row(3, 26, 28, scale(stripe, .6))
+        frame_gauge_ticks(image)
+        image.rect(10, 28, 14, 30, RGB[CRYSTAL])
+        image.rect(15, 28, 19, 30, RGB['violet'])
+        for mark in range(4):
+            image.rect(21 + mark * 2, 28, 22 + mark * 2, 30, IVORY)
+    else:
+        image.row(2, 4, 28, stripe)
+        image.row(3, 4, 28, scale(stripe, .6))
+        frame_gauge_ticks(image)
+        # Recipe identity remains independent from the inherited cable-tier band, even at zero charge.
+        image.rect(13, 28, 19, 30, RGB[CRYSTAL])
+        for mark in range(tier):
+            image.rect(21 + mark * 3, 28, 23 + mark * 3, 30, IVORY)
     for x in (2, 28): bolt(image, x, 5)
     return image
 
 
-def side(tier, look, cable):
+def side(tier, look, cable, frame=0):
     """Non-front horizontal faces keep the cable-tier band and plain plinth without front badges."""
     image = sealed_frame(BASE)
     image.rect(2, 26, 30, 31, SHADE)
     image.row(26, 2, 30, BASE)
     stripe = CABLE_TIERS[cable]['stripe']
-    image.row(2, 4, 28, stripe)
-    image.row(3, 4, 28, scale(stripe, .6))
+    if tier == 4:
+        image.row(2, 4, 6, stripe)
+        image.row(2, 26, 28, stripe)
+        shift = (frame * 20) // 16
+        for i in range(20):
+            x = 6 + i
+            pos = (i - shift) % 20
+            c = PRIMAL_CORE if pos == 0 else PRIMAL_CORE_SOFT if pos in (1, 19) else PRIMAL_RING_CYCLE[(pos * len(PRIMAL_RING_CYCLE)) // 20]
+            image.px(x, 2, c)
+            image.px(x, 3, PRIMAL_LIGHT if c in (PRIMAL_CORE, PRIMAL_CORE_SOFT) else PRIMAL_DEEP)
+        image.row(3, 4, 6, scale(stripe, .6))
+        image.row(3, 26, 28, scale(stripe, .6))
+    else:
+        image.row(2, 4, 28, stripe)
+        image.row(3, 4, 28, scale(stripe, .6))
     frame_gauge_ticks(image)
     for x in (2, 28): bolt(image, x, 5)
     return image
@@ -303,17 +390,187 @@ def check_recipes():
                 raise ValueError(f'{name}: unregistered ingredient asset {ingredient}')
 
 
+def primal_core(charge, look, frame=0, direction=0):
+    """Primal Energy Cube 5-stop animated core: pulses across the Primal spectrum and moves up/down with net flow."""
+    image = Sprite(fill=STEEL_DEEP)
+    image.rect(4, 4, 28, 28, WELL)
+    image.col(4, 4, 28, SEAM)
+    image.col(27, 4, 28, SEAM)
+    image.col(5, 4, 28, STEEL_DEEP)
+    image.col(26, 4, 28, STEEL_DEEP)
+    for step in range(1, 8):
+        y = 28 - step * 3
+        image.row(y, 5, 27, SEAM)
+        for x in (6, 7, 24, 25):
+            image.px(x, y, STEEL_SHADE if step % 2 == 0 else STEEL_DEEP)
+    height = 3 * charge
+    if height:
+        top = 28 - height
+        for y in range(top, 28):
+            row_idx = (28 - y)
+            shift = frame if direction == 1 else (-frame if direction == -1 else frame // 2)
+            phase = ((row_idx - shift) * len(PRIMAL_RING_CYCLE)) // 16
+            c = PRIMAL_RING_CYCLE[phase % len(PRIMAL_RING_CYCLE)]
+            image.row(y, 5, 27, c)
+            image.px(5, y, PRIMAL_LIGHT)
+            image.px(26, y, PRIMAL_DEEP)
+        for step in range(1, charge):
+            y = 28 - step * 3
+            image.row(y, 7, 25, PRIMAL_DEEP)
+        image.row(top, 5, 27, PRIMAL_CORE)
+        if top + 1 < 28:
+            image.row(top + 1, 6, 26, PRIMAL_CORE_SOFT)
+        image.row(top, 5, 7, IVORY)
+        image.row(top, 25, 27, IVORY)
+    # Static flat Violet crystal corner pins inside the visible core UV (4..28), marking violet_matrix_crystal at every charge
+    for cx, cy in ((5, 5), (25, 5), (5, 25), (25, 25)):
+        image.rect(cx, cy, cx + 2, cy + 2, RGB['violet'])
+    if look == 'capacitor_cabinet':
+        for x in (8, 23): image.col(x, 4, 28, STEEL_DEEP)
+    elif look == 'cartridge_rack':
+        for y in (10, 16, 22): image.row(y, 4, 28, SEAM)
+    return image
+
+
+def matrix_cell_side(tier, cable, frame=0):
+    """Side of an Energy Matrix Capacity Cell: 3 vertical capacitor columns + tier cable band + Ivory tier pips."""
+    image = casing_plain()
+    stripe = CABLE_TIERS[cable]['stripe']
+    # Top & bottom horizontal cable-tier bands
+    image.row(2, 4, 28, stripe)
+    image.row(3, 4, 28, scale(stripe, .6))
+    image.row(26, 4, 28, stripe)
+    # Recessed capacitor chamber (5..27 x 6..25)
+    image.rect(5, 6, 27, 25, SEAM)
+    image.rect(6, 7, 26, 24, WELL)
+    # Three vertical capacitor columns (x=7..12, 13..19, 20..25)
+    cols = ((7, 12), (13, 19), (20, 25))
+    if tier == 4:
+        for idx, (x0, x1) in enumerate(cols):
+            for y in range(8, 23):
+                phase = ((23 - y + idx * 3 - frame) * len(PRIMAL_RING_CYCLE)) // 16
+                c = PRIMAL_RING_CYCLE[phase % len(PRIMAL_RING_CYCLE)]
+                image.row(y, x0, x1, c)
+                image.px(x0, y, PRIMAL_CORE_SOFT if (y + frame) % 8 == 0 else c)
+                image.px(x1 - 1, y, PRIMAL_DEEP)
+            spark_y = 8 + ((frame + idx * 5) % 15)
+            image.row(spark_y, x0 + 1, x1 - 1, PRIMAL_CORE)
+        # Static recipe crystal plates on lower plinth (Ember + Violet) + 4 Ivory tier pips
+        image.rect(4, 28, 10, 30, RGB['ember'])
+        image.rect(11, 28, 17, 30, RGB['violet'])
+        for mark in range(4):
+            image.rect(20 + mark * 2, 28, 21 + mark * 2, 30, IVORY)
+    else:
+        ember = RGB['ember']
+        e_hi = lighten(ember, .38)
+        e_lo = scale(ember, .65)
+        for x0, x1 in cols:
+            image.rect(x0, 8, x1, 23, ember)
+            image.col(x0, 8, 23, e_hi)
+            image.col(x1 - 1, 8, 23, e_lo)
+            for rib in (12, 17):
+                image.row(rib, x0, x1, STEEL_DEEP)
+        image.rect(4, 28, 14, 30, ember)
+        for mark in range(tier):
+            image.rect(18 + mark * 3, 28, 20 + mark * 3, 30, IVORY)
+    return image
+
+
+def matrix_cell_cap(tier, cable):
+    """Top/bottom cap of an Energy Matrix Capacity Cell: heavy Copper bus pad + tier markers + Ember inlays."""
+    image = casing_plain()
+    stripe = CABLE_TIERS[cable]['stripe']
+    image.ring(4, 4, 28, 28, SEAM)
+    image.rect(5, 5, 27, 27, SHADE)
+    for cx, cy in ((5, 5), (23, 5), (5, 23), (23, 23)):
+        image.rect(cx, cy, cx + 4, cy + 4, stripe)
+    image.rect(10, 10, 22, 22, PORT_DARK)
+    image.bevel(10, 10, 22, 22, PORT_METAL, SEAM)
+    image.rect(12, 12, 20, 20, COPPER)
+    image.bevel(12, 12, 20, 20, COPPER_LIGHT, COPPER_DARK)
+    image.rect(14, 14, 18, 18, RGB['ember'])
+    if tier == 4:
+        image.rect(14, 6, 18, 8, RGB['violet'])
+        image.rect(14, 24, 18, 26, RGB['violet'])
+    return image
+
+
+def matrix_provider_side(tier, cable, frame=0):
+    """Side of an Energy Matrix Transfer Provider: Copper induction windings + Blue high-current bus + tier rails."""
+    image = casing_plain()
+    stripe = CABLE_TIERS[cable]['stripe']
+    # Left & right vertical cable-tier rails (distinguishing Provider silhouette from horizontal Cell bands)
+    image.col(2, 4, 28, stripe)
+    image.col(29, 4, 28, stripe)
+    # Recessed induction chamber (5..27 x 5..25)
+    image.rect(5, 5, 27, 25, SEAM)
+    image.rect(6, 6, 26, 24, WELL)
+    # Three horizontal Copper/Steel induction coil windings across the chamber
+    for y0 in (7, 13, 19):
+        image.rect(7, y0, 25, y0 + 4, COPPER)
+        image.row(y0, 7, 25, STEEL)
+        image.row(y0 + 3, 7, 25, PORT_DARK)
+    # Central vertical induction bus column (x=12..20)
+    if tier == 4:
+        for y in range(6, 24):
+            phase = ((y - frame) * len(PRIMAL_RING_CYCLE)) // 16
+            c = PRIMAL_RING_CYCLE[phase % len(PRIMAL_RING_CYCLE)]
+            image.row(y, 13, 19, c)
+            image.px(13, y, PRIMAL_CORE_SOFT if (y + frame) % 6 == 0 else c)
+            image.px(18, y, PRIMAL_DEEP)
+        spark_y = 6 + (frame % 18)
+        image.row(spark_y, 14, 18, PRIMAL_CORE)
+        image.rect(4, 28, 10, 30, RGB['blue'])
+        image.rect(11, 28, 17, 30, RGB['violet'])
+        for mark in range(4):
+            image.rect(20 + mark * 2, 28, 21 + mark * 2, 30, IVORY)
+    else:
+        blue = RGB['blue']
+        b_hi = lighten(blue, .38)
+        b_lo = scale(blue, .65)
+        image.rect(13, 6, 19, 24, blue)
+        image.col(13, 6, 24, b_hi)
+        image.col(18, 6, 24, b_lo)
+        for y0 in (11, 17):
+            image.row(y0, 12, 20, PORT_DARK)
+        image.rect(4, 28, 14, 30, blue)
+        for mark in range(tier):
+            image.rect(18 + mark * 3, 28, 20 + mark * 3, 30, IVORY)
+    return image
+
+
+def matrix_provider_cap(tier, cable):
+    """Top/bottom cap of an Energy Matrix Transfer Provider: Blue induction bus core inside Copper winding ring."""
+    image = casing_plain()
+    stripe = CABLE_TIERS[cable]['stripe']
+    image.ring(4, 4, 28, 28, SEAM)
+    image.rect(5, 5, 27, 27, SHADE)
+    for cx, cy in ((5, 5), (23, 5), (5, 23), (23, 23)):
+        image.rect(cx, cy, cx + 4, cy + 4, stripe)
+    image.rect(9, 9, 23, 23, COPPER)
+    image.bevel(9, 9, 23, 23, COPPER_LIGHT, COPPER_DARK)
+    image.rect(12, 12, 20, 20, WELL)
+    image.rect(13, 13, 19, 19, RGB['blue'])
+    if tier == 4:
+        image.rect(14, 6, 18, 8, RGB['violet'])
+        image.rect(14, 24, 18, 26, RGB['violet'])
+    return image
+
+
 def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
     if look not in ENERGY_CUBE_LOOKS:
         raise ValueError(f'Unknown energy cube look: {look}')
     family = Family()
     art = {**{f'energy_core_charge_{charge}': core(charge, look) for charge in range(9)},
+           'primal_energy_core_charge_0': primal_core(0, look),
            'energy_cube_front_plain': front_plain(),
            'energy_cube_top_plain': top_plain()}
     from work_sprites import strip,energy_core
     for charge in range(1,9):
+        art[f'primal_energy_core_charge_{charge}'] = strip(primal_core(charge, look, f, 0) for f in range(16))
         for flow,direction in (('in',1),('out',-1)):
             art[f'energy_core_charge_{charge}_{flow}']=strip(energy_core(charge,f,direction) for f in range(16))
+            art[f'primal_energy_core_charge_{charge}_{flow}']=strip(primal_core(charge,look,f,direction) for f in range(16))
     body, sockets, source_parts = geometry(look, port_style)
     family.models['energy_cube_port_side_front']={'parent':'minecraft:block/block','textures':{'particle':'#face'},
                                                   'elements':[port_plates.face_element('front')]}
@@ -321,8 +578,12 @@ def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
     family.child('energy_cube_port_top_disabled','port_side_top',{'face':'energy_cube_top_plain'})
     for name, tier in TIERS.items():
         cable = ENERGY_CABLE_TIERS[name]
-        art[name + '_front'] = front(tier, look, cable)
-        art[name + '_side'] = side(tier, look, cable)
+        if tier == 4:
+            art[name + '_front'] = strip(front(tier, look, cable, f) for f in range(16))
+            art[name + '_side'] = strip(side(tier, look, cable, f) for f in range(16))
+        else:
+            art[name + '_front'] = front(tier, look, cable)
+            art[name + '_side'] = side(tier, look, cable)
         for mode in ENERGY_PORT_MODES:
             art[name + '_socket_' + mode] = socket(cable, ENERGY_PORT_SIZES[port_style], mode)
             art[name + '_cap_' + mode] = cap(cable, ENERGY_PORT_SIZES[port_style], mode, mark_front=True)
@@ -356,13 +617,14 @@ def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
         state += [{'when': {'facing': facing}, 'apply': {'type': ports['type'], **ROTATION[facing],
                                                          'default': ports['default'], 'sides': ports['sides']}}
                   for facing in HORIZONTAL]
+        core_prefix = 'primal_energy_core_charge_' if tier == 4 else 'energy_core_charge_'
         for charge in range(9):
             for flow in ('none','in','out'):
                 parts = [Box(part.name, part.lo, part.hi, emissive=charge > 0, step=part.step, flat=True) for part in source_parts]
                 suffix='' if flow=='none' or charge==0 else '_'+flow
                 part_name = f'{name}_charge_{charge}'+suffix
                 if part_name not in family.models:
-                    table = {'core': f'energy_core_charge_{charge}'+suffix}
+                    table = {'core': f'{core_prefix}{charge}'+suffix}
                     shown = family.model(part_name, 'network', table, parts,lambda box,face:'core',context=body+parts,particle='casing_plain')
                     # Every mixed side configuration uses one complete model per side, never an overlaid cap.
                     # Check all blank, all connected and each possible single blank among connected sides.
@@ -378,6 +640,25 @@ def assets(look=ENERGY_CUBE_LOOK, port_style=ENERGY_PORT_STYLE):
         family.items[name] = {'model': {'type': 'minecraft:composite', 'models': [
             {'type': 'minecraft:model', 'model': model}
             for model in [MODEL + name, MODEL + name + '_charge_0'] + port_plates.default_models(ports)]}}
+    cube_box = [Box('body', (0, 0, 0), (16, 16, 16))]
+    for name, (tier, cable) in MATRIX_CELLS.items():
+        if tier == 4:
+            art[name + '_side'] = strip(matrix_cell_side(tier, cable, f) for f in range(16))
+        else:
+            art[name + '_side'] = matrix_cell_side(tier, cable)
+        art[name + '_cap'] = matrix_cell_cap(tier, cable)
+        family.model(name, 'cube', {'side': name + '_side', 'cap': name + '_cap'}, cube_box,
+                     lambda box, face: 'cap' if face in ('up', 'down') else 'side', particle=name + '_side')
+        family.cube(name)
+    for name, (tier, cable) in MATRIX_PROVIDERS.items():
+        if tier == 4:
+            art[name + '_side'] = strip(matrix_provider_side(tier, cable, f) for f in range(16))
+        else:
+            art[name + '_side'] = matrix_provider_side(tier, cable)
+        art[name + '_cap'] = matrix_provider_cap(tier, cable)
+        family.model(name, 'cube', {'side': name + '_side', 'cap': name + '_cap'}, cube_box,
+                     lambda box, face: 'cap' if face in ('up', 'down') else 'side', particle=name + '_side')
+        family.cube(name)
     return family, art
 
 
@@ -398,13 +679,24 @@ def generate(check=False):
         out.json(DATA / f'loot_table/blocks/{name}.json', {'type': 'minecraft:block', 'pools': [{'rolls': 1,
                  'entries': [{'type': 'minecraft:item', 'name': 'rematter:' + name}],
                  'conditions': [{'condition': 'minecraft:survives_explosion'}]}]})
+    for name, (pattern, keys) in MATRIX_RECIPES.items():
+        out.json(DATA / f'recipe/{name}.json', {'type': 'minecraft:crafting_shaped', 'category': 'misc', 'pattern': pattern,
+                 'key': keys, 'result': {'id': 'rematter:' + name, 'count': 1}})
+        out.json(DATA / f'advancement/recipes/{name}.json', shaped_discovery(name, pattern, keys))
+        out.json(DATA / f'loot_table/blocks/{name}.json', {'type': 'minecraft:block', 'pools': [{'rolls': 1,
+                 'entries': [{'type': 'minecraft:item', 'name': 'rematter:' + name}],
+                 'conditions': [{'condition': 'minecraft:survives_explosion'}]}]})
+    matrix_names = (*MATRIX_CELLS, *MATRIX_PROVIDERS)
     out.sweep(ART / 'textures/block', ['energy_core_charge_*.png','energy_core_charge_*.png.mcmeta',
+                                       'primal_energy_core_charge_*.png','primal_energy_core_charge_*.png.mcmeta',
                                        'energy_cube_front_plain.png', 'energy_cube_top_plain.png']
-              + [f'{name}{suffix}.png' for name in TIERS for suffix in ('_front', '_side', '_socket', '_socket_*', '_cap', '_cap_*', '_bottom_*')])
+              + [f'{name}{suffix}' for name in TIERS for suffix in ('_front.png', '_front.png.mcmeta', '_side.png', '_side.png.mcmeta', '_socket.png', '_socket_*.png', '_cap.png', '_cap_*.png', '_bottom_*.png')]
+              + [f'{name}{suffix}' for name in matrix_names for suffix in ('_side.png', '_side.png.mcmeta', '_cap.png')])
     out.sweep(ART / 'models/block', ['energy_cube_port_side_front.json', 'energy_cube_port_front_disabled.json',
                                      'energy_cube_port_top_disabled.json']
-              + [f'{name}{pattern}.json' for name in TIERS for pattern in ('_charge_*', '_socket_*', '_port_*')])
-    print(f"{'Verified' if check else 'Generated'} {out.count} energy cube files; {len(family.compositions)} charge compositions checked ({ENERGY_CUBE_LOOK})")
+              + [f'{name}{pattern}.json' for name in TIERS for pattern in ('_charge_*', '_socket_*', '_port_*')]
+              + [f'{name}.json' for name in matrix_names])
+    print(f"{'Verified' if check else 'Generated'} {out.count} energy cube & matrix files; {len(family.compositions)} charge compositions checked ({ENERGY_CUBE_LOOK})")
 
 
 if __name__ == '__main__':

@@ -101,13 +101,22 @@ public final class MachinePortBlockEntity extends BlockEntity {
         }
     }
     public @Nullable EnergyHandler energy(@Nullable Direction side) {
-        if (side == null || !mode.allows(MachinePortMode.POWER)) return null;
+        if (side == null || (!mode.allows(MachinePortMode.POWER) && !mode.allows(MachinePortMode.POWER_OUTPUT))) return null;
         var target = controller(side);
         if (target == null) return null;
+        boolean supportsOut = target.kind().isEnergyMatrix() || target.kind().isEnergyReactor() || target.kind().generator();
+        if (mode == MachinePortMode.POWER_OUTPUT && !supportsOut) return null;
         var reference = new WeakReference<>(target);
-        return new PortEnergyHandler(target.energy(), () -> {
+        EnergyHandler delegate = target.kind().isEnergyMatrix()
+                ? target.extensions().matrixPortEnergy(worldPosition, side, mode)
+                : target.kind().isEnergyReactor()
+                ? target.extensions().reactorPortEnergy()
+                : target.energy();
+        return new PortEnergyHandler(delegate, () -> {
             var expected = reference.get();
-            return expected != null && mode.allows(MachinePortMode.POWER) && attached(expected, side);
+            return expected != null
+                    && (mode.allows(MachinePortMode.POWER) || mode.allows(MachinePortMode.POWER_OUTPUT))
+                    && attached(expected, side);
         });
     }
     public @Nullable ResourceHandler<ItemResource> items(@Nullable Direction side) {

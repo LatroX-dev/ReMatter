@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:vine_ball",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 1800
+    }
+  ],
+  "decomposition_energy": 13500,
+  "synthesis_energy": 27000,
+  "ticks": 360
+}

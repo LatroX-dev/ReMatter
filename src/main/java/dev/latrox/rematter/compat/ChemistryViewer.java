@@ -39,7 +39,7 @@ public final class ChemistryViewer {
     }
 
     public enum Category {
-        DECOMPOSITION, SYNTHESIS, ELECTROLYSIS, REACTION, SEPARATION, PHASE_CHANGE, CRYSTALLIZATION, AIR_SEPARATION;
+        DECOMPOSITION, SYNTHESIS, ELECTROLYSIS, REACTION, SEPARATION, PHASE_CHANGE, CRYSTALLIZATION, TRANSMUTATION, PRIMAL_CONDENSATION, AIR_SEPARATION, DEEP_EXTRACTION;
 
         public String id() { return name().toLowerCase(Locale.ROOT); }
 
@@ -55,7 +55,10 @@ public final class ChemistryViewer {
                 case SEPARATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.SEPARATION);
                 case PHASE_CHANGE -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.PHASE_CHANGE);
                 case CRYSTALLIZATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.CRYSTALLIZATION);
+                case TRANSMUTATION -> dev.latrox.rematter.content.MachineRouting.machines(ProcessType.TRANSMUTATION);
+                case PRIMAL_CONDENSATION -> List.of(MachineKind.PRIMAL_REACTOR);
                 case AIR_SEPARATION -> List.of(MachineKind.ATMOSPHERIC_COLLECTOR, MachineKind.REACTOR, MachineKind.INDUSTRIAL_REACTOR);
+                case DEEP_EXTRACTION -> List.of(MachineKind.DEEP_EXTRACTOR);
             };
         }
 
@@ -66,6 +69,7 @@ public final class ChemistryViewer {
                 case SEPARATION -> SEPARATION;
                 case PHASE_CHANGE -> PHASE_CHANGE;
                 case CRYSTALLIZATION -> CRYSTALLIZATION;
+                case TRANSMUTATION -> TRANSMUTATION;
             };
         }
     }
@@ -80,23 +84,37 @@ public final class ChemistryViewer {
     /** {@code process} names the chemical process that a reaction, separation or phase change entry shows. */
     public record Entry(Category category, Identifier id, Optional<Component> process, List<Resource> consumedChoices, Optional<Resource> produced,
                        List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
-                       String requiresAdvancement, int requiredTier, List<String> researchTargets) {
+                       String requiresAdvancement, int requiredTier, List<String> researchTargets, int minField, String catalyst, String probeBelow) {
+        public Entry(Category category, Identifier id, Optional<Component> process, List<Resource> consumedChoices, Optional<Resource> produced,
+                List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
+                String requiresAdvancement, int requiredTier, List<String> researchTargets, int minField, String catalyst) {
+            this(category, id, process, consumedChoices, produced, inputs, outputs, energy, ticks, synthesisAllowed,
+                    requiresAdvancement, requiredTier, researchTargets, minField, catalyst, "");
+        }
+        public Entry(Category category, Identifier id, Optional<Component> process, List<Resource> consumedChoices, Optional<Resource> produced,
+                List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
+                String requiresAdvancement, int requiredTier, List<String> researchTargets) {
+            this(category, id, process, consumedChoices, produced, inputs, outputs, energy, ticks, synthesisAllowed,
+                    requiresAdvancement, requiredTier, researchTargets, 0, "", "");
+        }
         public Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
                 List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed) {
             this(category, id, process, consumed.map(List::of).orElse(List.of()), produced, inputs, outputs, energy, ticks,
-                    synthesisAllowed, "", 1, defaultResearchTargets(synthesisAllowed, consumed, produced));
+                    synthesisAllowed, "", 1, defaultResearchTargets(synthesisAllowed, consumed, produced), 0, "", "");
         }
         public Entry(Category category, Identifier id, Optional<Component> process, Optional<Resource> consumed, Optional<Resource> produced,
                 List<Matter> inputs, List<Matter> outputs, long energy, int ticks, boolean synthesisAllowed,
                 String requiresAdvancement, int requiredTier) {
             this(category, id, process, consumed.map(List::of).orElse(List.of()), produced, inputs, outputs, energy, ticks,
-                    synthesisAllowed, requiresAdvancement, requiredTier, defaultResearchTargets(synthesisAllowed, consumed, produced));
+                    synthesisAllowed, requiresAdvancement, requiredTier, defaultResearchTargets(synthesisAllowed, consumed, produced), 0, "", "");
         }
         public Entry {
             consumedChoices = List.copyOf(consumedChoices);
             inputs = List.copyOf(inputs);
             outputs = List.copyOf(outputs);
             researchTargets = List.copyOf(researchTargets);
+            catalyst = catalyst == null ? "" : catalyst;
+            probeBelow = probeBelow == null ? "" : probeBelow;
         }
 
         public Optional<Resource> consumed() {
@@ -112,11 +130,17 @@ public final class ChemistryViewer {
             var notes = new ArrayList<Component>();
             process.ifPresent(notes::add);
             if(requiredTier>1)notes.add(Component.translatable("gui.rematter.viewer.pressure_required"));
+            if(minField>0)notes.add(Component.translatable("gui.rematter.viewer.min_field_required",minField));
+            if(!catalyst.isEmpty())notes.add(Component.translatable("gui.rematter.viewer.catalyst_required",SubstanceNames.catalystRequirement(catalyst)));
+            if(!probeBelow.isEmpty())notes.add(SubstanceNames.probeRequirement(probeBelow));
             if(!requiresAdvancement.isEmpty())notes.add(Component.translatable("gui.rematter.viewer.advancement_required",requiresAdvancement));
             notes.add(Component.translatable(switch (category) {
                 case DECOMPOSITION -> synthesisAllowed ? "gui.rematter.viewer.synthesis_allowed" : "gui.rematter.viewer.decomposition_only";
                 case SYNTHESIS, CRYSTALLIZATION -> "gui.rematter.viewer.approved_output";
                 case AIR_SEPARATION -> "gui.rematter.viewer.renewable_air";
+                case DEEP_EXTRACTION -> "gui.rematter.viewer.renewable_extraction";
+                case TRANSMUTATION -> "gui.rematter.viewer.nuclear_transmutation";
+                case PRIMAL_CONDENSATION -> "gui.rematter.viewer.primal_condensation_note";
                 default -> "gui.rematter.viewer.conserves_elements";
             }));
             Stream.of(consumed(), produced).flatMap(Optional::stream).filter(resource -> !resource.fluid() && resource.amount() > 1)
@@ -205,13 +229,25 @@ public final class ChemistryViewer {
         for (var process : registry.processes()) {
             var category = Category.of(process.type());
             var source = Identifier.fromNamespaceAndPath(process.id().namespace(), process.id().path());
-            result.add(new Entry(category, recipeId(category, "process", source), Optional.of(ChemistryText.process(process)), Optional.empty(), Optional.empty(),
-                    matter(process.inputs()), matter(process.outputs()), process.energy(), process.ticks(), false, process.requiresAdvancement(), 1));
+            result.add(new Entry(category, recipeId(category, "process", source), Optional.of(ChemistryText.process(process)), List.of(), Optional.empty(),
+                    matter(process.inputs()), matter(process.outputs()), process.energy(), process.ticks(), false,
+                    process.requiresAdvancement(), 1, List.of(), process.minField(), process.catalyst()));
+        }
+        var primalKey = new SubstanceKey(dev.latrox.rematter.chemistry.ReservedSubstances.PRIMAL_MATTER, dev.latrox.rematter.chemistry.Phase.SOLID);
+        if (registry.isKnown(primalKey)) {
+            for (var tier : dev.latrox.rematter.content.PrimalReactorRecipes.availableTiers(registry)) {
+                var tid = Identifier.parse(tier.id());
+                result.add(new Entry(Category.PRIMAL_CONDENSATION, recipeId(Category.PRIMAL_CONDENSATION, "collapse", tid),
+                        Optional.of(Component.translatable(tier.translationKey())), List.of(), Optional.empty(),
+                        matter(tier.inputs()), List.of(new Matter(primalKey, tier.primalOutput())),
+                        tier.energy(), tier.ticks(), false, "", 1, List.of(), 0, "rematter:primal_crystal"));
+            }
         }
         for(var source:registry.environmentSources()) {
             var id=Identifier.parse(source.id().toString());
-            result.add(new Entry(Category.AIR_SEPARATION,recipeId(Category.AIR_SEPARATION,"source",id),
-                    Optional.of(Component.translatable(source.translationKey())),Optional.empty(),Optional.empty(),List.of(),matter(source.outputs()),source.energy(),source.ticks(),false));
+            var cat = source.deepExtraction() ? Category.DEEP_EXTRACTION : Category.AIR_SEPARATION;
+            result.add(new Entry(cat,recipeId(cat,"source",id),
+                    Optional.of(Component.translatable(source.translationKey())),List.of(),Optional.empty(),List.of(),matter(source.outputs()),source.energy(),source.ticks(),false,"",1,List.of(),0,"",source.probeBelow()));
         }
         return List.copyOf(result);
     }

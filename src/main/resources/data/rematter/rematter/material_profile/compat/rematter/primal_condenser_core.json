@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "item": "rematter:primal_condenser_core",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1062
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 5500
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 5060
+    }
+  ],
+  "decomposition_energy": 38000,
+  "synthesis_energy": 76000,
+  "ticks": 76
+}

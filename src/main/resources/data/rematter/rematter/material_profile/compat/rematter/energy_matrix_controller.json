@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "item": "rematter:energy_matrix_controller",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 8875
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 937
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 6139
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 23519
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 2750
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 2562
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 625
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 3999
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 11500
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 19865
+    }
+  ],
+  "decomposition_energy": 82700,
+  "synthesis_energy": 165400,
+  "ticks": 56
+}

@@ -7,11 +7,10 @@ import dev.latrox.rematter.content.MachineMenu;
 import dev.latrox.rematter.content.MachinePortMode;
 import dev.latrox.rematter.content.MachineSettings;
 import dev.latrox.rematter.content.MachineSnapshot;
-import dev.latrox.rematter.content.MachineSoundLevel;
 import dev.latrox.rematter.content.ModContent;
+import dev.latrox.rematter.content.ModSounds;
 import dev.latrox.rematter.content.PortSides;
 import dev.latrox.rematter.content.RedstoneMode;
-import dev.latrox.rematter.content.SecurityMode;
 import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.network.MachineActionPayload;
 import dev.latrox.rematter.network.MachineConfigurationPayload;
@@ -32,6 +31,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -45,8 +45,9 @@ import org.lwjgl.glfw.GLFW;
 
 /** Compact settings content shared by the container tab and its small standalone adapters. */
 final class MachineSettingsPanel {
-    enum Section { STRUCTURE, SIDES, PRODUCTION, ACCESS }
+    enum Section { GENERAL, STRUCTURE, SIDES, PRODUCTION, ACCESS }
     private static final int CONTENT_Y = 24, ROW = 23;
+    private static final long[] RESERVE_PRESETS = {0L, 1_000L, 10_000L, 50_000L, 250_000L, 1_000_000L};
     private final MachineMenu menu;
     private final Minecraft minecraft;
     private final Font font;
@@ -55,18 +56,19 @@ final class MachineSettingsPanel {
     private final EnumMap<Section, List<AbstractWidget>> groups = new EnumMap<>(Section.class);
     private final EnumMap<Section, PanelButton> tabs = new EnumMap<>(Section.class);
     private SideDiagram diagram;
+    private DeviceGeneralPanel generalPanel;
     private final List<AbstractWidget> widgets = new ArrayList<>();
     private Section section;
     private List<MachineSnapshot.Amount> products = List.of();
     private List<String> gases = List.of();
     private MachineSettings lastServerSettings;
-    private EditBox target;
-    private PanelButton apply, product, gasCycle, vent, automation, autoEject, jobs, redstone, backend, release, soundMute, securityButton;
-    private PanelButton previewToggle, blueprintBuild, blueprintReset, portDown, portUp, widthDown, widthUp, depthDown, depthUp, heightDown, heightUp;
+    private EditBox target, reserveField;
+    private PanelButton apply, product, gasCycle, vent, reservePreset, reserveApply, automation, autoEject, jobs, redstone, backend, release;
+    private PanelButton previewToggle, shellStyleToggle, blueprintBuild, blueprintReset, portDown, portUp, widthDown, widthUp, depthDown, depthUp, heightDown, heightUp;
     private final PanelButton[] modDown = new PanelButton[3];
     private final PanelButton[] modUp = new PanelButton[3];
     private int productIndex, gasIndex, accessHintY, visibleTabCount;
-    private boolean visible = true, dirty, updating;
+    private boolean visible = true, dirty, updating, reserveDirty, updatingReserve;
     private Component error = Component.empty();
 
     private record ModuleSlot(IndustrialBlueprint.Parameter parameter, String blockId, ItemStack icon, String benefitKey) {}
@@ -76,9 +78,7 @@ final class MachineSettingsPanel {
         this.menu = menu; this.minecraft = minecraft; this.font = font; this.addWidget = addWidget;
         this.left = left; this.top = top; this.width = width;
         for (var value : Section.values()) groups.put(value, new ArrayList<>());
-        this.section = menu.unformedIndustrial() ? Section.STRUCTURE
-                : MachinePortMode.configurable(menu.kind()) ? Section.SIDES
-                : productionAvailable() ? Section.PRODUCTION : Section.ACCESS;
+        this.section = menu.unformedIndustrial() ? Section.STRUCTURE : Section.GENERAL;
     }
 
     void initWidgets() {
@@ -89,6 +89,7 @@ final class MachineSettingsPanel {
             tab.setTooltip(Tooltip.create(tr("settings.section_hint." + value.name().toLowerCase(java.util.Locale.ROOT))));
             tab.iconOnly = true;
             tab.icon = switch (value) {
+                case GENERAL -> UiIcon.GENERAL;
                 case STRUCTURE -> UiIcon.STRUCTURE;
                 case SIDES -> UiIcon.SIDES;
                 case PRODUCTION -> UiIcon.TARGET;
@@ -96,21 +97,6 @@ final class MachineSettingsPanel {
             };
             tab.selected = value == section; tabs.put(value, tab);
         }
-        soundMute = button(Component.empty(), left + width - 20, top, 20, 16, b -> {});
-        soundMute.iconOnly = true;
-        soundMute.allowRightClick = true;
-        soundMute.inputAction = input -> {
-            boolean backward = input.hasShiftDown() || input instanceof MouseButtonEvent click && click.button() == 1;
-            sendMenu(backward ? MachineMenu.CYCLE_SOUND_BACK : MachineMenu.TOGGLE_SOUND_MUTE);
-        };
-        securityButton = button(Component.empty(), left + width - 42, top, 20, 16, b -> {});
-        securityButton.iconOnly = true;
-        securityButton.allowRightClick = true;
-        securityButton.inputAction = input -> {
-            if (!menu.canManageSecurity()) return;
-            boolean backward = input.hasShiftDown() || input instanceof MouseButtonEvent click && click.button() == 1;
-            sendMenu(backward ? MachineMenu.CYCLE_SECURITY_BACK : MachineMenu.CYCLE_SECURITY);
-        };
 
         // Structure blueprint controls (only shown on Industrial Reactor & Industrial Preparator).
         int row0Y = top + 19, row1Y = top + 37;
@@ -120,28 +106,45 @@ final class MachineSettingsPanel {
         }));
         previewToggle.icon = UiIcon.LOCATE;
         previewToggle.iconOnly = true;
-        blueprintBuild = grouped(Section.STRUCTURE, button(tr("blueprint.build"), left + 22, row0Y, 74, 16,
+        shellStyleToggle = grouped(Section.STRUCTURE, button(Component.empty(), left + 22, row0Y, 20, 16, b -> {}));
+        shellStyleToggle.allowRightClick = true;
+        shellStyleToggle.inputAction = input -> {
+            boolean reverse = input instanceof net.minecraft.client.input.MouseButtonEvent mbe && mbe.button() == 1;
+            sendBlueprintAction(
+                    reverse ? MachineActionPayload.Action.BLUEPRINT_STEP_DOWN : MachineActionPayload.Action.BLUEPRINT_STEP_UP,
+                    IndustrialBlueprint.Parameter.SHELL_STYLE.name(), 1);
+        };
+        int buildW = Math.max(60, width - 134);
+        blueprintBuild = grouped(Section.STRUCTURE, button(tr("blueprint.build"), left + 44, row0Y, buildW, 16,
                 b -> sendBlueprintAction(MachineActionPayload.Action.BLUEPRINT_BUILD, "", 0)));
         blueprintBuild.icon = UiIcon.STRUCTURE;
-        portDown = stepperButton(left + 113, row0Y, 13, 16, false, () -> IndustrialBlueprint.Parameter.PORTS);
-        portUp = stepperButton(left + 144, row0Y, 13, 16, true, () -> IndustrialBlueprint.Parameter.PORTS);
-        blueprintReset = grouped(Section.STRUCTURE, button(tr("blueprint.reset"), left + 161, row0Y, 19, 16,
+        int portBase = left + width - 68;
+        portDown = stepperButton(portBase, row0Y, 13, 16, false, () -> IndustrialBlueprint.Parameter.PORTS);
+        portUp = stepperButton(portBase + 31, row0Y, 13, 16, true, () -> IndustrialBlueprint.Parameter.PORTS);
+        blueprintReset = grouped(Section.STRUCTURE, button(tr("blueprint.reset"), left + width - 20, row0Y, 20, 16,
                 b -> sendBlueprintAction(MachineActionPayload.Action.BLUEPRINT_RESET, "", 0)));
         blueprintReset.icon = UiIcon.CANCEL;
         blueprintReset.iconOnly = true;
 
-        widthDown = stepperButton(left, row1Y, 13, 16, false, () -> IndustrialBlueprint.Parameter.WIDTH);
-        widthUp = stepperButton(left + 45, row1Y, 13, 16, true, () -> IndustrialBlueprint.Parameter.WIDTH);
-        depthDown = stepperButton(left + 61, row1Y, 13, 16, false, () -> IndustrialBlueprint.Parameter.DEPTH);
-        depthUp = stepperButton(left + 106, row1Y, 13, 16, true, () -> IndustrialBlueprint.Parameter.DEPTH);
-        heightDown = stepperButton(left + 122, row1Y, 13, 16, false, () -> IndustrialBlueprint.Parameter.HEIGHT);
-        heightUp = stepperButton(left + 167, row1Y, 13, 16, true, () -> IndustrialBlueprint.Parameter.HEIGHT);
+        int dimGap = 4;
+        int dimSlot = (width - dimGap * 2) / 3;
+        int stepW = 14;
+        int dimBoxW = dimSlot - stepW * 2;
+        widthDown = stepperButton(left, row1Y, stepW, 16, false, () -> IndustrialBlueprint.Parameter.WIDTH);
+        widthUp = stepperButton(left + stepW + dimBoxW, row1Y, stepW, 16, true, () -> IndustrialBlueprint.Parameter.WIDTH);
+        int dStart = left + dimSlot + dimGap;
+        depthDown = stepperButton(dStart, row1Y, stepW, 16, false, () -> IndustrialBlueprint.Parameter.DEPTH);
+        depthUp = stepperButton(dStart + stepW + dimBoxW, row1Y, stepW, 16, true, () -> IndustrialBlueprint.Parameter.DEPTH);
+        int hStart = left + width - dimSlot;
+        heightDown = stepperButton(hStart, row1Y, stepW, 16, false, () -> IndustrialBlueprint.Parameter.HEIGHT);
+        heightUp = stepperButton(hStart + stepW + dimBoxW, row1Y, stepW, 16, true, () -> IndustrialBlueprint.Parameter.HEIGHT);
 
+        int modRight = left + width;
         for (int i = 0; i < 3; i++) {
             int rowIndex = i;
             int rowY = top + 55 + i * 18;
-            modDown[i] = stepperButton(left + 126, rowY, 14, 16, false, () -> moduleParam(rowIndex));
-            modUp[i] = stepperButton(left + 166, rowY, 14, 16, true, () -> moduleParam(rowIndex));
+            modDown[i] = stepperButton(modRight - 56, rowY, 14, 16, false, () -> moduleParam(rowIndex));
+            modUp[i] = stepperButton(modRight - 14, rowY, 14, 16, true, () -> moduleParam(rowIndex));
         }
 
         // The sides are a diagram of their own: it decides per side whether there is anything to click.
@@ -152,29 +155,48 @@ final class MachineSettingsPanel {
             }
             @Override public boolean editable() { return canEdit(); }
         }, font, left, top + CONTENT_Y, widget -> { widgets.add(widget); addWidget.accept(widget); });
-        target = new EditBox(font, left, top + 34, width - 28, 18, tr("stock_target"));
+        target = new EditBox(font, left, top + 27, width - 26, 16, tr("stock_target"));
         target.setMaxLength(13); target.setValue("0"); target.setFilter(value -> value.matches("[0-9]*"));
         target.setTextColor(UiPalette.TEXT); target.setHint(Component.literal("0"));
         target.setResponder(value -> { if (!updating) { dirty = true; error = Component.empty(); } });
         register(target, Section.PRODUCTION);
-        apply = grouped(Section.PRODUCTION, button(tr("apply"), left + width - 24, top + 34, 24, 18, b -> saveTarget()));
-        product = grouped(Section.PRODUCTION, button(Component.empty(), left, top + 56, width, 18, b -> {
+        apply = grouped(Section.PRODUCTION, button(tr("apply"), left + width - 24, top + 27, 24, 16, b -> saveTarget()));
+        product = grouped(Section.PRODUCTION, button(Component.empty(), left, top + 44, width, 16, b -> {
             if (!products.isEmpty()) { productIndex = (productIndex + 1) % products.size(); dirty = true; error = Component.empty(); updateWidgets(); }
         }));
-        gasCycle = grouped(Section.PRODUCTION, button(Component.literal("\u203a"), left, top + 78, 18, 18, b -> {
+        gasCycle = grouped(Section.PRODUCTION, button(Component.literal("\u203a"), left, top + 61, 18, 16, b -> {
             if (!gases.isEmpty()) { gasIndex = (gasIndex + 1) % gases.size(); updateWidgets(); }
         }));
-        vent = grouped(Section.PRODUCTION, button(Component.empty(), left + 22, top + 78, width - 22, 18, b -> toggleVent()));
-        automation = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y, width, 18, b -> sendMenu(3)));
-        autoEject = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + 21, width, 18, b -> sendMenu(MachineMenu.TOGGLE_AUTO_EJECT)));
-        jobs = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(8)));
-        redstone = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(MachineMenu.CYCLE_REDSTONE)));
-        backend = grouped(Section.ACCESS, button(Component.empty(), left, top + CONTENT_Y + ROW, width, 18, b -> sendMenu(9)));
-        release = grouped(Section.ACCESS, button(tr("settings.recover"), left, top + CONTENT_Y + ROW * 2, width, 18,
+        vent = grouped(Section.PRODUCTION, button(Component.empty(), left + 22, top + 61, width - 22, 16, b -> toggleVent()));
+        reserveField = new EditBox(font, left, top + 88, width - 78, 16, tr("settings.network_reserve"));
+        reserveField.setMaxLength(13); reserveField.setValue("0"); reserveField.setFilter(value -> value.matches("[0-9]*"));
+        reserveField.setTextColor(UiPalette.TEXT); reserveField.setHint(Component.literal("0"));
+        reserveField.setResponder(value -> { if (!updatingReserve) { reserveDirty = true; error = Component.empty(); } });
+        register(reserveField, Section.PRODUCTION);
+        reservePreset = grouped(Section.PRODUCTION, button(Component.empty(), left + width - 74, top + 88, 48, 16, b -> cycleReservePreset()));
+        reserveApply = grouped(Section.PRODUCTION, button(tr("apply"), left + width - 24, top + 88, 24, 16, b -> saveReserve()));
+        automation = grouped(Section.ACCESS, button(Component.empty(), left, top + 20, width, 16, b -> sendMenu(3)));
+        autoEject = grouped(Section.ACCESS, button(Component.empty(), left, top + 20, width, 16, b -> sendMenu(MachineMenu.TOGGLE_AUTO_EJECT)));
+        jobs = grouped(Section.ACCESS, button(Component.empty(), left, top + 38, width, 16, b -> sendMenu(8)));
+        redstone = grouped(Section.ACCESS, button(Component.empty(), left, top + 56, width, 16, b -> sendMenu(MachineMenu.CYCLE_REDSTONE)));
+        backend = grouped(Section.ACCESS, button(Component.empty(), left, top + 38, width, 16, b -> sendMenu(9)));
+        release = grouped(Section.ACCESS, button(tr("settings.recover"), left, top + 56, width, 16,
                 b -> minecraft.pushGuiLayer(new ReleaseConfirmation(menu, menu.snapshot().orders()))));
-        apply.icon=UiIcon.CONFIRM;apply.iconOnly=true;product.icon=UiIcon.TARGET;gasCycle.icon=UiIcon.NEXT;gasCycle.iconOnly=true;
+        apply.icon=UiIcon.CONFIRM;apply.iconOnly=true;reserveApply.icon=UiIcon.CONFIRM;reserveApply.iconOnly=true;
+        product.icon=UiIcon.TARGET;gasCycle.icon=UiIcon.NEXT;gasCycle.iconOnly=true;
         gasCycle.setMessage(tr("settings.gas_next"));
         vent.icon=UiIcon.VENT;automation.icon=UiIcon.HOPPER;autoEject.icon=UiIcon.EJECT;jobs.icon=UiIcon.EXCHANGE;redstone.icon=UiIcon.REDSTONE;backend.icon=UiIcon.NETWORK_ONLINE;release.icon=UiIcon.EJECT;
+        boolean hasAudio = ModSounds.workingSound(menu.kind()) != null;
+        generalPanel = new DeviceGeneralPanel(font, widget -> { widgets.add(widget); addWidget.accept(widget); },
+                left, top + 18, width, UiPalette.machineAccent(menu.kind()),
+                Component.translatable("block.rematter." + menu.kind().id()),
+                menu::securityMode, menu::canManageSecurity, this::canEdit,
+                forward -> sendMenu(forward ? MachineMenu.CYCLE_SECURITY : MachineMenu.CYCLE_SECURITY_BACK),
+                () -> menu.extras().has("customName") && menu.extras().get("customName").isJsonPrimitive()
+                        ? menu.extras().get("customName").getAsString() : "",
+                clean -> sendBlueprintAction(MachineActionPayload.Action.SET_CUSTOM_NAME, clean, 0),
+                hasAudio ? menu::soundLevel : null,
+                hasAudio ? forward -> sendMenu(forward ? MachineMenu.TOGGLE_SOUND_MUTE : MachineMenu.CYCLE_SOUND_BACK) : null);
         tick();
     }
 
@@ -195,6 +217,34 @@ final class MachineSettingsPanel {
     }
 
     private List<ModuleSlot> moduleSlots() {
+        if (menu.kind() == MachineKind.TRANSMUTATION_REACTOR) {
+            return List.of(
+                    new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "particle_emitter",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.PARTICLE_EMITTER).get()), "module_room"),
+                    new ModuleSlot(IndustrialBlueprint.Parameter.COILS, "field_coil",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.FIELD_COIL).get()), "module_field"));
+        }
+        if (menu.kind() == MachineKind.PRIMAL_REACTOR) {
+            return List.of(
+                    new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "primal_condenser_core",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.PRIMAL_CONDENSER_CORE).get()), "module_room"),
+                    new ModuleSlot(IndustrialBlueprint.Parameter.COILS, "particle_emitter",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.PARTICLE_EMITTER).get()), "module_field"));
+        }
+        if (menu.kind() == MachineKind.ENERGY_MATRIX) {
+            return List.of(
+                    new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "energy_matrix_cell",
+                            new ItemStack(ModContent.ENERGY_MATRIX_CELLS.get(dev.latrox.rematter.energy.EnergyMatrixCellTier.BASIC).get()), "module_matrix_capacity"),
+                    new ModuleSlot(IndustrialBlueprint.Parameter.COILS, "energy_matrix_provider",
+                            new ItemStack(ModContent.ENERGY_MATRIX_PROVIDERS.get(dev.latrox.rematter.energy.EnergyMatrixProviderTier.BASIC).get()), "module_matrix_transfer"));
+        }
+        if (menu.kind() == MachineKind.ENERGY_REACTOR) {
+            return List.of(
+                    new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "reactor_fuel_core",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.REACTOR_FUEL_CORE).get()), "module_reactor_output"),
+                    new ModuleSlot(IndustrialBlueprint.Parameter.COILS, "reactor_induction_coil",
+                            new ItemStack(ModContent.INDUSTRIAL_MODULES.get(dev.latrox.rematter.content.IndustrialModuleKind.REACTOR_INDUCTION_COIL).get()), "module_reactor_transfer"));
+        }
         if (IndustrialStructure.usesReactorModules(menu.kind())) {
             return List.of(
                     new ModuleSlot(IndustrialBlueprint.Parameter.CHAMBERS, "reaction_chamber",
@@ -270,24 +320,55 @@ final class MachineSettingsPanel {
 
     void setSection(Section next) {
         section = next;
-        if (target != null && section != Section.PRODUCTION) target.setFocused(false);
+        if (section != Section.PRODUCTION) {
+            if (target != null) target.setFocused(false);
+            if (reserveField != null) reserveField.setFocused(false);
+        }
         updateWidgets();
     }
     Section section() { return section; }
     EditBox targetField() { return target; }
     void setVisible(boolean value) {
         visible = value;
-        if (!value && target != null) target.setFocused(false);
+        if (!value) {
+            if (target != null) target.setFocused(false);
+            if (reserveField != null) reserveField.setFocused(false);
+        }
         updateWidgets();
     }
-    boolean isEditing() { return visible && section == Section.PRODUCTION && target != null && target.visible && target.active && target.canConsumeInput(); }
+    boolean isEditing() {
+        if (!visible) return false;
+        if (section == Section.GENERAL && generalPanel != null && generalPanel.isTyping()) return true;
+        if (section == Section.PRODUCTION) {
+            return (target != null && target.visible && target.active && target.canConsumeInput())
+                    || (reserveField != null && reserveField.visible && reserveField.active && reserveField.canConsumeInput());
+        }
+        return false;
+    }
 
     /** Call before the container's inventory-key handler; text input is delivered by charTyped separately. */
     boolean handlesKey(KeyEvent event) {
+        if (visible && section == Section.GENERAL && generalPanel != null && generalPanel.handlesKey(event)) return true;
         if (!isEditing() || event.isEscape() || event.key() == GLFW.GLFW_KEY_TAB) return false;
-        if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) saveTarget();
-        else target.keyPressed(event);
+        boolean editingReserve = reserveField != null && reserveField.visible && reserveField.active && reserveField.canConsumeInput();
+        if (event.key() == GLFW.GLFW_KEY_ENTER || event.key() == GLFW.GLFW_KEY_KP_ENTER) {
+            if (editingReserve) saveReserve(); else saveTarget();
+        } else if (editingReserve) {
+            reserveField.keyPressed(event);
+        } else {
+            target.keyPressed(event);
+        }
         return true;
+    }
+
+    boolean handlesChar(CharacterEvent event) {
+        return visible && section == Section.GENERAL && generalPanel != null && generalPanel.handlesChar(event);
+    }
+
+    void extractBackground(GuiGraphicsExtractor g) {
+        if (visible && section == Section.GENERAL && generalPanel != null) {
+            generalPanel.extractBackground(g);
+        }
     }
 
     void tick() {
@@ -305,6 +386,9 @@ final class MachineSettingsPanel {
                     if (value.id().equals(current.targetSubstance()) && value.phase().equals(current.targetPhase())) productIndex = i;
                 }
             }
+            if (!reserveDirty && reserveField != null) {
+                updatingReserve = true; reserveField.setValue(Long.toString(current.networkReserve())); updatingReserve = false;
+            }
             lastServerSettings = current;
         }
         var gasIds = new TreeSet<>(current.ventedGases());
@@ -320,8 +404,14 @@ final class MachineSettingsPanel {
         for (int i = 0; i < a.size(); i++) if (!a.get(i).id().equals(b.get(i).id()) || !a.get(i).phase().equals(b.get(i).phase())) return false;
         return true;
     }
-    private boolean productionAvailable() {
+    private boolean hasStockTarget() {
         return menu.kind().processes() && menu.kind() != MachineKind.ANALYZER && !PreparationTier.manual(menu.kind());
+    }
+    private boolean hasNetworkReserve() {
+        return hasStockTarget() || menu.kind().isEnergyReactor() || menu.kind() == MachineKind.PRIMAL_CONVERTER;
+    }
+    private boolean productionAvailable() {
+        return hasNetworkReserve();
     }
     private boolean available(Section value) {
         return switch (value) {
@@ -329,6 +419,7 @@ final class MachineSettingsPanel {
             case SIDES -> MachinePortMode.configurable(menu.kind());
             case PRODUCTION -> productionAvailable();
             case ACCESS -> true;
+            case GENERAL -> !menu.wireless();
         };
     }
     private boolean currentMenu() { return minecraft.player != null && minecraft.player.containerMenu == menu; }
@@ -350,7 +441,8 @@ final class MachineSettingsPanel {
         if (singlePage) {
             section = Section.STRUCTURE;
         } else if (!available(section)) {
-            section = available(Section.STRUCTURE) ? Section.STRUCTURE
+            section = available(Section.GENERAL) ? Section.GENERAL
+                    : available(Section.STRUCTURE) ? Section.STRUCTURE
                     : available(Section.SIDES) ? Section.SIDES
                     : available(Section.PRODUCTION) ? Section.PRODUCTION : Section.ACCESS;
         }
@@ -361,38 +453,6 @@ final class MachineSettingsPanel {
             tab.visible = visible && !singlePage && index >= 0; tab.active = tab.visible; tab.selected = section == value;
             if (index >= 0) { tab.setX(left + index * 24); tab.setWidth(22); }
             for (var widget : groups.get(value)) { widget.visible = visible && section == value; widget.active = widget.visible && canEdit(); }
-        }
-        boolean hasAudio = dev.latrox.rematter.content.ModSounds.workingSound(menu.kind()) != null;
-        soundMute.visible = visible && !singlePage && hasAudio;
-        soundMute.active = soundMute.visible && canEdit();
-        if (soundMute.visible) {
-            MachineSoundLevel level = menu.soundLevel();
-            soundMute.icon = switch (level) {
-                case HIGH -> UiIcon.SOUND_ON;
-                case MEDIUM -> UiIcon.SOUND_MID;
-                case LOW -> UiIcon.SOUND_LOW;
-                case MUTED -> UiIcon.SOUND_OFF;
-            };
-            soundMute.selected = level != MachineSoundLevel.HIGH;
-            Component stateLabel = tr(switch (level) {
-                case HIGH -> "settings.sound_high";
-                case MEDIUM -> "settings.sound_medium";
-                case LOW -> "settings.sound_low";
-                case MUTED -> "settings.sound_muted";
-            });
-            Component label = tr("settings.sound", stateLabel);
-            soundMute.setMessage(label);
-            soundMute.setTooltip(Tooltip.create(label.copy().append("\n").append(tr("settings.sound_hint"))));
-        }
-        securityButton.visible = visible && !singlePage;
-        securityButton.setX(left + width - (soundMute.visible ? 42 : 20));
-        securityButton.active = securityButton.visible && canEdit() && menu.canManageSecurity();
-        if (securityButton.visible) {
-            SecurityMode mode = menu.securityMode();
-            securityButton.icon = SecurityUi.icon(mode);
-            securityButton.selected = mode != SecurityMode.PUBLIC;
-            securityButton.setMessage(SecurityUi.label(mode));
-            securityButton.setTooltip(Tooltip.create(SecurityUi.tooltip(mode, menu.canManageSecurity())));
         }
         if (visible && section == Section.STRUCTURE && IndustrialStructure.isIndustrial(menu.kind())) {
             var bp = currentBlueprint();
@@ -407,6 +467,14 @@ final class MachineSettingsPanel {
                 }
             }
             previewToggle.setTooltip(Tooltip.create(previewTip));
+            var style = bp.shellStyle();
+            shellStyleToggle.active = edit && !menu.snapshot().structure().formed();
+            shellStyleToggle.selected = style != IndustrialBlueprint.ShellStyle.SIDES_GLASS;
+            shellStyleToggle.setMessage(Component.empty());
+            shellStyleToggle.setTooltip(Tooltip.create(
+                    tr("blueprint.shell_style", tr("blueprint.shell_style." + style.id())).copy()
+                            .append("\n").append(tr("blueprint.shell_style_desc." + style.id()))
+                            .append("\n").append(tr("blueprint.shell_style_cycle"))));
             int missingParts = blueprintBom().stream().mapToInt(IndustrialBlueprint.PartRequirement::missing).sum();
             blueprintBuild.active = edit && !menu.snapshot().structure().formed() && missingParts > 0;
             blueprintBuild.setTooltip(Tooltip.create(tr("blueprint.build_hint")));
@@ -428,7 +496,13 @@ final class MachineSettingsPanel {
             }
         }
         diagram.update(visible && section == Section.SIDES);
-        boolean productionEdit = visible && section == Section.PRODUCTION && canEdit() && settingsReady() && !menu.snapshot().networkJobs();
+        if (generalPanel != null) {
+            generalPanel.refresh(visible && section == Section.GENERAL, UiPalette.machineAccent(menu.kind()));
+        }
+        boolean prodVisible = visible && section == Section.PRODUCTION;
+        boolean stockVisible = prodVisible && hasStockTarget();
+        boolean productionEdit = stockVisible && canEdit() && settingsReady() && !menu.snapshot().networkJobs();
+        target.visible = apply.visible = product.visible = stockVisible;
         target.active = productionEdit; apply.active = productionEdit;
         product.active = productionEdit && !physical() && products.size() > 1;
         product.setMessage(productLabel()); product.setTooltip(Tooltip.create(productLabel()));
@@ -437,7 +511,7 @@ final class MachineSettingsPanel {
                 .append(tr("target_limit", Quantities.number(targetLimit()))).append("\n")
                 .append(tr(physical() ? "target_local_count" : "target_network_count", count, Quantities.number(menu.settings().settings().target())))));
         apply.setTooltip(Tooltip.create(tr("settings.apply_hint")));
-        gasCycle.visible = vent.visible = visible && section == Section.PRODUCTION && !gases.isEmpty();
+        gasCycle.visible = vent.visible = stockVisible && !gases.isEmpty();
         gasCycle.active = gasCycle.visible && gases.size() > 1;
         vent.active = gasCycle.visible && productionEdit && menu.settings().mayVent();
         if (!gases.isEmpty()) {
@@ -448,28 +522,45 @@ final class MachineSettingsPanel {
             vent.setTooltip(Tooltip.create(tr("settings.vent_hint", SubstanceNames.substance(gas, "gas", true))));
             vent.selected = on;
         }
+        int reserveRowY = top + (hasStockTarget() ? (gases.isEmpty() ? 76 : 88) : 33);
+        boolean reserveVisible = prodVisible && hasNetworkReserve();
+        boolean reserveEdit = reserveVisible && canEdit() && settingsReady();
+        reserveField.visible = reservePreset.visible = reserveApply.visible = reserveVisible;
+        reserveField.active = reservePreset.active = reserveApply.active = reserveEdit;
+        reserveField.setY(reserveRowY);
+        reservePreset.setY(reserveRowY);
+        reserveApply.setY(reserveRowY);
+        long curReserve = parseReserve();
+        reserveField.setTooltip(Tooltip.create(tr("settings.network_reserve_hint")));
+        reservePreset.setMessage(curReserve == 0L ? tr("off") : Component.literal(Quantities.compact(curReserve)));
+        reservePreset.selected = curReserve > 0L;
+        reservePreset.setTooltip(Tooltip.create(tr("settings.reserve_preset_hint")));
+        reserveApply.setTooltip(Tooltip.create(tr("settings.apply_hint")));
         boolean access = visible && section == Section.ACCESS;
         boolean hasAutoEject = dev.latrox.rematter.content.MachineBlockEntity.supportsAutoEject(menu.kind());
-        boolean hasJobs = menu.kind().selectable() || PreparationTier.isPreparation(menu.kind());
+        boolean hasJobs = menu.kind().supportsNetworkJobs();
         boolean hasRedstone = RedstoneMode.controllable(menu.kind());
         boolean hasInterface = menu.kind() == MachineKind.NETWORK_INTERFACE;
-        int accessCount = 1 + (hasAutoEject ? 1 : 0) + (hasJobs ? 1 : 0) + (hasRedstone ? 1 : 0) + (hasInterface ? 2 : 0);
-        int nextAccessY = top + (accessCount >= 3 ? 20 : CONTENT_Y);
-        int accessStep = accessCount >= 3 ? 20 : ROW;
+        int nextAccessY = top + 20;
+        int accessStep = 18;
         automation.visible = access;
         automation.setY(nextAccessY);
+        automation.setX(left);
+        automation.setWidth(hasAutoEject ? (width - 2) / 2 : width);
         automation.setMessage(tr("settings.pipes", tr(menu.snapshot().automation() ? "settings.allowed" : "settings.blocked")));
         automation.setTooltip(Tooltip.create(tr("automation_hint"))); automation.selected = menu.snapshot().automation();
-        nextAccessY += accessStep;
         autoEject.visible = access && hasAutoEject;
         autoEject.active = autoEject.visible && canEdit();
         if (autoEject.visible) {
+            int half = (width - 2) / 2;
+            autoEject.setX(left + half + 2);
             autoEject.setY(nextAccessY);
+            autoEject.setWidth(width - half - 2);
             autoEject.setMessage(tr("settings.auto_eject", tr(menu.autoEject() ? "on" : "off")));
             autoEject.setTooltip(Tooltip.create(tr("auto_eject_hint")));
             autoEject.selected = menu.autoEject();
-            nextAccessY += accessStep;
         }
+        nextAccessY += accessStep;
         jobs.visible = access && hasJobs;
         jobs.active = jobs.visible && canEdit();
         if (jobs.visible) {
@@ -524,7 +615,7 @@ final class MachineSettingsPanel {
         return tr("target_network", SubstanceNames.substance(value.id(), value.phase(), value.known()));
     }
     private void saveTarget() {
-        if (!canEdit() || !settingsReady() || !productionAvailable() || menu.snapshot().networkJobs()) return;
+        if (!canEdit() || !settingsReady() || !hasStockTarget() || menu.snapshot().networkJobs()) return;
         try {
             long amount = Long.parseLong(target.getValue());
             if (amount > targetLimit()) throw new IllegalArgumentException("Target outside output scope");
@@ -533,8 +624,44 @@ final class MachineSettingsPanel {
                 if (products.isEmpty()) { error = tr("target_choose_recipe"); return; }
                 var value = products.get(productIndex); id = value.id(); phase = value.phase();
             }
-            sendSettings(new MachineSettings(amount, id, phase, menu.settings().settings().ventedGases()));
+            var cur = menu.settings().settings();
+            sendSettings(new MachineSettings(amount, id, phase, cur.ventedGases(), cur.networkReserve()));
             dirty = false; error = Component.empty();
+        } catch (IllegalArgumentException invalid) { error = tr("invalid_target"); }
+    }
+    private long parseReserve() {
+        if (reserveField == null) return 0L;
+        String raw = reserveField.getValue().strip();
+        if (raw.isEmpty()) return 0L;
+        try { return Math.clamp(Long.parseLong(raw), 0L, MachineSettings.MAX_TARGET); }
+        catch (NumberFormatException ignored) { return 0L; }
+    }
+    private void cycleReservePreset() {
+        if (!canEdit() || !settingsReady() || !hasNetworkReserve()) return;
+        long cur = parseReserve();
+        long next = RESERVE_PRESETS[0];
+        for (long p : RESERVE_PRESETS) {
+            if (p > cur) { next = p; break; }
+        }
+        updatingReserve = true;
+        reserveField.setValue(Long.toString(next));
+        updatingReserve = false;
+        saveReserve();
+    }
+    private void saveReserve() {
+        if (!canEdit() || !settingsReady() || !hasNetworkReserve()) return;
+        String raw = reserveField.getValue().strip();
+        try {
+            long amount = raw.isEmpty() ? 0L : Long.parseLong(raw);
+            if (amount < 0L || amount > MachineSettings.MAX_TARGET) throw new IllegalArgumentException("Reserve out of range");
+            var cur = menu.settings().settings();
+            if (hasStockTarget()) {
+                sendSettings(new MachineSettings(cur.target(), cur.targetSubstance(), cur.targetPhase(), cur.ventedGases(), amount));
+            } else {
+                sendSettings(new MachineSettings(0L, "", "", Set.of(), amount));
+            }
+            reserveDirty = false; error = Component.empty();
+            updateWidgets();
         } catch (IllegalArgumentException invalid) { error = tr("invalid_target"); }
     }
     private void toggleVent() {
@@ -547,7 +674,7 @@ final class MachineSettingsPanel {
         if (!canEdit() || !menu.settings().mayVent()) return;
         var current = menu.settings().settings(); Set<String> values = new HashSet<>(current.ventedGases());
         if (on) values.add(gas); else values.remove(gas);
-        try { sendSettings(new MachineSettings(current.target(), current.targetSubstance(), current.targetPhase(), values)); error = Component.empty(); }
+        try { sendSettings(new MachineSettings(current.target(), current.targetSubstance(), current.targetPhase(), values, current.networkReserve())); error = Component.empty(); }
         catch (IllegalArgumentException invalid) { error = tr("settings.target_cannot_vent"); }
     }
     private void sendSettings(MachineSettings next) {
@@ -572,9 +699,7 @@ final class MachineSettingsPanel {
             ScreenChrome.text(g, font, header, left + 18, top + 4, width - 18, UiPalette.TEXT);
         } else {
             int titleX = left + visibleTabCount * 24 + 2;
-            int rightEdge = securityButton != null && securityButton.visible ? securityButton.getX() - 2
-                    : soundMute != null && soundMute.visible ? soundMute.getX() - 2 : left + width;
-            int titleWidth = Math.max(0, rightEdge - titleX);
+            int titleWidth = Math.max(0, left + width - titleX);
             ScreenChrome.text(g, font, tr("settings.section." + section.name().toLowerCase(java.util.Locale.ROOT)).getString(), titleX, top + 5, titleWidth, UiPalette.TEXT);
         }
         if (section == Section.STRUCTURE && IndustrialStructure.isIndustrial(menu.kind())) {
@@ -593,65 +718,99 @@ final class MachineSettingsPanel {
                 ScreenChrome.twoLines(g, font, mode.meaning().getString(), left, y + 12, width, UiPalette.MUTED);
             }
         } else if (section == Section.PRODUCTION) {
-            Component label = error.getString().isEmpty() ? tr("stock_target") : error;
-            ScreenChrome.text(g,font,label.getString(),left,top+23,width,error.getString().isEmpty()?UiPalette.MUTED:UiPalette.WARNING);
-            if (gases.isEmpty()) g.text(font, tr("no_gas_outputs"), left, top + 83, UiPalette.MUTED, false);
+            if (hasStockTarget()) {
+                Component label = error.getString().isEmpty() ? tr("stock_target") : error;
+                ScreenChrome.text(g, font, label.getString(), left, top + 18, width, error.getString().isEmpty() ? UiPalette.MUTED : UiPalette.WARNING);
+                int reserveLabelY = top + (gases.isEmpty() ? 66 : 79);
+                ScreenChrome.text(g, font, tr("settings.network_reserve").getString(), left, reserveLabelY, width, UiPalette.MUTED);
+            } else {
+                Component label = error.getString().isEmpty() ? tr("settings.network_reserve") : error;
+                ScreenChrome.text(g, font, label.getString(), left, top + 22, width, error.getString().isEmpty() ? UiPalette.MUTED : UiPalette.WARNING);
+                ScreenChrome.twoLines(g, font, tr("settings.network_reserve_hint").getString(), left, top + 56, width, UiPalette.MUTED);
+            }
         } else if (section == Section.ACCESS && !jobs.visible && !backend.visible && accessHintY + 18 <= top + 102) {
             ScreenChrome.twoLines(g, font, tr(IndustrialStructure.isIndustrial(menu.kind())
                     ? "settings.industrial_ports" : "automation_hint").getString(), left, accessHintY, width, UiPalette.MUTED);
+        } else if (section == Section.GENERAL && generalPanel != null) {
+            generalPanel.extractLabels(g, 0, 0);
         }
     }
 
     private void extractStructureControls(GuiGraphicsExtractor g, int mouseX, int mouseY) {
         var bp = currentBlueprint();
         int row0Y = top + 19, row1Y = top + 37;
+        int portBase = left + width - 68;
+        int dimGap = 4;
+        int dimSlot = (width - dimGap * 2) / 3;
+        int stepW = 14;
+        int dimBoxW = dimSlot - stepW * 2;
+        int dStart = left + dimSlot + dimGap;
+        int hStart = left + width - dimSlot;
+        int modRight = left + width;
+
+        // Shell fill style icon inside shellStyleToggle (left + 22, row0Y, 20x16)
+        var pose = g.pose();
+        var style = bp.shellStyle();
+        var styleStack = new ItemStack(style == IndustrialBlueprint.ShellStyle.FULL_CASING
+                ? ModContent.reactorCasing(menu.kind())
+                : ModContent.reactorGlass(menu.kind()));
+        pose.pushMatrix();
+        pose.translate(left + 26F, row0Y + 2F);
+        pose.scale(12F / 16F, 12F / 16F);
+        g.fakeItem(styleStack, 0, 0);
+        pose.popMatrix();
+        if (style == IndustrialBlueprint.ShellStyle.SIDES_GLASS) {
+            // Subtle top & bottom solid casing caps to distinguish Sides Glass from All Glass at a glance.
+            g.fill(left + 26, row0Y + 2, left + 38, row0Y + 3, UiPalette.MUTED);
+            g.fill(left + 26, row0Y + 13, left + 38, row0Y + 14, UiPalette.MUTED);
+        }
 
         // Machine Port icon + count box in Row 0
-        var pose = g.pose();
         pose.pushMatrix();
-        pose.translate(left + 99F, row0Y + 2F);
+        pose.translate(portBase - 14F, row0Y + 2F);
         pose.scale(12F / 16F, 12F / 16F);
-        g.fakeItem(new ItemStack(ModContent.MACHINE_PORT.get()), 0, 0);
+        g.fakeItem(new ItemStack(ModContent.machinePort(menu.kind())), 0, 0);
         pose.popMatrix();
-        centeredBox(g, left + 126, row0Y, 18, 16, Integer.toString(bp.ports()), UiPalette.TEXT);
+        centeredBox(g, portBase + 13, row0Y, 18, 16, Integer.toString(bp.ports()), UiPalette.TEXT);
 
         // Chamber dimensions in Row 1
-        centeredBox(g, left + 13, row1Y, 32, 16, tr("blueprint.dim_w", bp.width()).getString(), UiPalette.TEXT);
-        centeredBox(g, left + 74, row1Y, 32, 16, tr("blueprint.dim_d", bp.depth()).getString(), UiPalette.TEXT);
-        centeredBox(g, left + 135, row1Y, 32, 16, tr("blueprint.dim_h", bp.height()).getString(), UiPalette.TEXT);
+        centeredBox(g, left + stepW, row1Y, dimBoxW, 16, tr("blueprint.dim_w", bp.width()).getString(), UiPalette.TEXT);
+        centeredBox(g, dStart + stepW, row1Y, dimBoxW, 16, tr("blueprint.dim_d", bp.depth()).getString(), UiPalette.TEXT);
+        centeredBox(g, hStart + stepW, row1Y, dimBoxW, 16, tr("blueprint.dim_h", bp.height()).getString(), UiPalette.TEXT);
 
         // Module rows (Rows 2..4)
         var modules = moduleSlots();
+        int labelW = width - 77;
         for (int i = 0; i < modules.size(); i++) {
             var slot = modules.get(i);
             int rowY = top + 55 + i * 18;
             g.fakeItem(slot.icon(), left, rowY);
             Component blockName = Component.translatable("block.rematter." + slot.blockId());
-            ScreenChrome.text(g, font, blockName.getString(), left + 19, rowY + 4, 104, UiPalette.TEXT);
+            ScreenChrome.text(g, font, blockName.getString(), left + 19, rowY + 4, labelW, UiPalette.TEXT);
             int count = moduleCount(bp, slot.parameter());
-            centeredBox(g, left + 140, rowY, 26, 16, Integer.toString(count), UiPalette.machineAccent(menu.kind()));
-            if (inside(mouseX, mouseY, left, rowY, 124, 16) || inside(mouseX, mouseY, left + 140, rowY, 26, 16)) {
+            centeredBox(g, modRight - 42, rowY, 28, 16, Integer.toString(count), UiPalette.machineAccent(menu.kind()));
+            if (inside(mouseX, mouseY, left, rowY, labelW + 19, 16) || inside(mouseX, mouseY, modRight - 42, rowY, 28, 16)) {
                 g.setComponentTooltipForNextFrame(font, List.of(
                         blockName,
                         Component.translatable("screen.rematter.module_detail", count, blockName, tr(slot.benefitKey())),
                         tr("blueprint.auto_expand_hint")), mouseX, mouseY);
             }
         }
-        if (modules.size() < 3) {
+        if (modules.size() < 3 && !menu.kind().isEnergyMatrix() && !menu.kind().isEnergyReactor()) {
             int rowY = top + 55 + modules.size() * 18 + 4;
             ScreenChrome.text(g, font, tr("blueprint.mounts", bp.totalModules(), bp.slotCapacity()).getString(),
                     left + 2, rowY, width - 4, UiPalette.MUTED);
         }
 
-        if (inside(mouseX, mouseY, left + 98, row0Y, 28, 16) || inside(mouseX, mouseY, left + 126, row0Y, 18, 16)) {
+        if (inside(mouseX, mouseY, portBase - 15, row0Y, 46, 16)) {
             g.setComponentTooltipForNextFrame(font, List.of(
-                    Component.translatable("block.rematter.machine_port"),
+                    Component.translatable(IndustrialStructure.expectedBlockKey(menu.kind(), IndustrialStructure.Material.PORT)),
                     tr("blueprint.ports_hint", bp.ports())), mouseX, mouseY);
-        } else if (inside(mouseX, mouseY, left + 13, row1Y, 32, 16)) {
+        } else if (inside(mouseX, mouseY, left + stepW, row1Y, dimBoxW, 16)) {
             g.setComponentTooltipForNextFrame(font, List.of(tr("blueprint.width_detail", bp.width())), mouseX, mouseY);
-        } else if (inside(mouseX, mouseY, left + 74, row1Y, 32, 16)) {
+        } else if (inside(mouseX, mouseY, dStart + stepW, row1Y, dimBoxW, 16)) {
             g.setComponentTooltipForNextFrame(font, List.of(tr("blueprint.depth_detail", bp.depth())), mouseX, mouseY);
-        } else if (inside(mouseX, mouseY, left + 135, row1Y, 32, 16)) {
+        } else if (inside(mouseX, mouseY, hStart + stepW, row1Y, dimBoxW, 16)) {
             g.setComponentTooltipForNextFrame(font, List.of(
                     tr("blueprint.height_detail", bp.height(), bp.laneRoom())), mouseX, mouseY);
         }

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GRG",
+    "KEK",
+    "GRG"
+  ],
+  "key": {
+    "G": "minecraft:glass",
+    "R": "rematter:rhevon_ingot",
+    "K": "rematter:energy_core",
+    "E": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_matrix_glass",
+    "count": 4
+  }
+}

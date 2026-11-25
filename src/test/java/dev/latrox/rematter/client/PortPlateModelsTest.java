@@ -44,13 +44,14 @@ class PortPlateModelsTest {
             for (String casing : List.of("plain", "reactor")) for (String side : SIDES) {
                 var textures = read("port_" + casing + "_" + side + "_" + role.getSerializedName()).getAsJsonObject("textures");
                 assertEquals("rematter:block/machine_port_" + role.getSerializedName(), textures.get("ring").getAsString());
-                assertTrue(textures.get("face").getAsString().endsWith("casing_port"), "a connection shows the painted seat");
+                assertEquals("rematter:block/machine_port_" + role.getSerializedName(), textures.get("face").getAsString(),
+                        "a connection wears the full Machine Port face of its role");
             }
         }
     }
 
     @Test void cubeBlockStatesDecodeEveryDirectionAndShowTheActualInitialModes() throws Exception {
-        for (String cube : List.of("energy_cube", "reinforced_energy_cube", "resonant_energy_cube")) {
+        for (String cube : List.of("energy_cube", "reinforced_energy_cube", "resonant_energy_cube", "primal_energy_cube")) {
             var state = JsonParser.parseString(Files.readString(MODELS.getParent().getParent().resolve("blockstates/" + cube + ".json"))).getAsJsonObject();
             for (var part : state.getAsJsonArray("multipart")) {
                 var entry = part.getAsJsonObject().getAsJsonObject("apply");

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ECE",
+    "KFK",
+    "BQB"
+  ],
+  "key": {
+    "E": "rematter:ember_matrix_crystal",
+    "C": "rematter:resonant_energy_cube",
+    "K": "rematter:energy_core",
+    "F": "rematter:machine_frame",
+    "B": "rematter:blue_matrix_crystal",
+    "Q": "rematter:optical_circuit"
+  },
+  "result": {
+    "id": "rematter:energy_matrix_controller",
+    "count": 1
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RMR",
+    "ECE",
+    "DFD"
+  ],
+  "key": {
+    "R": "rematter:resonant_matter_cable",
+    "M": "rematter:blue_matrix_crystal",
+    "E": "rematter:ender_conductor",
+    "C": "rematter:energy_core",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:reactor_induction_coil",
+    "count": 1
+  }
+}

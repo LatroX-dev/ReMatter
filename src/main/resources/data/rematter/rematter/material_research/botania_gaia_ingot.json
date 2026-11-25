@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "name": "Botania Gaia Ingot",
+  "items": [
+    "botania:gaia_ingot"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:vitalium",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

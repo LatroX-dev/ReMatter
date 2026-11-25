@@ -69,8 +69,13 @@ final class ChemicalTransfers extends SnapshotJournal<ChemicalTransfers.State> {
         MatterStore target = inventory.get();
         var mapping = mapping(index);
         long availableSpace = 0;
-        for (var member : target.members()) if (member.hasTypeSpace(Map.of(), Map.of(mapping.matter(), 1L)))
-            availableSpace = Math.addExact(availableSpace, member.freeSpace());
+        var members = target.members();
+        for (int i = 0; i < members.size(); i++) {
+            var member = members.get(i);
+            if (target.canDepositMember(i, mapping.matter()) && member.hasTypeSpace(Map.of(), Map.of(mapping.matter(), 1L))) {
+                availableSpace = Math.addExact(availableSpace, member.freeSpace());
+            }
+        }
         int accepted = (int) Math.min(amount, availableSpace / mapping.unitsPerChemical());
         if (accepted == 0) return 0;
         long internal = Math.multiplyExact((long) accepted, mapping.unitsPerChemical());

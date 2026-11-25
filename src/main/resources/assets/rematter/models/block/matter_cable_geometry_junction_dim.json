@@ -1,0 +1,80 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "glow": "rematter:block/matter_cable_dim"
+  },
+  "elements": [
+    {
+      "name": "hub_glow",
+      "from": [
+        5,
+        5,
+        5
+      ],
+      "to": [
+        11,
+        11,
+        11
+      ],
+      "shade": false,
+      "light_emission": 4,
+      "faces": {
+        "north": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        },
+        "down": {
+          "texture": "#glow",
+          "uv": [
+            4,
+            4,
+            10,
+            10
+          ]
+        }
+      }
+    }
+  ]
+}

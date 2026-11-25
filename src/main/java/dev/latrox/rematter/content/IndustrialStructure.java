@@ -14,8 +14,23 @@ public final class IndustrialStructure {
     public static final int MAX_HINTS = 512;
     public enum Role { CONTROLLER, INTERIOR, FRAME, WALL }
     public enum Material { AIR, CASING, GLASS, PORT, CONTROLLER, OTHER, UNLOADED,
-        MIXING_BASIN, SEPARATION_UNIT, GRINDING_UNIT, FIELD_COIL, REACTION_CHAMBER;
-        boolean module() { return ordinal() >= MIXING_BASIN.ordinal(); }
+        MIXING_BASIN, SEPARATION_UNIT, GRINDING_UNIT, FIELD_COIL, REACTION_CHAMBER,
+        PARTICLE_EMITTER, PRIMAL_CONDENSER_CORE, REACTOR_FUEL_CORE, REACTOR_INDUCTION_COIL,
+        ENERGY_MATRIX_CELL, REINFORCED_ENERGY_MATRIX_CELL, RESONANT_ENERGY_MATRIX_CELL, PRIMAL_ENERGY_MATRIX_CELL,
+        ENERGY_MATRIX_PROVIDER, REINFORCED_ENERGY_MATRIX_PROVIDER, RESONANT_ENERGY_MATRIX_PROVIDER, PRIMAL_ENERGY_MATRIX_PROVIDER;
+        public boolean isReactorModule() {
+            return ordinal() >= MIXING_BASIN.ordinal() && ordinal() <= REACTOR_INDUCTION_COIL.ordinal();
+        }
+        public boolean isMatrixCell() {
+            return ordinal() >= ENERGY_MATRIX_CELL.ordinal() && ordinal() <= PRIMAL_ENERGY_MATRIX_CELL.ordinal();
+        }
+        public boolean isMatrixProvider() {
+            return ordinal() >= ENERGY_MATRIX_PROVIDER.ordinal() && ordinal() <= PRIMAL_ENERGY_MATRIX_PROVIDER.ordinal();
+        }
+        public boolean isMatrixPart() {
+            return isMatrixCell() || isMatrixProvider();
+        }
+        boolean module() { return isReactorModule() || isMatrixPart(); }
         boolean interior() { return this == AIR || module(); }
     }
     public static final Set<String> DIAGNOSTICS = Set.of("ready", "structure", "structure_too_short", "structure_unloaded",
@@ -87,16 +102,16 @@ public final class IndustrialStructure {
         public List<Mismatch> mismatches() {return mismatches;}
         public @Nullable BlockPos minBounds() {return minBounds;}
         public @Nullable BlockPos maxBounds() {return maxBounds;}
-        Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, String diagnostic) {
+        Formation(boolean formed, @Nullable Shape shape, List<Port> ports, List<Module> modules, List<LocalModule> parts, String diagnostic) {
             this.ports = List.copyOf(ports); this.modules = List.copyOf(modules);
+            var localParts = List.copyOf(parts);
             if (!DIAGNOSTICS.contains(diagnostic) || formed != diagnostic.equals("ready")
-                    || formed && (shape == null || modules.isEmpty()) || !formed && (!ports.isEmpty() || !modules.isEmpty()))
+                    || formed && (shape == null || localParts.isEmpty()) || !formed && (!ports.isEmpty() || !modules.isEmpty() || !localParts.isEmpty()))
                 throw new IllegalArgumentException("Invalid formation");
             this.formed = formed; this.shape = shape; this.diagnostic = diagnostic;
-            var local = this.modules.stream().map(m -> new LocalModule(m.x, m.y, m.depth, Material.valueOf(m.kind.name()))).toList();
             modulePositions = this.modules.stream().map(Module::position).collect(java.util.stream.Collectors.toUnmodifiableSet());
-            performance = formed ? performanceOf(local) : IndustrialPerformance.EMPTY;
-            layoutFingerprint = moduleFingerprint(local);
+            performance = formed ? performanceOf(localParts) : IndustrialPerformance.EMPTY;
+            layoutFingerprint = moduleFingerprint(localParts);
         }
         public boolean formed() { return formed; }
         public @Nullable Shape shape() { return shape; }
@@ -104,12 +119,20 @@ public final class IndustrialStructure {
         public List<Module> modules() { return modules; }
         public String diagnostic() { return diagnostic; }
         public boolean hasModuleAt(BlockPos position) { return modulePositions.contains(position); }
-        public int moduleCount() { return formed ? (int) modules.stream().filter(m -> m.kind == IndustrialModuleKind.GRINDING_UNIT || m.kind == IndustrialModuleKind.REACTION_CHAMBER).count() : 0; }
+        public int moduleCount() {
+            if (!formed) return 0;
+            if (performance.matrixCells() > 0) return performance.matrixCells();
+            return (int) modules.stream().filter(m -> m.kind == IndustrialModuleKind.GRINDING_UNIT
+                    || m.kind == IndustrialModuleKind.REACTION_CHAMBER
+                    || m.kind == IndustrialModuleKind.PARTICLE_EMITTER
+                    || m.kind == IndustrialModuleKind.PRIMAL_CONDENSER_CORE
+                    || m.kind == IndustrialModuleKind.REACTOR_FUEL_CORE).count();
+        }
         public IndustrialPerformance performance() { return performance; }
         public int baseWorkRate(MachineKind kind) { return performance.workRate(kind); }
         public int laneRoom(MachineKind kind) { return formed && shape != null ? IndustrialStructure.laneRoom(kind, shape.height()) : 0; }
         public String layoutFingerprint() { return layoutFingerprint; }
-        static Formation invalid(@Nullable Shape shape,String diagnostic) { return new Formation(false,shape,List.of(),List.of(),diagnostic); }
+        static Formation invalid(@Nullable Shape shape,String diagnostic) { return new Formation(false,shape,List.of(),List.of(),List.of(),diagnostic); }
     }
     private record Bounds(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         boolean contains(BlockPos p) { return p.getX() >= minX && p.getX() <= maxX && p.getY() >= minY && p.getY() <= maxY && p.getZ() >= minZ && p.getZ() <= maxZ; }
@@ -155,19 +178,53 @@ public final class IndustrialStructure {
     private static final Map<MachinePortBlockEntity, PortObservation> PORTS = Collections.synchronizedMap(new WeakHashMap<>());
     private IndustrialStructure() {}
     public static boolean isIndustrial(MachineKind kind) {
-        return kind == MachineKind.INDUSTRIAL_PREPARATOR || usesReactorModules(kind);
+        return kind == MachineKind.INDUSTRIAL_PREPARATOR || kind.isEnergyMatrix() || usesReactorModules(kind);
     }
-    /** Controllers whose chamber mounts Field Coils and Reaction Chambers inside solid-endcap shells. */
+    /** Controllers whose chamber mounts reactor-family modules inside solid-endcap shells. */
     public static boolean usesReactorModules(MachineKind kind) {
         return kind == MachineKind.INDUSTRIAL_REACTOR
                 || kind == MachineKind.INDUSTRIAL_DECOMPOSER
-                || kind == MachineKind.INDUSTRIAL_SYNTHESIZER;
+                || kind == MachineKind.INDUSTRIAL_SYNTHESIZER
+                || kind == MachineKind.TRANSMUTATION_REACTOR
+                || kind == MachineKind.PRIMAL_REACTOR
+                || kind == MachineKind.ENERGY_REACTOR;
+    }
+    /** Primary (ceiling-preferred) reactor module for a reactor controller kind. */
+    public static Material primaryReactorModule(MachineKind kind) {
+        return switch (kind) {
+            case TRANSMUTATION_REACTOR -> Material.PARTICLE_EMITTER;
+            case PRIMAL_REACTOR -> Material.PRIMAL_CONDENSER_CORE;
+            case ENERGY_REACTOR -> Material.REACTOR_FUEL_CORE;
+            case ENERGY_MATRIX -> Material.ENERGY_MATRIX_CELL;
+            default -> Material.REACTION_CHAMBER;
+        };
+    }
+    /** Secondary (floor-preferred) reactor module for a reactor controller kind. */
+    public static Material secondaryReactorModule(MachineKind kind) {
+        return switch (kind) {
+            case PRIMAL_REACTOR -> Material.PARTICLE_EMITTER;
+            case ENERGY_REACTOR -> Material.REACTOR_INDUCTION_COIL;
+            case ENERGY_MATRIX -> Material.ENERGY_MATRIX_PROVIDER;
+            default -> Material.FIELD_COIL;
+        };
+    }
+    /** Required interior module types for any industrial controller. */
+    public static List<Material> requiredModules(MachineKind kind) {
+        if (kind == MachineKind.INDUSTRIAL_PREPARATOR) {
+            return List.of(Material.MIXING_BASIN, Material.SEPARATION_UNIT, Material.GRINDING_UNIT);
+        }
+        return List.of(secondaryReactorModule(kind), primaryReactorModule(kind));
+    }
+    /** Minimum outer width and depth of each chamber type. */
+    public static int minFootprint(MachineKind kind) {
+        return kind == MachineKind.PRIMAL_REACTOR || kind == MachineKind.ENERGY_REACTOR ? 5 : 3;
     }
     /** Minimum outer height of each chamber type. */
     public static int height(MachineKind kind) {
         return switch (kind) {
-            case INDUSTRIAL_PREPARATOR -> 5;
-            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER -> 4;
+            case ENERGY_MATRIX -> 3;
+            case INDUSTRIAL_PREPARATOR, PRIMAL_REACTOR, ENERGY_REACTOR -> 5;
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER, TRANSMUTATION_REACTOR -> 4;
             default -> throw new IllegalArgumentException("Not an industrial controller");
         };
     }
@@ -208,11 +265,31 @@ public final class IndustrialStructure {
         }
         return -1;
     }
-    /** Validate the complete shell and the modules mounted on its inner floor and ceiling. */
+    /**
+     * Vertical floor/roof wall cells directly supporting or anchoring an interior module, Energy Matrix Cell,
+     * or Energy Matrix Provider require a solid endcap (Casing, or a solid Port where vertical ports are permitted)
+     * rather than Glass.
+     */
+    static boolean requiresSolidEndcap(Shape shape, Cell cell, Materials blocks) {
+        if (cell.role != Role.WALL || cell.outward == null || !cell.outward.getAxis().isVertical()) return false;
+        int interiorY = cell.outward == Direction.DOWN ? 0 : shape.height - 3;
+        return blocks.at(cell.x, interiorY, cell.depth).module();
+    }
+
+    private static long columnKey(int x, int depth) {
+        return ((long) (x + 16) << 8) | (depth + 16);
+    }
+
+    /** Validate the complete shell and the modules or Energy Matrix blocks inside it in a single volume pass. */
     public static Inspection inspectLayout(MachineKind kind, Shape shape, Materials blocks) {
-        if (!isIndustrial(kind) || shape.height < height(kind)) return invalidLayout("structure_too_short");
+        int minSide = minFootprint(kind);
+        if (!isIndustrial(kind) || shape.height < height(kind) || shape.width < minSide || shape.depth < minSide) return invalidLayout("structure_too_short");
+        if (kind.isEnergyMatrix() && (shape.width - 2) * (shape.height - 2) * (shape.depth - 2) < 2) return invalidLayout("structure_too_short");
         int ports = 0;
+        boolean allowVerticalPorts = !usesReactorModules(kind);
         var modules = new ArrayList<LocalModule>();
+        Map<Long, Cell> floorGlass = null;
+        Map<Long, Cell> roofGlass = null;
         for (var cell : layout(shape)) {
             var material = blocks.at(cell.x,cell.y,cell.depth);
             if(material==Material.UNLOADED)return invalidLayout("structure_unloaded",cell,Material.AIR);
@@ -224,23 +301,71 @@ public final class IndustrialStructure {
                 }
                 case FRAME -> { if (material != Material.CASING) return invalidLayout("structure_frame",cell,Material.CASING); }
                 case WALL -> {
-                    if (usesReactorModules(kind) && cell.outward.getAxis().isVertical()) {
-                        if (material != Material.CASING) return invalidLayout("structure_endcaps",cell,Material.CASING);
-                    } else if (material == Material.PORT) ports++;
-                    else if (material != Material.CASING && material != Material.GLASS) return invalidLayout("structure_wall",cell,Material.GLASS);
+                    if (cell.outward.getAxis().isVertical()) {
+                        if (material == Material.PORT) {
+                            if (allowVerticalPorts) {
+                                ports++;
+                            } else {
+                                return invalidLayout("structure_endcaps", cell, Material.CASING);
+                            }
+                        } else if (material == Material.GLASS) {
+                            if (cell.outward == Direction.DOWN) {
+                                if (floorGlass == null) floorGlass = new HashMap<>();
+                                floorGlass.put(columnKey(cell.x, cell.depth), cell);
+                            } else {
+                                if (roofGlass == null) roofGlass = new HashMap<>();
+                                roofGlass.put(columnKey(cell.x, cell.depth), cell);
+                            }
+                        } else if (material != Material.CASING) {
+                            return invalidLayout("structure_wall", cell, Material.GLASS);
+                        }
+                    } else if (material == Material.PORT) {
+                        ports++;
+                    } else if (material != Material.CASING && material != Material.GLASS) {
+                        return invalidLayout("structure_wall", cell, Material.GLASS);
+                    }
+                }
+            }
+        }
+        if (floorGlass != null || roofGlass != null) {
+            int crown = shape.height - 3;
+            for (var module : modules) {
+                if (module.y == 0 && floorGlass != null) {
+                    var glass = floorGlass.get(columnKey(module.x, module.depth));
+                    if (glass != null) return invalidLayout("structure_endcaps", glass, Material.CASING);
+                }
+                if (module.y == crown && roofGlass != null) {
+                    var glass = roofGlass.get(columnKey(module.x, module.depth));
+                    if (glass != null) return invalidLayout("structure_endcaps", glass, Material.CASING);
                 }
             }
         }
         if(ports<2) {
-            var missing=layout(shape).stream().filter(cell->cell.role==Role.WALL&&cell.outward.getAxis().isHorizontal()
+            var missing=layout(shape).stream().filter(cell->cell.role==Role.WALL
+                    &&(allowVerticalPorts||cell.outward.getAxis().isHorizontal())
                     &&blocks.at(cell.x,cell.y,cell.depth)!=Material.PORT).findFirst().orElse(null);
             return invalidLayout("structure_ports",missing,Material.PORT);
         }
         if(modules.isEmpty())return invalidLayout("structure_modules_missing",new Cell(0,0,1,Role.INTERIOR,Direction.UP),
-                kind==MachineKind.INDUSTRIAL_PREPARATOR?Material.MIXING_BASIN:Material.REACTION_CHAMBER);
-        var required = kind == MachineKind.INDUSTRIAL_PREPARATOR
-                ? List.of(Material.MIXING_BASIN,Material.SEPARATION_UNIT,Material.GRINDING_UNIT)
-                : List.of(Material.FIELD_COIL,Material.REACTION_CHAMBER);
+                kind==MachineKind.INDUSTRIAL_PREPARATOR?Material.MIXING_BASIN:primaryReactorModule(kind));
+        if (kind.isEnergyMatrix()) {
+            boolean hasCell = false, hasProvider = false;
+            for (var module : modules) {
+                if (module.material.isMatrixCell()) hasCell = true;
+                else if (module.material.isMatrixProvider()) hasProvider = true;
+                else return invalidLayout("structure_module_type", new Cell(module.x, module.y, module.depth, Role.INTERIOR, null), Material.ENERGY_MATRIX_CELL);
+            }
+            if (!hasCell) {
+                var cell = layout(shape).stream().filter(c -> c.role == Role.INTERIOR && blocks.at(c.x, c.y, c.depth) == Material.AIR).findFirst().orElse(null);
+                return invalidLayout("structure_module_incomplete", cell, Material.ENERGY_MATRIX_CELL);
+            }
+            if (!hasProvider) {
+                var cell = layout(shape).stream().filter(c -> c.role == Role.INTERIOR && blocks.at(c.x, c.y, c.depth) == Material.AIR).findFirst().orElse(null);
+                return invalidLayout("structure_module_incomplete", cell, Material.ENERGY_MATRIX_PROVIDER);
+            }
+            return new Inspection("ready", modules);
+        }
+        var required = requiredModules(kind);
         for (var module : modules)
             if (!required.contains(module.material)) return invalidLayout("structure_module_type",new Cell(module.x,module.y,module.depth,Role.INTERIOR,null),required.getFirst());
         int crown = shape.height - 3;
@@ -256,19 +381,38 @@ public final class IndustrialStructure {
         return new Inspection("ready",modules);
     }
     private static int coreCount(List<LocalModule> modules) {
-        return (int) modules.stream().filter(m -> m.material == Material.GRINDING_UNIT || m.material == Material.REACTION_CHAMBER).count();
+        int cells = (int) modules.stream().filter(m -> m.material.isMatrixCell()).count();
+        if (cells > 0) return cells;
+        return (int) modules.stream().filter(m -> m.material == Material.GRINDING_UNIT || m.material == Material.REACTION_CHAMBER
+                || m.material == Material.PARTICLE_EMITTER || m.material == Material.PRIMAL_CONDENSER_CORE
+                || m.material == Material.REACTOR_FUEL_CORE).count();
     }
     private static IndustrialPerformance performanceOf(List<LocalModule> modules) {
-        int grinding = 0, mixing = 0, separation = 0, coils = 0, chambers = 0;
+        int grinding = 0, mixing = 0, separation = 0, coils = 0, chambers = 0, emitters = 0, condensers = 0, fuelCores = 0, inductionCoils = 0;
+        int matrixCells = 0, matrixProviders = 0;
+        long matrixCapacity = 0L, matrixTransferRate = 0L;
         for (var module : modules) switch (module.material) {
             case GRINDING_UNIT -> grinding++;
             case MIXING_BASIN -> mixing++;
             case SEPARATION_UNIT -> separation++;
             case FIELD_COIL -> coils++;
             case REACTION_CHAMBER -> chambers++;
+            case PARTICLE_EMITTER -> emitters++;
+            case PRIMAL_CONDENSER_CORE -> condensers++;
+            case REACTOR_FUEL_CORE -> fuelCores++;
+            case REACTOR_INDUCTION_COIL -> inductionCoils++;
+            case ENERGY_MATRIX_CELL -> { matrixCells++; matrixCapacity = Math.addExact(matrixCapacity, dev.latrox.rematter.energy.EnergyMatrixCellTier.BASIC.capacity()); }
+            case REINFORCED_ENERGY_MATRIX_CELL -> { matrixCells++; matrixCapacity = Math.addExact(matrixCapacity, dev.latrox.rematter.energy.EnergyMatrixCellTier.REINFORCED.capacity()); }
+            case RESONANT_ENERGY_MATRIX_CELL -> { matrixCells++; matrixCapacity = Math.addExact(matrixCapacity, dev.latrox.rematter.energy.EnergyMatrixCellTier.RESONANT.capacity()); }
+            case PRIMAL_ENERGY_MATRIX_CELL -> { matrixCells++; matrixCapacity = Math.addExact(matrixCapacity, dev.latrox.rematter.energy.EnergyMatrixCellTier.PRIMAL.capacity()); }
+            case ENERGY_MATRIX_PROVIDER -> { matrixProviders++; matrixTransferRate = Math.addExact(matrixTransferRate, dev.latrox.rematter.energy.EnergyMatrixProviderTier.BASIC.transferRate()); }
+            case REINFORCED_ENERGY_MATRIX_PROVIDER -> { matrixProviders++; matrixTransferRate = Math.addExact(matrixTransferRate, dev.latrox.rematter.energy.EnergyMatrixProviderTier.REINFORCED.transferRate()); }
+            case RESONANT_ENERGY_MATRIX_PROVIDER -> { matrixProviders++; matrixTransferRate = Math.addExact(matrixTransferRate, dev.latrox.rematter.energy.EnergyMatrixProviderTier.RESONANT.transferRate()); }
+            case PRIMAL_ENERGY_MATRIX_PROVIDER -> { matrixProviders++; matrixTransferRate = Math.addExact(matrixTransferRate, dev.latrox.rematter.energy.EnergyMatrixProviderTier.PRIMAL.transferRate()); }
             default -> { }
         }
-        return new IndustrialPerformance(grinding, mixing, separation, coils, chambers);
+        return new IndustrialPerformance(grinding, mixing, separation, coils, chambers, emitters, condensers,
+                fuelCores, inductionCoils, matrixCells, matrixProviders, matrixCapacity, matrixTransferRate);
     }
     private static Inspection invalidLayout(String diagnostic) { return new Inspection(diagnostic,List.of()); }
     private static Inspection invalidLayout(String diagnostic,Cell cell,Material expected) {return new Inspection(diagnostic,List.of(),cell,expected);}
@@ -339,12 +483,12 @@ public final class IndustrialStructure {
         if (!isIndustrial(kind)) return List.of();
         var primary = inspectLayout(kind, shape, blocks);
         if (primary.formed()) return List.of();
-        Shape target = shape.height < height(kind)
-                ? new Shape(shape.width, height(kind), shape.depth, shape.controllerColumn) : shape;
+        int minSide = minFootprint(kind);
+        Shape target = shape.height < height(kind) || shape.width < minSide || shape.depth < minSide
+                ? new Shape(Math.max(shape.width, minSide), Math.max(shape.height, height(kind)), Math.max(shape.depth, minSide),
+                        Math.clamp(shape.controllerColumn, 1, Math.max(shape.width, minSide) - 2)) : shape;
         int crown = target.height - 3;
-        var required = kind == MachineKind.INDUSTRIAL_PREPARATOR
-                ? List.of(Material.MIXING_BASIN, Material.SEPARATION_UNIT, Material.GRINDING_UNIT)
-                : List.of(Material.FIELD_COIL, Material.REACTION_CHAMBER);
+        var required = requiredModules(kind);
         var collected = new ArrayList<LocalMismatch>();
         var openWalls = new ArrayList<Cell>();
         var closedNonPortWalls = new ArrayList<Cell>();
@@ -365,18 +509,34 @@ public final class IndustrialStructure {
                     if (mat != Material.CASING) collected.add(new LocalMismatch(cell, Material.CASING, ""));
                 }
                 case WALL -> {
-                    if (usesReactorModules(kind) && cell.outward.getAxis().isVertical()) {
-                        if (mat != Material.CASING) collected.add(new LocalMismatch(cell, Material.CASING, ""));
+                    if (cell.outward.getAxis().isVertical()) {
+                        boolean needsMount = requiresSolidEndcap(target, cell, blocks);
+                        if (mat == Material.PORT) {
+                            if (!usesReactorModules(kind)) {
+                                ports++;
+                            } else {
+                                collected.add(new LocalMismatch(cell, needsMount ? Material.CASING : Material.GLASS, ""));
+                            }
+                        } else if (needsMount) {
+                            if (mat != Material.CASING) collected.add(new LocalMismatch(cell, Material.CASING, ""));
+                        } else if (mat != Material.CASING && mat != Material.GLASS) {
+                            openWalls.add(cell);
+                        }
                     } else if (mat == Material.PORT) {
                         ports++;
                     } else if (mat != Material.CASING && mat != Material.GLASS) {
                         openWalls.add(cell);
-                    } else if (cell.outward.getAxis().isHorizontal()) {
+                    } else {
                         closedNonPortWalls.add(cell);
                     }
                 }
                 case INTERIOR -> {
-                    if (mat.module()) {
+                    if (kind.isEnergyMatrix()) {
+                        if (mat.isMatrixCell()) mountedTypes.add(Material.ENERGY_MATRIX_CELL);
+                        else if (mat.isMatrixProvider()) mountedTypes.add(Material.ENERGY_MATRIX_PROVIDER);
+                        else if (mat != Material.AIR) collected.add(new LocalMismatch(cell, Material.AIR, ""));
+                        else freeFloor.add(cell);
+                    } else if (mat.module()) {
                         if (!required.contains(mat)) {
                             String orient = cell.y == 0 ? "up" : cell.y == crown ? "down" : "";
                             collected.add(new LocalMismatch(cell, required.getFirst(), orient));
@@ -397,7 +557,7 @@ public final class IndustrialStructure {
         }
         int portsNeeded = Math.max(0, 2 - ports);
         for (var cell : openWalls) {
-            if (portsNeeded > 0 && cell.outward != null && cell.outward.getAxis().isHorizontal()) {
+            if (portsNeeded > 0 && cell.outward != null && (!usesReactorModules(kind) || cell.outward.getAxis().isHorizontal())) {
                 collected.add(new LocalMismatch(cell, Material.PORT, ""));
                 portsNeeded--;
             } else {
@@ -409,7 +569,12 @@ public final class IndustrialStructure {
         }
         for (var req : required) {
             if (mountedTypes.contains(req)) continue;
-            boolean preferCeiling = req == Material.GRINDING_UNIT || req == Material.REACTION_CHAMBER;
+            if (kind.isEnergyMatrix()) {
+                Cell mount = !freeFloor.isEmpty() ? freeFloor.removeFirst() : null;
+                if (mount != null) collected.add(new LocalMismatch(mount, req, ""));
+                continue;
+            }
+            boolean preferCeiling = req == Material.GRINDING_UNIT || req == primaryReactorModule(kind);
             var firstPool = preferCeiling ? freeCeiling : freeFloor;
             var secondPool = preferCeiling ? freeFloor : freeCeiling;
             Cell mount = !firstPool.isEmpty() ? firstPool.removeFirst() : !secondPool.isEmpty() ? secondPool.removeFirst() : null;
@@ -421,7 +586,7 @@ public final class IndustrialStructure {
         var seen = new HashSet<Long>();
         if (primary.errorCell() != null && primary.expected() != null) {
             var c = primary.errorCell();
-            String orient = primary.expected().module() ? (c.y == 0 ? "up" : c.y == crown ? "down" : "") : "";
+            String orient = primary.expected().isReactorModule() ? (c.y == 0 ? "up" : c.y == crown ? "down" : "") : "";
             ordered.add(new LocalMismatch(c, primary.expected(), orient));
             seen.add(cellKey(c.x, c.y, c.depth));
         }
@@ -439,28 +604,68 @@ public final class IndustrialStructure {
     public static String expectedBlockKey(MachineKind controllerKind, Material expected) {
         return switch (expected) {
             case AIR -> "block.minecraft.air";
-            case CASING -> "block.rematter.reactor_casing";
-            case GLASS -> "block.rematter.reactor_glass";
-            case PORT -> "block.rematter.machine_port";
+            case CASING -> switch (controllerKind) {
+                case TRANSMUTATION_REACTOR -> "block.rematter.transmutation_reactor_casing";
+                case PRIMAL_REACTOR -> "block.rematter.primal_reactor_casing";
+                case ENERGY_MATRIX -> "block.rematter.energy_matrix_casing";
+                case ENERGY_REACTOR -> "block.rematter.energy_reactor_casing";
+                default -> "block.rematter.reactor_casing";
+            };
+            case GLASS -> switch (controllerKind) {
+                case TRANSMUTATION_REACTOR -> "block.rematter.transmutation_reactor_glass";
+                case PRIMAL_REACTOR -> "block.rematter.primal_reactor_glass";
+                case ENERGY_MATRIX -> "block.rematter.energy_matrix_glass";
+                case ENERGY_REACTOR -> "block.rematter.energy_reactor_glass";
+                default -> "block.rematter.reactor_glass";
+            };
+            case PORT -> switch (controllerKind) {
+                case TRANSMUTATION_REACTOR -> "block.rematter.transmutation_machine_port";
+                case PRIMAL_REACTOR -> "block.rematter.primal_machine_port";
+                case ENERGY_MATRIX -> "block.rematter.energy_matrix_port";
+                case ENERGY_REACTOR -> "block.rematter.energy_reactor_port";
+                default -> "block.rematter.machine_port";
+            };
             case CONTROLLER -> "block.rematter." + controllerKind.id();
             default -> "block.rematter." + expected.name().toLowerCase(java.util.Locale.ROOT);
         };
     }
+    /** Infers a completion blueprint when an unformed controller is placed into a half-to-3/4 built chamber. */
+    public static Optional<IndustrialBlueprint> inferPartialBlueprint(MachineBlockEntity machine) {
+        if (!live(machine)) return Optional.empty();
+        var level = (ServerLevel) machine.getLevel();
+        var facing = machine.getBlockState().getValue(MachineBlock.FACING);
+        var origin = machine.getBlockPos();
+        Materials blocks = (x, y, depth) -> {
+            var pos = worldPosition(origin, facing, new Cell(x, y, depth, Role.INTERIOR, null));
+            if (!pos.equals(origin)) {
+                for (var other : controllersUsing(level, pos)) {
+                    if (other != machine) return Material.OTHER;
+                }
+            }
+            return material(level, machine, pos);
+        };
+        return IndustrialBlueprint.inferPartial(machine.kind(), blocks);
+    }
     public static List<IndustrialBlueprint.PartRequirement> blueprintBom(MachineBlockEntity machine, IndustrialBlueprint blueprint) {
         if (!live(machine)) return blueprint.billOfMaterials(List.of());
         var level = (ServerLevel) machine.getLevel();
-        var facing = machine.getBlockState().getValue(MachineBlock.FACING);
-        Materials blocks = (x, y, depth) -> material(level, machine, worldPosition(machine.getBlockPos(), facing, new Cell(x, y, depth, Role.INTERIOR, null)));
+        boolean lifting = IndustrialAutoBuilder.shouldLiftFromGround(level, machine);
+        BlockPos buildOrigin = lifting ? machine.getBlockPos().above() : machine.getBlockPos();
+        Materials blocks = IndustrialAutoBuilder.plannedMaterials(level, machine, buildOrigin, lifting);
         return blueprint.billOfMaterials(blueprint.collectAllMismatches(blocks));
     }
     public static dev.latrox.rematter.network.StructureHintPayload hintFor(int containerId, MachineBlockEntity machine) {
         if (!live(machine)) return dev.latrox.rematter.network.StructureHintPayload.EMPTY;
         boolean showOverlay = machine.structurePreviewEnabled();
-        if (machine.hasCustomBlueprint()) {
+        var level = (ServerLevel) machine.getLevel();
+        boolean lifting = IndustrialAutoBuilder.shouldLiftFromGround(level, machine);
+        boolean hasPartial = !machine.hasCustomBlueprint() && !lifting && !inspect(machine).formed()
+                && inferPartialBlueprint(machine).isPresent();
+        if (machine.hasCustomBlueprint() || lifting || hasPartial) {
             var blueprint = machine.industrialBlueprint();
-            var level = (ServerLevel) machine.getLevel();
             var facing = machine.getBlockState().getValue(MachineBlock.FACING);
-            Materials blocks = (x, y, depth) -> material(level, machine, worldPosition(machine.getBlockPos(), facing, new Cell(x, y, depth, Role.INTERIOR, null)));
+            BlockPos buildOrigin = lifting ? machine.getBlockPos().above() : machine.getBlockPos();
+            Materials blocks = IndustrialAutoBuilder.plannedMaterials(level, machine, buildOrigin, lifting);
             var local = blueprint.collectMismatches(blocks);
             if (local.isEmpty()) {
                 return new dev.latrox.rematter.network.StructureHintPayload(
@@ -469,12 +674,12 @@ public final class IndustrialStructure {
             var entries = new ArrayList<dev.latrox.rematter.network.StructureHintPayload.Entry>(local.size());
             for (var entry : local) {
                 entries.add(new dev.latrox.rematter.network.StructureHintPayload.Entry(
-                        worldPosition(machine.getBlockPos(), facing, entry.cell()),
+                        worldPosition(buildOrigin, facing, entry.cell()),
                         expectedBlockKey(machine.kind(), entry.expected()),
                         entry.orientation()));
             }
             var primary = entries.getFirst();
-            var box = bounds(machine.getBlockPos(), facing, blueprint.shape());
+            var box = bounds(buildOrigin, facing, blueprint.shape());
             return new dev.latrox.rematter.network.StructureHintPayload(
                     containerId, primary.position(), primary.expected(), primary.orientation(), entries,
                     true, new BlockPos(box.minX, box.minY, box.minZ), new BlockPos(box.maxX, box.maxY, box.maxZ), showOverlay);
@@ -487,14 +692,18 @@ public final class IndustrialStructure {
         var shape=detect(machine.kind(),blocks).orElse(null);
         if(shape==null) {
             var claim=machine.industrialProtectionClaim();
+            int minSide = minFootprint(machine.kind());
             shape=claim!=null&&claim.facing()==facing?claim.shape()
-                    :new Shape(3,height(machine.kind()),machine.kind()==MachineKind.INDUSTRIAL_PREPARATOR?4:3,1);
+                    :machine.kind().isEnergyMatrix()?IndustrialBlueprint.defaultFor(machine.kind()).shape()
+                    :new Shape(minSide,height(machine.kind()),machine.kind()==MachineKind.INDUSTRIAL_PREPARATOR?4:minSide,minSide/2);
         }
         var inspection=inspectLayout(machine.kind(),shape,blocks);
         if(!inspection.formed()) {
             var failure=Formation.invalid(shape,inspection.diagnostic);
-            Shape target=shape.height<height(machine.kind())
-                    ?new Shape(shape.width,height(machine.kind()),shape.depth,shape.controllerColumn):shape;
+            int minSide = minFootprint(machine.kind());
+            Shape target=shape.height<height(machine.kind())||shape.width<minSide||shape.depth<minSide
+                    ?new Shape(Math.max(shape.width,minSide),Math.max(shape.height,height(machine.kind())),Math.max(shape.depth,minSide),
+                            Math.clamp(shape.controllerColumn,1,Math.max(shape.width,minSide)-2)):shape;
             var box=bounds(machine.getBlockPos(),facing,target);
             failure.minBounds=new BlockPos(box.minX,box.minY,box.minZ);
             failure.maxBounds=new BlockPos(box.maxX,box.maxY,box.maxZ);
@@ -509,16 +718,19 @@ public final class IndustrialStructure {
             return failure;
         }
         var ports=new ArrayList<Port>();
+        var requiredPort = ModContent.machinePort(machine.kind());
         for(var cell:layout(shape))if(cell.role==Role.WALL){
             var pos=worldPosition(machine.getBlockPos(),facing,cell);
-            if(level.getBlockState(pos).is(ModContent.MACHINE_PORT.get()))ports.add(new Port(pos,worldDirection(facing,cell.outward)));
+            if(level.getBlockState(pos).is(requiredPort))ports.add(new Port(pos,worldDirection(facing,cell.outward)));
         }
         var modules=new ArrayList<Module>();
         for(var module:inspection.modules){
-            var pos=worldPosition(machine.getBlockPos(),facing,new Cell(module.x,module.y,module.depth,Role.INTERIOR,null));
-            modules.add(new Module(pos,IndustrialModuleKind.valueOf(module.material.name()),module.x,module.y,module.depth));
+            if(module.material.isReactorModule()) {
+                var pos=worldPosition(machine.getBlockPos(),facing,new Cell(module.x,module.y,module.depth,Role.INTERIOR,null));
+                modules.add(new Module(pos,IndustrialModuleKind.valueOf(module.material.name()),module.x,module.y,module.depth));
+            }
         }
-        return new Formation(true,shape,ports,modules,"ready");
+        return new Formation(true,shape,ports,modules,inspection.modules,"ready");
     }
     static Material materialAt(ServerLevel level, MachineBlockEntity machine, BlockPos pos) {
         return material(level, machine, pos);
@@ -528,11 +740,28 @@ public final class IndustrialStructure {
         var state=level.getBlockState(pos);
         if(pos.equals(machine.getBlockPos()))return level.getBlockEntity(pos)==machine?Material.CONTROLLER:Material.OTHER;
         if(state.isAir())return Material.AIR;
-        if(state.is(ModContent.REACTOR_CASING.get()))return Material.CASING;
-        if(state.is(ModContent.REACTOR_GLASS.get()))return Material.GLASS;
-        if(state.is(ModContent.MACHINE_PORT.get())&&level.getBlockEntity(pos) instanceof MachinePortBlockEntity)return Material.PORT;
+        var kind = machine.kind();
+        if(state.is(ModContent.reactorCasing(kind)))return Material.CASING;
+        if(state.is(ModContent.reactorGlass(kind)))return Material.GLASS;
+        if(state.is(ModContent.machinePort(kind))&&level.getBlockEntity(pos) instanceof MachinePortBlockEntity)return Material.PORT;
         if(state.getBlock() instanceof IndustrialModuleBlock module && level.getBlockEntity(pos) instanceof IndustrialModuleBlockEntity)
             return Material.valueOf(module.kind().name());
+        if(state.getBlock() instanceof dev.latrox.rematter.energy.EnergyMatrixCellBlock cell) {
+            return switch (cell.tier()) {
+                case BASIC -> Material.ENERGY_MATRIX_CELL;
+                case REINFORCED -> Material.REINFORCED_ENERGY_MATRIX_CELL;
+                case RESONANT -> Material.RESONANT_ENERGY_MATRIX_CELL;
+                case PRIMAL -> Material.PRIMAL_ENERGY_MATRIX_CELL;
+            };
+        }
+        if(state.getBlock() instanceof dev.latrox.rematter.energy.EnergyMatrixProviderBlock provider) {
+            return switch (provider.tier()) {
+                case BASIC -> Material.ENERGY_MATRIX_PROVIDER;
+                case REINFORCED -> Material.REINFORCED_ENERGY_MATRIX_PROVIDER;
+                case RESONANT -> Material.RESONANT_ENERGY_MATRIX_PROVIDER;
+                case PRIMAL -> Material.PRIMAL_ENERGY_MATRIX_PROVIDER;
+            };
+        }
         return Material.OTHER;
     }
     /** The shell after the port and claim rules. Repeated calls in one tick cost one map lookup while nothing structural changed. */

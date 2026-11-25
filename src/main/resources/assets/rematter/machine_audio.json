@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "active_set": "workshop-v11",
+  "active_set": "workshop-v14",
   "machines": {
     "analyzer": {
       "role": "analyzer",
@@ -24,7 +24,7 @@
           "min_drive": 0.6
         }
       ],
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "decomposer": {
       "role": "decomposer",
@@ -48,7 +48,7 @@
           "min_drive": 0.6
         }
       ],
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "material_synthesizer": {
       "role": "synthesizer",
@@ -76,7 +76,7 @@
           ]
         }
       ],
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "chemical_processor": {
       "role": "processor",
@@ -100,7 +100,7 @@
           "min_drive": 0.6
         }
       ],
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "chemical_reactor_controller": {
       "role": "chemical_reactor",
@@ -131,9 +131,9 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
-    "industrial_decomposer_controller": {
+    "decomposer_reactor_controller": {
       "role": "chemical_reactor",
       "position": "chamber",
       "loop": {
@@ -162,9 +162,9 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
-    "industrial_synthesizer_controller": {
+    "synthesizer_reactor_controller": {
       "role": "chemical_reactor",
       "position": "chamber",
       "loop": {
@@ -193,7 +193,100 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
+    },
+    "transmutation_reactor_controller": {
+      "role": "transmutation_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:transmutation_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 10,
+        "hold": 12,
+        "fade_out": 14
+      },
+      "cues": [
+        {
+          "event": "rematter:transmutation_reactor_cycle",
+          "source": "chamber",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:transmutation_reactor_accent",
+        "interval": 130,
+        "offset": 50,
+        "jitter": 30,
+        "gain": 0.9
+      },
+      "set": "workshop-v14"
+    },
+    "primal_reactor_controller": {
+      "role": "primal_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:primal_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 12,
+        "hold": 14,
+        "fade_out": 16
+      },
+      "cues": [
+        {
+          "event": "rematter:primal_reactor_cycle",
+          "source": "chamber",
+          "period": 40,
+          "phase": 0.0,
+          "gain": 0.88,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:primal_reactor_accent",
+        "interval": 140,
+        "offset": 58,
+        "jitter": 34,
+        "gain": 0.9
+      },
+      "set": "workshop-v14"
+    },
+    "energy_reactor_controller": {
+      "role": "energy_reactor",
+      "position": "chamber",
+      "loop": {
+        "event": "rematter:energy_reactor_work",
+        "gain": 1.0,
+        "pitch": 1.0,
+        "fade_in": 10,
+        "hold": 12,
+        "fade_out": 20
+      },
+      "cues": [
+        {
+          "event": "rematter:energy_reactor_cycle",
+          "source": "chamber",
+          "period": 32,
+          "phase": 0.0,
+          "gain": 0.88,
+          "stretch": true,
+          "min_drive": 0.15
+        }
+      ],
+      "accent": {
+        "event": "rematter:energy_reactor_accent",
+        "interval": 140,
+        "offset": 55,
+        "jitter": 30,
+        "gain": 0.85
+      },
+      "set": "workshop-v14"
     },
     "hand_preparator": {
       "role": "hand_preparator",
@@ -207,7 +300,7 @@
         "fade_out": 14
       },
       "cues": [],
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "material_preparator": {
       "role": "preparator",
@@ -240,7 +333,7 @@
         "gain": 1.0,
         "mixing": true
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "preparation_reactor_controller": {
       "role": "preparation_reactor",
@@ -271,7 +364,7 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "sinter_furnace": {
       "role": "sinter",
@@ -292,7 +385,7 @@
         "jitter": 30,
         "gain": 0.6
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "crystal_generator": {
       "role": "generator",
@@ -313,7 +406,7 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "industrial_crystal_generator": {
       "role": "generator",
@@ -334,7 +427,7 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "primal_converter": {
       "role": "converter",
@@ -355,7 +448,7 @@
         "jitter": 30,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
     },
     "atmospheric_collector": {
       "role": "atmospheric",
@@ -386,7 +479,38 @@
         "jitter": 20,
         "gain": 1.0
       },
-      "set": "workshop-v11"
+      "set": "workshop-v14"
+    },
+    "deep_extractor": {
+      "role": "deep_extractor",
+      "position": "block",
+      "loop": {
+        "event": "rematter:deep_extractor_work",
+        "gain": 0.95,
+        "pitch": 1.0,
+        "fade_in": 8,
+        "hold": 10,
+        "fade_out": 12
+      },
+      "cues": [
+        {
+          "event": "rematter:deep_extractor_cycle",
+          "source": "machine",
+          "period": 24,
+          "phase": 0.0,
+          "gain": 0.85,
+          "stretch": true,
+          "min_drive": 0.6
+        }
+      ],
+      "accent": {
+        "event": "rematter:deep_extractor_accent",
+        "interval": 110,
+        "offset": 44,
+        "jitter": 28,
+        "gain": 0.85
+      },
+      "set": "workshop-v14"
     }
   }
 }

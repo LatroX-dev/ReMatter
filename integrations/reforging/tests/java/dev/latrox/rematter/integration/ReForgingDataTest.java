@@ -111,6 +111,14 @@ class ReForgingDataTest {
         amounts.put("minecraft:nether_quartz_ore", 1_000L);
         amounts.put("thaumaturge:ore_quartz", 1_000L);
         amounts.put("thaumaturge:deepslate_ore_quartz", 1_000L);
+        for (String gem : Set.of("quartz_dark", "quartz_mana", "quartz_blaze", "quartz_lavender",
+                "quartz_red", "quartz_elven", "quartz_sunny", "quartz_shimmer")) {
+            amounts.put("botania:" + gem, 1_000L);
+        }
+        for (String block : Set.of("dark_quartz", "mana_quartz", "blaze_quartz", "lavender_quartz",
+                "red_quartz", "elf_quartz", "sunny_quartz", "shimmer_quartz")) {
+            amounts.put("botania:" + block, 4_000L);
+        }
         Set<String> canonicalSynth = Set.of("minecraft:quartz", "minecraft:quartz_block", "mekanism:dust_quartz", "thaumaturge:nugget_quartz");
         Set<String> aliasedDusts = Set.of("enderio:powdered_quartz", "ftbic:quartz_dust", "oritech:quartz_dust");
         Set<String> actual = registry.profiles().stream().filter(profile -> profile.matter().keySet().equals(Set.of(CRYSTAL)))

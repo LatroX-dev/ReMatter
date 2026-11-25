@@ -72,7 +72,7 @@ public final class StorageChunkMetadataGameTests {
         for(int slot=0;slot<tier.chargingSlots();slot++){
             var item=new ItemStack(Items.IRON_PICKAXE);item.set(DataComponents.REPAIR_COST,1234+slot);cube.setItem(slot,item);
         }
-        var seeded=cube.saveCustomOnly(h.getLevel().registryAccess());seeded.putInt("energy",tier.capacity()-123);
+        var seeded=cube.saveCustomOnly(h.getLevel().registryAccess());seeded.putLong("energy",tier.capacity()-123L);
         cube.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING,h.getLevel().registryAccess(),seeded));
         h.assertTrue(cube.cycleSide(owner,MachinePortMode.Side.RIGHT)&&cube.cycleSide(owner,MachinePortMode.Side.RIGHT)
                 &&cube.cycleSide(owner,MachinePortMode.Side.LEFT),"Could not seed non-default Cube sides");return cube;

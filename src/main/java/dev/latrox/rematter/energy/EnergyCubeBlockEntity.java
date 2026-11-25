@@ -31,13 +31,42 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     private final EnergyCubeTier tier;
     private final NonNullList<ItemStack> items;
     private final ResourceHandler<ItemResource> itemHandler;
-    private final SimpleEnergyHandler energy;
+    private final LongEnergyBuffer energy;
     private final EnergyCubeBudget inputBudget, outputBudget;
+
+    /** Rollback-safe 64-bit FE store so multi-giga-FE cubes never overflow signed 32-bit int. */
+    private final class LongEnergyBuffer extends SnapshotJournal<Long> {
+        private final long capacity;
+        private long amount;
+        private LongEnergyBuffer(long capacity) { this.capacity = capacity; }
+        long getAmountAsLong() { return amount; }
+        void set(long value) { amount = Math.clamp(value, 0L, capacity); }
+        int insert(int requested, TransactionContext tx) {
+            TransferPreconditions.checkNonNegative(requested);
+            int added = (int) Math.min((long) requested, capacity - amount);
+            if (added > 0) { updateSnapshots(tx); amount += added; }
+            return added;
+        }
+        int extract(int requested, TransactionContext tx) {
+            TransferPreconditions.checkNonNegative(requested);
+            int taken = (int) Math.min((long) requested, amount);
+            if (taken > 0) { updateSnapshots(tx); amount -= taken; }
+            return taken;
+        }
+        @Override protected Long createSnapshot() { return amount; }
+        @Override protected void revertToSnapshot(Long snapshot) { amount = snapshot; }
+        @Override protected void onRootCommit(Long originalState) {
+            if (amount != originalState) { setChanged(); publishCharge(); }
+        }
+    }
     private final EnergyCubeFlow flow = new EnergyCubeFlow();
     private final long[] lastDirectInputTick = {-1, -1, -1, -1, -1, -1};
     private final DirectInputJournal[] directInputJournals = new DirectInputJournal[Direction.values().length];
     private @Nullable UUID owner;
     private @Nullable CompoundTag unsupportedData;
+    private String customName = "";
+    private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
+    private boolean automationAllowed = true;
     // FRONT is ordinal zero. Every other face starts as an input.
     private int sideModes = EnergyCubeSideMode.OUTPUT.ordinal();
 
@@ -60,18 +89,23 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         inputBudget = new EnergyCubeBudget(tier.transferRate());
         outputBudget = new EnergyCubeBudget(tier.transferRate());
         for (var dir : Direction.values()) directInputJournals[dir.ordinal()] = new DirectInputJournal(dir.ordinal());
-        energy = new SimpleEnergyHandler(tier.capacity(), tier.capacity(), tier.capacity()) {
-            @Override protected void onEnergyChanged(int previous) { setChanged(); publishCharge(); }
-        };
+        energy = new LongEnergyBuffer(tier.capacity());
         // The native stack handler copies its constructor list. A Container wrapper keeps one authoritative
         // inventory and journals component changes together with charging, discharging, pickup and automation.
         itemHandler = VanillaContainerWrapper.of(this);
     }
 
     public EnergyCubeTier tier() { return tier; }
-    public int energy() { return (int) energy.getAmountAsLong(); }
+    public long energy() { return energy.getAmountAsLong(); }
     public boolean locked() { return unsupportedData != null; }
     public @Nullable UUID owner() { return owner; }
+    public String customName() { return customName; }
+    public void setCustomName(String next) {
+        String clean = CustomNames.sanitize(next);
+        if (customName.equals(clean)) return;
+        customName = clean;
+        setChanged();
+    }
     private SecurityMode securityMode = SecurityMode.PUBLIC;
     public SecurityMode securityMode() { return securityMode; }
     public boolean canManageSecurity(Player player) { return MachineAccess.canManage(owner, player); }
@@ -85,6 +119,29 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     }
     public boolean cycleSecurityMode(Player player, boolean forward) {
         return setSecurityMode(player, forward ? securityMode.next() : securityMode.previous());
+    }
+    public RedstoneMode redstoneMode() { return redstoneMode; }
+    public boolean automationAllowed() { return automationAllowed; }
+    public boolean redstoneAllows() {
+        if (redstoneMode == RedstoneMode.IGNORED || level == null) return true;
+        boolean powered = level.hasNeighborSignal(worldPosition);
+        return redstoneMode == RedstoneMode.HIGH ? powered : !powered;
+    }
+    public boolean redstonePaused() { return !redstoneAllows(); }
+    public boolean cycleRedstoneMode(Player player, boolean forward) {
+        if (!live() || player.isSpectator() || !canAccess(player) || !Container.stillValidBlockEntity(this, player)) return false;
+        RedstoneMode next = redstoneMode.stepSimple(forward);
+        if (redstoneMode == next) return true;
+        redstoneMode = next;
+        setChanged();
+        return true;
+    }
+    public boolean toggleAutomation(Player player) {
+        if (!live() || player.isSpectator() || !canAccess(player) || !Container.stillValidBlockEntity(this, player)) return false;
+        automationAllowed = !automationAllowed;
+        setChanged();
+        touchTopology();
+        return true;
     }
     public int packedSideModes() { return sideModes; }
     public EnergyCubeSideMode sideMode(MachinePortMode.Side side) { return EnergyCubeSideMode.values()[(sideModes >>> (side.ordinal() * 2)) & 3]; }
@@ -116,8 +173,17 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        placedBy(placer, ItemStack.EMPTY);
+    }
+
+    public void placedBy(@Nullable LivingEntity placer, ItemStack stack) {
         if (securityMode == SecurityMode.PUBLIC && !locked()) {
             securityMode = MachineAccess.placementDefault(level, placer);
+        }
+        String fromItem = CustomNames.fromStack(stack);
+        if (!fromItem.isEmpty() && !locked()) {
+            customName = fromItem;
+            setChanged();
         }
         assignOwner(placer instanceof Player player ? player.getUUID() : null);
         publishCharge();
@@ -229,7 +295,7 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
             }
             public int extract(int amount, TransactionContext tx) {
                 TransferPreconditions.checkNonNegative(amount);
-                return live() && sideMode(side).allowsOutput() ? drain(amount, tx) : 0;
+                return live() && redstoneAllows() && sideMode(side).allowsOutput() ? drain(amount, tx) : 0;
             }
         };
     }
@@ -260,7 +326,7 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
     public @Nullable ResourceHandler<ItemResource> sidedItems(@Nullable Direction side) {
         if (side == null || sideMode(side) == EnergyCubeSideMode.DISABLED || !(level instanceof ServerLevel)) return null;
         return new ResourceHandler<>() {
-            private boolean available() { return live() && sideMode(side) != EnergyCubeSideMode.DISABLED; }
+            private boolean available() { return live() && automationAllowed && sideMode(side) != EnergyCubeSideMode.DISABLED; }
             public int size() { return itemHandler.size(); }
             public ItemResource getResource(int index) { return available() ? itemHandler.getResource(index) : ItemResource.EMPTY; }
             public long getAmountAsLong(int index) { return available() ? itemHandler.getAmountAsLong(index) : 0; }
@@ -324,65 +390,70 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         if (!live()) return;
         long gameTime = level.getGameTime();
 
-        // 1. Drain items in Discharge Slots into the Cube buffer using the shared input allowance.
-        int dischargeCount = tier.dischargingSlots();
-        int dischargeOffset = tier.chargingSlots();
-        if (energy() < tier.capacity() && dischargeCount > 0) {
-            int start = Math.floorMod(gameTime, dischargeCount);
-            var pendingDischarge = new ArrayList<Integer>();
-            for (int i = 0; i < dischargeCount; i++) {
-                int slot = dischargeOffset + (start + i) % dischargeCount;
-                if (items.get(slot).isEmpty()) continue;
-                var source = ItemAccess.forHandlerIndexStrict(itemHandler, slot).getCapability(Capabilities.Energy.ITEM);
-                if (source != null && source.getAmountAsLong() > 0) pendingDischarge.add(slot);
-            }
-            for (int i = 0; i < pendingDischarge.size() && energy() < tier.capacity() && inputBudget.remaining(gameTime) > 0; i++) {
-                var source = ItemAccess.forHandlerIndexStrict(itemHandler, pendingDischarge.get(i)).getCapability(Capabilities.Energy.ITEM);
-                int offer = inputBudget.remaining(gameTime) / (pendingDischarge.size() - i);
-                if (source != null && offer > 0) {
-                    try (var tx = Transaction.openRoot()) {
-                        if (EnergyHandlerUtil.move(source, dischargingSink, offer, tx) > 0) tx.commit();
+        if (redstoneAllows()) {
+            // 1. Drain items in Discharge Slots into the Cube buffer using the shared input allowance.
+            int dischargeCount = tier.dischargingSlots();
+            int dischargeOffset = tier.chargingSlots();
+            if (energy() < tier.capacity() && dischargeCount > 0) {
+                int start = Math.floorMod(gameTime, dischargeCount);
+                var pendingDischarge = new ArrayList<Integer>();
+                for (int i = 0; i < dischargeCount; i++) {
+                    int slot = dischargeOffset + (start + i) % dischargeCount;
+                    if (items.get(slot).isEmpty()) continue;
+                    var source = ItemAccess.forHandlerIndexStrict(itemHandler, slot).getCapability(Capabilities.Energy.ITEM);
+                    if (source != null && source.getAmountAsLong() > 0) pendingDischarge.add(slot);
+                }
+                for (int i = 0; i < pendingDischarge.size() && energy() < tier.capacity() && inputBudget.remaining(gameTime) > 0; i++) {
+                    var source = ItemAccess.forHandlerIndexStrict(itemHandler, pendingDischarge.get(i)).getCapability(Capabilities.Energy.ITEM);
+                    int available = (int) Math.min(tier.capacity() - energy(), (long) inputBudget.remaining(gameTime));
+                    int offer = Math.max(1, available / (pendingDischarge.size() - i));
+                    if (source != null && available > 0) {
+                        try (var tx = Transaction.openRoot()) {
+                            if (EnergyHandlerUtil.move(source, dischargingSink, Math.min(available, offer), tx) > 0) tx.commit();
+                        }
                     }
                 }
             }
-        }
 
-        // 2. Push power out to neighbors first; item charging shares the remaining output allowance.
-        if (energy() > 0) for (var side : Direction.values()) {
-            var mode = sideMode(side);
-            if (!mode.allowsOutput()) continue;
-            if (mode == EnergyCubeSideMode.INPUT_OUTPUT && lastDirectInputTick[side.ordinal()] >= 0
-                    && gameTime - lastDirectInputTick[side.ordinal()] <= 1) continue;
-            BlockPos target = worldPosition.relative(side);
-            if (level.getChunkSource().getChunkNow(target.getX() >> 4, target.getZ() >> 4) == null) continue;
-            if (level.getBlockEntity(target) instanceof EnergyCubeBlockEntity cube
-                    && !MachineAccess.canConnect(level, owner, securityMode, cube.owner, cube.securityMode)) continue;
-            var sink = level.getCapability(Capabilities.Energy.BLOCK, target, side.getOpposite());
-            if (sink != null) {
-                if (mode == EnergyCubeSideMode.INPUT_OUTPUT) bidirectionalPushDepth++;
-                try (var tx = Transaction.openRoot()) {
-                    if (EnergyHandlerUtil.move(chargingSource, sink, tier.transferRate(), tx) > 0) tx.commit();
-                } finally {
-                    if (mode == EnergyCubeSideMode.INPUT_OUTPUT) bidirectionalPushDepth--;
+            // 2. Push power out to neighbors first; item charging shares the remaining output allowance.
+            if (energy() > 0) for (var side : Direction.values()) {
+                var mode = sideMode(side);
+                if (!mode.allowsOutput()) continue;
+                if (mode == EnergyCubeSideMode.INPUT_OUTPUT && lastDirectInputTick[side.ordinal()] >= 0
+                        && gameTime - lastDirectInputTick[side.ordinal()] <= 1) continue;
+                BlockPos target = worldPosition.relative(side);
+                if (level.getChunkSource().getChunkNow(target.getX() >> 4, target.getZ() >> 4) == null) continue;
+                if (level.getBlockEntity(target) instanceof EnergyCubeBlockEntity cube
+                        && !MachineAccess.canConnect(level, owner, securityMode, cube.owner, cube.securityMode)) continue;
+                var sink = level.getCapability(Capabilities.Energy.BLOCK, target, side.getOpposite());
+                if (sink != null) {
+                    MatterCablePower.energizeIfCable(sink);
+                    if (mode == EnergyCubeSideMode.INPUT_OUTPUT) bidirectionalPushDepth++;
+                    try (var tx = Transaction.openRoot()) {
+                        if (EnergyHandlerUtil.move(chargingSource, sink, tier.transferRate(), tx) > 0) tx.commit();
+                    } finally {
+                        if (mode == EnergyCubeSideMode.INPUT_OUTPUT) bidirectionalPushDepth--;
+                    }
                 }
             }
-        }
 
-        // 3. Charge items in Charge Slots from the remaining output allowance.
-        int count = tier.chargingSlots(), start = Math.floorMod(gameTime, count);
-        var pending = new ArrayList<Integer>();
-        for (int i = 0; i < count; i++) {
-            int slot = (start + i) % count;
-            if (items.get(slot).isEmpty()) continue;
-            var sink = ItemAccess.forHandlerIndexStrict(itemHandler, slot).getCapability(Capabilities.Energy.ITEM);
-            if (sink != null && sink.getAmountAsLong() < sink.getCapacityAsLong()) pending.add(slot);
-        }
-        for (int i = 0; i < pending.size() && energy() > 0 && outputBudget.remaining(gameTime) > 0; i++) {
-            var sink = ItemAccess.forHandlerIndexStrict(itemHandler, pending.get(i)).getCapability(Capabilities.Energy.ITEM);
-            int offer = outputBudget.remaining(gameTime) / (pending.size() - i);
-            if (sink != null && offer > 0) {
-                try (var tx = Transaction.openRoot()) {
-                    if (EnergyHandlerUtil.move(chargingSource, sink, offer, tx) > 0) tx.commit();
+            // 3. Charge items in Charge Slots from the remaining output allowance.
+            int count = tier.chargingSlots(), start = Math.floorMod(gameTime, count);
+            var pending = new ArrayList<Integer>();
+            for (int i = 0; i < count; i++) {
+                int slot = (start + i) % count;
+                if (items.get(slot).isEmpty()) continue;
+                var sink = ItemAccess.forHandlerIndexStrict(itemHandler, slot).getCapability(Capabilities.Energy.ITEM);
+                if (sink != null && sink.getAmountAsLong() < sink.getCapacityAsLong()) pending.add(slot);
+            }
+            for (int i = 0; i < pending.size() && energy() > 0 && outputBudget.remaining(gameTime) > 0; i++) {
+                var sink = ItemAccess.forHandlerIndexStrict(itemHandler, pending.get(i)).getCapability(Capabilities.Energy.ITEM);
+                int available = (int) Math.min(energy(), (long) outputBudget.remaining(gameTime));
+                int offer = Math.max(1, available / (pending.size() - i));
+                if (sink != null && available > 0) {
+                    try (var tx = Transaction.openRoot()) {
+                        if (EnergyHandlerUtil.move(chargingSource, sink, Math.min(available, offer), tx) > 0) tx.commit();
+                    }
                 }
             }
         }
@@ -395,8 +466,8 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
 
     private void publishCharge() {
         if (!installed()) return;
-        int current = energy();
-        int charge = locked() || current <= 0 ? 0 : Math.min(8, 1 + (int) (7L * current / tier.capacity()));
+        long current = energy();
+        int charge = locked() || current <= 0L ? 0 : Math.min(8, 1 + (int) ((7L * current) / tier.capacity()));
         if (getBlockState().getValue(EnergyCubeBlock.CHARGE) != charge)
             level.setBlock(worldPosition, getBlockState().setValue(EnergyCubeBlock.CHARGE, charge), 2);
         level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
@@ -408,10 +479,13 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         super.saveAdditional(output);
         if (locked()) { output.store(EnergyCubeData.RAW, unsupportedData); return; }
         output.putInt("schema", EnergyCubeData.SCHEMA);
-        output.putInt("energy", energy());
+        output.putLong("energy", energy());
         output.putInt("side_modes", sideModes);
         if (owner != null) output.putString("owner", owner.toString());
         if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
+        if (!customName.isEmpty()) output.putString("custom_name", customName);
+        if (redstoneMode != RedstoneMode.IGNORED) output.putString("redstone_mode", redstoneMode.getSerializedName());
+        if (!automationAllowed) output.putBoolean("automation", false);
         int chargeCount = tier.chargingSlots();
         output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items.subList(0, chargeCount)));
         var dischargeSubList = items.subList(chargeCount, tier.totalSlots());
@@ -433,9 +507,15 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         unsupportedData = rejection == null ? null : raw;
         owner = raw.getString("owner").map(EnergyCubeData::owner).orElse(null);
         securityMode = SecurityMode.PUBLIC;
+        customName = "";
+        redstoneMode = RedstoneMode.IGNORED;
+        automationAllowed = true;
         if (!locked()) {
             securityMode = raw.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
-            energy.set(raw.getIntOr("energy", 0));
+            customName = CustomNames.sanitize(raw.getStringOr("custom_name", ""));
+            redstoneMode = raw.getString("redstone_mode").map(RedstoneMode::loadSimple).orElse(RedstoneMode.IGNORED);
+            automationAllowed = raw.getBooleanOr("automation", true);
+            energy.set(EnergyCubeData.readEnergy(raw));
             sideModes = raw.getIntOr("side_modes", 0);
             items.replaceAll(stack -> ItemStack.EMPTY);
             var chargeStacks = decodedCharge.orElseThrow();
@@ -458,7 +538,7 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
         super.setRemoved();
     }
 
-    @Override public Component getDisplayName() { return Component.translatable("block.rematter." + tier.id()); }
+    @Override public Component getDisplayName() { return CustomNames.displayName(customName, "block.rematter." + tier.id()); }
 
     @Override public @Nullable AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
         return canAccess(player) ? new EnergyCubeMenu(id, inventory, this) : null;
@@ -498,18 +578,18 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
 
     /** Vanilla hoppers reach WorldlyContainer directly, without the NeoForge capability gate. */
     @Override public int[] getSlotsForFace(Direction side) {
-        if (!live() || sideMode(side) == EnergyCubeSideMode.DISABLED) return new int[0];
+        if (!live() || !automationAllowed || sideMode(side) == EnergyCubeSideMode.DISABLED) return new int[0];
         return java.util.stream.IntStream.range(0, items.size()).toArray();
     }
 
     @Override public boolean canPlaceItemThroughFace(int slot, ItemStack stack, Direction side) {
-        if (!live() || !sideMode(side).allowsInput() || !canPlaceItem(slot, stack)) return false;
+        if (!live() || !automationAllowed || !sideMode(side).allowsInput() || !canPlaceItem(slot, stack)) return false;
         if (isDischargeSlot(slot)) return canDischargeStack(stack);
         return sideMode(side) != EnergyCubeSideMode.INPUT_OUTPUT || !fullyChargedStack(stack);
     }
 
     @Override public boolean canTakeItemThroughFace(int slot, ItemStack stack, Direction side) {
-        if (!live() || !sideMode(side).allowsOutput()) return false;
+        if (!live() || !automationAllowed || !sideMode(side).allowsOutput()) return false;
         return isDischargeSlot(slot) ? depletedForDischarge(slot) : fullyCharged(slot);
     }
 

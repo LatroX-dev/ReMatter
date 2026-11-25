@@ -30,7 +30,7 @@ public final class MachineCellAccess {
         return -1;
     }
     public static boolean isCellSlot(MachineKind kind, int slot) { return bayForSlot(kind, slot) >= 0; }
-    public static final int SPEED_SLOT=2, EFFICIENCY_SLOT=10, PARALLEL_SLOT=11, PRESSURE_SLOT=PARALLEL_SLOT, PRIMAL_SLOT=12, DISCOVERY_SLOT=13;
-    public static final int INVENTORY_SIZE=14;
+    public static final int SPEED_SLOT=2, EFFICIENCY_SLOT=10, PARALLEL_SLOT=11, PRESSURE_SLOT=PARALLEL_SLOT, PRIMAL_SLOT=12, DISCOVERY_SLOT=13, MASS_COMPRESSION_SLOT=14, ANCHOR_SLOT=15;
+    public static final int INVENTORY_SIZE=16;
     public static int inventorySize(MachineKind kind) { return INVENTORY_SIZE; }
 }

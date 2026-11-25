@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "rematter:block/resonant_energy_matrix_provider"
+    }
+  }
+}

@@ -33,5 +33,22 @@ class ControllerThroughputTest {
         assertThrows(ArithmeticException.class,()->ControllerThroughput.units(List.of(Long.MAX_VALUE),List.of(1L),1));
         assertThrows(ArithmeticException.class,()->ControllerThroughput.units(List.of(Long.MAX_VALUE),List.of(),2));
     }
+    @Test void widestRateBottlenecksThroughValvesAndPrefersUnthrottledAlternateRoute() {
+        var edges = new HashMap<String, List<String>>();
+        connect(edges, "ctrl", "c1");
+        connect(edges, "c1", "valve");
+        connect(edges, "valve", "drive");
+        var rates = new HashMap<String, Integer>();
+        rates.put("c1", 8192);
+        rates.put("valve", 500);
+        assertEquals(500, ControllerThroughput.bestRate("ctrl", Set.of("drive"), rates, edges, 128));
+        // Add an unthrottled Reinforced route (1024 u/t) -> widest-path picks 1024 without adding 500 + 1024.
+        connect(edges, "ctrl", "c2");
+        connect(edges, "c2", "drive");
+        rates.put("c2", 1024);
+        assertEquals(1024, ControllerThroughput.bestRate("ctrl", Set.of("drive"), rates, edges, 128));
+        // Direct contact without intermediate nodes uses the basic default rate.
+        assertEquals(128, ControllerThroughput.bestRate("ctrl", Set.of("drive"), Map.of(), Map.of("ctrl", List.of("drive")), 128));
+    }
     private static void connect(Map<String,List<String>> edges,String a,String b){edges.computeIfAbsent(a,k->new ArrayList<>()).add(b);edges.computeIfAbsent(b,k->new ArrayList<>()).add(a);}
 }

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "transmutation",
+  "inputs": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:nickel",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 320000,
+  "ticks": 1000,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": true,
+    "product": "rematter:nickel"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "rematter:magmatic_siphoning",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:magmatic_filtrate",
+      "phase": "liquid",
+      "amount": 200
+    }
+  ],
+  "energy": 48000,
+  "ticks": 400,
+  "dimensions": [
+    "minecraft:the_nether"
+  ],
+  "requires_open_air": false,
+  "probe_below": "lava"
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "item": "rematter:reactor_induction_coil",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 750
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 562
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 1093
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 5228
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 1687
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1750
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 3779
+    }
+  ],
+  "decomposition_energy": 17800,
+  "synthesis_energy": 35600,
+  "ticks": 50
+}

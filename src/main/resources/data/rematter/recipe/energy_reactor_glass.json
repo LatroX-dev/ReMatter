@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GNG",
+    "EAE",
+    "GNG"
+  ],
+  "key": {
+    "G": "rematter:reactor_glass",
+    "N": "rematter:netherite_sheath",
+    "E": "rematter:ember_matrix_crystal",
+    "A": "rematter:amber_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_reactor_glass",
+    "count": 4
+  }
+}

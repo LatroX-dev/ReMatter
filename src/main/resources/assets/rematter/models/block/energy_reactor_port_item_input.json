@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/energy_reactor_port",
+  "textures": {
+    "particle": "rematter:block/energy_reactor_port_item_input",
+    "face": "rematter:block/energy_reactor_port_item_input"
+  }
+}

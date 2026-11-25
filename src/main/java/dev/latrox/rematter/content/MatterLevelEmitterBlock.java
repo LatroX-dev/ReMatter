@@ -105,8 +105,16 @@ public final class MatterLevelEmitterBlock extends Block implements EntityBlock 
     @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MatterLevelEmitterBlockEntity emitter) {
-            emitter.placedBy(placer);
+            emitter.placedBy(placer, stack);
         }
+    }
+
+    @Override protected java.util.List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
+        var main = new ItemStack(this);
+        if (builder.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY) instanceof MatterLevelEmitterBlockEntity emitter) {
+            CustomNames.applyToStack(main, emitter.customName());
+        }
+        return java.util.List.of(main);
     }
 
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {

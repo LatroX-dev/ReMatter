@@ -10,22 +10,43 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class IndustrialProcessTest {
     private static final Path DATA=Path.of("src/main/resources/data/rematter/rematter/process");
-    @Test void allTenProceduresConserveElementsAndRouteOnlyToIndustrialControllers()throws Exception{
+    @Test void allShippedProceduresRespectConservationAndMachineRouting()throws Exception{
         var registry=ShippedChemistry.standalone();int count=0;
         try(var paths=Files.list(DATA)){
             for(var path:paths.toList()){
                 var id=SubstanceId.parse("rematter:"+path.getFileName().toString().replace(".json",""));
                 var process=ChemistryDocuments.process(id,ShippedChemistry.read(path));
-                assertEquals(registry.elementAmounts(process.inputs()),registry.elementAmounts(process.outputs()),id.toString());
-                assertTrue(process.minField()==4||process.minField()==8);assertNotNull(process.product());
-                assertTrue(process.outputs().keySet().stream().anyMatch(key->key.id().equals(process.product())));
-                assertEquals(MachineKind.INDUSTRIAL_REACTOR,MachineRouting.primary(process));
-                assertFalse(MachineRouting.supports(MachineKind.REACTOR,process));assertTrue(MachineRouting.supports(MachineKind.INDUSTRIAL_REACTOR,process));
-                assertEquals(List.of(MachineKind.INDUSTRIAL_REACTOR),MachineRouting.machines(process));
-                assertTrue(MatterAmounts.total(process.outputs())<=8*MatterAmounts.total(process.inputs()));count++;
+                if(process.type()==ProcessType.TRANSMUTATION){
+                    assertTrue(process.minField()==4||process.minField()==8||process.minField()==12,id.toString());
+                    assertEquals(1,process.outputs().size(),"Transmutation must have zero byproducts: "+id);
+                    assertNotNull(process.product(),id.toString());
+                    assertTrue(process.outputs().keySet().stream().anyMatch(key->key.id().equals(process.product())),id.toString());
+                    assertEquals(MachineKind.TRANSMUTATION_REACTOR,MachineRouting.primary(process),id.toString());
+                    assertFalse(MachineRouting.supports(MachineKind.REACTOR,process),id.toString());
+                    assertFalse(MachineRouting.supports(MachineKind.INDUSTRIAL_REACTOR,process),id.toString());
+                    assertTrue(MachineRouting.supports(MachineKind.TRANSMUTATION_REACTOR,process),id.toString());
+                    assertEquals(List.of(MachineKind.TRANSMUTATION_REACTOR),MachineRouting.machines(process),id.toString());
+                } else if(process.minField()>0){
+                    assertEquals(registry.elementAmounts(process.inputs()),registry.elementAmounts(process.outputs()),id.toString());
+                    assertTrue(process.minField()==4||process.minField()==8,id.toString());
+                    assertNotNull(process.product(),id.toString());
+                    assertTrue(process.outputs().keySet().stream().anyMatch(key->key.id().equals(process.product())),id.toString());
+                    assertEquals(MachineKind.INDUSTRIAL_REACTOR,MachineRouting.primary(process),id.toString());
+                    assertFalse(MachineRouting.supports(MachineKind.REACTOR,process),id.toString());
+                    assertTrue(MachineRouting.supports(MachineKind.INDUSTRIAL_REACTOR,process),id.toString());
+                    assertEquals(List.of(MachineKind.INDUSTRIAL_REACTOR),MachineRouting.machines(process),id.toString());
+                    assertTrue(MatterAmounts.total(process.outputs())<=8*MatterAmounts.total(process.inputs()),id.toString());
+                } else {
+                    assertEquals(registry.elementAmounts(process.inputs()),registry.elementAmounts(process.outputs()),id.toString());
+                    assertEquals(MachineKind.REACTOR,MachineRouting.primary(process),id.toString());
+                    assertTrue(MachineRouting.supports(MachineKind.REACTOR,process),id.toString());
+                    assertTrue(MachineRouting.supports(MachineKind.INDUSTRIAL_REACTOR,process),id.toString());
+                    assertTrue(MatterAmounts.total(process.outputs())<=8*MatterAmounts.total(process.inputs()),id.toString());
+                }
+                count++;
             }
         }
-        assertEquals(10,count);
+        assertEquals(29,count);
     }
     @Test void referencePackClosesEveryNewProcessUntilItsOwnAudit(){
         var registry=ShippedChemistry.load(ShippedChemistry.MAIN_RESOURCES,Path.of("integrations/reforging/datapack"));

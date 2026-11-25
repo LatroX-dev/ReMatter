@@ -1,0 +1,77 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_material": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "rematter:blue_matrix_crystal"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_core"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:particle_resonator"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:primal_matrix_core"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:resonant_matter_cable"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:violet_matrix_crystal"
+            ],
+            "count": {
+              "min": 2
+            }
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "rematter:primal_energy_matrix_provider"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_material",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rematter:primal_energy_matrix_provider"
+    ]
+  }
+}

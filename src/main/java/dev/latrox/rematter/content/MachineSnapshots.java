@@ -34,7 +34,7 @@ final class MachineSnapshots {
 
     private static Source source(MachineBlockEntity machine) {
         MachineKind kind = machine.kind();
-        boolean independent = kind == MachineKind.ANALYZER || PreparationTier.isPreparation(kind);
+        boolean independent = kind == MachineKind.ANALYZER || kind.isEnergyMatrix() || PreparationTier.isPreparation(kind);
         MachineMatterNetwork network = independent ? null : machine.matterNetwork(false);
         MatterStore store = independent ? null : kind.isStorage()
                 ? machine.storageStatus().equals("ready") ? machine.matterStore() : null
@@ -184,9 +184,23 @@ final class MachineSnapshots {
         var formation = IndustrialStructure.isIndustrial(kind) ? IndustrialStructure.inspect(machine) : IndustrialStructure.Formation.EMPTY;
         var performance = formation.performance();
         var shape = formation.shape();
+        int secondary = switch (kind) {
+            case PRIMAL_REACTOR -> performance.emitters();
+            case ENERGY_REACTOR -> performance.inductionCoils();
+            case ENERGY_MATRIX -> performance.matrixProviders();
+            default -> performance.coils();
+        };
+        int primary = switch (kind) {
+            case PRIMAL_REACTOR -> performance.condensers();
+            case TRANSMUTATION_REACTOR -> performance.emitters();
+            case ENERGY_REACTOR -> performance.fuelCores();
+            case ENERGY_MATRIX -> performance.matrixCells();
+            default -> performance.chambers();
+        };
+        int coreCount = !formation.formed() ? 0 : kind == MachineKind.INDUSTRIAL_PREPARATOR ? performance.grinding() : primary;
         return new MachineSnapshot.StructureView(shape == null ? 0 : shape.width(), shape == null ? 0 : shape.depth(),
-                shape == null ? 0 : shape.height(), formation.formed() ? machine.speed() : 0, formation.moduleCount(), formation.diagnostic(),
-                performance.grinding(), performance.mixing(), performance.separation(), performance.coils(), performance.chambers(),
+                shape == null ? 0 : shape.height(), formation.formed() ? machine.speed() : 0, coreCount, formation.diagnostic(),
+                performance.grinding(), performance.mixing(), performance.separation(), secondary, primary,
                 formation.formed()?machine.effectiveSavingPercent():0);
     }
 
@@ -228,6 +242,37 @@ final class MachineSnapshots {
                     return preview(machine, registry, store, MachineChoices.fluidChoiceId(conversion.fluidId()), Map.of(), conversion.matter(),
                             machine.cost(conversion.decompositionEnergy()), conversion.ticks(), "matter", "", 0);
                 }
+            }
+            return MachineSnapshot.Preview.EMPTY;
+        }
+        if (kind == MachineKind.PRIMAL_REACTOR) {
+            var choice = machine.selectedChoice();
+            if (choice == null) return MachineSnapshot.Preview.EMPTY;
+            int stability = machine.extensions().primalStability();
+            int effSpeed = PrimalReactorRecipes.effectiveSpeed(machine.speed(), stability);
+            var tier = PrimalReactorRecipes.condensation(choice.id(), registry).orElse(null);
+            if (tier != null) {
+                boolean compressed = machine.hasMassCompression();
+                var in = tier.effectiveInputs(compressed);
+                var inRows = amounts(registry, store, in);
+                long outUr = PrimalReactorRecipes.condensationOutput(tier.primalOutput(), stability);
+                var outRows = List.of(new MachineSnapshot.Amount(
+                        dev.latrox.rematter.chemistry.ReservedSubstances.PRIMAL_MATTER.toString(), "solid", outUr, 0L, true));
+                return new MachineSnapshot.Preview(tier.id(), inRows, outRows,
+                        inRows.size() == in.size(), machine.cost(tier.effectiveEnergy(compressed)),
+                        (int) (((long) tier.ticks() + effSpeed - 1) / effSpeed),
+                        "matter", "", 0, List.of());
+            }
+            var manifest = PrimalReactorRecipes.manifestation(choice.id(), registry).orElse(null);
+            if (manifest != null) {
+                long primalAvail = machine.extensions().availablePrimalTotal();
+                var inRows = List.of(new MachineSnapshot.Amount(
+                        dev.latrox.rematter.chemistry.ReservedSubstances.PRIMAL_MATTER.toString(), "solid", manifest.primalCost(), primalAvail, true));
+                var outRows = amounts(registry, store, Map.of(manifest.target(), manifest.outputAmount()));
+                return new MachineSnapshot.Preview(manifest.id(), inRows, outRows,
+                        true, machine.cost(manifest.energy()),
+                        (int) (((long) manifest.ticks() + effSpeed - 1) / effSpeed),
+                        "matter", "", 0, List.of());
             }
             return MachineSnapshot.Preview.EMPTY;
         }

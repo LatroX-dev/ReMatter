@@ -323,4 +323,110 @@ class IndustrialStructureTest {
         var separate=new IndustrialStructure.Claimant(b,owner,Set.of(new BlockPos(-6,65,2)),null);
         assertTrue(IndustrialStructure.keepsPorts(first,List.of(separate)));
     }
+    @Test void energyMatrixAllows3DMixedTierCellsAndProvidersAndTopBottomPorts() {
+        // 3x3x3 has only 1 interior block -> rejected because it cannot hold both a Cell and a Provider.
+        var tiny = new IndustrialStructure.Shape(3, 3, 3, 1);
+        var tinyBlocks = shell(tiny);
+        tinyBlocks.put(new Point(0, 0, 1), ENERGY_MATRIX_CELL);
+        assertFalse(inspect(MachineKind.ENERGY_MATRIX, tiny, tinyBlocks).formed());
+
+        // 4x3x3 has 2 interior blocks -> valid minimal Energy Matrix!
+        var minimal = new IndustrialStructure.Shape(4, 3, 3, 1);
+        var minBlocks = shell(minimal);
+        minBlocks.put(new Point(0, 0, 1), ENERGY_MATRIX_CELL);
+        minBlocks.put(new Point(1, 0, 1), ENERGY_MATRIX_PROVIDER);
+        // Place a port on top roof panel and bottom floor panel — allowed on Energy Matrix!
+        minBlocks.put(new Point(0, 1, 1), PORT);
+        minBlocks.put(new Point(1, -1, 1), PORT);
+        var minResult = inspect(MachineKind.ENERGY_MATRIX, minimal, minBlocks);
+        assertTrue(minResult.formed(), minResult.diagnostic());
+        assertEquals(64_000_000L, minResult.performance().matrixCapacity());
+        assertEquals(262_144L, minResult.performance().matrixTransferRate());
+
+        // 5x5x5 with mixed tiers stacked across floor, middle (y=1), and upper (y=2) interior layers!
+        var big = new IndustrialStructure.Shape(5, 5, 5, 2);
+        var bigBlocks = shell(big);
+        bigBlocks.put(new Point(-1, 0, 2), ENERGY_MATRIX_CELL);
+        bigBlocks.put(new Point(-1, 1, 2), REINFORCED_ENERGY_MATRIX_CELL);
+        bigBlocks.put(new Point(-1, 2, 2), RESONANT_ENERGY_MATRIX_CELL);
+        bigBlocks.put(new Point(0, 1, 2), PRIMAL_ENERGY_MATRIX_CELL);
+        bigBlocks.put(new Point(1, 0, 2), ENERGY_MATRIX_PROVIDER);
+        bigBlocks.put(new Point(1, 1, 2), REINFORCED_ENERGY_MATRIX_PROVIDER);
+        bigBlocks.put(new Point(1, 2, 2), RESONANT_ENERGY_MATRIX_PROVIDER);
+        bigBlocks.put(new Point(0, 2, 2), PRIMAL_ENERGY_MATRIX_PROVIDER);
+        var bigResult = inspect(MachineKind.ENERGY_MATRIX, big, bigBlocks);
+        assertTrue(bigResult.formed(), bigResult.diagnostic());
+        assertEquals(4, bigResult.performance().matrixCells());
+        assertEquals(4, bigResult.performance().matrixProviders());
+        assertEquals(37_440_000_000L, bigResult.performance().matrixCapacity());
+        assertEquals(22_282_240L, bigResult.performance().matrixTransferRate());
+        assertEquals(8, bigResult.modules().size());
+
+        // Rejects foreign Reactor modules inside Energy Matrix cavity
+        var foreign = new HashMap<>(bigBlocks);
+        foreign.put(new Point(0, 0, 1), REACTOR_FUEL_CORE);
+        assertEquals("structure_module_type", inspect(MachineKind.ENERGY_MATRIX, big, foreign).diagnostic());
+    }
+    @Test void energyReactorRequiresFuelCoresAndInductionCoilsIn5x5x5Shell() {
+        var shape = new IndustrialStructure.Shape(5, 5, 5, 2);
+        var blocks = shell(shape);
+        blocks.put(new Point(-1, 0, 2), REACTOR_FUEL_CORE);
+        blocks.put(new Point(1, 0, 2), REACTOR_FUEL_CORE);
+        blocks.put(new Point(0, 2, 2), REACTOR_INDUCTION_COIL);
+        blocks.put(new Point(1, 2, 2), REACTOR_INDUCTION_COIL);
+        var formed = inspect(MachineKind.ENERGY_REACTOR, shape, blocks);
+        assertTrue(formed.formed(), formed.diagnostic());
+        assertEquals(2, formed.performance().fuelCores());
+        assertEquals(2, formed.performance().inductionCoils());
+        assertEquals(1_024_000_000L, formed.performance().reactorCapacity());
+        assertEquals(2_097_152L, formed.performance().reactorMaxOutputRate());
+
+        // Rejects floating middle module, foreign Matrix Cell, glass over/under a mounted module, and top/bottom endcap port
+        var floating = new HashMap<>(blocks);
+        floating.put(new Point(0, 1, 2), REACTOR_FUEL_CORE);
+        assertEquals("structure_module_position", inspect(MachineKind.ENERGY_REACTOR, shape, floating).diagnostic());
+        var foreign = new HashMap<>(blocks);
+        foreign.put(new Point(0, 0, 2), ENERGY_MATRIX_CELL);
+        assertEquals("structure_module_type", inspect(MachineKind.ENERGY_REACTOR, shape, foreign).diagnostic());
+        var roofPort = new HashMap<>(blocks);
+        roofPort.put(new Point(0, 3, 2), PORT);
+        assertEquals("structure_endcaps", inspect(MachineKind.ENERGY_REACTOR, shape, roofPort).diagnostic());
+
+        // Mixed roof/floor Glass + Casing: Glass is allowed over/under open interior spots, rejected directly over/under modules!
+        var mixedRoofFloor = new HashMap<>(blocks);
+        mixedRoofFloor.put(new Point(0, -1, 2), GLASS);  // (0,0,2) is AIR -> allowed!
+        mixedRoofFloor.put(new Point(-1, 3, 2), GLASS);  // (-1,2,2) is AIR -> allowed!
+        mixedRoofFloor.put(new Point(0, 3, 1), GLASS);   // (0,2,1) is AIR -> allowed!
+        assertTrue(inspect(MachineKind.ENERGY_REACTOR, shape, mixedRoofFloor).formed(),
+                "Open roof and floor spots without adjacent modules must accept Glass");
+
+        var glassUnderCore = new HashMap<>(mixedRoofFloor);
+        glassUnderCore.put(new Point(-1, -1, 2), GLASS); // (-1,0,2) holds REACTOR_FUEL_CORE -> must be Casing!
+        assertEquals("structure_endcaps", inspect(MachineKind.ENERGY_REACTOR, shape, glassUnderCore).diagnostic());
+
+        var glassOverCoil = new HashMap<>(mixedRoofFloor);
+        glassOverCoil.put(new Point(0, 3, 2), GLASS);    // (0,2,2) holds REACTOR_INDUCTION_COIL -> must be Casing!
+        assertEquals("structure_endcaps", inspect(MachineKind.ENERGY_REACTOR, shape, glassOverCoil).diagnostic());
+
+        // Energy Matrix: Glass allowed on open floor/roof (and under/over middle-only cells), rejected directly under/over floor/ceiling cells or providers!
+        var mShape = new IndustrialStructure.Shape(5, 5, 5, 2);
+        var mBlocks = shell(mShape);
+        mBlocks.put(new Point(-1, 0, 2), ENERGY_MATRIX_CELL);     // touches floor (-1,-1,2)
+        mBlocks.put(new Point(0, 1, 2), PRIMAL_ENERGY_MATRIX_CELL); // floating middle layer -> touches neither floor nor roof
+        mBlocks.put(new Point(1, 2, 2), ENERGY_MATRIX_PROVIDER);  // touches roof (1,3,2)
+        mBlocks.put(new Point(0, -1, 2), GLASS);                  // below middle-only cell -> AIR at y=0 -> allowed!
+        mBlocks.put(new Point(0, 3, 2), GLASS);                   // above middle-only cell -> AIR at y=2 -> allowed!
+        mBlocks.put(new Point(-1, 3, 2), GLASS);                  // AIR at y=2 -> allowed!
+        mBlocks.put(new Point(1, -1, 2), GLASS);                  // AIR at y=0 -> allowed!
+        assertTrue(inspect(MachineKind.ENERGY_MATRIX, mShape, mBlocks).formed(),
+                "Energy Matrix must allow Glass on floor/roof wherever no Cell/Provider directly touches it");
+
+        var glassUnderMatrixCell = new HashMap<>(mBlocks);
+        glassUnderMatrixCell.put(new Point(-1, -1, 2), GLASS);
+        assertEquals("structure_endcaps", inspect(MachineKind.ENERGY_MATRIX, mShape, glassUnderMatrixCell).diagnostic());
+
+        var glassOverMatrixProvider = new HashMap<>(mBlocks);
+        glassOverMatrixProvider.put(new Point(1, 3, 2), GLASS);
+        assertEquals("structure_endcaps", inspect(MachineKind.ENERGY_MATRIX, mShape, glassOverMatrixProvider).diagnostic());
+    }
 }

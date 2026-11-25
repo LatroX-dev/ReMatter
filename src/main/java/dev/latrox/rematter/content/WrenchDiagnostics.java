@@ -3,6 +3,7 @@ package dev.latrox.rematter.content;
 import dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity;
 import dev.latrox.rematter.energy.EnergyCubeBlockEntity;
 import dev.latrox.rematter.network.WrenchDiagnosticPayload;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinks;
 import dev.latrox.rematter.content.preparation.PreparationTier;
@@ -83,6 +84,35 @@ public final class WrenchDiagnostics {
             return new WrenchDiagnosticPayload(
                     pos, face, false, status, 0, 0, 0, 0, 0, 0, 0, 0,
                     diag.state().ordinal(), diag.distance(), false, -1);
+        }
+        if (be instanceof DimensionalEntangledLinkBlockEntity dlink) {
+            if (!dlink.canAccess(player)) return WrenchDiagnosticPayload.locked(pos, face);
+            var diag = EntangledLinks.inspectDimensional(level, dlink);
+            String status = switch (diag.state()) {
+                case PAIRED -> "paired";
+                case INACTIVE -> "inactive";
+                default -> "unpaired";
+            };
+            return new WrenchDiagnosticPayload(
+                    pos, face, false, status, 0, 0, MatterCableBlock.Tier.RESONANT.energyRate(), 0, 0,
+                    MatterCableBlock.Tier.RESONANT.matterRate(), 0, 0,
+                    diag.state().ordinal(), Math.max(0, diag.distance()), dlink.hasAnchorUpgrade(), -1);
+        }
+        if (be instanceof SpatialAnchorBlockEntity anchor) {
+            if (!anchor.canAccess(player)) return WrenchDiagnosticPayload.locked(pos, face);
+            var ast = anchor.anchorStatus();
+            String status = ast.active() ? "working" : ast.reason();
+            return new WrenchDiagnosticPayload(
+                    pos, face, false, status, anchor.energy(), SpatialAnchorBlockEntity.CAPACITY,
+                    anchor.drainPerTick(), ast.forcedChunks(), ast.maxChunks(), ast.ownerTotalChunks(),
+                    0, 0, 0, 0, ast.active(), -1);
+        }
+        if (be instanceof MatterCableRelayBlockEntity relay) {
+            if (!relay.canAccess(player)) return WrenchDiagnosticPayload.locked(pos, face);
+            return new WrenchDiagnosticPayload(
+                    pos, face, false, relay.isOpen() ? "ready" : "redstone_paused",
+                    0, 0, relay.energyLimit(), 0, 0, relay.matterLimit(),
+                    0, 0, 0, 0, relay.isOpen(), -1);
         }
         if (state.getBlock() instanceof MatterCableBlock cable) {
             var cableOwner = CableOwners.owner(level, pos);

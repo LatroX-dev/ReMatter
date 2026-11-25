@@ -10,13 +10,15 @@ import net.minecraft.util.StringRepresentable;
 public enum MachinePortMode implements StringRepresentable {
     // Ring colours are the PORT_MODES of the family palette: the block, the Machine Port and the screen share them.
     AUTOMATIC(0x64727E, 0xBFCAD5),
-    ITEM_INPUT(0xDC894F),
-    ITEM_OUTPUT(0xEA4848),
-    FLUID_INPUT(0x6794F1),
-    FLUID_OUTPUT(0xB381E8),
-    POWER(0xE3A94B),
+    ITEM_INPUT(0x6794F1),
+    ITEM_OUTPUT(0xDC894F),
+    FLUID_INPUT(0x54B8F1),
+    FLUID_OUTPUT(0xEB5862),
+    POWER(0x4FE18E),
+    POWER_OUTPUT(0xEA4848),
     MATTER(0x57CDDB),
-    CHEMICAL(0x7DD27F),
+    CHEMICAL(0xD7D1BC),
+    REDSTONE(0xA33A42, 0xEA4848),
     DISABLED(0x13161B, 0x8F9AA6);
 
     public static final com.mojang.serialization.Codec<MachinePortMode> CODEC = StringRepresentable.fromEnum(MachinePortMode::values);
@@ -54,12 +56,14 @@ public enum MachinePortMode implements StringRepresentable {
     boolean supported(MachineKind kind) {
         return switch (this) {
             case AUTOMATIC, DISABLED, MATTER -> true;
-            case ITEM_INPUT -> kind.generator() || kind==MachineKind.PRIMAL_CONVERTER || PreparationTier.isPreparation(kind) || kind.decomposition() || kind == MachineKind.ANALYZER;
+            case ITEM_INPUT -> kind.generator() || kind.isEnergyReactor() || kind==MachineKind.PRIMAL_CONVERTER || PreparationTier.isPreparation(kind) || kind.decomposition() || kind == MachineKind.ANALYZER;
             case ITEM_OUTPUT -> PreparationTier.isPreparation(kind) || kind.synthesis();
             case FLUID_INPUT -> kind.decomposition();
             case FLUID_OUTPUT -> kind.decomposition() || kind.synthesis();
-            case POWER -> (kind.generator()||kind.processes()) && !PreparationTier.manual(kind);
+            case POWER -> (kind.processes() || kind.isEnergyMatrix()) && !PreparationTier.manual(kind);
+            case POWER_OUTPUT -> kind.isEnergyMatrix() || kind.isEnergyReactor() || kind.generator();
             case CHEMICAL -> kind.isStorage();
+            case REDSTONE -> kind != MachineKind.TERMINAL && !PreparationTier.manual(kind);
         };
     }
 

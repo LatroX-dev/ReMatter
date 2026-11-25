@@ -33,6 +33,20 @@ public final class CrystalBurner {
         long produced = Math.min(Math.min(bufferSpace, rate), energy);
         return new Plan(revision, remaining, consumed, produced, energy - produced);
     }
+    /** Multi-crystal reactor burn: consumes as many full batches from the slot as needed to satisfy high FE/t demand without wasting remainder. */
+    public Plan tickMulti(long demand, CrystalFuelData.@Nullable Fuel fuel, int availableItems) {
+        if (demand < 0 || availableItems < 0) throw new IllegalArgumentException("Invalid reactor crystal tick");
+        if (!readable() || demand == 0) return new Plan(revision, remaining, 0, 0, remaining);
+        long energy = remaining; int consumed = 0;
+        if (fuel != null && fuel.energy() > 0 && fuel.count() > 0) {
+            while (energy < demand && (availableItems - consumed) >= fuel.count()) {
+                energy += fuel.energy();
+                consumed += fuel.count();
+            }
+        }
+        long produced = Math.min(demand, energy);
+        return new Plan(revision, remaining, consumed, produced, energy - produced);
+    }
     public boolean apply(Plan plan) {
         if (!readable() || plan.expectedRevision != revision || plan.expectedRemaining != remaining) return false;
         if (plan.changesState()) { remaining = plan.nextRemaining; revision++; }

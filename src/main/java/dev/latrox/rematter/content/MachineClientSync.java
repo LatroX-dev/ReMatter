@@ -26,10 +26,26 @@ final class MachineClientSync {
     private int manualStage = -1;
     private boolean manualMixing;
     private MachineSoundLevel clientSoundLevel = MachineSoundLevel.HIGH;
+    private int clientMatrixFill, clientPrimalStability, clientReactorFlux;
+    private boolean clientReactorCooled;
+    private int publishedMatrixFill = -1, publishedPrimalStability = -1, publishedReactorFlux = -1;
+    private boolean publishedReactorCooled;
 
     boolean loadingItemVisuals() { return loadingItemVisuals; }
     void setLoadingItemVisuals(boolean value) { loadingItemVisuals = value; }
     int visualCrankSequence() { return visualCrankSequence; }
+    int visualMatrixFill(@Nullable Level level, int serverFill) {
+        return level != null && level.isClientSide() ? clientMatrixFill : serverFill;
+    }
+    int visualPrimalStability(@Nullable Level level, int serverStability) {
+        return level != null && level.isClientSide() ? clientPrimalStability : serverStability;
+    }
+    int visualReactorFlux(@Nullable Level level, int serverFlux) {
+        return level != null && level.isClientSide() ? clientReactorFlux : serverFlux;
+    }
+    boolean visualReactorCooled(@Nullable Level level, boolean serverCooled) {
+        return level != null && level.isClientSide() ? clientReactorCooled : serverCooled;
+    }
     MachineSoundLevel soundLevel(@Nullable Level level, MachineSoundLevel serverLevel) {
         return level != null && level.isClientSide() ? clientSoundLevel : serverLevel;
     }
@@ -72,6 +88,12 @@ final class MachineClientSync {
             tag.putBoolean("preparation_mixing", work.preparationMixing);
         }
         if (kind == MachineKind.HAND_PREPARATOR) tag.putInt("visual_crank_sequence", visualCrankSequence);
+        if (kind.isEnergyMatrix()) tag.putInt("matrix_fill", machine.extensions().matrixFillPermille());
+        if (kind == MachineKind.PRIMAL_REACTOR) tag.putInt("primal_stability", machine.extensions().primalStability());
+        if (kind.isEnergyReactor()) {
+            tag.putInt("reactor_flux", machine.extensions().reactorFlux());
+            tag.putBoolean("reactor_cooled", machine.extensions().reactorCooled());
+        }
         structure.write(tag);
     }
 
@@ -101,6 +123,16 @@ final class MachineClientSync {
         }
         if (kind == MachineKind.HAND_PREPARATOR) {
             visualCrankSequence = input.getIntOr("visual_crank_sequence", visualCrankSequence);
+        }
+        if (kind.isEnergyMatrix()) {
+            clientMatrixFill = Math.clamp(input.getIntOr("matrix_fill", clientMatrixFill), 0, 1_000);
+        }
+        if (kind == MachineKind.PRIMAL_REACTOR) {
+            clientPrimalStability = Math.clamp(input.getIntOr("primal_stability", clientPrimalStability), 0, PrimalReactorRecipes.MAX_STABILITY);
+        }
+        if (kind.isEnergyReactor()) {
+            clientReactorFlux = Math.clamp(input.getIntOr("reactor_flux", clientReactorFlux), 0, EnergyReactorRecipes.MAX_FLUX);
+            clientReactorCooled = input.getBooleanOr("reactor_cooled", clientReactorCooled);
         }
         structure.read(input);
     }
@@ -135,6 +167,31 @@ final class MachineClientSync {
             publishedCellStatuses = cellStatuses;
             machine.sendClientUpdateNow();
             level.updateNeighbourForOutputSignal(machine.getBlockPos(), state.getBlock());
+        }
+        if (kind.isEnergyMatrix()) {
+            int bucket = machine.extensions().matrixFillPermille() / 25;
+            if (bucket != publishedMatrixFill) {
+                publishedMatrixFill = bucket;
+                machine.sendClientUpdateNow();
+                level.updateNeighbourForOutputSignal(machine.getBlockPos(), state.getBlock());
+            }
+        }
+        if (kind == MachineKind.PRIMAL_REACTOR) {
+            int bucket = machine.extensions().primalStability() / 25;
+            if (bucket != publishedPrimalStability) {
+                publishedPrimalStability = bucket;
+                machine.sendClientUpdateNow();
+            }
+        }
+        if (kind.isEnergyReactor()) {
+            int bucket = machine.extensions().reactorFlux() / 25;
+            boolean cooled = machine.extensions().reactorCooled();
+            if (bucket != publishedReactorFlux || cooled != publishedReactorCooled) {
+                publishedReactorFlux = bucket;
+                publishedReactorCooled = cooled;
+                machine.sendClientUpdateNow();
+                level.updateNeighbourForOutputSignal(machine.getBlockPos(), state.getBlock());
+            }
         }
     }
 

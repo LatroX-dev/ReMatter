@@ -23,6 +23,10 @@ public final class ClientSetup {
         event.register(ModContent.CELL_TRANSFER_MENU.get(), CellTransferScreen::new);
         event.register(ModContent.WIRELESS_ACCESS_POINT_MENU.get(), WirelessAccessPointScreen::new);
         event.register(ModContent.MATTER_LEVEL_EMITTER_MENU.get(), MatterLevelEmitterScreen::new);
+        event.register(ModContent.MATTER_CABLE_RELAY_MENU.get(), MatterCableRelayScreen::new);
+        event.register(ModContent.SPATIAL_ANCHOR_MENU.get(), SpatialAnchorScreen::new);
+        event.register(ModContent.DIMENSIONAL_LINK_MENU.get(), DimensionalEntangledLinkScreen::new);
+        event.register(ModContent.ENTANGLED_LINK_MENU.get(), EntangledLinkScreen::new);
     }
     @SubscribeEvent public static void registerReloadListeners(AddClientReloadListenersEvent event) {
         // Runs with the first resource load at startup and with every later reload.
@@ -31,6 +35,7 @@ public final class ClientSetup {
     }
     @SubscribeEvent public static void registerBlockStateModels(RegisterBlockStateModels event) {
         event.registerModel(PortPlatesModel.ID, PortPlatesModel.Unbaked.MAP_CODEC);
+        event.registerModel(ConnectedGlassModel.ID, ConnectedGlassModel.Unbaked.MAP_CODEC);
     }
     @SubscribeEvent public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModContent.MACHINE_ENTITY.get(), MachineRenderer::new);

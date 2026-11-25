@@ -39,6 +39,8 @@ public final class ModContent {
     public static final Map<MachineKind, DeferredBlock<MachineBlock>> MACHINES = new EnumMap<>(MachineKind.class);
     public static final Map<IndustrialModuleKind, DeferredBlock<IndustrialModuleBlock>> INDUSTRIAL_MODULES = new EnumMap<>(IndustrialModuleKind.class);
     public static final Map<EnergyCubeTier,DeferredBlock<EnergyCubeBlock>> ENERGY_CUBES=new EnumMap<>(EnergyCubeTier.class);
+    public static final Map<EnergyMatrixCellTier, DeferredBlock<EnergyMatrixCellBlock>> ENERGY_MATRIX_CELLS = new EnumMap<>(EnergyMatrixCellTier.class);
+    public static final Map<EnergyMatrixProviderTier, DeferredBlock<EnergyMatrixProviderBlock>> ENERGY_MATRIX_PROVIDERS = new EnumMap<>(EnergyMatrixProviderTier.class);
     static {
         for(var tier:EnergyCubeTier.values()) {
             var block=BLOCKS.registerBlock(tier.id(),p->new EnergyCubeBlock(tier,p),
@@ -46,9 +48,29 @@ public final class ModContent {
             ENERGY_CUBES.put(tier,block);
             ITEMS.registerItem(tier.id(),p->new EnergyCubeItem(block.get(),p.useBlockDescriptionPrefix()));
         }
+        for (var tier : EnergyMatrixCellTier.values()) {
+            var block = BLOCKS.registerBlock(tier.id(), p -> new EnergyMatrixCellBlock(tier, p),
+                    p -> p.mapColor(MapColor.METAL).strength(6.0F, 24.0F).sound(SoundType.METAL)
+                            .lightLevel(s -> tier == EnergyMatrixCellTier.PRIMAL ? 6 : 2).pushReaction(PushReaction.BLOCK));
+            ENERGY_MATRIX_CELLS.put(tier, block);
+            ITEMS.registerSimpleBlockItem(block);
+        }
+        for (var tier : EnergyMatrixProviderTier.values()) {
+            var block = BLOCKS.registerBlock(tier.id(), p -> new EnergyMatrixProviderBlock(tier, p),
+                    p -> p.mapColor(MapColor.METAL).strength(6.0F, 24.0F).sound(SoundType.METAL)
+                            .lightLevel(s -> tier == EnergyMatrixProviderTier.PRIMAL ? 6 : 2).pushReaction(PushReaction.BLOCK));
+            ENERGY_MATRIX_PROVIDERS.put(tier, block);
+            ITEMS.registerSimpleBlockItem(block);
+        }
         for (MachineKind kind : MachineKind.values()) {
             var block = BLOCKS.registerBlock(kind.id(), p -> MachineBlock.create(kind, p), p -> {
-                p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL);
+                p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).lightLevel(state -> {
+                    if (IndustrialStructure.isIndustrial(kind)) {
+                        if (state.getValue(MachineBlock.ACTIVE)) return 12;
+                        return kind == MachineKind.PRIMAL_REACTOR ? 4 : kind == MachineKind.ENERGY_REACTOR ? 3 : 0;
+                    }
+                    return state.getValue(MachineBlock.ACTIVE) && (kind.generator() || kind == MachineKind.SINTER_FURNACE) ? 10 : 0;
+                });
                 return MachineBlock.occludes(kind) ? p : p.noOcclusion();
             });
             MACHINES.put(kind, block);
@@ -56,7 +78,8 @@ public final class ModContent {
         }
         for (IndustrialModuleKind kind : IndustrialModuleKind.values()) {
             var block = BLOCKS.registerBlock(kind.id(), p -> new IndustrialModuleBlock(kind, p),
-                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion());
+                    p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion()
+                            .lightLevel(state -> state.getValue(IndustrialModuleBlock.ACTIVE) ? 12 : 0));
             INDUSTRIAL_MODULES.put(kind, block);
             ITEMS.registerItem(kind.id(), properties -> new IndustrialModuleItem(block.get(),properties.useBlockDescriptionPrefix()));
         }
@@ -74,21 +97,117 @@ public final class ModContent {
             p -> p.mapColor(MapColor.COLOR_PURPLE).strength(3.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<Block> REACTOR_CASING = BLOCKS.registerSimpleBlock("reactor_casing",
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<Block> TRANSMUTATION_REACTOR_CASING = BLOCKS.registerSimpleBlock("transmutation_reactor_casing",
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(8.0F, 30.0F).sound(SoundType.NETHERITE_BLOCK).pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<Block> PRIMAL_REACTOR_CASING = BLOCKS.registerSimpleBlock("primal_reactor_casing",
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(12.0F, 60.0F).sound(SoundType.NETHERITE_BLOCK).lightLevel(s -> 4).pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<Block> ENERGY_MATRIX_CASING = BLOCKS.registerSimpleBlock("energy_matrix_casing",
+            p -> p.mapColor(MapColor.METAL).strength(6.0F, 24.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<Block> ENERGY_REACTOR_CASING = BLOCKS.registerSimpleBlock("energy_reactor_casing",
+            p -> p.mapColor(MapColor.COLOR_RED).strength(10.0F, 45.0F).sound(SoundType.NETHERITE_BLOCK).lightLevel(s -> 3).pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(MATTER_CABLE);
     public static final DeferredItem<BlockItem> REINFORCED_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(REINFORCED_MATTER_CABLE);
     public static final DeferredItem<BlockItem> RESONANT_MATTER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(RESONANT_MATTER_CABLE);
     public static final DeferredItem<BlockItem> REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_CASING);
+    public static final DeferredItem<BlockItem> TRANSMUTATION_REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(TRANSMUTATION_REACTOR_CASING);
+    public static final DeferredItem<BlockItem> PRIMAL_REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(PRIMAL_REACTOR_CASING);
+    public static final DeferredItem<BlockItem> ENERGY_MATRIX_CASING_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_MATRIX_CASING);
+    public static final DeferredItem<BlockItem> ENERGY_REACTOR_CASING_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_REACTOR_CASING);
     // Lets light through and casts no ambient shade, like vanilla glass: the interior of a hall stays visible.
-    public static final DeferredBlock<TransparentBlock> REACTOR_GLASS = BLOCKS.registerBlock("reactor_glass", TransparentBlock::new,
+    public static final DeferredBlock<ReactorGlassBlock> REACTOR_GLASS = BLOCKS.registerBlock("reactor_glass", ReactorGlassBlock::new,
             p -> p.mapColor(MapColor.NONE).strength(3.0F, 12.0F).sound(SoundType.GLASS).noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<ReactorGlassBlock> TRANSMUTATION_REACTOR_GLASS = BLOCKS.registerBlock("transmutation_reactor_glass", ReactorGlassBlock::new,
+            p -> p.mapColor(MapColor.NONE).strength(6.0F, 24.0F).sound(SoundType.GLASS).noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<ReactorGlassBlock> PRIMAL_REACTOR_GLASS = BLOCKS.registerBlock("primal_reactor_glass", ReactorGlassBlock::new,
+            p -> p.mapColor(MapColor.NONE).strength(10.0F, 48.0F).sound(SoundType.GLASS).noOcclusion().lightLevel(s -> 4).pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<ReactorGlassBlock> ENERGY_MATRIX_GLASS = BLOCKS.registerBlock("energy_matrix_glass", ReactorGlassBlock::new,
+            p -> p.mapColor(MapColor.NONE).strength(5.0F, 20.0F).sound(SoundType.GLASS).noOcclusion().pushReaction(PushReaction.BLOCK));
+    public static final DeferredBlock<ReactorGlassBlock> ENERGY_REACTOR_GLASS = BLOCKS.registerBlock("energy_reactor_glass", ReactorGlassBlock::new,
+            p -> p.mapColor(MapColor.NONE).strength(8.0F, 36.0F).sound(SoundType.GLASS).noOcclusion().lightLevel(s -> 3).pushReaction(PushReaction.BLOCK));
     public static final DeferredBlock<MachinePortBlock> MACHINE_PORT = BLOCKS.registerBlock("machine_port", MachinePortBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(5.0F, 15.0F).sound(SoundType.METAL));
+    public static final DeferredBlock<MachinePortBlock> TRANSMUTATION_MACHINE_PORT = BLOCKS.registerBlock("transmutation_machine_port", MachinePortBlock::new,
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(8.0F, 30.0F).sound(SoundType.NETHERITE_BLOCK));
+    public static final DeferredBlock<MachinePortBlock> PRIMAL_MACHINE_PORT = BLOCKS.registerBlock("primal_machine_port", MachinePortBlock::new,
+            p -> p.mapColor(MapColor.COLOR_PURPLE).strength(12.0F, 60.0F).sound(SoundType.NETHERITE_BLOCK).lightLevel(s -> 4));
+    public static final DeferredBlock<MachinePortBlock> ENERGY_MATRIX_PORT = BLOCKS.registerBlock("energy_matrix_port", MachinePortBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(6.0F, 24.0F).sound(SoundType.METAL));
+    public static final DeferredBlock<MachinePortBlock> ENERGY_REACTOR_PORT = BLOCKS.registerBlock("energy_reactor_port", MachinePortBlock::new,
+            p -> p.mapColor(MapColor.COLOR_RED).strength(10.0F, 45.0F).sound(SoundType.NETHERITE_BLOCK).lightLevel(s -> 3));
     public static final DeferredItem<BlockItem> REACTOR_GLASS_ITEM = ITEMS.registerSimpleBlockItem(REACTOR_GLASS);
+    public static final DeferredItem<BlockItem> TRANSMUTATION_REACTOR_GLASS_ITEM = ITEMS.registerSimpleBlockItem(TRANSMUTATION_REACTOR_GLASS);
+    public static final DeferredItem<BlockItem> PRIMAL_REACTOR_GLASS_ITEM = ITEMS.registerSimpleBlockItem(PRIMAL_REACTOR_GLASS);
+    public static final DeferredItem<BlockItem> ENERGY_MATRIX_GLASS_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_MATRIX_GLASS);
+    public static final DeferredItem<BlockItem> ENERGY_REACTOR_GLASS_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_REACTOR_GLASS);
     public static final DeferredItem<BlockItem> MACHINE_PORT_ITEM = ITEMS.registerSimpleBlockItem(MACHINE_PORT);
+    public static final DeferredItem<BlockItem> TRANSMUTATION_MACHINE_PORT_ITEM = ITEMS.registerSimpleBlockItem(TRANSMUTATION_MACHINE_PORT);
+    public static final DeferredItem<BlockItem> PRIMAL_MACHINE_PORT_ITEM = ITEMS.registerSimpleBlockItem(PRIMAL_MACHINE_PORT);
+    public static final DeferredItem<BlockItem> ENERGY_MATRIX_PORT_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_MATRIX_PORT);
+    public static final DeferredItem<BlockItem> ENERGY_REACTOR_PORT_ITEM = ITEMS.registerSimpleBlockItem(ENERGY_REACTOR_PORT);
+
+    public static Block reactorCasing(MachineKind kind) {
+        return switch (kind) {
+            case TRANSMUTATION_REACTOR -> TRANSMUTATION_REACTOR_CASING.get();
+            case PRIMAL_REACTOR -> PRIMAL_REACTOR_CASING.get();
+            case ENERGY_MATRIX -> ENERGY_MATRIX_CASING.get();
+            case ENERGY_REACTOR -> ENERGY_REACTOR_CASING.get();
+            default -> REACTOR_CASING.get();
+        };
+    }
+
+    public static ReactorGlassBlock reactorGlass(MachineKind kind) {
+        return switch (kind) {
+            case TRANSMUTATION_REACTOR -> TRANSMUTATION_REACTOR_GLASS.get();
+            case PRIMAL_REACTOR -> PRIMAL_REACTOR_GLASS.get();
+            case ENERGY_MATRIX -> ENERGY_MATRIX_GLASS.get();
+            case ENERGY_REACTOR -> ENERGY_REACTOR_GLASS.get();
+            default -> REACTOR_GLASS.get();
+        };
+    }
+
+    public static MachinePortBlock machinePort(MachineKind kind) {
+        return switch (kind) {
+            case TRANSMUTATION_REACTOR -> TRANSMUTATION_MACHINE_PORT.get();
+            case PRIMAL_REACTOR -> PRIMAL_MACHINE_PORT.get();
+            case ENERGY_MATRIX -> ENERGY_MATRIX_PORT.get();
+            case ENERGY_REACTOR -> ENERGY_REACTOR_PORT.get();
+            default -> MACHINE_PORT.get();
+        };
+    }
+
+    public static boolean isAnyReactorCasing(net.minecraft.world.level.block.state.BlockState state) {
+        return REACTOR_CASING.isBound() && state.is(REACTOR_CASING.get())
+                || TRANSMUTATION_REACTOR_CASING.isBound() && state.is(TRANSMUTATION_REACTOR_CASING.get())
+                || PRIMAL_REACTOR_CASING.isBound() && state.is(PRIMAL_REACTOR_CASING.get())
+                || ENERGY_MATRIX_CASING.isBound() && state.is(ENERGY_MATRIX_CASING.get())
+                || ENERGY_REACTOR_CASING.isBound() && state.is(ENERGY_REACTOR_CASING.get());
+    }
+
+    public static boolean isAnyReactorGlass(net.minecraft.world.level.block.state.BlockState state) {
+        return REACTOR_GLASS.isBound() && state.is(REACTOR_GLASS.get())
+                || TRANSMUTATION_REACTOR_GLASS.isBound() && state.is(TRANSMUTATION_REACTOR_GLASS.get())
+                || PRIMAL_REACTOR_GLASS.isBound() && state.is(PRIMAL_REACTOR_GLASS.get())
+                || ENERGY_MATRIX_GLASS.isBound() && state.is(ENERGY_MATRIX_GLASS.get())
+                || ENERGY_REACTOR_GLASS.isBound() && state.is(ENERGY_REACTOR_GLASS.get());
+    }
+
+    public static boolean isAnyMachinePort(net.minecraft.world.level.block.state.BlockState state) {
+        return state.getBlock() instanceof MachinePortBlock;
+    }
+
+    public static boolean isAnyShellBlock(net.minecraft.world.level.block.state.BlockState state) {
+        return isAnyReactorCasing(state) || isAnyReactorGlass(state) || isAnyMachinePort(state);
+    }
     public static final DeferredItem<Item> SPEED_UPGRADE = ITEMS.registerSimpleItem("speed_upgrade", p -> p.stacksTo(4));
     public static final DeferredItem<Item> EFFICIENCY_UPGRADE = ITEMS.registerSimpleItem("efficiency_upgrade", p -> p.stacksTo(4));
     public static final DeferredItem<Item> PARALLEL_UPGRADE = ITEMS.registerSimpleItem("parallel_upgrade", p -> p.stacksTo(3));
     public static final DeferredItem<Item> PRESSURE_MODULE = ITEMS.registerSimpleItem("pressure_module", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> EXTRACTION_FOCUS_UPGRADE = ITEMS.registerSimpleItem("extraction_focus_upgrade", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> MASS_COMPRESSION_UPGRADE = ITEMS.registerSimpleItem("mass_compression_upgrade", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> DIMENSIONAL_CARD = ITEMS.registerSimpleItem("dimensional_card", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> ANCHOR_UPGRADE = ITEMS.registerSimpleItem("anchor_upgrade", p -> p.stacksTo(1));
+    public static final DeferredItem<Item> BORE_CORE = ITEMS.registerSimpleItem("bore_core");
+    public static final DeferredItem<Item> PARTICLE_RESONATOR = ITEMS.registerSimpleItem("particle_resonator");
     public static final DeferredItem<Item> MATRIX_BLEND = ITEMS.registerSimpleItem("matrix_blend");
     public static final DeferredItem<Item> MATRIX_CRYSTAL = ITEMS.registerSimpleItem("matrix_crystal");
     public static final DeferredItem<Item> MATRIX_CLUSTER = ITEMS.registerSimpleItem("matrix_cluster");
@@ -141,6 +260,14 @@ public final class ModContent {
     public static final DeferredBlock<MatterLevelEmitterBlock> MATTER_LEVEL_EMITTER = BLOCKS.registerBlock("matter_level_emitter", MatterLevelEmitterBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0F, 9.0F).sound(SoundType.METAL).noOcclusion().pushReaction(PushReaction.BLOCK));
     public static final DeferredItem<BlockItem> MATTER_LEVEL_EMITTER_ITEM = ITEMS.registerSimpleBlockItem(MATTER_LEVEL_EMITTER);
+    public static final DeferredBlock<MatterCableRelayBlock> MATTER_CABLE_RELAY = BLOCKS.registerBlock("matter_cable_relay", MatterCableRelayBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0F, 9.0F).sound(SoundType.METAL).noOcclusion()
+                    .lightLevel(state -> state.getValue(MatterCableRelayBlock.OPEN) ? 4 : 0).pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> MATTER_CABLE_RELAY_ITEM = ITEMS.registerSimpleBlockItem(MATTER_CABLE_RELAY);
+    public static final DeferredBlock<SpatialAnchorBlock> SPATIAL_ANCHOR = BLOCKS.registerBlock("spatial_anchor", SpatialAnchorBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(4.0F, 12.0F).sound(SoundType.METAL).noOcclusion()
+                    .lightLevel(state -> state.getValue(SpatialAnchorBlock.ACTIVE) ? 6 : 0).pushReaction(PushReaction.BLOCK));
+    public static final DeferredItem<BlockItem> SPATIAL_ANCHOR_ITEM = ITEMS.registerSimpleBlockItem(SPATIAL_ANCHOR, p -> p.stacksTo(1));
     public static final DeferredItem<Item> WIRELESS_BOOSTER = ITEMS.registerSimpleItem("wireless_booster", p -> p.stacksTo(16));
     public static final DeferredItem<WirelessMatterTerminalItem> WIRELESS_MATTER_TERMINAL = ITEMS.registerItem("wireless_matter_terminal", WirelessMatterTerminalItem::new);
     public static final DeferredItem<Item> ENERGY_CORE = ITEMS.registerSimpleItem("energy_core");
@@ -160,7 +287,9 @@ public final class ModContent {
     public static final Supplier<MenuType<MachineMenu>> MACHINE_MENU = MENUS.register("machine",
             () -> IMenuTypeExtension.create(MachineMenu::new));
     public static final Supplier<BlockEntityType<MachinePortBlockEntity>> MACHINE_PORT_ENTITY = BLOCK_ENTITIES.register("machine_port",
-            () -> new BlockEntityType<>(MachinePortBlockEntity::new, false, MACHINE_PORT.get()));
+            () -> new BlockEntityType<>(MachinePortBlockEntity::new, false,
+                    MACHINE_PORT.get(), TRANSMUTATION_MACHINE_PORT.get(), PRIMAL_MACHINE_PORT.get(),
+                    ENERGY_MATRIX_PORT.get(), ENERGY_REACTOR_PORT.get()));
     public static final Supplier<BlockEntityType<IndustrialModuleBlockEntity>> INDUSTRIAL_MODULE_ENTITY = BLOCK_ENTITIES.register("industrial_module",
             () -> new BlockEntityType<>(IndustrialModuleBlockEntity::new, false, INDUSTRIAL_MODULES.values().stream().map(Supplier::get).toArray(Block[]::new)));
     public static final Supplier<BlockEntityType<WirelessAccessPointBlockEntity>> WIRELESS_ACCESS_POINT_ENTITY = BLOCK_ENTITIES.register("wireless_access_point",
@@ -171,6 +300,18 @@ public final class ModContent {
             () -> new BlockEntityType<>(MatterLevelEmitterBlockEntity::new, false, MATTER_LEVEL_EMITTER.get()));
     public static final Supplier<MenuType<MatterLevelEmitterMenu>> MATTER_LEVEL_EMITTER_MENU = MENUS.register("matter_level_emitter",
             () -> IMenuTypeExtension.create(MatterLevelEmitterMenu::new));
+    public static final Supplier<BlockEntityType<MatterCableRelayBlockEntity>> MATTER_CABLE_RELAY_ENTITY = BLOCK_ENTITIES.register("matter_cable_relay",
+            () -> new BlockEntityType<>(MatterCableRelayBlockEntity::new, false, MATTER_CABLE_RELAY.get()));
+    public static final Supplier<MenuType<MatterCableRelayMenu>> MATTER_CABLE_RELAY_MENU = MENUS.register("matter_cable_relay",
+            () -> IMenuTypeExtension.create(MatterCableRelayMenu::new));
+    public static final Supplier<BlockEntityType<SpatialAnchorBlockEntity>> SPATIAL_ANCHOR_ENTITY = BLOCK_ENTITIES.register("spatial_anchor",
+            () -> new BlockEntityType<>(SpatialAnchorBlockEntity::new, false, SPATIAL_ANCHOR.get()));
+    public static final Supplier<MenuType<SpatialAnchorMenu>> SPATIAL_ANCHOR_MENU = MENUS.register("spatial_anchor",
+            () -> IMenuTypeExtension.create(SpatialAnchorMenu::new));
+    public static final Supplier<MenuType<dev.latrox.rematter.primal.DimensionalEntangledLinkMenu>> DIMENSIONAL_LINK_MENU = MENUS.register("dimensional_entangled_link",
+            () -> IMenuTypeExtension.create(dev.latrox.rematter.primal.DimensionalEntangledLinkMenu::new));
+    public static final Supplier<MenuType<dev.latrox.rematter.primal.EntangledLinkMenu>> ENTANGLED_LINK_MENU = MENUS.register("entangled_link",
+            () -> IMenuTypeExtension.create(dev.latrox.rematter.primal.EntangledLinkMenu::new));
     public static final Supplier<CreativeModeTab> TAB = TABS.register("rematter",
             () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.rematter"))
                     .icon(() -> new ItemStack(MACHINES.get(MachineKind.DECOMPOSER).get()))
@@ -179,6 +320,8 @@ public final class ModContent {
                         output.accept(CELL_TRANSFER_STATION_ITEM.get());
                         output.accept(WIRELESS_ACCESS_POINT_ITEM.get());
                         output.accept(MATTER_LEVEL_EMITTER_ITEM.get());
+                        output.accept(MATTER_CABLE_RELAY_ITEM.get());
+                        output.accept(SPATIAL_ANCHOR_ITEM.get());
                         ENERGY_CUBES.values().forEach(block->output.accept(block.get()));
                         output.accept(MATTER_CABLE_ITEM.get());
                         output.accept(REINFORCED_MATTER_CABLE_ITEM.get());
@@ -197,11 +340,31 @@ public final class ModContent {
                         output.accept(REACTOR_CASING_ITEM.get());
                         output.accept(REACTOR_GLASS_ITEM.get());
                         output.accept(MACHINE_PORT_ITEM.get());
+                        output.accept(TRANSMUTATION_REACTOR_CASING_ITEM.get());
+                        output.accept(TRANSMUTATION_REACTOR_GLASS_ITEM.get());
+                        output.accept(TRANSMUTATION_MACHINE_PORT_ITEM.get());
+                        output.accept(PRIMAL_REACTOR_CASING_ITEM.get());
+                        output.accept(PRIMAL_REACTOR_GLASS_ITEM.get());
+                        output.accept(PRIMAL_MACHINE_PORT_ITEM.get());
+                        output.accept(ENERGY_MATRIX_CASING_ITEM.get());
+                        output.accept(ENERGY_MATRIX_GLASS_ITEM.get());
+                        output.accept(ENERGY_MATRIX_PORT_ITEM.get());
+                        ENERGY_MATRIX_CELLS.values().forEach(block -> output.accept(block.get()));
+                        ENERGY_MATRIX_PROVIDERS.values().forEach(block -> output.accept(block.get()));
+                        output.accept(ENERGY_REACTOR_CASING_ITEM.get());
+                        output.accept(ENERGY_REACTOR_GLASS_ITEM.get());
+                        output.accept(ENERGY_REACTOR_PORT_ITEM.get());
                         INDUSTRIAL_MODULES.values().forEach(block -> output.accept(block.get()));
                         output.accept(SPEED_UPGRADE.get());
                         output.accept(EFFICIENCY_UPGRADE.get());
                         output.accept(PARALLEL_UPGRADE.get());
                         output.accept(PRESSURE_MODULE.get());
+                        output.accept(EXTRACTION_FOCUS_UPGRADE.get());
+                        output.accept(MASS_COMPRESSION_UPGRADE.get());
+                        output.accept(DIMENSIONAL_CARD.get());
+                        output.accept(ANCHOR_UPGRADE.get());
+                        output.accept(BORE_CORE.get());
+                        output.accept(PARTICLE_RESONATOR.get());
                         output.accept(MATRIX_BLEND.get());
                         output.accept(MATRIX_CRYSTAL.get());
                         COLORED_MATRIX_CRYSTALS.forEach(item -> output.accept(item.get()));
@@ -247,6 +410,15 @@ public final class ModContent {
         // Migrate legacy pre-0.9 Matter Cell IDs cleanly while preserving all stored MatterCellData.
         ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_64k"),
                 Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_4m"));
+        // Migrate pre-0.11 industrial controller IDs to unified Reactor controller names cleanly.
+        BLOCKS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_decomposer_controller"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "decomposer_reactor_controller"));
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_decomposer_controller"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "decomposer_reactor_controller"));
+        BLOCKS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_synthesizer_controller"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "synthesizer_reactor_controller"));
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "industrial_synthesizer_controller"),
+                Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "synthesizer_reactor_controller"));
         ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_256k"),
                 Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_16m"));
         ITEMS.addAlias(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "matter_cell_1m"),
@@ -284,6 +456,7 @@ public final class ModContent {
         event.registerBlockEntity(Capabilities.Item.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::items);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, MACHINE_PORT_ENTITY.get(), MachinePortBlockEntity::fluids);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, WIRELESS_ACCESS_POINT_ENTITY.get(), WirelessAccessPointBlockEntity::sidedEnergy);
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SPATIAL_ANCHOR_ENTITY.get(), SpatialAnchorBlockEntity::energyHandler);
         event.registerItem(Capabilities.Fluid.ITEM, PressurizedCanisterFluidHandler::of, PRESSURIZED_CANISTER.get());
         event.registerItem(Capabilities.Energy.ITEM,
                 (stack, access) -> new net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler(

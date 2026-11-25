@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EBE",
+    "RLR",
+    "ONO"
+  ],
+  "key": {
+    "E": "rematter:ender_conductor",
+    "B": "rematter:blue_matrix_crystal",
+    "R": "rematter:resonant_matter_cable",
+    "L": "rematter:entangled_link",
+    "O": "rematter:optical_circuit",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:dimensional_entangled_link",
+    "count": 2
+  }
+}

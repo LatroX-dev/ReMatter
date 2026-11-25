@@ -7,7 +7,9 @@ import dev.latrox.rematter.chemistry.Phase;
 import dev.latrox.rematter.chemistry.ShippedChemistry;
 import dev.latrox.rematter.chemistry.SubstanceKey;
 import dev.latrox.rematter.chemistry.SynthesisCategory;
+import dev.latrox.rematter.content.MachineChoices;
 import dev.latrox.rematter.content.MachineKind;
+import dev.latrox.rematter.content.PrimalReactorRecipes;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -70,5 +72,49 @@ class ProcessPresentationTest {
         assertTrue(ProcessPresentation.available(amounts, false, COPPER).isEmpty());
         assertEquals(0, ProcessPresentation.available(amounts, true, COPPER).orElseThrow());
         assertEquals(Map.of(WATER, 375L, steam, 20L), amounts);
+    }
+
+    @Test void everyNonSynthesisChoiceAndPrimalManifestResolvesAndChecksRequirementsWithoutCrashing() {
+        var registry = ShippedChemistry.standalone();
+        for (var kind : MachineKind.values()) {
+            if (kind.synthesis()) continue; // Synthesis choices query BuiltInRegistries.ITEM/FLUID names.
+            var choices = MachineChoices.forKind(kind, registry);
+            for (var choice : choices) {
+                var product = ProcessPresentation.resolve(registry, kind, choice.id(), choice.name());
+                assertTrue(product.isPresent(), () -> "Failed to resolve " + kind + " choice " + choice.id());
+                assertDoesNotThrow(() -> ProcessPresentation.requirements(registry, kind, product.get()),
+                        () -> "requirements() threw for " + kind + " choice " + choice.id());
+            }
+        }
+        // Specifically verify Primal Reactor condensation + bulk manifestation IDs (double-colon prefix).
+        var collapse = ProcessPresentation.resolve(registry, MachineKind.PRIMAL_REACTOR,
+                PrimalReactorRecipes.COLLAPSE_RAW, "Raw Mass Collapse").orElseThrow();
+        assertEquals(ProcessPresentation.Requirements.NONE,
+                ProcessPresentation.requirements(registry, MachineKind.PRIMAL_REACTOR, collapse));
+        var manifest = ProcessPresentation.resolve(registry, MachineKind.PRIMAL_REACTOR,
+                PrimalReactorRecipes.MANIFEST_PREFIX + "rematter:iron", "Bulk Iron").orElseThrow();
+        assertEquals(ProcessPresentation.Requirements.NONE,
+                ProcessPresentation.requirements(registry, MachineKind.PRIMAL_REACTOR, manifest));
+
+        // Transmutation Tier 2/3 expose minField and Focus Catalyst item ID.
+        var gold = ProcessPresentation.resolve(registry, MachineKind.TRANSMUTATION_REACTOR,
+                "rematter:transmute_gold", "Gold Transmutation").orElseThrow();
+        var goldReq = ProcessPresentation.requirements(registry, MachineKind.TRANSMUTATION_REACTOR, gold);
+        assertEquals(8, goldReq.minField());
+        assertEquals("rematter:particle_resonator", goldReq.catalystItemId());
+
+        // Deep-Core Extractor exposes explicit site requirement (probeBelow) and Nether-only magma.
+        var magma = ProcessPresentation.resolve(registry, MachineKind.DEEP_EXTRACTOR,
+                "rematter:magmatic_siphoning", "Magmatic Siphoning").orElseThrow();
+        assertEquals("lava", ProcessPresentation.requirements(registry, MachineKind.DEEP_EXTRACTOR, magma).probeBelow());
+        assertEquals(java.util.Set.of("minecraft:the_nether"),
+                registry.environmentSource(dev.latrox.rematter.chemistry.SubstanceId.parse("rematter:magmatic_siphoning")).orElseThrow().dimensions());
+
+        // Synthesis fluid/item requirements remain intact.
+        var water = ProcessPresentation.resolve(registry, MachineKind.SYNTHESIZER, "fluid:minecraft:water", "Water").orElseThrow();
+        assertDoesNotThrow(() -> ProcessPresentation.requirements(registry, MachineKind.SYNTHESIZER, water));
+
+        // Malformed/synthetic IDs never throw IllegalArgumentException.
+        assertTrue(ProcessPresentation.resolve(registry, MachineKind.REACTOR, "primal_manifest:rematter:iron", "Bad").isEmpty());
     }
 }

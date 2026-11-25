@@ -150,6 +150,130 @@ def wireless_booster_drawing(look=None):
     return d
 
 
+def dimensional_card_drawing(look=None):
+    """Dimensional Card on the unified upgrade chassis: twin Ender dimensional antenna rings and faceted Blue Matrix Crystal (#6794f1)."""
+    d = Drawing()
+    z = upgrade_chassis(d, look)
+    # Recessed Netherite-steel dimensional housing bay.
+    d.box(3.8, 4.6, z + 0.06, 12.4, 15.0, 1.0, top='netherite', left='body', right='shadow', width=.58)
+    # Four diagonal steel phase emitters framing the dimensional core.
+    for bx, by in ((4.4, 5.2), (13.6, 5.2), (4.4, 17.2), (13.6, 17.2)):
+        d.box(bx, by, z + 1.06, 2.0, 1.8, 0.9, top='steel', left='copper', right='copper_dark', width=.48)
+    # Twin horizontal dimensional resonance rails.
+    d.top_line([(4.8, 7.6), (15.2, 7.6)], z + 1.18, '#99b8f6', .58)
+    d.top_line([(4.8, 16.6), (15.2, 16.6)], z + 1.18, '#99b8f6', .58)
+    # Large faceted Blue Matrix Crystal core (exact #6794f1 main table well above 260 px).
+    gem_outer = [(10.0, 6.2), (15.0, 9.2), (15.0, 15.2), (10.0, 18.2), (5.0, 15.2), (5.0, 9.2)]
+    d.top_polygon(gem_outer, z + 1.36, '#6794f1', stroke='ink', width=.78)
+    d.top_polygon([(10.0, 6.7), (14.4, 9.4), (10.0, 10.7), (5.6, 9.4)],
+                  z + 1.40, '#99b8f6', stroke='#99b8f6', width=0)
+    d.top_polygon([(5.4, 9.5), (10.0, 10.7), (13.5, 14.8), (10.0, 17.7), (5.4, 14.9)],
+                  z + 1.42, '#6794f1', stroke='#6794f1', width=0)
+    d.top_polygon([(10.0, 10.7), (14.6, 9.5), (14.6, 15.0), (13.5, 14.8)],
+                  z + 1.42, '#4463a2', stroke='#4463a2', width=0)
+    d.top_polygon([(10.0, 11.4), (11.5, 12.6), (10.0, 13.8), (8.5, 12.6)],
+                  z + 1.48, 'white', stroke='white', width=0)
+    return d
+
+
+def anchor_upgrade_drawing(look=None):
+    """Anchor Upgrade on the unified upgrade chassis: unmistakable 3x3 chunk grid + forged Steel/Ivory anchor
+    emblem locked onto a glowing Blue Matrix Crystal (#6794f1 >= 260 px) center chunk."""
+    d = Drawing()
+    z = upgrade_chassis(d, look)
+    # Dark recessed 3x3 chunk-map plate with crisp steel coordinate grid lines.
+    d.box(3.4, 4.4, z + 0.06, 13.2, 15.2, 0.9, top='dark', left='body', right='shadow', width=.58)
+    # Grid lines dividing the plate into a crisp 3x3 chunk matrix.
+    for gx in (7.8, 12.2):
+        d.top_line([(gx, 5.0), (gx, 19.0)], z + 1.02, 'body', .42)
+    for gy in (9.4, 14.6):
+        d.top_line([(4.0, gy), (16.0, gy)], z + 1.02, 'body', .42)
+    # Highlighted glowing Blue Matrix Crystal center chunk tile (exact #6794f1 >= 320 px).
+    d.top_polygon([(5.2, 6.2), (14.8, 6.2), (14.8, 17.8), (5.2, 17.8)], z + 1.06, '#27406d', stroke='#4463a2', width=.45)
+    d.top_polygon([(6.0, 7.2), (14.0, 7.2), (14.0, 16.8), (6.0, 16.8)], z + 1.12, '#6794f1', stroke='#99b8f6', width=.48)
+    # Four raised steel chunk-corner locking brackets around the grid.
+    for bx, by in ((3.6, 4.6), (13.8, 4.6), (3.6, 17.2), (13.8, 17.2)):
+        d.box(bx, by, z + 1.0, 2.6, 2.2, 1.0, top='steel', left='rhevon', right='dark', width=.48)
+    # Bold forged Steel + Ivory maritime/spatial Anchor glyph seated on top of the Blue core!
+    # Top ring eye
+    d.box(8.8, 5.4, z + 1.25, 2.4, 2.2, 1.05, top='white', left='steel', right='dark', width=.5)
+    # Horizontal stock crossbar
+    d.box(6.4, 8.2, z + 1.25, 7.2, 1.6, 1.0, top='steel', left='body', right='dark', width=.48)
+    # Central vertical shank
+    d.box(9.1, 7.4, z + 1.25, 1.8, 9.2, 1.1, top='white', left='steel', right='dark', width=.48)
+    # Curved twin anchor flukes at bottom (bold chevron pointing down-left & down-right)
+    fluke = [(5.2, 13.4), (6.8, 12.6), (10.0, 15.6), (13.2, 12.6), (14.8, 13.4), (10.0, 18.2)]
+    d.top_polygon(fluke, z + 2.38, 'steel', stroke='ink', width=.64)
+    d.top_line([(5.9, 13.4), (10.0, 17.1), (14.1, 13.4)], z + 2.44, 'white', .46)
+    return d
+
+
+def extraction_focus_upgrade_drawing(look=None, frame=0, total_frames=16):
+    """Extraction Focus Upgrade on the unified upgrade chassis: twin steel collimator rails, animated Mint
+    targeting scan ring, and a faceted Mint Matrix Crystal core (#57cddb >= 260 px on every frame)."""
+    d = Drawing()
+    z = upgrade_chassis(d, look)
+    phase = 2.0 * math.pi * (frame % total_frames) / total_frames
+    wave = 0.5 + 0.5 * math.sin(phase)
+    sweep_y = 5.4 + 13.4 * (0.5 - 0.5 * math.cos(phase))
+    # Armored Rhevon collimator collar cradling the Mint targeting prism.
+    d.box(3.8, 4.8, z + 0.06, 12.4, 14.8, 0.95, top='dark', left='body', right='shadow', width=.58)
+    # Sweeping Mint seismic scan line across the recessed collimator bay.
+    d.top_line([(4.2, sweep_y), (15.8, sweep_y)], z + 1.05, '#9ce3ec', .55)
+    # Four corner targeting brackets that pulse in brightness smoothly across the loop.
+    bracket_col = '#9ce3ec' if wave > 0.55 else '#57cddb'
+    for bx, by, dx, dy in ((4.6, 5.6, 2.2, 2.2), (15.4, 5.6, -2.2, 2.2),
+                           (4.6, 18.8, 2.2, -2.2), (15.4, 18.8, -2.2, -2.2)):
+        d.top_line([(bx + dx, by), (bx, by), (bx, by + dy)], z + 1.12, bracket_col, .62)
+    # Faceted Mint Matrix Crystal core (exact #57cddb main table well above 260 px).
+    gem_outer = [(10.0, 6.4), (14.8, 9.2), (14.8, 15.2), (10.0, 18.0), (5.2, 15.2), (5.2, 9.2)]
+    d.top_polygon(gem_outer, z + 1.32, '#57cddb', stroke='ink', width=.76)
+    d.top_polygon([(10.0, 6.8), (14.2, 9.4), (10.0, 10.6), (5.8, 9.4)],
+                  z + 1.36, '#9ce3ec', stroke='#9ce3ec', width=0)
+    d.top_polygon([(5.6, 9.5), (10.0, 10.6), (13.3, 14.4), (10.0, 17.5), (5.6, 14.9)],
+                  z + 1.38, '#57cddb', stroke='#57cddb', width=0)
+    d.top_polygon([(10.0, 10.6), (14.4, 9.5), (14.4, 15.0), (13.3, 14.4)],
+                  z + 1.38, '#388690', stroke='#388690', width=0)
+    # Pulsing downward drill-focus spark at the center of the crystal.
+    pulse = 0.7 + 0.9 * wave
+    d.top_polygon([(10.0, 12.2 - pulse), (10.0 + pulse, 12.2), (10.0, 12.2 + pulse), (10.0 - pulse, 12.2)],
+                  z + 1.46, 'white', stroke='white', width=0)
+    d.top_line([(7.4, 9.2), (10.0, 7.8), (12.0, 9.0)], z + 1.48, 'white', .52)
+    return d
+
+
+def mass_compression_upgrade_drawing(look=None, frame=0, total_frames=16):
+    """Mass Compression Upgrade on the unified upgrade chassis: four animated hydraulic steel/copper compression
+    pistons pulsing inward around a super-dense Diamond Lattice singularity core. No crystal hue."""
+    d = Drawing()
+    z = upgrade_chassis(d, look)
+    phase = 2.0 * math.pi * (frame % total_frames) / total_frames
+    squeeze = 0.5 - 0.5 * math.cos(phase)  # 0 at rest -> 1 at peak compression -> 0 seamlessly
+    shift = 1.05 * squeeze
+    # Armored Netherite compression cavity floor.
+    d.box(3.8, 4.8, z + 0.06, 12.4, 14.8, 0.9, top='netherite', left='body', right='shadow', width=.58)
+    # Four hydraulic steel/copper compression jaws sliding symmetrically toward center (10.0, 12.2).
+    # Top jaw
+    d.box(7.2, 5.2 + shift, z + 1.0, 5.6, 2.8, 1.3, top='steel', left='copper', right='copper_dark', width=.54)
+    d.top_line([(7.9, 6.2 + shift), (12.1, 6.2 + shift)], z + 2.36, 'white', .48)
+    # Bottom jaw
+    d.box(7.2, 16.4 - shift, z + 1.0, 5.6, 2.8, 1.3, top='steel', left='copper', right='copper_dark', width=.54)
+    d.top_line([(7.9, 17.4 - shift), (12.1, 17.4 - shift)], z + 2.36, 'copper_light', .48)
+    # Left jaw
+    d.box(4.2 + shift, 9.4, z + 1.0, 2.5, 5.6, 1.3, top='copper_light', left='copper', right='copper_dark', width=.52)
+    # Right jaw
+    d.box(13.3 - shift, 9.4, z + 1.0, 2.5, 5.6, 1.3, top='copper_light', left='copper', right='copper_dark', width=.52)
+    # Central compressed Diamond-Lattice pressure core (glows brighter white-cyan at peak compression).
+    core_r = 2.7 - 0.55 * squeeze
+    cx, cy = 10.0, 12.2
+    core_poly = [(cx, cy - core_r), (cx + core_r, cy), (cx, cy + core_r), (cx - core_r, cy)]
+    d.top_polygon(core_poly, z + 1.42, 'diamond_light' if squeeze > 0.45 else 'diamond', stroke='ink', width=.64)
+    inner_r = 1.15 + 0.45 * squeeze
+    d.top_polygon([(cx, cy - inner_r), (cx + inner_r, cy), (cx, cy + inner_r), (cx - inner_r, cy)],
+                  z + 1.48, 'white' if squeeze > 0.35 else 'glass', stroke='white', width=0)
+    return d
+
+
 # ------------------------------------------------------------------------------
 # Distinct Electronic Circuits (IC Microchips — visually unmistakable vs Upgrades)
 # ------------------------------------------------------------------------------

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:black_shiny_flower",
+  "matter": [
+    {
+      "substance": "rematter:cellulose",
+      "phase": "solid",
+      "amount": 200
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 2400
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2000
+    }
+  ],
+  "decomposition_energy": 24000,
+  "synthesis_energy": 48000,
+  "ticks": 480
+}

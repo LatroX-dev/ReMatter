@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/energy_matrix_glass_pane",
+    "face": "rematter:block/energy_matrix_glass_pane_corner_2"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#face",
+          "cullface": "north"
+        }
+      }
+    }
+  ]
+}

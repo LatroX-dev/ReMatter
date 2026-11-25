@@ -137,27 +137,33 @@ public final class WirelessMatterTerminalItem extends Item {
             notifyPlayer(player, Component.translatable("message.rematter.wireless.unbound"));
             return null;
         }
-        if (!target.dimension().equals(server.dimension())) {
-            notifyPlayer(player, Component.translatable("message.rematter.wireless.wrong_dimension"));
-            return null;
-        }
-        double distSqr = player.position().distanceToSqr(Vec3.atCenterOf(target.pos()));
-        if (distSqr > (double) WirelessAccessPointBlockEntity.MAX_RANGE * WirelessAccessPointBlockEntity.MAX_RANGE) {
-            int distance = (int) Math.ceil(Math.sqrt(distSqr));
-            notifyPlayer(player, Component.translatable("message.rematter.wireless.out_of_range",
-                    distance, WirelessAccessPointBlockEntity.MAX_RANGE));
-            return null;
-        }
-        var chunk = server.getChunkSource().getChunkNow(target.pos().getX() >> 4, target.pos().getZ() >> 4);
-        if (chunk == null || !(chunk.getBlockEntity(target.pos()) instanceof WirelessAccessPointBlockEntity ap) || !ap.networkLive()) {
+        ServerLevel targetLevel = server.getServer().getLevel(target.dimension());
+        if (targetLevel == null) {
             notifyPlayer(player, Component.translatable("message.rematter.wireless.unloaded"));
             return null;
         }
-        if (!ap.withinRange(player)) {
-            int distance = (int) Math.ceil(Math.sqrt(distSqr));
-            notifyPlayer(player, Component.translatable("message.rematter.wireless.out_of_range",
-                    distance, ap.effectiveRange()));
+        var chunk = targetLevel.getChunkSource().getChunkNow(target.pos().getX() >> 4, target.pos().getZ() >> 4);
+        if (chunk == null || !(chunk.getBlockEntity(target.pos()) instanceof WirelessAccessPointBlockEntity ap) || !ap.networkLive()) {
+            if (!target.dimension().equals(server.dimension())) {
+                notifyPlayer(player, Component.translatable("message.rematter.wireless.unloaded"));
+            } else {
+                notifyPlayer(player, Component.translatable("message.rematter.wireless.unloaded"));
+            }
             return null;
+        }
+        boolean dimensional = ap.hasDimensionalCard();
+        if (!dimensional) {
+            if (!target.dimension().equals(server.dimension())) {
+                notifyPlayer(player, Component.translatable("message.rematter.wireless.wrong_dimension"));
+                return null;
+            }
+            double distSqr = player.position().distanceToSqr(Vec3.atCenterOf(target.pos()));
+            if (!ap.withinRange(player)) {
+                int distance = (int) Math.ceil(Math.sqrt(distSqr));
+                notifyPlayer(player, Component.translatable("message.rematter.wireless.out_of_range",
+                        distance, ap.effectiveRange()));
+                return null;
+            }
         }
         if (!ap.canAccess(player)) {
             notifyPlayer(player, Component.translatable("message.rematter.private_machine"));

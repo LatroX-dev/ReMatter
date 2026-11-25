@@ -1,0 +1,137 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "cable": "rematter:block/matter_cable",
+    "glow": "rematter:block/matter_cable_dim"
+  },
+  "elements": [
+    {
+      "name": "flange",
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cable",
+          "uv": [
+            10,
+            4,
+            16,
+            10
+          ],
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#cable",
+          "uv": [
+            10,
+            4,
+            16,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            10,
+            0,
+            11.5
+          ],
+          "rotation": 90
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            6,
+            11.5,
+            0,
+            10
+          ],
+          "rotation": 90
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            10,
+            6,
+            11.5
+          ]
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            11.5,
+            6,
+            10
+          ]
+        }
+      }
+    },
+    {
+      "name": "shaft",
+      "from": [
+        6,
+        6,
+        1.5
+      ],
+      "to": [
+        10,
+        10,
+        6
+      ],
+      "shade": false,
+      "light_emission": 4,
+      "faces": {
+        "east": {
+          "texture": "#glow",
+          "uv": [
+            6,
+            0,
+            1.5,
+            4
+          ]
+        },
+        "west": {
+          "texture": "#glow",
+          "uv": [
+            1.5,
+            0,
+            6,
+            4
+          ]
+        },
+        "up": {
+          "texture": "#glow",
+          "uv": [
+            1.5,
+            4,
+            6,
+            0
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#glow",
+          "uv": [
+            6,
+            4,
+            1.5,
+            0
+          ],
+          "rotation": 90
+        }
+      }
+    }
+  ]
+}

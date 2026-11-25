@@ -39,19 +39,25 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
-/** Powered Matter Network transceiver with AE2-style Wireless Booster slot and Terminal Link/Charge dock. */
+/** Powered Matter Network transceiver with unified Range Upgrade slot (Boosters or Dimensional Card) and Terminal Link/Charge dock. */
 public final class WirelessAccessPointBlockEntity extends BlockEntity implements Container, MenuProvider {
-    public static final int CAPACITY = 64_000;
+    public static final int CAPACITY = 128_000;
     public static final int MAX_INSERT = 8_192;
-    public static final int STANDBY_DRAIN = 2;
+    public static final int STANDBY_DRAIN = 8;
+    public static final int BOOSTER_DRAIN = 6;
+    public static final int DIMENSIONAL_DRAIN = 256;
+    public static final int ANCHOR_DRAIN = SpatialAnchorBlockEntity.DRAIN_PER_CHUNK;
     public static final int BASE_RANGE = 128;
     public static final int RANGE_PER_BOOSTER = 24;
     public static final int MAX_BOOSTERS = 16;
     public static final int MAX_RANGE = BASE_RANGE + MAX_BOOSTERS * RANGE_PER_BOOSTER;
-    public static final int SLOT_BOOSTER = 0;
+    public static final int SLOT_RANGE = 0;
     public static final int SLOT_TERMINAL = 1;
+    public static final int SLOT_ANCHOR = 2;
+    public static final int INVENTORY_SIZE = 3;
 
-    private final NonNullList<ItemStack> items = NonNullList.withSize(2, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> items = NonNullList.withSize(INVENTORY_SIZE, ItemStack.EMPTY);
+    private final List<ItemStack> migrationOverflow = new ArrayList<>();
     private final ResourceHandler<ItemResource> itemHandler = VanillaContainerWrapper.of(this);
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(CAPACITY, MAX_INSERT, CAPACITY) {
         @Override protected void onEnergyChanged(int previous) { setChanged(); }
@@ -70,6 +76,9 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
     };
     private @Nullable UUID owner;
     private boolean powered;
+    private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
+    private String customName = "";
+    private ChunkAnchorManager.Status anchorStatus = ChunkAnchorManager.Status.IDLE;
     private @Nullable MachineMatterNetwork cachedNetwork;
 
     public WirelessAccessPointBlockEntity(BlockPos pos, BlockState state) {
@@ -78,27 +87,114 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
 
     public int energy() { return (int) energy.getAmountAsLong(); }
     public @Nullable UUID owner() { return owner; }
+    public String customName() { return customName; }
+    public ChunkAnchorManager.Status anchorStatus() { return anchorStatus; }
+
+    public void setCustomName(String next) {
+        String clean = CustomNames.sanitize(next);
+        if (customName.equals(clean)) return;
+        customName = clean;
+        setChanged();
+    }
 
     public int boosterCount() {
-        ItemStack stack = items.get(SLOT_BOOSTER);
+        ItemStack stack = items.get(SLOT_RANGE);
         return stack.is(ModContent.WIRELESS_BOOSTER.get()) ? Math.clamp(stack.getCount(), 0, MAX_BOOSTERS) : 0;
+    }
+
+    public boolean hasDimensionalCard() {
+        return items.get(SLOT_RANGE).is(ModContent.DIMENSIONAL_CARD.get());
+    }
+
+    public boolean hasAnchorUpgrade() {
+        return items.get(SLOT_ANCHOR).is(ModContent.ANCHOR_UPGRADE.get());
     }
 
     public int effectiveRange() {
         return BASE_RANGE + boosterCount() * RANGE_PER_BOOSTER;
     }
 
+    public static int computeDrain(int boosters, boolean dimensional, boolean anchor) {
+        int base = dimensional
+                ? DIMENSIONAL_DRAIN
+                : STANDBY_DRAIN + Math.clamp(boosters, 0, MAX_BOOSTERS) * BOOSTER_DRAIN;
+        return base + (anchor ? ANCHOR_DRAIN : 0);
+    }
+
     public int effectiveDrain() {
-        int boosters = boosterCount();
-        return STANDBY_DRAIN + boosters * 2 + (boosters * boosters) / 2;
+        return computeDrain(boosterCount(), hasDimensionalCard(), hasAnchorUpgrade());
     }
 
     public boolean withinRange(Player player) {
+        if (hasDimensionalCard()) return true;
         int range = effectiveRange();
         return player.position().distanceToSqr(Vec3.atCenterOf(worldPosition)) <= (double) range * range;
     }
 
-    public boolean powered() { return networkLive() && (powered || energy() >= effectiveDrain()); }
+    public boolean canReach(Player player) {
+        if (hasDimensionalCard()) return true;
+        return level != null && level == player.level() && withinRange(player);
+    }
+
+    public void syncChunkAnchor() {
+        if (!(level instanceof ServerLevel server) || isRemoved()) return;
+        if (!hasAnchorUpgrade() || owner == null) {
+            ChunkAnchorManager.release(server, worldPosition);
+            anchorStatus = new ChunkAnchorManager.Status(false, 0,
+                    ChunkAnchorManager.ownerChunkCount(server.getServer(), owner),
+                    ChunkLoadingConfig.maxChunksPerPlayer(), "idle");
+            return;
+        }
+        if (!ChunkLoadingConfig.enabled()) {
+            ChunkAnchorManager.release(server, worldPosition);
+            anchorStatus = new ChunkAnchorManager.Status(false, 0,
+                    ChunkAnchorManager.ownerChunkCount(server.getServer(), owner),
+                    ChunkLoadingConfig.maxChunksPerPlayer(), "disabled");
+            return;
+        }
+        if (!redstoneAllows()) {
+            ChunkAnchorManager.release(server, worldPosition);
+            anchorStatus = new ChunkAnchorManager.Status(false, 0,
+                    ChunkAnchorManager.ownerChunkCount(server.getServer(), owner),
+                    ChunkLoadingConfig.maxChunksPerPlayer(), "redstone_paused");
+            return;
+        }
+        if (!powered && energy() < effectiveDrain()) {
+            ChunkAnchorManager.release(server, worldPosition);
+            anchorStatus = new ChunkAnchorManager.Status(false, 0,
+                    ChunkAnchorManager.ownerChunkCount(server.getServer(), owner),
+                    ChunkLoadingConfig.maxChunksPerPlayer(), "missing_power");
+            return;
+        }
+        anchorStatus = ChunkAnchorManager.sync(server, worldPosition, owner, ChunkAnchorManager.square(worldPosition, 0));
+    }
+
+    @Override public void onLoad() {
+        super.onLoad();
+        if (level instanceof ServerLevel) syncChunkAnchor();
+    }
+
+    public RedstoneMode redstoneMode() { return redstoneMode; }
+
+    public boolean redstoneAllows() {
+        if (redstoneMode == RedstoneMode.IGNORED || level == null) return true;
+        boolean sig = level.hasNeighborSignal(worldPosition);
+        return redstoneMode == RedstoneMode.HIGH ? sig : !sig;
+    }
+
+    public boolean redstonePaused() { return !redstoneAllows(); }
+
+    public boolean cycleRedstoneMode(Player player, boolean forward) {
+        if (!networkLive() || player.isSpectator() || !canAccess(player)) return false;
+        RedstoneMode next = redstoneMode.stepSimple(forward);
+        if (redstoneMode == next) return true;
+        redstoneMode = next;
+        setChanged();
+        syncChunkAnchor();
+        return true;
+    }
+
+    public boolean powered() { return networkLive() && redstoneAllows() && (powered || energy() >= effectiveDrain()); }
 
     public boolean matterReady() {
         return networkLive() && matterNetwork(false).ready();
@@ -111,7 +207,7 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
     }
 
     List<Direction> connectionSides() {
-        return List.of(Direction.DOWN, getBlockState().getValue(WirelessAccessPointBlock.FACING).getOpposite());
+        return List.of(Direction.DOWN);
     }
 
     MachineMatterNetwork matterNetwork(boolean deep) {
@@ -150,10 +246,17 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        placedBy(placer, ItemStack.EMPTY);
+    }
+
+    public void placedBy(@Nullable LivingEntity placer, ItemStack stack) {
         if (securityMode == SecurityMode.PUBLIC) {
             securityMode = MachineAccess.placementDefault(level, placer);
         }
+        String fromItem = CustomNames.fromStack(stack);
+        if (!fromItem.isEmpty()) customName = fromItem;
         assignOwner(placer instanceof Player player && !(player instanceof FakePlayer) ? player.getUUID() : null);
+        syncChunkAnchor();
     }
 
     public boolean interact(Player player) {
@@ -169,6 +272,7 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         cachedNetwork = null;
         setChanged();
         touchTopology();
+        syncChunkAnchor();
     }
 
     public void afterRotation(ServerLevel server) {
@@ -215,9 +319,17 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
 
     public void serverTick() {
         if (!networkLive() || Transaction.getCurrentOpenedTransaction() != null) return;
+        if (!migrationOverflow.isEmpty() && level instanceof ServerLevel server) {
+            for (ItemStack extra : migrationOverflow) {
+                if (!extra.isEmpty()) Block.popResource(server, worldPosition, extra.copy());
+            }
+            migrationOverflow.clear();
+            setChanged();
+        }
         bindDockedTerminal();
+        boolean wasPowered = powered;
         int drain = effectiveDrain();
-        boolean online = energy() >= drain;
+        boolean online = redstoneAllows() && energy() >= drain;
         if (online) {
             try (var tx = Transaction.openRoot()) {
                 if (energy.extract(drain, tx) == drain) tx.commit();
@@ -225,6 +337,9 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
             }
         }
         powered = online;
+        if (hasAnchorUpgrade() && (online != wasPowered || online != anchorStatus.active())) {
+            syncChunkAnchor();
+        }
         if (online && !items.get(SLOT_TERMINAL).isEmpty() && energy() > 0) {
             var sink = ItemAccess.forHandlerIndexStrict(itemHandler, SLOT_TERMINAL).getCapability(Capabilities.Energy.ITEM);
             if (sink != null && sink.getAmountAsLong() < sink.getCapacityAsLong()) {
@@ -244,6 +359,9 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         for (ItemStack stack : items) {
             if (!stack.isEmpty()) out.add(stack.copy());
         }
+        for (ItemStack extra : migrationOverflow) {
+            if (!extra.isEmpty()) out.add(extra.copy());
+        }
         return out;
     }
 
@@ -251,18 +369,31 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
 
     @Override public void setRemoved() {
         cachedNetwork = null;
-        if (level instanceof ServerLevel server) ChunkRevisions.touchLoaded(server, worldPosition);
+        if (level instanceof ServerLevel server) {
+            ChunkAnchorManager.release(server, worldPosition);
+            ChunkRevisions.touchLoaded(server, worldPosition);
+        }
         super.setRemoved();
+    }
+
+    public void writeMenuInit(net.minecraft.network.RegistryFriendlyByteBuf buf) {
+        buf.writeBlockPos(worldPosition);
+        buf.writeUtf(customName, CustomNames.MAX_LENGTH);
     }
 
     @Override protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
-        output.putInt("schema", 1);
+        output.putInt("schema", 2);
         output.putInt("energy", energy());
         if (owner != null) output.putString("owner", owner.toString());
         if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
+        if (redstoneMode != RedstoneMode.IGNORED) output.putString("redstone_mode", redstoneMode.getSerializedName());
+        if (!customName.isEmpty()) output.putString("custom_name", customName);
         if (!isEmpty()) {
             output.store("items", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(items));
+        }
+        if (!migrationOverflow.isEmpty()) {
+            output.store("migration_overflow", ItemStack.OPTIONAL_CODEC.listOf(), List.copyOf(migrationOverflow));
         }
     }
 
@@ -271,25 +402,54 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
         cachedNetwork = null;
         owner = null;
         securityMode = SecurityMode.PUBLIC;
+        redstoneMode = RedstoneMode.IGNORED;
+        customName = "";
         energy.set(0);
         items.replaceAll(stack -> ItemStack.EMPTY);
-        if (input.getIntOr("schema", -1) != 1) return;
+        migrationOverflow.clear();
+        int schema = input.getIntOr("schema", -1);
+        if (schema != 1 && schema != 2) return;
         input.getString("owner").ifPresent(raw -> {
             try { owner = UUID.fromString(raw); } catch (IllegalArgumentException ignored) { owner = null; }
         });
         securityMode = input.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
+        redstoneMode = RedstoneMode.loadSimple(input.getStringOr("redstone_mode", "ignored"));
+        customName = CustomNames.sanitize(input.getStringOr("custom_name", ""));
         input.read("items", ItemStack.OPTIONAL_CODEC.listOf()).ifPresent(loaded -> {
-            for (int i = 0; i < Math.min(items.size(), loaded.size()); i++) {
-                items.set(i, loaded.get(i));
+            if (schema == 1) {
+                ItemStack legacyBooster = loaded.size() > 0 ? loaded.get(0) : ItemStack.EMPTY;
+                ItemStack legacyTerminal = loaded.size() > 1 ? loaded.get(1) : ItemStack.EMPTY;
+                ItemStack legacyDim = loaded.size() > 2 ? loaded.get(2) : ItemStack.EMPTY;
+                ItemStack legacyAnchor = loaded.size() > 3 ? loaded.get(3) : ItemStack.EMPTY;
+                if (!legacyDim.isEmpty()) {
+                    items.set(SLOT_RANGE, legacyDim);
+                    if (!legacyBooster.isEmpty()) migrationOverflow.add(legacyBooster.copy());
+                } else {
+                    items.set(SLOT_RANGE, legacyBooster);
+                }
+                items.set(SLOT_TERMINAL, legacyTerminal);
+                items.set(SLOT_ANCHOR, legacyAnchor);
+            } else {
+                for (int i = 0; i < Math.min(items.size(), loaded.size()); i++) {
+                    items.set(i, loaded.get(i));
+                }
+            }
+        });
+        input.read("migration_overflow", ItemStack.OPTIONAL_CODEC.listOf()).ifPresent(overflow -> {
+            for (ItemStack extra : overflow) {
+                if (!extra.isEmpty()) migrationOverflow.add(extra.copy());
             }
         });
         energy.set(Math.clamp(input.getIntOr("energy", 0), 0, CAPACITY));
-        powered = energy() >= effectiveDrain();
-        if (level instanceof ServerLevel) touchTopology();
+        powered = redstoneAllows() && energy() >= effectiveDrain();
+        if (level instanceof ServerLevel) {
+            touchTopology();
+            syncChunkAnchor();
+        }
     }
 
     @Override public Component getDisplayName() {
-        return Component.translatable("block.rematter.wireless_access_point");
+        return CustomNames.displayName(customName, "block.rematter.wireless_access_point");
     }
 
     @Override public @Nullable AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
@@ -298,10 +458,13 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
 
     public static boolean validSlotItem(int slot, ItemStack stack) {
         if (stack.isEmpty()) return false;
-        if (slot == SLOT_BOOSTER) return stack.is(ModContent.WIRELESS_BOOSTER.get());
+        if (slot == SLOT_RANGE) {
+            return stack.is(ModContent.WIRELESS_BOOSTER.get()) || stack.is(ModContent.DIMENSIONAL_CARD.get());
+        }
         if (slot == SLOT_TERMINAL) {
             return stack.getItem() instanceof WirelessMatterTerminalItem || EnergyCubeBlockEntity.chargeable(stack);
         }
+        if (slot == SLOT_ANCHOR) return stack.is(ModContent.ANCHOR_UPGRADE.get());
         return false;
     }
 
@@ -312,21 +475,28 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
     @Override public ItemStack removeItem(int slot, int amount) {
         if (Transaction.getCurrentOpenedTransaction() != null) return ItemStack.EMPTY;
         ItemStack removed = ContainerHelper.removeItem(items, slot, amount);
-        if (!removed.isEmpty()) setChanged();
+        if (!removed.isEmpty()) {
+            if (slot == SLOT_ANCHOR) syncChunkAnchor();
+            setChanged();
+        }
         return removed;
     }
 
     @Override public ItemStack removeItemNoUpdate(int slot) {
-        return Transaction.getCurrentOpenedTransaction() != null ? ItemStack.EMPTY : ContainerHelper.takeItem(items, slot);
+        if (Transaction.getCurrentOpenedTransaction() != null) return ItemStack.EMPTY;
+        ItemStack out = ContainerHelper.takeItem(items, slot);
+        if (slot == SLOT_ANCHOR && !out.isEmpty()) syncChunkAnchor();
+        return out;
     }
 
     @Override public void setItem(int slot, ItemStack stack) {
         if (Transaction.getCurrentOpenedTransaction() != null) return;
         if (!stack.isEmpty() && !validSlotItem(slot, stack)) return;
-        int limit = slot == SLOT_BOOSTER ? MAX_BOOSTERS : 1;
+        int limit = slot == SLOT_RANGE && stack.is(ModContent.WIRELESS_BOOSTER.get()) ? MAX_BOOSTERS : 1;
         if (stack.getCount() > limit) stack = stack.copyWithCount(limit);
         items.set(slot, stack);
         bindDockedTerminal();
+        if (slot == SLOT_ANCHOR) syncChunkAnchor();
         setChanged();
     }
 
@@ -344,6 +514,7 @@ public final class WirelessAccessPointBlockEntity extends BlockEntity implements
     @Override public void clearContent() {
         if (Transaction.getCurrentOpenedTransaction() == null) {
             items.replaceAll(stack -> ItemStack.EMPTY);
+            syncChunkAnchor();
             setChanged();
         }
     }

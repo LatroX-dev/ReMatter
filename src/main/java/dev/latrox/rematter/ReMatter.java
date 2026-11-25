@@ -27,8 +27,10 @@ public final class ReMatter {
     public ReMatter(IEventBus modBus, ModContainer container) {
         dev.latrox.rematter.research.ResearchConfig.register(container);
         dev.latrox.rematter.chemistry.SynthesisConfig.register(container);
+        dev.latrox.rematter.content.ChunkLoadingConfig.register(container);
         ModContent.register(modBus);
         dev.latrox.rematter.primal.PrimalContent.register(modBus);
+        modBus.addListener(dev.latrox.rematter.content.ChunkAnchorManager::registerTicketController);
         modBus.addListener(dev.latrox.rematter.network.MachineActionPayload::register);
         modBus.addListener(dev.latrox.rematter.network.ResearchKnowledgePayload::register);
         modBus.addListener(dev.latrox.rematter.network.ResearchLearnedPayload::register);
@@ -37,6 +39,13 @@ public final class ReMatter {
         modBus.addListener(dev.latrox.rematter.network.EnergyCubePayload::register);
         modBus.addListener(dev.latrox.rematter.network.CellTransferConfigPayload::register);
         modBus.addListener(dev.latrox.rematter.network.MatterLevelEmitterPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.MatterCableRelayPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.SpatialAnchorPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.ChunkMapPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.EntangledLinkPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.DimensionalLinkPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.WirelessAccessPointPayload::register);
+        modBus.addListener(dev.latrox.rematter.network.NetworkReservesPayload::register);
         modBus.addListener(MatterCablePulsePayload::register);
         modBus.addListener(ReleaseHeldOrderPayload::register);
         modBus.addListener(SelectProcessPayload::register);
@@ -58,6 +67,10 @@ public final class ReMatter {
         NeoForge.EVENT_BUS.addListener(ChemistryData::register);
         NeoForge.EVENT_BUS.addListener(CatalogSync::sync);
         NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.network.CrystalFuelSync::sync);
+        NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.network.NetworkReservesPayload::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.content.ChunkAnchorManager::onServerStopped);
+        NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.content.ChunkAnchorManager::onPlayerLogin);
+        NeoForge.EVENT_BUS.addListener(dev.latrox.rematter.content.ChunkAnchorManager::onPlayerLogout);
         if (ModList.get().isLoaded("ae2")) dev.latrox.rematter.compat.ae2.Ae2Compat.register(modBus);
         if (ModList.get().isLoaded("refinedstorage")) dev.latrox.rematter.compat.rs.RsCompat.register(modBus);
         dev.latrox.rematter.compat.CuriosSupport.register(modBus);

@@ -1,0 +1,8 @@
+{
+  "parent": "rematter:block/matter_cable_geometry_arm_device_dim",
+  "textures": {
+    "particle": "rematter:block/resonant_matter_cable",
+    "cable": "rematter:block/resonant_matter_cable",
+    "glow": "rematter:block/resonant_matter_cable_dim"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NDN",
+    "OPO",
+    "NBN"
+  ],
+  "key": {
+    "N": "rematter:netherite_sheath",
+    "D": "rematter:diamond_lattice",
+    "O": "rematter:optical_circuit",
+    "P": "rematter:pressure_module",
+    "B": "rematter:structural_bars"
+  },
+  "result": {
+    "id": "rematter:mass_compression_upgrade",
+    "count": 1
+  }
+}

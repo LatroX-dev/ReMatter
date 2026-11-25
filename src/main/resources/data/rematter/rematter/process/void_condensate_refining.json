@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "separation",
+  "inputs": [
+    {
+      "substance": "rematter:void_condensate",
+      "phase": "gas",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:carbon",
+      "phase": "solid",
+      "amount": 2000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:astrion",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 128000,
+  "ticks": 1000,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": false,
+    "product": "rematter:enderion"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NMN",
+    "ECE",
+    "DKD"
+  ],
+  "key": {
+    "N": "rematter:netherite_sheath",
+    "M": "rematter:resonant_matter_cable",
+    "E": "rematter:ember_matrix_crystal",
+    "C": "rematter:resonant_energy_cube",
+    "D": "rematter:diamond_lattice",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:resonant_energy_matrix_cell",
+    "count": 1
+  }
+}

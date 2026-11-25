@@ -8,6 +8,7 @@ import dev.latrox.rematter.network.MachineActionPayload;
 import dev.latrox.rematter.primal.*;
 import dev.latrox.rematter.research.*;
 import java.util.*;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -15,7 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandlerUtil;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.transaction.*;
 import org.jspecify.annotations.Nullable;
 
@@ -37,6 +41,45 @@ final class MachineExtensions {
     private final PrimalCells.Journal sourceCell;
     private final CrystalBurner burner=new CrystalBurner();
     private final ControllerEnergyBudget outputBudget=new ControllerEnergyBudget();
+    private int primalStability;
+    private long matrixEnergy, matrixLastInRate, matrixLastOutRate, matrixTickIn, matrixTickOut;
+    private long matrixRateTick = Long.MIN_VALUE;
+    private boolean matrixAutoOutput = true;
+    private int matrixPushDepth;
+    private final Map<BlockPos, Long> matrixDirectInputTicks = new HashMap<>();
+    private record MatrixState(long energy, long tickIn, long tickOut) {}
+    private final SnapshotJournal<MatrixState> matrixJournal = new SnapshotJournal<>() {
+        @Override protected MatrixState createSnapshot() { return new MatrixState(matrixEnergy, matrixTickIn, matrixTickOut); }
+        @Override protected void revertToSnapshot(MatrixState state) {
+            matrixEnergy = state.energy();
+            matrixTickIn = state.tickIn();
+            matrixTickOut = state.tickOut();
+        }
+        @Override protected void onRootCommit(MatrixState originalState) {
+            if (matrixEnergy != originalState.energy()) machine.setChanged();
+        }
+    };
+    private long reactorEnergy, reactorLastGenRate, reactorLastOutRate, reactorTickOut;
+    private long reactorRateTick = Long.MIN_VALUE;
+    private int reactorFlux;
+    private EnergyReactorRecipes.FuelMode reactorFuelMode = EnergyReactorRecipes.FuelMode.CRYSTAL;
+    private EnergyReactorRecipes.MatterFuelFilter reactorMatterFilter = EnergyReactorRecipes.MatterFuelFilter.AUTO;
+    private EnergyReactorRecipes.CoolantMode reactorCoolantMode = EnergyReactorRecipes.CoolantMode.AUTO;
+    private boolean reactorAllowNetworkPrimal = true;
+    private boolean reactorCooled;
+    private String reactorActiveFuel = "";
+    private String reactorActiveCoolant = "";
+    private record ReactorState(long energy, long tickOut) {}
+    private final SnapshotJournal<ReactorState> reactorJournal = new SnapshotJournal<>() {
+        @Override protected ReactorState createSnapshot() { return new ReactorState(reactorEnergy, reactorTickOut); }
+        @Override protected void revertToSnapshot(ReactorState state) {
+            reactorEnergy = state.energy();
+            reactorTickOut = state.tickOut();
+        }
+        @Override protected void onRootCommit(ReactorState originalState) {
+            if (reactorEnergy != originalState.energy()) machine.setChanged();
+        }
+    };
     private record EnergyState(int amount,long revision,long partial,long conversionPaid){}
     private final SnapshotJournal<EnergyState> energyJournal=new SnapshotJournal<>(){
         @Override protected EnergyState createSnapshot(){return new EnergyState((int)machine.energy().getAmountAsLong(),energyReceiptRevision,partialEnergyDebt,conversionEnergyPaid);}
@@ -146,7 +189,10 @@ final class MachineExtensions {
             machine.work().status="research_energy_debt";return true;
         }
         if(machine.kind().generator()){tickGenerator();return true;}
+        if(machine.kind().isEnergyMatrix()){tickEnergyMatrix();return true;}
+        if(machine.kind().isEnergyReactor()){tickEnergyReactor();return true;}
         if(machine.kind()==MachineKind.PRIMAL_CONVERTER){tickConverter();return true;}
+        if(machine.kind()==MachineKind.PRIMAL_REACTOR){tickPrimalReactor();return true;}
         if(machine.kind()!=MachineKind.ANALYZER||!researchRunning||researchId==null)return false;
         if(!owned()){machine.work().status="research_owner";return true;}
         if(!machine.redstoneAllowsWork()){machine.work().status="redstone_paused";return true;}
@@ -169,6 +215,813 @@ final class MachineExtensions {
         }
         machine.setChanged();return true;
     }
+    int primalStability() { return primalStability; }
+    int primalMaxStability() {
+        return machine.kind() == MachineKind.PRIMAL_REACTOR
+                ? PrimalReactorRecipes.seedMaxStability(machine.stack(MachineCellAccess.DISCOVERY_SLOT)) : 0;
+    }
+    long availablePrimalTotal() {
+        var local = PrimalCells.view(primal.stack());
+        long localAmount = local.readable() ? local.amount() : 0L;
+        long netAmount = machine.matterNetwork(false).primalAmount();
+        return Math.addExact(localAmount, netAmount);
+    }
+    long matrixEnergy() { return matrixEnergy; }
+    long matrixCapacity() {
+        return machine.kind().isEnergyMatrix() && machine.industrialStructureReady()
+                ? IndustrialStructure.inspect(machine).performance().matrixCapacity() : 0L;
+    }
+    long matrixTransferRate() {
+        return machine.kind().isEnergyMatrix() && machine.industrialStructureReady()
+                ? IndustrialStructure.inspect(machine).performance().matrixTransferRate() : 0L;
+    }
+    long matrixInRate() { return matrixLastInRate; }
+    long matrixOutRate() { return matrixLastOutRate; }
+    boolean matrixAutoOutput() { return matrixAutoOutput; }
+    int matrixFillPermille() {
+        long cap = matrixCapacity();
+        if (cap <= 0L || matrixEnergy <= 0L) return 0;
+        return (int) Math.clamp(Math.min(matrixEnergy, cap) * 1_000L / cap, 0L, 1_000L);
+    }
+
+    private void advanceMatrixRateWindow(long now) {
+        if (matrixRateTick == now) return;
+        matrixLastInRate = (matrixRateTick != Long.MIN_VALUE && now == matrixRateTick + 1L) ? matrixTickIn : 0L;
+        matrixLastOutRate = (matrixRateTick != Long.MIN_VALUE && now == matrixRateTick + 1L) ? matrixTickOut : 0L;
+        matrixTickIn = 0L;
+        matrixTickOut = 0L;
+        matrixRateTick = now;
+    }
+
+    private int insertMatrixEnergy(int amount, TransactionContext tx) {
+        net.neoforged.neoforge.transfer.TransferPreconditions.checkNonNegative(amount);
+        if (!machine.networkLive() || !machine.kind().isEnergyMatrix() || !machine.industrialStructureReady()) return 0;
+        advanceMatrixRateWindow(level().getGameTime());
+        long cap = matrixCapacity();
+        long rate = matrixTransferRate();
+        long room = Math.max(0L, cap - matrixEnergy);
+        long budget = Math.max(0L, rate - matrixTickIn);
+        int added = (int) Math.min((long) amount, Math.min(room, budget));
+        if (added > 0) {
+            matrixJournal.updateSnapshots(tx);
+            matrixEnergy += added;
+            matrixTickIn += added;
+        }
+        return added;
+    }
+
+    private int extractMatrixEnergy(int amount, TransactionContext tx) {
+        net.neoforged.neoforge.transfer.TransferPreconditions.checkNonNegative(amount);
+        if (!machine.networkLive() || !machine.kind().isEnergyMatrix() || !machine.industrialStructureReady()) return 0;
+        advanceMatrixRateWindow(level().getGameTime());
+        long rate = matrixTransferRate();
+        long budget = Math.max(0L, rate - matrixTickOut);
+        int taken = (int) Math.min((long) amount, Math.min(matrixEnergy, budget));
+        if (taken > 0) {
+            matrixJournal.updateSnapshots(tx);
+            matrixEnergy -= taken;
+            matrixTickOut += taken;
+        }
+        return taken;
+    }
+
+    private final EnergyHandler matrixItemSink = new EnergyHandler() {
+        @Override public long getAmountAsLong() { return matrixEnergy; }
+        @Override public long getCapacityAsLong() { return matrixCapacity(); }
+        @Override public int insert(int amount, TransactionContext tx) { return insertMatrixEnergy(amount, tx); }
+        @Override public int extract(int amount, TransactionContext tx) { return 0; }
+    };
+
+    private final EnergyHandler matrixItemSource = new EnergyHandler() {
+        @Override public long getAmountAsLong() { return matrixEnergy; }
+        @Override public long getCapacityAsLong() { return matrixCapacity(); }
+        @Override public int insert(int amount, TransactionContext tx) { return 0; }
+        @Override public int extract(int amount, TransactionContext tx) { return extractMatrixEnergy(amount, tx); }
+    };
+
+    EnergyHandler matrixPortEnergy(BlockPos portPos, Direction side, MachinePortMode portMode) {
+        BlockPos immutablePort = portPos.immutable();
+        boolean allowInsert = portMode == MachinePortMode.AUTOMATIC || portMode == MachinePortMode.POWER;
+        boolean allowExtract = portMode == MachinePortMode.AUTOMATIC || portMode == MachinePortMode.POWER_OUTPUT;
+        return new EnergyHandler() {
+            @Override public long getAmountAsLong() { return machine.networkLive() && machine.industrialStructureReady() ? matrixEnergy : 0L; }
+            @Override public long getCapacityAsLong() { return machine.networkLive() && machine.industrialStructureReady() ? matrixCapacity() : 0L; }
+            @Override public int insert(int amount, TransactionContext tx) {
+                net.neoforged.neoforge.transfer.TransferPreconditions.checkNonNegative(amount);
+                if (!allowInsert || matrixPushDepth > 0) return 0;
+                int added = insertMatrixEnergy(amount, tx);
+                if (added > 0 && isDirectMatrixNeighbor(immutablePort, side)) {
+                    long tick = level().getGameTime();
+                    new RootCommitJournal(() -> matrixDirectInputTicks.put(immutablePort, tick)).updateSnapshots(tx);
+                }
+                return added;
+            }
+            @Override public int extract(int amount, TransactionContext tx) {
+                net.neoforged.neoforge.transfer.TransferPreconditions.checkNonNegative(amount);
+                return allowExtract ? extractMatrixEnergy(amount, tx) : 0;
+            }
+        };
+    }
+
+    private boolean isDirectMatrixNeighbor(BlockPos portPos, Direction outward) {
+        BlockPos neighbor = portPos.relative(outward);
+        var chunk = level().getChunkSource().getChunkNow(neighbor.getX() >> 4, neighbor.getZ() >> 4);
+        if (chunk == null) return false;
+        return !(chunk.getBlockState(neighbor).getBlock() instanceof MatterCableBlock)
+                && !(chunk.getBlockEntity(neighbor) instanceof EntangledLinkBlockEntity)
+                && !(chunk.getBlockEntity(neighbor) instanceof DimensionalEntangledLinkBlockEntity);
+    }
+
+    private void tickEnergyMatrix() {
+        var work = machine.work();
+        long now = level().getGameTime();
+        advanceMatrixRateWindow(now);
+        if (!machine.industrialStructureReady()) {
+            work.status = IndustrialStructure.inspect(machine).diagnostic();
+            return;
+        }
+        var formation = IndustrialStructure.inspect(machine);
+        long cap = formation.performance().matrixCapacity();
+        long rate = formation.performance().matrixTransferRate();
+        var itemHandler = VanillaContainerWrapper.of(machine);
+
+        // 1. Drain discharge item in slot 0 into the matrix.
+        if (!machine.stack(0).isEmpty() && matrixEnergy < cap && matrixTickIn < rate) {
+            var source = ItemAccess.forHandlerIndexStrict(itemHandler, 0).getCapability(Capabilities.Energy.ITEM);
+            int offer = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, rate - matrixTickIn));
+            if (source != null && offer > 0 && source.getAmountAsLong() > 0) {
+                try (var tx = Transaction.openRoot()) {
+                    if (EnergyHandlerUtil.move(source, matrixItemSink, offer, tx) > 0) tx.commit();
+                }
+            }
+        }
+
+        // 2. Push power out of formed POWER_OUTPUT ports (always) and AUTOMATIC ports (when Auto-Output is enabled), while Redstone allows.
+        if (matrixEnergy > 0 && matrixTickOut < rate && machine.redstoneAllowsWork()) {
+            for (var port : formation.ports()) {
+                if (matrixEnergy <= 0 || matrixTickOut >= rate) break;
+                if (!level().hasChunkAt(port.position())) continue;
+                if (!(level().getBlockEntity(port.position()) instanceof MachinePortBlockEntity portEntity)) continue;
+                var portMode = portEntity.mode();
+                boolean pushes = portMode == MachinePortMode.POWER_OUTPUT
+                        || (matrixAutoOutput && portMode == MachinePortMode.AUTOMATIC);
+                if (!pushes) continue;
+                long lastIn = matrixDirectInputTicks.getOrDefault(port.position(), -10L);
+                if (portMode == MachinePortMode.AUTOMATIC && now - lastIn <= 1L) continue;
+                BlockPos target = port.position().relative(port.outward());
+                if (level().getChunkSource().getChunkNow(target.getX() >> 4, target.getZ() >> 4) == null) continue;
+                if (level().getBlockEntity(target) instanceof MachinePortBlockEntity otherPort
+                        && otherPort.controller(port.outward().getOpposite()) == machine) continue;
+                var sink = level().getCapability(Capabilities.Energy.BLOCK, target, port.outward().getOpposite());
+                if (sink == null) continue;
+                MatterCablePower.energizeIfCable(sink);
+                int offer = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, rate - matrixTickOut));
+                if (offer <= 0) break;
+                matrixPushDepth++;
+                try (var tx = Transaction.openRoot()) {
+                    if (EnergyHandlerUtil.move(matrixItemSource, sink, offer, tx) > 0) tx.commit();
+                } finally {
+                    matrixPushDepth--;
+                }
+            }
+        }
+
+        // 3. Charge item in slot 1 from remaining output budget.
+        if (!machine.stack(1).isEmpty() && matrixEnergy > 0 && matrixTickOut < rate) {
+            var sink = ItemAccess.forHandlerIndexStrict(itemHandler, 1).getCapability(Capabilities.Energy.ITEM);
+            int offer = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, rate - matrixTickOut));
+            if (sink != null && offer > 0 && sink.getAmountAsLong() < sink.getCapacityAsLong()) {
+                try (var tx = Transaction.openRoot()) {
+                    if (EnergyHandlerUtil.move(matrixItemSource, sink, offer, tx) > 0) tx.commit();
+                }
+            }
+        }
+
+        boolean flowing = matrixTickIn > 0 || matrixTickOut > 0;
+        work.processedThisTick = flowing || matrixEnergy > 0;
+        work.energyRate = flowing ? Math.max(matrixTickIn, matrixTickOut) : 0L;
+        work.status = cap > 0 && matrixEnergy >= cap ? "energy_full" : flowing ? "working" : "ready";
+    }
+
+    long reactorEnergy() { return reactorEnergy; }
+    long reactorCapacity() {
+        return machine.kind().isEnergyReactor() && machine.industrialStructureReady()
+                ? IndustrialStructure.inspect(machine).performance().reactorCapacity() : 0L;
+    }
+    long reactorMaxOutputRate() {
+        return machine.kind().isEnergyReactor() && machine.industrialStructureReady()
+                ? IndustrialStructure.inspect(machine).performance().reactorMaxOutputRate() : 0L;
+    }
+    long reactorGenRate() { return reactorLastGenRate; }
+    long reactorOutRate() { return reactorLastOutRate; }
+    int reactorFlux() { return reactorFlux; }
+    EnergyReactorRecipes.FuelMode reactorFuelMode() { return reactorFuelMode; }
+    EnergyReactorRecipes.MatterFuelFilter reactorMatterFilter() { return reactorMatterFilter; }
+    EnergyReactorRecipes.CoolantMode reactorCoolantMode() { return reactorCoolantMode; }
+    boolean reactorAllowNetworkPrimal() { return reactorAllowNetworkPrimal; }
+    boolean reactorCooled() { return reactorCooled; }
+
+    private void advanceReactorRateWindow(long now) {
+        if (reactorRateTick == now) return;
+        reactorLastOutRate = (reactorRateTick != Long.MIN_VALUE && now == reactorRateTick + 1L) ? reactorTickOut : 0L;
+        reactorTickOut = 0L;
+        reactorRateTick = now;
+    }
+
+    private int extractReactorEnergy(int amount, TransactionContext tx) {
+        net.neoforged.neoforge.transfer.TransferPreconditions.checkNonNegative(amount);
+        if (!machine.networkLive() || !machine.kind().isEnergyReactor() || !machine.industrialStructureReady()) return 0;
+        advanceReactorRateWindow(level().getGameTime());
+        long rate = reactorMaxOutputRate();
+        long budget = Math.max(0L, rate - reactorTickOut);
+        int taken = (int) Math.min((long) amount, Math.min(reactorEnergy, budget));
+        if (taken > 0) {
+            reactorJournal.updateSnapshots(tx);
+            reactorEnergy -= taken;
+            reactorTickOut += taken;
+        }
+        return taken;
+    }
+
+    private final EnergyHandler reactorSource = new EnergyHandler() {
+        @Override public long getAmountAsLong() { return machine.networkLive() && machine.industrialStructureReady() ? reactorEnergy : 0L; }
+        @Override public long getCapacityAsLong() { return machine.networkLive() && machine.industrialStructureReady() ? reactorCapacity() : 0L; }
+        @Override public int insert(int amount, TransactionContext tx) { return 0; }
+        @Override public int extract(int amount, TransactionContext tx) { return extractReactorEnergy(amount, tx); }
+    };
+
+    EnergyHandler reactorPortEnergy() {
+        return reactorSource;
+    }
+
+    private void pushReactorEnergy(IndustrialStructure.Formation formation, long maxOut) {
+        if (reactorEnergy <= 0L || reactorTickOut >= maxOut) return;
+        for (var port : formation.ports()) {
+            if (reactorEnergy <= 0L || reactorTickOut >= maxOut) break;
+            if (!level().hasChunkAt(port.position())) continue;
+            if (!(level().getBlockEntity(port.position()) instanceof MachinePortBlockEntity portEntity)
+                    || (!portEntity.mode().allows(MachinePortMode.POWER_OUTPUT) && portEntity.mode() != MachinePortMode.POWER)) continue;
+            BlockPos target = port.position().relative(port.outward());
+            if (level().getChunkSource().getChunkNow(target.getX() >> 4, target.getZ() >> 4) == null) continue;
+            if (level().getBlockEntity(target) instanceof MachinePortBlockEntity otherPort
+                    && otherPort.controller(port.outward().getOpposite()) == machine) continue;
+            var sink = level().getCapability(Capabilities.Energy.BLOCK, target, port.outward().getOpposite());
+            if (sink == null || sink == reactorSource) continue;
+            MatterCablePower.energizeIfCable(sink);
+            int offer = (int) Math.min(Integer.MAX_VALUE, Math.max(0L, maxOut - reactorTickOut));
+            if (offer <= 0) break;
+            try (var tx = Transaction.openRoot()) {
+                if (EnergyHandlerUtil.move(reactorSource, sink, offer, tx) > 0) tx.commit();
+            }
+        }
+    }
+
+    private void decayReactorFlux(int step) {
+        if (reactorFlux > 0) {
+            reactorFlux = Math.max(0, reactorFlux - step);
+            machine.setChanged();
+        }
+    }
+
+    private void tickEnergyReactor() {
+        var work = machine.work();
+        long now = level().getGameTime();
+        advanceReactorRateWindow(now);
+        reactorLastGenRate = 0L;
+        reactorCooled = false;
+        reactorActiveFuel = "";
+        reactorActiveCoolant = "";
+        if (!machine.industrialStructureReady()) {
+            decayReactorFlux(EnergyReactorRecipes.FLUX_DECAY_PER_TICK);
+            work.status = IndustrialStructure.inspect(machine).diagnostic();
+            return;
+        }
+        var formation = IndustrialStructure.inspect(machine);
+        var perf = formation.performance();
+        int fuelCores = perf.fuelCores();
+        int coils = perf.inductionCoils();
+        long cap = perf.reactorCapacity();
+        long maxOut = perf.reactorMaxOutputRate();
+
+        // Always allow draining existing buffer (including any overhang after shrinking) through formed POWER ports.
+        pushReactorEnergy(formation, maxOut);
+
+        if (!machine.running()) {
+            decayReactorFlux(EnergyReactorRecipes.FLUX_DECAY_PER_TICK);
+            work.status = "paused";
+            return;
+        }
+        if (!machine.redstoneAllowsGenerator(reactorFlux > 0 || burner.remaining() > 0)) {
+            decayReactorFlux(EnergyReactorRecipes.FLUX_DECAY_PER_TICK);
+            work.status = "redstone_paused";
+            return;
+        }
+
+        // Safe auto-throttle: zero fuel burned when the 64-bit internal buffer is full.
+        long room = Math.max(0L, cap - reactorEnergy);
+        if (room <= 0L) {
+            decayReactorFlux(2);
+            work.status = "energy_full";
+            return;
+        }
+
+        // Optional coolant check (AUTO prefers stronger Nitrogen Cryo Overdrive first, falling back to Water).
+        var network = machine.matterNetwork(false);
+        SubstanceKey coolantKey = null;
+        long coolantNeeded = EnergyReactorRecipes.coolantCost(fuelCores);
+        if (reactorCoolantMode != EnergyReactorRecipes.CoolantMode.OFF
+                && network.ready() && network.inventory() != null && coolantNeeded > 0L) {
+            if (reactorCoolantMode.allowsNitrogen()
+                    && network.inventory().amount(EnergyReactorRecipes.NITROGEN_COOLANT) - coolantNeeded >= machine.effectiveNetworkReserve(EnergyReactorRecipes.NITROGEN_COOLANT)) {
+                coolantKey = EnergyReactorRecipes.NITROGEN_COOLANT;
+            } else if (reactorCoolantMode.allowsWater()
+                    && network.inventory().amount(EnergyReactorRecipes.WATER_COOLANT) - coolantNeeded >= machine.effectiveNetworkReserve(EnergyReactorRecipes.WATER_COOLANT)) {
+                coolantKey = EnergyReactorRecipes.WATER_COOLANT;
+            }
+        }
+        var coolantTier = EnergyReactorRecipes.CoolantTier.fromKey(coolantKey);
+        boolean cooled = coolantTier.cooled();
+
+        long produced = 0L;
+        String failStatus = "generator_fuel";
+        switch (reactorFuelMode) {
+            case CRYSTAL -> {
+                long fluxBase = Math.max(1L, (EnergyReactorRecipes.CRYSTAL_FE_PER_CORE * EnergyReactorRecipes.fluxFactorPermille(reactorFlux)) / 1_000L);
+                long burnDemand = EnergyReactorRecipes.effectiveFuelCost(fluxBase, fuelCores, coolantTier);
+                long expectedOut = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, fuelCores, coils, reactorFlux, coolantTier);
+                long scaledBurnDemand = room < expectedOut ? Math.max(1L, (burnDemand * room) / Math.max(1L, expectedOut)) : burnDemand;
+                var fuel = CrystalFuelData.fuel(machine.stack(0)).orElse(null);
+                var plan = burner.tickMulti(scaledBurnDemand, fuel, machine.stack(0).getCount());
+                if (!burner.apply(plan)) {
+                    failStatus = "unsupported_data";
+                    break;
+                }
+                if (plan.changesState()) {
+                    if (plan.consumedItems() > 0) {
+                        machine.stack(0).shrink(plan.consumedItems());
+                        machine.consumeRedstonePulse();
+                    }
+                    if (cooled && plan.producedEnergy() > 0L) {
+                        var deepNet = machine.matterNetwork(true);
+                        if (deepNet.ready() && deepNet.inventory() != null) {
+                            var act = machine.commitNetworkMatter(deepNet, Map.of(coolantKey, coolantNeeded), Map.of());
+                            if (act != null) {
+                                deepNet.markChanged();
+                                machine.publishNetworkActivity(deepNet, act);
+                            } else {
+                                cooled = false;
+                                coolantKey = null;
+                                coolantTier = EnergyReactorRecipes.CoolantTier.NONE;
+                            }
+                        } else {
+                            cooled = false;
+                            coolantKey = null;
+                            coolantTier = EnergyReactorRecipes.CoolantTier.NONE;
+                        }
+                    }
+                    long fullOut = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, fuelCores, coils, reactorFlux, coolantTier);
+                    produced = Math.min(room, plan.producedEnergy() >= scaledBurnDemand ? fullOut
+                            : Math.max(1L, (fullOut * plan.producedEnergy()) / Math.max(1L, scaledBurnDemand)));
+                    reactorActiveFuel = "crystal";
+                } else {
+                    failStatus = !burner.readable() ? "unsupported_data" : "generator_fuel";
+                }
+            }
+            case MATTER -> {
+                if (!network.ready() || network.inventory() == null) {
+                    failStatus = network.status();
+                    break;
+                }
+                EnergyReactorRecipes.MatterFuel chosen = null;
+                Map<SubstanceKey, Long> inputs = null;
+                boolean blockedByReserve = false;
+                for (var candidate : EnergyReactorRecipes.MATTER_FUELS) {
+                    if (!reactorMatterFilter.accepts(candidate.id())) continue;
+                    var req = new LinkedHashMap<SubstanceKey, Long>();
+                    boolean enough = true;
+                    boolean reserveHit = false;
+                    for (var entry : candidate.inputsPerCorePerTick().entrySet()) {
+                        long need = EnergyReactorRecipes.effectiveFuelCost(entry.getValue(), fuelCores, coolantTier);
+                        long have = network.inventory().amount(entry.getKey());
+                        long reserve = machine.effectiveNetworkReserve(entry.getKey());
+                        if (have < need) {
+                            enough = false;
+                            break;
+                        }
+                        if (have - need < reserve) {
+                            enough = false;
+                            reserveHit = true;
+                            break;
+                        }
+                        req.put(entry.getKey(), need);
+                    }
+                    if (enough) {
+                        chosen = candidate;
+                        inputs = req;
+                        break;
+                    }
+                    if (reserveHit) blockedByReserve = true;
+                }
+                if (chosen == null) {
+                    failStatus = blockedByReserve ? "network_reserve" : "missing_matter";
+                    break;
+                }
+                if (cooled) {
+                    inputs.merge(coolantKey, coolantNeeded, Long::sum);
+                }
+                var deepNet = machine.matterNetwork(true);
+                if (!deepNet.ready() || deepNet.inventory() == null) {
+                    failStatus = deepNet.ready() ? "storage_changed" : deepNet.status();
+                    break;
+                }
+                var act = machine.commitNetworkMatter(deepNet, inputs, Map.of());
+                if (act == null && cooled) {
+                    cooled = false;
+                    coolantKey = null;
+                    coolantTier = EnergyReactorRecipes.CoolantTier.NONE;
+                    inputs.clear();
+                    for (var entry : chosen.inputsPerCorePerTick().entrySet()) {
+                        inputs.put(entry.getKey(), EnergyReactorRecipes.effectiveFuelCost(entry.getValue(), fuelCores, coolantTier));
+                    }
+                    act = machine.commitNetworkMatter(deepNet, inputs, Map.of());
+                }
+                if (act == null) {
+                    failStatus = "missing_matter";
+                    break;
+                }
+                deepNet.markChanged();
+                machine.publishNetworkActivity(deepNet, act);
+                machine.consumeRedstonePulse();
+                produced = Math.min(room, EnergyReactorRecipes.effectiveOutputPerTick(chosen.fePerCorePerTick(), fuelCores, coils, reactorFlux, coolantTier));
+                reactorActiveFuel = chosen.id();
+            }
+            case PRIMAL -> {
+                long neededPrimal = EnergyReactorRecipes.effectiveFuelCost(EnergyReactorRecipes.PRIMAL_UR_PER_CORE_PER_TICK, fuelCores, coolantTier);
+                var localView = PrimalCells.view(primal.stack());
+                long localAmt = localView.readable() ? localView.amount() : 0L;
+                long rawNetAmt = reactorAllowNetworkPrimal && network.ready() ? network.primalAmount() : 0L;
+                long primalReserve = machine.effectivePrimalNetworkReserve();
+                long usableNetAmt = Math.max(0L, rawNetAmt - primalReserve);
+                if (Math.addExact(localAmt, usableNetAmt) < neededPrimal) {
+                    failStatus = reactorAllowNetworkPrimal && Math.addExact(localAmt, rawNetAmt) >= neededPrimal ? "network_reserve" : "missing_primal";
+                    break;
+                }
+                long netAmt = usableNetAmt;
+                var deepNet = (netAmt > 0L || cooled) ? machine.matterNetwork(true) : null;
+                boolean committed = false;
+                try (var tx = Transaction.openRoot()) {
+                    long left = neededPrimal;
+                    if (localAmt > 0L && left > 0L) {
+                        left -= PrimalCells.debit(primal, left, tx);
+                    }
+                    if (left > 0L && deepNet != null && deepNet.ready()) {
+                        left -= deepNet.debitPrimal(machine, left, tx);
+                    }
+                    if (left == 0L) {
+                        tx.commit();
+                        committed = true;
+                    }
+                }
+                if (!committed) {
+                    failStatus = "missing_primal";
+                    break;
+                }
+                if (deepNet != null && deepNet.ready()) {
+                    deepNet.markPrimalDrivesChanged();
+                    if (cooled && deepNet.inventory() != null) {
+                        var act = machine.commitNetworkMatter(deepNet, Map.of(coolantKey, coolantNeeded), Map.of());
+                        if (act != null) {
+                            deepNet.markChanged();
+                            machine.publishNetworkActivity(deepNet, act);
+                        } else {
+                            cooled = false;
+                            coolantKey = null;
+                            coolantTier = EnergyReactorRecipes.CoolantTier.NONE;
+                        }
+                    }
+                } else {
+                    cooled = false;
+                    coolantKey = null;
+                    coolantTier = EnergyReactorRecipes.CoolantTier.NONE;
+                }
+                machine.consumeRedstonePulse();
+                produced = Math.min(room, EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.PRIMAL_FE_PER_CORE, fuelCores, coils, reactorFlux, coolantTier));
+                reactorActiveFuel = "primal";
+            }
+        }
+
+        if (produced > 0L) {
+            reactorEnergy = Math.min(cap, reactorEnergy + produced);
+            reactorLastGenRate = produced;
+            reactorCooled = cooled;
+            reactorActiveCoolant = coolantKey == null ? "" : coolantKey.id().toString();
+            reactorFlux = Math.min(EnergyReactorRecipes.MAX_FLUX, reactorFlux + EnergyReactorRecipes.FLUX_RAMP_PER_TICK);
+            work.processedThisTick = true;
+            work.energyRate = produced;
+            work.status = "generating";
+            machine.setChanged();
+            // Push newly produced energy on the same tick for crisp continuous flow.
+            pushReactorEnergy(formation, maxOut);
+        } else {
+            decayReactorFlux(EnergyReactorRecipes.FLUX_DECAY_PER_TICK);
+            work.status = failStatus;
+        }
+    }
+
+    private void decayPrimalStability() {
+        if (primalStability > 0 && (level().getGameTime() & 1L) == 0L) {
+            primalStability--;
+            machine.setChanged();
+        }
+    }
+
+    private void rampPrimalStability(int maxStability) {
+        if ((level().getGameTime() & 1L) != 0L) return;
+        if (primalStability < maxStability) {
+            primalStability++;
+            machine.setChanged();
+        } else if (primalStability > maxStability) {
+            primalStability--;
+            machine.setChanged();
+        }
+    }
+
+    private void tickPrimalReactor() {
+        var work = machine.work();
+        var registry = ReMatter.chemistry();
+        if (!machine.syncSelectionCatalogue(registry)) {
+            decayPrimalStability();
+            work.status = "selection_unavailable";
+            return;
+        }
+        if (!machine.industrialStructureReady()) {
+            machine.resetProgress();
+            decayPrimalStability();
+            work.status = IndustrialStructure.inspect(machine).diagnostic();
+            return;
+        }
+        var choice = machine.selectedChoice();
+        if (choice == null) {
+            machine.resetProgress();
+            decayPrimalStability();
+            work.status = "choose_process";
+            return;
+        }
+        var runState = machine.runState();
+        if (!runState.running()) {
+            decayPrimalStability();
+            work.status = !runState.repeat() && runState.queuedBatches() == 0 ? "awaiting_request" : "paused";
+            return;
+        }
+        if (!machine.redstoneAllowsWork()) {
+            decayPrimalStability();
+            work.status = "redstone_paused";
+            return;
+        }
+        int maxStability = PrimalReactorRecipes.seedMaxStability(machine.stack(MachineCellAccess.DISCOVERY_SLOT));
+        if (maxStability <= 0) {
+            decayPrimalStability();
+            work.status = "requires_seed";
+            return;
+        }
+        var tier = PrimalReactorRecipes.condensation(choice.id(), registry).orElse(null);
+        if (tier != null) {
+            tickPrimalCondensation(tier, runState, maxStability);
+            return;
+        }
+        var manifest = PrimalReactorRecipes.manifestation(choice.id(), registry).orElse(null);
+        if (manifest != null) {
+            tickPrimalManifestation(manifest, runState, maxStability);
+            return;
+        }
+        decayPrimalStability();
+        work.status = "selection_unavailable";
+    }
+
+    private void tickPrimalCondensation(PrimalReactorRecipes.CondensationTier tier, MachineRunState runState, int maxStability) {
+        var work = machine.work();
+        var network = machine.matterNetwork(false);
+        if (!network.ready() || network.inventory() == null) {
+            decayPrimalStability();
+            work.status = network.status();
+            return;
+        }
+        var localView = PrimalCells.view(primal.stack());
+        long localCap = localView.readable() ? localView.capacity() : 0L;
+        long localFree = localView.readable() ? Math.max(0L, localView.capacity() - localView.amount()) : 0L;
+        long netCap = network.primalDepositCapacity();
+        long netFree = network.primalFreeSpace();
+        long totalCap = Math.addExact(localCap, netCap);
+        long totalFree = Math.addExact(localFree, netFree);
+        if (totalCap == 0L) {
+            decayPrimalStability();
+            work.status = "missing_cell";
+            return;
+        }
+        boolean compressed = machine.hasMassCompression();
+        Map<SubstanceKey, Long> perLaneInputs = tier.effectiveInputs(compressed);
+        long outPerLane = PrimalReactorRecipes.condensationOutput(tier.primalOutput(), primalStability);
+        int requestedLanes = machine.parallelCapacity();
+        if (!runState.repeat()) requestedLanes = Math.min(requestedLanes, runState.queuedBatches());
+        int spaceLanes = (int) Math.min(4L, totalFree / outPerLane);
+        if (spaceLanes <= 0) {
+            decayPrimalStability();
+            work.status = "output_full";
+            return;
+        }
+        var inv = network.inventory();
+        int stockLanes = requestedLanes;
+        boolean reserveHit = false;
+        for (var entry : perLaneInputs.entrySet()) {
+            long have = inv.amount(entry.getKey());
+            long reserve = machine.effectiveNetworkReserve(entry.getKey());
+            long usable = Math.max(0L, have - reserve);
+            if (have >= entry.getValue() && usable < entry.getValue()) reserveHit = true;
+            stockLanes = (int) Math.min(stockLanes, usable / entry.getValue());
+        }
+        if (stockLanes <= 0) {
+            decayPrimalStability();
+            work.status = reserveHit ? "network_reserve" : "missing_matter";
+            return;
+        }
+        int lanes = Math.min(requestedLanes, Math.min(spaceLanes, stockLanes));
+        if (lanes <= 0) {
+            decayPrimalStability();
+            work.status = "awaiting_request";
+            return;
+        }
+        long batchEnergy = Math.multiplyExact(machine.cost(tier.effectiveEnergy(compressed)), lanes);
+        int effSpeed = PrimalReactorRecipes.effectiveSpeed(machine.speed(), primalStability);
+        work.duration = tier.ticks();
+        long due = MachineEnergyPolicy.stepEnergy(batchEnergy, work.progress, effSpeed, work.duration, work.energyPaid);
+        if (machine.energy().getAmountAsLong() < due) {
+            decayPrimalStability();
+            work.status = "insufficient_energy";
+            return;
+        }
+        if (due > 0) {
+            machine.energy().set((int) (machine.energy().getAmountAsLong() - due));
+            work.energyPaid += due;
+            work.energyRate = due;
+        }
+        work.progress = (int) Math.min(work.duration, (long) work.progress + effSpeed);
+        work.processedThisTick = true;
+        work.status = "working";
+        rampPrimalStability(maxStability);
+        machine.setChanged();
+        if (work.progress < work.duration) return;
+
+        var deepNet = machine.matterNetwork(true);
+        if (!deepNet.ready() || deepNet.inventory() == null) {
+            work.status = deepNet.ready() ? "storage_changed" : deepNet.status();
+            work.processedThisTick = false;
+            return;
+        }
+        var scaledInputs = new LinkedHashMap<SubstanceKey, Long>(perLaneInputs.size());
+        for (var entry : perLaneInputs.entrySet()) {
+            scaledInputs.put(entry.getKey(), Math.multiplyExact(entry.getValue(), lanes));
+        }
+        long outputUnits = Math.multiplyExact(outPerLane, lanes);
+        List<MatterNetworkInventory.MemberActivity> cableActivity = null;
+        boolean committed = false;
+        String failStatus = "output_full";
+        try (var tx = Transaction.openRoot()) {
+            long remainingToCredit = outputUnits;
+            if (localFree > 0 && remainingToCredit > 0) {
+                remainingToCredit -= PrimalCells.credit(primal, remainingToCredit, tx);
+            }
+            if (remainingToCredit > 0) {
+                remainingToCredit -= deepNet.creditPrimal(machine, remainingToCredit, tx);
+            }
+            if (remainingToCredit == 0) {
+                cableActivity = machine.commitNetworkMatter(deepNet, scaledInputs, Map.of());
+                if (cableActivity != null) {
+                    tx.commit();
+                    committed = true;
+                } else {
+                    failStatus = "missing_matter";
+                }
+            }
+        }
+        if (!committed) {
+            work.status = failStatus;
+            work.processedThisTick = false;
+            return;
+        }
+        deepNet.markChanged();
+        deepNet.markPrimalDrivesChanged();
+        if (cableActivity != null) machine.publishNetworkActivity(deepNet, cableActivity);
+        machine.completeRunLanes(lanes);
+        machine.consumeRedstonePulse();
+        work.progress = 0;
+        work.energyPaid = 0;
+        work.status = "ready";
+        machine.setChanged();
+    }
+
+    private void tickPrimalManifestation(PrimalReactorRecipes.ManifestationPlan plan, MachineRunState runState, int maxStability) {
+        var work = machine.work();
+        if (!owned() || ResearchService.knownSubstances(level(), owner()).stream()
+                .noneMatch(k -> k.id().equals(plan.target().id()))) {
+            decayPrimalStability();
+            work.status = "requires_research";
+            return;
+        }
+        var network = machine.matterNetwork(false);
+        if (!network.ready() || network.inventory() == null) {
+            decayPrimalStability();
+            work.status = network.status();
+            return;
+        }
+        var localView = PrimalCells.view(primal.stack());
+        long localAmount = localView.readable() ? localView.amount() : 0L;
+        long rawNetPrimal = network.primalAmount();
+        long usableNetPrimal = Math.max(0L, rawNetPrimal - machine.effectivePrimalNetworkReserve());
+        long totalPrimal = Math.addExact(localAmount, usableNetPrimal);
+        int requestedLanes = machine.parallelCapacity();
+        if (!runState.repeat()) requestedLanes = Math.min(requestedLanes, runState.queuedBatches());
+        int primalLanes = (int) Math.min(4L, totalPrimal / plan.primalCost());
+        if (primalLanes <= 0) {
+            decayPrimalStability();
+            work.status = Math.addExact(localAmount, rawNetPrimal) >= plan.primalCost() ? "network_reserve" : "research_payment";
+            return;
+        }
+        long roomUnits = MachineBlockEntity.insertable(network.inventory(), plan.target(), Math.multiplyExact(plan.outputAmount(), requestedLanes));
+        int roomLanes = (int) Math.min(4L, roomUnits / plan.outputAmount());
+        if (roomLanes <= 0) {
+            decayPrimalStability();
+            work.status = "output_full";
+            return;
+        }
+        int lanes = Math.min(requestedLanes, Math.min(primalLanes, roomLanes));
+        if (lanes <= 0) {
+            decayPrimalStability();
+            work.status = "awaiting_request";
+            return;
+        }
+        long batchEnergy = Math.multiplyExact(machine.cost(plan.energy()), lanes);
+        int effSpeed = PrimalReactorRecipes.effectiveSpeed(machine.speed(), primalStability);
+        work.duration = plan.ticks();
+        long due = MachineEnergyPolicy.stepEnergy(batchEnergy, work.progress, effSpeed, work.duration, work.energyPaid);
+        if (machine.energy().getAmountAsLong() < due) {
+            decayPrimalStability();
+            work.status = "insufficient_energy";
+            return;
+        }
+        if (due > 0) {
+            machine.energy().set((int) (machine.energy().getAmountAsLong() - due));
+            work.energyPaid += due;
+            work.energyRate = due;
+        }
+        work.progress = (int) Math.min(work.duration, (long) work.progress + effSpeed);
+        work.processedThisTick = true;
+        work.status = "working";
+        rampPrimalStability(maxStability);
+        machine.setChanged();
+        if (work.progress < work.duration) return;
+
+        var deepNet = machine.matterNetwork(true);
+        if (!deepNet.ready() || deepNet.inventory() == null) {
+            work.status = deepNet.ready() ? "storage_changed" : deepNet.status();
+            work.processedThisTick = false;
+            return;
+        }
+        long neededPrimal = Math.multiplyExact(plan.primalCost(), lanes);
+        long outAmount = Math.multiplyExact(plan.outputAmount(), lanes);
+        List<MatterNetworkInventory.MemberActivity> cableActivity = null;
+        boolean committed = false;
+        try (var tx = Transaction.openRoot()) {
+            long left = neededPrimal;
+            if (localAmount > 0 && left > 0) {
+                left -= PrimalCells.debit(primal, left, tx);
+            }
+            if (left > 0) {
+                left -= deepNet.debitPrimal(machine, left, tx);
+            }
+            if (left == 0) {
+                cableActivity = machine.commitNetworkMatter(deepNet, Map.of(), Map.of(plan.target(), outAmount));
+                if (cableActivity != null) {
+                    tx.commit();
+                    committed = true;
+                }
+            }
+        }
+        if (!committed) {
+            work.status = "output_full";
+            work.processedThisTick = false;
+            return;
+        }
+        deepNet.markChanged();
+        deepNet.markPrimalDrivesChanged();
+        if (cableActivity != null) machine.publishNetworkActivity(deepNet, cableActivity);
+        machine.completeRunLanes(lanes);
+        machine.consumeRedstonePulse();
+        work.progress = 0;
+        work.energyPaid = 0;
+        work.status = "ready";
+        machine.setChanged();
+    }
+
     private PrimalPricing.Quote quote(){
         var known=ResearchService.knownSubstances(level(),owner());
         return PrimalPricing.quote(ReMatter.chemistry(),SubstanceKey.of(conversionTarget,Phase.SOLID),conversionAmount,id->known.stream().anyMatch(k->k.id().equals(id)));
@@ -233,6 +1086,46 @@ final class MachineExtensions {
                 case BLUEPRINT_RESET->{
                     return IndustrialStructure.isIndustrial(machine.kind())&&!IndustrialStructure.inspect(machine).formed()&&machine.resetIndustrialBlueprint();
                 }
+                case TOGGLE_MATRIX_OUTPUT->{
+                    if(!machine.kind().isEnergyMatrix())return false;
+                    matrixAutoOutput=!matrixAutoOutput;
+                    machine.setChanged();
+                    return true;
+                }
+                case SET_REACTOR_FUEL_MODE->{
+                    if(!machine.kind().isEnergyReactor())return false;
+                    var next=EnergyReactorRecipes.FuelMode.load(request.target());
+                    if(reactorFuelMode==next)return false;
+                    reactorFuelMode=next;
+                    machine.setChanged();
+                    return true;
+                }
+                case SET_REACTOR_MATTER_FILTER->{
+                    if(!machine.kind().isEnergyReactor())return false;
+                    var next=request.target().isEmpty()?reactorMatterFilter.next():EnergyReactorRecipes.MatterFuelFilter.load(request.target());
+                    if(reactorMatterFilter==next)return false;
+                    reactorMatterFilter=next;
+                    machine.setChanged();
+                    return true;
+                }
+                case SET_REACTOR_COOLANT_MODE->{
+                    if(!machine.kind().isEnergyReactor())return false;
+                    var next=request.target().isEmpty()?reactorCoolantMode.next():EnergyReactorRecipes.CoolantMode.load(request.target());
+                    if(reactorCoolantMode==next)return false;
+                    reactorCoolantMode=next;
+                    machine.setChanged();
+                    return true;
+                }
+                case TOGGLE_REACTOR_NET_PRIMAL->{
+                    if(!machine.kind().isEnergyReactor())return false;
+                    reactorAllowNetworkPrimal=!reactorAllowNetworkPrimal;
+                    machine.setChanged();
+                    return true;
+                }
+                case SET_CUSTOM_NAME->{
+                    machine.setCustomName(request.target());
+                    return true;
+                }
                 default->{}
             }
         }catch(IllegalArgumentException invalid){return false;}
@@ -296,6 +1189,14 @@ final class MachineExtensions {
     }
     JsonObject view(){
         var out=new JsonObject();out.addProperty("blockX",machine.getBlockPos().getX());out.addProperty("blockY",machine.getBlockPos().getY());out.addProperty("blockZ",machine.getBlockPos().getZ());
+        out.addProperty("customName",machine.customName());
+        var ast=machine.anchorStatus();
+        out.addProperty("anchorInstalled",machine.hasAnchorUpgrade());
+        out.addProperty("anchorActive",ast.active());
+        out.addProperty("anchorForced",ast.forcedChunks());
+        out.addProperty("anchorTotal",ast.ownerTotalChunks());
+        out.addProperty("anchorMax",ast.maxChunks());
+        out.addProperty("anchorReason",ast.reason());
         out.addProperty("matterRate",network()?machine.matterTransferRate():128);out.addProperty("assay",assayMode());out.addProperty("recoveryMask",machine.recoveryMask());
         var reserve=PrimalCells.view(primal.stack());out.addProperty("primal",reserve.amount());out.addProperty("primalCapacity",reserve.capacity());out.addProperty("primalReadable",reserve.readable());
         if(machine.kind()==MachineKind.DRIVE){out.addProperty("primal",machine.drivePrimalAmount());out.addProperty("primalCapacity",machine.drivePrimalCapacity());}
@@ -304,6 +1205,53 @@ final class MachineExtensions {
         out.addProperty("researchEnabled",ResearchConfig.enabled());
         if(IndustrialStructure.isIndustrial(machine.kind())){
             for(var entry:industrialInitView().entrySet())out.add(entry.getKey(),entry.getValue());
+        }
+        if(machine.kind()==MachineKind.PRIMAL_REACTOR){
+            out.addProperty("primalStability",primalStability);
+            out.addProperty("primalMaxStability",primalMaxStability());
+            out.addProperty("primalSpeedPct",PrimalReactorRecipes.speedMultiplierPercent(primalStability));
+            out.addProperty("primalYieldPct",PrimalReactorRecipes.yieldBonusPercent(primalStability));
+            var net=machine.matterNetwork(false);
+            out.addProperty("primalTotal",Math.addExact(reserve.readable()?reserve.amount():0L,net.primalAmount()));
+            out.addProperty("primalTotalCap",Math.addExact(reserve.readable()?reserve.capacity():0L,net.primalCapacity()));
+        }
+        if(machine.kind().isEnergyMatrix()){
+            var perf=machine.industrialStructureReady()?IndustrialStructure.inspect(machine).performance():IndustrialPerformance.EMPTY;
+            out.addProperty("matrixEnergy",matrixEnergy);
+            out.addProperty("matrixCapacity",perf.matrixCapacity());
+            out.addProperty("matrixTransferRate",perf.matrixTransferRate());
+            out.addProperty("matrixInRate",matrixLastInRate);
+            out.addProperty("matrixOutRate",matrixLastOutRate);
+            out.addProperty("matrixAutoOutput",matrixAutoOutput);
+            out.addProperty("matrixCells",perf.matrixCells());
+            out.addProperty("matrixProviders",perf.matrixProviders());
+        }
+        if(machine.kind().isEnergyReactor()){
+            var perf=machine.industrialStructureReady()?IndustrialStructure.inspect(machine).performance():IndustrialPerformance.EMPTY;
+            out.addProperty("reactorEnergy",reactorEnergy);
+            out.addProperty("reactorCapacity",perf.reactorCapacity());
+            out.addProperty("reactorMaxOutRate",perf.reactorMaxOutputRate());
+            out.addProperty("reactorGenRate",reactorLastGenRate);
+            out.addProperty("reactorOutRate",reactorLastOutRate);
+            out.addProperty("reactorFlux",reactorFlux);
+            out.addProperty("reactorFuelMode",reactorFuelMode.id());
+            out.addProperty("reactorMatterFilter",reactorMatterFilter.id());
+            out.addProperty("reactorCoolantMode",reactorCoolantMode.id());
+            out.addProperty("reactorAllowNetPrimal",reactorAllowNetworkPrimal);
+            out.addProperty("reactorCooled",reactorCooled);
+            out.addProperty("reactorActiveFuel",reactorActiveFuel);
+            out.addProperty("reactorActiveCoolant",reactorActiveCoolant);
+            var activeCoolantTier = "rematter:nitrogen".equals(reactorActiveCoolant) ? EnergyReactorRecipes.CoolantTier.NITROGEN
+                    : "rematter:water".equals(reactorActiveCoolant) ? EnergyReactorRecipes.CoolantTier.WATER
+                    : EnergyReactorRecipes.CoolantTier.NONE;
+            out.addProperty("reactorCoolantBonusPct",activeCoolantTier.outputBonusPercent());
+            out.addProperty("reactorCoolantDiscountPct",activeCoolantTier.fuelDiscountPercent());
+            out.addProperty("reactorFuelCores",perf.fuelCores());
+            out.addProperty("reactorInductionCoils",perf.inductionCoils());
+            out.addProperty("reactorCoilBonusPct",EnergyReactorRecipes.coilBonusPercent(perf.inductionCoils()));
+            out.addProperty("reactorRunning",machine.running());
+            var net=machine.matterNetwork(false);
+            out.addProperty("primalTotal",Math.addExact(reserve.readable()?reserve.amount():0L,net.ready()?net.primalAmount():0L));
         }
         if(!owned())return out;
         if(machine.kind().synthesis()){
@@ -396,13 +1344,14 @@ final class MachineExtensions {
             if(!machine.allowsPowerOutput(side))continue;var pos=machine.getBlockPos().relative(side);
             if(level().getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4)==null)continue;
             var handler=level().getCapability(Capabilities.Energy.BLOCK,pos,side.getOpposite());if(handler==null||handler==output)continue;
+            MatterCablePower.energizeIfCable(handler);
             try(var tx=Transaction.openRoot()){
                 int available=Math.min((int)machine.energy().getAmountAsLong(),machine.kind()==MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR?16384:2048);
                 int moved=handler.insert(available,tx);if(moved>0&&output.extract(moved,tx)==moved)tx.commit();
             }
         }
     }
-    boolean hasResources(){return burner.remaining()>0||!burner.readable()||conversionEnergyPaid>0;}
+    boolean hasResources(){return burner.remaining()>0||!burner.readable()||conversionEnergyPaid>0||matrixEnergy>0||reactorEnergy>0;}
     void save(ValueOutput out){
         if(machine.kind()==MachineKind.ANALYZER||machine.kind()==MachineKind.PRIMAL_CONVERTER||energyReceiptRevision>0||partialEnergyDebt>0||identityCheckpoint||!checkpointedCells.isEmpty()){
             out.putString("extension_id",machineId.toString());out.putBoolean("identity_checkpoint",identityCheckpoint);out.store("checkpointed_cells",com.mojang.serialization.Codec.STRING.listOf(),checkpointedCells.stream().map(UUID::toString).sorted().toList());out.putLong("energy_receipt_revision",energyReceiptRevision);out.putLong("partial_energy_debt",partialEnergyDebt);
@@ -412,6 +1361,20 @@ final class MachineExtensions {
             out.putString("conversion_target",conversionTarget);out.putLong("conversion_amount",conversionAmount);out.putBoolean("converting",converting);out.putInt("conversion_progress",conversionProgress);
             if(conversionEnergyPaid>0)out.putLong("conversion_energy_paid",conversionEnergyPaid);
             if(conversionId!=null)out.putString("conversion_id",conversionId.toString());
+        }
+        if(machine.kind()==MachineKind.PRIMAL_REACTOR&&primalStability>0)out.putInt("primal_stability",primalStability);
+        if(machine.kind().isEnergyMatrix()){
+            if(matrixEnergy>0)out.putLong("matrix_energy",matrixEnergy);
+            if(!matrixAutoOutput)out.putBoolean("matrix_auto_output",false);
+        }
+        if(machine.kind().isEnergyReactor()){
+            if(reactorEnergy>0)out.putLong("reactor_energy",reactorEnergy);
+            if(reactorFlux>0)out.putInt("reactor_flux",reactorFlux);
+            if(reactorFuelMode!=EnergyReactorRecipes.FuelMode.CRYSTAL)out.putString("reactor_fuel_mode",reactorFuelMode.id());
+            if(reactorMatterFilter!=EnergyReactorRecipes.MatterFuelFilter.AUTO)out.putString("reactor_matter_filter",reactorMatterFilter.id());
+            if(reactorCoolantMode!=EnergyReactorRecipes.CoolantMode.AUTO)out.putString("reactor_coolant_mode",reactorCoolantMode.id());
+            if(!reactorAllowNetworkPrimal)out.putBoolean("reactor_network_primal",false);
+            out.store("crystal_burner",CompoundTag.CODEC,burner.save());
         }
         if(assay)out.putBoolean("assay",true);
         if(machine.kind().generator())out.store("crystal_burner",CompoundTag.CODEC,burner.save());
@@ -438,6 +1401,17 @@ final class MachineExtensions {
         conversionEnergyPaid=in.getLongOr("conversion_energy_paid",0);
         if(in.getString("conversion_id").isPresent())conversionId=storedIdentity(in.getString("conversion_id").orElseThrow());
         if(converting&&conversionId==null||conversionAmount<250||conversionAmount>8000||conversionAmount%250!=0||conversionProgress<0||conversionProgress>12000||conversionEnergyPaid<0||conversionEnergyPaid>1_200_000||(!converting&&conversionEnergyPaid!=0)||researchRunning&&researchId==null)throw new IllegalArgumentException("Invalid retained research or conversion job");
-        if(machine.kind().generator())in.read("crystal_burner",CompoundTag.CODEC).ifPresent(burner::load);
+        primalStability=Math.clamp(in.getIntOr("primal_stability",0),0,PrimalReactorRecipes.MAX_STABILITY);
+        matrixEnergy=in.getLongOr("matrix_energy",0L);
+        if(matrixEnergy<0L)throw new IllegalArgumentException("Invalid matrix energy");
+        matrixAutoOutput=in.getBooleanOr("matrix_auto_output",true);
+        reactorEnergy=in.getLongOr("reactor_energy",0L);
+        if(reactorEnergy<0L)throw new IllegalArgumentException("Invalid reactor energy");
+        reactorFlux=Math.clamp(in.getIntOr("reactor_flux",0),0,EnergyReactorRecipes.MAX_FLUX);
+        reactorFuelMode=EnergyReactorRecipes.FuelMode.load(in.getStringOr("reactor_fuel_mode","crystal"));
+        reactorMatterFilter=EnergyReactorRecipes.MatterFuelFilter.load(in.getStringOr("reactor_matter_filter","auto"));
+        reactorCoolantMode=EnergyReactorRecipes.CoolantMode.load(in.getStringOr("reactor_coolant_mode","auto"));
+        reactorAllowNetworkPrimal=in.getBooleanOr("reactor_network_primal",true);
+        if(machine.kind().generator()||machine.kind().isEnergyReactor())in.read("crystal_burner",CompoundTag.CODEC).ifPresent(burner::load);
     }
 }

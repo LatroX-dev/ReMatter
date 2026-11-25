@@ -15,6 +15,8 @@ import hashlib
 import json
 import math
 from family_palette import (BASE, COPPER, COPPER_DARK, COPPER_LIGHT, HIGHLIGHT, IVORY, LED, PORT_LIGHT, PORT_METAL,
+                            PRIMAL_BODY, PRIMAL_COOL, PRIMAL_CORE, PRIMAL_CORE_SOFT, PRIMAL_DEEP, PRIMAL_GOLD,
+                            PRIMAL_INK, PRIMAL_LIGHT, PRIMAL_TEAL, PRIMAL_VOID, PRIMAL_WARM,
                             SEAM, SHADE, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL, lighten, scale)
 from machine_palette import RGB, hex_color
 from check_assets import strip_ancillary_chunks
@@ -61,18 +63,32 @@ def svg(parts):
 
 
 def ice():
+    """Opaque Ice Matrix Crystal sharing the exact faceted GEM silhouette of Amber and all other Matrix Crystals."""
     hue = RGB['ice']
-    # The original rough shard silhouette, now opaque: large middle facets retain the exact Ice hue.
-    edge = scale(hue, .23)
-    parts = [poly('17,54 34,25 56,12 78,15 105,31 112,68 107,94 87,114 48,116 24,96', hue, edge, 5),
-             poly('20,54 37,28 57,16 78,19 101,33 61,39', lighten(hue, .36)),
-             poly('20,54 61,39 47,112 28,94', scale(hue, .82)),
-             poly('61,39 101,33 108,68 103,92 86,110 71,83', hue),
-             poly('61,39 71,83 86,110 49,112', hue),
-             poly('101,33 108,68 103,92 86,110 91,75', scale(hue, .7)),
-             poly('30,52 42,42 46,88 38,78', lighten(hue, .58)),
-             line('17,54 34,25 56,12 78,15 105,31 112,68 107,94 87,114 48,116 24,96 17,54', edge, 5)]
-    return svg(parts)
+    ink = hex_color(scale(hue, .24))
+    exact = hex_color(hue)
+    hi = hex_color(lighten(hue, .42))
+    hi_soft = hex_color(lighten(hue, .24))
+    mid_lo = hex_color(scale(hue, .84))
+    dark = hex_color(scale(hue, .66))
+    deep = hex_color(scale(hue, .52))
+    glint = hex_color(lighten(hue, .58))
+    white = hex_color(lighten(hue, .78))
+
+    drawing = Composition(1.0, (0, 0))
+    grad = lambda name, colours: drawing.gradient('ice-' + name, *GEM_SHADING[name], colours)
+    body_pts = spots(drawing.fit(GEM_BODY))
+    drawing.silhouette.append(f'<polygon points="{body_pts}" fill="{ink}" stroke="{ink}" stroke-width="{2 * CONTOUR:g}" stroke-linejoin="round"/>')
+    drawing.parts.append(f'<polygon points="{body_pts}" fill="{exact}" stroke="{ink}" stroke-width="2" stroke-linejoin="round"/>')
+    drawing.fill(GEM_FACETS['crown'], grad('crown', (hi, hi_soft, exact)))
+    drawing.fill(GEM_FACETS['left'], grad('left', (hi_soft, exact, mid_lo)))
+    drawing.fill(GEM_FACETS['table'], exact)
+    drawing.fill(GEM_FACETS['right'], grad('right', (exact, mid_lo, dark)))
+    drawing.fill(GEM_FACETS['lower'], grad('lower', (dark, deep)))
+    drawing.fill(GEM_GLINT, glint)
+    drawing.fill(GEM_WEDGE, white)
+    drawing.fill(GEM_STREAK, glint)
+    return drawing.svg()
 
 
 def pressure(look=None):
@@ -477,6 +493,79 @@ def security_card(look=None, mode='public'):
 def wireless_booster(look=None):
     """Wireless Booster on the unified upgrade/module chassis, carrying exact Blue Matrix Crystal (#6794f1)."""
     return technical_sprites.wireless_booster_drawing(look).svg()
+
+
+def dimensional_card(look=None):
+    """Dimensional Card on the signature smart-card chassis (shared with Configuration & Security Cards),
+    featuring an isometric Blue Matrix Crystal (#6794f1) dimensional portal vortex and glowing Blue indicator bar."""
+    blue = hex_color(RGB['blue'])
+    blue_hi = hex_color(lighten(RGB['blue'], .36))
+    blue_lo = hex_color(scale(RGB['blue'], .62))
+    blue_deep = hex_color(scale(RGB['blue'], .32))
+    ivory = hex_color(IVORY)
+    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
+    casing_hi, casing, casing_lo, well = (hex_color(c) for c in (HIGHLIGHT, BASE, SHADE, WELL))
+    port_hi, port = hex_color(PORT_LIGHT), hex_color(PORT_METAL)
+    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
+
+    drawing = Composition(.95, (0, 0))
+    body_grad = drawing.gradient('dc-body', (22, 24), (104, 98), (port_hi, port, casing, casing_lo))
+    bezel_grad = drawing.gradient('dc-bezel', (32, 30), (90, 78), (light, steel, shade, deep))
+    pin_grad = drawing.gradient('dc-pin', (66, 80), (108, 108), (cu_hi, cu, cu_lo))
+
+    # Exact Configuration/Security Card three-quarter graphite chassis.
+    card_top = [(14, 58), (58, 22), (112, 52), (112, 62), (72, 98), (22, 70)]
+    drawing.shape(card_top, body_grad, joint=2.5)
+    drawing.fill([(17, 57), (58, 24.5), (109, 53), (70, 86)], casing)
+    drawing.fill([(17, 58), (70, 87), (70, 95.5), (22, 69)], shade)
+    drawing.fill([(70, 87), (110, 53), (110, 61), (70, 95.5)], casing_lo)
+    drawing.stroke([(19, 56.5), (58, 25.5), (107, 52.5)], casing_hi, 2.0)
+
+    # 5 Copper edge-connector pins on the lower-right lip.
+    tongue = [(64, 90), (106, 56), (115, 62), (115, 70), (74, 104), (64, 98)]
+    drawing.shape(tongue, casing_lo, joint=2.2)
+    for step in range(5):
+        px, py = 69 + step * 8.2, 91 - step * 6.7
+        drawing.fill([(px, py), (px + 5.4, py - 4.4), (px + 9.2, py - 1.8), (px + 3.8, py + 2.6)], pin_grad)
+        drawing.stroke([(px + .6, py - .4), (px + 5.0, py - 4.0)], cu_hi, 1.4)
+
+    # Upper-left steel grip handle with glowing Blue Matrix Crystal status bar.
+    drawing.shape([(20, 51), (48, 28), (58, 34), (30, 57)], bezel_grad, joint=2.0)
+    drawing.stroke([(23, 50), (48, 30)], light, 1.8)
+    drawing.fill([(27.5, 52.4), (48.8, 35.2), (53.2, 37.8), (32.0, 55.0)], well)
+    drawing.fill([(29.0, 52.2), (48.4, 36.6), (51.4, 38.4), (32.0, 54.0)], blue)
+
+    # Recessed steel bezel window carrying the isometric Blue dimensional portal emblem.
+    drawing.shape([(34, 56), (62, 33), (94, 52), (66, 75)], bezel_grad, joint=2.0)
+    drawing.fill([(38, 56), (62, 36.5), (90, 52.5), (66, 72)], well)
+
+    def plane(u, v):
+        return (64.0 + u * 12.2 + v * 13.6, 54.2 - u * 9.8 + v * 7.4)
+
+    # Subtle deep-blue rift glow field inside the dark bezel.
+    drawing.fill([plane(-.85, -.85), plane(.85, -.85), plane(.85, .85), plane(-.85, .85)], blue_deep)
+    # Outer octagonal Blue dimensional portal ring (exact #6794f1 >= 300 px).
+    outer_ring = [plane(math.cos(a) * .84, math.sin(a) * .84) for a in (i * math.pi / 4 for i in range(8))]
+    inner_hole = [plane(math.cos(a) * .48, math.sin(a) * .48) for a in (i * math.pi / 4 for i in range(8))]
+    drawing.fill(outer_ring, blue)
+    drawing.stroke(outer_ring[:5], blue_hi, 1.8)
+    drawing.stroke(outer_ring[4:] + [outer_ring[0]], blue_lo, 1.6)
+    drawing.fill(inner_hole, well)
+    # Concentric dimensional cross-axis rift lines + white-hot center star!
+    drawing.stroke([plane(-.78, 0), plane(.78, 0)], blue_hi, 1.5)
+    drawing.stroke([plane(0, -.78), plane(0, .78)], blue_hi, 1.5)
+    star = [
+        plane(0, -.44), plane(.14, -.14), plane(.44, 0), plane(.14, .14),
+        plane(0, .44), plane(-.14, .14), plane(-.44, 0), plane(-.14, -.14),
+    ]
+    drawing.fill(star, ivory)
+    drawing.fill([plane(0, -.20), plane(.20, 0), plane(0, .20), plane(-.20, 0)], '#ffffff')
+    return drawing.svg()
+
+
+def anchor_upgrade(look=None):
+    """Anchor Upgrade on the unified upgrade chassis, carrying exact Blue Matrix Crystal (#6794f1)."""
+    return technical_sprites.anchor_upgrade_drawing(look).svg()
 
 
 def wireless_terminal(look=None):
@@ -967,8 +1056,269 @@ def spectrometer_lens():
             + '\n'.join(defs) + '\n</defs>\n' + '\n'.join(parts) + '\n</svg>\n')
 
 
+def bore_core():
+    """Deep-Core Extractor drill/bore head: heavy Rhevon/Steel drive collar, Copper torque ring,
+    armored spiral flutes, and faceted Diamond-Lattice cutting teeth. No crystal hue."""
+    ivory = hex_color(IVORY)
+    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
+    casing_hi, casing, casing_lo, well = (hex_color(c) for c in (HIGHLIGHT, BASE, SHADE, WELL))
+    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
+    dia_hi, dia, dia_lo = '#c2f0f6', '#72c8db', '#3f8498'
+    rh_hi, rh, rh_lo = '#8f8285', '#685862', '#392f3b'
+
+    drawing = Composition(.95, (0, 0))
+    steel_grad = drawing.gradient('bc-steel', (68, 16), (114, 58), (light, steel, shade, deep))
+    cu_grad = drawing.gradient('bc-cu', (56, 20), (104, 68), (cu_hi, cu, cu_lo))
+    rh_grad = drawing.gradient('bc-rh', (20, 44), (92, 108), (rh_hi, rh, rh_lo))
+    dia_grad = drawing.gradient('bc-dia', (14, 72), (76, 114), (dia_hi, dia, dia_lo))
+
+    # Upper-right machined Steel drive shank and hexagonal mounting boss.
+    drawing.shape([(78, 14), (95, 13), (114, 32), (113, 49), (98, 56), (72, 30)], steel_grad, joint=2.3)
+    drawing.fill([(80, 15.5), (94.5, 14.5), (105, 25), (90, 28)], light)
+    drawing.stroke([(82, 16.5), (94.5, 15.5), (110, 31)], ivory, 1.7)
+    drawing.fill([(89, 25), (98, 22), (104, 28), (101, 37), (92, 40), (86, 34)], well)
+    # Heavy Copper torque-coupling collar.
+    drawing.shape([(64, 24), (77, 17), (111, 51), (104, 64), (88, 60), (68, 40)], cu_grad, joint=2.2)
+    drawing.fill([(66, 24.5), (77, 19), (90, 32), (79, 38)], cu_hi)
+    drawing.stroke([(69, 25), (77, 20.5), (107, 50.5)], ivory, 1.5)
+    # Tapered armored Rhevon/Graphite helical drill cone pointing down-left.
+    cone = [(15, 112), (24, 74), (62, 30), (98, 66), (54, 104)]
+    drawing.shape(cone, rh_grad, joint=2.6)
+    drawing.fill([(25.5, 74.5), (62, 32.5), (78, 48.5), (38, 87)], casing_hi)
+    drawing.fill([(38, 87), (78, 48.5), (95.5, 66), (53.5, 102.5)], rh_lo)
+    # Three diagonal helical steel cutting lands + recessed flute channels.
+    for x0, y0, x1, y1, w in ((54, 42, 86, 74, 8), (38, 59, 69, 90, 7.5), (24, 76, 51, 103, 6.5)):
+        band = [(x0, y0), (x0 + w, y0 - w), (x1 + w, y1 - w), (x1, y1)]
+        drawing.shape(band, steel_grad, joint=1.8)
+        drawing.fill([(x0 + 1, y0 - .5), (x0 + w, y0 - w + .5), (x0 + w + 12, y0 - w + 12.5), (x0 + 13, y0 + 11.5)], light)
+        drawing.stroke([(x0 + 2, y0 + 1), (x1 - 2, y1 - 3)], well, 2.2)
+    # Gleaming faceted Diamond-Lattice drill tip & outer cutting teeth.
+    tip = [(14, 113), (22, 85), (43, 106)]
+    drawing.shape(tip, dia_grad, joint=2.2)
+    drawing.fill([(15.8, 111.2), (22.5, 87.5), (32, 97)], dia_hi)
+    drawing.stroke([(18, 108), (24, 91)], ivory, 1.6)
+    for tx, ty in ((46, 48), (32, 65), (66, 86), (80, 70)):
+        drawing.shape([(tx - 4.5, ty), (tx, ty - 4.5), (tx + 4.5, ty), (tx, ty + 4.5)], dia_grad, joint=1.4)
+        drawing.fill([(tx - 3.0, ty), (tx, ty - 3.0), (tx + 1.5, ty - 1.5), (tx - 1.5, ty + 1.5)], dia_hi)
+    return drawing.svg()
+
+
+def extraction_focus_upgrade(frame=0, total_frames=16):
+    """16-frame animated Extraction Focus Upgrade on the shared upgrade cartridge chassis."""
+    return technical_sprites.extraction_focus_upgrade_drawing(frame=frame, total_frames=total_frames).svg()
+
+
+def mass_compression_upgrade(frame=0, total_frames=16):
+    """16-frame animated Mass Compression Upgrade on the shared upgrade cartridge chassis."""
+    return technical_sprites.mass_compression_upgrade_drawing(frame=frame, total_frames=total_frames).svg()
+
+
+def particle_resonator(frame=0, total_frames=16):
+    """16-frame animated Particle Resonator: octagonal Netherite/Copper accelerator toroid with
+    orbiting Violet (#b381e8) flux prisms and a breathing Ember (#ea4848) fusion core.
+    Holds >= 220 exact Violet and >= 220 exact Ember pixels in every frame."""
+    phase = 2.0 * math.pi * (frame % total_frames) / total_frames
+    pulse = 0.5 + 0.5 * math.sin(phase)
+    violet = hex_color(RGB['violet'])
+    violet_hi = hex_color(lighten(RGB['violet'], .38))
+    violet_lo = hex_color(scale(RGB['violet'], .62))
+    ember = hex_color(RGB['ember'])
+    ember_hi = hex_color(lighten(RGB['ember'], .42))
+    ember_lo = hex_color(scale(RGB['ember'], .62))
+    ivory = hex_color(IVORY)
+    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
+    well = hex_color(WELL)
+    cu_hi, cu, cu_lo = (hex_color(c) for c in (COPPER_LIGHT, COPPER, COPPER_DARK))
+    neth_hi, neth, neth_lo = '#6e5e68', '#443741', '#231b24'
+
+    drawing = Composition(.95, (0, 0))
+    neth_grad = drawing.gradient('pr-neth', (16, 16), (112, 112), (neth_hi, neth, neth_lo))
+    steel_grad = drawing.gradient('pr-steel', (18, 18), (110, 110), (light, steel, shade, deep))
+    cu_grad = drawing.gradient('pr-cu', (16, 16), (112, 112), (cu_hi, cu, cu_lo))
+
+    # Outer octagonal armored Netherite accelerator ring.
+    oct_outer = [(64 + 50 * math.cos(math.pi / 8 + i * math.pi / 4),
+                  64 + 50 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+    drawing.shape(oct_outer, neth_grad, joint=2.6)
+    drawing.stroke([oct_outer[5], oct_outer[6], oct_outer[7], oct_outer[0]], neth_hi, 2.0)
+
+    # Inner machined steel magnetic stator collar.
+    oct_mid = [(64 + 41 * math.cos(math.pi / 8 + i * math.pi / 4),
+                64 + 41 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+    drawing.shape(oct_mid, steel_grad, joint=2.2)
+
+    # Four cardinal Copper induction clamps with sequentially energized charge strips.
+    clamps = (
+        (54, 11, 20, 15, 0),   # top
+        (102, 54, 15, 20, 1),  # right
+        (54, 102, 20, 15, 2),  # bottom
+        (11, 54, 15, 20, 3),   # left
+    )
+    for cx, cy, w, h, idx in clamps:
+        drawing.shape([(cx, cy), (cx + w, cy), (cx + w, cy + h), (cx, cy + h)], cu_grad, joint=1.9)
+        charge = 0.5 + 0.5 * math.sin(phase - idx * math.pi / 2.0)
+        pip_col = ivory if charge > 0.72 else (violet_hi if charge > 0.35 else cu_hi)
+        drawing.fill([(cx + 4, cy + 4), (cx + w - 4, cy + 4), (cx + w - 4, cy + h - 4), (cx + 4, cy + h - 4)], pip_col)
+
+    # Deep dark containment chamber well.
+    oct_well = [(64 + 33 * math.cos(math.pi / 8 + i * math.pi / 4),
+                 64 + 33 * math.sin(math.pi / 8 + i * math.pi / 4)) for i in range(8)]
+    drawing.shape(oct_well, well, joint=2.1)
+
+    # Two opposing faceted Violet Matrix Crystal accelerator arcs (large exact #b381e8 facets >= 340 px).
+    # Upper-left Violet prism
+    drawing.shape([(34, 52), (46, 36), (62, 34), (56, 48), (44, 58)], violet, joint=1.8)
+    drawing.fill([(36, 51), (46.5, 37.5), (59, 36), (48, 45)], violet_hi)
+    drawing.fill([(36, 51), (48, 45), (55, 48), (44, 56.5)], violet)
+    # Lower-right Violet prism
+    drawing.shape([(94, 76), (82, 92), (66, 94), (72, 80), (84, 70)], violet, joint=1.8)
+    drawing.fill([(83, 71.5), (92.5, 76.5), (81.5, 90.5), (68, 92.5), (73.5, 80.5)], violet)
+    drawing.fill([(92.5, 76.5), (82, 90.5), (76, 91), (86, 78)], violet_lo)
+
+    # Smoothly orbiting luminous Violet particle flux trail + two glowing motes inside the ring.
+    for k in range(2):
+        ang = phase + k * math.pi
+        px, py = 64 + 25.5 * math.cos(ang), 64 + 25.5 * math.sin(ang)
+        tx, ty = 64 + 25.5 * math.cos(ang - 0.42), 64 + 25.5 * math.sin(ang - 0.42)
+        drawing.stroke([(tx, ty), (px, py)], violet_hi, 3.2)
+        drawing.fill([(px - 3.6, py), (px, py - 3.6), (px + 3.6, py), (px, py + 3.6)], ivory)
+
+    # Central breathing faceted Ember Matrix Crystal fusion core (large exact #ea4848 table >= 340 px).
+    r = 16.5 + 1.8 * pulse
+    core = [(64, 64 - r), (64 + r * .92, 64 - r * .36), (64 + r * .92, 64 + r * .36),
+            (64, 64 + r), (64 - r * .92, 64 + r * .36), (64 - r * .92, 64 - r * .36)]
+    drawing.shape(core, ember, joint=2.0)
+    drawing.fill([core[0], core[1], (64, 64 - r * .18), core[5]], ember_hi)
+    drawing.fill([core[5], (64, 64 - r * .18), core[2], core[3], core[4]], ember)
+    drawing.fill([(64, 64 - r * .18), core[1], core[2], (64 + r * .55, 64 + r * .28)], ember_lo)
+    # Pulsing white-hot ignition diamond inside the Ember core.
+    ir = 4.2 + 2.4 * pulse
+    drawing.fill([(64, 64 - ir), (64 + ir, 64), (64, 64 + ir), (64 - ir, 64)], '#ffffff' if pulse > 0.45 else ember_hi)
+    return drawing.svg()
+
+
+def _primal_spectrum_hex(place):
+    stops = (PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_BODY, PRIMAL_WARM, PRIMAL_GOLD)
+    p = min(1.0, max(0.0, place)) * (len(stops) - 1)
+    idx = min(int(p), len(stops) - 2)
+    t = p - idx
+    c = tuple(round(a + (b - a) * t) for a, b in zip(stops[idx], stops[idx + 1]))
+    return hex_color(c)
+
+
+def primal_matrix_core(frame=0, total_frames=16):
+    """16-frame animated Primal Matrix Core: Netherite/Steel containment cage holding a levitating,
+    smoothly cycling 5-stop Primal singularity prism with white-hot core and orbiting prismatic filaments.
+    Pure Primal signature + neutral armor; no Matrix Crystal hues."""
+    phase = 2.0 * math.pi * (frame % total_frames) / total_frames
+    bob = 2.2 * math.sin(phase)
+    wave = 0.5 + 0.5 * math.sin(phase)
+    light, steel, shade, deep = (hex_color(c) for c in (TRIM, STEEL, STEEL_SHADE, STEEL_DEEP))
+    neth_hi, neth, neth_lo = '#6e5e68', '#443741', '#231b24'
+    void_col = hex_color(PRIMAL_VOID)
+    core_col = hex_color(PRIMAL_CORE)
+    soft_col = hex_color(PRIMAL_CORE_SOFT)
+    deep_col = hex_color(PRIMAL_DEEP)
+
+    # Smooth ping-pong spectrum drift across the 5 Primal stops (never jumps gold -> teal).
+    s_top = 0.25 + 0.22 * math.sin(phase)
+    s_mid = 0.50 + 0.28 * math.sin(phase - 0.9)
+    s_low = 0.76 + 0.20 * math.sin(phase - 1.8)
+    c_top, c_mid, c_low = _primal_spectrum_hex(s_top), _primal_spectrum_hex(s_mid), _primal_spectrum_hex(s_low)
+    c_rim_a = _primal_spectrum_hex(0.5 - 0.45 * math.cos(phase))
+    c_rim_b = _primal_spectrum_hex(0.5 + 0.45 * math.cos(phase))
+
+    drawing = Composition(.95, (0, 0))
+    neth_grad = drawing.gradient('pmc-neth', (16, 14), (112, 114), (neth_hi, neth, neth_lo))
+    steel_grad = drawing.gradient('pmc-steel', (18, 16), (110, 112), (light, steel, shade, deep))
+    prism_grad = drawing.gradient('pmc-prism', (36, 24 + bob), (92, 102 + bob), (c_top, c_mid, c_low))
+
+    # Outer chamfered Netherite containment cradle.
+    cage = [(44, 13), (84, 13), (115, 44), (115, 84), (84, 115), (44, 115), (13, 84), (13, 44)]
+    drawing.shape(cage, neth_grad, joint=2.6)
+    drawing.stroke([(16, 44), (44, 16), (84, 16)], neth_hi, 2.2)
+
+    # Inner Primal Void containment aperture.
+    chamber = [(49, 23), (79, 23), (105, 49), (105, 79), (79, 105), (49, 105), (23, 79), (23, 49)]
+    drawing.shape(chamber, void_col, joint=2.1)
+
+    # Prismatic containment rings inside the void chamber.
+    ring_pts = [(64 + 34 * math.cos(i * math.pi / 4 + phase * .25),
+                 64 + 34 * math.sin(i * math.pi / 4 + phase * .25)) for i in range(9)]
+    drawing.stroke(ring_pts, c_rim_a, 2.2)
+
+    # Four armored Steel corner stabilizer prongs clutching the aperture.
+    prongs = (
+        [(16, 16), (40, 16), (46, 30), (30, 46), (16, 40)],
+        [(112, 16), (112, 40), (98, 46), (82, 30), (88, 16)],
+        [(112, 112), (88, 112), (82, 98), (98, 82), (112, 88)],
+        [(16, 112), (16, 88), (30, 82), (46, 98), (40, 112)],
+    )
+    for idx, prong in enumerate(prongs):
+        drawing.shape(prong, steel_grad, joint=2.0)
+        cx = sum(p[0] for p in prong) / len(prong)
+        cy = sum(p[1] for p in prong) / len(prong)
+        tip_col = c_rim_a if idx % 2 == 0 else c_rim_b
+        drawing.fill([(cx - 3.5, cy), (cx, cy - 3.5), (cx + 3.5, cy), (cx, cy + 3.5)], tip_col)
+
+    # Levitating faceted double-terminated Primal Singularity Prism.
+    cy = 64.0 + bob
+    apex = (64.0, cy - 36.0)
+    base = (64.0, cy + 36.0)
+    left_u, mid_l, mid_r, right_u = (36.0, cy - 11.0), (54.0, cy - 5.0), (76.0, cy - 7.0), (92.0, cy - 11.0)
+    left_d, low_l, low_r, right_d = (36.0, cy + 11.0), (54.0, cy + 17.0), (76.0, cy + 15.0), (92.0, cy + 11.0)
+    prism = [apex, right_u, right_d, base, left_d, left_u]
+    drawing.shape(prism, prism_grad, joint=2.2)
+    # Lit upper-left facets (cool/soft glow), central spectrum body, shaded ultraviolet lower-right facets.
+    drawing.fill([apex, left_u, mid_l], soft_col)
+    drawing.fill([apex, mid_l, mid_r], c_top)
+    drawing.fill([left_u, mid_l, low_l, left_d], c_top)
+    drawing.fill([mid_l, mid_r, low_r, low_l], c_mid)
+    drawing.fill([mid_r, right_u, right_d, low_r], c_low)
+    drawing.fill([low_l, low_r, base], deep_col)
+    drawing.fill([low_r, right_d, base], deep_col)
+    # White-hot breathing singularity core inside the prism.
+    cw = 6.5 + 2.8 * wave
+    ch = 13.5 + 3.8 * wave
+    drawing.fill([(64, cy - ch), (64 + cw, cy), (64, cy + ch), (64 - cw, cy)], soft_col)
+    drawing.fill([(64, cy - ch * .65), (64 + cw * .58, cy), (64, cy + ch * .65), (64 - cw * .58, cy)], core_col)
+    drawing.stroke([apex, mid_l, low_l, base], core_col, 1.5)
+
+    # Two orbiting prismatic singularity motes looping smoothly around the crystal.
+    for k in range(2):
+        ang = phase + k * math.pi
+        mx = 64 + 31.0 * math.cos(ang)
+        my = cy + 16.0 * math.sin(ang)
+        mcol = c_rim_a if k == 0 else c_rim_b
+        drawing.fill([(mx - 4.2, my), (mx, my - 4.2), (mx + 4.2, my), (mx, my + 4.2)], mcol)
+        drawing.fill([(mx - 2.0, my), (mx, my - 2.0), (mx + 2.0, my), (mx, my + 2.0)], core_col)
+    return drawing.svg()
+
+
 def digest(content):
     return hashlib.sha256(content).hexdigest()
+
+
+def _render_animated_strip(frames_svg, path):
+    import io
+    import cairosvg
+    from PIL import Image as PilImage
+    strip = PilImage.new('RGBA', (128, 128 * len(frames_svg)))
+    for idx, svg_bytes in enumerate(frames_svg):
+        png_data = cairosvg.svg2png(bytestring=svg_bytes, output_width=128, output_height=128)
+        frame_img = PilImage.open(io.BytesIO(png_data)).convert('RGBA')
+        strip.paste(frame_img, (0, idx * 128))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    strip.save(str(path), format='PNG')
+    strip_ancillary_chunks(path)
+
+
+ANIMATED_ICONS = (
+    ('extraction_focus_upgrade', extraction_focus_upgrade, 16, 2),
+    ('particle_resonator', particle_resonator, 16, 2),
+    ('primal_matrix_core', primal_matrix_core, 16, 2),
+    ('mass_compression_upgrade', mass_compression_upgrade, 16, 2),
+)
 
 
 def generate(check=False):
@@ -985,11 +1335,14 @@ def generate(check=False):
                          ('security_card_trusted', security_card(mode='trusted')),
                          ('security_card_private', security_card(mode='private')),
                          ('wireless_booster', wireless_booster()),
+                         ('dimensional_card', dimensional_card()),
+                         ('anchor_upgrade', anchor_upgrade()),
                          ('wireless_matter_terminal', wireless_terminal()),
                          ('energy_core', energy_core()),
                          ('portable_energy_cell', portable_energy_cell()),
                          ('pressurized_canister', pressurized_canister()),
-                         ('spectrometer_lens', spectrometer_lens())):
+                         ('spectrometer_lens', spectrometer_lens()),
+                         ('bore_core', bore_core())):
         source = source.encode()
         out.bytes(ART / (name + '.svg'), source)
         path = TEX / (name + '.png')
@@ -1001,12 +1354,26 @@ def generate(check=False):
             cairosvg.svg2png(bytestring=source, write_to=str(path), output_width=128, output_height=128)
             strip_ancillary_chunks(path)
         expected[name] = {'svg': digest(source), 'png': digest(path.read_bytes())}
+
+    for name, builder, frames, frametime in ANIMATED_ICONS:
+        frame_sources = [builder(frame=i, total_frames=frames).encode() for i in range(frames)]
+        out.bytes(ART / (name + '.svg'), frame_sources[0])
+        out.json(TEX / (name + '.png.mcmeta'), {'animation': {'frametime': frametime, 'interpolate': True}})
+        combined_digest = digest(b'\n'.join(frame_sources))
+        path = TEX / (name + '.png')
+        old = record.get(name, {})
+        if old.get('svg') != combined_digest or old.get('frames') != frames or not path.is_file() or old.get('png') != digest(path.read_bytes()):
+            if check:
+                raise ValueError(f'Animated illustrated source or rendered PNG differs: {name}')
+            _render_animated_strip(frame_sources, path)
+        expected[name] = {'svg': combined_digest, 'png': digest(path.read_bytes()), 'frames': frames}
+
     out.json(RECORD, expected)
     print(f"{'Verified' if check else 'Generated'} {len(expected)} illustrated icons ({technical_sprites.UPGRADE_CHASSIS_LOOK} upgrade "
           f"chassis, {MATRIX_CLUSTER_LOOK} Matrix Cluster, {WRENCH_LOOK} Matter Wrench, "
           f"{CONFIGURATION_CARD_LOOK} Configuration Card, {SECURITY_CARD_LOOK} Security Card, {WIRELESS_TERMINAL_LOOK} Wireless Terminal, "
           f"{ENERGY_CORE_LOOK} Energy Core, {PORTABLE_ENERGY_CELL_LOOK} Portable Energy Cell, "
-          f"{CANISTER_LOOK} Pressurized Canister)")
+          f"{CANISTER_LOOK} Pressurized Canister, {len(ANIMATED_ICONS)} animated 16-frame icons)")
 
 
 if __name__ == '__main__':

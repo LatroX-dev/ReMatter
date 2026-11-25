@@ -3,10 +3,11 @@ package dev.latrox.rematter.energy;
 /** Samples net buffer movement; no transfer or accounting code reads this visual state. */
 final class EnergyCubeFlow {
     private long sampledAt = Long.MIN_VALUE, changedAt = Long.MIN_VALUE;
-    private int sampledEnergy, previousSign, matchingWindows;
+    private long sampledEnergy;
+    private int previousSign, matchingWindows;
     private EnergyCubeBlock.Flow shown = EnergyCubeBlock.Flow.NONE;
 
-    EnergyCubeBlock.Flow sample(long tick, int energy) {
+    EnergyCubeBlock.Flow sample(long tick, long energy) {
         if (sampledAt == Long.MIN_VALUE || tick < sampledAt) {
             sampledAt = tick;
             sampledEnergy = energy;
@@ -15,7 +16,7 @@ final class EnergyCubeFlow {
             return shown;
         }
         if (tick - sampledAt < 10) return shown;
-        int sign = Integer.compare(energy, sampledEnergy);
+        int sign = Long.compare(energy, sampledEnergy);
         sampledAt = tick;
         sampledEnergy = energy;
         matchingWindows = sign == previousSign ? matchingWindows + 1 : 1;

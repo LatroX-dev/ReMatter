@@ -256,6 +256,6 @@ class StorageAndGadgetsTest {
                 assertTrue(machines.has(kind.id()), "machine_audio.json has no entry for " + kind.id());
             }
         }
-        assertEquals(15, withAudio.size());
+        assertEquals(19, withAudio.size());
     }
 }

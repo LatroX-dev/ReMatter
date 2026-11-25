@@ -27,9 +27,11 @@ import struct
 from check_assets import strip_ancillary_chunks
 from generated_files import GeneratedFiles
 from recipe_discovery import shaped_discovery
-from family_geometry import Box, build, check_boxes
-from family_sprites import Sprite, casing
-from family_palette import (BASE, HIGHLIGHT, PORT_DARK, PORT_LIGHT, PORT_METAL, SEAM, SHADE, WELL,
+from family_geometry import Box, ROTATION, build, check_boxes
+from family_sprites import Sprite, bolt, casing
+import port_plates
+from family_palette import (BADGE, BADGE_LIGHT, BASE, COPPER, COPPER_LIGHT, HIGHLIGHT, PORT_DARK, PORT_LIGHT, PORT_METAL,
+                            SEAM, SHADE, STEEL, STEEL_DEEP, STEEL_SHADE, TRIM, WELL,
                             PRIMAL_CORE, PRIMAL_CORE_SOFT, PRIMAL_LIGHT, PRIMAL_BODY, PRIMAL_DEEP,
                             PRIMAL_VOID, PRIMAL_INK, PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_WARM, PRIMAL_GOLD)
 
@@ -680,52 +682,183 @@ def write_icons(out):
 # ---------------------------------------------------------------------------------------------------------
 
 def link_sprites():
-    """Neutral family casing and a separate animated Primal lens, both at two texels per pixel."""
-    shell = casing()
-    shell.row(5, 2, 30, SHADE)
-    shell.row(26, 2, 30, HIGHLIGHT)
-    for x in (4, 26):
-        shell.rect(x, 3, x + 2, 5, PORT_LIGHT)
-        shell.rect(x, 27, x + 2, 29, PORT_DARK)
-    lens = Sprite(32, 32 * ORE_FRAMES, fill=(0, 0, 0, 0))
+    """Tier-1 Entangled Link: full 16x16 dark-graphite monolith with flush full-height ports, understated compact front
+    Primal telemetry strip, and a compact recessed 3D Primal Orb seated inside the heavy top rim."""
+    # Front heavy dark-graphite armor (32x32, full 0..16 height): thick top brow (v=0..11), tall matte plinth (v=24..32),
+    # compact recessed telemetry strip (u=5..27 -> x=2.5..13.5, v=11..24 -> y=4..10.5)
+    front = casing()
+    front.rect(2, 26, 30, 31, SHADE)
+    front.row(26, 2, 30, BASE)
+    front.rect(10, 28, 22, 30, BADGE)
+    front.row(28, 10, 22, BADGE_LIGHT)
+    # Subtle matte cooling louvres on upper brow & plinth
+    for x in (6, 22):
+        front.rect(x, 4, x + 4, 6, SHADE)
+        front.row(4, x, x + 4, SEAM)
+    # Recessed compact screen bay (u=5..27, v=11..24)
+    front.rect(5, 11, 27, 24, WELL)
+    front.bevel(4, 10, 28, 25, PORT_DARK, HIGHLIGHT)
+    for bx, by in ((4, 9), (26, 9), (4, 24), (26, 24)):
+        bolt(front, bx, by)
+
+    # Top heavy closed dark-graphite rim (3.5 px border -> u,v=0..7 & 25..32) framing compact recessed orb well (7..25)
+    top = casing()
+    for cx, cy in ((3, 3), (27, 3), (3, 27), (27, 27)):
+        bolt(top, cx, cy)
+    top.rect(12, 2, 20, 5, COPPER)
+    top.row(2, 12, 20, COPPER_LIGHT)
+    top.rect(7, 7, 25, 25, WELL)
+    top.bevel(6, 6, 26, 26, PORT_DARK, HIGHLIGHT)
+    top.ring(9, 9, 23, 23, PORT_METAL)
+
+    spec = (PRIMAL_TEAL, PRIMAL_COOL, PRIMAL_BODY, PRIMAL_WARM, PRIMAL_GOLD)
+
+    # 16-frame calm Tier-1 telemetry oscilloscope strip (front_screen x=3..13, y=4.5..10 -> u=6..26, v=12..23)
+    screen = Sprite(32, 32 * ORE_FRAMES, fill=WELL)
     for frame in range(ORE_FRAMES):
-        for y in range(8, 24):
-            for x in range(8, 24):
-                distance = (x - 15.5) ** 2 + (y - 15.5) ** 2
-                colour = WELL if distance > 56 else PORT_METAL if distance > 42 else PRIMAL_VOID
-                if distance <= 30:
-                    colour = (PRIMAL_CORE if distance < 4 else PRIMAL_CORE_SOFT if distance < 9
-                              else PRIMAL_LIGHT if x + y < 29 else PRIMAL_BODY if x + y < 36 else PRIMAL_DEEP)
-                    if 14 <= distance <= 30 and (x + y - frame) % ORE_FRAMES < 3:
-                        colour = rgb(PRIMAL[SPECTRUM[round((frame / 7 if frame < 8 else (15 - frame) / 7) * 4)]])
-                lens.px(x, y + frame * 32, colour)
-    return shell, lens
+        oy = frame * 32
+        screen.ring(6, 12 + oy, 26, 23 + oy, SEAM)
+        screen.bevel(7, 13 + oy, 25, 22 + oy, PORT_DARK, SEAM)
+        screen.rect(8, 14 + oy, 24, 21 + oy, WELL)
+        screen.row(17 + oy, 8, 24, PRIMAL_VOID)
+        # Calm single ultraviolet carrier pulse sweeping steadily across u=9..23
+        crest_u = 9 + ((frame * 14) // ORE_FRAMES)
+        for x in range(9, 23):
+            phase = ((x - 9) / 14.0 - frame / ORE_FRAMES) * 2.0 * math.pi
+            wy = 17 + round(1.8 * math.sin(phase))
+            dist = min(abs(x - crest_u), 14 - abs(x - crest_u))
+            if dist == 0:
+                col = PRIMAL_CORE_SOFT
+            elif dist == 1:
+                col = PRIMAL_LIGHT
+            elif dist == 2:
+                col = PRIMAL_BODY
+            else:
+                col = PRIMAL_DEEP
+            screen.px(x, wy + oy, col)
+        # Small corner carrier pip
+        screen.px(9, 14 + oy, PRIMAL_CORE if frame % 8 < 3 else PRIMAL_LIGHT)
+
+    # 16-frame compact recessed 3D Primal Orb (x,z=5..11 -> u,v=10..22; y=14..15.5 -> side v=1..4)
+    orb = Sprite(32, 32 * ORE_FRAMES, fill=WELL)
+    for frame in range(ORE_FRAMES):
+        oy = frame * 32
+        # Top hemisphere (u=10..22, v=10..22)
+        for y in range(10, 22):
+            for x in range(10, 22):
+                dx = x - 15.5
+                dy = y - 15.5
+                d2 = dx * dx + dy * dy
+                sx = x - 13.8
+                sy = y - 13.8
+                s2 = sx * sx + sy * sy
+                if d2 > 34:
+                    col = PRIMAL_VOID
+                elif d2 > 25:
+                    col = PRIMAL_DEEP if (dx + dy > 0) else PRIMAL_BODY
+                elif s2 < 2.2:
+                    col = PRIMAL_CORE
+                elif s2 < 6.0:
+                    col = PRIMAL_CORE_SOFT
+                else:
+                    theta = math.atan2(dy, dx)
+                    r = math.sqrt(d2)
+                    swirl = (theta / (2.0 * math.pi) + r * 0.14 - frame / ORE_FRAMES) % 1.0
+                    band = int(swirl * 8) % 8
+                    if band == 0:
+                        col = spec[(frame // 3) % 5]
+                    elif band in (1, 2):
+                        col = PRIMAL_LIGHT
+                    elif band in (3, 4, 5):
+                        col = PRIMAL_BODY
+                    else:
+                        col = PRIMAL_DEEP
+                orb.px(x, y + oy, col)
+        # Side hemisphere wall (u=10..22, v=1..4)
+        for y in range(1, 4):
+            for x in range(10, 22):
+                dx = abs(x - 15.5)
+                if dx > 5.0:
+                    col = PRIMAL_VOID
+                elif y == 1 and dx < 2.0:
+                    col = PRIMAL_CORE_SOFT
+                else:
+                    wave = ((x - 10) / 12.0 - frame / ORE_FRAMES) % 1.0
+                    col = PRIMAL_LIGHT if wave < .25 else PRIMAL_BODY if wave < .70 else PRIMAL_DEEP
+                orb.px(x, y + oy, col)
+    return front, top, screen, orb
 
 
 def write_devices(out):
-    shell, lens = link_sprites()
-    out.png(ART / "textures/block/entangled_link_casing.png", shell.width, shell.height, shell.pixel)
-    out.png(ART / "textures/block/entangled_link.png", lens.width, lens.height, lens.pixel)
+    front, top, screen, orb = link_sprites()
+    out.png(ART / "textures/block/entangled_link_casing.png", front.width, front.height, front.pixel)
+    out.png(ART / "textures/block/entangled_link_top.png", top.width, top.height, top.pixel)
+    out.png(ART / "textures/block/entangled_link_screen.png", screen.width, screen.height, screen.pixel)
+    out.json(ART / "textures/block/entangled_link_screen.png.mcmeta",
+             {"animation": {"frametime": 4, "interpolate": True}})
+    out.png(ART / "textures/block/entangled_link.png", orb.width, orb.height, orb.pixel)
     out.json(ART / "textures/block/entangled_link.png.mcmeta",
-             {"animation": {"frametime": ORE_FRAME_TICKS}})
-    boxes = [Box("lower rim", [0, 0, 0], [16, 3, 16]),
-             Box("body", [1, 3, 1], [15, 13, 15]),
-             Box("upper rim", [0, 13, 0], [16, 16, 16])]
-    check_boxes("entangled_link", boxes)
-    elements = build(boxes, lambda box, face: "shell")
-    # The four half-pixel lens steps stand in front of the casing, never coplanar with it.
-    for face, lo, hi in (("north", [4, 4, .5], [12, 12, 1]),
-                         ("south", [4, 4, 15], [12, 12, 15.5]),
-                         ("west", [.5, 4, 4], [1, 12, 12]),
-                         ("east", [15, 4, 4], [15.5, 12, 12])):
-        elements.append({"name": face + " lens", "from": lo, "to": hi, "shade": False,
-                         "light_emission": 15, "faces": {face: {"uv": [4, 4, 12, 12], "texture": "#eye"}}})
-    out.json(ART / "models/block/entangled_link.json", {"parent": "minecraft:block/block",
-             "textures": {"particle": "rematter:block/entangled_link_casing",
-                          "shell": "rematter:block/entangled_link_casing", "eye": "rematter:block/entangled_link"},
-             "elements": elements})
-    out.json(ART / "blockstates/entangled_link.json", {"variants": {"": {"model": "rematter:block/entangled_link"}}})
-    out.json(ART / "items/entangled_link.json", {"model": {"type": "minecraft:model", "model": "rematter:block/entangled_link"}})
+             {"animation": {"frametime": 4, "interpolate": True}})
+    # Full 16x16 flush ports on LEFT/RIGHT/BACK/DOWN, understated front telemetry screen & compact recessed top Primal Orb!
+    body = [
+        Box("core", (0, 0, 1.5), (16, 14, 16)),
+        Box("wall_south", (0, 14, 12.5), (16, 16, 16)),
+        Box("wall_west", (0, 14, 0), (3.5, 16, 12.5)),
+        Box("wall_east", (12.5, 14, 0), (16, 16, 12.5)),
+        Box("wall_north", (3.5, 14, 0), (12.5, 16, 3.5)),
+        Box("post_left", (13.5, 0, 0), (16, 14, 1.5)),
+        Box("post_right", (0, 0, 0), (2.5, 14, 1.5)),
+        Box("plinth", (2.5, 0, 0), (13.5, 4, 1.5)),
+        Box("cap_front", (2.5, 10.5, 0), (13.5, 14, 1.5)),
+    ]
+    parts = [
+        Box("front_screen", (3, 4.5, 1), (13, 10, 1.5), emissive=True, step=True, flat=True),
+        Box("top_orb", (5, 14, 5), (11, 15.5, 11), emissive=True, flat=True),
+    ]
+    check_boxes("entangled_link", body + parts)
+
+    def shell_skin(box, face):
+        if face == "up":
+            return "top"
+        if face == "north" and box.on_boundary(face):
+            return "front"
+        return "inner"
+
+    omit = set(port_plates.omitted_faces("entangled_link"))
+    body_elements = build(body, shell_skin, body + parts)
+    kept_body = []
+    for element, box in zip(body_elements, body):
+        for face in [face for face in element["faces"] if face in omit and box.on_boundary(face)]:
+            del element["faces"][face]
+        if element["faces"]:
+            kept_body.append(element)
+    elements = kept_body + build(parts, lambda box, face: "screen" if box.name == "front_screen" else "orb", body + parts)
+    out.json(ART / "models/block/entangled_link.json", {
+        "parent": "minecraft:block/block",
+        "textures": {
+            "particle": "rematter:block/entangled_link_casing",
+            "front": "rematter:block/entangled_link_casing",
+            "top": "rematter:block/entangled_link_top",
+            "inner": "rematter:block/casing_inner",
+            "screen": "rematter:block/entangled_link_screen",
+            "orb": "rematter:block/entangled_link",
+        },
+        "elements": elements,
+    })
+    ports = port_plates.definition("entangled_link")
+    states = []
+    for facing in ("north", "east", "south", "west"):
+        rot = ROTATION[facing]
+        states.append({"when": {"facing": facing}, "apply": {"model": "rematter:block/entangled_link", **rot}})
+        states.append({"when": {"facing": facing}, "apply": {
+            "type": ports["type"], **rot, "default": ports["default"], "sides": ports["sides"],
+        }})
+    out.json(ART / "blockstates/entangled_link.json", {"multipart": states})
+    shown_models = ["rematter:block/entangled_link"] + port_plates.default_models(ports)
+    out.json(ART / "items/entangled_link.json", {"model": {
+        "type": "minecraft:composite",
+        "models": [{"type": "minecraft:model", "model": m} for m in shown_models],
+    }})
     out.json(DATA / "rematter/loot_table/blocks/entangled_link.json", {"type": "minecraft:block", "pools": [{"rolls": 1, "conditions": [{"condition": "minecraft:survives_explosion"}],
         "entries": [{"type": "minecraft:item", "name": "rematter:entangled_link"}]}]})
     for name, keys, pattern in (
@@ -733,6 +866,8 @@ def write_devices(out):
         ("primal_cell_64k", {"H": "rematter:cell_housing", "C": "rematter:optical_circuit", "V": "rematter:violet_matrix_crystal", "E": "rematter:ender_conductor"}, [" C ", "EVE", " H "]),
         ("primal_cell_256k", {"H": "rematter:cell_housing", "C": "rematter:primal_crystal", "D": "rematter:diamond_lattice", "N": "rematter:netherite_sheath", "E": "rematter:ender_conductor"}, ["CDC", "EHE", "CNC"]),
         ("primal_cell_1m", {"H": "rematter:cell_housing", "C": "rematter:primal_crystal", "O": "rematter:optical_circuit", "D": "rematter:diamond_lattice", "N": "rematter:netherite_sheath"}, ["COC", "NHN", "CDC"]),
+        ("primal_cell_4m", {"H": "rematter:cell_housing", "K": "rematter:primal_matrix_core", "P": "rematter:primal_crystal", "C": "rematter:primal_cell_1m", "N": "rematter:netherite_sheath"}, ["NKN", "CHC", "PNP"]),
+        ("primal_matrix_core", {"N": "rematter:netherite_sheath", "P": "rematter:primal_crystal", "R": "rematter:particle_resonator"}, ["NPN", "PRP", "NPN"]),
         ("entangled_link", {"C": "rematter:primal_crystal", "D": "rematter:diamond_lattice", "N": "rematter:netherite_sheath", "E": "rematter:ender_conductor", "F": "rematter:machine_frame"}, ["CEC", "DFD", "CNC"])):
         out.json(DATA / f"rematter/recipe/{name}.json", {"type": "minecraft:crafting_shaped", "category": "misc", "pattern": pattern, "key": keys, "result": {"id": "rematter:" + name, "count": 2 if name == "entangled_link" else 1}})
         out.json(DATA / f"rematter/advancement/recipes/{name}.json", shaped_discovery(name, pattern, keys))

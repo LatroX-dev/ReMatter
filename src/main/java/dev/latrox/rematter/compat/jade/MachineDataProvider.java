@@ -25,6 +25,15 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
         var summary = machine.summaryFor(accessor.getPlayer(), accessor.showDetails() ? DETAIL_ROWS : 0);
         view.putBoolean("locked", summary == null);
         if (summary != null) {
+            if (!machine.customName().isEmpty()) view.putString("customName", machine.customName());
+            if (machine.hasAnchorUpgrade()) {
+                var ast = machine.anchorStatus();
+                view.putBoolean("anchorInstalled", true);
+                view.putBoolean("anchorActive", ast.active());
+                view.putInt("anchorForced", ast.forcedChunks());
+                view.putInt("anchorTotal", ast.ownerTotalChunks());
+                view.putInt("anchorMax", ast.maxChunks());
+            }
             view.putString("status", summary.status());
             if(machine.settings().target()>0) {
                 view.putLong("target",machine.settings().target());view.putLong("targetStock",machine.targetStock());
@@ -39,6 +48,30 @@ final class MachineDataProvider implements IServerDataProvider<BlockAccessor> {
             view.putInt("energy", summary.energy());
             view.putInt("energyCapacity", machine.energyCapacity());
             view.putLong("energyRate", machine.currentEnergyRate());
+            if (machine.kind().isEnergyMatrix()) {
+                view.putBoolean("energyMatrix", true);
+                view.putLong("matrixEnergy", machine.matrixEnergy());
+                view.putLong("matrixCapacity", machine.matrixCapacity());
+                view.putLong("matrixTransferRate", machine.matrixTransferRate());
+                view.putLong("matrixInRate", machine.matrixInRate());
+                view.putLong("matrixOutRate", machine.matrixOutRate());
+                view.putBoolean("matrixAutoOutput", machine.matrixAutoOutput());
+            }
+            if (machine.kind().isEnergyReactor()) {
+                view.putBoolean("energyReactor", true);
+                view.putLong("reactorEnergy", machine.reactorEnergy());
+                view.putLong("reactorCapacity", machine.reactorCapacity());
+                view.putLong("reactorGenRate", machine.reactorGenRate());
+                view.putLong("reactorOutRate", machine.reactorOutRate());
+                view.putLong("reactorMaxOutRate", machine.reactorMaxOutputRate());
+                view.putInt("reactorFlux", machine.reactorFlux());
+                view.putString("reactorFuelMode", machine.reactorFuelMode().id());
+                view.putBoolean("reactorCooled", machine.reactorCooled());
+            }
+            if (machine.kind() == MachineKind.PRIMAL_REACTOR) {
+                view.putInt("primalStability", machine.primalStability());
+                view.putInt("primalMaxStability", machine.primalMaxStability());
+            }
             if (dev.latrox.rematter.content.MachineEnergyPolicy.supportsUpgrades(machine.kind())) {
                 view.putInt("speedUpgrades", machine.speedUpgradeCount());
                 view.putInt("efficiencyUpgrades", machine.efficiencyUpgradeCount());

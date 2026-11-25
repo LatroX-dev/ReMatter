@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " R ",
+    "CBC",
+    "AMA"
+  ],
+  "key": {
+    "R": "minecraft:redstone",
+    "C": "rematter:control_circuit",
+    "B": "rematter:blue_matrix_crystal",
+    "A": "rematter:matter_cable",
+    "M": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:matter_cable_relay",
+    "count": 1
+  }
+}

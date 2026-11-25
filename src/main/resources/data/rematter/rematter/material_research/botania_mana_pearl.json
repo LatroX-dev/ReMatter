@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Botania Mana Pearl",
+  "items": [
+    "botania:mana_pearl",
+    "botania:pixie_dust"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

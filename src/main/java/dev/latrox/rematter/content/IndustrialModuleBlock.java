@@ -51,8 +51,8 @@ public final class IndustrialModuleBlock extends Block implements EntityBlock {
         var level = context.getLevel();
         if (!level.hasChunkAt(anchor)) return null;
         var support = level.getBlockState(anchor);
-        boolean supported = support.is(ModContent.REACTOR_CASING.get()) || support.is(ModContent.REACTOR_GLASS.get())
-                || support.is(ModContent.MACHINE_PORT.get()) || support.isFaceSturdy(level, anchor, face, SupportType.FULL);
+        boolean supported = ModContent.isAnyReactorCasing(support)
+                || (!ModContent.isAnyReactorGlass(support) && support.isFaceSturdy(level, anchor, face, SupportType.FULL));
         return IndustrialModuleMount.forPlacement(face, supported)
                 .map(mount -> defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite())
                         .setValue(SUSPENDED, mount.suspended())).orElse(null);
@@ -119,6 +119,43 @@ public final class IndustrialModuleBlock extends Block implements EntityBlock {
                             mountedBox(suspended, 6, 12, 7, 10, 13, 9),
                             mountedBox(suspended, 6, 8, 6.5, 10, 11, 7),
                             mountedBox(suspended, 6, 8, 9, 10, 11, 9.5));
+                    case PARTICLE_EMITTER -> Shapes.or(
+                            mountedBox(suspended, 5, 3, 5, 11, 5, 11),
+                            mountedBox(suspended, 6.5, 3, 3, 9.5, 10, 5),
+                            mountedBox(suspended, 6.5, 3, 11, 9.5, 10, 13),
+                            mountedBox(suspended, 3, 3, 6.5, 5, 10, 9.5),
+                            mountedBox(suspended, 11, 3, 6.5, 13, 10, 9.5),
+                            mountedBox(suspended, 4.5, 10, 4.5, 11.5, 11.5, 11.5),
+                            mountedBox(suspended, 6, 5, 6, 10, 10, 10),
+                            mountedBox(suspended, 5.5, 11.5, 5.5, 10.5, 14, 10.5),
+                            mountedBox(suspended, 7, 14, 7, 9, 16, 9));
+                    case PRIMAL_CONDENSER_CORE -> Shapes.or(
+                            mountedBox(suspended, 5, 3, 5, 11, 4.5, 11),
+                            mountedBox(suspended, 3, 3, 3, 5, 13, 5),
+                            mountedBox(suspended, 11, 3, 3, 13, 13, 5),
+                            mountedBox(suspended, 3, 3, 11, 5, 13, 13),
+                            mountedBox(suspended, 11, 3, 11, 13, 13, 13),
+                            mountedBox(suspended, 4, 13, 4, 12, 14, 12),
+                            mountedBox(suspended, 6, 4.5, 6, 10, 6.5, 10),
+                            mountedBox(suspended, 5, 6.5, 5, 11, 11.5, 11),
+                            mountedBox(suspended, 6, 11.5, 6, 10, 13, 10),
+                            mountedBox(suspended, 6.5, 14, 6.5, 9.5, 16, 9.5));
+                    case REACTOR_FUEL_CORE -> Shapes.or(
+                            mountedBox(suspended, 4.5, 3, 4.5, 11.5, 4.5, 11.5),
+                            mountedBox(suspended, 3, 3, 3, 4.5, 13, 4.5),
+                            mountedBox(suspended, 11.5, 3, 3, 13, 13, 4.5),
+                            mountedBox(suspended, 3, 3, 11.5, 4.5, 13, 13),
+                            mountedBox(suspended, 11.5, 3, 11.5, 13, 13, 13),
+                            mountedBox(suspended, 4, 13, 4, 12, 14, 12),
+                            mountedBox(suspended, 5, 4.5, 5, 11, 13, 11),
+                            mountedBox(suspended, 6.5, 14, 6.5, 9.5, 16, 9.5));
+                    case REACTOR_INDUCTION_COIL -> Shapes.or(
+                            mountedBox(suspended, 5, 3, 5, 11, 4.5, 11),
+                            mountedBox(suspended, 2.5, 5, 2.5, 13.5, 8, 13.5),
+                            mountedBox(suspended, 3, 8, 6.5, 4.5, 13.5, 9.5),
+                            mountedBox(suspended, 11.5, 8, 6.5, 13, 13.5, 9.5),
+                            mountedBox(suspended, 6.5, 4.5, 6.5, 9.5, 14.5, 9.5),
+                            mountedBox(suspended, 7, 14.5, 7, 9, 16, 9));
                 });
     }
 

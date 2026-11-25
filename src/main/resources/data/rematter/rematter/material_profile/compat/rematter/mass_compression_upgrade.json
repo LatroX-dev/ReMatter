@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:mass_compression_upgrade",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 4500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 6186
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 7000
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 10000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 9500
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 4000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 18352
+    }
+  ],
+  "decomposition_energy": 141000,
+  "synthesis_energy": 282000,
+  "ticks": 200
+}

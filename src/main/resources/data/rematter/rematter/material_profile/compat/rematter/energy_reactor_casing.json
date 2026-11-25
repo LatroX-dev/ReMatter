@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "item": "rematter:energy_reactor_casing",
+  "matter": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 375
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 159
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 718
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 628
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 50
+}

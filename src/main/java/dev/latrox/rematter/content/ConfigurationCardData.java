@@ -41,7 +41,10 @@ public final class ConfigurationCardData {
 
     public static void register(IEventBus bus) { Registration.COMPONENTS.register(bus); }
 
-    public record LinkOrigin(ResourceKey<Level> dimension, BlockPos pos) {
+    public record LinkOrigin(ResourceKey<Level> dimension, BlockPos pos, boolean dimensional) {
+        public LinkOrigin(ResourceKey<Level> dimension, BlockPos pos) {
+            this(dimension, pos, false);
+        }
         public LinkOrigin {
             Objects.requireNonNull(dimension);
             pos = pos.immutable();
@@ -123,11 +126,20 @@ public final class ConfigurationCardData {
     }
 
     public static ConfigurationCardData fromLink(ResourceKey<Level> dimension, BlockPos pos) {
+        return fromLink(dimension, pos, false);
+    }
+
+    public static ConfigurationCardData fromDimensionalLink(ResourceKey<Level> dimension, BlockPos pos) {
+        return fromLink(dimension, pos, true);
+    }
+
+    private static ConfigurationCardData fromLink(ResourceKey<Level> dimension, BlockPos pos, boolean dimensional) {
         var tag = new CompoundTag();
         tag.putInt("schema", SCHEMA);
         tag.putString("kind", "link");
         tag.putString("dimension", dimension.identifier().toString());
         tag.putLong("pos", pos.asLong());
+        if (dimensional) tag.putBoolean("dimensional", true);
         return new ConfigurationCardData(tag);
     }
 
@@ -148,6 +160,7 @@ public final class ConfigurationCardData {
         tag.putLong("target", setup.settings().target());
         tag.putString("target_substance", setup.settings().targetSubstance());
         tag.putString("target_phase", setup.settings().targetPhase());
+        if (setup.settings().networkReserve() > 0L) tag.putLong("network_reserve", setup.settings().networkReserve());
         var gases = new net.minecraft.nbt.ListTag();
         setup.settings().ventedGases().stream().sorted().forEach(g -> gases.add(net.minecraft.nbt.StringTag.valueOf(g)));
         tag.put("vented_gases", gases);
@@ -195,7 +208,7 @@ public final class ConfigurationCardData {
         try {
             String dim = raw.getString("dimension").orElseThrow();
             var key = ResourceKey.create(Registries.DIMENSION, Identifier.parse(dim));
-            return Optional.of(new LinkOrigin(key, BlockPos.of(raw.getLong("pos").orElseThrow())));
+            return Optional.of(new LinkOrigin(key, BlockPos.of(raw.getLong("pos").orElseThrow()), raw.getBooleanOr("dimensional", false)));
         } catch (RuntimeException invalid) {
             return Optional.empty();
         }
@@ -216,7 +229,8 @@ public final class ConfigurationCardData {
                     raw.getLongOr("target", 0),
                     raw.getStringOr("target_substance", ""),
                     raw.getStringOr("target_phase", ""),
-                    gases);
+                    gases,
+                    raw.getLongOr("network_reserve", 0L));
             int fallbackVolume = raw.getBooleanOr("sound_muted", false) ? 0 : MachineSoundLevel.HIGH.level();
             MachineSoundLevel soundLevel = MachineSoundLevel.byLevel(raw.getIntOr("sound_volume", fallbackVolume));
             MachineKind finalKind = kind;

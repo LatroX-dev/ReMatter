@@ -1,0 +1,74 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/dimensional_entangled_link_screen_idle",
+    "screen": "rematter:block/dimensional_entangled_link_screen_idle",
+    "orb": "rematter:block/dimensional_entangled_link_orb_idle"
+  },
+  "elements": [
+    {
+      "name": "front_screen",
+      "from": [
+        2,
+        2.5,
+        1
+      ],
+      "to": [
+        14,
+        12.5,
+        1.5
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#screen"
+        },
+        "east": {
+          "texture": "#screen"
+        },
+        "west": {
+          "texture": "#screen"
+        },
+        "down": {
+          "texture": "#screen"
+        }
+      }
+    },
+    {
+      "name": "top_orb",
+      "from": [
+        4,
+        13,
+        4
+      ],
+      "to": [
+        12,
+        16,
+        12
+      ],
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#orb"
+        },
+        "south": {
+          "texture": "#orb"
+        },
+        "east": {
+          "texture": "#orb"
+        },
+        "west": {
+          "texture": "#orb"
+        },
+        "up": {
+          "texture": "#orb",
+          "cullface": "up"
+        }
+      }
+    }
+  ]
+}

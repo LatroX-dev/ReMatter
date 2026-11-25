@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "rematter:deep_mineral_extraction",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:mineral_slurry",
+      "phase": "liquid",
+      "amount": 250
+    }
+  ],
+  "energy": 32000,
+  "ticks": 300,
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "requires_open_air": false,
+  "probe_below": "deepslate"
+}

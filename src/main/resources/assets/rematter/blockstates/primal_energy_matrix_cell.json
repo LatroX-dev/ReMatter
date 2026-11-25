@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "rematter:block/primal_energy_matrix_cell"
+    }
+  }
+}

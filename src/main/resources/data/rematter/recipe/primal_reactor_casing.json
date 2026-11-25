@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CNC",
+    "VPV",
+    "CNC"
+  ],
+  "key": {
+    "C": "rematter:transmutation_reactor_casing",
+    "N": "rematter:netherite_sheath",
+    "V": "rematter:violet_matrix_crystal",
+    "P": "rematter:primal_crystal"
+  },
+  "result": {
+    "id": "rematter:primal_reactor_casing",
+    "count": 4
+  }
+}

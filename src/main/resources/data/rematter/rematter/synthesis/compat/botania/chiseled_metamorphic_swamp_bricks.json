@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:chiseled_metamorphic_swamp_bricks",
+  "disabled": true
+}

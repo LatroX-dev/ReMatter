@@ -1,0 +1,69 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_material": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:redstone"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:blue_matrix_crystal"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:control_circuit"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:machine_frame"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:matter_cable"
+            ],
+            "count": {
+              "min": 2
+            }
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "rematter:matter_cable_relay"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_material",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rematter:matter_cable_relay"
+    ]
+  }
+}

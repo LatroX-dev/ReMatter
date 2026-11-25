@@ -1,0 +1,21 @@
+{
+  "type": "rematter:energy_upgrade_shaped",
+  "category": "misc",
+  "pattern": [
+    "KCK",
+    "PBP",
+    "RVR"
+  ],
+  "key": {
+    "K": "rematter:energy_core",
+    "C": "rematter:resonant_matter_cable",
+    "P": "rematter:primal_matrix_core",
+    "B": "rematter:resonant_energy_cube",
+    "R": "rematter:particle_resonator",
+    "V": "rematter:violet_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:primal_energy_cube",
+    "count": 1
+  }
+}

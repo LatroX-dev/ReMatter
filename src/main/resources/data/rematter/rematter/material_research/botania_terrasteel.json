@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "name": "Botania Terrasteel",
+  "items": [
+    "botania:terrasteel_block",
+    "botania:terrasteel_ingot",
+    "botania:terrasteel_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "type": "separation",
+  "inputs": [
+    {
+      "substance": "rematter:saline_brine",
+      "phase": "liquid",
+      "amount": 1000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:salt",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:lithium",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 2000
+    }
+  ],
+  "energy": 56000,
+  "ticks": 500
+}

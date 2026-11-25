@@ -38,15 +38,16 @@ public final class WirelessAccessPointBlock extends Block implements EntityBlock
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
     private static final Map<Direction, VoxelShape> SHAPES = Shapes.rotateHorizontal(
-            Shapes.or(box(1, 0, 1, 15, 3, 15), box(2, 3, 3, 14, 15.5, 15)));
+            Shapes.or(box(2, 0, 2, 14, 2.5, 14), box(3.5, 2.5, 3.5, 12.5, 15.5, 12.5)));
 
     public WirelessAccessPointBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
 
+    /** Wireless Access Point connects cleanly from below only (freestanding transceiver tower). */
     public static boolean connectsSide(BlockState state, Direction side) {
-        return side == Direction.DOWN || side == state.getValue(FACING).getOpposite();
+        return side == Direction.DOWN;
     }
 
     @Override protected MapCodec<? extends Block> codec() { return CODEC; }
@@ -71,15 +72,43 @@ public final class WirelessAccessPointBlock extends Block implements EntityBlock
         return (world, pos, blockState, entity) -> ((WirelessAccessPointBlockEntity) entity).serverTick();
     }
 
+    @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
+        ChunkAnchorManager.release(level, pos);
+        super.affectNeighborsAfterRemoval(state, level, pos, moved);
+    }
+
     @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WirelessAccessPointBlockEntity ap) ap.placedBy(placer);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof WirelessAccessPointBlockEntity ap) ap.placedBy(placer, stack);
+    }
+
+    @Override protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                                    net.minecraft.world.InteractionHand hand, BlockHitResult hit) {
+        if (player.isShiftKeyDown()
+                && (stack.is(ModContent.DIMENSIONAL_CARD.get()) || stack.is(ModContent.ANCHOR_UPGRADE.get()))
+                && level.getBlockEntity(pos) instanceof WirelessAccessPointBlockEntity ap) {
+            if (!(level instanceof ServerLevel server)) return InteractionResult.SUCCESS;
+            if (!ap.interact(player)) return InteractionResult.FAIL;
+            int slot = stack.is(ModContent.DIMENSIONAL_CARD.get())
+                    ? WirelessAccessPointBlockEntity.SLOT_RANGE
+                    : WirelessAccessPointBlockEntity.SLOT_ANCHOR;
+            if (!ap.getItem(slot).isEmpty()) return InteractionResult.FAIL;
+            ap.setItem(slot, stack.copyWithCount(1));
+            if (!player.getAbilities().instabuild) stack.shrink(1);
+            ModSounds.play(server, pos, ModSounds.CONFIG_CARD_WRITE);
+            if (player instanceof net.minecraft.server.level.ServerPlayer sp) {
+                sp.sendOverlayMessage(Component.translatable("message.rematter.upgrade_installed", stack.getHoverName()));
+            }
+            return InteractionResult.SUCCESS;
+        }
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof WirelessAccessPointBlockEntity ap) {
             if (player instanceof net.minecraft.server.level.ServerPlayer server && ap.interact(player)) {
-                server.openMenu(ap, buf -> buf.writeBlockPos(pos));
+                ap.syncChunkAnchor();
+                server.openMenu(ap, ap::writeMenuInit);
             }
             return InteractionResult.SUCCESS;
         }
@@ -88,9 +117,13 @@ public final class WirelessAccessPointBlock extends Block implements EntityBlock
 
     @Override protected java.util.List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
         var drops = new java.util.ArrayList<ItemStack>();
-        drops.add(new ItemStack(this));
+        var main = new ItemStack(this);
         if (builder.getOptionalParameter(net.minecraft.world.level.storage.loot.parameters.LootContextParams.BLOCK_ENTITY) instanceof WirelessAccessPointBlockEntity ap) {
+            CustomNames.applyToStack(main, ap.customName());
+            drops.add(main);
             drops.addAll(ap.dropContentsList());
+        } else {
+            drops.add(main);
         }
         return drops;
     }

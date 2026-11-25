@@ -58,28 +58,34 @@ class MachineEnergyPolicyTest {
     }
     @Test void energyCapacityScalesPerTierAndDoublesWithEfficiencyUpgrades() {
         for (var compact : List.of(MachineKind.ANALYZER, MachineKind.DECOMPOSER, MachineKind.SYNTHESIZER,
-                MachineKind.REACTOR, MachineKind.PREPARATOR, MachineKind.SINTER_FURNACE, MachineKind.ATMOSPHERIC_COLLECTOR)) {
-            assertEquals(32_000, MachineEnergyPolicy.baseEnergyCapacity(compact));
-            assertEquals(32_000, MachineEnergyPolicy.energyCapacity(compact, 0));
-            assertEquals(64_000, MachineEnergyPolicy.energyCapacity(compact, 1));
-            assertEquals(128_000, MachineEnergyPolicy.energyCapacity(compact, 2));
-            assertEquals(256_000, MachineEnergyPolicy.energyCapacity(compact, 3));
-            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(compact, 4));
-            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(compact, 9));
+                MachineKind.REACTOR, MachineKind.PREPARATOR, MachineKind.SINTER_FURNACE,
+                MachineKind.ATMOSPHERIC_COLLECTOR, MachineKind.DEEP_EXTRACTOR)) {
+            assertEquals(64_000, MachineEnergyPolicy.baseEnergyCapacity(compact));
+            assertEquals(64_000, MachineEnergyPolicy.energyCapacity(compact, 0));
+            assertEquals(128_000, MachineEnergyPolicy.energyCapacity(compact, 1));
+            assertEquals(256_000, MachineEnergyPolicy.energyCapacity(compact, 2));
+            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(compact, 3));
+            assertEquals(1_024_000, MachineEnergyPolicy.energyCapacity(compact, 4));
+            assertEquals(1_024_000, MachineEnergyPolicy.energyCapacity(compact, 9));
         }
         for (var industrial : List.of(MachineKind.INDUSTRIAL_REACTOR, MachineKind.INDUSTRIAL_PREPARATOR,
                 MachineKind.INDUSTRIAL_DECOMPOSER, MachineKind.INDUSTRIAL_SYNTHESIZER)) {
-            assertEquals(128_000, MachineEnergyPolicy.baseEnergyCapacity(industrial));
-            assertEquals(128_000, MachineEnergyPolicy.energyCapacity(industrial, 0));
-            assertEquals(256_000, MachineEnergyPolicy.energyCapacity(industrial, 1));
-            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(industrial, 2));
-            assertEquals(1_024_000, MachineEnergyPolicy.energyCapacity(industrial, 3));
-            assertEquals(2_048_000, MachineEnergyPolicy.energyCapacity(industrial, 4));
+            assertEquals(512_000, MachineEnergyPolicy.baseEnergyCapacity(industrial));
+            assertEquals(512_000, MachineEnergyPolicy.energyCapacity(industrial, 0));
+            assertEquals(1_024_000, MachineEnergyPolicy.energyCapacity(industrial, 1));
+            assertEquals(2_048_000, MachineEnergyPolicy.energyCapacity(industrial, 2));
+            assertEquals(4_096_000, MachineEnergyPolicy.energyCapacity(industrial, 3));
+            assertEquals(8_192_000, MachineEnergyPolicy.energyCapacity(industrial, 4));
         }
-        assertEquals(32_000, MachineEnergyPolicy.energyCapacity(MachineKind.CRYSTAL_GENERATOR, 4));
-        assertEquals(128_000, MachineEnergyPolicy.energyCapacity(MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR, 4));
-        assertEquals(128_000, MachineEnergyPolicy.energyCapacity(MachineKind.PRIMAL_CONVERTER, 4));
-        for (var unpowered : List.of(MachineKind.DRIVE, MachineKind.TERMINAL, MachineKind.NETWORK_INTERFACE, MachineKind.HAND_PREPARATOR)) {
+        assertEquals(2_000_000, MachineEnergyPolicy.baseEnergyCapacity(MachineKind.TRANSMUTATION_REACTOR));
+        assertEquals(32_000_000, MachineEnergyPolicy.energyCapacity(MachineKind.TRANSMUTATION_REACTOR, 4));
+        assertEquals(8_000_000, MachineEnergyPolicy.baseEnergyCapacity(MachineKind.PRIMAL_REACTOR));
+        assertEquals(128_000_000, MachineEnergyPolicy.energyCapacity(MachineKind.PRIMAL_REACTOR, 4));
+        assertEquals(64_000, MachineEnergyPolicy.energyCapacity(MachineKind.CRYSTAL_GENERATOR, 4));
+        assertEquals(512_000, MachineEnergyPolicy.energyCapacity(MachineKind.INDUSTRIAL_CRYSTAL_GENERATOR, 4));
+        assertEquals(512_000, MachineEnergyPolicy.energyCapacity(MachineKind.PRIMAL_CONVERTER, 4));
+        for (var unpowered : List.of(MachineKind.DRIVE, MachineKind.TERMINAL, MachineKind.NETWORK_INTERFACE,
+                MachineKind.HAND_PREPARATOR, MachineKind.ENERGY_MATRIX, MachineKind.ENERGY_REACTOR)) {
             assertEquals(0, MachineEnergyPolicy.energyCapacity(unpowered, 4));
         }
     }
@@ -139,11 +145,128 @@ class MachineEnergyPolicyTest {
 
     @Test void theLargestCatalogueBatchFitsPerTickAndUpgradedCapacities() {
         long full = MachineEnergyPolicy.combined(MachineEnergyPolicy.MAX_BATCH_ENERGY, 4, 0);
-        assertEquals(2_400_000L, full);
+        assertEquals(32_000_000L, full);
         assertEquals(MachineEnergyPolicy.MAX_BATCH_ENERGY, MachineEnergyPolicy.combined(MachineEnergyPolicy.MAX_BATCH_ENERGY, 4, 4));
         long industrialPreparation = MachineEnergyPolicy.combined(MachineEnergyPolicy.scaled(PreparationWork.MAX_ENERGY,
                 PreparationTier.energyMultiplier(MachineKind.INDUSTRIAL_PREPARATOR)), 4, 4);
         assertTrue(industrialPreparation <= MachineBlockEntity.MAX_ENERGY_CAPACITY);
+    }
+
+    @Test void primalCubeEnergyMatrixEnergyReactorAndPrimalReactorMathStayOverflowFree() {
+        var primalCube = dev.latrox.rematter.energy.EnergyCubeTier.PRIMAL;
+        assertEquals(4_096_000_000L, primalCube.capacity());
+        assertEquals(4_194_304, primalCube.transferRate());
+        assertEquals("4.10G", dev.latrox.rematter.client.Quantities.compact(4_096_000_000L));
+        // Multi-tier Energy Matrix sums 64-bit capacity & transfer rate cleanly across mixed tiers
+        long mixedCap = dev.latrox.rematter.energy.EnergyMatrixCellTier.BASIC.capacity()
+                + dev.latrox.rematter.energy.EnergyMatrixCellTier.REINFORCED.capacity()
+                + dev.latrox.rematter.energy.EnergyMatrixCellTier.RESONANT.capacity()
+                + dev.latrox.rematter.energy.EnergyMatrixCellTier.PRIMAL.capacity();
+        long mixedRate = dev.latrox.rematter.energy.EnergyMatrixProviderTier.BASIC.transferRate()
+                + dev.latrox.rematter.energy.EnergyMatrixProviderTier.REINFORCED.transferRate()
+                + dev.latrox.rematter.energy.EnergyMatrixProviderTier.RESONANT.transferRate()
+                + dev.latrox.rematter.energy.EnergyMatrixProviderTier.PRIMAL.transferRate();
+        var matrixPerf = IndustrialPerformance.energyMatrix(4, 4, mixedCap, mixedRate);
+        assertEquals(37_440_000_000L, matrixPerf.matrixCapacity());
+        assertEquals(22_282_240L, matrixPerf.matrixTransferRate());
+        // Energy Reactor: Fuel Cores scale buffer + output, Induction Coils scale bandwidth + efficiency (capped at +25%),
+        // Water cooling grants +20% FE & -15% fuel, Nitrogen Cryo Overdrive grants +30% FE & -20% fuel
+        var reactorPerf = IndustrialPerformance.energyReactor(4, 10);
+        assertEquals(2_048_000_000L, reactorPerf.reactorCapacity());
+        assertEquals(10_485_760L, reactorPerf.reactorMaxOutputRate());
+        assertEquals(25, EnergyReactorRecipes.coilBonusPercent(10));
+        assertEquals(10, EnergyReactorRecipes.coilBonusPercent(2));
+        long dryZeroFlux = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, 2, 0, 0, EnergyReactorRecipes.CoolantTier.NONE);
+        long dryFullFlux = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, 2, 0, EnergyReactorRecipes.MAX_FLUX, EnergyReactorRecipes.CoolantTier.NONE);
+        long waterFullFlux = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, 2, 0, EnergyReactorRecipes.MAX_FLUX, EnergyReactorRecipes.CoolantTier.WATER);
+        long nitrogenFullFlux = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.CRYSTAL_FE_PER_CORE, 2, 0, EnergyReactorRecipes.MAX_FLUX, EnergyReactorRecipes.CoolantTier.NITROGEN);
+        assertEquals(4_096L, dryZeroFlux);
+        assertEquals(16_384L, dryFullFlux);
+        assertEquals(19_660L, waterFullFlux);
+        assertEquals(21_299L, nitrogenFullFlux);
+        assertTrue(nitrogenFullFlux > waterFullFlux && waterFullFlux > dryFullFlux);
+        assertEquals(170L, EnergyReactorRecipes.effectiveFuelCost(100L, 2, EnergyReactorRecipes.CoolantTier.WATER));
+        assertEquals(160L, EnergyReactorRecipes.effectiveFuelCost(100L, 2, EnergyReactorRecipes.CoolantTier.NITROGEN));
+        assertEquals(200L, EnergyReactorRecipes.effectiveFuelCost(100L, 2, EnergyReactorRecipes.CoolantTier.NONE));
+        assertEquals(EnergyReactorRecipes.CoolantTier.WATER, EnergyReactorRecipes.CoolantTier.fromKey(EnergyReactorRecipes.WATER_COOLANT));
+        assertEquals(EnergyReactorRecipes.CoolantTier.NITROGEN, EnergyReactorRecipes.CoolantTier.fromKey(EnergyReactorRecipes.NITROGEN_COOLANT));
+        // Primal Reactor: real 3-phase collapse + 30% compression discount + stability scaling
+        var raw = PrimalReactorRecipes.CONDENSATION_TIERS.getFirst();
+        assertFalse(raw.inputs().isEmpty());
+        assertEquals(3_920_000L, raw.effectiveEnergy(true));
+        assertEquals(2_800L, raw.effectiveInputs(true).get(dev.latrox.rematter.chemistry.BuiltinChemistry.SILICA));
+        assertEquals(100, PrimalReactorRecipes.speedMultiplierPercent(0));
+        assertEquals(250, PrimalReactorRecipes.speedMultiplierPercent(PrimalReactorRecipes.MAX_STABILITY));
+        assertEquals(1_000L, PrimalReactorRecipes.condensationOutput(1_000L, 0));
+        assertEquals(1_500L, PrimalReactorRecipes.condensationOutput(1_000L, PrimalReactorRecipes.MAX_STABILITY));
+    }
+
+    @Test void endgameReactorAndPrimalBalancesAreThermodynamicallyClosedWithZeroInfiniteLoops() {
+        // 1. Maximum Energy Reactor fuel efficiency multiplier stays strictly below 2.0x (preserving audit_crystal_fuel.py's <= 50% synthesis floor).
+        double maxReactorMultiplier = (100.0 + EnergyReactorRecipes.MAX_COIL_BONUS_PERCENT + EnergyReactorRecipes.COOLANT_OUTPUT_BONUS_PERCENT)
+                / (100.0 - EnergyReactorRecipes.COOLANT_FUEL_DISCOUNT_PERCENT);
+        assertTrue(maxReactorMultiplier < 2.0, "Max reactor multiplier must stay < 2.0x to prevent crystal synthesis loops, got " + maxReactorMultiplier);
+
+        // 2. No water-electrolysis infinite FE loop: hydrogen_oxygen is not an Energy Reactor fuel.
+        assertTrue(EnergyReactorRecipes.MATTER_FUELS.stream().noneMatch(f -> f.id().equals("hydrogen_oxygen")),
+                "Water-electrolysis hydrogen_oxygen loop must not exist");
+
+        // 3. No Primal amplification loop & no Primal Reactor <-> Energy Reactor infinite FE loop.
+        long maxPrimalOut = EnergyReactorRecipes.effectiveOutputPerTick(EnergyReactorRecipes.PRIMAL_FE_PER_CORE, 1, 10, EnergyReactorRecipes.MAX_FLUX, true);
+        long minPrimalUse = EnergyReactorRecipes.effectiveFuelCost(EnergyReactorRecipes.PRIMAL_UR_PER_CORE_PER_TICK, 1, true);
+        double maxFePerUr = (double) maxPrimalOut / minPrimalUse;
+        double cheapestCollapseFePerUr = Double.MAX_VALUE;
+        for (var tier : PrimalReactorRecipes.CONDENSATION_TIERS) {
+            long maxYield = PrimalReactorRecipes.condensationOutput(tier.primalOutput(), PrimalReactorRecipes.MAX_STABILITY);
+            long minEnergy = MachineEnergyPolicy.combined(tier.effectiveEnergy(true), 0, 4); // max -20% eff (floor -25%)
+            long conservativeFloor = tier.effectiveEnergy(true) - tier.effectiveEnergy(true) / 4; // conservative 75% policy floor
+            double minFePerUr = (double) Math.min(minEnergy, conservativeFloor) / maxYield;
+            cheapestCollapseFePerUr = Math.min(cheapestCollapseFePerUr, minFePerUr);
+            assertTrue(maxFePerUr < minFePerUr,
+                    "Primal->FE loop in " + tier.id() + ": reactor yields " + maxFePerUr + " FE/Ur >= collapse floor " + minFePerUr);
+            // Manifestable solid inputs alone must cost strictly more Primal than max condensation output (no Ur -> Solid -> Ur amplification!).
+            long manifestUrCost = 0L;
+            for (var entry : tier.effectiveInputs(true).entrySet()) {
+                var grade = dev.latrox.rematter.primal.PrimalPricing.grade(entry.getKey().id());
+                if (grade.isPresent() && entry.getKey().phase() == Phase.SOLID) {
+                    manifestUrCost += grade.get().primalPerUnit * entry.getValue();
+                }
+            }
+            if (manifestUrCost > 0L) {
+                assertTrue(manifestUrCost > maxYield,
+                        "Primal amplification loop in " + tier.id() + ": manifesting inputs costs " + manifestUrCost + " Ur <= output " + maxYield);
+            }
+        }
+
+        // 4. No Primal-manifested Uranium -> Energy Reactor infinite FE loop.
+        var uraniumFuel = EnergyReactorRecipes.MATTER_FUELS.stream().filter(f -> f.id().equals("uranium")).findFirst().orElseThrow();
+        long maxUOut = EnergyReactorRecipes.effectiveOutputPerTick(uraniumFuel.fePerCorePerTick(), 1, 10, EnergyReactorRecipes.MAX_FLUX, true);
+        long minUUse = EnergyReactorRecipes.effectiveFuelCost(uraniumFuel.inputsPerCorePerTick().values().iterator().next(), 1, true);
+        double maxFePerU = (double) maxUOut / minUUse;
+        var uGrade = dev.latrox.rematter.primal.PrimalPricing.grade(SubstanceId.parse("rematter:uranium")).orElseThrow();
+        double minManifestUFe = uGrade.primalPerUnit * cheapestCollapseFePerUr + (uGrade.energy * 0.75 / 1000.0);
+        assertTrue(maxFePerU < minManifestUFe,
+                "Primal->Uranium->FE loop: reactor yields " + maxFePerU + " FE/u >= manifest floor " + minManifestUFe);
+
+        // 5. No Primal-manifested Lithium -> Energy Reactor infinite FE loop.
+        var liFuel = EnergyReactorRecipes.MATTER_FUELS.stream().filter(f -> f.id().equals("lithium_fusion")).findFirst().orElseThrow();
+        long maxLiOut = EnergyReactorRecipes.effectiveOutputPerTick(liFuel.fePerCorePerTick(), 1, 10, EnergyReactorRecipes.MAX_FLUX, true);
+        long minLiUse = EnergyReactorRecipes.effectiveFuelCost(liFuel.inputsPerCorePerTick().get(SubstanceKey.of("rematter:lithium", Phase.SOLID)), 1, true);
+        double maxFePerLi = (double) maxLiOut / minLiUse;
+        var liGrade = dev.latrox.rematter.primal.PrimalPricing.grade(SubstanceId.parse("rematter:lithium")).orElseThrow();
+        double minManifestLiFe = liGrade.primalPerUnit * cheapestCollapseFePerUr + (liGrade.energy * 0.75 / 1000.0);
+        assertTrue(maxFePerLi < minManifestLiFe,
+                "Primal->Lithium->FE loop: reactor yields " + maxFePerLi + " FE/u >= manifest floor " + minManifestLiFe);
+
+        // 6. Multi-crystal burner satisfies high FE/t demand without wasting partial crystal energy.
+        var burner = new dev.latrox.rematter.content.generation.CrystalBurner();
+        var ember = new dev.latrox.rematter.content.generation.CrystalFuelData.Fuel("rematter:ember_matrix_crystal", 1, 1_408L);
+        var plan = burner.tickMulti(8_192L, ember, 64);
+        assertEquals(6, plan.consumedItems());
+        assertEquals(8_192L, plan.producedEnergy());
+        assertEquals(6 * 1_408L - 8_192L, plan.nextRemaining());
+        assertTrue(burner.apply(plan));
+        assertEquals(256L, burner.remaining());
     }
 
     @Test void aCatalogueWithAnUnaffordableBatchIsRejectedAtLoad() {

@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "rematter:item/extraction_focus_upgrade"
+  }
+}

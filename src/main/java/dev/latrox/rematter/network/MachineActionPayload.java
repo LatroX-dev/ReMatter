@@ -25,7 +25,13 @@ public record MachineActionPayload(int containerId,Action action,String target,l
         BLUEPRINT_STEP_UP,
         BLUEPRINT_STEP_DOWN,
         BLUEPRINT_RESET,
-        BLUEPRINT_BUILD
+        BLUEPRINT_BUILD,
+        TOGGLE_MATRIX_OUTPUT,
+        SET_REACTOR_FUEL_MODE,
+        SET_REACTOR_MATTER_FILTER,
+        SET_REACTOR_COOLANT_MODE,
+        TOGGLE_REACTOR_NET_PRIMAL,
+        SET_CUSTOM_NAME
     }
     public static final Type<MachineActionPayload> TYPE=new Type<>(Identifier.fromNamespaceAndPath(ReMatter.MOD_ID,"machine_action"));
     public MachineActionPayload {if(target==null||target.length()>512||amount<0||amount>256000)throw new IllegalArgumentException("Invalid machine action");}

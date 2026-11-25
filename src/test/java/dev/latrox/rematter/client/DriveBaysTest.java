@@ -109,6 +109,7 @@ class DriveBaysTest {
         assertEquals("drive_primal_cell_64k",DriveBays.SPRITES[DriveBays.cellSprite(6)]);
         assertEquals("drive_primal_cell_256k",DriveBays.SPRITES[DriveBays.cellSprite(7)]);
         assertEquals("drive_primal_cell_1m",DriveBays.SPRITES[DriveBays.cellSprite(9)]);
+        assertEquals("drive_primal_cell_4m",DriveBays.SPRITES[DriveBays.cellSprite(11)]);
         assertEquals(3,DriveBays.cellSprite(4));
         assertEquals(3,DriveBays.cellSprite(15));
     }

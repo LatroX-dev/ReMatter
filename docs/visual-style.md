@@ -16,7 +16,7 @@ The check reads the tables of this page that carry a `check:` mark, the recipes 
 
 **S3. Item icons are illustrated.** Materials, components and tools are 128 x 128 drawings with a clean dark outline, soft facet shading and a three-quarter view from the upper left. A 16 px sprite beside them looks like a different mod, so there are none.
 
-**S4. Mounted hardware looks the same in the hand and in the machine.** Matter Cells, Primal Cells, the Cell Housing and the five industrial modules are block-style models built from the sprites the player sees when the part is mounted.
+**S4. Mounted hardware looks the same in the hand and in the machine.** Matter Cells, Primal Cells, the Cell Housing and the seven industrial modules are block-style models built from the sprites the player sees when the part is mounted.
 
 **S5. Colour means something, and the recipe decides it.** The casing is neutral graphite. Whatever is crafted with a coloured Matrix Crystal wears exactly that crystal's hue as an accent: every crystal of the recipe, and no crystal that is not in it. Status colours mean status only. Primal Matter has a signature of its own. Every colour comes from one source.
 
@@ -57,14 +57,14 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 <!-- check:crystal-hues -->
 | Crystal | Hex | Coloured with | Stands for | Carried by |
 | --- | --- | --- | --- | --- |
-| Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `preparation_reactor_controller`, `grinding_unit`, `separation_unit`, `mixing_basin` |
-| Copper | `#dc894f` | copper dust | decomposition | `decomposer`, `industrial_decomposer_controller` |
-| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `matter_cell_256m`, `matter_level_emitter`, `pressurized_canister` |
-| Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer`, `industrial_synthesizer_controller` |
+| Amber | `#e3a94b` | gold dust | preparation | `material_preparator`, `preparation_reactor_controller`, `grinding_unit`, `separation_unit`, `mixing_basin`, `energy_reactor_controller`, `energy_reactor_casing`, `energy_reactor_glass`, `energy_reactor_port` |
+| Copper | `#dc894f` | copper dust | decomposition | `decomposer`, `decomposer_reactor_controller` |
+| Mint | `#57cddb` | diamond powder | stored matter | `matter_drive`, `matter_terminal`, `cell_transfer_station`, `atmospheric_collector`, `deep_extractor`, `extraction_focus_upgrade`, `matter_cell_256m`, `matter_level_emitter`, `pressurized_canister` |
+| Leaf | `#7dd27f` | emerald dust | synthesis | `material_synthesizer`, `synthesizer_reactor_controller` |
 | Ice | `#d7d1bc` | Silith | analysis | `analyzer`, `spectrometer_lens` |
-| Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `void_matter_cell`, `energy_core` |
-| Blue | `#6794f1` | lapis dust | network link | `network_interface`, `wireless_access_point`, `wireless_matter_terminal`, `wireless_booster` |
-| Violet | `#b381e8` | amethyst dust | reaction | `chemical_processor`, `chemical_reactor_controller`, `field_coil`, `reaction_chamber`, `primal_converter`, `primal_cell_16k`, `primal_cell_64k` |
+| Ember | `#ea4848` | redstone | heat | `sinter_furnace`, `crystal_generator`, `industrial_crystal_generator`, `void_matter_cell`, `energy_core`, `particle_resonator`, `particle_emitter`, `transmutation_reactor_controller`, `transmutation_reactor_casing`, `transmutation_reactor_glass`, `transmutation_machine_port`, `energy_matrix_controller`, `energy_matrix_casing`, `energy_matrix_glass`, `energy_matrix_port`, `energy_matrix_cell`, `reinforced_energy_matrix_cell`, `resonant_energy_matrix_cell`, `primal_energy_matrix_cell`, `energy_reactor_controller`, `energy_reactor_casing`, `energy_reactor_glass`, `energy_reactor_port`, `reactor_fuel_core` |
+| Blue | `#6794f1` | lapis dust | network link | `network_interface`, `wireless_access_point`, `wireless_matter_terminal`, `wireless_booster`, `dimensional_card`, `anchor_upgrade`, `spatial_anchor`, `dimensional_entangled_link`, `matter_cable_relay`, `energy_matrix_controller`, `energy_matrix_port`, `energy_matrix_provider`, `reinforced_energy_matrix_provider`, `resonant_energy_matrix_provider`, `primal_energy_matrix_provider`, `reactor_induction_coil` |
+| Violet | `#b381e8` | amethyst dust | reaction | `chemical_processor`, `chemical_reactor_controller`, `field_coil`, `reaction_chamber`, `primal_converter`, `primal_cell_16k`, `primal_cell_64k`, `primal_energy_cube`, `primal_energy_matrix_cell`, `primal_energy_matrix_provider`, `particle_resonator`, `transmutation_reactor_controller`, `transmutation_reactor_casing`, `transmutation_reactor_glass`, `transmutation_machine_port`, `primal_condenser_core`, `primal_reactor_controller`, `primal_reactor_casing`, `primal_reactor_glass`, `primal_machine_port` |
 
 "Carried by" lists the result of every recipe that holds the crystal. The check reads the recipes and reports a row that is out of date.
 
@@ -81,9 +81,9 @@ A Matrix Crystal takes its hue from the material it is coloured with. Whatever i
 **When a hue is not a crystal.** These are the only other meanings, and each has its own values or its own place:
 
 - *Status* has the four LED colours below: separate values, used only for small lamps and status icons.
-- *Port mode.* The ring of an assigned port uses one of the seven explicit hues as the legend of its mode (`PORT_MODES`): on the Machine Port and on a configured side of a machine, and only there. Automatic wears a solid light-graphite grey ring (`PORT_AUTOMATIC`), clearly lighter than the casing and carrying no chromatic or Primal hues. The same functional exception gives Energy Cube ports Blue for input, Ember for output, and a split Blue/Ember ring for bidirectional input/output, accompanied by arrows toward and away from the contact. These colours describe direction, never tier or charge.
+- *Port mode.* The ring of an assigned port uses one of the explicit cool-input / warm-red-output high-contrast hues as the legend of its mode (`PORT_MODES`): on every Machine Port and on every configured side of a compact machine (Item In Blue `#6794f1` / Item Out Copper `#dc894f`, Fluid In Sky Cyan `#54b8f1` / Fluid Out Coral Red `#eb5862`, Power In Emerald Green `#4fe18e` / Power Out Ember Red `#ea4848`, Matter Mint `#57cddb`, Chemical Ivory `#d7d1bc`, dedicated Redstone receiver in Deep Crimson `#a33a42` with glowing Ember diode), and only there. Automatic wears a solid light-graphite grey ring (`PORT_AUTOMATIC`), clearly lighter than the casing and carrying no chromatic or Primal hues. The same functional exception gives Energy Cube ports and one-way Matter Cable Relays Emerald Green (`#4fe18e`, `PORT_ENERGY_INPUT`) for input and Ember Red (`#ea4848`, `PORT_ENERGY_OUTPUT`) for output (split Green/Red ring on bidirectional Energy Cube ports, neutral Blue `#6794f1` on bidirectional Matter Cable Relays), accompanied by directional arrows — matching Machine Power In/Out everywhere. These colours describe direction, never tier or charge.
 - *Primal Matter* has the signature below.
-- *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The Matter Cable's copper-conductor stripe and the matching band on the Energy Cube crafted with that cable are the documented uses of the crystal value for the metal.
+- *A material's own colour.* An illustrated icon shows the material as it is: copper dust is copper-coloured without a crystal. In pixel art the copper of contacts and badges is `COPPER`, not the Copper crystal hue. The Matter Cable's copper-conductor stripe, the matching band on the Energy Cube crafted with that cable, and the matching Tier-1 cable band on the Basic Energy Matrix Cell and Provider are the documented uses of the crystal value for the metal.
 
 ### Status colours
 
@@ -107,7 +107,7 @@ A status colour never decorates and never tells tiers apart. A tier is a bar len
 | Reinforced Matter Cable | `CABLE_TIERS['reinforced_matter_cable']['stripe']` | `#54bfac` | 4 texels, solid |
 | Resonant Matter Cable | `CABLE_TIERS['resonant_matter_cable']['stripe']` | `#be8fbb` | 4 texels, dashed |
 
-Each cable tier pairs a static dark-graphite metal housing (`{tier}.png`) with an emissive conduit texture (`{tier}_glow.png`). One-line switches in `tools/family_sprites.py` select both silhouette (`CABLE_LOOK`: `pcb_traces` [recommended: dark 4 × 4 graphite shaft carrying two routed PCB traces with bends and bridge crossovers, seamless glowing corner pads and PCB junction hubs], `fiber_trace` [uninterrupted dark 4 × 4 graphite jacket with a crisp 2-texel luminous fibre], `glass_conduit` [smoked-glass 3 × 3 conduit with metal end-clamps and glass manifold hub], `conduit_cage` [compact dark armored 3 × 3 bundle with sight slits and 5 × 5 node], `classic_sleek` [smooth dark 4 × 4 silhouette]) and motion (`CABLE_ANIM`: `single_pulse` [recommended: calm 32-frame interpolated sweep on `pcb_traces` with a long resting pause and steady hubs so dense cable runs never flicker], `idle_quiet` [calm static glowing traces when idle], `steady_flow` [continuous 16-frame interpolated dual-wave trace current]). Active Matter transfers are drawn by `ClientMatterCablePulses` in one batched zero-particle additive 3D pass (`RenderTypes.lightning`, FE power flow stays quiet on the traces unless `SHOW_ENERGY_PULSES` is enabled) selectable via `TRANSFER_STYLE`: `ENERGY_SLEEVE` [recommended: soft tapered light sleeve hugging the conduit and illuminating the traces underneath], `TRACE_RING` [narrow glowing induction collar gliding along the shaft], or `NONE` [no extra transfer overlay]. All five silhouettes stay within the cable hitbox and pass all 729 side combinations without overlap.
+Each cable tier pairs a static dark-graphite metal housing (`{tier}.png`) with two animated trace states controlled by the cable's `powered` block state, all three tiers sharing the clean Basic 90° dual PCB trace geometry inside a pitch-black `WELL` bed separated by a 1-texel dark `JACKET` frame (pure straight cable-to-cable runs render as a single seamless 16 px `straight_full` element without 180° mirroring so both traces and the traveling wave flow uninterrupted across long runs on all four faces): both states render the exact same vivid animated inner PCB traces, while **only** FE-powered cables (`{tier}_glow.png`, `light_emission: 15`) light up the continuous top/bottom longitudinal outer rail stripes (`y=0`, `y=7`), corner rail perimeter and hub rail collar in the tier hue — unpowered cables (`{tier}_dim.png`, `light_emission: 4`) render those outer rail stripes in neutral grey (`PORT_LIGHT`). One-line switches in `tools/family_sprites.py` select power contrast (`CABLE_POWER_CONTRAST`: `rail_stripes` [recommended], `hollow_sleep`, or `deep_to_vivid`), inner PCB trace pattern (`CABLE_TRACE_PATTERN`: `stepped_bus` [active: unbroken parallel motherboard bus lanes with 90° chicanes], `classic_basic` [original alternating 90° bridges at `x=4` & `x=12`], or `woven_helix` [unbroken interwoven zigzag lanes with shared coupling nodes]), silhouette (`CABLE_LOOK`: `pcb_traces` [recommended], `fiber_trace`, `glass_conduit`, `conduit_cage`, `classic_sleek`) and motion (`CABLE_ANIM`: `single_pulse` [recommended: calm 32-frame interpolated sweep on `pcb_traces` with a long resting pause and steady hubs so dense cable runs never flicker], `idle_quiet`, `steady_flow`). Active Matter transfers are drawn by `ClientMatterCablePulses` in one batched zero-particle additive 3D pass (`RenderTypes.lightning`, FE power flow stays quiet on the traces unless `SHOW_ENERGY_PULSES` is enabled) selectable via `TRANSFER_STYLE`: `ENERGY_SLEEVE` [recommended: soft tapered light sleeve hugging the conduit and illuminating the traces underneath], `TRACE_RING` [narrow glowing induction collar gliding along the shaft], or `NONE` [no extra transfer overlay]. All five silhouettes stay within the cable hitbox and pass all 729 side combinations without overlap.
 
 Each Energy Cube and the Portable Energy Cell share the `energy_core` building block (inheriting its Ember crystal hue) and each Energy Cube tier includes its matching cable and inherits that cable's exact stripe on its horizontal casing frames. Higher Energy Cube tiers upgrade the previous tier (`energy_cube` → `reinforced_energy_cube` → `resonant_energy_cube`) through `rematter:energy_upgrade_shaped`, transferring stored FE, side modes and charging-bay items safely. This cable band is a material tier band, separate from status colours. The Basic Cube's copper stripe is the documented exception to the rule that a crystal hue requires that crystal: its cable supplies the copper conductor. Every Cube wears its front maker's badge, Ember crystal plate and tier pips on the front face, plus a north-aligned Copper and Ivory orientation pointer on the top face, so its facing is clear from every angle.
 
@@ -117,18 +117,21 @@ Each Energy Cube and the Portable Energy Cell share the `energy_core` building b
 | `energy_cube` | `matter_cable` | `#dc894f` |
 | `reinforced_energy_cube` | `reinforced_matter_cable` | `#54bfac` |
 | `resonant_energy_cube` | `resonant_matter_cable` | `#be8fbb` |
+| `primal_energy_cube` | `resonant_matter_cable` | `#be8fbb` |
 
 `ENERGY_PORT_STYLE` selects the recommended compact 6 px, trimmed 7 px or balanced 8 px square seat. All are centered at the block-face center and accept the native cable's 6 px flange. `ENERGY_CUBE_LOOK` independently selects the recommended recessed core, closed capacitor cabinet or cartridge rack. All three retain symmetric four-way casing geometry within the 16-box network casing budget.
 
-The cable-tier band stays on the casing frame and never intrudes on the port sockets. Inside each socket the functional direction ring uses the shared values below; the arrow points into the copper contact for input, away from it for output, and both ways on a split Blue/Ember ring for bidirectional input/output.
+The cable-tier band stays on the casing frame and never intrudes on the port sockets. Inside each socket the functional direction ring uses the shared cool-input / red-output values below; the arrow points into the copper contact for input, away from it for output, and both ways on a split Green/Red ring for bidirectional input/output.
 
 <!-- check:energy-port-directions -->
 | Direction | Constant | Hex | Shape |
 | --- | --- | --- | --- |
-| Input | `PORT_ENERGY_INPUT` | `#6794f1` | arrow toward the contact |
+| Input | `PORT_ENERGY_INPUT` | `#4fe18e` | arrow toward the contact |
 | Output | `PORT_ENERGY_OUTPUT` | `#ea4848` | arrow away from the contact |
 
 `PORT_AUTOMATIC_STYLE` selects the recommended `solid_bevel` or `notched_bevel` neutral light-graphite ring. It changes no port permission.
+
+`RELAY_LOOK` in `tools/generate_device_assets.py` selects the Matter Cable Relay silhouette (`inline_gate` [active: slim 8×8 inline body with 4 steel corner rails and recessed 4-sided emissive display window], `valve_drum`, or `micro_switch`). Bidirectional relays (`directional=false`) wear neutral Blue collars and an animated 16-frame double-arrow conduit (`frametime: 2`, `interpolate: true`); one-way relays (`directional=true`) wear Green Input (`PORT_ENERGY_INPUT`) → Red Output (`PORT_ENERGY_OUTPUT`) collars and an animated directional flow arrow; closed relays (`open=false`) replace the animated glow with a static red barrier.
 
 ### The Primal signature
 
@@ -158,9 +161,16 @@ Primal Matter has the mod's animated prismatic signature. It is ultraviolet: a w
 | Primal device | Shows the signature in |
 | --- | --- |
 | `deepslate_primal_ore`, `nether_primal_ore`, `end_primal_ore` | the crystals of the overlay |
-| `primal_cell_16k`, `primal_cell_64k`, `primal_cell_256k`, `primal_cell_1m` | the rail of the cartridge and the faceplate in the Drive |
+| `primal_cell_16k`, `primal_cell_64k`, `primal_cell_256k`, `primal_cell_1m`, `primal_cell_4m` | the rail of the cartridge and the faceplate in the Drive |
 | `primal_converter` | the window of the front; Body is its screen accent |
-| `entangled_link` | the lens on each side |
+| `primal_reactor_controller` | the animated display core and Primal casing sides; Body is its screen accent, while a static Violet crystal marks its recipe |
+| `primal_reactor_casing`, `primal_reactor_glass`, `primal_machine_port` | the animated Primal containment veins around the blank hull, connected glass outer rim and port casing; static Violet corner crystals mark their recipe |
+| `primal_energy_cube` | the animated 5-stop Primal core and horizontal energy bar; static Ember and Violet front plates mark its recipe |
+| `primal_energy_matrix_cell` | the animated 5-stop Primal vertical capacitor core; static Ember and Violet plates mark its recipe |
+| `primal_energy_matrix_provider` | the animated 5-stop Primal induction bus core; static Blue and Violet plates mark its recipe |
+| `primal_condenser_core` | the central condensing singularity; a static Violet mount trim marks its recipe |
+| `entangled_link` | the compact animated Primal telemetry strip on the front and recessed 3D Primal orb inside the full-height top rim (the other four sides carry full-height flush connection ports) |
+| `dimensional_entangled_link` | the full-height dark obsidian-graphite monolith with glowing Blue/Resonant gateway trim, oversized animated interdimensional rift console on the front, 4 inward corner resonance prongs, and giant blazing 3D Blue+Primal orb rising flush to the top (the other four sides carry full-height flush connection ports) |
 
 ## Blocks and models (S1)
 
@@ -191,18 +201,19 @@ Where a cable, a pipe, a hopper or a neighbouring device can attach is one table
 
 - **The front is never a connection.** Nothing attaches to it, nothing is exposed on it and it cannot be configured. The three Energy Cubes are the one exception: their four sides are identical by design, the front included.
 - **Only a closed face can be a connection.** The top of a bench is its open working area, so it never is. On a sealed device the top is a connection that starts Disabled: the owner enables it where a hopper or a cable from above is wanted. `PortSides.SEALED_TOP` is the one switch for this: `OPT_IN` (recommended), `CONNECTION` (the top starts Automatic like the other sides) or `CLOSED`. The generators read it.
-- **A connection face shows a port plate only while enabled.** Disabled connection faces are plain casing: no seat, ring, well or Cube charge window. Permanently unavailable faces retain their device's front or open working area, without connector hardware. An enabled connection shows the plate: the seat on the casing and a ring that stands half a pixel proud of it. Automatic wears all seven role colours in static segments; a specific role wears only its own colour. Energy Cubes have Blue input and Ember output rings with opposite direction arrows, separate from their cable-tier bands.
+- **A connection face shows a port plate only while enabled.** Disabled connection faces are plain casing: no seat, ring, well or Cube charge window. Permanently unavailable faces retain their device's front, open working area, or top showcase orb/dome without connector hardware. Every enabled connection side on a compact machine, Entangled Link, or Spatial Anchor wears the exact `machine_port_{role}` plate design (colored mode ring standing half a pixel proud, cardinal tabs, directional arrows, deep gunmetal socket with copper contact, or dedicated Redstone receiver socket). Automatic wears a neutral light-graphite ring (`PORT_AUTOMATIC`); a specific role wears only its own colour. Energy Cubes have Emerald Green input and Ember Red output rings with opposite direction arrows, separate from their cable-tier bands.
 - **The plate is a block model.** The body of a device leaves its closed sides out; a block state entry of the type `rematter:port_plates` lists, per side and role, the model that draws the side, and the game picks one by the roles the device publishes. Plates are part of the chunk mesh: they do not pop in with distance, and no renderer draws them. The ring is the only geometry of the family outside the block; a solid neighbour hides it.
 - **The screen shows the block.** The side diagram of a settings screen names the six sides around the front. A side that can never be a connection is sunk, cannot be clicked and says why. A connection is a control: a left click steps its role forward, a right click or Shift steps it back, and its glyph is the plate of the block in the same ring colour.
 
 <!-- check:port-sides -->
 | Device | Connections | Never a connection |
 | --- | --- | --- |
-| `analyzer`, `decomposer`, `material_synthesizer`, `chemical_processor`, `material_preparator`, `hand_preparator`, `sinter_furnace`, `atmospheric_collector` | left, right, back, bottom | front; top (open working area) |
+| `analyzer`, `decomposer`, `material_synthesizer`, `chemical_processor`, `material_preparator`, `hand_preparator`, `sinter_furnace`, `atmospheric_collector`, `deep_extractor` | left, right, back, bottom | front; top (open working area) |
 | `matter_drive`, `network_interface`, `primal_converter`, `crystal_generator`, `industrial_crystal_generator` | left, right, back, bottom, top (starts Disabled) | front |
+| `entangled_link`, `dimensional_entangled_link`, `spatial_anchor` | left, right, back, bottom | front; top (showcase orb/dome) |
 | `matter_terminal` | back (fixed, not configurable) | every other side |
-| `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube` | front, left, right, back, top, bottom | none |
-| `chemical_reactor_controller`, `preparation_reactor_controller`, `industrial_decomposer_controller`, `industrial_synthesizer_controller` | none: a structure connects through its Machine Ports | all six |
+| `energy_cube`, `reinforced_energy_cube`, `resonant_energy_cube`, `primal_energy_cube` | front, left, right, back, top, bottom | none |
+| `chemical_reactor_controller`, `preparation_reactor_controller`, `decomposer_reactor_controller`, `synthesizer_reactor_controller`, `transmutation_reactor_controller`, `primal_reactor_controller`, `energy_matrix_controller`, `energy_reactor_controller` | none: a structure connects through its Machine Ports | all six |
 | `cell_transfer_station` | none: it is operated by hand | all six |
 
 The check compares this table with the block states, the ring colours of `MachinePortMode.java` with `PORT_MODES`, the seven-colour Automatic legend and Cube direction colours with both palettes, and reports a body model that still draws a face of its port plates. `PortAppearance` is a rendering discriminator only: saved roles and transfer permissions remain separate.
@@ -213,7 +224,7 @@ The model of an ore stacks three boxes of the full block, like the vanilla grass
 
 ## Item icons (S3)
 
-- **Canvas.** 128 x 128, 8-bit RGBA, transparent background. The longer side of the drawing covers 96 to 120 px; at least 4 px stay clear on every side.
+- **Canvas.** 128 x 128, 8-bit RGBA, transparent background (or a vertical strip of 16 square 128 x 128 frames with `interpolate: true` for animated late- and endgame components and upgrades). The longer side of the drawing covers 96 to 120 px; at least 4 px stay clear on every side.
 - **Outline.** A closed outline 3 to 5 px wide in a dark shade of the object's own colour, anti-aliased against the background.
 - **Shading.** Flat facets in three to five steps of one colour, a soft highlight toward the upper left, the darkest facet at the lower right. No texture noise, no photographic gradients.
 - **View.** Three-quarter view from the upper left, as if the object lay on a table in front of you.
@@ -237,7 +248,7 @@ The item of a cell or a module is built from the same boxes and sprites as the p
 - **Substance badges.** A badge shows the complete symbol of the substance. A long formula breaks into two lines at an element; it is never cut with an ellipsis.
 - **Colours in code.** Every colour of a screen or renderer is a constant of `UiPalette.java`. Other client classes hold no colour literals.
 
-The side controls use a compact unfolded face net around the front, with complete side and mode names on hover and in narration. `SideDiagram.LAYOUT` selects recommended `FACE_NET`, the two-row `COMPACT_GRID`, or a `STRIP`; all retain the same reserved screen area and the same forward/backward role controls. Automatic repeats the block's seven-colour ring, and Cube input/output use the same Blue/Ember direction colours and opposite arrows.
+The side controls use a compact unfolded face net around the front, with complete side and mode names on hover and in narration. `SideDiagram.LAYOUT` selects recommended `FACE_NET`, the two-row `COMPACT_GRID`, or a `STRIP`; all retain the same reserved screen area and the same forward/backward role controls. Automatic repeats the block's light-graphite ring, and Cube input/output use the same Emerald Green / Ember Red direction colours and opposite arrows.
 
 <!-- check:gui-surfaces -->
 | Screen surface | `UiPalette` | Palette constant |

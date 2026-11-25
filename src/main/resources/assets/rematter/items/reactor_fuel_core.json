@@ -1,0 +1,15 @@
+{
+  "model": {
+    "type": "minecraft:composite",
+    "models": [
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/reactor_fuel_core"
+      },
+      {
+        "type": "minecraft:model",
+        "model": "rematter:block/reactor_fuel_core_active_parts"
+      }
+    ]
+  }
+}

@@ -318,6 +318,91 @@ def generate():
                                              "F": "rematter:machine_frame"},
                                      "result": {"id": "rematter:atmospheric_collector", "count": 1}})
     advancement("atmospheric_collector", "rematter:machine_frame")
+    recipe("deep_extractor", {"type": "minecraft:crafting_shaped", "category": "misc",
+                              "pattern": ["BMB", "ICI", "DFD"],
+                              "key": {"B": "rematter:structural_bars", "M": "rematter:mint_matrix_crystal",
+                                      "I": "rematter:bore_core", "C": "rematter:control_circuit",
+                                      "D": "rematter:diamond_lattice", "F": "rematter:machine_frame"},
+                              "result": {"id": "rematter:deep_extractor", "count": 1}})
+    advancement("deep_extractor", "rematter:bore_core")
+    recipe("transmutation_reactor_controller", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                                "pattern": ["VPV", "EFE", "NQN"],
+                                                "key": {"V": "rematter:violet_matrix_crystal", "P": "rematter:particle_resonator",
+                                                        "E": "rematter:ember_matrix_crystal", "F": "rematter:machine_frame",
+                                                        "N": "rematter:netherite_sheath", "Q": "rematter:optical_circuit"},
+                                                "result": {"id": "rematter:transmutation_reactor_controller", "count": 1}})
+    advancement("transmutation_reactor_controller", "rematter:particle_resonator")
+    recipe("primal_reactor_controller", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                         "pattern": ["VKV", "PFP", "NQN"],
+                                         "key": {"V": "rematter:violet_matrix_crystal", "K": "rematter:primal_matrix_core",
+                                                 "P": "rematter:primal_crystal", "F": "rematter:machine_frame",
+                                                 "N": "rematter:netherite_sheath", "Q": "rematter:optical_circuit"},
+                                         "result": {"id": "rematter:primal_reactor_controller", "count": 1}})
+    advancement("primal_reactor_controller", "rematter:primal_matrix_core")
+    def block_loot(name):
+        write(DATA / "rematter/loot_table/blocks" / (name + ".json"), {
+            "type": "minecraft:block", "pools": [{"rolls": 1,
+                "entries": [{"type": "minecraft:item", "name": "rematter:" + name}],
+                "conditions": [{"condition": "minecraft:survives_explosion"}]}]})
+
+    recipe("energy_matrix_controller", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                        "pattern": ["ECE", "KFK", "BQB"],
+                                        "key": {"E": "rematter:ember_matrix_crystal", "C": "rematter:resonant_energy_cube",
+                                                "K": "rematter:energy_core", "F": "rematter:machine_frame",
+                                                "B": "rematter:blue_matrix_crystal", "Q": "rematter:optical_circuit"},
+                                        "result": {"id": "rematter:energy_matrix_controller", "count": 1}})
+    advancement("energy_matrix_controller", "rematter:energy_core")
+    block_loot("energy_matrix_controller")
+    recipe("energy_matrix_casing", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                    "pattern": ["RSR", "KEK", "RSR"],
+                                    "key": {"R": "rematter:rhevon_ingot", "S": "rematter:structural_bars",
+                                            "K": "rematter:energy_core", "E": "rematter:ember_matrix_crystal"},
+                                    "result": {"id": "rematter:energy_matrix_casing", "count": 4}})
+    advancement("energy_matrix_casing", "rematter:energy_core")
+    block_loot("energy_matrix_casing")
+    recipe("energy_matrix_glass", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                   "pattern": ["GRG", "KEK", "GRG"],
+                                   "key": {"G": "minecraft:glass", "R": "rematter:rhevon_ingot",
+                                           "K": "rematter:energy_core", "E": "rematter:ember_matrix_crystal"},
+                                   "result": {"id": "rematter:energy_matrix_glass", "count": 4}})
+    advancement("energy_matrix_glass", "rematter:energy_core")
+    block_loot("energy_matrix_glass")
+    recipe("energy_matrix_port", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                  "pattern": ["CEC", "BKB", "CEC"],
+                                  "key": {"C": "rematter:energy_matrix_casing", "E": "rematter:ember_matrix_crystal",
+                                          "B": "rematter:blue_matrix_crystal", "K": "rematter:energy_core"},
+                                  "result": {"id": "rematter:energy_matrix_port", "count": 2}})
+    advancement("energy_matrix_port", "rematter:energy_matrix_casing")
+    block_loot("energy_matrix_port")
+    recipe("energy_reactor_controller", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                         "pattern": ["EAE", "KFK", "NQN"],
+                                         "key": {"E": "rematter:ember_matrix_crystal", "A": "rematter:amber_matrix_crystal",
+                                                 "K": "rematter:energy_core", "F": "rematter:machine_frame",
+                                                 "N": "rematter:netherite_sheath", "Q": "rematter:optical_circuit"},
+                                         "result": {"id": "rematter:energy_reactor_controller", "count": 1}})
+    advancement("energy_reactor_controller", "rematter:energy_core")
+    block_loot("energy_reactor_controller")
+    recipe("energy_reactor_casing", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                     "pattern": ["CNC", "EAE", "CNC"],
+                                     "key": {"C": "rematter:reactor_casing", "N": "rematter:netherite_sheath",
+                                             "E": "rematter:ember_matrix_crystal", "A": "rematter:amber_matrix_crystal"},
+                                     "result": {"id": "rematter:energy_reactor_casing", "count": 4}})
+    advancement("energy_reactor_casing", "rematter:reactor_casing")
+    block_loot("energy_reactor_casing")
+    recipe("energy_reactor_glass", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                    "pattern": ["GNG", "EAE", "GNG"],
+                                    "key": {"G": "rematter:reactor_glass", "N": "rematter:netherite_sheath",
+                                            "E": "rematter:ember_matrix_crystal", "A": "rematter:amber_matrix_crystal"},
+                                    "result": {"id": "rematter:energy_reactor_glass", "count": 4}})
+    advancement("energy_reactor_glass", "rematter:reactor_glass")
+    block_loot("energy_reactor_glass")
+    recipe("energy_reactor_port", {"type": "minecraft:crafting_shaped", "category": "misc",
+                                   "pattern": ["CPC", "EAE", "CPC"],
+                                   "key": {"C": "rematter:energy_reactor_casing", "P": "rematter:machine_port",
+                                           "E": "rematter:ember_matrix_crystal", "A": "rematter:amber_matrix_crystal"},
+                                   "result": {"id": "rematter:energy_reactor_port", "count": 2}})
+    advancement("energy_reactor_port", "rematter:energy_reactor_casing")
+    block_loot("energy_reactor_port")
 
 
 if __name__ == "__main__":

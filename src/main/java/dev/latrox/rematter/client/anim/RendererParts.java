@@ -12,6 +12,7 @@ public final class RendererParts {
     public static final Part SCAN_RIGHT = new Part(4.5F,10.5F,4.5F,5.5F,11.5F,6.5F);
     public static final Part SCAN_LEFT = new Part(10.5F,10.5F,4.5F,11.5F,11.5F,6.5F);
     public static final Part PESTLE = new Part(4F,8.5F,4.5F,6F,9F,6.5F);
+    public static final Part BORE_BIT = new Part(6.5F,10.5F,4.5F,9.5F,14F,6.5F);
     public static final Part MIX_CHARGE = new Part(10F,7F,3F,12F,8.5F,7F);
     public static final Part LIQUID_RIGHT = new Part(3F,7F,3F,6F,9F,8F);
     public static final Part LIQUID_LEFT = new Part(10F,7F,3F,13F,9F,8F);

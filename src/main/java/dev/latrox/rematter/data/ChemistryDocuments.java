@@ -78,7 +78,8 @@ public final class ChemistryDocuments {
                 amounts(json, "inputs"), amounts(json, "outputs"), positiveLong(json, "energy"),
                 Math.toIntExact(positiveLong(json, "ticks")), optionalString(json, "requires_advancement", ""),
                 industrial==null?0:Math.toIntExact(positiveLong(industrial,"min_field")),known,
-                industrial==null?null:SubstanceId.parse(string(industrial,"product")));
+                industrial==null?null:SubstanceId.parse(string(industrial,"product")),
+                industrial==null?"":optionalString(industrial,"catalyst",""));
     }
 
     public static SynthesisRequirement synthesisRequirement(JsonObject json) {
@@ -105,7 +106,8 @@ public final class ChemistryDocuments {
             requiresOpenAir = openAir.getAsBoolean();
         }
         return new EnvironmentSource(id, amounts(json, "outputs"), positiveLong(json, "energy"),
-                Math.toIntExact(positiveLong(json, "ticks")), dimensions, requiresOpenAir);
+                Math.toIntExact(positiveLong(json, "ticks")), dimensions, requiresOpenAir,
+                optionalString(json, "probe_below", ""));
     }
 
     public static boolean modsMet(JsonObject json, Predicate<String> loaded) {

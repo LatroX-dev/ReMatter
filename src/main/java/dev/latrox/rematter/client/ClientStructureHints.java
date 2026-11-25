@@ -65,9 +65,31 @@ public final class ClientStructureHints {
             case "block.rematter.reactor_glass" -> state.is(ModContent.REACTOR_GLASS.get())
                     || state.is(ModContent.REACTOR_CASING.get()) || state.is(ModContent.MACHINE_PORT.get());
             case "block.rematter.machine_port" -> state.is(ModContent.MACHINE_PORT.get());
+            case "block.rematter.transmutation_reactor_casing" -> state.is(ModContent.TRANSMUTATION_REACTOR_CASING.get());
+            case "block.rematter.transmutation_reactor_glass" -> state.is(ModContent.TRANSMUTATION_REACTOR_GLASS.get())
+                    || state.is(ModContent.TRANSMUTATION_REACTOR_CASING.get()) || state.is(ModContent.TRANSMUTATION_MACHINE_PORT.get());
+            case "block.rematter.transmutation_machine_port" -> state.is(ModContent.TRANSMUTATION_MACHINE_PORT.get());
+            case "block.rematter.primal_reactor_casing" -> state.is(ModContent.PRIMAL_REACTOR_CASING.get());
+            case "block.rematter.primal_reactor_glass" -> state.is(ModContent.PRIMAL_REACTOR_GLASS.get())
+                    || state.is(ModContent.PRIMAL_REACTOR_CASING.get()) || state.is(ModContent.PRIMAL_MACHINE_PORT.get());
+            case "block.rematter.primal_machine_port" -> state.is(ModContent.PRIMAL_MACHINE_PORT.get());
+            case "block.rematter.energy_matrix_casing" -> state.is(ModContent.ENERGY_MATRIX_CASING.get());
+            case "block.rematter.energy_matrix_glass" -> state.is(ModContent.ENERGY_MATRIX_GLASS.get())
+                    || state.is(ModContent.ENERGY_MATRIX_CASING.get()) || state.is(ModContent.ENERGY_MATRIX_PORT.get());
+            case "block.rematter.energy_matrix_port" -> state.is(ModContent.ENERGY_MATRIX_PORT.get());
+            case "block.rematter.energy_reactor_casing" -> state.is(ModContent.ENERGY_REACTOR_CASING.get());
+            case "block.rematter.energy_reactor_glass" -> state.is(ModContent.ENERGY_REACTOR_GLASS.get())
+                    || state.is(ModContent.ENERGY_REACTOR_CASING.get()) || state.is(ModContent.ENERGY_REACTOR_PORT.get());
+            case "block.rematter.energy_reactor_port" -> state.is(ModContent.ENERGY_REACTOR_PORT.get());
             default -> {
                 if (state.getBlock() instanceof IndustrialModuleBlock module) {
                     yield ("block.rematter." + module.kind().name().toLowerCase(Locale.ROOT)).equals(expected);
+                }
+                if (state.getBlock() instanceof dev.latrox.rematter.energy.EnergyMatrixCellBlock cell) {
+                    yield ("block.rematter." + cell.tier().id()).equals(expected);
+                }
+                if (state.getBlock() instanceof dev.latrox.rematter.energy.EnergyMatrixProviderBlock provider) {
+                    yield ("block.rematter." + provider.tier().id()).equals(expected);
                 }
                 if (state.getBlock() instanceof MachineBlock block) {
                     yield ("block.rematter." + block.kind().id()).equals(expected);
@@ -81,14 +103,28 @@ public final class ClientStructureHints {
         if (primary) return UiPalette.STRUCTURE_HINT;
         return switch (expected) {
             case "block.minecraft.air" -> UiPalette.STRUCTURE_HINT_CLEAR;
-            case "block.rematter.reactor_casing" -> UiPalette.STRUCTURE_HINT_SHELL;
-            case "block.rematter.reactor_glass" -> UiPalette.STRUCTURE_HINT_GLASS;
-            case "block.rematter.machine_port" -> UiPalette.STRUCTURE_HINT_PORT;
+            case "block.rematter.reactor_casing", "block.rematter.transmutation_reactor_casing",
+                    "block.rematter.primal_reactor_casing", "block.rematter.energy_matrix_casing",
+                    "block.rematter.energy_reactor_casing" -> UiPalette.STRUCTURE_HINT_SHELL;
+            case "block.rematter.reactor_glass", "block.rematter.transmutation_reactor_glass",
+                    "block.rematter.primal_reactor_glass", "block.rematter.energy_matrix_glass",
+                    "block.rematter.energy_reactor_glass" -> UiPalette.STRUCTURE_HINT_GLASS;
+            case "block.rematter.machine_port", "block.rematter.transmutation_machine_port",
+                    "block.rematter.primal_machine_port", "block.rematter.energy_matrix_port",
+                    "block.rematter.energy_reactor_port" -> UiPalette.STRUCTURE_HINT_PORT;
             case "block.rematter.mixing_basin" -> UiPalette.moduleAccent(IndustrialModuleKind.MIXING_BASIN);
             case "block.rematter.separation_unit" -> UiPalette.moduleAccent(IndustrialModuleKind.SEPARATION_UNIT);
             case "block.rematter.grinding_unit" -> UiPalette.moduleAccent(IndustrialModuleKind.GRINDING_UNIT);
             case "block.rematter.field_coil" -> UiPalette.moduleAccent(IndustrialModuleKind.FIELD_COIL);
             case "block.rematter.reaction_chamber" -> UiPalette.moduleAccent(IndustrialModuleKind.REACTION_CHAMBER);
+            case "block.rematter.particle_emitter" -> UiPalette.moduleAccent(IndustrialModuleKind.PARTICLE_EMITTER);
+            case "block.rematter.primal_condenser_core" -> UiPalette.moduleAccent(IndustrialModuleKind.PRIMAL_CONDENSER_CORE);
+            case "block.rematter.reactor_fuel_core" -> UiPalette.moduleAccent(IndustrialModuleKind.REACTOR_FUEL_CORE);
+            case "block.rematter.reactor_induction_coil" -> UiPalette.moduleAccent(IndustrialModuleKind.REACTOR_INDUCTION_COIL);
+            case "block.rematter.energy_matrix_cell", "block.rematter.reinforced_energy_matrix_cell",
+                    "block.rematter.resonant_energy_matrix_cell", "block.rematter.primal_energy_matrix_cell" -> UiPalette.EMBER;
+            case "block.rematter.energy_matrix_provider", "block.rematter.reinforced_energy_matrix_provider",
+                    "block.rematter.resonant_energy_matrix_provider", "block.rematter.primal_energy_matrix_provider" -> UiPalette.PORT_ENERGY_INPUT;
             default -> UiPalette.STRUCTURE_HINT;
         };
     }
@@ -106,8 +142,7 @@ public final class ClientStructureHints {
                 boolean primary = !primaryAssigned;
                 primaryAssigned = true;
                 int color = colorFor(entry.expected(), primary);
-                float width = primary ? 2.5F : "block.rematter.reactor_casing".equals(entry.expected())
-                        || "block.rematter.reactor_glass".equals(entry.expected()) ? 1.5F : 2.0F;
+                float width = primary ? 2.5F : (entry.expected().endsWith("_casing") || entry.expected().endsWith("_glass")) ? 1.5F : 2.0F;
                 boxes.add(new WireBox(new AABB(entry.position()).inflate(primary ? 0.008 : -0.02)
                         .move(-cam.x, -cam.y, -cam.z), color, width));
                 if ("up".equals(entry.orientation()) || "down".equals(entry.orientation())) {

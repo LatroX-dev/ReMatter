@@ -5,6 +5,8 @@ import dev.latrox.rematter.celltransfer.CellTransferStationBlock;
 import dev.latrox.rematter.celltransfer.CellTransferStationBlockEntity;
 import dev.latrox.rematter.energy.EnergyCubeBlock;
 import dev.latrox.rematter.energy.EnergyCubeBlockEntity;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlock;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinkBlock;
 import dev.latrox.rematter.primal.EntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinks;
@@ -41,7 +43,8 @@ public final class ConfigurationCardInteractions {
     public static InteractionResult interact(@Nullable Player player, Level level, BlockPos pos, ItemStack stack, BlockHitResult hit) {
         BlockState state = level.getBlockState(pos);
         Block block = state.getBlock();
-        if (!(block instanceof EntangledLinkBlock) && !(block instanceof MachineBlock)
+        if (!(block instanceof EntangledLinkBlock) && !(block instanceof DimensionalEntangledLinkBlock)
+                && !(block instanceof MachineBlock)
                 && !(block instanceof EnergyCubeBlock) && !(block instanceof MatterLevelEmitterBlock)
                 && !(block instanceof CellTransferStationBlock)) {
             return InteractionResult.PASS;
@@ -53,6 +56,9 @@ public final class ConfigurationCardInteractions {
 
         if (block instanceof EntangledLinkBlock) {
             return interactLink(player, server, pos, stack);
+        }
+        if (block instanceof DimensionalEntangledLinkBlock) {
+            return interactDimensionalLink(player, server, pos, stack);
         }
         if (block instanceof CellTransferStationBlock) {
             return interactCellStation(player, server, pos, stack);
@@ -135,6 +141,10 @@ public final class ConfigurationCardInteractions {
             player.sendOverlayMessage(Component.translatable("message.rematter.config_card.empty_hint"));
             return InteractionResult.FAIL;
         }
+        if (origin.dimensional()) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.incompatible"));
+            return InteractionResult.FAIL;
+        }
         if (!origin.dimension().equals(server.dimension())) {
             player.sendOverlayMessage(Component.translatable("message.rematter.config_card.link_dimension"));
             return InteractionResult.FAIL;
@@ -159,6 +169,47 @@ public final class ConfigurationCardInteractions {
         MatterCableBlock.refreshLoadedAround(server, pos);
         stack.remove(ConfigurationCardData.TYPE.get());
         player.sendOverlayMessage(Component.translatable("message.rematter.config_card.link_paired"));
+        ModSounds.play(server, pos, ModSounds.ENTANGLED_PAIR);
+        return InteractionResult.SUCCESS;
+    }
+
+    private static InteractionResult interactDimensionalLink(Player player, ServerLevel server, BlockPos pos, ItemStack stack) {
+        if (!(server.getBlockEntity(pos) instanceof DimensionalEntangledLinkBlockEntity link)) return InteractionResult.FAIL;
+        if (!link.interact(player)) {
+            return InteractionResult.FAIL;
+        }
+        if (player.isShiftKeyDown()) {
+            stack.set(ConfigurationCardData.TYPE.get(), ConfigurationCardData.fromDimensionalLink(server.dimension(), pos));
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.dimensional_link_selected",
+                    server.dimension().identifier().toString(), pos.getX(), pos.getY(), pos.getZ()));
+            ModSounds.play(server, pos, ModSounds.CONFIG_CARD_READ);
+            return InteractionResult.SUCCESS;
+        }
+        var data = stack.get(ConfigurationCardData.TYPE.get());
+        var origin = data == null ? null : data.linkOrigin().orElse(null);
+        if (origin == null) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.empty_hint"));
+            return InteractionResult.FAIL;
+        }
+        if (!origin.dimensional()) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.incompatible"));
+            return InteractionResult.FAIL;
+        }
+        if (origin.dimension().equals(server.dimension()) && origin.pos().equals(pos)) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.link_same"));
+            return InteractionResult.FAIL;
+        }
+        ServerLevel originLevel = server.getServer().getLevel(origin.dimension());
+        if (originLevel == null || EntangledLinks.loadedDimensional(originLevel, origin.pos()).isEmpty()) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.config_card.link_unloaded"));
+            return InteractionResult.FAIL;
+        }
+        if (!EntangledLinks.pairDimensional(originLevel, origin.pos(), server, pos, player)) {
+            player.sendOverlayMessage(Component.translatable("message.rematter.private_machine"));
+            return InteractionResult.FAIL;
+        }
+        stack.remove(ConfigurationCardData.TYPE.get());
+        player.sendOverlayMessage(Component.translatable("message.rematter.config_card.dimensional_link_paired"));
         ModSounds.play(server, pos, ModSounds.ENTANGLED_PAIR);
         return InteractionResult.SUCCESS;
     }

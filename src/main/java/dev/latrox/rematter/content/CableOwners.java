@@ -17,8 +17,8 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jspecify.annotations.Nullable;
 
-/** Persisted chunk-local ownership, without per-cable block entities or client UUID disclosure. */
-final class CableOwners {
+/** Persisted chunk-local ownership and blocked-side masks, without per-cable block entities or client UUID disclosure. */
+public final class CableOwners {
     private record PlacementOwner(UUID owner,SecurityMode mode,long tick) {}
     /** Only spans NeoForge's synchronous captured placement; never persisted or sent to clients. */
     private static final Map<ServerLevel,Map<Long,PlacementOwner>> PLACEMENTS=new WeakHashMap<>();
@@ -29,10 +29,15 @@ final class CableOwners {
     private static final MapCodec<Map<String,String>> SECURITY_CODEC=Codec.unboundedMap(Codec.STRING,Codec.STRING)
             .validate(map->map.size()<=65536?DataResult.success(map):DataResult.error(()->"Too many cable security modes"))
             .fieldOf("security");
+    private static final MapCodec<Map<String,Integer>> BLOCKED_CODEC=Codec.unboundedMap(Codec.STRING,Codec.intRange(0,63))
+            .validate(map->map.size()<=65536?DataResult.success(map):DataResult.error(()->"Too many blocked cable entries"))
+            .fieldOf("blocked_sides");
     private static final java.util.function.Supplier<AttachmentType<Map<String,UUID>>> OWNERS=TYPES.register("cable_owners",
             ()->AttachmentType.<Map<String,UUID>>builder(Map::of).serialize(CODEC,map->!map.isEmpty()).build());
     private static final java.util.function.Supplier<AttachmentType<Map<String,String>>> SECURITY=TYPES.register("cable_security",
             ()->AttachmentType.<Map<String,String>>builder(Map::of).serialize(SECURITY_CODEC,map->!map.isEmpty()).build());
+    private static final java.util.function.Supplier<AttachmentType<Map<String,Integer>>> BLOCKED_SIDES=TYPES.register("cable_blocked_sides",
+            ()->AttachmentType.<Map<String,Integer>>builder(Map::of).serialize(BLOCKED_CODEC,map->!map.isEmpty()).build());
     private CableOwners() {}
     static void placedBy(ServerLevel level,BlockPos pos,UUID owner) {
         placedBy(level,pos,owner,SecurityMode.PUBLIC);
@@ -87,7 +92,17 @@ final class CableOwners {
         String targetMode=owner==null||mode==SecurityMode.PUBLIC?null:mode.getSerializedName();
         String previousMode=targetMode==null?modes.remove(key):modes.put(key,targetMode);
         boolean modeChanged=!java.util.Objects.equals(previousMode,targetMode);
-        if(!ownerChanged&&!modeChanged)return;
+        boolean blockedChanged=false;
+        if(owner==null){
+            var blocked=chunk.getExistingDataOrNull(BLOCKED_SIDES);
+            if(blocked!=null&&blocked.containsKey(key)){
+                var copy=new HashMap<>(blocked);
+                copy.remove(key);
+                if(copy.isEmpty())chunk.removeData(BLOCKED_SIDES);else chunk.setData(BLOCKED_SIDES,Map.copyOf(copy));
+                blockedChanged=true;
+            }
+        }
+        if(!ownerChanged&&!modeChanged&&!blockedChanged)return;
         if(ownerChanged){
             if(values.isEmpty())chunk.removeData(OWNERS);else chunk.setData(OWNERS,Map.copyOf(values));
         }
@@ -96,6 +111,52 @@ final class CableOwners {
         }
         chunk.markUnsaved();ChunkRevisions.touch(chunk);level.invalidateCapabilities(pos);
         MatterCableBlock.refreshLoadedAround(level,pos);
+    }
+    public static int blockedSides(ServerLevel level,BlockPos pos) {
+        var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);
+        var values=chunk==null?null:chunk.getExistingDataOrNull(BLOCKED_SIDES);
+        if(values==null)return 0;
+        Integer mask=values.get(Long.toString(pos.asLong()));
+        return mask==null?0:(mask&0x3F);
+    }
+    public static boolean isSideBlocked(ServerLevel level,BlockPos pos,net.minecraft.core.Direction side) {
+        return (blockedSides(level,pos)&(1<<side.get3DDataValue()))!=0;
+    }
+    public static void setBlockedMask(ServerLevel level,BlockPos pos,int mask) {
+        int clean=mask&0x3F;
+        var chunk=level.getChunkSource().getChunkNow(pos.getX()>>4,pos.getZ()>>4);
+        if(chunk==null)return;
+        String key=Long.toString(pos.asLong());
+        var current=chunk.getExistingDataOrNull(BLOCKED_SIDES);
+        int prev=current==null?0:current.getOrDefault(key,0);
+        if(prev==clean)return;
+        var copy=new HashMap<>(current==null?Map.of():current);
+        if(clean==0)copy.remove(key);else copy.put(key,clean);
+        if(copy.isEmpty())chunk.removeData(BLOCKED_SIDES);else chunk.setData(BLOCKED_SIDES,Map.copyOf(copy));
+        chunk.markUnsaved();ChunkRevisions.touch(chunk);level.invalidateCapabilities(pos);
+        MatterCableBlock.refreshLoadedAround(level,pos);
+    }
+    /** Toggles whether {@code side} on cable {@code pos} is blocked. Returns true if now disconnected. */
+    static boolean toggleSideBlocked(ServerLevel level,BlockPos pos,net.minecraft.core.Direction side,@Nullable Player actor) {
+        int bit=1<<side.get3DDataValue();
+        BlockPos neighborPos=pos.relative(side);
+        boolean neighborIsCable=level.getChunkSource().getChunkNow(neighborPos.getX()>>4,neighborPos.getZ()>>4)!=null
+                &&level.getBlockState(neighborPos).getBlock() instanceof MatterCableBlock;
+        boolean neighborBlocked=neighborIsCable&&isSideBlocked(level,neighborPos,side.getOpposite());
+        boolean selfBlocked=(blockedSides(level,pos)&bit)!=0;
+        boolean nowBlocked=!(selfBlocked||neighborBlocked);
+        int nextSelf=nowBlocked?(blockedSides(level,pos)|bit):(blockedSides(level,pos)&~bit);
+        setBlockedMask(level,pos,nextSelf);
+        if(neighborIsCable&&(actor==null||canRemove(level,neighborPos,actor))) {
+            int oppBit=1<<side.getOpposite().get3DDataValue();
+            int nextOpp=nowBlocked?(blockedSides(level,neighborPos)|oppBit):(blockedSides(level,neighborPos)&~oppBit);
+            setBlockedMask(level,neighborPos,nextOpp);
+        }
+        return nowBlocked;
+    }
+    public static boolean canAccess(ServerLevel level,BlockPos pos,Player player) {
+        UUID owner=owner(level,pos);
+        return MachineAccess.allows(level,owner,mode(level,pos),player);
     }
     static boolean setSecurityMode(ServerLevel level,BlockPos pos,Player actor,SecurityMode mode) {
         UUID owner=owner(level,pos);

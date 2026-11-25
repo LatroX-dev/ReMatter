@@ -27,15 +27,22 @@ public final class UiPalette {
 
     public static final int GHOST = 0x99adbec0;
     public static final int PRIMAL = 0xff8a5cff;
+    public static final int PRIMAL_CORE = 0xffffffff;
+    public static final int PRIMAL_CORE_SOFT = 0xffefe6ff;
     public static final int PRIMAL_LIGHT = 0xffae8eff;
+    public static final int PRIMAL_TEAL = 0xff46e0c8;
+    public static final int PRIMAL_COOL = 0xff5cc8ff;
+    public static final int PRIMAL_WARM = 0xffff6ad5;
+    public static final int PRIMAL_GOLD = 0xffffb37a;
     public static final int PRIMAL_GHOST = 0x998a5cff;
     public static final int PRESSURE_GHOST = 0xccefb47d;
     public static final int AMBER = 0xffe3a94b;
     public static final int VIOLET = 0xffb381e8;
     public static final int EMBER = 0xffea4848;
+    public static final int BLUE = 0xff6794f1;
     /** Functional port legends, independent of a device's recipe identity and cable tier. */
     public static final int PORT_AUTOMATIC = 0xff64727e;
-    public static final int PORT_ENERGY_INPUT = 0xff6794f1;
+    public static final int PORT_ENERGY_INPUT = 0xff4fe18e;
     public static final int PORT_ENERGY_OUTPUT = 0xffea4848;
     public static final int CABLE_BASIC = 0xdc894f;
     public static final int CABLE_REINFORCED = 0x54bfac;
@@ -61,13 +68,13 @@ public final class UiPalette {
             case DECOMPOSER, INDUSTRIAL_DECOMPOSER -> 0xffdc894f;
             case SYNTHESIZER, INDUSTRIAL_SYNTHESIZER -> 0xff7dd27f;
             case NETWORK_INTERFACE -> 0xff6794f1;
-            case PRIMAL_CONVERTER -> PRIMAL;
-            case CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR -> EMBER;
-            case REACTOR,INDUSTRIAL_REACTOR -> 0xffb381e8;
+            case PRIMAL_CONVERTER, PRIMAL_REACTOR -> PRIMAL;
+            case CRYSTAL_GENERATOR, INDUSTRIAL_CRYSTAL_GENERATOR, ENERGY_MATRIX, ENERGY_REACTOR -> EMBER;
+            case REACTOR,INDUSTRIAL_REACTOR,TRANSMUTATION_REACTOR -> 0xffb381e8;
             case PREPARATOR,INDUSTRIAL_PREPARATOR -> AMBER;
             case HAND_PREPARATOR -> MUTED;
             case SINTER_FURNACE -> 0xffea4848;
-            case DRIVE,TERMINAL,ATMOSPHERIC_COLLECTOR -> 0xff57cddb;
+            case DRIVE,TERMINAL,ATMOSPHERIC_COLLECTOR,DEEP_EXTRACTOR -> 0xff57cddb;
         };
     }
 
@@ -75,7 +82,18 @@ public final class UiPalette {
         return switch(kind) {
             case GRINDING_UNIT,SEPARATION_UNIT,MIXING_BASIN -> AMBER;
             case FIELD_COIL,REACTION_CHAMBER -> VIOLET;
+            case PARTICLE_EMITTER, REACTOR_FUEL_CORE -> EMBER;
+            case REACTOR_INDUCTION_COIL -> BLUE;
+            case PRIMAL_CONDENSER_CORE -> PRIMAL;
         };
+    }
+    /** Ping-pong sweep across the five Primal stops (Teal -> Cool -> Body -> Warm -> Gold -> back). */
+    public static int primalSpectrum(float cycle) {
+        float t = cycle - (float) Math.floor(cycle);
+        float pos = (t < .5F ? t * 2F : (1F - t) * 2F) * 4F;
+        int[] stops = {PRIMAL_TEAL, PRIMAL_COOL, PRIMAL, PRIMAL_WARM, PRIMAL_GOLD};
+        int i = Math.min(3, (int) pos);
+        return mix(stops[i], stops[i + 1], pos - i);
     }
     public static int modulePulse(dev.latrox.rematter.content.IndustrialModuleKind kind) {
         int hue=moduleAccent(kind);
@@ -106,6 +124,12 @@ public final class UiPalette {
         int g=Math.round(((first>>8)&255)*(1-amount)+((second>>8)&255)*amount);
         int b=Math.round((first&255)*(1-amount)+(second&255)*amount);
         return WHITE&0xff000000 | r<<16 | g<<8 | b;
+    }
+    public static int withAlpha(int color, int alpha) {
+        return (color & 0x00ffffff) | (Math.clamp(alpha, 0, 255) << 24);
+    }
+    public static int rgb(int color) {
+        return color & 0x00ffffff;
     }
 
     private UiPalette() {}

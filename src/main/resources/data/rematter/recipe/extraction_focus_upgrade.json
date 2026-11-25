@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RMR",
+    "OCO",
+    "RDR"
+  ],
+  "key": {
+    "R": "rematter:rhevon_ingot",
+    "M": "rematter:mint_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "C": "rematter:control_circuit",
+    "D": "rematter:diamond_lattice"
+  },
+  "result": {
+    "id": "rematter:extraction_focus_upgrade",
+    "count": 1
+  }
+}

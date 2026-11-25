@@ -1,0 +1,77 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_material": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "rematter:blue_matrix_crystal"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:diamond_lattice"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:energy_core"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:matrix_cluster"
+            ],
+            "count": {
+              "min": 1
+            }
+          },
+          {
+            "items": [
+              "rematter:netherite_sheath"
+            ],
+            "count": {
+              "min": 2
+            }
+          },
+          {
+            "items": [
+              "rematter:resonant_matter_cable"
+            ],
+            "count": {
+              "min": 1
+            }
+          }
+        ]
+      }
+    },
+    "has_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "rematter:resonant_energy_matrix_provider"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_material",
+      "has_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "rematter:resonant_energy_matrix_provider"
+    ]
+  }
+}

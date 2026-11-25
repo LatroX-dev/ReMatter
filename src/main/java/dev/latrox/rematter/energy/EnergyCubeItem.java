@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 /** A cube's energy and item bays travel as one portable block-entity state, never as a second FE store. */
 public final class EnergyCubeItem extends BlockItem {
     private static final int BAR_COLOR = 0xEA4848;
+    private static final int PRIMAL_BAR_COLOR = 0x8A5CFF;
     private final EnergyCubeTier tier;
 
     public EnergyCubeItem(EnergyCubeBlock block, Properties properties) {
@@ -33,23 +34,22 @@ public final class EnergyCubeItem extends BlockItem {
 
     public EnergyCubeTier tier() { return tier; }
 
-    public int storedEnergy(ItemStack stack) {
+    public long storedEnergy(ItemStack stack) {
         var data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
-        if (data == null) return 0;
+        if (data == null) return 0L;
         var raw = data.copyTagWithoutId();
-        if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != EnergyCubeData.SCHEMA) return 0;
-        if (!(raw.get("energy") instanceof IntTag)) return 0;
-        int energy = raw.getIntOr("energy", 0);
-        return energy < 0 || energy > tier.capacity() ? 0 : energy;
+        if (!(raw.get("schema") instanceof IntTag) || raw.getIntOr("schema", -1) != EnergyCubeData.SCHEMA) return 0L;
+        long energy = EnergyCubeData.readEnergy(raw);
+        return energy < 0L || energy > tier.capacity() ? 0L : energy;
     }
 
     @Override public boolean isBarVisible(ItemStack stack) { return true; }
 
     @Override public int getBarWidth(ItemStack stack) {
-        return Math.round(13.0F * storedEnergy(stack) / Math.max(1, tier.capacity()));
+        return Math.round(13.0F * storedEnergy(stack) / Math.max(1L, tier.capacity()));
     }
 
-    @Override public int getBarColor(ItemStack stack) { return BAR_COLOR; }
+    @Override public int getBarColor(ItemStack stack) { return tier == EnergyCubeTier.PRIMAL ? PRIMAL_BAR_COLOR : BAR_COLOR; }
 
     @Override
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
@@ -67,7 +67,7 @@ public final class EnergyCubeItem extends BlockItem {
                 if (existing == null) {
                     var fresh = new CompoundTag();
                     fresh.putInt("schema", EnergyCubeData.SCHEMA);
-                    fresh.putInt("energy", 0);
+                    fresh.putLong("energy", 0L);
                     fresh.putInt("side_modes", EnergyCubeSideMode.OUTPUT.ordinal());
                     var emptyItems = new ListTag();
                     for (int i = 0; i < tier.chargingSlots(); i++) emptyItems.add(new CompoundTag());
@@ -84,15 +84,15 @@ public final class EnergyCubeItem extends BlockItem {
 
             @Override
             public long getAmountAsLong() {
-                if (access.getAmount() != 1) return 0;
+                if (access.getAmount() != 1) return 0L;
                 var raw = writableBase(access.getResource());
-                return raw == null ? 0 : raw.getIntOr("energy", 0);
+                return raw == null ? 0L : Math.max(0L, EnergyCubeData.readEnergy(raw));
             }
 
             @Override
             public long getCapacityAsLong() {
-                if (access.getAmount() != 1) return 0;
-                return writableBase(access.getResource()) == null ? 0 : tier.capacity();
+                if (access.getAmount() != 1) return 0L;
+                return writableBase(access.getResource()) == null ? 0L : tier.capacity();
             }
 
             @Override
@@ -102,10 +102,10 @@ public final class EnergyCubeItem extends BlockItem {
                 ItemResource resource = access.getResource();
                 var raw = writableBase(resource);
                 if (raw == null) return 0;
-                int current = raw.getIntOr("energy", 0);
-                int added = Math.min(Math.min(amount, tier.transferRate()), tier.capacity() - current);
+                long current = Math.max(0L, EnergyCubeData.readEnergy(raw));
+                int added = (int) Math.min(Math.min((long) amount, tier.transferRate()), tier.capacity() - current);
                 if (added <= 0) return 0;
-                raw.putInt("energy", current + added);
+                raw.putLong("energy", current + added);
                 ItemResource updated = resource.with(DataComponents.BLOCK_ENTITY_DATA,
                         TypedEntityData.of(ModContent.ENERGY_CUBE_ENTITY.get(), raw));
                 return access.exchange(updated, 1, tx) == 1 ? added : 0;
@@ -118,10 +118,10 @@ public final class EnergyCubeItem extends BlockItem {
                 ItemResource resource = access.getResource();
                 var raw = writableBase(resource);
                 if (raw == null) return 0;
-                int current = raw.getIntOr("energy", 0);
-                int drained = Math.min(Math.min(amount, tier.transferRate()), current);
+                long current = Math.max(0L, EnergyCubeData.readEnergy(raw));
+                int drained = (int) Math.min(Math.min((long) amount, tier.transferRate()), current);
                 if (drained <= 0) return 0;
-                raw.putInt("energy", current - drained);
+                raw.putLong("energy", current - drained);
                 ItemResource updated = resource.with(DataComponents.BLOCK_ENTITY_DATA,
                         TypedEntityData.of(ModContent.ENERGY_CUBE_ENTITY.get(), raw));
                 return access.exchange(updated, 1, tx) == 1 ? drained : 0;
@@ -132,7 +132,7 @@ public final class EnergyCubeItem extends BlockItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         var data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
-        int energy = 0;
+        long energy = 0L;
         if (data != null) {
             var raw = data.copyTagWithoutId();
             var decoded = context.registries() == null ? Optional.<List<ItemStack>>empty() : EnergyCubeData.items(raw, context.registries());
@@ -143,11 +143,14 @@ public final class EnergyCubeItem extends BlockItem {
             if (EnergyCubeData.rejection(raw, tier, decoded.isPresent(), count, decodedDischarge.isPresent(), dischargeCount) != null) {
                 tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.locked"));
             } else {
-                energy = raw.getIntOr("energy", 0);
+                energy = Math.max(0L, EnergyCubeData.readEnergy(raw));
             }
         }
-        tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.capacity", energy, tier.capacity()));
-        tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.rate", tier.transferRate()));
+        tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.capacity",
+                String.format(java.util.Locale.ROOT, "%,d", energy),
+                String.format(java.util.Locale.ROOT, "%,d", tier.capacity())));
+        tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.rate",
+                String.format(java.util.Locale.ROOT, "%,d", tier.transferRate())));
         tooltip.accept(Component.translatable("tooltip.rematter.energy_cube.slots", tier.chargingSlots()));
     }
 }

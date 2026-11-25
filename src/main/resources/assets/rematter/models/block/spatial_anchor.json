@@ -1,0 +1,281 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/spatial_anchor_front",
+    "front": "rematter:block/spatial_anchor_front",
+    "top": "rematter:block/spatial_anchor_top",
+    "dome_wall": "rematter:block/spatial_anchor_dome_wall",
+    "inner": "rematter:block/casing_inner"
+  },
+  "elements": [
+    {
+      "name": "core",
+      "from": [
+        0,
+        0,
+        1.5
+      ],
+      "to": [
+        16,
+        13,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "wall_south",
+      "from": [
+        0,
+        13,
+        14.5
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "wall_west",
+      "from": [
+        0,
+        13,
+        0
+      ],
+      "to": [
+        1.5,
+        16,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "wall_east",
+      "from": [
+        14.5,
+        13,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        14.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "wall_north",
+      "from": [
+        1.5,
+        13,
+        0
+      ],
+      "to": [
+        14.5,
+        16,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#inner"
+        },
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    },
+    {
+      "name": "post_left",
+      "from": [
+        14.5,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        13,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "post_right",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1.5,
+        13,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "east": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "plinth",
+      "from": [
+        1.5,
+        0,
+        0
+      ],
+      "to": [
+        14.5,
+        2,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "cap_front",
+      "from": [
+        1.5,
+        11.5,
+        0
+      ],
+      "to": [
+        14.5,
+        13,
+        1.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "down": {
+          "texture": "#inner"
+        }
+      }
+    },
+    {
+      "name": "dome_base",
+      "from": [
+        2.5,
+        13,
+        2.5
+      ],
+      "to": [
+        13.5,
+        13.5,
+        13.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#dome_wall"
+        },
+        "south": {
+          "texture": "#dome_wall"
+        },
+        "east": {
+          "texture": "#dome_wall"
+        },
+        "west": {
+          "texture": "#dome_wall"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "name": "dome_mid",
+      "from": [
+        3.5,
+        13.5,
+        3.5
+      ],
+      "to": [
+        12.5,
+        14.5,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "texture": "#dome_wall"
+        },
+        "south": {
+          "texture": "#dome_wall"
+        },
+        "east": {
+          "texture": "#dome_wall"
+        },
+        "west": {
+          "texture": "#dome_wall"
+        },
+        "up": {
+          "texture": "#top"
+        }
+      }
+    }
+  ]
+}

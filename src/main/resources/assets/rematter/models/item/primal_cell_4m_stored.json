@@ -1,0 +1,6 @@
+{
+  "parent": "rematter:item/primal_cell_4m",
+  "textures": {
+    "light": "rematter:block/led_green"
+  }
+}

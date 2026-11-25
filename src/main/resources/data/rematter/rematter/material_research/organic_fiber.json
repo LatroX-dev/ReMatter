@@ -2,6 +2,8 @@
   "schema": 1,
   "name": "Organic Fiber",
   "items": [
+    "botania:mana_string",
+    "botania:manaweave_cloth",
     "minecraft:cobweb",
     "minecraft:feather",
     "minecraft:leather",

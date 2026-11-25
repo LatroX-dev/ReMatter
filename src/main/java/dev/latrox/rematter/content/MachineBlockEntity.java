@@ -99,6 +99,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     private @Nullable CompoundTag unsupportedData;
     private UUID owner;
     private SecurityMode securityMode = SecurityMode.PUBLIC;
+    private String customName = "";
+    private ChunkAnchorManager.Status anchorStatus = ChunkAnchorManager.Status.IDLE;
     private boolean automation;
     private boolean autoEject;
     private boolean pushingOutputs;
@@ -136,7 +138,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         @Override public int insert(int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonNegative(amount);
-            if(!isLiveServerMachine()||kind().generator()||PreparationTier.manual(kind())||!industrialStructureReady())return 0;
+            if(!isLiveServerMachine()||kind().generator()||kind().isEnergyReactor()||PreparationTier.manual(kind())||!industrialStructureReady())return 0;
             this.capacity = energyCapacity();
             if (this.energy >= this.capacity) return 0;
             return energyBudget.insert(level.getGameTime(),amount,NativeCableEnergy.rate(),transaction,allowed->super.insert(allowed,transaction));
@@ -215,19 +217,153 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         else current.grow(1);
         if (!player.hasInfiniteMaterials()) held.shrink(1);
         syncEnergyCapacity();
+        if (slot == MachineCellAccess.ANCHOR_SLOT) syncChunkAnchor();
         setChanged();
         ModSounds.play(level, worldPosition, ModSounds.PORT_CYCLE);
         player.sendOverlayMessage(Component.translatable("message.rematter.upgrade.installed",
                 held.getHoverName(), items.get(slot).getCount(), limit));
         return true;
     }
+    public String customName() { return customName; }
+    public void setCustomName(String next) {
+        String clean = CustomNames.sanitize(next);
+        if (customName.equals(clean)) return;
+        customName = clean;
+        setChanged();
+    }
+    public boolean hasAnchorUpgrade() {
+        return items.size() > MachineCellAccess.ANCHOR_SLOT
+                && items.get(MachineCellAccess.ANCHOR_SLOT).is(ModContent.ANCHOR_UPGRADE.get());
+    }
+    public ChunkAnchorManager.Status anchorStatus() { return anchorStatus; }
+    public Set<net.minecraft.world.level.ChunkPos> desiredAnchorChunks() {
+        if (IndustrialStructure.isIndustrial(kind())) {
+            var formation = IndustrialStructure.inspect(this);
+            if (formation.formed() && formation.minBounds() != null && formation.maxBounds() != null) {
+                int minCx = formation.minBounds().getX() >> 4, maxCx = formation.maxBounds().getX() >> 4;
+                int minCz = formation.minBounds().getZ() >> 4, maxCz = formation.maxBounds().getZ() >> 4;
+                var set = new HashSet<net.minecraft.world.level.ChunkPos>();
+                for (int cx = minCx; cx <= maxCx; cx++) {
+                    for (int cz = minCz; cz <= maxCz; cz++) {
+                        set.add(new net.minecraft.world.level.ChunkPos(cx, cz));
+                    }
+                }
+                if (!set.isEmpty()) return Set.copyOf(set);
+            }
+        }
+        return ChunkAnchorManager.square(worldPosition, 0);
+    }
+    public void syncChunkAnchor() {
+        if (!(level instanceof ServerLevel server) || isRemoved()) return;
+        if (unsupportedData == null && owner != null && hasAnchorUpgrade()) {
+            anchorStatus = ChunkAnchorManager.sync(server, worldPosition, owner, desiredAnchorChunks());
+        } else {
+            ChunkAnchorManager.release(server, worldPosition);
+            anchorStatus = new ChunkAnchorManager.Status(false, 0,
+                    ChunkAnchorManager.ownerChunkCount(server.getServer(), owner),
+                    ChunkLoadingConfig.maxChunksPerPlayer(), "idle");
+        }
+    }
+    @Override public void onLoad() {
+        super.onLoad();
+        if (level instanceof ServerLevel) syncChunkAnchor();
+    }
     long drivePrimalAmount(){return kind()==MachineKind.DRIVE?bays.primalAmount():0;}
     long drivePrimalCapacity(){return kind()==MachineKind.DRIVE?bays.primalCapacity():0;}
+    long drivePrimalFreeSpace(){return kind()==MachineKind.DRIVE?bays.primalFreeSpace():0;}
+    long creditDrivePrimal(long amount,TransactionContext tx){return kind()==MachineKind.DRIVE?bays.creditPrimal(amount,tx):0;}
+    long debitDrivePrimal(long amount,TransactionContext tx){return kind()==MachineKind.DRIVE?bays.debitPrimal(amount,tx):0;}
+    public boolean hasExtractionFocus(){return kind()==MachineKind.DEEP_EXTRACTOR&&stack(MachineCellAccess.PRESSURE_SLOT).is(ModContent.EXTRACTION_FOCUS_UPGRADE.get());}
+    public boolean hasMassCompression(){return kind()==MachineKind.PRIMAL_REACTOR&&stack(MachineCellAccess.MASS_COMPRESSION_SLOT).is(ModContent.MASS_COMPRESSION_UPGRADE.get());}
+    public long matrixEnergy(){return extensions.matrixEnergy();}
+    public long matrixCapacity(){return extensions.matrixCapacity();}
+    public long matrixTransferRate(){return extensions.matrixTransferRate();}
+    public long matrixInRate(){return extensions.matrixInRate();}
+    public long matrixOutRate(){return extensions.matrixOutRate();}
+    public boolean matrixAutoOutput(){return extensions.matrixAutoOutput();}
+    public long reactorEnergy(){return extensions.reactorEnergy();}
+    public long reactorCapacity(){return extensions.reactorCapacity();}
+    public long reactorMaxOutputRate(){return extensions.reactorMaxOutputRate();}
+    public long reactorGenRate(){return extensions.reactorGenRate();}
+    public long reactorOutRate(){return extensions.reactorOutRate();}
+    public int reactorFlux(){return extensions.reactorFlux();}
+    public EnergyReactorRecipes.FuelMode reactorFuelMode(){return extensions.reactorFuelMode();}
+    public boolean reactorCooled(){return extensions.reactorCooled();}
+    public int primalStability(){return extensions.primalStability();}
+    public int primalMaxStability(){return extensions.primalMaxStability();}
+    public int visualMatrixFill(){return clientSync.visualMatrixFill(level, extensions.matrixFillPermille());}
+    public int visualPrimalStability(){return clientSync.visualPrimalStability(level, extensions.primalStability());}
+    public int visualReactorFlux(){return clientSync.visualReactorFlux(level, extensions.reactorFlux());}
+    public boolean visualReactorCooled(){return clientSync.visualReactorCooled(level, extensions.reactorCooled());}
+    boolean hasCatalyst(String required){
+        if(required==null||required.isEmpty())return true;
+        ItemStack focus=stack(MachineCellAccess.DISCOVERY_SLOT);
+        if(focus.isEmpty())return false;
+        String id=BuiltInRegistries.ITEM.getKey(focus.getItem()).toString();
+        if(id.equals(required))return true;
+        return "rematter:particle_resonator".equals(required)
+                && focus.is(dev.latrox.rematter.primal.PrimalContent.PRIMAL_MATRIX_CORE.get());
+    }
+    boolean syncSelectionCatalogue(ChemistryRegistry registry){
+        if(registry!=lastRegistry){
+            boolean initialLoad=lastRegistry==null;
+            lastRegistry=registry;
+            if(!initialLoad||work.restoredLanes==0)resetProgress();
+            if(!control.restore(registry)){
+                resetProgress();
+                interruptTerminalStep();
+                return false;
+            }
+        }
+        if(control.selectionUnavailable()){
+            if(control.runState().running()){control.runState(control.runState().pause());setChanged();}
+            return false;
+        }
+        return true;
+    }
+    void completeRunLanes(int lanes){
+        if(!supportsBatchControl())return;
+        for(int i=0;i<lanes;i++)control.runState(control.runState().completed());
+    }
+    boolean hasProbeBelow(String probe){
+        if(level==null||probe==null||probe.isEmpty())return false;
+        BlockPos below=worldPosition.below();
+        if(!level.hasChunkAt(below))return false;
+        BlockState state=level.getBlockState(below);
+        return switch(probe){
+            case "deepslate" -> worldPosition.getY() <= 0
+                    && (state.is(net.minecraft.world.level.block.Blocks.DEEPSLATE)
+                    || state.is(net.minecraft.world.level.block.Blocks.COBBLED_DEEPSLATE)
+                    || state.is(net.minecraft.world.level.block.Blocks.TUFF)
+                    || state.is(net.minecraft.world.level.block.Blocks.BEDROCK));
+            case "water" -> {
+                var f1 = level.getFluidState(below);
+                var f2 = level.getFluidState(below.below());
+                yield f1.is(net.minecraft.tags.FluidTags.WATER) && f1.isSource()
+                        && f2.is(net.minecraft.tags.FluidTags.WATER);
+            }
+            case "lava" -> {
+                var f1 = level.getFluidState(below);
+                yield f1.is(net.minecraft.tags.FluidTags.LAVA) && f1.isSource();
+            }
+            case "void" -> {
+                int minY = level.getMinY();
+                if (below.getY() < minY) yield true;
+                var cursor = new BlockPos.MutableBlockPos(worldPosition.getX(), below.getY(), worldPosition.getZ());
+                for (int y = below.getY(); y >= minY; y--) {
+                    cursor.setY(y);
+                    if (!level.getBlockState(cursor).isAir()) yield false;
+                }
+                yield true;
+            }
+            default -> false;
+        };
+    }
     java.util.Set<java.util.UUID> establishCellIdentities(){return bays.establishIdentities();}
     java.util.Optional<java.util.UUID> creditConvertedMatter(java.util.UUID op,SubstanceKey key,long amount,TransactionContext tx){return bays.credit(op,key,amount,tx);}
     int conversionBay(SubstanceKey key,long amount){return bays.conversionBay(key,amount);}
     boolean running(){return control.runState().running();}
-    boolean allowsPowerOutput(Direction side){return allowsPort(side,MachinePortMode.POWER);}
+    boolean allowsPowerOutput(Direction side){return allowsPort(side,MachinePortMode.POWER_OUTPUT)||allowsPort(side,MachinePortMode.POWER);}
     public SimpleEnergyHandler energy() { return energy; }
     public FluidStacksResourceHandler fluids() { return fluids; }
     public MachineSettings settings() { return settings; }
@@ -250,10 +386,19 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     void learnMaterial(String material,dev.latrox.rematter.research.LearningPath path){if(level instanceof ServerLevel server)dev.latrox.rematter.research.ResearchService.learn(server,owner,material,path);}
     void learnProcess(Map<SubstanceKey,Long> inputs,Map<SubstanceKey,Long> outputs){if(level instanceof ServerLevel server)dev.latrox.rematter.research.ResearchService.learnProcess(server.getServer(),owner,inputs,outputs);}
     boolean allowsProcess(dev.latrox.rematter.chemistry.ProcessRecipe recipe){
-        if(recipe.minField()==0)return true;
-        if(kind()!=MachineKind.INDUSTRIAL_REACTOR||!industrialStructureReady())return false;
+        return processRestriction(recipe).isEmpty();
+    }
+    String processRestriction(dev.latrox.rematter.chemistry.ProcessRecipe recipe){
+        if(recipe.minField()==0)return "";
+        boolean reactorMatch = recipe.type() == dev.latrox.rematter.chemistry.ProcessType.TRANSMUTATION
+                ? kind() == MachineKind.TRANSMUTATION_REACTOR
+                : kind() == MachineKind.INDUSTRIAL_REACTOR;
+        if(!reactorMatch||!industrialStructureReady())return "requires_field";
         var hardware=IndustrialStructure.inspect(this).performance();
-        return hardware.field()>=recipe.minField()&&(!recipe.requiresKnownOutputs()||level instanceof ServerLevel server&&dev.latrox.rematter.research.ResearchService.knownSubstances(server,owner).stream().anyMatch(key->key.id().equals(recipe.product())));
+        if(hardware.field()<recipe.minField())return "requires_field";
+        if(!hasCatalyst(recipe.catalyst()))return "requires_catalyst";
+        if(recipe.requiresKnownOutputs()&&!(level instanceof ServerLevel server&&dev.latrox.rematter.research.ResearchService.knownSubstances(server,owner).stream().anyMatch(key->key.id().equals(recipe.product()))))return "requires_research";
+        return "";
     }
     int recoveryMask(){return (recoverySlot(3)?8:0)|(recoverySlot(4)?16:0);}
     boolean assayMode(){return extensions.assayMode();}
@@ -270,7 +415,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         var formation=IndustrialStructure.inspect(this);return formation.formed()&&formation.performance().precision()>=recipe.minPrecision()&&formation.performance().jobCapacity(recipe.steps())>0;
     }
     int capacityForInputs(Map<SubstanceKey,Long> inputs,int requested){
-        if(kind()!=MachineKind.INDUSTRIAL_REACTOR)return requested;
+        if(kind()!=MachineKind.INDUSTRIAL_REACTOR&&kind()!=MachineKind.TRANSMUTATION_REACTOR)return requested;
         long per=dev.latrox.rematter.chemistry.MatterAmounts.total(inputs);if(per==0)return requested;
         return (int)Math.min(requested,IndustrialStructure.inspect(this).performance().processRoom()/per);
     }
@@ -287,7 +432,15 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     static void clearPlanning() { PLANNING.clear(); }
     private BatchReservations planning() { return PLANNING.computeIfAbsent((ServerLevel)level,ignored->new BatchReservations()); }
     public boolean configure(Player player,MachineSettings next) {
-        if(!isLiveServerMachine()||player.isSpectator()||!canAccess(player)||!kind().processes()||kind()==MachineKind.ANALYZER||PreparationTier.manual(kind()))return false;
+        boolean reserveOnly = kind().isEnergyReactor() || kind() == MachineKind.PRIMAL_CONVERTER;
+        if(!isLiveServerMachine()||player.isSpectator()||!canAccess(player)||(!reserveOnly&&(!kind().processes()||kind()==MachineKind.ANALYZER||PreparationTier.manual(kind()))))return false;
+        if (reserveOnly) {
+            if (next.target() != 0 || !next.targetSubstance().isEmpty() || !next.ventedGases().isEmpty()) return false;
+            if (next.equals(settings)) return true;
+            settings = next;
+            setChanged();
+            return true;
+        }
         if(!next.ventedGases().equals(settings.ventedGases())&&!canRemove(player))return false;
         for(String gas:next.ventedGases())if(!ReMatter.chemistry().isKnown(dev.latrox.rematter.chemistry.SubstanceKey.of(gas,dev.latrox.rematter.chemistry.Phase.GAS)))return false;
         boolean physical=kind().synthesis()||PreparationTier.isPreparation(kind());
@@ -344,7 +497,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         MachinePortMode next = sides.mode(kind(), side);
         setChanged();
         if (previous.allows(MachinePortMode.MATTER) != next.allows(MachinePortMode.MATTER)
-                || previous.allows(MachinePortMode.POWER) != next.allows(MachinePortMode.POWER)) {
+                || previous.allows(MachinePortMode.POWER) != next.allows(MachinePortMode.POWER)
+                || previous.allows(MachinePortMode.POWER_OUTPUT) != next.allows(MachinePortMode.POWER_OUTPUT)) {
             touchObservations();
             MatterCableBlock.refreshLoadedAround(server, worldPosition);
         }
@@ -360,8 +514,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         return net.neoforged.neoforge.model.data.ModelData.of(PortSides.PLATES, sides.visuals(kind()));
     }
     @Nullable EnergyHandler sidedEnergy(@Nullable Direction side) {
-        if(kind().generator())return allowsPort(side,MachinePortMode.POWER)
-                ?new PortEnergyHandler(extensions.output(),()->isLiveServerMachine()&&allowsPort(side,MachinePortMode.POWER)):null;
+        if(kind().generator())return allowsPowerOutput(side)
+                ?new PortEnergyHandler(extensions.output(),()->isLiveServerMachine()&&allowsPowerOutput(side)):null;
         if (!kind().processes() || IndustrialStructure.isIndustrial(kind()) || PreparationTier.manual(kind())
                 || !allowsPort(side, MachinePortMode.POWER)) return null;
         return new PortEnergyHandler(energy, () -> isLiveServerMachine() && allowsPort(side, MachinePortMode.POWER));
@@ -530,6 +684,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (automationHost != null) automationHost.close();
         work.processedThisTick = false;
         structure.removed();
+        if (level instanceof ServerLevel server) ChunkAnchorManager.release(server, worldPosition);
         super.setRemoved();
     }
     /** MachineBlock carries the complete inventory in one block item, as a portable container. */
@@ -574,14 +729,59 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         redstoneMode = Objects.requireNonNull(mode);
         redstonePulsePending = false;
         if (level != null) {
-            redstonePoweredLastTick = level.hasNeighborSignal(worldPosition);
+            redstonePoweredLastTick = isRedstonePowered();
             redstoneSampled = true;
         }
         setChanged();
     }
+    /**
+     * Evaluates Redstone control signal.
+     * - On formed multiblocks: controller always accepts redstone; dedicated REDSTONE ports take precedence over AUTOMATIC ports.
+     * - On compact machines: if any side is set to REDSTONE, only those dedicated REDSTONE sides trigger Redstone control;
+     *   otherwise any neighboring signal triggers Redstone control.
+     */
+    boolean isRedstonePowered() {
+        if (level == null) return false;
+        if (!IndustrialStructure.isIndustrial(kind())) {
+            if (MachinePortMode.configurable(kind())) {
+                Direction front = getBlockState().getValue(MachineBlock.FACING);
+                boolean hasDedicated = false;
+                boolean dedicatedSignal = false;
+                for (var side : MachinePortMode.Side.values()) {
+                    if (!PortSides.available(kind(), side)) continue;
+                    if (sides.mode(kind(), side) == MachinePortMode.REDSTONE) {
+                        hasDedicated = true;
+                        Direction worldSide = side.world(front);
+                        if (!dedicatedSignal && level.getSignal(worldPosition.relative(worldSide), worldSide) > 0) {
+                            dedicatedSignal = true;
+                        }
+                    }
+                }
+                if (hasDedicated) return dedicatedSignal;
+            }
+            return level.hasNeighborSignal(worldPosition);
+        }
+        if (level.hasNeighborSignal(worldPosition)) return true;
+        var formation = IndustrialStructure.inspect(this);
+        if (!formation.formed()) return false;
+        boolean hasDedicated = false;
+        boolean dedicatedSignal = false;
+        boolean autoSignal = false;
+        for (var port : formation.ports()) {
+            if (!(level.getBlockEntity(port.position()) instanceof MachinePortBlockEntity pbe)) continue;
+            var mode = pbe.mode();
+            if (mode == MachinePortMode.REDSTONE) {
+                hasDedicated = true;
+                if (!dedicatedSignal && level.hasNeighborSignal(port.position())) dedicatedSignal = true;
+            } else if (mode == MachinePortMode.AUTOMATIC) {
+                if (!autoSignal && level.hasNeighborSignal(port.position())) autoSignal = true;
+            }
+        }
+        return hasDedicated ? dedicatedSignal : autoSignal;
+    }
     boolean redstoneAllowsWork() {
         if (!RedstoneMode.controllable(kind()) || redstoneMode == RedstoneMode.IGNORED) return true;
-        boolean powered = level != null && level.hasNeighborSignal(worldPosition);
+        boolean powered = isRedstonePowered();
         return redstoneMode.permits(powered, redstonePulsePending);
     }
     boolean redstoneAllowsGenerator(boolean burningBatchInProgress) {
@@ -593,12 +793,49 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     private void sampleRedstone() {
         if (!RedstoneMode.controllable(kind()) || level == null) return;
-        boolean powered = level.hasNeighborSignal(worldPosition);
+        boolean powered = isRedstonePowered();
         if (redstoneSampled && powered && !redstonePoweredLastTick && redstoneMode == RedstoneMode.PULSE) {
             redstonePulsePending = true;
         }
         redstonePoweredLastTick = powered;
         redstoneSampled = true;
+    }
+    long effectiveNetworkReserve(SubstanceKey key) {
+        long local = settings.networkReserve();
+        long global = (level instanceof ServerLevel server && owner != null)
+                ? NetworkReservesSavedData.get(server.getServer()).amount(owner, key) : 0L;
+        return Math.max(local, global);
+    }
+    long effectivePrimalNetworkReserve() {
+        return effectiveNetworkReserve(new SubstanceKey(dev.latrox.rematter.chemistry.ReservedSubstances.PRIMAL_MATTER, dev.latrox.rematter.chemistry.Phase.SOLID));
+    }
+    boolean violatesNetworkReserve(@Nullable MatterStore store, Map<SubstanceKey, Long> inputs) {
+        if (store == null || inputs.isEmpty()) return false;
+        for (var entry : inputs.entrySet()) {
+            long reserve = effectiveNetworkReserve(entry.getKey());
+            if (reserve <= 0L) continue;
+            long available = store.amount(entry.getKey());
+            if (available >= entry.getValue() && available - entry.getValue() < reserve) return true;
+        }
+        return false;
+    }
+    private Map<SubstanceKey, Long> reserveAdjustedContents(@Nullable MatterStore store, Map<SubstanceKey, Long> inputs) {
+        if (store == null) return Map.of();
+        var raw = store.contents();
+        if (inputs.isEmpty()) return raw;
+        Map<SubstanceKey, Long> adjusted = null;
+        for (var key : inputs.keySet()) {
+            long reserve = effectiveNetworkReserve(key);
+            if (reserve <= 0L) continue;
+            long have = raw.getOrDefault(key, 0L);
+            long usable = Math.max(0L, have - reserve);
+            if (usable != have) {
+                if (adjusted == null) adjusted = new java.util.HashMap<>(raw);
+                if (usable == 0L) adjusted.remove(key);
+                else adjusted.put(key, usable);
+            }
+        }
+        return adjusted == null ? raw : adjusted;
     }
     void afterRotation(ServerLevel server) {
         structure.refresh();
@@ -633,10 +870,19 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
      * for the owner whose UUID it carries; a placement without any player leaves the machine unowned.
      */
     void placedBy(@Nullable LivingEntity placer) {
+        placedBy(placer, ItemStack.EMPTY);
+    }
+    void placedBy(@Nullable LivingEntity placer, ItemStack stack) {
         if (securityMode == SecurityMode.PUBLIC && unsupportedData == null) {
             securityMode = MachineAccess.placementDefault(level, placer);
         }
+        String fromItem = CustomNames.fromStack(stack);
+        if (!fromItem.isEmpty() && unsupportedData == null) {
+            customName = fromItem;
+            setChanged();
+        }
         assignOwner(placer instanceof Player player&&!(player instanceof FakePlayer)?player.getUUID():null);
+        syncChunkAnchor();
         if(kind()==MachineKind.HAND_PREPARATOR&&placer instanceof Player player&&!(player instanceof FakePlayer)&&!player.isSpectator())
             guidance(dev.latrox.rematter.guide.GuidanceEvent.START_WORKSHOP);
     }
@@ -649,6 +895,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         owner = next;
         setChanged();
         touchObservations();
+        syncChunkAnchor();
         if (level != null) level.invalidateCapabilities(worldPosition);
         if (level instanceof ServerLevel server) MatterCableBlock.refreshLoadedAround(server, worldPosition);
     }
@@ -1039,7 +1286,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         // A foreign transfer may roll back its member snapshots. Do not complete unrelated work inside it.
         if (Transaction.getCurrentOpenedTransaction() != null) return;
         sampleRedstone();
-        if (structure.refresh()) sendClientUpdate();
+        boolean structureChanged = structure.refresh();
+        if (structureChanged) sendClientUpdate();
+        if (hasAnchorUpgrade() && (structureChanged || (level.getGameTime() & 15L) == 0L)) syncChunkAnchor();
         if(IndustrialStructure.isIndustrial(kind())&&IndustrialStructure.inspect(this).formed()&&level instanceof ServerLevel server) {
             if (kind() == MachineKind.INDUSTRIAL_REACTOR) {
                 dev.latrox.rematter.research.ResearchService.recordIndustrial(server, owner, dev.latrox.rematter.research.ResearchLedger.Milestone.INDUSTRIAL_REACTOR);
@@ -1081,8 +1330,8 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (supportsNetworkJobs() && networkJobs != setup.networkJobs()) toggleNetworkJobs();
         if (!networkJobs) {
             if (!setup.selection().isEmpty()) selectRecipe(setup.selection());
-            if (!configure(player, setup.settings()) && !setup.settings().ventedGases().isEmpty() && canRemove(player)) {
-                configure(player, new MachineSettings(0, "", "solid", setup.settings().ventedGases()));
+            if (!configure(player, setup.settings()) && (!setup.settings().ventedGases().isEmpty() || setup.settings().networkReserve() > 0L) && (setup.settings().ventedGases().isEmpty() || canRemove(player))) {
+                configure(player, new MachineSettings(0, "", "", setup.settings().ventedGases(), setup.settings().networkReserve()));
             }
             if (supportsBatchControl() && control.runState().repeat() != setup.repeat()) toggleRepeat();
             if (running() != setup.running()) toggleRunning();
@@ -1224,7 +1473,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
                 final MatterStore activeStore = store;
                 work.ticket=planning().reserve(worker.id(),network==null?this:network.planningKey(),
                         network==null?Set.of(this):network.planningMembers(),level.getGameTime(),
-                        activeStore==null?Map.of():activeStore.contents(),activeStore==null?Long.MAX_VALUE:activeStore.capacity(),
+                        reserveAdjustedContents(activeStore, operation.inputs()),activeStore==null?Long.MAX_VALUE:activeStore.capacity(),
                         operation.inputs(),outputs,limit,energy.getAmountAsLong(),restoring>0?0L:firstTickPerBatch,operations.physicalLimit(operation),
                         targetActive()?settings.target():0,targetKey,
                         activeStore==null?key->false:activeStore::voidsOverflow);
@@ -1244,9 +1493,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         long totalBatchEnergy = Math.multiplyExact(operation.cost(), work.ticket.remaining());
         long due = MachineEnergyPolicy.stepEnergy(totalBatchEnergy, work.progress, speed, work.duration, work.energyPaid);
         if (energy.getAmountAsLong() < due) { work.status = PreparationTier.isPreparation(kind()) ? "energy" : "insufficient_energy"; return; }
-        boolean transferred=network==null||transferWork.advance(operation.signature(),
+        boolean transferred=network==null||network.advanceTransfer(this,transferWork,operation.signature(),
                 ControllerThroughput.units(operation.inputs().values(),operation.outputs().values(),work.ticket.remaining()),
-                level.getGameTime(),network.throughputTier(this).matterRate());
+                level.getGameTime(),operation.inputs(),operations.storedOutputs(operation));
         if (due > 0) {
             energy.set((int) (energy.getAmountAsLong() - due));
             work.energyPaid += due;
@@ -1372,14 +1621,14 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
 
     boolean advanceNetworkTransfer(String signature,long units) {
         var network=matterNetwork(false);
-        return network.ready()&&transferWork.advance(signature,units,level.getGameTime(),network.throughputTier(this).matterRate());
+        return network.ready()&&network.advanceTransfer(this,transferWork,signature,units,level.getGameTime(),Map.of(),Map.of());
     }
     void completeNetworkTransfer(){transferWork.completed();}
-    int matterTransferRate(){return matterNetwork(false).throughputTier(this).matterRate();}
+    int matterTransferRate(){return matterNetwork(false).matterRate(this);}
     /** Work units per tick, from the machine tier, a formed structure and speed upgrades. */
     int speed() {
         if (PreparationTier.manual(kind())) return 1;
-        int base = IndustrialStructure.usesReactorModules(kind()) ? 2 : PreparationTier.speed(kind());
+        int base = hasExtractionFocus() ? 2 : IndustrialStructure.usesReactorModules(kind()) ? 2 : PreparationTier.speed(kind());
         if (IndustrialStructure.isIndustrial(kind())) {
             var formation = IndustrialStructure.inspect(this);
             if (formation.formed()) base = formation.baseWorkRate(kind());
@@ -1428,7 +1677,9 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     MachineMatterNetwork matterNetwork(boolean deep) {
         if (cachedNetwork == null || !cachedNetwork.current(this, deep)) {
             var network = MachineMatterNetwork.discover(this);
-            for (var machine : network.machines()) machine.cachedNetwork = network;
+            for (var machine : network.machines()) {
+                if (network.sharesPerspective(machine)) machine.cachedNetwork = network;
+            }
             cachedNetwork = network;
         }
         return cachedNetwork;
@@ -1457,8 +1708,10 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     static long insertable(MatterStore store, SubstanceKey key, long maximum) {
         if (maximum <= 0) return 0;
         long capacity = 0;
-        for (var member : store.members()) {
-            if (!member.hasTypeSpace(Map.of(), Map.of(key, 1L))) continue;
+        var members = store.members();
+        for (int i = 0; i < members.size(); i++) {
+            var member = members.get(i);
+            if (!store.canDepositMember(i, key) || !member.hasTypeSpace(Map.of(), Map.of(key, 1L))) continue;
             long add = Math.min(maximum - capacity, member.freeSpace());
             capacity += add;
             if (capacity == maximum) break;
@@ -1481,17 +1734,20 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     /** Integrations must revalidate immediately before dispatching an order on the server thread. */
     public boolean isCurrentNetworkWorker(UUID requester, MachineBlockEntity worker) {
         if (requester == null || !Objects.equals(owner, requester) || !isLiveServerMachine()
-                || worker == null || !worker.isLiveServerMachine() || worker.getLevel() != level
+                || worker == null || !worker.isLiveServerMachine()
                 || !Objects.equals(worker.owner, requester)) return false;
         var network = matterNetwork(true);
         return network.ready() && network.hasWorker(worker);
     }
     TerminalDevicesPayload.Device terminalDevice() {
         var choice = terminalChoice();
+        String dimId = level instanceof ServerLevel sl ? sl.dimension().identifier().toString() : "minecraft:overworld";
         return new TerminalDevicesPayload.Device(worldPosition, kind(), work.status, choice == null ? "" : choice.id(),
                 Math.min(work.progress, work.duration), work.duration,
                 supportsBatchControl() ? control.runState().queuedBatches() : 0, choice != null && canQueueFromTerminal(),
-                settings.target(),targetStock(),!settings.targetSubstance().isEmpty(),Math.min(parallelRunning(),parallelCapacity()),parallelCapacity());
+                settings.target(), targetStock(), !settings.targetSubstance().isEmpty(),
+                Math.min(parallelRunning(), parallelCapacity()), parallelCapacity(),
+                customName, dimId);
     }
     boolean queueFromTerminal(String expectedRecipe) {
         var choice = terminalChoice();
@@ -1568,6 +1824,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if(preparationRecoveryMask!=0)output.putInt("preparation_recovery_mask",preparationRecoveryMask);
         if (owner != null) output.putString("owner", owner.toString());
         if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
+        if (!customName.isEmpty()) output.putString("custom_name", customName);
         output.putBoolean("automation", automation);
         if (autoEject && supportsAutoEject(kind())) output.putBoolean("auto_eject", true);
         sides.save(output);
@@ -1583,6 +1840,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         output.putLong("target",settings.target());
         output.putString("target_substance",settings.targetSubstance());output.putString("target_phase",settings.targetPhase());
         output.store("vented_gases",Codec.STRING.listOf(),settings.ventedGases().stream().sorted().toList());
+        if (settings.networkReserve() > 0L) output.putLong("network_reserve", settings.networkReserve());
         output.putLong("vented_total",ventedTotal);
         if (redstoneMode != RedstoneMode.IGNORED) output.putString("redstone_mode", redstoneMode.getSerializedName());
         if (redstonePulsePending) output.putBoolean("redstone_pulse", true);
@@ -1659,10 +1917,12 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         }
         owner = input.getString("owner").map(MachineSchema::owner).orElse(null);
         securityMode = SecurityMode.PUBLIC;
+        customName = CustomNames.sanitize(input.getStringOr("custom_name", ""));
         try {
             securityMode = input.getString("security").map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
             settings=new MachineSettings(input.getLongOr("target",0),input.getStringOr("target_substance",""),
-                    input.getStringOr("target_phase",""),Set.copyOf(input.read("vented_gases",Codec.STRING.listOf()).orElse(List.of())));
+                    input.getStringOr("target_phase",""),Set.copyOf(input.read("vented_gases",Codec.STRING.listOf()).orElse(List.of())),
+                    input.getLongOr("network_reserve",0L));
             ventedTotal=input.getLongOr("vented_total",0);if(ventedTotal<0)throw new IllegalArgumentException("Invalid vent counter");
             redstoneMode = input.getString("redstone_mode").map(RedstoneMode::load).orElse(RedstoneMode.IGNORED);
             if (!RedstoneMode.controllable(kind())) redstoneMode = RedstoneMode.IGNORED;
@@ -1693,7 +1953,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         ValueInput savedAnalysis = input.childOrEmpty("analysis");
         analysis = AnalysisState.restore(savedAnalysis.getStringOr("item", ""), savedAnalysis.getStringOr("profile", ""));
         var stacks = savedItems.orElseThrow();
-        for (int i = 0; i < items.size(); i++) items.set(i, stacks.get(i));
+        for (int i = 0; i < Math.min(items.size(), stacks.size()); i++) items.set(i, stacks.get(i));
         // Migrate legacy compact Efficiency Upgrades from the shared slot 2 into the dedicated Efficiency slot 10.
         if (!IndustrialStructure.isIndustrial(kind()) && MachineEnergyPolicy.supportsUpgrades(kind())
                 && items.get(MachineCellAccess.SPEED_SLOT).is(ModContent.EFFICIENCY_UPGRADE.get())
@@ -1721,7 +1981,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         bays.mountAll();
     }
 
-    @Override public Component getDisplayName() { return Component.translatable("block.rematter." + kind().id()); }
+    @Override public Component getDisplayName() { return CustomNames.displayName(customName, "block.rematter." + kind().id()); }
     @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) { return canUse(player) ? new MachineMenu(id, inventory, this) : null; }
     @Override public int getContainerSize() { return items.size(); }
     @Override public boolean isEmpty() { return items.stream().allMatch(ItemStack::isEmpty); }
@@ -1731,6 +1991,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         ItemStack result = ContainerHelper.removeItem(items, index, amount);
         if (!result.isEmpty()) {
             if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
+            if (index == MachineCellAccess.ANCHOR_SLOT) syncChunkAnchor();
             if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index); else setChanged();
         }
         return result;
@@ -1739,6 +2000,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if (MachineCellAccess.isCellSlot(kind(), index) && !prepareCellRemoval(index)) return ItemStack.EMPTY;
         ItemStack result = ContainerHelper.takeItem(items, index);
         if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
+        if (index == MachineCellAccess.ANCHOR_SLOT) syncChunkAnchor();
         if (MachineCellAccess.isCellSlot(kind(), index)) mountCell(index);
         return result;
     }
@@ -1753,6 +2015,7 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
         if(items.get(index).isEmpty())preparationRecoveryMask&=~(1<<index);
         items.set(index, stack);
         if (index == MachineCellAccess.EFFICIENCY_SLOT) syncEnergyCapacity();
+        if (index == MachineCellAccess.ANCHOR_SLOT) syncChunkAnchor();
         if (index == 0 && kind() == MachineKind.ANALYZER) { analysis = AnalysisState.EMPTY; control.runState(MachineRunState.automatic()); }
         stack.limitSize(getMaxStackSize(stack)); setChanged();
     }
@@ -1770,15 +2033,25 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     }
     @Override public boolean stillValid(Player player) { return canUse(player) && Container.stillValidBlockEntity(this, player); }
     @Override public boolean canPlaceItem(int index, ItemStack stack) {
-        if (unsupportedData != null || networkJobs && index!=2&&index!=MachineCellAccess.EFFICIENCY_SLOT&&index!=MachineCellAccess.PARALLEL_SLOT || recoverySlot(index)) return false;
+        if (unsupportedData != null || networkJobs && index!=2&&index!=MachineCellAccess.EFFICIENCY_SLOT&&index!=MachineCellAccess.PARALLEL_SLOT&&index!=MachineCellAccess.ANCHOR_SLOT || recoverySlot(index)) return false;
         if (MachineCellAccess.isCellSlot(kind(), index)) return MachineCellAccess.isMountableBayCell(stack) && stack.getCount() == 1 && canRemoveCell(index);
         if(index==MachineCellAccess.EFFICIENCY_SLOT)return MachineInputPolicy.acceptsEfficiency(kind(),stack);
-        if(index==MachineCellAccess.PARALLEL_SLOT)return IndustrialStructure.isIndustrial(kind())&&stack.is(ModContent.PARALLEL_UPGRADE.get())
-                || !IndustrialStructure.isIndustrial(kind())&&kind().synthesis()&&stack.is(ModContent.PRESSURE_MODULE.get())&&stack.getCount()==1;
-        if(index==MachineCellAccess.PRIMAL_SLOT)return (kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER)&&stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem&&stack.getCount()==1;
-        if(index==MachineCellAccess.DISCOVERY_SLOT)return kind()==MachineKind.ANALYZER&&stack.is(dev.latrox.rematter.primal.PrimalContent.DISCOVERY_LENS.get());
+        if(index==MachineCellAccess.PARALLEL_SLOT)return IndustrialStructure.isIndustrial(kind())&&kind().processes()&&stack.is(ModContent.PARALLEL_UPGRADE.get())
+                || !IndustrialStructure.isIndustrial(kind())&&kind().synthesis()&&stack.is(ModContent.PRESSURE_MODULE.get())&&stack.getCount()==1
+                || kind()==MachineKind.DEEP_EXTRACTOR&&stack.is(ModContent.EXTRACTION_FOCUS_UPGRADE.get())&&stack.getCount()==1;
+        if(index==MachineCellAccess.PRIMAL_SLOT)return (kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER||kind()==MachineKind.ENERGY_REACTOR)&&stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem&&stack.getCount()==1;
+        if(index==MachineCellAccess.DISCOVERY_SLOT)return kind()==MachineKind.ANALYZER&&stack.is(dev.latrox.rematter.primal.PrimalContent.DISCOVERY_LENS.get())&&stack.getCount()==1
+                || kind()==MachineKind.TRANSMUTATION_REACTOR&&(stack.is(ModContent.PARTICLE_RESONATOR.get())||stack.is(dev.latrox.rematter.primal.PrimalContent.PRIMAL_MATRIX_CORE.get()))&&stack.getCount()==1
+                || kind()==MachineKind.PRIMAL_REACTOR&&PrimalReactorRecipes.isSeed(stack)&&stack.getCount()==1;
+        if(index==MachineCellAccess.MASS_COMPRESSION_SLOT)return kind()==MachineKind.PRIMAL_REACTOR&&stack.is(ModContent.MASS_COMPRESSION_UPGRADE.get())&&stack.getCount()==1;
+        if(index==MachineCellAccess.ANCHOR_SLOT)return MachineInputPolicy.acceptsAnchor(kind())&&stack.is(ModContent.ANCHOR_UPGRADE.get())&&stack.getCount()==1;
+        if(kind().isEnergyMatrix()){
+            if(index==0)return stack.getCount()==1&&dev.latrox.rematter.energy.EnergyCubeBlockEntity.dischargeable(stack);
+            if(index==1)return stack.getCount()==1&&dev.latrox.rematter.energy.EnergyCubeBlockEntity.chargeable(stack);
+            return false;
+        }
         if(index==0&&(kind()==MachineKind.ANALYZER||kind()==MachineKind.PRIMAL_CONVERTER)&&(stack.getItem() instanceof dev.latrox.rematter.primal.PrimalCellItem||dev.latrox.rematter.primal.PrimalCells.sourceUnits(stack)>0))return true;
-        if(index==0&&kind().generator())return stack.getComponentsPatch().isEmpty()&&dev.latrox.rematter.content.generation.CrystalFuelData.fuels().containsKey(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
+        if(index==0&&(kind().generator()||kind().isEnergyReactor()))return stack.getComponentsPatch().isEmpty()&&dev.latrox.rematter.content.generation.CrystalFuelData.fuels().containsKey(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
         if (index == 1) return false;
         if (index == 2) return MachineInputPolicy.acceptsUpgrade(kind(), stack);
         return operations.acceptsInput(index, stack, ReMatter.chemistry());
@@ -1802,5 +2075,5 @@ public final class MachineBlockEntity extends BlockEntity implements WorldlyCont
     @Override public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction side) {
         return allowsItemOutput(side) && (index==1||recoverySlot(index));
     }
-    @Override public void clearContent() { for (int slot : cellSlots()) if (!items.get(slot).isEmpty()) return; items.clear(); syncEnergyCapacity(); setChanged(); }
+    @Override public void clearContent() { for (int slot : cellSlots()) if (!items.get(slot).isEmpty()) return; items.clear(); syncEnergyCapacity(); syncChunkAnchor(); setChanged(); }
 }

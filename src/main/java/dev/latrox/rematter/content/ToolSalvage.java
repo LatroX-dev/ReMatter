@@ -29,9 +29,9 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class ToolSalvage {
     private static final Set<String> SAFE_EMPTY_MACHINE_FIELDS = Set.of(
-            "schema", "owner", "security", "automation", "auto_eject", "ports", "network_jobs",
+            "schema", "owner", "security", "custom_name", "automation", "auto_eject", "ports", "network_jobs",
             "running", "repeat", "queued_batches", "selection",
-            "target", "target_substance", "target_phase", "vented_gases", "vented_total",
+            "target", "target_substance", "target_phase", "network_reserve", "vented_gases", "vented_total",
             "redstone_mode", "redstone_pulse", "sound_volume", "sound_muted",
             "structure_preview", "industrial_blueprint", "assay",
             "items", "power", "tank",

@@ -94,6 +94,10 @@
       "required": false
     },
     {
+      "id": "rematter:primal_energy_cube",
+      "required": false
+    },
+    {
       "id": "rematter:cell_transfer_station",
       "required": false
     },
@@ -134,11 +138,31 @@
       "required": false
     },
     {
-      "id": "rematter:industrial_decomposer_controller",
+      "id": "rematter:deep_extractor",
       "required": false
     },
     {
-      "id": "rematter:industrial_synthesizer_controller",
+      "id": "rematter:decomposer_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:synthesizer_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:transmutation_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_reactor_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:energy_matrix_controller",
+      "required": false
+    },
+    {
+      "id": "rematter:energy_reactor_controller",
       "required": false
     }
   ]

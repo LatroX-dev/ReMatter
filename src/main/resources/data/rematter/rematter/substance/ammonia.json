@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.ammonia",
+  "symbol": "NH₃",
+  "kind": "compound",
+  "composition": {
+    "rematter:nitrogen": 1,
+    "rematter:hydrogen": 3
+  },
+  "phases": [
+    "gas",
+    "liquid"
+  ]
+}

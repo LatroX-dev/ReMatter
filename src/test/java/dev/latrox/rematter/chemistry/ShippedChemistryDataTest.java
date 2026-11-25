@@ -100,6 +100,7 @@ class ShippedChemistryDataTest {
         shipped.fluids().forEach(value -> assertEquals(value.profile(), combined.fluidProfile(value.profile().fluidId()).orElseThrow()));
 
         for (ProcessRecipe recipe : combined.processes()) {
+            if (recipe.type() == ProcessType.TRANSMUTATION) continue;
             assertEquals(combined.elementAmounts(recipe.inputs()), combined.elementAmounts(recipe.outputs()),
                     recipe.id().toString());
         }

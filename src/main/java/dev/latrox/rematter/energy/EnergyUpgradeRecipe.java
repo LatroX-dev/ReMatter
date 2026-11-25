@@ -169,6 +169,8 @@ public final class EnergyUpgradeRecipe extends ShapedRecipe {
         int defaultModes = EnergyCubeSideMode.OUTPUT.ordinal();
         int sideModes = defaultModes;
         boolean customSideModes = false;
+        String savedRedstoneMode = "";
+        boolean automationAllowed = true;
         ListTag chargeItems = new ListTag();
         ListTag dischargeItems = new ListTag();
         boolean hasChargeItems = false;
@@ -182,11 +184,18 @@ public final class EnergyUpgradeRecipe extends ShapedRecipe {
                 if (data == null || data.type() != ModContent.ENERGY_CUBE_ENTITY.get()) continue;
                 var raw = data.copyTagWithoutId();
                 if (!isValidSourceCube(stack, sourceCube.tier(), null)) continue;
-                totalEnergy += Math.clamp(raw.getIntOr("energy", 0), 0, sourceCube.tier().capacity());
+                totalEnergy += Math.clamp(EnergyCubeData.readEnergy(raw), 0L, sourceCube.tier().capacity());
                 int sourceModes = raw.getIntOr("side_modes", defaultModes);
                 if (EnergyCubeData.validModes(sourceModes)) {
                     sideModes = sourceModes;
                     if (sideModes != defaultModes) customSideModes = true;
+                }
+                String rsRaw = raw.getStringOr("redstone_mode", "");
+                if (dev.latrox.rematter.content.RedstoneMode.validSimpleName(rsRaw) && !"ignored".equals(rsRaw)) {
+                    savedRedstoneMode = rsRaw;
+                }
+                if (!raw.getBooleanOr("automation", true)) {
+                    automationAllowed = false;
                 }
                 if (raw.get("items") instanceof ListTag list) {
                     for (int s = 0; s < list.size(); s++) {
@@ -213,16 +222,18 @@ public final class EnergyUpgradeRecipe extends ShapedRecipe {
 
         if (result.getItem() instanceof EnergyCubeItem targetCube) {
             EnergyCubeTier targetTier = targetCube.tier();
-            int clampedEnergy = (int) Math.clamp(totalEnergy, 0L, targetTier.capacity());
-            if (clampedEnergy > 0 || customSideModes || hasChargeItems || hasDischargeItems) {
+            long clampedEnergy = Math.clamp(totalEnergy, 0L, targetTier.capacity());
+            if (clampedEnergy > 0L || customSideModes || !savedRedstoneMode.isEmpty() || !automationAllowed || hasChargeItems || hasDischargeItems) {
                 var paddedCharge = new ListTag();
                 for (int s = 0; s < targetTier.chargingSlots(); s++) {
                     paddedCharge.add(s < chargeItems.size() ? chargeItems.get(s).copy() : new CompoundTag());
                 }
                 var tag = new CompoundTag();
                 tag.putInt("schema", EnergyCubeData.SCHEMA);
-                tag.putInt("energy", clampedEnergy);
+                tag.putLong("energy", clampedEnergy);
                 tag.putInt("side_modes", sideModes);
+                if (!savedRedstoneMode.isEmpty()) tag.putString("redstone_mode", savedRedstoneMode);
+                if (!automationAllowed) tag.putBoolean("automation", false);
                 tag.put("items", paddedCharge);
                 if (hasDischargeItems) {
                     var paddedDischarge = new ListTag();

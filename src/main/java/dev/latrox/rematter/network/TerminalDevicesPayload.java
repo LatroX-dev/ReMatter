@@ -20,7 +20,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
  */
 public record TerminalDevicesPayload(int containerId, boolean reset, int total, List<Device> changed, List<BlockPos> removed)
         implements CustomPacketPayload {
-    public static final String PROTOCOL = "4";
+    public static final String PROTOCOL = "5";
     public static final int MAX_DEVICES = 512;
     public static final Type<TerminalDevicesPayload> TYPE = new Type<>(
             Identifier.fromNamespaceAndPath(ReMatter.MOD_ID, "terminal_devices"));
@@ -34,16 +34,24 @@ public record TerminalDevicesPayload(int containerId, boolean reset, int total, 
     /** The client names the selected recipe from its ID. */
     public record Device(BlockPos position, MachineKind kind, String status, String recipeId,
                          int progress, int duration, int queuedBatches, boolean canQueue,
-                         long target,long targetStock,boolean networkTarget,int workingBatches,int batchCapacity) {
-        public Device(BlockPos position,MachineKind kind,String status,String recipeId,int progress,int duration,int queuedBatches,boolean canQueue) {
-            this(position,kind,status,recipeId,progress,duration,queuedBatches,canQueue,0,0,false,0,1);
+                         long target, long targetStock, boolean networkTarget, int workingBatches, int batchCapacity,
+                         String customName, String dimensionId) {
+        public Device(BlockPos position, MachineKind kind, String status, String recipeId, int progress, int duration, int queuedBatches, boolean canQueue) {
+            this(position, kind, status, recipeId, progress, duration, queuedBatches, canQueue, 0, 0, false, 0, 1, "", "minecraft:overworld");
+        }
+        public Device(BlockPos position, MachineKind kind, String status, String recipeId, int progress, int duration, int queuedBatches, boolean canQueue,
+                      long target, long targetStock, boolean networkTarget, int workingBatches, int batchCapacity) {
+            this(position, kind, status, recipeId, progress, duration, queuedBatches, canQueue, target, targetStock, networkTarget, workingBatches, batchCapacity, "", "minecraft:overworld");
         }
         public Device {
             position = position.immutable();
+            customName = dev.latrox.rematter.content.CustomNames.sanitize(customName);
+            dimensionId = dimensionId == null || dimensionId.isEmpty() ? "minecraft:overworld" : dimensionId;
             if (status.isEmpty() || status.length() > 64 || recipeId.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH || canQueue && recipeId.isEmpty()
+                    || dimensionId.length() > 128
                     || progress < 0 || duration < 0 || queuedBatches < 0 || queuedBatches > MachineRunState.MAX_QUEUED_BATCHES
-                    ||target<0||target>dev.latrox.rematter.content.MachineSettings.MAX_TARGET||targetStock< -1
-                    ||workingBatches<0||workingBatches>batchCapacity||batchCapacity<1||batchCapacity>4) {
+                    || target < 0 || target > dev.latrox.rematter.content.MachineSettings.MAX_TARGET || targetStock < -1
+                    || workingBatches < 0 || workingBatches > batchCapacity || batchCapacity < 1 || batchCapacity > 4) {
                 throw new IllegalArgumentException("Invalid terminal device");
             }
         }
@@ -66,7 +74,9 @@ public record TerminalDevicesPayload(int containerId, boolean reset, int total, 
             for (int i = 0; i < count; i++) {
                 changed.add(new Device(buffer.readBlockPos(), buffer.readEnum(MachineKind.class), buffer.readUtf(64),
                         buffer.readUtf(MachineSnapshot.MAX_CHOICE_ID_LENGTH), buffer.readVarInt(), buffer.readVarInt(),
-                        buffer.readVarInt(), buffer.readBoolean(),buffer.readVarLong(),buffer.readVarLong(),buffer.readBoolean(),buffer.readVarInt(),buffer.readVarInt()));
+                        buffer.readVarInt(), buffer.readBoolean(), buffer.readVarLong(), buffer.readVarLong(),
+                        buffer.readBoolean(), buffer.readVarInt(), buffer.readVarInt(),
+                        buffer.readUtf(dev.latrox.rematter.content.CustomNames.MAX_LENGTH), buffer.readUtf(128)));
             }
             int removedCount = MachineSnapshot.count(buffer, MAX_DEVICES);
             var removed = new ArrayList<BlockPos>(removedCount);
@@ -90,6 +100,8 @@ public record TerminalDevicesPayload(int containerId, boolean reset, int total, 
                 buffer.writeBoolean(device.canQueue());
                 buffer.writeVarLong(device.target());buffer.writeVarLong(device.targetStock());buffer.writeBoolean(device.networkTarget());
                 buffer.writeVarInt(device.workingBatches());buffer.writeVarInt(device.batchCapacity());
+                buffer.writeUtf(device.customName(), dev.latrox.rematter.content.CustomNames.MAX_LENGTH);
+                buffer.writeUtf(device.dimensionId(), 128);
             }
             buffer.writeVarInt(payload.removed.size());
             for (var position : payload.removed) buffer.writeBlockPos(position);

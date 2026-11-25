@@ -1,0 +1,261 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/module_mount_top",
+    "work": "rematter:block/module_reactor_fuel_core_work_active"
+  },
+  "elements": [
+    {
+      "name": "fuel_low",
+      "from": [
+        5,
+        4.5,
+        5
+      ],
+      "to": [
+        11,
+        8.5,
+        11
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            10
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            10
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            10
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            6,
+            6,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "fuel_mid",
+      "from": [
+        5.5,
+        8.5,
+        5.5
+      ],
+      "to": [
+        10.5,
+        11.5,
+        10.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            13
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            13
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            13
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            0,
+            10,
+            5,
+            13
+          ]
+        }
+      }
+    },
+    {
+      "name": "fuel_high",
+      "from": [
+        5,
+        11.5,
+        5
+      ],
+      "to": [
+        11,
+        13.5,
+        11
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            12,
+            2
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            12,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            12,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            6,
+            0,
+            12,
+            2
+          ]
+        },
+        "down": {
+          "texture": "#work",
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ]
+        }
+      }
+    },
+    {
+      "name": "apex_node",
+      "from": [
+        6.5,
+        14.5,
+        6.5
+      ],
+      "to": [
+        9.5,
+        16,
+        9.5
+      ],
+      "shade": false,
+      "light_emission": 15,
+      "neoforge_data": {
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#work",
+          "uv": [
+            12,
+            0,
+            15,
+            1.5
+          ]
+        },
+        "south": {
+          "texture": "#work",
+          "uv": [
+            12,
+            0,
+            15,
+            1.5
+          ]
+        },
+        "east": {
+          "texture": "#work",
+          "uv": [
+            12,
+            0,
+            15,
+            1.5
+          ]
+        },
+        "west": {
+          "texture": "#work",
+          "uv": [
+            12,
+            0,
+            15,
+            1.5
+          ]
+        },
+        "up": {
+          "texture": "#work",
+          "uv": [
+            0,
+            13,
+            3,
+            16
+          ],
+          "cullface": "up"
+        }
+      }
+    }
+  ]
+}

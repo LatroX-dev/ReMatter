@@ -71,7 +71,8 @@ PRIMAL_STOPS_SHOWN = 3    # stops of the Primal spectrum that every single frame
 PRIMAL_STOP_SHARE = .1    # ... each on at least this share of the lit texels of the frame
 # Hardware a device shows mounted: the item is a block-style model (S4). Blocks are block-style anyway.
 MOUNTED_HARDWARE = ('cell_housing', 'matter_cell_*', 'primal_cell_*', 'void_matter_cell', 'grinding_unit',
-                    'separation_unit', 'mixing_basin', 'field_coil', 'reaction_chamber')
+                    'separation_unit', 'mixing_basin', 'field_coil', 'reaction_chamber',
+                    'particle_emitter', 'primal_condenser_core', 'reactor_fuel_core', 'reactor_induction_coil')
 # Mounted parts that a renderer draws from sprites: the item model uses at least one of those sprites.
 RENDERER_MOUNTED = ('matter_cell_*', 'primal_cell_*', 'void_matter_cell')
 # Keys of a recipe that hold what it makes (result, results, output, itemResults, ...); every other item id in a
@@ -87,17 +88,15 @@ EXCEPTIONS = {
     # texture -> reason it may hold partly transparent pixels
     'translucent': {
         'textures/block/reactor_glass_pane.png': 'the glint of the glass pane is translucent steel',
+        'textures/block/transmutation_reactor_glass_pane.png': 'the glint of the glass pane is translucent steel',
+        'textures/block/primal_reactor_glass_pane.png': 'the glint of the glass pane is translucent steel',
+        'textures/block/energy_matrix_glass_pane.png': 'the glint of the glass pane is translucent steel',
+        'textures/block/energy_reactor_glass_pane.png': 'the glint of the glass pane is translucent steel',
     },
     # texture -> {colour: reason} for colours outside the palette
     'colour': {
         'textures/block/terminal_screen_active.png': {
             '#102c32': 'glass of the lit screen: the well with mint mixed in, darker than a straight shade of mint'},
-        'textures/block/machine_port_unformed.png': {
-            '#5c5f63': 'bevel of the neutral frame, computed from SHADE like the bevel of a mode colour',
-            '#14161b': 'bevel of the neutral frame, computed from SHADE like the bevel of a mode colour'},
-        'textures/block/machine_port_disabled.png': {
-            '#55575b': 'bevel of the neutral frame, computed from SEAM like the bevel of a mode colour',
-            '#0d0f12': 'bevel of the neutral frame, computed from SEAM like the bevel of a mode colour'},
     },
     # icon -> reason its silhouette has no dark outline
     'outline': {
@@ -108,7 +107,14 @@ EXCEPTIONS = {
     # crystal" in the guide. Without an entry, a crystal hue on an item needs that crystal in its recipe chain.
     'hue_role': {
         'machine_port': {'*': 'the ring of a port is the legend of its port mode'},
+        'transmutation_machine_port': {'*': 'the ring of a port is the legend of its port mode'},
+        'primal_machine_port': {'*': 'the ring of a port is the legend of its port mode'},
+        'energy_matrix_port': {'*': 'the ring of a port is the legend of its port mode'},
+        'energy_reactor_port': {'*': 'the ring of a port is the legend of its port mode'},
         'matter_cable': {'copper': 'the stripe is the copper conductor of the cable: copper ingots are in its recipe'},
+        'matter_cable_relay': {'ember': 'the one-way output collar and directional arrowhead share the functional PORT_ENERGY_OUTPUT direction marking with Energy Cubes and Machine Power Ports'},
+        'energy_matrix_cell': {'copper': 'the tier band inherits the copper conductor stripe of its matter_cable ingredient'},
+        'energy_matrix_provider': {'copper': 'the tier band inherits the copper conductor stripe of its matter_cable ingredient'},
     },
     # Java file -> {literal: reason} for colour literals outside the palette class
     'java_colour': {
@@ -1068,41 +1074,57 @@ def check_natural(tree, problems, name, primal=(), stops=()):
 def check_icon(tree, problems, name):
     where = tree.texture_path(name)
     image = tree.image(name)
-    if (image.width, image.height) != (ICON_SIZE, ICON_SIZE) or not image.rgba8:
+    anim = tree.animation(name)
+    animated = isinstance(anim, dict)
+    valid_dims = (
+        image.width == ICON_SIZE
+        and image.height >= ICON_SIZE * 2
+        and image.height % ICON_SIZE == 0
+        and tree.frame(name) == (ICON_SIZE, ICON_SIZE)
+    ) if animated else (image.width, image.height) == (ICON_SIZE, ICON_SIZE)
+    if not valid_dims or not image.rgba8:
         small = ' (a 16 px sprite does not sit beside the illustrated icons)' if image.width <= 32 else ''
         problems.add('S3 size', where, f'{image.width}x{image.height}, colour type {image.colour_type}, '
-                     f'{image.depth} bit; item icons are {ICON_SIZE}x{ICON_SIZE} 8-bit RGBA' + small,
+                     f'{image.depth} bit; item icons are {ICON_SIZE}x{ICON_SIZE} 8-bit RGBA (or a vertical {ICON_SIZE} px frame strip)' + small,
                      'draw an illustrated icon (SVG under artwork/ rendered by its tool, or a deterministic painter)')
         return
-    rows = image.pixels()
-    if all(rows[y][x] == rows[y - y % 2][x - x % 2] for y in range(ICON_SIZE) for x in range(ICON_SIZE)):
-        problems.add('S3 illustrated', where, 'the image is an enlarged low-resolution sprite',
-                     'draw the icon at 128 px with an outline and facet shading')
-        return
-    solid = [[pixel[3] >= 128 for pixel in row] for row in rows]
-    xs = [x for row in solid for x, inside in enumerate(row) if inside]
-    ys = [y for y, row in enumerate(solid) if any(row)]
-    if not xs:
-        problems.add('S3 illustrated', where, 'the icon is empty', 'draw the icon')
-        return
-    if any(rows[y][x][3] for y in (0, ICON_SIZE - 1) for x in (0, ICON_SIZE - 1)):
-        problems.add('S3 background', where, 'the corners are not transparent', 'keep the background transparent')
-    margin = min(min(xs), min(ys), ICON_SIZE - 1 - max(xs), ICON_SIZE - 1 - max(ys))
-    span = max(max(xs) - min(xs), max(ys) - min(ys)) + 1
-    if margin < ICON_MARGIN or span < ICON_SPAN:
-        problems.add('S3 canvas', where, f'the drawing spans {span} px and leaves {margin} px at its tightest side',
-                     f'let the longer side cover at least {ICON_SPAN} px and keep {ICON_MARGIN} px clear all round')
-    soft = sum(1 for row in rows for pixel in row if 0 < pixel[3] < 255)
-    if soft < ICON_SOFT_PIXELS:
-        problems.add('S3 illustrated', where, f'only {soft} partly transparent pixels: the edge is not anti-aliased',
-                     'render the icon with anti-aliasing')
-    edge = [rows[y][x] for y in range(ICON_SIZE) for x in range(ICON_SIZE) if solid[y][x] and not (
-        0 < y < ICON_SIZE - 1 and 0 < x < ICON_SIZE - 1
-        and solid[y - 1][x] and solid[y + 1][x] and solid[y][x - 1] and solid[y][x + 1])]
-    dark = sum(1 for pixel in edge if luminance(pixel) < OUTLINE_LUMINANCE) / len(edge)
-    if dark < OUTLINE_SHARE and not problems.excepted('outline', where):
-        problems.add('S3 outline', where, f'{dark:.0%} of the silhouette edge is dark; the other icons carry a '
-                     'closed dark outline', 'outline the drawing in a dark shade of its own colour')
+    all_rows = image.pixels()
+    frame_count = image.height // ICON_SIZE if animated else 1
+    sampled = sorted({0, frame_count // 2}) if frame_count > 1 else [0]
+    for frame_index in sampled:
+        rows = all_rows[frame_index * ICON_SIZE:(frame_index + 1) * ICON_SIZE]
+        if all(rows[y][x] == rows[y - y % 2][x - x % 2] for y in range(ICON_SIZE) for x in range(ICON_SIZE)):
+            problems.add('S3 illustrated', where, 'the image is an enlarged low-resolution sprite',
+                         'draw the icon at 128 px with an outline and facet shading')
+            return
+        solid = [[pixel[3] >= 128 for pixel in row] for row in rows]
+        xs = [x for row in solid for x, inside in enumerate(row) if inside]
+        ys = [y for y, row in enumerate(solid) if any(row)]
+        if not xs:
+            problems.add('S3 illustrated', where, 'the icon is empty', 'draw the icon')
+            return
+        if any(rows[y][x][3] for y in (0, ICON_SIZE - 1) for x in (0, ICON_SIZE - 1)):
+            problems.add('S3 background', where, 'the corners are not transparent', 'keep the background transparent')
+            return
+        margin = min(min(xs), min(ys), ICON_SIZE - 1 - max(xs), ICON_SIZE - 1 - max(ys))
+        span = max(max(xs) - min(xs), max(ys) - min(ys)) + 1
+        if margin < ICON_MARGIN or span < ICON_SPAN:
+            problems.add('S3 canvas', where, f'the drawing spans {span} px and leaves {margin} px at its tightest side',
+                         f'let the longer side cover at least {ICON_SPAN} px and keep {ICON_MARGIN} px clear all round')
+            return
+        soft = sum(1 for row in rows for pixel in row if 0 < pixel[3] < 255)
+        if soft < ICON_SOFT_PIXELS:
+            problems.add('S3 illustrated', where, f'only {soft} partly transparent pixels: the edge is not anti-aliased',
+                         'render the icon with anti-aliasing')
+            return
+        edge = [rows[y][x] for y in range(ICON_SIZE) for x in range(ICON_SIZE) if solid[y][x] and not (
+            0 < y < ICON_SIZE - 1 and 0 < x < ICON_SIZE - 1
+            and solid[y - 1][x] and solid[y + 1][x] and solid[y][x - 1] and solid[y][x + 1])]
+        dark = sum(1 for pixel in edge if luminance(pixel) < OUTLINE_LUMINANCE) / len(edge)
+        if dark < OUTLINE_SHARE and not problems.excepted('outline', where):
+            problems.add('S3 outline', where, f'{dark:.0%} of the silhouette edge is dark; the other icons carry a '
+                         'closed dark outline', 'outline the drawing in a dark shade of its own colour')
+            return
 
 
 def check_icon_sources(tree, problems):
@@ -1192,6 +1214,10 @@ def check_animations(tree, problems):
                 if count < 16 or animation.get('interpolate') is not True:
                     problems.add('S1 smooth animation',where,'a glow, liquid or energy strip needs at least 16 interpolated frames',
                                  'write at least 16 frames and interpolate: true; only the red fault blink and the Primal signature use hard steps')
+            elif 'textures/item/' in where:
+                if count < 16 or animation.get('interpolate') is not True:
+                    problems.add('S3 smooth animation', where, 'an animated illustrated item strip needs at least 16 interpolated frames',
+                                 'write at least 16 square 128x128 frames and interpolate: true')
             if count < 2:
                 problems.add('anim', where, 'an animation with a single frame', 'add frames, or drop the metadata')
             for entry in animation.get('frames', []):
@@ -1775,7 +1801,7 @@ def check_port_legends(tree, problems, palette, guide, java):
         wanted = palette.named.get(name)
         if wanted is None or java.constants.get(name) != wanted or guide.constants.get(name) != wanted:
             problems.add('ports direction', 'UiPalette.java', f'{name} differs between the guide and palettes',
-                         'use the shared Blue input / Ember output legend in the guide, Python and Java')
+                         'use the shared Emerald Green input / Gold output legend in the guide, Python and Java')
     for cube in sorted(cubes):
         for entry in tree.port_entries(tree.blockstates[cube]):
             for side, models in entry['sides'].items():
@@ -2124,7 +2150,7 @@ def selftest():
         """The press with port plates on its back: the body leaves the face out, a plain model and a plate draw it."""
         def change(files, extra):
             ring = f'{NAMESPACE}:block/machine_port_item_input'
-            files['textures/block/machine_port_item_input.png'] = framed(palette.crystals['copper'])
+            files['textures/block/machine_port_item_input.png'] = framed(palette.named['PORT_MODES.item_input'])
             files['textures/block/seat.png'] = framed(base)
             del files['models/block/press.json']['elements'][0]['faces']['south']
             face = {'name': 'face', 'from': [0, 0, 15.5], 'to': [16, 16, 16],
@@ -2145,7 +2171,8 @@ def selftest():
                 '<!-- check:port-sides -->', '| Device | Connections |', '| --- | --- |', '| `press` | back |'])
             extra['src/main/java/dev/latrox/rematter/content/MachinePortMode.java'] = (
                 'enum MachinePortMode {\n    ITEM_INPUT(0x%s),\n    POWER(0x%s);\n}'
-                % (bytes(palette.crystals['copper']).hex().upper(), bytes(palette.crystals['amber']).hex().upper()))
+                % (bytes(palette.named['PORT_MODES.item_input']).hex().upper(),
+                   bytes(palette.named['PORT_MODES.power']).hex().upper()))
             if edit:
                 edit(files, extra)
         return change
@@ -2163,7 +2190,7 @@ def selftest():
         ('a disabled side that keeps its ring', plate_model(lambda plate, blank: blank.update(
             textures=plate['textures'], elements=plate['elements'])), ['ports blank']),
         ('a plate with the ring of another role', plates(lambda files, extra: (
-            files.update({'textures/block/machine_port_power.png': framed(palette.crystals['amber']),
+            files.update({'textures/block/machine_port_power.png': framed(palette.named['PORT_MODES.power']),
                           'textures/block/machine_port_item_input.png': None}),
             files['models/block/press_back_item_input.json']['textures'].update(
                 ring=f'{NAMESPACE}:block/machine_port_power'))), ['ports ring']),
@@ -2208,9 +2235,15 @@ def selftest():
         ('enlarged 16 px item sprite', put('textures/item/dust.png', enlarged), ['S3 illustrated']),
         ('icon without anti-aliasing', put('textures/item/dust.png', icon(soft=False)), ['S3 illustrated']),
         ('icon without a dark outline', put('textures/item/dust.png', icon(dark=(200, 200, 190))), ['S3 outline']),
+        ('animated 16-frame illustrated icon', both(
+            put('textures/item/dust.png', icon() * 16),
+            put('textures/item/dust.png.mcmeta', {'animation': {'frametime': 2, 'interpolate': True}})), []),
+        ('animated icon without interpolation', both(
+            put('textures/item/dust.png', icon() * 16),
+            put('textures/item/dust.png.mcmeta', {'animation': {'frametime': 2}})), ['S3 smooth animation']),
         ('icon that fills the canvas', put('textures/item/dust.png', [[(20 + (x * 7 + y * 3) % 20, 20, 24, 255)
                                                                       for x in range(128)] for y in range(128)]),
-         ['S3 background', 'S3 canvas', 'S3 illustrated']),
+         ['S3 background']),
         ('item that shows a block sprite as its icon', put('models/item/dust.json', {
             'parent': 'minecraft:item/generated', 'textures': {'layer0': f'{NAMESPACE}:block/plate'}}),
          ['S3 item', 'refs unused']),

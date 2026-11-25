@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:elementium_block",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 18000
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 3600
+}

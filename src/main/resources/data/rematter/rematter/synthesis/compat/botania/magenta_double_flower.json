@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:magenta_double_flower",
+  "category": "natural_material"
+}

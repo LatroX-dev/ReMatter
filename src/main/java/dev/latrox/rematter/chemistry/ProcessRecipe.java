@@ -14,23 +14,31 @@ public record ProcessRecipe(
         String requiresAdvancement,
         int minField,
         boolean requiresKnownOutputs,
-        SubstanceId product) {
+        SubstanceId product,
+        String catalyst) {
     public ProcessRecipe(SubstanceId id, ProcessType type, Map<SubstanceKey, Long> inputs,
                          Map<SubstanceKey, Long> outputs, long energy, int ticks) {
-        this(id, type, inputs, outputs, energy, ticks, "", 0, false, null);
+        this(id, type, inputs, outputs, energy, ticks, "", 0, false, null, "");
     }
     public ProcessRecipe(SubstanceId id, ProcessType type, Map<SubstanceKey, Long> inputs,
                          Map<SubstanceKey, Long> outputs, long energy, int ticks, String requiresAdvancement) {
-        this(id,type,inputs,outputs,energy,ticks,requiresAdvancement,0,false,null);
+        this(id, type, inputs, outputs, energy, ticks, requiresAdvancement, 0, false, null, "");
+    }
+    public ProcessRecipe(SubstanceId id, ProcessType type, Map<SubstanceKey, Long> inputs,
+                         Map<SubstanceKey, Long> outputs, long energy, int ticks, String requiresAdvancement,
+                         int minField, boolean requiresKnownOutputs, SubstanceId product) {
+        this(id, type, inputs, outputs, energy, ticks, requiresAdvancement, minField, requiresKnownOutputs, product, "");
     }
     public ProcessRecipe {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
         Objects.requireNonNull(requiresAdvancement, "requiresAdvancement");
+        Objects.requireNonNull(catalyst, "catalyst");
         if (!requiresAdvancement.isEmpty()) SubstanceId.parse(requiresAdvancement);
+        if (!catalyst.isEmpty()) SubstanceId.parse(catalyst);
         inputs = MatterAmounts.copy(inputs);
         outputs = MatterAmounts.copy(outputs);
-        if(minField<0||minField>98||minField==0&&(requiresKnownOutputs||product!=null)
+        if(minField<0||minField>98||minField==0&&(requiresKnownOutputs||product!=null||!catalyst.isEmpty())
                 ||minField>0&&(product==null||outputs.keySet().stream().noneMatch(key->key.id().equals(product))))
             throw new IllegalArgumentException("Invalid industrial process capabilities or product");
         if (inputs.isEmpty() || outputs.isEmpty() || energy <= 0 || ticks <= 0) {

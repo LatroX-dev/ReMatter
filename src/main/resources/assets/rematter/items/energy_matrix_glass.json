@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "rematter:block/energy_matrix_glass"
+  }
+}

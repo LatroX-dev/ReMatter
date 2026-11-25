@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PMP",
+    "BKB",
+    "VRV"
+  ],
+  "key": {
+    "P": "rematter:primal_matrix_core",
+    "M": "rematter:resonant_matter_cable",
+    "B": "rematter:blue_matrix_crystal",
+    "K": "rematter:energy_core",
+    "V": "rematter:violet_matrix_crystal",
+    "R": "rematter:particle_resonator"
+  },
+  "result": {
+    "id": "rematter:primal_energy_matrix_provider",
+    "count": 1
+  }
+}

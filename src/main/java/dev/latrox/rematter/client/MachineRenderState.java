@@ -44,6 +44,10 @@ public final class MachineRenderState extends BlockEntityRenderState implements 
     public final float[] itemScales = new float[6];
     public float phase;
     public float drive;
+    public float matrixFill;
+    public float primalStability;
+    public float reactorFlux;
+    public boolean reactorCooled;
 
     @Override public void render(PoseStack.Pose pose, VertexConsumer buffer) {
         if (sprites == null) return;

@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "name": "Botania Livingrock",
+  "items": [
+    "botania:chiseled_livingrock_bricks",
+    "botania:cracked_livingrock_bricks",
+    "botania:livingrock",
+    "botania:livingrock_bricks",
+    "botania:polished_livingrock"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CNC",
+    "EAE",
+    "CNC"
+  ],
+  "key": {
+    "C": "rematter:reactor_casing",
+    "N": "rematter:netherite_sheath",
+    "E": "rematter:ember_matrix_crystal",
+    "A": "rematter:amber_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:energy_reactor_casing",
+    "count": 4
+  }
+}

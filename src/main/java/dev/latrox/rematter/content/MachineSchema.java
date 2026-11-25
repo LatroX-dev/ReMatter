@@ -17,7 +17,11 @@ final class MachineSchema {
         if (schema.isEmpty() || schema.get() != VERSION) return "unsupported schema " + schema.map(String::valueOf).orElse("(missing)");
         if (owner.isPresent() && owner(owner.get()) == null) return "malformed owner";
         if (storedItems.isEmpty()) return "unreadable items";
-        if (storedItems.get() != inventorySize) return storedItems.get() + " item slots instead of " + inventorySize;
+        boolean legacyAnchorSlotUpgrade = inventorySize == MachineCellAccess.INVENTORY_SIZE
+                && storedItems.get() == MachineCellAccess.INVENTORY_SIZE - 1;
+        if (storedItems.get() != inventorySize && !legacyAnchorSlotUpgrade) {
+            return storedItems.get() + " item slots instead of " + inventorySize;
+        }
         if (storedTanks.isEmpty()) return "unreadable tank";
         if (storedTanks.get() != tankCount) return storedTanks.get() + " tanks instead of " + tankCount;
         return null;
@@ -34,7 +38,9 @@ final class MachineSchema {
     /** A stored selection that could never be a choice identifier is dropped instead of reaching clients. */
     static String selection(String saved) {
         if (saved.isEmpty() || saved.length() > MachineSnapshot.MAX_CHOICE_ID_LENGTH) return "";
-        String id = saved.startsWith(MachineChoices.FLUID_PREFIX) ? saved.substring(MachineChoices.FLUID_PREFIX.length()) : saved;
+        String id = saved.startsWith(MachineChoices.FLUID_PREFIX) ? saved.substring(MachineChoices.FLUID_PREFIX.length())
+                : saved.startsWith(PrimalReactorRecipes.MANIFEST_PREFIX) ? saved.substring(PrimalReactorRecipes.MANIFEST_PREFIX.length())
+                : saved;
         return id.indexOf(':') > 0 && Identifier.tryParse(id) != null ? saved : "";
     }
 }

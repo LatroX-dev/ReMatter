@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NMN",
+    "BKB",
+    "DGD"
+  ],
+  "key": {
+    "N": "rematter:netherite_sheath",
+    "M": "rematter:resonant_matter_cable",
+    "B": "rematter:blue_matrix_crystal",
+    "K": "rematter:energy_core",
+    "D": "rematter:diamond_lattice",
+    "G": "rematter:matrix_cluster"
+  },
+  "result": {
+    "id": "rematter:resonant_energy_matrix_provider",
+    "count": 1
+  }
+}

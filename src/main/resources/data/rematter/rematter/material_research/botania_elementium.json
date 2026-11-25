@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Botania Elementium",
+  "items": [
+    "botania:elementium_block",
+    "botania:elementium_ingot",
+    "botania:elementium_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

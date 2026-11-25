@@ -185,7 +185,7 @@ def element(box, faces):
               'to': [number(value) for value in box.hi]}
     if box.emissive:
         result['shade'] = False
-        result['light_emission'] = 15
+        result['light_emission'] = 15 if isinstance(box.emissive, bool) else int(box.emissive)
     if box.flat:
         result['neoforge_data'] = {'ambient_occlusion': False}
     result['faces'] = {}

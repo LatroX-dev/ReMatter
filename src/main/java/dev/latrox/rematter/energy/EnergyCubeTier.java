@@ -2,14 +2,16 @@ package dev.latrox.rematter.energy;
 
 /** Physical buffers and aggregate transfer limits, independent of chemistry and research. */
 public enum EnergyCubeTier {
-    BASIC("energy_cube", 4_000_000, 2_048, 1),
-    REINFORCED("reinforced_energy_cube", 32_000_000, 16_384, 2),
-    RESONANT("resonant_energy_cube", 256_000_000, 131_072, 4);
+    BASIC("energy_cube", 8_000_000L, 8_192, 1),
+    REINFORCED("reinforced_energy_cube", 64_000_000L, 65_536, 2),
+    RESONANT("resonant_energy_cube", 512_000_000L, 524_288, 4),
+    PRIMAL("primal_energy_cube", 4_096_000_000L, 4_194_304, 4);
 
     private final String id;
-    private final int capacity, rate, slots;
+    private final long capacity;
+    private final int rate, slots;
 
-    EnergyCubeTier(String id, int capacity, int rate, int slots) {
+    EnergyCubeTier(String id, long capacity, int rate, int slots) {
         this.id = id;
         this.capacity = capacity;
         this.rate = rate;
@@ -17,7 +19,7 @@ public enum EnergyCubeTier {
     }
 
     public String id() { return id; }
-    public int capacity() { return capacity; }
+    public long capacity() { return capacity; }
     public int transferRate() { return rate; }
     public int chargingSlots() { return slots; }
     public int dischargingSlots() { return slots; }

@@ -49,7 +49,7 @@ public final class EnergyCubeBlock extends Block implements EntityBlock {
     }
     @Override public void setPlacedBy(Level level,BlockPos pos,BlockState state,@Nullable LivingEntity placer,ItemStack stack){
         super.setPlacedBy(level,pos,state,placer,stack);
-        if(!level.isClientSide()&&level.getBlockEntity(pos) instanceof EnergyCubeBlockEntity cube)cube.placedBy(placer);
+        if(!level.isClientSide()&&level.getBlockEntity(pos) instanceof EnergyCubeBlockEntity cube)cube.placedBy(placer,stack);
     }
     @Override protected InteractionResult useWithoutItem(BlockState state,Level level,BlockPos pos,Player player,BlockHitResult hit){
         if(level.getBlockEntity(pos) instanceof EnergyCubeBlockEntity cube){
@@ -61,7 +61,7 @@ public final class EnergyCubeBlock extends Block implements EntityBlock {
                         dev.latrox.rematter.content.ModSounds.play(level,pos,dev.latrox.rematter.content.ModSounds.PORT_CYCLE);
                     }
                 }else if(player instanceof ServerPlayer server){
-                    server.openMenu(cube,buffer->{buffer.writeBlockPos(pos);buffer.writeVarInt(tier.ordinal());});
+                    server.openMenu(cube,buffer->{buffer.writeBlockPos(pos);buffer.writeVarInt(tier.ordinal());buffer.writeUtf(cube.customName(),dev.latrox.rematter.content.CustomNames.MAX_LENGTH);});
                 }
             }
             return InteractionResult.SUCCESS;
@@ -74,6 +74,7 @@ public final class EnergyCubeBlock extends Block implements EntityBlock {
     }
     public ItemStack storedDrop(EnergyCubeBlockEntity cube,HolderLookup.Provider registries){
         var result=new ItemStack(this);result.applyComponents(cube.collectComponents());
+        dev.latrox.rematter.content.CustomNames.applyToStack(result,cube.customName());
         var data=cube.saveCustomOnly(registries);data.remove("owner");data.remove("security");
         result.set(DataComponents.BLOCK_ENTITY_DATA,TypedEntityData.of(cube.getType(),data));
         return result;

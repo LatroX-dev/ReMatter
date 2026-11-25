@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "BMB",
+    "ICI",
+    "DFD"
+  ],
+  "key": {
+    "B": "rematter:structural_bars",
+    "M": "rematter:mint_matrix_crystal",
+    "I": "rematter:bore_core",
+    "C": "rematter:control_circuit",
+    "D": "rematter:diamond_lattice",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:deep_extractor",
+    "count": 1
+  }
+}

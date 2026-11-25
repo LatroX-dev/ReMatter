@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "item": "rematter:transmutation_reactor_casing",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:cinderium",
+      "phase": "solid",
+      "amount": 62
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 256
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 437
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 312
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1437
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1005
+    }
+  ],
+  "decomposition_energy": 10000,
+  "synthesis_energy": 20000,
+  "ticks": 50
+}

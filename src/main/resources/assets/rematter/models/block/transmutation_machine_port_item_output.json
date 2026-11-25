@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/transmutation_machine_port",
+  "textures": {
+    "particle": "rematter:block/transmutation_machine_port_item_output",
+    "face": "rematter:block/transmutation_machine_port_item_output"
+  }
+}

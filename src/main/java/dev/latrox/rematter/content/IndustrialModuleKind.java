@@ -6,7 +6,11 @@ public enum IndustrialModuleKind {
     SEPARATION_UNIT("separation_unit"),
     MIXING_BASIN("mixing_basin"),
     FIELD_COIL("field_coil"),
-    REACTION_CHAMBER("reaction_chamber");
+    REACTION_CHAMBER("reaction_chamber"),
+    PARTICLE_EMITTER("particle_emitter"),
+    PRIMAL_CONDENSER_CORE("primal_condenser_core"),
+    REACTOR_FUEL_CORE("reactor_fuel_core"),
+    REACTOR_INDUCTION_COIL("reactor_induction_coil");
 
     private final String id;
     IndustrialModuleKind(String id) { this.id = id; }

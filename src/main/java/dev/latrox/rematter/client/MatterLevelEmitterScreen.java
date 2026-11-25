@@ -37,7 +37,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jspecify.annotations.Nullable;
 
-/** Console for Matter Level Emitter: substance picker, threshold input, >= / < comparison toggle, and live telemetry. */
+/** Console for Matter Level Emitter: substance picker, threshold input, >= / < comparison toggle, live telemetry, and unified Device tab. */
 public final class MatterLevelEmitterScreen extends AbstractContainerScreen<MatterLevelEmitterMenu>
         implements SubstanceHoverProvider {
     private static final int WIDTH = 236;
@@ -52,11 +52,13 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
     private final ScrollModel scroll = new ScrollModel(ROWS);
     private final ScrollBar bar = new ScrollBar(scroll);
     private final List<SubstanceTile> tiles = new ArrayList<>();
+    private DarkButton mainTab, deviceTab;
     private EditBox thresholdBox;
     private EditBox searchBox;
     private DarkButton modeButton;
     private DarkButton clearButton;
-    private DarkButton securityBtn;
+    private DeviceGeneralPanel devicePanel;
+    private boolean deviceView;
     private ChemistryRegistry catalogue;
     private List<SubstanceKey> filtered = List.of();
     private boolean updatingThresholdBox;
@@ -77,16 +79,26 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
         super.init();
         leftPos = Math.max(23, leftPos);
 
-        securityBtn = addRenderableWidget(DarkButton.icon(
-                SecurityUi.icon(menu.securityMode()), SecurityUi.label(menu.securityMode()), menu.securityMode().meaning(),
-                leftPos - 22, topPos + 18, 24, 22,
-                b -> {}));
-        securityBtn.setStepAction(forward -> {
-            if (minecraft != null && minecraft.gameMode != null) {
-                minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
-                        forward ? MatterLevelEmitterMenu.CYCLE_SECURITY : MatterLevelEmitterMenu.CYCLE_SECURITY_BACK);
-            }
-        });
+        mainTab = addRenderableWidget(DarkButton.icon(UiIcon.REDSTONE,
+                title, tr("select_prompt"),
+                leftPos - 22, topPos + 18, 24, 22, b -> { deviceView = false; refresh(); }));
+        deviceTab = DeviceGeneralPanel.createSettingsTab(this::addRenderableWidget, leftPos, topPos, 1, ACCENT,
+                () -> { deviceView = true; refresh(); });
+
+        devicePanel = new DeviceGeneralPanel(font, this::addRenderableWidget, leftPos + 8, topPos + 20, imageWidth - 16, ACCENT, title,
+                menu::securityMode, menu::canManageSecurity, () -> true,
+                forward -> {
+                    if (minecraft != null && minecraft.gameMode != null) {
+                        minecraft.gameMode.handleInventoryButtonClick(menu.containerId,
+                                forward ? MatterLevelEmitterMenu.CYCLE_SECURITY : MatterLevelEmitterMenu.CYCLE_SECURITY_BACK);
+                    }
+                },
+                menu::customName,
+                clean -> {
+                    menu.setClientCustomName(clean);
+                    ClientPacketDistributor.sendToServer(new MatterLevelEmitterPayload.Rename(menu.containerId, clean));
+                },
+                null, null);
 
         modeButton = addRenderableWidget(DarkButton.labelIcon(
                 UiIcon.REDSTONE,
@@ -137,10 +149,21 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
     }
 
     public List<Rect2i> viewerExclusionAreas() {
-        if (securityBtn != null && securityBtn.visible) {
-            return List.of(new Rect2i(securityBtn.getX(), securityBtn.getY(), securityBtn.getWidth(), securityBtn.getHeight()));
+        var areas = new ArrayList<Rect2i>(2);
+        for (var btn : List.of(mainTab, deviceTab)) {
+            if (btn != null && btn.visible) {
+                areas.add(new Rect2i(btn.getX(), btn.getY(), btn.getWidth(), btn.getHeight()));
+            }
         }
-        return List.of();
+        return areas;
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mx, double my, int x, int y) {
+        for (var r : viewerExclusionAreas()) {
+            if (mx >= r.getX() && mx < r.getX() + r.getWidth() && my >= r.getY() && my < r.getY() + r.getHeight()) return false;
+        }
+        return super.hasClickedOutside(mx, my, x, y);
     }
 
     private static Component modeLabel(boolean emitBelow) {
@@ -218,11 +241,26 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     private void refresh() {
         if (modeButton == null) return;
+        mainTab.setAccent(ACCENT);
+        mainTab.setSelected(!deviceView);
+        deviceTab.setAccent(ACCENT);
+        deviceTab.setSelected(deviceView);
+
+        boolean main = !deviceView;
+        modeButton.visible = modeButton.active = main;
+        thresholdBox.visible = thresholdBox.active = main;
+        searchBox.visible = searchBox.active = main;
+        clearButton.visible = main;
+        clearButton.active = main && menu.target() != null;
+        if (!main) {
+            thresholdBox.setFocused(false);
+            searchBox.setFocused(false);
+        }
+
         modeButton.setMessage(modeLabel(menu.emitWhenBelow()));
         modeButton.setTooltip(Tooltip.create(modeLabel(menu.emitWhenBelow()).copy().append("\n").append(modeHint(menu.emitWhenBelow()))));
-        clearButton.active = menu.target() != null;
-        if (securityBtn != null) {
-            SecurityUi.configure(securityBtn, menu.securityMode(), menu.canManageSecurity(), true, ACCENT);
+        if (devicePanel != null) {
+            devicePanel.refresh(deviceView, ACCENT);
         }
 
         if (!thresholdBox.isFocused() && menu.threshold() != lastSyncedThreshold) {
@@ -236,10 +274,10 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
             var tile = tiles.get(i);
             int index = scroll.offset() * COLUMNS + i;
             tile.key = index < filtered.size() ? filtered.get(index) : null;
-            tile.visible = !filtered.isEmpty();
-            tile.active = tile.key != null;
+            tile.visible = main && !filtered.isEmpty();
+            tile.active = main && tile.key != null;
             tile.selected = tile.key != null && tile.key.equals(menu.target());
-            if (tile.key != null) {
+            if (tile.visible && tile.key != null) {
                 long shownAmount = tile.selected ? menu.observedStock() : 0L;
                 tile.setMessage(SubstanceNames.labelled(tile.key));
                 tile.setTooltip(Tooltip.create(
@@ -272,6 +310,10 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
         ScreenChrome.panel(g, leftPos, topPos, imageWidth, imageHeight);
         g.fill(leftPos + 8, topPos + 17, leftPos + imageWidth - 8, topPos + 18, UiPalette.BORDER);
         g.fill(leftPos + 8, topPos + 17, leftPos + 56, topPos + 18, ACCENT);
+        if (deviceView) {
+            if (devicePanel != null) devicePanel.extractBackground(g);
+            return;
+        }
 
         ScreenChrome.inset(g, leftPos + 114, topPos + 50, 92, 18);
         ScreenChrome.inset(g, leftPos + 14, topPos + 74, 212, 18);
@@ -281,7 +323,11 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor g, int mx, int my) {
-        ScreenChrome.text(g, font, title.getString(), 8, 6, imageWidth - 16, UiPalette.TEXT);
+        DeviceGeneralPanel.drawTitle(g, font, menu.customName(), title, imageWidth - 16);
+        if (deviceView) {
+            if (devicePanel != null) devicePanel.extractLabels(g, leftPos, topPos);
+            return;
+        }
 
         boolean netReady = menu.networkReady();
         boolean emitting = menu.emitting();
@@ -319,6 +365,7 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mx, int my, float partial) {
         super.extractRenderState(g, mx, my, partial);
+        if (deviceView) return;
         int x = mx - leftPos, y = my - topPos;
         if (menu.target() != null && x >= 14 && x < 224 && y >= 34 && y < 49) {
             g.setComponentTooltipForNextFrame(font, List.of(
@@ -333,7 +380,7 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     public boolean mouseScrolled(double x, double y, double dx, double dy) {
-        if (x >= leftPos + GRID_X && x < leftPos + GRID_X + COLUMNS * PITCH + 10
+        if (!deviceView && x >= leftPos + GRID_X && x < leftPos + GRID_X + COLUMNS * PITCH + 10
                 && y >= topPos + GRID_Y && y < topPos + GRID_Y + ROWS * PITCH) {
             scroll.wheel(dy);
             refresh();
@@ -344,22 +391,25 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == 1) {
-            var hovered = substanceAt(event.x(), event.y());
-            if (hovered.isPresent()) {
-                SubstanceDetails.open(hovered.get(), ACCENT);
+        if (!deviceView) {
+            if (event.button() == 1) {
+                var hovered = substanceAt(event.x(), event.y());
+                if (hovered.isPresent()) {
+                    SubstanceDetails.open(hovered.get(), ACCENT);
+                    return true;
+                }
+            }
+            if (bar.mouseClicked(event.x(), event.y(), event.button())) {
+                refresh();
                 return true;
             }
-        }
-        if (bar.mouseClicked(event.x(), event.y(), event.button())) {
-            refresh();
-            return true;
         }
         return super.mouseClicked(event, doubleClick);
     }
 
     @Override
     public Optional<SubstanceDetails.Hover> substanceAt(double x, double y) {
+        if (deviceView) return Optional.empty();
         for (var tile : tiles) {
             if (tile.visible && tile.key != null
                     && x >= tile.getX() && x < tile.getX() + tile.getWidth()
@@ -378,7 +428,7 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
-        if (bar.mouseDragged(event.x(), event.y())) {
+        if (!deviceView && bar.mouseDragged(event.x(), event.y())) {
             refresh();
             return true;
         }
@@ -393,7 +443,8 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (!event.isEscape() && (thresholdBox.canConsumeInput() || searchBox.canConsumeInput())) {
+        if (devicePanel != null && devicePanel.handlesKey(event)) return true;
+        if (!deviceView && !event.isEscape() && (thresholdBox.canConsumeInput() || searchBox.canConsumeInput())) {
             if (thresholdBox.isFocused() && thresholdBox.keyPressed(event)) return true;
             if (searchBox.isFocused() && searchBox.keyPressed(event)) return true;
             if (event.key() != 258) return true;
@@ -403,8 +454,11 @@ public final class MatterLevelEmitterScreen extends AbstractContainerScreen<Matt
 
     @Override
     public boolean charTyped(CharacterEvent event) {
-        if (thresholdBox.isFocused()) return thresholdBox.charTyped(event);
-        if (searchBox.isFocused()) return searchBox.charTyped(event);
+        if (devicePanel != null && devicePanel.handlesChar(event)) return true;
+        if (!deviceView) {
+            if (thresholdBox.isFocused()) return thresholdBox.charTyped(event);
+            if (searchBox.isFocused()) return searchBox.charTyped(event);
+        }
         return super.charTyped(event);
     }
 

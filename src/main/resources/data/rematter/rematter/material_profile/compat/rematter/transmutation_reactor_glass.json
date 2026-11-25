@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "item": "rematter:transmutation_reactor_glass",
+  "matter": [
+    {
+      "substance": "rematter:amethyst",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid",
+      "amount": 249
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:gold",
+      "phase": "solid",
+      "amount": 250
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1250
+    },
+    {
+      "substance": "rematter:netherium",
+      "phase": "solid",
+      "amount": 500
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 2165
+    }
+  ],
+  "decomposition_energy": 11000,
+  "synthesis_energy": 22000,
+  "ticks": 50
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "reaction",
+  "inputs": [
+    {
+      "substance": "rematter:nitrogen",
+      "phase": "gas",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 3000
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:ammonia",
+      "phase": "gas",
+      "amount": 2000
+    }
+  ],
+  "energy": 64000,
+  "ticks": 600
+}

@@ -16,4 +16,10 @@ class MachineSettingsTest {
         assertDoesNotThrow(()->new MachineSettings(0,"rematter:oxygen","gas",Set.of("rematter:oxygen")));
         assertDoesNotThrow(()->new MachineSettings(1000,"rematter:hydrogen","gas",Set.of("rematter:oxygen")));
     }
+    @Test void networkReserveValidatesBoundsAndDefaultsToZero() {
+        assertEquals(0L, new MachineSettings(0, "", "", Set.of()).networkReserve());
+        assertEquals(50_000L, new MachineSettings(0, "", "", Set.of(), 50_000L).networkReserve());
+        assertThrows(IllegalArgumentException.class, () -> new MachineSettings(0, "", "", Set.of(), -1L));
+        assertThrows(IllegalArgumentException.class, () -> new MachineSettings(0, "", "", Set.of(), MachineSettings.MAX_TARGET + 1L));
+    }
 }

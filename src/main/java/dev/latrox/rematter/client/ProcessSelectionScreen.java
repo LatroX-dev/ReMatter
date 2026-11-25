@@ -72,7 +72,7 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         left=(width-panelWidth)/2;top=(height-panelHeight)/2;
         resultsX=left+8;resultsWidth=(panelWidth-36)/2;resultsTop=top+(menu.kind().synthesis()?62:42);
         detailX=resultsX+resultsWidth+6;detailWidth=left+panelWidth-8-detailX;
-        footerY=top+panelHeight-24;ingredientTop=top+55;
+        footerY=top+panelHeight-24;ingredientTop=top+45;
         results.setVisibleRows(Math.max(1,(footerY-resultsTop-6)/RESULT_PITCH));
         materials.setVisibleRows(Math.max(1,(footerY-ingredientTop-30)/MATERIAL_PITCH));
         String query=search==null?"":search.getValue();
@@ -254,12 +254,10 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         long energy=effective?preview.energy():product.energy();int ticks=effective?preview.ticks():product.ticks();
         drawProductIcon(g,product,detailX+4,top+24);
         ScreenChrome.twoLines(g,font,productLabel(product),detailX+24,top+23,detailWidth-28,PAPER);
-        ScreenChrome.text(g,font,tr("materials").getString(),detailX+4,top+44,detailWidth-12,MUTED);
-        if(inside(mouseX,mouseY,detailX,top+43,detailWidth,11))
-            g.setComponentTooltipForNextFrame(font,List.of(tr("materials_hint"),tr("material_scroll_hint")),mouseX,mouseY);
-        if(inside(mouseX,mouseY,detailX,top+20,detailWidth,31)) {
+        if(inside(mouseX,mouseY,detailX,top+20,detailWidth,24)) {
             var tooltip=new ArrayList<Component>(List.of(Component.literal(productLabel(product)),Component.literal(product.id()),perBatch(product),
-                    tr("cost",Quantities.energy(Quantities.number(energy)),Quantities.duration(ticks)),tr(effective?"upgraded":"base_values")));
+                    tr("cost",Quantities.energy(Quantities.number(energy)),Quantities.duration(ticks)),tr(effective?"upgraded":"base_values"),
+                    tr("materials_hint"),tr("material_scroll_hint")));
             tooltip.addAll(requirements(product));g.setComponentTooltipForNextFrame(font,tooltip,mouseX,mouseY);
         }
         List<MaterialRow> entries=materialRows(product,effective&&preview.complete());materials.setSize(entries.size());
@@ -276,9 +274,12 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         if(requirements.isEmpty())ScreenChrome.text(g,font,note.getString(),detailX+4,costY+12,detailWidth-8,MUTED);
         else {
             boolean pressure=note.equals(Component.translatable("gui.rematter.viewer.pressure_required"));
-            ScreenChrome.icon(g,pressure?UiIcon.SLOT_PRESSURE:UiIcon.LOCKED,detailX+2,costY+8,UiPalette.WARNING);
+            String key=note.getContents() instanceof net.minecraft.network.chat.contents.TranslatableContents tc?tc.getKey():"";
+            boolean catalyst=key.equals("gui.rematter.viewer.catalyst_required");
+            boolean probe=key.startsWith("status.rematter.requires_probe_");
+            ScreenChrome.icon(g,pressure?UiIcon.SLOT_PRESSURE:catalyst?UiIcon.SLOT_LENS:probe?UiIcon.LOCATE:UiIcon.LOCKED,detailX+2,costY+8,probe?accent:UiPalette.WARNING);
             String text=pressure?Component.translatable("item.rematter.pressure_module").getString():note.getString();
-            ScreenChrome.text(g,font,text,detailX+20,costY+12,detailWidth-24,UiPalette.WARNING);
+            ScreenChrome.text(g,font,text,detailX+20,costY+12,detailWidth-24,probe?PAPER:UiPalette.WARNING);
         }
         if(inside(mouseX,mouseY,detailX,costY,detailWidth,20)) {
             var tooltip=new ArrayList<Component>(List.of(tr("cost",Quantities.energy(Quantities.number(energy)),Quantities.duration(ticks)),perBatch(product)));
@@ -286,16 +287,36 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         }
     }
     private void drawMaterial(GuiGraphicsExtractor g,MaterialRow material,int y,int mouseX,int mouseY) {
+        int stripe=material.output()?UiPalette.ACCENT:UiPalette.WARNING;
+        if(material.header()) {
+            g.fill(detailX+3,y+3,detailX+detailWidth-7,y+MATERIAL_PITCH-2,UiPalette.RECESS);
+            g.fill(detailX+3,y+3,detailX+5,y+MATERIAL_PITCH-2,stripe);
+            ScreenChrome.icon(g,material.output()?UiIcon.SLOT_OUTPUT:UiIcon.SLOT_INPUT,detailX+6,y+2,stripe);
+            ScreenChrome.text(g,font,tr(material.output()?"section_produces":"section_consumes").getString(),detailX+24,y+6,detailWidth-34,stripe);
+            if(inside(mouseX,mouseY,detailX+3,y,detailWidth-10,MATERIAL_PITCH-1)) {
+                g.setComponentTooltipForNextFrame(font,List.of(tr("materials_hint"),tr("material_scroll_hint")),mouseX,mouseY);
+            }
+            return;
+        }
         int color=phaseColor(material.phase());
         g.fill(detailX+3,y,detailX+detailWidth-7,y+MATERIAL_PITCH-1,UiPalette.PANEL);
-        if(material.key()!=null)SubstanceIcon.draw(g,detailX+4,y+2,material.key());
-        else ScreenChrome.icon(g,UiIcon.UNKNOWN,detailX+4,y+2,color);
-        String name=(material.output()?"+ ":"")+material.label();
-        ScreenChrome.text(g,font,name,detailX+23,y+1,detailWidth-32,material.known()?PAPER:UiPalette.WARNING);
+        g.fill(detailX+3,y,detailX+5,y+MATERIAL_PITCH-1,stripe);
+        if(material.physicalOutput()&&focused()!=null)drawProductIcon(g,focused(),detailX+6,y+2);
+        else if(material.key()!=null)SubstanceIcon.draw(g,detailX+6,y+2,material.key());
+        else ScreenChrome.icon(g,UiIcon.UNKNOWN,detailX+6,y+2,color);
+        String name=(material.output()?"+ ":"- ")+material.label();
+        ScreenChrome.text(g,font,name,detailX+24,y+1,detailWidth-34,material.known()?PAPER:UiPalette.WARNING);
+        if(material.physicalOutput()&&focused()!=null) {
+            ScreenChrome.text(g,font,perBatch(focused()).getString(),detailX+24,y+11,detailWidth-34,UiPalette.ACCENT);
+            if(inside(mouseX,mouseY,detailX+3,y,detailWidth-10,MATERIAL_PITCH-1)) {
+                g.setComponentTooltipForNextFrame(font,List.of(Component.literal(material.label()),perBatch(focused())),mouseX,mouseY);
+            }
+            return;
+        }
         String available=material.available().isPresent()?Quantities.compact(material.available().getAsLong()):"?";
         Component quantities=material.output()?tr("yield",Quantities.compact(material.required())):tr("needed_available",Quantities.compact(material.required()),available);
         int amountColor=material.output()?color:material.available().isEmpty()?MUTED:material.available().getAsLong()>=material.required()?accent:UiPalette.WARNING;
-        ScreenChrome.text(g,font,quantities.getString(),detailX+23,y+11,detailWidth-32,amountColor);
+        ScreenChrome.text(g,font,quantities.getString(),detailX+24,y+11,detailWidth-34,amountColor);
         if(inside(mouseX,mouseY,detailX+3,y,detailWidth-10,MATERIAL_PITCH-1)) {
             var tooltip=material.key()==null?new ArrayList<Component>():new ArrayList<>(SubstanceDetails.tooltip(new SubstanceDetails.Hover(material.key(),material.required()),true));
             tooltip.add(tr(material.output()?"produces":"needs",Quantities.matter(Quantities.number(material.required()))));
@@ -330,16 +351,13 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         return tr("per_batch", value);
     }
     private List<Component> requirements(ProcessPresentation.Product product) {
-        var lines=new ArrayList<Component>();String advancement="";
-        if(menu.kind().synthesis()) {
-            String id=product.id().startsWith(MachineChoices.FLUID_PREFIX)?product.id().substring(MachineChoices.FLUID_PREFIX.length()):product.id();
-            var requirement=registry.synthesisPolicy().requirement(id);advancement=requirement.advancement();
-            if(requirement.tier()>1)lines.add(Component.translatable("gui.rematter.viewer.pressure_required"));
-        } else {
-            var process=registry.recipe(dev.latrox.rematter.chemistry.SubstanceId.parse(product.id())).orElse(null);
-            if(process!=null)advancement=process.requiresAdvancement();
-        }
-        if(!advancement.isEmpty())lines.add(Component.translatable("gui.rematter.viewer.advancement_required",advancement));
+        var req=ProcessPresentation.requirements(registry,menu.kind(),product);
+        var lines=new ArrayList<Component>();
+        if(req.pressure())lines.add(Component.translatable("gui.rematter.viewer.pressure_required"));
+        if(!req.catalystItemId().isEmpty())lines.add(Component.translatable("gui.rematter.viewer.catalyst_required",SubstanceNames.catalystRequirement(req.catalystItemId())));
+        if(req.minField()>0)lines.add(Component.translatable("gui.rematter.viewer.min_field_required",req.minField()));
+        if(!req.probeBelow().isEmpty())lines.add(SubstanceNames.probeRequirement(req.probeBelow()));
+        if(!req.advancement().isEmpty())lines.add(Component.translatable("gui.rematter.viewer.advancement_required",req.advancement()));
         return lines;
     }
 
@@ -349,11 +367,12 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         var snapshot = menu.snapshot();
         var stock = menu.stock();
         if (product == rowsProduct && effective == rowsEffective && snapshot == rowsSnapshot && stock == rowsStock) return rows;
-        List<MaterialRow> result = new ArrayList<>();
+        List<MaterialRow> inRows = new ArrayList<>();
+        List<MaterialRow> outRows = new ArrayList<>();
         if (effective) {
             var preview = snapshot.preview();
-            for (var amount : preview.inputs()) result.add(row(amount, snapshot.capacity() > 0 ? OptionalLong.of(amount.available()) : OptionalLong.empty(), false));
-            for (var amount : preview.outputs()) result.add(row(amount, OptionalLong.empty(), true));
+            for (var amount : preview.inputs()) inRows.add(row(amount, snapshot.capacity() > 0 ? OptionalLong.of(amount.available()) : OptionalLong.empty(), false));
+            for (var amount : preview.outputs()) outRows.add(row(amount, OptionalLong.empty(), true));
         } else {
             Map<SubstanceKey, Long> available = new HashMap<>();
             for (var entry : stock.entries()) {
@@ -361,9 +380,22 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
                 if (key != null) available.put(key, entry.amount());
             }
             boolean complete = stock.complete() && snapshot.capacity() > 0;
-            product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> result.add(row(entry,
+            product.inputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> inRows.add(row(entry,
                     ProcessPresentation.available(available, complete, entry.getKey()), false)));
-            product.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> result.add(row(entry, OptionalLong.empty(), true)));
+            product.outputs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> outRows.add(row(entry, OptionalLong.empty(), true)));
+        }
+        if (outRows.isEmpty() && (product.outputKind().equals("item") || product.outputKind().equals("fluid"))) {
+            outRows.add(new MaterialRow(null, product.outputId(), product.name(),
+                    product.outputKind().equals("fluid") ? "liquid" : "solid", true, product.outputCount(), OptionalLong.empty(), true, false, true));
+        }
+        List<MaterialRow> result = new ArrayList<>(inRows.size() + outRows.size() + 2);
+        if (!inRows.isEmpty()) {
+            result.add(headerRow(false));
+            result.addAll(inRows);
+        }
+        if (!outRows.isEmpty()) {
+            result.add(headerRow(true));
+            result.addAll(outRows);
         }
         rowsProduct = product;
         rowsEffective = effective;
@@ -373,10 +405,14 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         return rows;
     }
 
+    private static MaterialRow headerRow(boolean output) {
+        return new MaterialRow(null, "", "", "solid", true, 0L, OptionalLong.empty(), output, true, false);
+    }
+
     private static MaterialRow row(MachineSnapshot.Amount amount, OptionalLong available, boolean output) {
         String name = SubstanceNames.substance(amount.id(), amount.phase(), amount.known()).getString();
         return new MaterialRow(key(amount.id(), amount.phase()), amount.id(), amount.known() ? SubstanceLabels.shortLabel(amount.id(), name) : name,
-                amount.phase(), amount.known(), amount.required(), available, output);
+                amount.phase(), amount.known(), amount.required(), available, output, false, false);
     }
 
     private static MaterialRow row(Map.Entry<SubstanceKey, Long> amount, OptionalLong available, boolean output) {
@@ -384,7 +420,7 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         String name = SubstanceNames.substance(key).getString();
         boolean known = SubstanceNames.known(key);
         return new MaterialRow(key, key.id().toString(), known ? SubstanceLabels.shortLabel(key.id().toString(), name) : name,
-                SubstanceNames.phaseId(key.phase()), known, amount.getValue(), available, output);
+                SubstanceNames.phaseId(key.phase()), known, amount.getValue(), available, output, false, false);
     }
 
     private static SubstanceKey key(String id, String phase) {
@@ -393,7 +429,7 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
     }
 
     private record MaterialRow(SubstanceKey key, String id, String label, String phase, boolean known, long required,
-                               OptionalLong available, boolean output) {}
+                               OptionalLong available, boolean output, boolean header, boolean physicalOutput) {}
 
     private static String productSymbol(ProcessPresentation.Product product) {
         return product.outputs().size() == 1

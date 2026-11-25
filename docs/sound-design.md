@@ -58,6 +58,11 @@ Current mechanism timings that the cues are written against (animation ticks at 
 | Atmospheric Collector | a pulse enters the core every 12 ticks | 24 | two hollow intake puffs |
 | Chemical Reactor | module beam pulses | 32 | soft field pulse |
 | Preparation Reactor | Resonance Cutter blade | 24 | swish, resonant chop at 0.3 s, forming tick |
+| Deep-Core Extractor | bore bit plunges and lifts | 24 | smooth rotary bore + hydraulic pressure plunge at 0.55 s (click-free) |
+| Transmutation Reactor | chamber emitter beams pulse | 32 | deep magnetic convergence swell cresting at 0.70 s |
+| Primal Reactor | prismatic gimbal & orbiting motes | 40 | deep gravitational orbital breath cresting at 0.95 s |
+| Energy Reactor | thermal-induction power chamber pulses | 32 | deep power-vault bed + warm thermal-induction flux pulse at 0.72 s |
+| Energy Matrix | silent storage multiblock | — | silent by design, like Energy Cubes and Matter Drive |
 
 When a mechanism's timing changes in the renderer, the cue for it changes in the same change.
 
@@ -69,13 +74,16 @@ profile, a per-clip record (checksum, loudness, measurements) and the provenance
 | Set | Contents |
 | --- | --- |
 | `studio-v10` | the set that shipped until 2026-11-17, archived unchanged, with the timer-accent behaviour it had |
-| `workshop-v11` | the current set: beds, motion cues and dedicated interaction sounds |
+| `workshop-v11` | beds, motion cues and dedicated interaction sounds, archived unchanged |
+| `workshop-v12` | first synthetic draft of the four endgame roles, archived unchanged |
+| `workshop-v13` | deep MOSS-SoundEffect v2.0 + studio builds for the four endgame roles, archived unchanged |
+| `workshop-v14` | the current set: click-free Smooth Rotary Bore for Deep-Core Extractor, dedicated deep Energy Reactor role, and silent Energy Matrix |
 
 `tools/generate_sound_assets.py` installs the selection into the resource folder and writes `sounds.json`,
 `machine_audio.json` and `artwork/sound-rendered.json`. Three constants at its top select what is installed:
 
 ```python
-ACTIVE_SET = "workshop-v11"
+ACTIVE_SET = "workshop-v14"
 ROLE_OVERRIDES = {}      # machine role -> set, for example {"generator": "studio-v10"}
 EVENT_OVERRIDES = {}     # interaction event -> set, for example {"wrench_configure": "studio-v10"}
 ```

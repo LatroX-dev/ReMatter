@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LML",
+    "ECE",
+    "OKO"
+  ],
+  "key": {
+    "L": "rematter:lumivex_ingot",
+    "M": "rematter:reinforced_matter_cable",
+    "E": "rematter:ember_matrix_crystal",
+    "C": "rematter:reinforced_energy_cube",
+    "O": "rematter:optical_circuit",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:reinforced_energy_matrix_cell",
+    "count": 1
+  }
+}

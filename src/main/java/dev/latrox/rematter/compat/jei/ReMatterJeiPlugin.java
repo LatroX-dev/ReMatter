@@ -2,11 +2,16 @@ package dev.latrox.rematter.compat.jei;
 
 import dev.latrox.rematter.chemistry.ChemistryRegistry;
 import dev.latrox.rematter.client.CellTransferScreen;
+import dev.latrox.rematter.client.DimensionalEntangledLinkScreen;
+import dev.latrox.rematter.client.EntangledLinkScreen;
 import dev.latrox.rematter.client.EnergyCubeScreen;
 import dev.latrox.rematter.client.MachineScreen;
 import dev.latrox.rematter.client.MatterLevelEmitterScreen;
+import dev.latrox.rematter.client.MatterCableRelayScreen;
+import dev.latrox.rematter.client.NetworkReservesScreen;
 import dev.latrox.rematter.client.PrimalTargetScreen;
 import dev.latrox.rematter.client.ProcessSelectionScreen;
+import dev.latrox.rematter.client.SpatialAnchorScreen;
 import dev.latrox.rematter.client.SubstanceDetails;
 import dev.latrox.rematter.client.SubstanceDetailsScreen;
 import dev.latrox.rematter.client.SubstanceHoverProvider;
@@ -14,6 +19,7 @@ import dev.latrox.rematter.client.SubstanceScreenLayer;
 import dev.latrox.rematter.client.UiPalette;
 import dev.latrox.rematter.client.WirelessAccessPointScreen;
 import dev.latrox.rematter.compat.ChemistryViewer;
+import dev.latrox.rematter.compat.EnergyReactorDisplay;
 import dev.latrox.rematter.content.MachineKind;
 import dev.latrox.rematter.content.ModContent;
 import dev.latrox.rematter.compat.PreparationDisplay;
@@ -57,6 +63,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     private static final Map<ChemistryViewer.Category, IRecipeType<ChemistryViewer.Entry>> TYPES = new EnumMap<>(ChemistryViewer.Category.class);
     private static final Map<MachineKind, IRecipeType<PreparationDisplay>> PREPARATION_TYPES = new EnumMap<>(MachineKind.class);
     private static final Map<MachineKind, IRecipeType<dev.latrox.rematter.compat.CrystalFuelDisplay>> CRYSTAL_FUEL_TYPES = new EnumMap<>(MachineKind.class);
+    private static final IRecipeType<EnergyReactorDisplay> ENERGY_REACTOR_TYPE = IRecipeType.create("rematter", "energy_reactor", EnergyReactorDisplay.class);
     static {
         for (var category : ChemistryViewer.Category.values()) TYPES.put(category,
                 IRecipeType.create("rematter", category.id(), ChemistryViewer.Entry.class));
@@ -72,6 +79,8 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     private List<PreparationDisplay> visiblePreparation = List.of();
     private final Map<dev.latrox.rematter.compat.CrystalFuelDisplay, dev.latrox.rematter.compat.CrystalFuelDisplay> knownCrystalFuels = new HashMap<>();
     private List<dev.latrox.rematter.compat.CrystalFuelDisplay> visibleCrystalFuels = List.of();
+    private final Map<EnergyReactorDisplay, EnergyReactorDisplay> knownEnergyReactor = new HashMap<>();
+    private List<EnergyReactorDisplay> visibleEnergyReactor = List.of();
     private IJeiRuntime runtime;
     private final Consumer<ChemistryRegistry> catalogueListener = this::refresh;
     private final Consumer<List<PreparationRecipes.Entry>> preparationListener = this::refreshPreparation;
@@ -82,6 +91,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
     static IRecipeType<ChemistryViewer.Entry> type(ChemistryViewer.Category category) { return TYPES.get(category); }
     static IRecipeType<PreparationDisplay> preparationType(MachineKind kind) { return PREPARATION_TYPES.get(kind); }
     static IRecipeType<dev.latrox.rematter.compat.CrystalFuelDisplay> crystalFuelType(MachineKind kind) { return CRYSTAL_FUEL_TYPES.get(kind); }
+    static IRecipeType<EnergyReactorDisplay> energyReactorType() { return ENERGY_REACTOR_TYPE; }
     static Block machine(MachineKind kind) { return ModContent.MACHINES.get(kind).get(); }
 
     @Override
@@ -102,6 +112,18 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         });
         registration.addGuiContainerHandler(MatterLevelEmitterScreen.class, new IGuiContainerHandler<MatterLevelEmitterScreen>() {
             @Override public List<Rect2i> getGuiExtraAreas(MatterLevelEmitterScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(MatterCableRelayScreen.class, new IGuiContainerHandler<MatterCableRelayScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(MatterCableRelayScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(SpatialAnchorScreen.class, new IGuiContainerHandler<SpatialAnchorScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(SpatialAnchorScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(DimensionalEntangledLinkScreen.class, new IGuiContainerHandler<DimensionalEntangledLinkScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(DimensionalEntangledLinkScreen screen) { return screen.viewerExclusionAreas(); }
+        });
+        registration.addGuiContainerHandler(EntangledLinkScreen.class, new IGuiContainerHandler<EntangledLinkScreen>() {
+            @Override public List<Rect2i> getGuiExtraAreas(EntangledLinkScreen screen) { return screen.viewerExclusionAreas(); }
         });
         registration.addGenericGuiContainerHandler(
                 AbstractContainerScreen.class,
@@ -131,6 +153,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         registration.addGuiScreenHandler(ProcessSelectionScreen.class, substanceLayerHandler());
         registration.addGuiScreenHandler(PrimalTargetScreen.class, substanceLayerHandler());
         registration.addGuiScreenHandler(SubstanceDetailsScreen.class, substanceLayerHandler());
+        registration.addGuiScreenHandler(NetworkReservesScreen.class, substanceLayerHandler());
     }
 
     private static Optional<? extends IClickableIngredient<?>> clickableMatter(
@@ -177,6 +200,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         for (var category : ChemistryViewer.Category.values()) registration.addRecipeCategories(new ChemistryCategory(category, registration.getJeiHelpers().getGuiHelper()));
         for (var machine : PreparationDisplay.MACHINES) registration.addRecipeCategories(new PreparationCategory(machine, registration.getJeiHelpers().getGuiHelper()));
         for (var machine : dev.latrox.rematter.compat.CrystalFuelDisplay.MACHINES) registration.addRecipeCategories(new CrystalFuelCategory(machine, registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new EnergyReactorCategory(registration.getJeiHelpers().getGuiHelper()));
     }
     @Override
     public void registerVanillaCategoryExtensions(mezz.jei.api.registration.IVanillaCategoryExtensionRegistration registration) {
@@ -216,6 +240,9 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         visibleCrystalFuels = dev.latrox.rematter.compat.CrystalFuelDisplay.from(dev.latrox.rematter.network.ClientCrystalFuels.current());
         visibleCrystalFuels.forEach(recipe -> knownCrystalFuels.put(recipe, recipe));
         for (var machine : dev.latrox.rematter.compat.CrystalFuelDisplay.MACHINES) registration.addRecipes(crystalFuelType(machine), forFuelMachine(visibleCrystalFuels, machine));
+        visibleEnergyReactor = EnergyReactorDisplay.entries(ClientChemistry.current());
+        visibleEnergyReactor.forEach(recipe -> knownEnergyReactor.put(recipe, recipe));
+        registration.addRecipes(energyReactorType(), visibleEnergyReactor);
     }
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
@@ -224,6 +251,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
             for (var machine : category.machines()) registration.addCraftingStation(type(category), machine(machine));
         for (var machine : PreparationDisplay.MACHINES) registration.addCraftingStation(preparationType(machine), ModContent.MACHINES.get(machine).get());
         for (var machine : dev.latrox.rematter.compat.CrystalFuelDisplay.MACHINES) registration.addCraftingStation(crystalFuelType(machine), ModContent.MACHINES.get(machine).get());
+        registration.addCraftingStation(energyReactorType(), ModContent.MACHINES.get(MachineKind.ENERGY_REACTOR).get());
     }
     @Override public void onRuntimeAvailable(IJeiRuntime runtime) {
         if (!enabled()) return;
@@ -269,6 +297,7 @@ public final class ReMatterJeiPlugin implements IModPlugin {
         runtime = null; knownRecipes.clear(); visibleRecipes = List.of(); visibleIngredients = List.of();
         knownPreparation.clear(); visiblePreparation = List.of();
         knownCrystalFuels.clear(); visibleCrystalFuels = List.of();
+        knownEnergyReactor.clear(); visibleEnergyReactor = List.of();
     }
 
     private void refreshCrystalFuels(Map<String, dev.latrox.rematter.content.generation.CrystalFuelData.Fuel> fuels) {
@@ -352,6 +381,19 @@ public final class ReMatterJeiPlugin implements IModPlugin {
             if (!reveal.isEmpty()) manager.unhideRecipes(type(category), reveal);
         }
         visibleRecipes = desired;
+        var nextReactor = EnergyReactorDisplay.entries(registry);
+        var keptReactor = Set.copyOf(nextReactor);
+        manager.hideRecipes(energyReactorType(), visibleEnergyReactor.stream().filter(value -> !keptReactor.contains(value)).toList());
+        List<EnergyReactorDisplay> freshReactor = new ArrayList<>();
+        List<EnergyReactorDisplay> revealReactor = new ArrayList<>();
+        for (var recipe : nextReactor) {
+            var existing = knownEnergyReactor.putIfAbsent(recipe, recipe);
+            if (existing == null) freshReactor.add(recipe);
+            else if (!visibleEnergyReactor.contains(existing)) revealReactor.add(existing);
+        }
+        if (!freshReactor.isEmpty()) manager.addRecipes(energyReactorType(), freshReactor);
+        if (!revealReactor.isEmpty()) manager.unhideRecipes(energyReactorType(), revealReactor);
+        visibleEnergyReactor = nextReactor;
     }
 
     private static List<ChemistryViewer.Entry> forCategory(List<ChemistryViewer.Entry> recipes, ChemistryViewer.Category category) {

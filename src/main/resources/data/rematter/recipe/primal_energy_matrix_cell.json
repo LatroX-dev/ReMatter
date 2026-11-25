@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PMP",
+    "ECE",
+    "VKV"
+  ],
+  "key": {
+    "P": "rematter:primal_matrix_core",
+    "M": "rematter:resonant_matter_cable",
+    "E": "rematter:ember_matrix_crystal",
+    "C": "rematter:primal_energy_cube",
+    "V": "rematter:violet_matrix_crystal",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:primal_energy_matrix_cell",
+    "count": 1
+  }
+}

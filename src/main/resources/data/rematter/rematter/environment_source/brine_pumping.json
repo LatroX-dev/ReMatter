@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "rematter:brine_pumping",
+  "renewable": true,
+  "outputs": [
+    {
+      "substance": "rematter:saline_brine",
+      "phase": "liquid",
+      "amount": 250
+    }
+  ],
+  "energy": 24000,
+  "ticks": 260,
+  "dimensions": [
+    "minecraft:overworld"
+  ],
+  "requires_open_air": false,
+  "probe_below": "water"
+}

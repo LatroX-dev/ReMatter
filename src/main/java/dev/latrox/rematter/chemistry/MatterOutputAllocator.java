@@ -15,6 +15,13 @@ final class MatterOutputAllocator {
     static List<Map<SubstanceKey,Long>> allocate(List<MatterInventory> cells, Map<SubstanceKey,Long> outputs,
                                                  boolean typesOnly, java.util.function.Predicate<SubstanceKey> voidOverflow,
                                                  Budget budget) {
+        return allocate(cells, outputs, typesOnly, voidOverflow, (cell, key) -> true, budget);
+    }
+
+    static List<Map<SubstanceKey,Long>> allocate(List<MatterInventory> cells, Map<SubstanceKey,Long> outputs,
+                                                 boolean typesOnly, java.util.function.Predicate<SubstanceKey> voidOverflow,
+                                                 java.util.function.BiPredicate<Integer, SubstanceKey> canDepositCell,
+                                                 Budget budget) {
         var requiredOutputs = new TreeMap<SubstanceKey, Long>();
         var voidableOutputs = new TreeMap<SubstanceKey, Long>();
         for (var entry : outputs.entrySet()) {
@@ -31,7 +38,7 @@ final class MatterOutputAllocator {
             for (int c = 0; c < count; c++) base.add(new TreeMap<>());
         } else {
             if (count == 0) return null;
-            base = allocateExact(cells, requiredOutputs, typesOnly, budget);
+            base = allocateExact(cells, requiredOutputs, typesOnly, canDepositCell, budget);
             if (base == null) return null;
         }
         if (!typesOnly && !voidableOutputs.isEmpty() && count > 0) {
@@ -55,7 +62,7 @@ final class MatterOutputAllocator {
                 for (int c = 0; c < count && remaining > 0; c++) {
                     var cell = cells.get(c);
                     boolean present = cell.occupiesType(key) || base.get(c).containsKey(key);
-                    if (!present || !cell.accepts(key) || remSpace[c] <= 0) continue;
+                    if (!present || !canDepositCell.test(c, key) || !cell.accepts(key) || remSpace[c] <= 0) continue;
                     long sent = Math.min(remaining, remSpace[c]);
                     base.get(c).merge(key, sent, Math::addExact);
                     remSpace[c] -= sent;
@@ -65,7 +72,7 @@ final class MatterOutputAllocator {
                 for (int c = 0; c < count && remaining > 0; c++) {
                     var cell = cells.get(c);
                     boolean present = cell.occupiesType(key) || base.get(c).containsKey(key);
-                    if (present || !cell.accepts(key) || remTypes[c] <= 0 || remSpace[c] <= 0) continue;
+                    if (present || !canDepositCell.test(c, key) || !cell.accepts(key) || remTypes[c] <= 0 || remSpace[c] <= 0) continue;
                     long sent = Math.min(remaining, remSpace[c]);
                     base.get(c).merge(key, sent, Math::addExact);
                     remSpace[c] -= sent;
@@ -78,7 +85,8 @@ final class MatterOutputAllocator {
         return base.stream().map(MatterAmounts::copy).toList();
     }
 
-    private static List<TreeMap<SubstanceKey,Long>> allocateExact(List<MatterInventory> cells, Map<SubstanceKey,Long> outputs, boolean typesOnly, Budget budget) {
+    private static List<TreeMap<SubstanceKey,Long>> allocateExact(List<MatterInventory> cells, Map<SubstanceKey,Long> outputs, boolean typesOnly,
+                                                                  java.util.function.BiPredicate<Integer, SubstanceKey> canDepositCell, Budget budget) {
         var keys=List.copyOf(outputs.keySet()); int count=cells.size(); long required=MatterAmounts.total(outputs);
         // Only the output keys matter here, so each cell answers per key instead of copying its whole type table.
         var existing=new ArrayList<BitSet>(); int[] freeTypes=new int[count]; long[] freeSpace=new long[count];
@@ -100,7 +108,7 @@ final class MatterOutputAllocator {
                     // Existing types first avoids needless fragmentation; bounded alternatives fix conflicts.
                     for(int pass=0;pass<2;pass++) for(int c=0;c<count;c++) {
                         boolean present=existing.get(c).get(k);
-                        if(!cells.get(c).accepts(key) || (pass==0)!=present || freeSpace[c]==0 || !present&&freeTypes[c]==0 || forbidden.get(k*count+c)) continue;
+                        if(!canDepositCell.test(c, key) || !cells.get(c).accepts(key) || (pass==0)!=present || freeSpace[c]==0 || !present&&freeTypes[c]==0 || forbidden.get(k*count+c)) continue;
                         var edge=flow.add(k,keys.size()+c,Math.min(amount,freeSpace[c]));
                         links.add(new Link(k,c,edge,present));
                     }

@@ -1,0 +1,49 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/energy_matrix_casing",
+    "casing": "rematter:block/energy_matrix_casing",
+    "face": "rematter:block/energy_matrix_port_unformed"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#face",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#casing",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#casing",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#casing",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#casing",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#casing",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

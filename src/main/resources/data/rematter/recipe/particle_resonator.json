@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ENE",
+    "VOV",
+    "CEC"
+  ],
+  "key": {
+    "E": "rematter:ender_conductor",
+    "N": "rematter:netherite_sheath",
+    "V": "rematter:violet_matrix_crystal",
+    "O": "rematter:optical_circuit",
+    "C": "rematter:ember_matrix_crystal"
+  },
+  "result": {
+    "id": "rematter:particle_resonator",
+    "count": 1
+  }
+}

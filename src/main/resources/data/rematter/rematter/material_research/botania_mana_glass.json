@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Botania Mana Glass",
+  "items": [
+    "botania:bifrost_perm",
+    "botania:elf_glass",
+    "botania:mana_glass"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

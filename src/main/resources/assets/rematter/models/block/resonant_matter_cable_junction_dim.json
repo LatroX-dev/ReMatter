@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/matter_cable_geometry_junction_dim",
+  "textures": {
+    "particle": "rematter:block/resonant_matter_cable",
+    "glow": "rematter:block/resonant_matter_cable_dim"
+  }
+}

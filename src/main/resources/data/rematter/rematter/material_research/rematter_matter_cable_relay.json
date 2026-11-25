@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "name": "Rematter Matter Cable Relay",
+  "items": [
+    "rematter:matter_cable_relay"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:arcanium",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:clay",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:copper",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:lapis",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

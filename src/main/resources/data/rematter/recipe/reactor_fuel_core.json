@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MEM",
+    "DKD",
+    "NFN"
+  ],
+  "key": {
+    "M": "rematter:ember_matrix_crystal",
+    "E": "rematter:energy_core",
+    "D": "rematter:diamond_lattice",
+    "K": "rematter:ender_conductor",
+    "N": "rematter:netherite_sheath",
+    "F": "rematter:machine_frame"
+  },
+  "result": {
+    "id": "rematter:reactor_fuel_core",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:terrasteel_block",
+  "matter": [
+    {
+      "substance": "rematter:diamond",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:enderion",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 9000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 9000
+    }
+  ],
+  "decomposition_energy": 576000,
+  "synthesis_energy": 1152000,
+  "ticks": 5400
+}

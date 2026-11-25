@@ -5,7 +5,7 @@ import argparse
 from bench_showpieces import PARTS, WORK, DEVICES
 from generated_files import GeneratedFiles
 ROOT=Path(__file__).resolve().parents[1]
-KINDS=('ANALYZER','DECOMPOSER','SYNTHESIZER','PREPARATOR','HAND_PREPARATOR','SINTER_FURNACE','ATMOSPHERIC_COLLECTOR')
+KINDS=('ANALYZER','DECOMPOSER','SYNTHESIZER','PREPARATOR','HAND_PREPARATOR','SINTER_FURNACE','ATMOSPHERIC_COLLECTOR','DEEP_EXTRACTOR')
 def number(value): return str(int(value)) if float(value).is_integer() else str(value)
 def generate(check):
     lines=['package dev.latrox.rematter.content;','','import net.minecraft.world.level.block.Block;','import net.minecraft.world.phys.shapes.Shapes;','import net.minecraft.world.phys.shapes.VoxelShape;','','/** Generated from the same bench mechanisms as the block models. */','final class BenchShapes {','    private BenchShapes() {}','    static VoxelShape showpiece(MachineKind kind){','        return switch(kind){']

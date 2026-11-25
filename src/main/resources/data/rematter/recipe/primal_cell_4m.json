@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NKN",
+    "CHC",
+    "PNP"
+  ],
+  "key": {
+    "H": "rematter:cell_housing",
+    "K": "rematter:primal_matrix_core",
+    "P": "rematter:primal_crystal",
+    "C": "rematter:primal_cell_1m",
+    "N": "rematter:netherite_sheath"
+  },
+  "result": {
+    "id": "rematter:primal_cell_4m",
+    "count": 1
+  }
+}

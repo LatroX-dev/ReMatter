@@ -3,11 +3,14 @@
 FAMILY = {
     "analyzer": "ice",
     "decomposer": "copper",
-    "industrial_decomposer_controller": "copper",
+    "decomposer_reactor_controller": "copper",
     "material_synthesizer": "leaf",
-    "industrial_synthesizer_controller": "leaf",
+    "synthesizer_reactor_controller": "leaf",
     "chemical_processor": "violet",
     "chemical_reactor_controller": "violet",
+    "transmutation_reactor_controller": "violet",
+    "energy_matrix_controller": "ember",
+    "energy_reactor_controller": "ember",
     "material_preparator": "amber",
     "preparation_reactor_controller": "amber",
     "sinter_furnace": "ember",
@@ -15,10 +18,15 @@ FAMILY = {
     "matter_terminal": "mint",
     "cell_transfer_station": "mint",
     "atmospheric_collector": "mint",
+    "deep_extractor": "mint",
     "network_interface": "blue",
+    "matter_cable_relay": "blue",
+    "spatial_anchor": "blue",
+    "dimensional_entangled_link": "blue",
     "energy_cube": "ember",
     "reinforced_energy_cube": "ember",
     "resonant_energy_cube": "ember",
+    "primal_energy_cube": "ember",
 }
 
 RGB = {

@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Organic Dye",
   "items": [
+    "botania:floral_bifrost_powder",
     "minecraft:black_dye",
     "minecraft:blue_dye",
     "minecraft:brown_dye",

@@ -41,7 +41,8 @@ class EquivoxMergeTest(unittest.TestCase):
         self.assertNotIn("rematter:matter_cable", MERGER.protected_items())
         self.assertNotIn("rematter:guide", MERGER.protected_items())
         self.assertTrue({"rematter:primal_shard", "rematter:deepslate_primal_ore", "rematter:nether_primal_ore", "rematter:end_primal_ore",
-                         "rematter:primal_cell_16k", "rematter:primal_cell_64k", "rematter:primal_cell_256k", "rematter:primal_cell_1m", "rematter:primal_crystal",
+                         "rematter:primal_cell_16k", "rematter:primal_cell_64k", "rematter:primal_cell_256k", "rematter:primal_cell_1m", "rematter:primal_cell_4m",
+                         "rematter:primal_crystal", "rematter:primal_matrix_core",
                          "rematter:discovery_lens", "rematter:entangled_link"}.issubset(MERGER.protected_items()))
         self.assertTrue({"rematter:separator","rematter:thermal_processor","rematter:crystallizer","rematter:air_separator","rematter:electrolyzer"}.isdisjoint(MERGER.protected_items()))
 

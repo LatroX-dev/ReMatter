@@ -71,8 +71,12 @@ public final class ConfigurationCardItem extends Item {
             return;
         }
         data.linkOrigin().ifPresentOrElse(link -> tooltip.accept(
-                Component.translatable("tooltip.rematter.config_card.link",
-                        link.pos().getX(), link.pos().getY(), link.pos().getZ()).withStyle(ChatFormatting.LIGHT_PURPLE)),
+                (link.dimensional()
+                        ? Component.translatable("tooltip.rematter.config_card.dimensional_link",
+                                link.dimension().identifier().toString(), link.pos().getX(), link.pos().getY(), link.pos().getZ())
+                        : Component.translatable("tooltip.rematter.config_card.link",
+                                link.pos().getX(), link.pos().getY(), link.pos().getZ()))
+                        .withStyle(link.dimensional() ? ChatFormatting.AQUA : ChatFormatting.LIGHT_PURPLE)),
                 () -> data.machineSetup().ifPresentOrElse(machine -> tooltip.accept(
                         Component.translatable("tooltip.rematter.config_card.machine",
                                 Component.translatable("block.rematter." + machine.sourceKind().id())).withStyle(ChatFormatting.GREEN)),

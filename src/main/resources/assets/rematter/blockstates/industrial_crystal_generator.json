@@ -135,8 +135,10 @@
             "fluid_input": "rematter:block/port_reactor_left_fluid_input",
             "fluid_output": "rematter:block/port_reactor_left_fluid_output",
             "power": "rematter:block/port_reactor_left_power",
+            "power_output": "rematter:block/port_reactor_left_power_output",
             "matter": "rematter:block/port_reactor_left_matter",
-            "chemical": "rematter:block/port_reactor_left_chemical"
+            "chemical": "rematter:block/port_reactor_left_chemical",
+            "redstone": "rematter:block/port_reactor_left_redstone"
           },
           "right": {
             "disabled": "rematter:block/port_reactor_right_disabled",
@@ -146,8 +148,10 @@
             "fluid_input": "rematter:block/port_reactor_right_fluid_input",
             "fluid_output": "rematter:block/port_reactor_right_fluid_output",
             "power": "rematter:block/port_reactor_right_power",
+            "power_output": "rematter:block/port_reactor_right_power_output",
             "matter": "rematter:block/port_reactor_right_matter",
-            "chemical": "rematter:block/port_reactor_right_chemical"
+            "chemical": "rematter:block/port_reactor_right_chemical",
+            "redstone": "rematter:block/port_reactor_right_redstone"
           },
           "back": {
             "disabled": "rematter:block/port_reactor_back_disabled",
@@ -157,8 +161,10 @@
             "fluid_input": "rematter:block/port_reactor_back_fluid_input",
             "fluid_output": "rematter:block/port_reactor_back_fluid_output",
             "power": "rematter:block/port_reactor_back_power",
+            "power_output": "rematter:block/port_reactor_back_power_output",
             "matter": "rematter:block/port_reactor_back_matter",
-            "chemical": "rematter:block/port_reactor_back_chemical"
+            "chemical": "rematter:block/port_reactor_back_chemical",
+            "redstone": "rematter:block/port_reactor_back_redstone"
           },
           "bottom": {
             "disabled": "rematter:block/port_reactor_bottom_disabled",
@@ -168,8 +174,10 @@
             "fluid_input": "rematter:block/port_reactor_bottom_fluid_input",
             "fluid_output": "rematter:block/port_reactor_bottom_fluid_output",
             "power": "rematter:block/port_reactor_bottom_power",
+            "power_output": "rematter:block/port_reactor_bottom_power_output",
             "matter": "rematter:block/port_reactor_bottom_matter",
-            "chemical": "rematter:block/port_reactor_bottom_chemical"
+            "chemical": "rematter:block/port_reactor_bottom_chemical",
+            "redstone": "rematter:block/port_reactor_bottom_redstone"
           },
           "top": {
             "disabled": "rematter:block/port_reactor_top_disabled",
@@ -179,8 +187,10 @@
             "fluid_input": "rematter:block/port_reactor_top_fluid_input",
             "fluid_output": "rematter:block/port_reactor_top_fluid_output",
             "power": "rematter:block/port_reactor_top_power",
+            "power_output": "rematter:block/port_reactor_top_power_output",
             "matter": "rematter:block/port_reactor_top_matter",
-            "chemical": "rematter:block/port_reactor_top_chemical"
+            "chemical": "rematter:block/port_reactor_top_chemical",
+            "redstone": "rematter:block/port_reactor_top_redstone"
           }
         }
       }
@@ -208,8 +218,10 @@
             "fluid_input": "rematter:block/port_reactor_left_fluid_input",
             "fluid_output": "rematter:block/port_reactor_left_fluid_output",
             "power": "rematter:block/port_reactor_left_power",
+            "power_output": "rematter:block/port_reactor_left_power_output",
             "matter": "rematter:block/port_reactor_left_matter",
-            "chemical": "rematter:block/port_reactor_left_chemical"
+            "chemical": "rematter:block/port_reactor_left_chemical",
+            "redstone": "rematter:block/port_reactor_left_redstone"
           },
           "right": {
             "disabled": "rematter:block/port_reactor_right_disabled",
@@ -219,8 +231,10 @@
             "fluid_input": "rematter:block/port_reactor_right_fluid_input",
             "fluid_output": "rematter:block/port_reactor_right_fluid_output",
             "power": "rematter:block/port_reactor_right_power",
+            "power_output": "rematter:block/port_reactor_right_power_output",
             "matter": "rematter:block/port_reactor_right_matter",
-            "chemical": "rematter:block/port_reactor_right_chemical"
+            "chemical": "rematter:block/port_reactor_right_chemical",
+            "redstone": "rematter:block/port_reactor_right_redstone"
           },
           "back": {
             "disabled": "rematter:block/port_reactor_back_disabled",
@@ -230,8 +244,10 @@
             "fluid_input": "rematter:block/port_reactor_back_fluid_input",
             "fluid_output": "rematter:block/port_reactor_back_fluid_output",
             "power": "rematter:block/port_reactor_back_power",
+            "power_output": "rematter:block/port_reactor_back_power_output",
             "matter": "rematter:block/port_reactor_back_matter",
-            "chemical": "rematter:block/port_reactor_back_chemical"
+            "chemical": "rematter:block/port_reactor_back_chemical",
+            "redstone": "rematter:block/port_reactor_back_redstone"
           },
           "bottom": {
             "disabled": "rematter:block/port_reactor_bottom_disabled",
@@ -241,8 +257,10 @@
             "fluid_input": "rematter:block/port_reactor_bottom_fluid_input",
             "fluid_output": "rematter:block/port_reactor_bottom_fluid_output",
             "power": "rematter:block/port_reactor_bottom_power",
+            "power_output": "rematter:block/port_reactor_bottom_power_output",
             "matter": "rematter:block/port_reactor_bottom_matter",
-            "chemical": "rematter:block/port_reactor_bottom_chemical"
+            "chemical": "rematter:block/port_reactor_bottom_chemical",
+            "redstone": "rematter:block/port_reactor_bottom_redstone"
           },
           "top": {
             "disabled": "rematter:block/port_reactor_top_disabled",
@@ -252,8 +270,10 @@
             "fluid_input": "rematter:block/port_reactor_top_fluid_input",
             "fluid_output": "rematter:block/port_reactor_top_fluid_output",
             "power": "rematter:block/port_reactor_top_power",
+            "power_output": "rematter:block/port_reactor_top_power_output",
             "matter": "rematter:block/port_reactor_top_matter",
-            "chemical": "rematter:block/port_reactor_top_chemical"
+            "chemical": "rematter:block/port_reactor_top_chemical",
+            "redstone": "rematter:block/port_reactor_top_redstone"
           }
         }
       }
@@ -281,8 +301,10 @@
             "fluid_input": "rematter:block/port_reactor_left_fluid_input",
             "fluid_output": "rematter:block/port_reactor_left_fluid_output",
             "power": "rematter:block/port_reactor_left_power",
+            "power_output": "rematter:block/port_reactor_left_power_output",
             "matter": "rematter:block/port_reactor_left_matter",
-            "chemical": "rematter:block/port_reactor_left_chemical"
+            "chemical": "rematter:block/port_reactor_left_chemical",
+            "redstone": "rematter:block/port_reactor_left_redstone"
           },
           "right": {
             "disabled": "rematter:block/port_reactor_right_disabled",
@@ -292,8 +314,10 @@
             "fluid_input": "rematter:block/port_reactor_right_fluid_input",
             "fluid_output": "rematter:block/port_reactor_right_fluid_output",
             "power": "rematter:block/port_reactor_right_power",
+            "power_output": "rematter:block/port_reactor_right_power_output",
             "matter": "rematter:block/port_reactor_right_matter",
-            "chemical": "rematter:block/port_reactor_right_chemical"
+            "chemical": "rematter:block/port_reactor_right_chemical",
+            "redstone": "rematter:block/port_reactor_right_redstone"
           },
           "back": {
             "disabled": "rematter:block/port_reactor_back_disabled",
@@ -303,8 +327,10 @@
             "fluid_input": "rematter:block/port_reactor_back_fluid_input",
             "fluid_output": "rematter:block/port_reactor_back_fluid_output",
             "power": "rematter:block/port_reactor_back_power",
+            "power_output": "rematter:block/port_reactor_back_power_output",
             "matter": "rematter:block/port_reactor_back_matter",
-            "chemical": "rematter:block/port_reactor_back_chemical"
+            "chemical": "rematter:block/port_reactor_back_chemical",
+            "redstone": "rematter:block/port_reactor_back_redstone"
           },
           "bottom": {
             "disabled": "rematter:block/port_reactor_bottom_disabled",
@@ -314,8 +340,10 @@
             "fluid_input": "rematter:block/port_reactor_bottom_fluid_input",
             "fluid_output": "rematter:block/port_reactor_bottom_fluid_output",
             "power": "rematter:block/port_reactor_bottom_power",
+            "power_output": "rematter:block/port_reactor_bottom_power_output",
             "matter": "rematter:block/port_reactor_bottom_matter",
-            "chemical": "rematter:block/port_reactor_bottom_chemical"
+            "chemical": "rematter:block/port_reactor_bottom_chemical",
+            "redstone": "rematter:block/port_reactor_bottom_redstone"
           },
           "top": {
             "disabled": "rematter:block/port_reactor_top_disabled",
@@ -325,8 +353,10 @@
             "fluid_input": "rematter:block/port_reactor_top_fluid_input",
             "fluid_output": "rematter:block/port_reactor_top_fluid_output",
             "power": "rematter:block/port_reactor_top_power",
+            "power_output": "rematter:block/port_reactor_top_power_output",
             "matter": "rematter:block/port_reactor_top_matter",
-            "chemical": "rematter:block/port_reactor_top_chemical"
+            "chemical": "rematter:block/port_reactor_top_chemical",
+            "redstone": "rematter:block/port_reactor_top_redstone"
           }
         }
       }
@@ -354,8 +384,10 @@
             "fluid_input": "rematter:block/port_reactor_left_fluid_input",
             "fluid_output": "rematter:block/port_reactor_left_fluid_output",
             "power": "rematter:block/port_reactor_left_power",
+            "power_output": "rematter:block/port_reactor_left_power_output",
             "matter": "rematter:block/port_reactor_left_matter",
-            "chemical": "rematter:block/port_reactor_left_chemical"
+            "chemical": "rematter:block/port_reactor_left_chemical",
+            "redstone": "rematter:block/port_reactor_left_redstone"
           },
           "right": {
             "disabled": "rematter:block/port_reactor_right_disabled",
@@ -365,8 +397,10 @@
             "fluid_input": "rematter:block/port_reactor_right_fluid_input",
             "fluid_output": "rematter:block/port_reactor_right_fluid_output",
             "power": "rematter:block/port_reactor_right_power",
+            "power_output": "rematter:block/port_reactor_right_power_output",
             "matter": "rematter:block/port_reactor_right_matter",
-            "chemical": "rematter:block/port_reactor_right_chemical"
+            "chemical": "rematter:block/port_reactor_right_chemical",
+            "redstone": "rematter:block/port_reactor_right_redstone"
           },
           "back": {
             "disabled": "rematter:block/port_reactor_back_disabled",
@@ -376,8 +410,10 @@
             "fluid_input": "rematter:block/port_reactor_back_fluid_input",
             "fluid_output": "rematter:block/port_reactor_back_fluid_output",
             "power": "rematter:block/port_reactor_back_power",
+            "power_output": "rematter:block/port_reactor_back_power_output",
             "matter": "rematter:block/port_reactor_back_matter",
-            "chemical": "rematter:block/port_reactor_back_chemical"
+            "chemical": "rematter:block/port_reactor_back_chemical",
+            "redstone": "rematter:block/port_reactor_back_redstone"
           },
           "bottom": {
             "disabled": "rematter:block/port_reactor_bottom_disabled",
@@ -387,8 +423,10 @@
             "fluid_input": "rematter:block/port_reactor_bottom_fluid_input",
             "fluid_output": "rematter:block/port_reactor_bottom_fluid_output",
             "power": "rematter:block/port_reactor_bottom_power",
+            "power_output": "rematter:block/port_reactor_bottom_power_output",
             "matter": "rematter:block/port_reactor_bottom_matter",
-            "chemical": "rematter:block/port_reactor_bottom_chemical"
+            "chemical": "rematter:block/port_reactor_bottom_chemical",
+            "redstone": "rematter:block/port_reactor_bottom_redstone"
           },
           "top": {
             "disabled": "rematter:block/port_reactor_top_disabled",
@@ -398,8 +436,10 @@
             "fluid_input": "rematter:block/port_reactor_top_fluid_input",
             "fluid_output": "rematter:block/port_reactor_top_fluid_output",
             "power": "rematter:block/port_reactor_top_power",
+            "power_output": "rematter:block/port_reactor_top_power_output",
             "matter": "rematter:block/port_reactor_top_matter",
-            "chemical": "rematter:block/port_reactor_top_chemical"
+            "chemical": "rematter:block/port_reactor_top_chemical",
+            "redstone": "rematter:block/port_reactor_top_redstone"
           }
         }
       }

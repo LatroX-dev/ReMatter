@@ -73,6 +73,36 @@ public final class PrimalCells {
             sourceJournal.consume(transaction); transaction.commit(); return Math.multiplyExact(items, units);
         }
     }
+    /** Credits condensed Primal Matter directly into a readable Primal Cell inside a transaction. */
+    public static long credit(Journal destination, long amount, TransactionContext parent) {
+        if (amount <= 0) return 0;
+        var to = view(destination.stack());
+        if (!to.readable()) return 0;
+        long add = Math.min(amount, to.capacity() - to.amount());
+        if (add <= 0) return 0;
+        var payment = destination.prepareDelta(add);
+        if (payment.isEmpty()) return 0;
+        try (var transaction = Transaction.open(parent)) {
+            if (!payment.get().apply(transaction)) return 0;
+            transaction.commit();
+            return add;
+        }
+    }
+    /** Debits Primal Matter directly from a readable Primal Cell inside a transaction. */
+    public static long debit(Journal source, long amount, TransactionContext parent) {
+        if (amount <= 0) return 0;
+        var from = view(source.stack());
+        if (!from.readable()) return 0;
+        long take = Math.min(amount, from.amount());
+        if (take <= 0) return 0;
+        var payment = source.prepareDelta(-take);
+        if (payment.isEmpty()) return 0;
+        try (var transaction = Transaction.open(parent)) {
+            if (!payment.get().apply(transaction)) return 0;
+            transaction.commit();
+            return take;
+        }
+    }
     /** Both cells retain their identity and receipts; the exact quantity moves once or neither changes. */
     public static long transfer(Journal source, Journal destination, long maximum, TransactionContext parent) {
         if (maximum <= 0 || source.stack() == destination.stack()) return 0;

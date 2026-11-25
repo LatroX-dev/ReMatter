@@ -5,6 +5,10 @@
     "rematter:separation_unit",
     "rematter:mixing_basin",
     "rematter:field_coil",
-    "rematter:reaction_chamber"
+    "rematter:reaction_chamber",
+    "rematter:particle_emitter",
+    "rematter:primal_condenser_core",
+    "rematter:reactor_fuel_core",
+    "rematter:reactor_induction_coil"
   ]
 }

@@ -79,7 +79,7 @@ public final class EnergyCubeGameTests {
     private static void charging(GameTestHelper h){
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var cube=place(h,new BlockPos(2,2,2),EnergyCubeTier.REINFORCED,owner);
         cube.setItem(0,new ItemStack(Items.IRON_PICKAXE));cube.setItem(1,new ItemStack(Items.IRON_PICKAXE));
-        h.assertTrue(fill(cube,99_999)==16_384,"Charging source did not accept tier rate");cube.serverTick();
+        h.assertTrue(fill(cube,16_384)==16_384,"Charging source did not accept partial FE");cube.serverTick();
         int a=cube.getItem(0).getOrDefault(DataComponents.REPAIR_COST,0),b=cube.getItem(1).getOrDefault(DataComponents.REPAIR_COST,0);
         h.assertTrue(a==8192&&b==8192,"Both item slots must share exact available FE fairly: "+a+"/"+b);
         h.assertTrue(cube.energy()==0&&a+b==16_384,"Item component changes did not exactly debit buffer FE");

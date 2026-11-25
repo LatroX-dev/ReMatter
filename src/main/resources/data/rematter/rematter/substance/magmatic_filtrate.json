@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.magmatic_filtrate",
+  "symbol": "Si₂Al₄Ca₂S₂FeAuO₁₂",
+  "kind": "mixture",
+  "composition": {
+    "rematter:silicon": 2,
+    "rematter:aluminum": 4,
+    "rematter:calcium": 2,
+    "rematter:sulfur": 2,
+    "rematter:iron": 1,
+    "rematter:gold": 1,
+    "rematter:oxygen": 12
+  },
+  "phases": [
+    "liquid"
+  ]
+}

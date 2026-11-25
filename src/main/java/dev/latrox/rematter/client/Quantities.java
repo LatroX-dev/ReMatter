@@ -10,8 +10,9 @@ public final class Quantities {
     public static String number(long value) { return String.format(Locale.ROOT, "%,d", value); }
 
     public static String compact(long value) {
-        if (value >= 1_000_000_000_000L) return String.format(Locale.ROOT, "%.1e", (double) value);
-        if (value >= 1_000_000_000L) return String.format(Locale.ROOT, "%.1fB", value / 1e9);
+        if (value < 0) return "-" + compact(value == Long.MIN_VALUE ? Long.MAX_VALUE : -value);
+        if (value >= 1_000_000_000_000L) return String.format(Locale.ROOT, value >= 10_000_000_000_000L ? "%.1fT" : "%.2fT", value / 1e12);
+        if (value >= 1_000_000_000L) return String.format(Locale.ROOT, value >= 10_000_000_000L ? "%.1fG" : "%.2fG", value / 1e9);
         if (value >= 1_000_000L) return String.format(Locale.ROOT, "%.1fM", value / 1e6);
         if (value >= 10_000L) return String.format(Locale.ROOT, "%.1fk", value / 1000.0);
         return Long.toString(value);

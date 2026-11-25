@@ -1,0 +1,49 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "rematter:block/energy_matrix_provider_side",
+    "side": "rematter:block/energy_matrix_provider_side",
+    "cap": "rematter:block/energy_matrix_provider_cap"
+  },
+  "elements": [
+    {
+      "name": "body",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#side",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#side",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#cap",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#cap",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
+}

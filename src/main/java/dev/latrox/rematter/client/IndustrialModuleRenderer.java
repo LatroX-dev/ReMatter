@@ -65,21 +65,27 @@ public final class IndustrialModuleRenderer implements BlockEntityRenderer<Indus
             localBox(s,a.x0(),a.y0(),a.z0(),a.x1(),a.y1(),a.z1(),0,UiPalette.WHITE,s.lightCoords,MovingBoxes.ALL^MovingBoxes.DOWN,q,8,0,8);
         }
         if(!s.formed||s.drive<.0001F)return;
-        float source=switch(s.kind){case FIELD_COIL -> 15;case REACTION_CHAMBER -> 13;case MIXING_BASIN -> 14;default -> 16;};
+        float source=switch(s.kind){case FIELD_COIL, REACTOR_INDUCTION_COIL -> 15;case REACTION_CHAMBER -> 13;case MIXING_BASIN -> 14;case PARTICLE_EMITTER, PRIMAL_CONDENSER_CORE, REACTOR_FUEL_CORE -> 15.5F;default -> 16;};
         if(s.suspended)source=16-source;
         float x=8,y=source,z=8,X=s.targetX*16,Y=s.targetY*16,Z=s.targetZ*16;
         X=x+(X-x)*s.drive;Y=y+(Y-y)*s.drive;Z=z+(Z-z)*s.drive;
         float length=(float)Math.sqrt((X-x)*(X-x)+(Y-y)*(Y-y)+(Z-z)*(Z-z));
         if(!Float.isFinite(length)||length>192)return;
         float shortBreath=length<6?.85F+.15F*(float)Math.sin(s.clock*Math.PI*2/60):1;
-        m.beam(x,y,z,X,Y,Z,1,1,UiPalette.multiply(accent,(.45F+.55F*s.drive)*shortBreath),light);
+        int beamColor = s.kind == IndustrialModuleKind.PRIMAL_CONDENSER_CORE
+                ? UiPalette.primalSpectrum((float)(s.clock / 64.0))
+                : accent;
+        m.beam(x,y,z,X,Y,Z,1,1,UiPalette.multiply(beamColor,(.45F+.55F*s.drive)*shortBreath),light);
         if(length<6)return;
-        float shift=switch(s.kind){case REACTION_CHAMBER -> .5F;case SEPARATION_UNIT -> 1F/3;case MIXING_BASIN -> 2F/3;default -> 0;};
+        float shift=switch(s.kind){case REACTION_CHAMBER -> .5F;case SEPARATION_UNIT -> 1F/3;case MIXING_BASIN -> 2F/3;case PARTICLE_EMITTER, REACTOR_FUEL_CORE -> .25F;case PRIMAL_CONDENSER_CORE, REACTOR_INDUCTION_COIL -> .75F;default -> 0;};
         for(int i=0;i<2;i++){
             float t=(float)((s.turns/32+shift+i*.5)%1),fade=WorkEnvelope.ease(t/.125)*WorkEnvelope.ease((1-t)/.125);
             if(s.kind==IndustrialModuleKind.SEPARATION_UNIT)t=1-t;
             float px=x+(X-x)*t,py=y+(Y-y)*t,pz=z+(Z-z)*t,w=.75F*fade;
-            m.box(px-w,py-w,pz-w,px+w,py+w,pz+w,1,UiPalette.modulePulse(s.kind),light);
+            int pulseColor = s.kind == IndustrialModuleKind.PRIMAL_CONDENSER_CORE
+                    ? UiPalette.tint(UiPalette.primalSpectrum((float)(s.clock / 48.0 + i * 0.5)), .5F)
+                    : UiPalette.modulePulse(s.kind);
+            m.box(px-w,py-w,pz-w,px+w,py+w,pz+w,1,pulseColor,light);
         }
     }
     private static void localBox(IndustrialModuleRenderState s,float x,float y,float z,float X,float Y,float Z,int sprite,int color,int light,int faces,Quaternionf rotation,float px,float py,float pz){

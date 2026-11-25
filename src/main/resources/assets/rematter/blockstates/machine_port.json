@@ -452,6 +452,71 @@
     {
       "when": {
         "formed": "true",
+        "mode": "power_output",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power_output",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power_output",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power_output",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power_output",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "power_output",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_power_output",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
         "mode": "matter",
         "facing": "north"
       },
@@ -576,6 +641,71 @@
       },
       "apply": {
         "model": "rematter:block/machine_port_chemical",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "north"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone"
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "east"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "south"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "west"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "up"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "formed": "true",
+        "mode": "redstone",
+        "facing": "down"
+      },
+      "apply": {
+        "model": "rematter:block/machine_port_redstone",
         "x": 90
       }
     },

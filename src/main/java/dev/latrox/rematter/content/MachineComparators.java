@@ -27,6 +27,8 @@ public final class MachineComparators {
                         machine.drivePrimalCapacity());
                 yield scale(amount, capacity);
             }
+            case ENERGY_MATRIX -> scale(machine.extensions().matrixEnergy(), machine.extensions().matrixCapacity());
+            case ENERGY_REACTOR -> scale(machine.extensions().reactorEnergy(), machine.extensions().reactorCapacity());
             case TERMINAL, NETWORK_INTERFACE -> {
                 var network = machine.matterNetwork(false);
                 if (!network.ready() || network.inventory() == null) yield 0;

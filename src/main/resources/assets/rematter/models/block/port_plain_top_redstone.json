@@ -1,0 +1,8 @@
+{
+  "parent": "rematter:block/port_plate_top",
+  "textures": {
+    "particle": "rematter:block/machine_port_redstone",
+    "face": "rematter:block/machine_port_redstone",
+    "ring": "rematter:block/machine_port_redstone"
+  }
+}

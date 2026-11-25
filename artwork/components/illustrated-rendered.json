@@ -1,7 +1,7 @@
 {
   "ice_matrix_crystal": {
-    "svg": "4cc251222b6461ac8dd0f3c46403df8560e231797e6d48f857e0cdf6c4761b98",
-    "png": "70b816bafcdc53923df3a3bcd501558ea64f65dbefd324fb6e8879f19dd3ea73"
+    "svg": "d2e3aadef9f63e008695512a1711903b13fbbcad76a2bc11d475dce63b75a44f",
+    "png": "c21d021f233dec33838d647492883882d3b175b3a2224b17ac4ab028fd429d76"
   },
   "pressure_module": {
     "svg": "0241b2768e14565fda4764180ec3c86b0c96def4ffa362d1ad2a26a32d87f9e4",
@@ -47,6 +47,14 @@
     "svg": "3f7f5bf09903ff8eaa2db7c8c1bf2f7359be6609f962b3870d832e95ead71c1a",
     "png": "ed06089d5529adad85a460ec6d14c5a25e7fc6e35908b0b6d9b5a48fcb5c45c9"
   },
+  "dimensional_card": {
+    "svg": "c1a5348815b1758da3611a81c1a986f2ce7631868fb0d1c3e29502abad2f7161",
+    "png": "9b192dfc3f1b9cefacb81c258ed5fc112bee2fb993ca18df4f649f58a02b3637"
+  },
+  "anchor_upgrade": {
+    "svg": "73220ecb19f539f5db5f6f0a945c5f68e4a5132c18927ef15abbf1c29d45d440",
+    "png": "7f952a2a9b69e97a8ec96e623f0f00eb6db535b25a3873ab457bfdc8b08f5553"
+  },
   "wireless_matter_terminal": {
     "svg": "fc33ed6b6b8a873ebb2bb27136b27d946cbc654fc848e08cee4544d2b347f039",
     "png": "8cffe051c1216901bdc53ebe6278add4db5af113db5ad07835fecacc6f060405"
@@ -66,5 +74,29 @@
   "spectrometer_lens": {
     "svg": "d8df5569327949f38f892b95e7a619e8f633f83766708000d7ac71d72031d71f",
     "png": "8e857e4ebf82579c8175b821fc69813b79669271a3956bba4d17e07e247f2f9c"
+  },
+  "bore_core": {
+    "svg": "cf330b579959657041f92e1c75989161ef6f21bdd039a8506aebb011a695e7b2",
+    "png": "d097766b221a80d243bb0d0d8c4bfc7531f306ba450b38551ae242df3d3f6968"
+  },
+  "extraction_focus_upgrade": {
+    "svg": "3e18db42d83284b3da07f2dba7a6738d1cef586431b70df0bc33dec870d7ef85",
+    "png": "ce2a8c847dc30177f5934d5342a108707b7626f91240883a65723c04d4f0950a",
+    "frames": 16
+  },
+  "particle_resonator": {
+    "svg": "7a04c26ed747e656f40f39d9798072a027bed4437e0d8bc4b0d84adfe2e72244",
+    "png": "875f866151cd4bc684b675951d994de34b27695f9fa60f4d072a290b5481f649",
+    "frames": 16
+  },
+  "primal_matrix_core": {
+    "svg": "5c1c5026ddf392c70e9fd4aaee3bc1ebdc705d0a12f05d7258563c0dbf0fe0e6",
+    "png": "2f143d0c866ed4f81ad2014bbcc9d02dd92a531f6c705b4e8c6c34b0ee96f01c",
+    "frames": 16
+  },
+  "mass_compression_upgrade": {
+    "svg": "f90d56fbfaed7898564a7af9261d2dd336a0e2d9ae6f0323423d679fc716e32a",
+    "png": "503a8e806cb6b16ab9e46edbf7afbc22348e00b0e4967eeeb33629ca2398f901",
+    "frames": 16
   }
 }

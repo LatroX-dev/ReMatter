@@ -6,8 +6,11 @@ navigation:
   position: 11
 item_ids:
   - rematter:atmospheric_collector
+  - rematter:deep_extractor
+  - rematter:bore_core
   - rematter:chemical_processor
   - rematter:pressure_module
+  - rematter:extraction_focus_upgrade
 ---
 # One processor, several processes
 
@@ -59,3 +62,19 @@ Choose an environmental source on a Chemical Processor or Chemical Reactor. The 
 Oxygen and other non-reserved gases can feed Mekanism machines through a Drive with Automation enabled and a Pressurized Tube, or via a **Pressurized Canister**. Renewable atmosphere collection remains an explicit environmental source with power and storage costs.
 
 Gas venting starts off. An owner may explicitly discard selected **new** gas outputs in Production settings. Existing stored gas remains untouched. A stock target cannot count a gas that this device is venting.
+
+## Deep-Core Extraction
+
+The **Deep-Core Extractor** runs maintenance-free once installed at a genuine geological or dimensional site (no drill wear, no fluid inputs — only FE and a connected Matter Network):
+
+| Source | Dimension | Site requirement directly below | Output per batch |
+| --- | --- | --- | --- |
+| Deep Mineral Extraction | Overworld | **Deepslate / Tuff / Bedrock** at **`y ≤ 0`** | 250 u Mineral Slurry |
+| Saline Brine Pumping | Overworld | **Water source** at least **2 blocks deep** | 250 u Saline Brine |
+| Magmatic Siphoning | The Nether | **Lava source** | 200 u Magmatic Filtrate |
+| Void Condensation | The End | **Open Void** (air all the way to world bottom) | 150 u Void Condensate (gas) |
+
+Install **one Extraction Focus Upgrade** in its third upgrade slot to double extraction speed and halve FE per batch, alongside Speed and Efficiency Upgrades.
+
+<RecipeFor id="rematter:deep_extractor" />
+<RecipeFor id="rematter:extraction_focus_upgrade" />

@@ -222,7 +222,7 @@ class ToolSalvageTest {
                 }
             }
         }
-        assertEquals(97, profiledCount, "All 15 original + 82 newly added non-Primal ReMatter items");
+        assertEquals(135, profiledCount, "All 15 original + 120 non-Primal ReMatter items");
     }
 
     @Test

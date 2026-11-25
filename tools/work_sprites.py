@@ -141,6 +141,18 @@ def generator_window(name, frame):
 
 def controller_display(device, frame):
     sprite = FS.controller_display(device, True)
+    if device == 'primal_reactor_controller':
+        sprite.rect(6, 6, 26, 16, HS.PRIMAL_VOID)
+        for dx in range(7):
+            c_left = HS.primal_run(dx, frame)
+            c_right = HS.primal_run(dx, (frame + 8) % N)
+            sprite.px(7 + dx, 10, c_left); sprite.px(7 + dx, 11, c_left)
+            sprite.px(24 - dx, 10, c_right); sprite.px(24 - dx, 11, c_right)
+        pulse = BREATH[frame]
+        sprite.rect(13, 8, 19, 14, HS.PRIMAL_BODY if pulse < 2 else HS.PRIMAL_LIGHT)
+        sprite.rect(14, 9, 18, 13, HS.PRIMAL_LIGHT if pulse < 2 else HS.PRIMAL_CORE_SOFT)
+        sprite.rect(15, 10, 17, 12, HS.PRIMAL_CORE)
+        return sprite
     color = P.accent(device)
     back, ink, glow = scale(color, .22), color, lighten(color, .5)
     wave = lambda phase: math.sin(2 * math.pi * (frame / N + phase))
@@ -152,20 +164,58 @@ def controller_display(device, frame):
             sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
         sprite.rect(9, 10, 11, 12, glow if wave(0) > -.3 else ink)
         sprite.rect(23, 7, 25, 9, back)
-    elif device == 'industrial_decomposer_controller':
+    elif device == 'decomposer_reactor_controller':
         sprite.rect(15, 7, 26, 15, back)
         for index, (y, length) in enumerate(((7, 8), (10, 6), (13, 5))):
             n = length + round(2 * wave(-index / 3))
             sprite.rect(15, y, 15 + n, y + 2, ink)
             sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
         sprite.rect(9, 10, 11, 12, glow if wave(0) > -.2 else back)
-    elif device == 'industrial_synthesizer_controller':
+    elif device == 'synthesizer_reactor_controller':
         sprite.rect(15, 7, 26, 15, back)
         for index, (y, length) in enumerate(((7, 5), (10, 7), (13, 8))):
             n = length + round(2 * wave(index / 3))
             sprite.rect(15, y, 15 + n, y + 2, ink)
             sprite.px(15 + n - 1, y, glow); sprite.px(15 + n - 1, y + 1, glow)
         sprite.rect(9, 10, 11, 12, glow if wave(0) > -.2 else ink)
+    elif device == 'transmutation_reactor_controller':
+        ember = RGB['ember']
+        ember_hi = lighten(ember, .5)
+        sprite.rect(6, 6, 26, 16, back)
+        sprite.rect(7, 8, 13, 14, ink)
+        sprite.rect(8, 9, 12, 13, back)
+        sprite.rect(9, 10, 11, 12, glow if wave(0) > 0 else ink)
+        sprite.rect(19, 8, 25, 14, ember)
+        sprite.rect(20, 9, 24, 13, back)
+        sprite.rect(21, 10, 23, 12, ember_hi if wave(.5) > 0 else ember)
+        px = 13 + (frame % 6)
+        sprite.row(10, 13, 19, scale(ink, .62))
+        sprite.row(11, 13, 19, scale(ember, .62))
+        sprite.px(px, 10, glow); sprite.px(px, 11, ember_hi)
+    elif device == 'energy_matrix_controller':
+        blue = RGB['blue']
+        blue_hi = lighten(blue, .5)
+        sprite.rect(6, 6, 26, 16, back)
+        sprite.rect(7, 7, 13, 15, blue)
+        sprite.rect(8, 8, 12, 14, back)
+        sprite.rect(9, 10, 11, 12, blue_hi if wave(0) > -.1 else blue)
+        for index, base_h in enumerate((4, 6, 5, 7)):
+            x = 15 + index * 3
+            hgt = max(2, min(8, base_h + round(2.0 * wave(index / 4.0))))
+            sprite.rect(x, 15 - hgt, x + 2, 15, ink)
+            sprite.row(15 - hgt, x, x + 2, glow)
+    elif device == 'energy_reactor_controller':
+        amber = RGB['amber']
+        amber_hi = lighten(amber, .5)
+        sprite.rect(6, 6, 26, 16, back)
+        sprite.rect(7, 8, 13, 14, ink)
+        sprite.rect(8, 9, 12, 13, back)
+        sprite.rect(9, 10, 11, 12, glow if wave(0) > -.2 else amber_hi)
+        for index, base_h in enumerate((3, 5, 7, 6)):
+            x = 15 + index * 3
+            hgt = max(2, min(8, base_h + round(2.0 * wave((index + 1) / 4.0))))
+            sprite.rect(x, 15 - hgt, x + 2, 15, amber)
+            sprite.row(15 - hgt, x, x + 2, amber_hi)
     else:
         sprite.rect(15, 7, 26, 16, back)
         for index, (x, height) in enumerate(((15, 4), (18, 6), (21, 5), (24, 3))):

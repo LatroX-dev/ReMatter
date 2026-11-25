@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "rematter:block/reinforced_energy_matrix_provider"
+  }
+}

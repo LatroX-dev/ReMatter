@@ -1,0 +1,382 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "up",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "false",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_closed_parts",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "false",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_bidi_open_parts",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "true",
+        "open": "false"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_closed_parts",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "down",
+        "directional": "true",
+        "open": "true"
+      },
+      "apply": {
+        "model": "rematter:block/matter_cable_relay_oneway_open_parts",
+        "x": 90
+      }
+    }
+  ]
+}

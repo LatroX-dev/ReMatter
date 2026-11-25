@@ -338,6 +338,8 @@ def atmosphere_guide(sources, check):
     rows = ["| Source | Dimension | Intake | Gas units per batch |",
             "| --- | --- | --- | --- |"]
     for source in sources:
+        if source.get("probe_below"):
+            continue
         namespace, path = resource_path(source["id"])
         name = names[f"process.{namespace}.{path}"]
         dimensions = ", ".join(dim for dim in source["dimensions"])

@@ -26,14 +26,20 @@ SIZE = 32
 MODULE_HUE_PRESETS = {
     # The crystal of the controller the module plugs into: preparation is amber, reaction is violet.
     'recipe': {'grinding_unit': 'amber', 'separation_unit': 'amber', 'mixing_basin': 'amber',
-               'field_coil': 'violet', 'reaction_chamber': 'violet'},
+               'field_coil': 'violet', 'reaction_chamber': 'violet',
+               'particle_emitter': 'ember', 'primal_condenser_core': 'violet',
+               'reactor_fuel_core': 'ember', 'reactor_induction_coil': 'blue'},
     # The crystal of the processing machine that does the same job by hand: Decomposer copper, Analyzer ice, Material
     # Synthesizer leaf, Network Interface blue, Chemical Reactor violet. Every module then has a hue of its own.
     'job': {'grinding_unit': 'copper', 'separation_unit': 'ice', 'mixing_basin': 'leaf',
-            'field_coil': 'blue', 'reaction_chamber': 'violet'},
+            'field_coil': 'blue', 'reaction_chamber': 'violet',
+            'particle_emitter': 'ember', 'primal_condenser_core': 'violet',
+            'reactor_fuel_core': 'ember', 'reactor_induction_coil': 'blue'},
     # As 'job', but mixing stays with the Preparator's amber.
     'job_amber': {'grinding_unit': 'copper', 'separation_unit': 'ice', 'mixing_basin': 'amber',
-                  'field_coil': 'blue', 'reaction_chamber': 'violet'},
+                  'field_coil': 'blue', 'reaction_chamber': 'violet',
+                  'particle_emitter': 'ember', 'primal_condenser_core': 'violet',
+                  'reactor_fuel_core': 'ember', 'reactor_induction_coil': 'blue'},
 }
 MODULE_HUE_PRESET = 'recipe'
 
@@ -437,11 +443,12 @@ PRIMAL_FACE_STYLE = 'crystal'
 FACE_SLOT, FACE_BAR, FACE_LEFT, FACE_RIGHT = 2, 4, 5, 11
 
 
-def primal_cell_face(bar, style=None, crystal=None, crown=False):
+def primal_cell_face(bar, style=None, crystal=None, crown=False, apex=False):
     """Faceplate of a Primal Cell in a bay: the cell faceplate with the Primal signature in place of the ivory bar.
 
     crystal names the coloured Matrix Crystal of the cell's recipe, if it has one; only 'crystal' draws it.
-    crown lights the grip slot with a counter-phased Primal run for the 1M reserve cartridge.
+    crown lights the grip slot with a counter-phased Primal run for the 1M/4M reserve cartridges.
+    apex adds the top-lip Primal crest and white-hot core pips distinguishing the Tier-5 4M Primal Cell.
     """
     style = style or PRIMAL_FACE_STYLE
     if style == 'pastel':
@@ -460,15 +467,49 @@ def primal_cell_face(bar, style=None, crystal=None, crown=False):
         for y in range(16):
             for x in range(16):
                 sprite.px(x, y + top, plate.pixel(x, y))
+        if apex:
+            # Tier-5 4M Primal Cell: full counter-phased Primal crest on row 1, dual Primal runs, and core pips.
+            for position in range(FACE_RIGHT - FACE_LEFT):
+                sprite.px(FACE_LEFT + position, 1 + top, primal_run(position + 8, frame, rest=PRIMAL_LIGHT))
+            sprite.px(FACE_LEFT + (frame % (FACE_RIGHT - FACE_LEFT)), FACE_SLOT + top, PRIMAL_CORE)
+            sprite.px(1, 1 + top, PRIMAL_GOLD if frame % 8 < 4 else PRIMAL_TEAL)
+            sprite.px(1, 4 + top, PRIMAL_COOL if frame % 8 < 4 else PRIMAL_WARM)
         if crown:
             for position in range(FACE_RIGHT - FACE_LEFT):
-                sprite.px(FACE_LEFT + position, FACE_SLOT + top, primal_run(position + 4, frame))
+                col = primal_run(position + 4, frame)
+                if apex and position == (frame % (FACE_RIGHT - FACE_LEFT)):
+                    col = PRIMAL_CORE
+                sprite.px(FACE_LEFT + position, FACE_SLOT + top, col)
         elif style in ('slot', 'crystal'):
             slot = RGB[crystal] if style == 'crystal' and crystal else PRIMAL_DEEP
             sprite.row(FACE_SLOT + top, FACE_LEFT, FACE_RIGHT, slot)
         for position in range(bar):
             sprite.px(FACE_LEFT + position, FACE_BAR + top, primal_run(position, frame))
     return sprite
+
+
+def animated_primal_crystal():
+    """Cut Primal crystal face for the Primal Condenser Core: five-stop Primal spectrum wave + white-hot core."""
+    def paint(sprite, x, y, w, h, look):
+        active = look.get('active', False)
+        frame = look.get('frame', 0)
+        for v in range(h):
+            for u in range(w):
+                along = ((u + .5) / max(1, w) + (v + .5) / max(1, h)) / 2
+                if not active:
+                    col = PRIMAL_LIGHT if along < .34 else PRIMAL_BODY if along < .7 else PRIMAL_DEEP
+                else:
+                    step = (u + v - frame) % PRIMAL_FRAMES
+                    if step < len(PRIMAL_GLINT):
+                        col = PRIMAL_GLINT[step]
+                    else:
+                        col = PRIMAL_LIGHT if along < .32 else PRIMAL_BODY if along < .68 else PRIMAL_DEEP
+                sprite.px(x + u, y + v, col)
+        if w >= 4 and h >= 4:
+            cx, cy = x + w // 2, y + h // 2
+            sprite.px(cx - 1, cy - 1, PRIMAL_CORE if active else PRIMAL_CORE_SOFT)
+            sprite.px(cx, cy - 1, PRIMAL_CORE_SOFT if active else PRIMAL_LIGHT)
+    return paint
 
 
 def facets(sprite, x, y, w, h, light, body, dark, glint=None):

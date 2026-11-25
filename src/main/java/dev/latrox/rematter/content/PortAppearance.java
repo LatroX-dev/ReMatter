@@ -5,7 +5,7 @@ import net.minecraft.util.StringRepresentable;
 
 /** A port's baked appearance, separate from the roles that authorize transfers. Never stored as configuration. */
 public enum PortAppearance implements StringRepresentable {
-    AUTOMATIC, ITEM_INPUT, ITEM_OUTPUT, FLUID_INPUT, FLUID_OUTPUT, POWER, MATTER, CHEMICAL, DISABLED,
+    AUTOMATIC, ITEM_INPUT, ITEM_OUTPUT, FLUID_INPUT, FLUID_OUTPUT, POWER, POWER_OUTPUT, MATTER, CHEMICAL, REDSTONE, DISABLED,
     ENERGY_INPUT, ENERGY_OUTPUT, ENERGY_INPUT_OUTPUT;
 
     public static final com.mojang.serialization.Codec<PortAppearance> CODEC = StringRepresentable.fromEnum(PortAppearance::values);

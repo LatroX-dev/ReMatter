@@ -1,0 +1,7 @@
+{
+  "parent": "rematter:block/matter_cable_geometry_arm_dim",
+  "textures": {
+    "particle": "rematter:block/matter_cable",
+    "glow": "rematter:block/matter_cable_dim"
+  }
+}

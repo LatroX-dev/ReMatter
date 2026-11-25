@@ -1,27 +1,34 @@
 package dev.latrox.rematter.content;
 
 import dev.latrox.rematter.ReMatter;
+import dev.latrox.rematter.content.preparation.PreparationTier;
 import dev.latrox.rematter.energy.EnergyCubeBlock;
 import dev.latrox.rematter.energy.EnergyCubeBlockEntity;
-import dev.latrox.rematter.content.preparation.PreparationTier;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlock;
+import dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity;
+import dev.latrox.rematter.primal.EntangledLinkBlock;
 import dev.latrox.rematter.primal.EntangledLinkBlockEntity;
 import dev.latrox.rematter.primal.EntangledLinks;
-import java.util.Comparator;
-import java.util.PriorityQueue;
+import dev.latrox.rematter.primal.EntangledLinks.DimPos;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -32,6 +39,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
@@ -39,16 +47,18 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Loaded cable components forward pushed FE in the caller's transaction, without storing energy.
- * Both cable traversal and recipients are restricted to the cable owner's UUID.
+ * Loaded cable components forward pushed FE in the caller's transaction across single or cross-dimension
+ * links, without storing energy. Both cable traversal and recipients are restricted by cable security/ownership.
  */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class MatterCablePower {
-    // A component at the scan budget is still indexed, so an oversized one is not rescanned on every push.
     private static final int MAX_CACHED_CABLES = 2 * MachineMatterNetwork.SCAN_BUDGET;
     private static final int MAX_CACHED_ORIGINS = 64;
+    public static final int POWERED_HOLD_TICKS = 40;
+    private static final int ENERGIZE_REFRESH_INTERVAL = 20;
     private static final Direction[] DIRECTIONS = Direction.values();
-    private static final Map<ServerLevel, NetworkCache> CACHES = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, NetworkCache> CACHES = new IdentityHashMap<>();
+    private static final Map<MinecraftServer, Map<DimPos, Long>> POWERED_CABLES = new IdentityHashMap<>();
 
     private MatterCablePower() {}
 
@@ -57,25 +67,113 @@ public final class MatterCablePower {
         return new Connection(server, pos.immutable(), side);
     }
 
+    /** Marks every Matter Cable in a connected component as energized (bright traces) while a live FE source feeds it. */
+    public static void energizeIfCable(@Nullable EnergyHandler handler) {
+        if (handler instanceof Connection conn) {
+            conn.energizeComponent();
+        }
+    }
+
+    private static Map<DimPos, Long> poweredMap(MinecraftServer server) {
+        synchronized (POWERED_CABLES) {
+            return POWERED_CABLES.computeIfAbsent(server, ignored -> new HashMap<>());
+        }
+    }
+
+    private static void markCablesPowered(MinecraftServer server, Iterable<DimPos> nodes) {
+        var map = poweredMap(server);
+        for (var node : nodes) {
+            ServerLevel segLevel = node.resolveLevel(server);
+            if (segLevel == null) continue;
+            var chunk = loaded(segLevel, node.pos());
+            if (chunk == null) continue;
+            BlockState state = chunk.getBlockState(node.pos());
+            if (!(state.getBlock() instanceof MatterCableBlock)) continue;
+            long now = segLevel.getGameTime();
+            synchronized (map) {
+                map.put(node, now);
+            }
+            if (!state.getValue(MatterCableBlock.POWERED)) {
+                segLevel.setBlock(node.pos(), state.setValue(MatterCableBlock.POWERED, true),
+                        net.minecraft.world.level.block.Block.UPDATE_CLIENTS | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE);
+                segLevel.scheduleTick(node.pos(), state.getBlock(), POWERED_HOLD_TICKS + 2);
+            }
+        }
+    }
+
+    static boolean onCableTick(ServerLevel level, BlockPos pos, BlockState state) {
+        if (!state.getValue(MatterCableBlock.POWERED)) return false;
+        var map = poweredMap(level.getServer());
+        DimPos key = new DimPos(level.dimension(), pos);
+        long now = level.getGameTime();
+        Long last;
+        synchronized (map) {
+            last = map.get(key);
+        }
+        if (last != null && now - last < POWERED_HOLD_TICKS) {
+            int remaining = (int) Math.max(1L, POWERED_HOLD_TICKS - (now - last)) + 2;
+            level.scheduleTick(pos, state.getBlock(), remaining);
+            return true;
+        }
+        synchronized (map) {
+            map.remove(key);
+        }
+        level.setBlock(pos, state.setValue(MatterCableBlock.POWERED, false),
+                net.minecraft.world.level.block.Block.UPDATE_CLIENTS | net.minecraft.world.level.block.Block.UPDATE_KNOWN_SHAPE);
+        return true;
+    }
+
+    static void clearPowered(ServerLevel level, BlockPos pos) {
+        var server = level.getServer();
+        synchronized (POWERED_CABLES) {
+            var map = POWERED_CABLES.get(server);
+            if (map != null) {
+                synchronized (map) {
+                    map.remove(new DimPos(level.dimension(), pos));
+                }
+            }
+        }
+    }
+
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event) {
         if (event.getLevel() instanceof ServerLevel server) {
             synchronized (CACHES) {
-                CACHES.remove(server);
+                var cache = CACHES.get(server.getServer());
+                if (cache != null) cache.clear();
             }
+            synchronized (POWERED_CABLES) {
+                var map = POWERED_CABLES.get(server.getServer());
+                if (map != null) {
+                    synchronized (map) {
+                        var dim = server.dimension();
+                        map.keySet().removeIf(k -> k.dimension().equals(dim));
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onServerStopped(ServerStoppedEvent event) {
+        synchronized (CACHES) {
+            CACHES.remove(event.getServer());
+        }
+        synchronized (POWERED_CABLES) {
+            POWERED_CABLES.remove(event.getServer());
         }
     }
 
     private static NetworkCache cache(ServerLevel level) {
         synchronized (CACHES) {
-            return CACHES.computeIfAbsent(level, ignored -> new NetworkCache());
+            return CACHES.computeIfAbsent(level.getServer(), ignored -> new NetworkCache());
         }
     }
 
     /** Applies the cable's physical side rules before consulting the endpoint's FE capability. Any other block may push FE in. */
     static boolean allowsEndpoint(BlockState state, Direction side) {
         if (state.getBlock() instanceof MachineBlock machine) {
-            return (machine.kind().processes()||machine.kind().generator()) && !PreparationTier.manual(machine.kind())
+            return (machine.kind().processes() || machine.kind().generator()) && !PreparationTier.manual(machine.kind())
                     && MatterCableConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), side);
         }
         if (state.getBlock() instanceof MachinePortBlock) {
@@ -84,6 +182,9 @@ public final class MatterCablePower {
         }
         if (state.getBlock() instanceof WirelessAccessPointBlock) {
             return WirelessAccessPointBlock.connectsSide(state, side);
+        }
+        if (state.getBlock() instanceof SpatialAnchorBlock) {
+            return SpatialAnchorBlock.connectsSide(state, side);
         }
         return !state.isAir();
     }
@@ -98,6 +199,7 @@ public final class MatterCablePower {
         if (entity instanceof MachineBlockEntity machine) return machine.networkOwner();
         if (entity instanceof EnergyCubeBlockEntity cube) return cube.owner();
         if (entity instanceof WirelessAccessPointBlockEntity ap) return ap.owner();
+        if (entity instanceof SpatialAnchorBlockEntity anchor) return anchor.owner();
         if (entity instanceof MachinePortBlockEntity port) {
             var controller = port.controller(null);
             return controller == null ? null : controller.networkOwner();
@@ -110,6 +212,7 @@ public final class MatterCablePower {
         if (entity instanceof MachineBlockEntity machine) return machine.securityMode();
         if (entity instanceof EnergyCubeBlockEntity cube) return cube.securityMode();
         if (entity instanceof WirelessAccessPointBlockEntity ap) return ap.securityMode();
+        if (entity instanceof SpatialAnchorBlockEntity anchor) return anchor.securityMode();
         if (entity instanceof MachinePortBlockEntity port) {
             var controller = port.controller(null);
             return controller == null ? SecurityMode.PRIVATE : controller.securityMode();
@@ -119,11 +222,6 @@ public final class MatterCablePower {
 
     record Candidate<T>(T endpoint, @Nullable UUID owner, int distance, BlockPos position) {}
 
-    /**
-     * The endpoints that receive pushed FE: all of those owned by the player whose endpoint lies nearest to where the
-     * FE enters, ties broken by position. Unowned endpoints receive nothing, so a device another player attaches farther
-     * away neither taps nor blocks the supply.
-     */
     static <T> List<T> recipients(List<Candidate<T>> candidates) {
         Candidate<T> nearest = null;
         for (var candidate : candidates) {
@@ -139,31 +237,30 @@ public final class MatterCablePower {
     private static final class Connection extends SnapshotJournal<Optional<Flow>> implements EnergyHandler {
         private final ServerLevel level;
         private final BlockPos origin;
+        private final DimPos originKey;
         private final Direction side;
         private Optional<Flow> flow = Optional.empty();
 
         private Connection(ServerLevel level, BlockPos origin, Direction side) {
             this.level = level;
             this.origin = origin;
+            this.originKey = new DimPos(level.dimension(), origin);
             this.side = side;
         }
 
         @Override public long getAmountAsLong() { return 0; }
 
         @Override public long getCapacityAsLong() {
-            // A positive insertion hint keeps senders from treating the cable as full.
-            // Actual accepted FE is bounded by the destination, and the cable stores none.
             var chunk = loaded(level, origin);
-            if(chunk==null)return 0;
-            var state=chunk.getBlockState(origin);
-            if(state.getBlock() instanceof MatterCableBlock cable&&CableOwners.owner(level,origin)!=null)return cable.tier().energyRate();
-            return chunk.getBlockEntity(origin) instanceof EntangledLinkBlockEntity link&&link.owner()!=null?MatterCableBlock.Tier.BASIC.energyRate():0;
+            if (chunk == null) return 0;
+            var state = chunk.getBlockState(origin);
+            if (state.getBlock() instanceof MatterCableBlock cable && CableOwners.owner(level, origin) != null) return cable.tier().energyRate();
+            var be = chunk.getBlockEntity(origin);
+            if (be instanceof EntangledLinkBlockEntity link && link.owner() != null) return MatterCableBlock.Tier.BASIC.energyRate();
+            if (be instanceof DimensionalEntangledLinkBlockEntity dlink && dlink.owner() != null) return MatterCableBlock.Tier.RESONANT.energyRate();
+            return 0;
         }
 
-        /**
-         * Cables only carry FE that a source pushes in. Nothing can pull FE out through a cable, because cables have
-         * no owner and a pull would let anyone attached to the cable drain the energy stores connected to it.
-         */
         @Override public int extract(int amount, TransactionContext transaction) {
             TransferPreconditions.checkNonNegative(amount);
             return 0;
@@ -173,65 +270,96 @@ public final class MatterCablePower {
             TransferPreconditions.checkNonNegative(amount);
             if (amount == 0 || !level.getServer().isSameThread()) return 0;
             var cache = cache(level);
-            // An adjacent foreign energy proxy may forward straight back into this network.
             if (cache.routing) return 0;
             cache.routing = true;
             try {
+                if (level.getBlockState(origin).getBlock() instanceof MatterCableBlock && CableOwners.isSideBlocked(level, origin, side)) return 0;
                 var adjacent = origin.relative(side);
                 var incomingChunk = loaded(level, adjacent);
                 if (incomingChunk == null) return 0;
                 var incoming = incomingChunk.getBlockState(adjacent);
-                if (incoming.getBlock() instanceof MatterCableBlock || incomingChunk.getBlockEntity(adjacent) instanceof EntangledLinkBlockEntity
+                var incomingEntity = incomingChunk.getBlockEntity(adjacent);
+                if (incoming.getBlock() instanceof MatterCableBlock || incoming.getBlock() instanceof MatterCableRelayBlock
+                        || incomingEntity instanceof EntangledLinkBlockEntity
+                        || incomingEntity instanceof DimensionalEntangledLinkBlockEntity
                         || !incoming.isAir() && !allowsEndpoint(incoming, side.getOpposite())) return 0;
 
-                var component = cache.component(level, origin);
+                var component = cache.component(level, originKey);
                 if (component.endpoints == null) return 0;
-                UUID cableOwner=component.owner;
-                if(cableOwner==null)return 0;
-                if(incomingChunk.getBlockEntity(adjacent) instanceof EnergyCubeBlockEntity cube
-                        && !MachineAccess.canConnect(level, cableOwner, component.mode, cube.owner(), cube.securityMode()))return 0;
-                var routes=component.routes(origin);
+                UUID cableOwner = component.owner;
+                if (cableOwner == null) return 0;
+                if (incomingEntity instanceof EnergyCubeBlockEntity cube
+                        && !MachineAccess.canConnect(level, cableOwner, component.mode, cube.owner(), cube.securityMode())) return 0;
+                DimPos adjacentKey = new DimPos(level.dimension(), adjacent);
+                var routes = component.routes(originKey);
                 var candidates = new ArrayList<Candidate<Endpoint>>();
                 for (var endpoint : component.endpoints.active()) {
-                    if (endpoint.position.equals(adjacent)
-                            || !MachineAccess.canConnect(level, cableOwner, component.mode, owner(level, endpoint.position), endpointMode(level, endpoint.position)))continue;
-                    int distance=endpoint.faces.stream().mapToInt(face->routes.distance(face.cable)).min().orElse(Integer.MAX_VALUE);
-                    candidates.add(new Candidate<>(endpoint,cableOwner,distance,endpoint.position));
+                    if (endpoint.key.equals(adjacentKey)
+                            || !MachineAccess.canConnect(endpoint.level, cableOwner, component.mode,
+                                    owner(endpoint.level, endpoint.key.pos()), endpointMode(endpoint.level, endpoint.key.pos()))) continue;
+                    int distance = endpoint.faces.stream().mapToInt(face -> routes.distance(face.cable)).min().orElse(Integer.MAX_VALUE);
+                    if (distance == Integer.MAX_VALUE) continue;
+                    candidates.add(new Candidate<>(endpoint, cableOwner, distance, endpoint.key.pos()));
                 }
                 var endpoints = recipients(candidates);
                 if (endpoints.isEmpty()) return 0;
-                int remaining=amount,count=endpoints.size();
-                int start=Math.floorMod(level.getGameTime()+origin.asLong(),count);
-                for(int i=0;i<count&&remaining>0;i++){
-                    var endpoint=endpoints.get((start+i)%count);
-                    // A device may expose several faces. Prefer its widest actual route, not scan order.
-                    var faces=endpoint.faces.stream().sorted(Comparator.<Face>comparingInt(face->routes.rate(face.cable)).reversed()
-                            .thenComparingInt(face->routes.distance(face.cable)).thenComparing(Face::cable)).toList();
-                    for(var face:faces){
-                        var path=routes.path(face.cable);int rate=routes.rate(face.cable);
-                        if(path.isEmpty()||rate==0)continue;
-                        int offered=Math.min(remaining,rate);
-                        for(var node:path)offered=Math.min(offered,cache.transportBudget(level.getGameTime(),node).remaining(level.getGameTime(),component.rates.get(node)));
-                        if(offered==0)continue;
-                        var handler=face.capability.cache.getCapability();
-                        if(handler==null||handler instanceof Connection)continue;
-                        int available=offered;
-                        int moved=NativeCableEnergy.transfer(rate,()->handler.insert(available,transaction));
-                        if(moved<0||moved>offered)throw new IllegalStateException("Invalid native FE transfer result");
-                        if(moved==0)continue;
-                        // Every real cable/link node shares one rollback-aware allowance across origins, faces,
-                        // graph rescans and both directions. A Link pair therefore cannot add two budgets.
-                        for(var node:path)cache.transportBudget(level.getGameTime(),node).spend(level.getGameTime(),moved,component.rates.get(node),transaction);
-                        remaining-=moved;
-                        if(flow.isEmpty()&&MatterCableActivity.canTrackEnergy(level)){
-                            updateSnapshots(transaction);flow=Optional.of(new Flow(component,face.cable));
+                int remaining = amount, count = endpoints.size();
+                int start = Math.floorMod(level.getGameTime() + origin.asLong(), count);
+                for (int i = 0; i < count && remaining > 0; i++) {
+                    var endpoint = endpoints.get((start + i) % count);
+                    var faces = endpoint.faces.stream().sorted(Comparator.<Face>comparingInt(face -> routes.rate(face.cable)).reversed()
+                            .thenComparingInt(face -> routes.distance(face.cable)).thenComparing(Face::cable)).toList();
+                    for (var face : faces) {
+                        var path = routes.path(face.cable);
+                        int rate = routes.rate(face.cable);
+                        if (path.isEmpty() || rate == 0) continue;
+                        int offered = Math.min(remaining, rate);
+                        for (var node : path) {
+                            offered = Math.min(offered, cache.transportBudget(level.getGameTime(), node)
+                                    .remaining(level.getGameTime(), component.rates.get(node)));
+                        }
+                        if (offered == 0) continue;
+                        var handler = face.capability.cache.getCapability();
+                        if (handler == null || handler instanceof Connection) continue;
+                        int available = offered;
+                        int moved = NativeCableEnergy.transfer(rate, () -> handler.insert(available, transaction));
+                        if (moved < 0 || moved > offered) throw new IllegalStateException("Invalid native FE transfer result");
+                        if (moved == 0) continue;
+                        for (var node : path) {
+                            cache.transportBudget(level.getGameTime(), node)
+                                    .spend(level.getGameTime(), moved, component.rates.get(node), transaction);
+                        }
+                        remaining -= moved;
+                        if (flow.isEmpty()) {
+                            updateSnapshots(transaction);
+                            flow = Optional.of(new Flow(component, face.cable));
                         }
                         break;
                     }
                 }
-                return amount-remaining;
+                return amount - remaining;
             } finally {
                 cache.routing = false;
+            }
+        }
+
+        private void energizeComponent() {
+            if (!level.getServer().isSameThread()) return;
+            if (level.getBlockState(origin).getBlock() instanceof MatterCableBlock && CableOwners.isSideBlocked(level, origin, side)) return;
+            var cache = cache(level);
+            if (cache.routing) return;
+            var component = cache.component(level, originKey);
+            if (component.owner == null || component.cables.isEmpty()) return;
+            long now = level.getGameTime();
+            if (!component.hasOneWayRelays) {
+                if (component.lastEnergizeTick != Long.MIN_VALUE && now - component.lastEnergizeTick < ENERGIZE_REFRESH_INTERVAL) return;
+                component.lastEnergizeTick = now;
+                markCablesPowered(level.getServer(), component.cables);
+            } else {
+                Long prev = component.lastEnergizeByOrigin.get(originKey);
+                if (prev != null && now - prev < ENERGIZE_REFRESH_INTERVAL) return;
+                component.lastEnergizeByOrigin.put(originKey, now);
+                markCablesPowered(level.getServer(), component.routes(originKey).reachableNodes());
             }
         }
 
@@ -241,21 +369,38 @@ public final class MatterCablePower {
         @Override protected void onRootCommit(Optional<Flow> originalState) {
             var committed = flow;
             flow = Optional.empty();
-            if (committed.isEmpty() || !MatterCableActivity.canTrackEnergy(level)) return;
+            if (committed.isEmpty()) return;
             var activity = committed.get();
             if (!activity.component.current(level)) return;
-            MatterCableActivity.energy(level, activity.component.path(origin, activity.otherCable));
+            var path = activity.component.path(originKey, activity.otherCable);
+            if (path.isEmpty()) return;
+            markCablesPowered(level.getServer(), path);
+            if (!MatterCableActivity.canTrackEnergy(level)) return;
+            var segment = new ArrayList<BlockPos>();
+            ResourceKey<Level> segDim = null;
+            for (var node : path) {
+                if (segDim == null || segDim.equals(node.dimension())) {
+                    segDim = node.dimension();
+                    segment.add(node.pos());
+                } else {
+                    ServerLevel segLevel = level.getServer().getLevel(segDim);
+                    if (segLevel != null && !segment.isEmpty()) MatterCableActivity.energy(segLevel, List.copyOf(segment));
+                    segment.clear();
+                    segDim = node.dimension();
+                    segment.add(node.pos());
+                }
+            }
+            if (segDim != null && !segment.isEmpty()) {
+                ServerLevel segLevel = level.getServer().getLevel(segDim);
+                if (segLevel != null) MatterCableActivity.energy(segLevel, List.copyOf(segment));
+            }
         }
     }
 
-    private record Flow(Component component, BlockPos otherCable) {}
-    private record Endpoint(BlockPos position, List<Face> faces) {}
-    private record Face(BlockPos cable, FaceCapability capability) {}
+    private record Flow(Component component, DimPos otherCable) {}
+    private record Endpoint(ServerLevel level, DimPos key, List<Face> faces) {}
+    private record Face(DimPos cable, FaceCapability capability) {}
 
-    /**
-     * The FE capability of one endpoint side. A rescan of its component keeps it, so a block change near the cables
-     * does not register a new capability listener for every endpoint; an invalidation reaches the endpoints now using it.
-     */
     private static final class FaceCapability {
         private final BlockCapabilityCache<EnergyHandler, @Nullable Direction> cache;
         private @Nullable Endpoints user;
@@ -269,23 +414,22 @@ public final class MatterCablePower {
 
     private static final class Endpoints {
         private final List<Endpoint> candidates = new ArrayList<>();
-        private final Map<BlockPos, Endpoint> byPosition = new HashMap<>();
+        private final Map<DimPos, Endpoint> byPosition = new HashMap<>();
         private @Nullable List<Endpoint> active;
 
-        /** Reuses the capability of each side that {@code previous}, the endpoints of the replaced scan, already watched. */
-        private void add(ServerLevel level, BlockPos position, List<EndpointSide> sides, @Nullable Endpoints previous) {
+        private void add(ServerLevel level, DimPos key, List<EndpointSide> sides, @Nullable Endpoints previous) {
             List<Face> faces = sides.stream().map(side -> {
-                var capability = previous == null ? null : previous.capability(position, side.cable);
-                if (capability == null) capability = new FaceCapability(level, position, side.outward);
+                var capability = previous == null ? null : previous.capability(key, side.cable);
+                if (capability == null) capability = new FaceCapability(level, key.pos(), side.outward);
                 capability.user = this;
                 return new Face(side.cable, capability);
             }).toList();
-            var endpoint = new Endpoint(position, faces);
+            var endpoint = new Endpoint(level, key, faces);
             candidates.add(endpoint);
-            byPosition.put(position, endpoint);
+            byPosition.put(key, endpoint);
         }
 
-        private @Nullable FaceCapability capability(BlockPos position, BlockPos cable) {
+        private @Nullable FaceCapability capability(DimPos position, DimPos cable) {
             var endpoint = byPosition.get(position);
             if (endpoint == null) return null;
             for (var face : endpoint.faces) if (face.cable.equals(cable)) return face.capability;
@@ -299,22 +443,17 @@ public final class MatterCablePower {
             var found = new ArrayList<Endpoint>();
             for (var candidate : candidates) {
                 var faces = candidate.faces.stream().filter(face -> face.capability.cache.getCapability() != null).toList();
-                if (!faces.isEmpty()) found.add(new Endpoint(candidate.position, faces));
+                if (!faces.isEmpty()) found.add(new Endpoint(candidate.level, candidate.key, faces));
             }
             active = List.copyOf(found);
             return active;
         }
     }
 
-    /**
-     * Indexes every cable of the recently used components. A stale or displaced component is dropped as a whole,
-     * and above the cable budget the least recently used components go first, so one large network never
-     * evicts every other one.
-     */
+    /** BlockPos-keyed LRU index (kept package-private for unit tests). */
     static final class ComponentIndex<C> {
         private final int budget;
         private final Map<BlockPos, C> byCable = new HashMap<>();
-        // Access order: the first entry is the least recently used component.
         private final Map<C, Set<BlockPos>> recent = new LinkedHashMap<>(16, 0.75F, true);
         private int cables;
 
@@ -345,181 +484,425 @@ public final class MatterCablePower {
         }
     }
 
-    private static final class NetworkCache {
-        private long budgetTick=Long.MIN_VALUE;
-        private final Map<BlockPos,TransportBudget> transportBudgets=new HashMap<>();
-        TransportBudget transportBudget(long tick,BlockPos node){
-            if(budgetTick!=tick){budgetTick=tick;transportBudgets.clear();}
-            return transportBudgets.computeIfAbsent(node,ignored->new TransportBudget());
+    private static final class DimComponentIndex<C> {
+        private final int budget;
+        private final Map<DimPos, C> byCable = new HashMap<>();
+        private final Map<C, Set<DimPos>> recent = new LinkedHashMap<>(16, 0.75F, true);
+        private int cables;
+
+        DimComponentIndex(int budget) { this.budget = budget; }
+
+        @Nullable C get(DimPos cable) {
+            var component = byCable.get(cable);
+            if (component != null) recent.get(component);
+            return component;
         }
-        private final ComponentIndex<Component> indexed = new ComponentIndex<>(MAX_CACHED_CABLES);
+        void put(C component, Set<DimPos> positions) {
+            remove(component);
+            if (positions.size() > budget) return;
+            for (var position : positions) {
+                var displaced = byCable.get(position);
+                if (displaced != null) remove(displaced);
+            }
+            while (cables + positions.size() > budget) remove(recent.keySet().iterator().next());
+            positions.forEach(position -> byCable.put(position, component));
+            recent.put(component, positions);
+            cables += positions.size();
+        }
+        void remove(C component) {
+            var positions = recent.remove(component);
+            if (positions == null) return;
+            for (var position : positions) byCable.remove(position, component);
+            cables -= positions.size();
+        }
+        void clear() {
+            byCable.clear();
+            recent.clear();
+            cables = 0;
+        }
+    }
+
+    private static final class NetworkCache {
+        private long budgetTick = Long.MIN_VALUE;
+        private final Map<DimPos, TransportBudget> transportBudgets = new HashMap<>();
+        private final DimComponentIndex<Component> indexed = new DimComponentIndex<>(MAX_CACHED_CABLES);
         private boolean routing;
 
-        private Component component(ServerLevel level, BlockPos origin) {
+        TransportBudget transportBudget(long tick, DimPos node) {
+            if (budgetTick != tick) { budgetTick = tick; transportBudgets.clear(); }
+            return transportBudgets.computeIfAbsent(node, ignored -> new TransportBudget());
+        }
+
+        private Component component(ServerLevel originLevel, DimPos origin) {
             var cached = indexed.get(origin);
-            if (cached != null && cached.current(level)) return cached;
+            if (cached != null && cached.current(originLevel)) return cached;
             if (cached != null) indexed.remove(cached);
-            var component = new Discovery(level, cached == null ? null : cached.endpoints).scan(origin);
+            var component = new Discovery(originLevel.getServer(), cached == null ? null : cached.endpoints).scan(origin);
             if (!component.cables.isEmpty()) indexed.put(component, component.cables);
             return component;
         }
-    }
 
-    /** One physical transport node, shared even when a re-pair changes the cached graph in this tick. */
-    private static final class TransportBudget extends SnapshotJournal<TransportBudget.State>{
-        private record State(long tick,int spent){}
-        private State state=new State(Long.MIN_VALUE,0);
-        int remaining(long tick,int rate){return Math.max(0,rate-(state.tick==tick?state.spent:0));}
-        void spend(long tick,int amount,int rate,TransactionContext transaction){
-            if(amount<0||amount>remaining(tick,rate))throw new IllegalStateException("Native path allowance exceeded");
-            updateSnapshots(transaction);state=new State(tick,(state.tick==tick?state.spent:0)+amount);
-        }
-        @Override protected State createSnapshot(){return state;}
-        @Override protected void revertToSnapshot(State snapshot){state=snapshot;}
-    }
-
-    /** Safe public peer observations: no lookup here may request a chunk. */
-    private record LinkState(EntangledLinkBlockEntity entity,UUID owner,SecurityMode mode,Optional<BlockPos> peer){
-        boolean current(ServerLevel level,BlockPos pos){
-            var link=EntangledLinks.loaded(level,pos).orElse(null);
-            return link==entity&&MachineAccess.canConnect(level,owner,mode,link.owner(),link.securityMode())
-                    &&peer.equals(EntangledLinks.peer(level,pos,owner,mode));
+        void clear() {
+            indexed.clear();
+            transportBudgets.clear();
+            budgetTick = Long.MIN_VALUE;
         }
     }
 
-    /** One loaded cable/link graph. Adjacency includes the reciprocal virtual edge exactly once per direction. */
+    private static final class TransportBudget extends SnapshotJournal<TransportBudget.State> {
+        private record State(long tick, int spent) {}
+        private State state = new State(Long.MIN_VALUE, 0);
+        int remaining(long tick, int rate) { return Math.max(0, rate - (state.tick == tick ? state.spent : 0)); }
+        void spend(long tick, int amount, int rate, TransactionContext transaction) {
+            if (amount < 0 || amount > remaining(tick, rate)) throw new IllegalStateException("Native path allowance exceeded");
+            updateSnapshots(transaction);
+            state = new State(tick, (state.tick == tick ? state.spent : 0) + amount);
+        }
+        @Override protected State createSnapshot() { return state; }
+        @Override protected void revertToSnapshot(State snapshot) { state = snapshot; }
+    }
+
+    private record ChunkStamp(ServerLevel level, ChunkRevisions.Stamp stamp) {
+        boolean matches() { return stamp.matches(level); }
+    }
+
+    private record LinkState(ServerLevel level, BlockPos pos, EntangledLinkBlockEntity entity, UUID owner, SecurityMode mode,
+                             int portModes, boolean redstoneAllowed, Optional<BlockPos> peer) {
+        boolean current() {
+            var link = EntangledLinks.loaded(level, pos).orElse(null);
+            return link == entity && link.packedPortModes() == portModes
+                    && link.redstoneAllows() == redstoneAllowed
+                    && MachineAccess.canConnect(level, owner, mode, link.owner(), link.securityMode())
+                    && peer.equals(EntangledLinks.peer(level, pos, owner, mode));
+        }
+    }
+
+    private record DimLinkState(ServerLevel level, BlockPos pos, DimensionalEntangledLinkBlockEntity entity, UUID owner,
+                                SecurityMode mode, long revision, Optional<DimPos> peer) {
+        boolean current() {
+            var link = EntangledLinks.loadedDimensional(level, pos).orElse(null);
+            return link == entity && link.stateRevision() == revision
+                    && MachineAccess.canConnect(level, owner, mode, link.owner(), link.securityMode())
+                    && peer.equals(EntangledLinks.dimensionalPeer(level, pos, owner, mode));
+        }
+    }
+
+    private record RelayState(ServerLevel level, MatterCableRelayBlockEntity entity, UUID owner, SecurityMode mode, long revision) {
+        boolean current() {
+            return !entity.isRemoved() && entity.stateRevision() == revision && entity.allowsPower()
+                    && MachineAccess.canConnect(level, owner, mode, entity.owner(), entity.securityMode());
+        }
+    }
+
     private static final class Component {
-        private final Set<BlockPos> cables;
+        private final Set<DimPos> cables;
         private final @Nullable UUID owner;
         private final SecurityMode mode;
         private final @Nullable Endpoints endpoints;
-        private final List<ChunkRevisions.Stamp> stamps;
-        private final Map<BlockPos,List<BlockPos>> neighbors;
-        private final Map<BlockPos,Integer> rates;
-        private final Map<BlockPos,LinkState> links;
-        private final Map<BlockPos,Routes> routes=new LinkedHashMap<>(16,0.75F,true){
-            @Override protected boolean removeEldestEntry(Map.Entry<BlockPos,Routes> eldest){return size()>MAX_CACHED_ORIGINS;}
+        private final List<ChunkStamp> stamps;
+        private final Map<DimPos, List<DimPos>> neighbors;
+        private final Map<DimPos, Integer> rates;
+        private final List<LinkState> links;
+        private final List<DimLinkState> dimLinks;
+        private final List<RelayState> relays;
+        private final boolean hasOneWayRelays;
+        private final Map<DimPos, Routes> routes = new LinkedHashMap<>(16, 0.75F, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<DimPos, Routes> eldest) { return size() > MAX_CACHED_ORIGINS; }
         };
-        private long checkedTick=Long.MIN_VALUE,checkedEpoch;
-        private Component(Set<BlockPos> cables,@Nullable UUID owner,SecurityMode mode,@Nullable Endpoints endpoints,List<ChunkRevisions.Stamp> stamps,
-                          Map<BlockPos,List<BlockPos>> neighbors,Map<BlockPos,Integer> rates,Map<BlockPos,LinkState> links){
-            this.cables=cables;this.owner=owner;this.mode=mode;this.endpoints=endpoints;this.stamps=stamps;
-            this.neighbors=neighbors;this.rates=rates;this.links=links;
+        private final Map<DimPos, Long> lastEnergizeByOrigin = new LinkedHashMap<>(16, 0.75F, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<DimPos, Long> eldest) { return size() > MAX_CACHED_ORIGINS; }
+        };
+        private long checkedTick = Long.MIN_VALUE, checkedEpoch;
+        private long lastEnergizeTick = Long.MIN_VALUE;
+
+        private Component(Set<DimPos> cables, @Nullable UUID owner, SecurityMode mode, @Nullable Endpoints endpoints,
+                          List<ChunkStamp> stamps, Map<DimPos, List<DimPos>> neighbors, Map<DimPos, Integer> rates,
+                          List<LinkState> links, List<DimLinkState> dimLinks, List<RelayState> relays, boolean hasOneWayRelays) {
+            this.cables = cables;
+            this.owner = owner;
+            this.mode = mode;
+            this.endpoints = endpoints;
+            this.stamps = stamps;
+            this.neighbors = neighbors;
+            this.rates = rates;
+            this.links = links;
+            this.dimLinks = dimLinks;
+            this.relays = relays;
+            this.hasOneWayRelays = hasOneWayRelays;
         }
-        private boolean current(ServerLevel level){
-            // Also catches a peer load/unload and in-place BE data replacement, independent of local block state.
-            if(!links.entrySet().stream().allMatch(entry->entry.getValue().current(level,entry.getKey())))return false;
-            long tick=level.getGameTime(),epoch=ChunkRevisions.epoch();
-            if(checkedTick==tick&&checkedEpoch==epoch)return true;
-            if(!stamps.stream().allMatch(stamp->stamp.matches(level)))return false;
-            checkedTick=tick;checkedEpoch=epoch;return true;
+
+        private boolean current(ServerLevel originLevel) {
+            if (!links.isEmpty()) {
+                for (int i = 0, n = links.size(); i < n; i++) if (!links.get(i).current()) return false;
+            }
+            if (!dimLinks.isEmpty()) {
+                for (int i = 0, n = dimLinks.size(); i < n; i++) if (!dimLinks.get(i).current()) return false;
+            }
+            if (!relays.isEmpty()) {
+                for (int i = 0, n = relays.size(); i < n; i++) if (!relays.get(i).current()) return false;
+            }
+            long tick = originLevel.getGameTime(), epoch = ChunkRevisions.epoch();
+            if (checkedTick == tick && checkedEpoch == epoch) return true;
+            for (int i = 0, n = stamps.size(); i < n; i++) if (!stamps.get(i).matches()) return false;
+            checkedTick = tick;
+            checkedEpoch = epoch;
+            return true;
         }
-        private Routes routes(BlockPos origin){return routes.computeIfAbsent(origin,start->new Routes(start,rates,neighbors));}
-        private List<BlockPos> path(BlockPos source,BlockPos target){return routes(source).path(target);}
+
+        private Routes routes(DimPos origin) { return routes.computeIfAbsent(origin, start -> new Routes(start, rates, neighbors)); }
+        private List<DimPos> path(DimPos source, DimPos target) { return routes(source).path(target); }
     }
 
-    /** Widest path, then shortest path: its rate includes both the origin and every traversed Link/cable. */
     private static final class Routes {
-        private record Visit(BlockPos node,int rate,int distance){}
-        private final BlockPos origin;
-        private final Map<BlockPos,Integer> rates=new HashMap<>(),distances=new HashMap<>();
-        private final Map<BlockPos,BlockPos> previous=new HashMap<>();
-        private Routes(BlockPos origin,Map<BlockPos,Integer> limits,Map<BlockPos,List<BlockPos>> neighbors){
-            this.origin=origin;var queue=new PriorityQueue<Visit>(Comparator.comparingInt(Visit::rate).reversed()
+        private record Visit(DimPos node, int rate, int distance) {}
+        private final DimPos origin;
+        private final Map<DimPos, Integer> rates = new HashMap<>(), distances = new HashMap<>();
+        private final Map<DimPos, DimPos> previous = new HashMap<>();
+
+        private Routes(DimPos origin, Map<DimPos, Integer> limits, Map<DimPos, List<DimPos>> neighbors) {
+            this.origin = origin;
+            var queue = new PriorityQueue<Visit>(Comparator.comparingInt(Visit::rate).reversed()
                     .thenComparingInt(Visit::distance).thenComparing(Visit::node));
-            int initial=limits.getOrDefault(origin,0);if(initial==0)return;
-            rates.put(origin,initial);distances.put(origin,0);previous.put(origin,origin);queue.add(new Visit(origin,initial,0));
-            while(!queue.isEmpty()){
-                var current=queue.remove();
-                if(current.rate!=rates.get(current.node)||current.distance!=distances.get(current.node))continue;
-                for(var next:neighbors.getOrDefault(current.node,List.of())){
-                    int rate=Math.min(current.rate,limits.getOrDefault(next,0)),distance=current.distance+1;
-                    if(rate>rates.getOrDefault(next,0)||rate==rates.getOrDefault(next,0)&&distance<distances.getOrDefault(next,Integer.MAX_VALUE)){
-                        rates.put(next,rate);distances.put(next,distance);previous.put(next,current.node);queue.add(new Visit(next,rate,distance));
+            int initial = limits.getOrDefault(origin, 0);
+            if (initial == 0) return;
+            rates.put(origin, initial);
+            distances.put(origin, 0);
+            previous.put(origin, origin);
+            queue.add(new Visit(origin, initial, 0));
+            while (!queue.isEmpty()) {
+                var current = queue.remove();
+                if (current.rate != rates.get(current.node) || current.distance != distances.get(current.node)) continue;
+                for (var next : neighbors.getOrDefault(current.node, List.of())) {
+                    int rate = Math.min(current.rate, limits.getOrDefault(next, 0)), distance = current.distance + 1;
+                    if (rate > rates.getOrDefault(next, 0) || rate == rates.getOrDefault(next, 0) && distance < distances.getOrDefault(next, Integer.MAX_VALUE)) {
+                        rates.put(next, rate);
+                        distances.put(next, distance);
+                        previous.put(next, current.node);
+                        queue.add(new Visit(next, rate, distance));
                     }
                 }
             }
         }
-        int rate(BlockPos target){return rates.getOrDefault(target,0);}
-        int distance(BlockPos target){return distances.getOrDefault(target,Integer.MAX_VALUE);}
-        List<BlockPos> path(BlockPos target){
-            if(!previous.containsKey(target))return List.of();var result=new ArrayList<BlockPos>();
-            for(var node=target;!node.equals(origin);node=previous.get(node))result.add(node);
-            result.add(origin);Collections.reverse(result);return result;
+
+        int rate(DimPos target) { return rates.getOrDefault(target, 0); }
+        int distance(DimPos target) { return distances.getOrDefault(target, Integer.MAX_VALUE); }
+        Set<DimPos> reachableNodes() { return rates.keySet(); }
+        List<DimPos> path(DimPos target) {
+            if (!previous.containsKey(target)) return List.of();
+            var result = new ArrayList<DimPos>();
+            for (var node = target; !node.equals(origin); node = previous.get(node)) result.add(node);
+            result.add(origin);
+            Collections.reverse(result);
+            return result;
         }
     }
 
-    private record EndpointSide(BlockPos cable, Direction outward) {}
+    private record EndpointSide(DimPos cable, Direction outward) {}
+    private record ChunkKey(ResourceKey<Level> dimension, long packed) {}
 
     private static final class Discovery {
-        private final ServerLevel level;
+        private final MinecraftServer server;
         private final @Nullable Endpoints previous;
-        private final Map<Long,ChunkRevisions.Stamp> stamps=new HashMap<>();
-        private final Map<Long,LevelChunk> loadedChunks=new HashMap<>();
-        private final Map<BlockPos,BlockState> observed=new HashMap<>();
-        private final Map<BlockPos,List<BlockPos>> neighbors=new HashMap<>();
-        private final Map<BlockPos,Integer> rates=new HashMap<>();
-        private final Map<BlockPos,LinkState> links=new HashMap<>();
+        private final Map<ChunkKey, ChunkStamp> stamps = new HashMap<>();
+        private final Map<ChunkKey, LevelChunk> loadedChunks = new HashMap<>();
+        private final Map<DimPos, BlockState> observed = new HashMap<>();
+        private final Map<DimPos, List<DimPos>> neighbors = new HashMap<>();
+        private final Map<DimPos, Integer> rates = new HashMap<>();
+        private final Map<DimPos, LinkState> links = new HashMap<>();
+        private final Map<DimPos, DimLinkState> dimLinks = new HashMap<>();
+        private final Map<DimPos, RelayState> relays = new HashMap<>();
+        private boolean hasOneWayRelays;
         private @Nullable UUID cableOwner;
-        private SecurityMode cableMode=SecurityMode.PUBLIC;
-        private Discovery(ServerLevel level,@Nullable Endpoints previous){this.level=level;this.previous=previous;}
-        private Component scan(BlockPos origin){
-            var initial=read(origin);
-            if(initial.getBlock() instanceof MatterCableBlock){cableOwner=CableOwners.owner(level,origin);cableMode=CableOwners.mode(level,origin);}
-            else{var initLink=EntangledLinks.loaded(level,origin).orElse(null);cableOwner=initLink==null?null:initLink.owner();cableMode=initLink==null?SecurityMode.PUBLIC:initLink.securityMode();}
-            if(cableOwner==null||!transport(origin))return result(Set.of(),null);
-            var cables=new LinkedHashSet<BlockPos>();var ends=new LinkedHashMap<BlockPos,List<EndpointSide>>();
-            var queue=new ArrayDeque<BlockPos>();cables.add(origin);queue.add(origin);
-            while(!queue.isEmpty()){
-                var position=queue.removeFirst();
-                for(var direction:DIRECTIONS){
-                    var next=position.relative(direction);var state=read(next);
-                    if(transport(next)){
-                        edge(position,next);
-                        if(cables.add(next)){if(cables.size()>MachineMatterNetwork.SCAN_BUDGET)return result(cables,null);queue.add(next);}
-                    }else if((state.getBlock() instanceof MachineBlock||state.getBlock() instanceof MachinePortBlock
-                            ||state.getBlock() instanceof EnergyCubeBlock||state.getBlock() instanceof WirelessAccessPointBlock)
-                            &&allowsEndpoint(state,direction.getOpposite())){
-                        ends.computeIfAbsent(next,ignored->new ArrayList<>()).add(new EndpointSide(position,direction.getOpposite()));
+        private SecurityMode cableMode = SecurityMode.PUBLIC;
+
+        private Discovery(MinecraftServer server, @Nullable Endpoints previous) {
+            this.server = server;
+            this.previous = previous;
+        }
+
+        private Component scan(DimPos origin) {
+            ServerLevel originLevel = origin.resolveLevel(server);
+            if (originLevel == null) return emptyComponent();
+            var initial = read(origin);
+            if (initial.getBlock() instanceof MatterCableBlock) {
+                cableOwner = CableOwners.owner(originLevel, origin.pos());
+                cableMode = CableOwners.mode(originLevel, origin.pos());
+            } else {
+                var initLink = EntangledLinks.loaded(originLevel, origin.pos()).orElse(null);
+                if (initLink != null) {
+                    cableOwner = initLink.owner();
+                    cableMode = initLink.securityMode();
+                } else {
+                    var initDimLink = EntangledLinks.loadedDimensional(originLevel, origin.pos()).orElse(null);
+                    cableOwner = initDimLink == null ? null : initDimLink.owner();
+                    cableMode = initDimLink == null ? SecurityMode.PUBLIC : initDimLink.securityMode();
+                }
+            }
+            if (cableOwner == null || !transport(origin)) return result(originLevel, Set.of(), null);
+
+            var cables = new LinkedHashSet<DimPos>();
+            var ends = new LinkedHashMap<DimPos, List<EndpointSide>>();
+            var endLevels = new HashMap<DimPos, ServerLevel>();
+            var queue = new ArrayDeque<DimPos>();
+            cables.add(origin);
+            queue.add(origin);
+            while (!queue.isEmpty()) {
+                var position = queue.removeFirst();
+                var curState = read(position);
+                ServerLevel curLevel = position.resolveLevel(server);
+                var curRelay = relays.get(position);
+                var curLink = links.get(position);
+                var curDimLink = dimLinks.get(position);
+                boolean curIsCable = curState.getBlock() instanceof MatterCableBlock;
+                int curBlocked = curIsCable && curLevel != null ? CableOwners.blockedSides(curLevel, position.pos()) : 0;
+                for (var direction : DIRECTIONS) {
+                    if ((curBlocked & (1 << direction.get3DDataValue())) != 0) continue;
+                    if (curRelay != null && !curRelay.entity.connectsDirection(direction)) continue;
+                    if (curLink != null && !curLink.entity.allowsPower(direction)) continue;
+                    if (curDimLink != null && !curDimLink.entity.allowsPower(direction)) continue;
+                    var next = new DimPos(position.dimension(), position.pos().relative(direction));
+                    var state = read(next);
+                    if (state.getBlock() instanceof MatterCableBlock && curLevel != null
+                            && CableOwners.isSideBlocked(curLevel, next.pos(), direction.getOpposite())) continue;
+                    if (transport(next)) {
+                        var nextRelay = relays.get(next);
+                        if (nextRelay != null && !nextRelay.entity.connectsDirection(direction.getOpposite())) continue;
+                        var nextLink = links.get(next);
+                        if (nextLink != null && !nextLink.entity.allowsPower(direction.getOpposite())) continue;
+                        var nextDimLink = dimLinks.get(next);
+                        if (nextDimLink != null && !nextDimLink.entity.allowsPower(direction.getOpposite())) continue;
+                        boolean allowForward = (curRelay == null || !curRelay.entity.isOneWay() || direction == curRelay.entity.outputSide())
+                                && (nextRelay == null || !nextRelay.entity.isOneWay() || direction.getOpposite() == nextRelay.entity.inputSide());
+                        boolean allowBackward = (nextRelay == null || !nextRelay.entity.isOneWay() || direction.getOpposite() == nextRelay.entity.outputSide())
+                                && (curRelay == null || !curRelay.entity.isOneWay() || direction == curRelay.entity.inputSide());
+                        if (allowForward) directedEdge(position, next);
+                        if (allowBackward) directedEdge(next, position);
+                        if (cables.add(next)) {
+                            if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(originLevel, cables, null);
+                            queue.add(next);
+                        }
+                    } else if (curRelay == null
+                            && (state.getBlock() instanceof MachineBlock || state.getBlock() instanceof MachinePortBlock
+                                || state.getBlock() instanceof EnergyCubeBlock || state.getBlock() instanceof WirelessAccessPointBlock
+                                || state.getBlock() instanceof SpatialAnchorBlock)
+                            && allowsEndpoint(state, direction.getOpposite())) {
+                        ServerLevel nextLevel = next.resolveLevel(server);
+                        if (nextLevel != null) {
+                            if (state.getBlock() instanceof SpatialAnchorBlock
+                                    && nextLevel.getBlockEntity(next.pos()) instanceof SpatialAnchorBlockEntity anchor
+                                    && !anchor.allowsPower(direction.getOpposite())) {
+                                continue;
+                            }
+                            endLevels.putIfAbsent(next, nextLevel);
+                            ends.computeIfAbsent(next, ignored -> new ArrayList<>()).add(new EndpointSide(position, direction.getOpposite()));
+                        }
                     }
                 }
-                var link=links.get(position);
-                if(link!=null&&link.peer.isPresent()){
-                    var peer=link.peer.get();
-                    if(transport(peer)){
-                        edge(position,peer);
-                        if(cables.add(peer)){if(cables.size()>MachineMatterNetwork.SCAN_BUDGET)return result(cables,null);queue.add(peer);}
+                var link = links.get(position);
+                if (link != null && link.peer.isPresent()) {
+                    var peer = new DimPos(position.dimension(), link.peer.get());
+                    if (transport(peer)) {
+                        edge(position, peer);
+                        if (cables.add(peer)) {
+                            if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(originLevel, cables, null);
+                            queue.add(peer);
+                        }
+                    }
+                }
+                var dlink = dimLinks.get(position);
+                if (dlink != null && dlink.peer.isPresent()) {
+                    var peer = dlink.peer.get();
+                    if (transport(peer)) {
+                        edge(position, peer);
+                        if (cables.add(peer)) {
+                            if (cables.size() > MachineMatterNetwork.SCAN_BUDGET) return result(originLevel, cables, null);
+                            queue.add(peer);
+                        }
                     }
                 }
             }
-            var endpoints=new Endpoints();ends.forEach((position,sides)->endpoints.add(level,position,sides,previous));
-            return result(cables,endpoints);
+            var endpoints = new Endpoints();
+            ends.forEach((key, sides) -> endpoints.add(endLevels.get(key), key, sides, previous));
+            return result(originLevel, cables, endpoints);
         }
-        private void edge(BlockPos first,BlockPos second){
-            var list=neighbors.computeIfAbsent(first,ignored->new ArrayList<>());if(!list.contains(second))list.add(second);
-            var reverse=neighbors.computeIfAbsent(second,ignored->new ArrayList<>());if(!reverse.contains(first))reverse.add(first);
+
+        private void directedEdge(DimPos from, DimPos to) {
+            var list = neighbors.computeIfAbsent(from, ignored -> new ArrayList<>());
+            if (!list.contains(to)) list.add(to);
         }
-        private boolean transport(BlockPos pos){
-            var state=read(pos);
-            if(state.getBlock() instanceof MatterCableBlock cable){
-                if(!MachineAccess.canConnect(level,cableOwner,cableMode,CableOwners.owner(level,pos),CableOwners.mode(level,pos)))return false;
-                rates.put(pos,cable.tier().energyRate());return true;
+
+        private void edge(DimPos first, DimPos second) {
+            directedEdge(first, second);
+            directedEdge(second, first);
+        }
+
+        private boolean transport(DimPos key) {
+            ServerLevel level = key.resolveLevel(server);
+            if (level == null) return false;
+            BlockPos pos = key.pos();
+            var state = read(key);
+            if (state.getBlock() instanceof MatterCableBlock cable) {
+                if (!MachineAccess.canConnect(level, cableOwner, cableMode, CableOwners.owner(level, pos), CableOwners.mode(level, pos))) return false;
+                rates.put(key, cable.tier().energyRate());
+                return true;
             }
-            var link=EntangledLinks.loaded(level,pos).orElse(null);
-            if(link==null||!MachineAccess.canConnect(level,cableOwner,cableMode,link.owner(),link.securityMode()))return false;
-            rates.put(pos,MatterCableBlock.Tier.BASIC.energyRate());
-            links.put(pos,new LinkState(link,cableOwner,cableMode,EntangledLinks.peer(level,pos,cableOwner,cableMode)));return true;
+            if (state.getBlock() instanceof MatterCableRelayBlock) {
+                var chunk = loaded(level, pos);
+                if (chunk == null || !(chunk.getBlockEntity(pos) instanceof MatterCableRelayBlockEntity relay)) return false;
+                if (!relay.allowsPower() || !MachineAccess.canConnect(level, cableOwner, cableMode, relay.owner(), relay.securityMode())) return false;
+                int rate = relay.effectiveEnergyRate();
+                if (rate <= 0) return false;
+                if (relay.isOneWay()) hasOneWayRelays = true;
+                rates.put(key, rate);
+                relays.put(key, new RelayState(level, relay, cableOwner, cableMode, relay.stateRevision()));
+                return true;
+            }
+            var link = EntangledLinks.loaded(level, pos).orElse(null);
+            if (link != null) {
+                if (!MachineAccess.canConnect(level, cableOwner, cableMode, link.owner(), link.securityMode())) return false;
+                rates.put(key, MatterCableBlock.Tier.BASIC.energyRate());
+                links.put(key, new LinkState(level, pos, link, cableOwner, cableMode, link.packedPortModes(),
+                        link.redstoneAllows(), EntangledLinks.peer(level, pos, cableOwner, cableMode)));
+                return true;
+            }
+            var dlink = EntangledLinks.loadedDimensional(level, pos).orElse(null);
+            if (dlink != null) {
+                if (!MachineAccess.canConnect(level, cableOwner, cableMode, dlink.owner(), dlink.securityMode())) return false;
+                rates.put(key, MatterCableBlock.Tier.RESONANT.energyRate());
+                dimLinks.put(key, new DimLinkState(level, pos, dlink, cableOwner, cableMode, dlink.stateRevision(),
+                        EntangledLinks.dimensionalPeer(level, pos, cableOwner, cableMode)));
+                return true;
+            }
+            return false;
         }
-        private Component result(Set<BlockPos> cables,@Nullable Endpoints endpoints){
-            var adjacency=new HashMap<BlockPos,List<BlockPos>>();neighbors.forEach((pos,list)->adjacency.put(pos,List.copyOf(list)));
-            var component=new Component(Set.copyOf(cables),cableOwner,cableMode,endpoints,List.copyOf(stamps.values()),Map.copyOf(adjacency),Map.copyOf(rates),Map.copyOf(links));
-            return component.current(level)?component:new Component(Set.of(),null,SecurityMode.PUBLIC,null,List.of(),Map.of(),Map.of(),Map.of());
+
+        private Component emptyComponent() {
+            return new Component(Set.of(), null, SecurityMode.PUBLIC, null, List.of(), Map.of(), Map.of(), List.of(), List.of(), List.of(), false);
         }
-        private BlockState read(BlockPos pos){
-            return observed.computeIfAbsent(pos,position->{
-                int x=position.getX()>>4,z=position.getZ()>>4;long key=(long)x<<32|(z&0xffffffffL);
-                stamps.computeIfAbsent(key,ignored->{var chunk=level.getChunkSource().getChunkNow(x,z);if(chunk!=null)loadedChunks.put(key,chunk);return ChunkRevisions.Stamp.of(x,z,chunk);});
-                var chunk=loadedChunks.get(key);return chunk==null?Blocks.AIR.defaultBlockState():chunk.getBlockState(position);
+
+        private Component result(ServerLevel originLevel, Set<DimPos> cables, @Nullable Endpoints endpoints) {
+            var adjacency = new HashMap<DimPos, List<DimPos>>();
+            neighbors.forEach((pos, list) -> adjacency.put(pos, List.copyOf(list)));
+            var component = new Component(Set.copyOf(cables), cableOwner, cableMode, endpoints, List.copyOf(stamps.values()),
+                    Map.copyOf(adjacency), Map.copyOf(rates), List.copyOf(links.values()),
+                    List.copyOf(dimLinks.values()), List.copyOf(relays.values()), hasOneWayRelays);
+            return component.current(originLevel) ? component : emptyComponent();
+        }
+
+        private BlockState read(DimPos key) {
+            return observed.computeIfAbsent(key, dimPos -> {
+                ServerLevel level = dimPos.resolveLevel(server);
+                if (level == null) return Blocks.AIR.defaultBlockState();
+                BlockPos position = dimPos.pos();
+                int x = position.getX() >> 4, z = position.getZ() >> 4;
+                ChunkKey ck = new ChunkKey(dimPos.dimension(), (long) x << 32 | (z & 0xffffffffL));
+                stamps.computeIfAbsent(ck, ignored -> {
+                    var chunk = level.getChunkSource().getChunkNow(x, z);
+                    if (chunk != null) loadedChunks.put(ck, chunk);
+                    return new ChunkStamp(level, ChunkRevisions.Stamp.of(x, z, chunk));
+                });
+                var chunk = loadedChunks.get(ck);
+                return chunk == null ? Blocks.AIR.defaultBlockState() : chunk.getBlockState(position);
             });
         }
     }

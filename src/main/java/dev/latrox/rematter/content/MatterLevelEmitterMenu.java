@@ -29,6 +29,7 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
     private long observedStock;
     private boolean networkReady;
     private boolean emitting;
+    private String customName = "";
     private boolean initialSent;
 
     public MatterLevelEmitterMenu(int id, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -42,6 +43,7 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         this.observedStock = Math.max(0L, buf.readVarLong());
         this.networkReady = buf.readBoolean();
         this.emitting = buf.readBoolean();
+        if (buf.readableBytes() > 0) this.customName = CustomNames.sanitize(buf.readUtf(CustomNames.MAX_LENGTH));
         addDataSlot(securityMode);
         addDataSlot(canManageSecurity);
     }
@@ -57,6 +59,7 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         this.observedStock = emitter.observedStock();
         this.networkReady = emitter.networkReady();
         this.emitting = emitter.emitting();
+        this.customName = emitter.customName();
         securityMode.set(emitter.securityMode().ordinal());
         addDataSlot(securityMode);
         canManageSecurity.set(emitter.canManageSecurity(viewer) ? 1 : 0);
@@ -64,6 +67,13 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
     }
 
     public BlockPos position() { return position; }
+    public String customName() { return emitter != null ? emitter.customName() : customName; }
+    public void setClientCustomName(String value) { customName = CustomNames.sanitize(value); }
+    public void renameFromClient(ServerPlayer player, String nextName) {
+        if (emitter == null || !stillValid(player) || !emitter.canAccess(player)) return;
+        emitter.setCustomName(nextName);
+        broadcastChanges();
+    }
     public @Nullable SubstanceKey target() { return target; }
     public long threshold() { return threshold; }
     public boolean emitWhenBelow() { return emitWhenBelow; }
@@ -89,6 +99,7 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         this.observedStock = state.observedStock();
         this.networkReady = state.networkReady();
         this.emitting = state.emitting();
+        this.customName = state.customName();
     }
 
     public void configureFromClient(ServerPlayer player, MatterLevelEmitterPayload.Configure payload) {
@@ -111,9 +122,10 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
         long curStock = emitter.observedStock();
         boolean curReady = emitter.networkReady();
         boolean curEmitting = emitter.emitting();
+        String curName = emitter.customName();
         if (!initialSent || !Objects.equals(target, curTarget) || threshold != curThreshold
                 || emitWhenBelow != curBelow || observedStock != curStock
-                || networkReady != curReady || emitting != curEmitting) {
+                || networkReady != curReady || emitting != curEmitting || !customName.equals(curName)) {
             initialSent = true;
             target = curTarget;
             threshold = curThreshold;
@@ -121,8 +133,9 @@ public final class MatterLevelEmitterMenu extends AbstractContainerMenu {
             observedStock = curStock;
             networkReady = curReady;
             emitting = curEmitting;
+            customName = curName;
             PacketDistributor.sendToPlayer(serverPlayer, new MatterLevelEmitterPayload.State(
-                    containerId, curTarget, curThreshold, curBelow, curStock, curReady, curEmitting));
+                    containerId, curTarget, curThreshold, curBelow, curStock, curReady, curEmitting, curName));
         }
     }
 

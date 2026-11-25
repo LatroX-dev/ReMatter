@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "translation_key": "substance.rematter.saline_brine",
+  "symbol": "NaClLi(H₂O)₂",
+  "kind": "mixture",
+  "composition": {
+    "rematter:sodium": 1,
+    "rematter:chlorine": 1,
+    "rematter:lithium": 1,
+    "rematter:hydrogen": 4,
+    "rematter:oxygen": 2
+  },
+  "phases": [
+    "liquid"
+  ]
+}

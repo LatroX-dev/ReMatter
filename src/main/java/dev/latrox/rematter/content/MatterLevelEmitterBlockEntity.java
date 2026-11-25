@@ -35,6 +35,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
     public static final long DEFAULT_THRESHOLD = 1_000L;
 
     private @Nullable UUID owner;
+    private String customName = "";
     private @Nullable SubstanceKey target;
     private long threshold = DEFAULT_THRESHOLD;
     private boolean emitWhenBelow;
@@ -47,6 +48,13 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
     }
 
     public @Nullable UUID owner() { return owner; }
+    public String customName() { return customName; }
+    public void setCustomName(String next) {
+        String clean = CustomNames.sanitize(next);
+        if (customName.equals(clean)) return;
+        customName = clean;
+        setChanged();
+    }
     public @Nullable SubstanceKey target() { return target; }
     public long threshold() { return threshold; }
     public boolean emitWhenBelow() { return emitWhenBelow; }
@@ -105,8 +113,17 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
     }
 
     public void placedBy(@Nullable LivingEntity placer) {
+        placedBy(placer, net.minecraft.world.item.ItemStack.EMPTY);
+    }
+
+    public void placedBy(@Nullable LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
         if (securityMode == SecurityMode.PUBLIC) {
             securityMode = MachineAccess.placementDefault(level, placer);
+        }
+        String fromItem = CustomNames.fromStack(stack);
+        if (!fromItem.isEmpty()) {
+            customName = fromItem;
+            setChanged();
         }
         assignOwner(placer instanceof Player player && !(player instanceof FakePlayer) ? player.getUUID() : null);
     }
@@ -189,7 +206,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
                 observedStock = 0L;
                 return false;
             }
-            observedStock = network.machines().stream().mapToLong(MachineBlockEntity::drivePrimalAmount).sum();
+            observedStock = network.primalAmount();
         } else {
             var inv = network.ready() ? network.inventory() : null;
             networkReady = inv != null;
@@ -223,6 +240,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         buf.writeVarLong(observedStock);
         buf.writeBoolean(networkReady);
         buf.writeBoolean(emitting());
+        buf.writeUtf(customName, CustomNames.MAX_LENGTH);
     }
 
     @Override public void setRemoved() {
@@ -236,6 +254,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         output.putInt("schema", 1);
         if (owner != null) output.putString("owner", owner.toString());
         if (securityMode != SecurityMode.PUBLIC) output.putString("security", securityMode.getSerializedName());
+        if (!customName.isEmpty()) output.putString("custom_name", customName);
         if (target != null) {
             output.putString("target_id", target.id().toString());
             output.putString("target_phase", target.phase().name().toLowerCase(Locale.ROOT));
@@ -249,6 +268,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
         cachedNetwork = null;
         owner = null;
         securityMode = SecurityMode.PUBLIC;
+        customName = "";
         target = null;
         threshold = DEFAULT_THRESHOLD;
         emitWhenBelow = false;
@@ -259,6 +279,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
             try { owner = UUID.fromString(raw); } catch (IllegalArgumentException ignored) { owner = null; }
         });
         securityMode = input.getString("security").filter(SecurityMode::validName).map(SecurityMode::load).orElse(SecurityMode.PUBLIC);
+        customName = CustomNames.sanitize(input.getStringOr("custom_name", ""));
         var rawId = input.getString("target_id");
         var rawPhase = input.getString("target_phase");
         if (rawId.isPresent() && rawPhase.isPresent() && rawId.get().length() <= CellPartitionData.MAX_ID_LENGTH) {
@@ -274,7 +295,7 @@ public final class MatterLevelEmitterBlockEntity extends BlockEntity implements 
     }
 
     @Override public Component getDisplayName() {
-        return Component.translatable("block.rematter.matter_level_emitter");
+        return CustomNames.displayName(customName, "block.rematter.matter_level_emitter");
     }
 
     @Override public @Nullable AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {

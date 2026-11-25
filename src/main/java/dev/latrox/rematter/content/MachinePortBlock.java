@@ -73,10 +73,16 @@ public final class MachinePortBlock extends Block implements EntityBlock {
     }
     @Override protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof MachinePortBlockEntity port) {
-            var controller = port.controller(hit.getDirection());
-            if (controller != null && controller.interact(player)) {
+            Direction clickSide = hit.getDirection();
+            var resolved = port.controller(clickSide);
+            if (resolved == null) {
+                resolved = port.controller(null);
+                clickSide = port.outward();
+            }
+            final var controller = resolved;
+            if (controller != null && clickSide != null && controller.interact(player)) {
                 if (player.isShiftKeyDown()) {
-                    if (port.cycleMode(player, hit.getDirection())) {
+                    if (port.cycleMode(player, clickSide)) {
                         player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("port.rematter.mode_message", port.mode().label()));
                         ModSounds.play(level, pos, ModSounds.PORT_CYCLE);
                     }

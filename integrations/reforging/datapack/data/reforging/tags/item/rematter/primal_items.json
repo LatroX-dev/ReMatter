@@ -34,7 +34,15 @@
       "required": false
     },
     {
+      "id": "rematter:primal_cell_4m",
+      "required": false
+    },
+    {
       "id": "rematter:primal_crystal",
+      "required": false
+    },
+    {
+      "id": "rematter:primal_matrix_core",
       "required": false
     },
     {
@@ -43,6 +51,10 @@
     },
     {
       "id": "rematter:entangled_link",
+      "required": false
+    },
+    {
+      "id": "rematter:dimensional_entangled_link",
       "required": false
     }
   ]

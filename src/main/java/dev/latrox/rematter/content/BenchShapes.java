@@ -54,6 +54,13 @@ final class BenchShapes {
                     Block.box(5,6,7,11,14,9),
                     Block.box(5,12,3,11,14,5),
                     Block.box(5,6,5,11,11,7));
+            case DEEP_EXTRACTOR -> Shapes.or(Block.box(3,4,2,13,6,9),
+                    Block.box(3,6,4,5,14,8),
+                    Block.box(11,6,4,13,14,8),
+                    Block.box(3,14,4,13,16,9),
+                    Block.box(5,6,7,11,14,9),
+                    Block.box(5,7,5,6,13,7),
+                    Block.box(10,7,5,11,13,7));
             default -> Shapes.empty();
         };
     }

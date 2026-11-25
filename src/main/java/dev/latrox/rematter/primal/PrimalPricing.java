@@ -16,8 +16,8 @@ public final class PrimalPricing {
         Grade(long primalPerUnit, long energy, int ticks) { this.primalPerUnit = primalPerUnit; this.energy = energy; this.ticks = ticks; }
     }
     private static final Set<String> COMMON = Set.of("iron", "copper", "carbon", "silicon", "tin", "zinc", "aluminum", "lead", "sulfur");
-    private static final Set<String> SCARCE = Set.of("gold", "silver", "platinum", "iridium", "osmium", "nickel", "lithium", "titanium", "uranium");
-    private static final Set<String> INVENTED = Set.of("arcanium", "cinderium", "enderion", "netherium");
+    private static final Set<String> SCARCE = Set.of("gold", "silver", "platinum", "iridium", "osmium", "nickel", "lithium", "titanium");
+    private static final Set<String> INVENTED = Set.of("arcanium", "cinderium", "enderion", "netherium", "uranium");
     private PrimalPricing() {}
     public record Quote(SubstanceKey target, long output, long primal, long energy, int ticks) {
         public Quote { if (output <= 0 || primal < output || energy <= 0 || ticks <= 0) throw new IllegalArgumentException("Invalid Primal conversion"); }

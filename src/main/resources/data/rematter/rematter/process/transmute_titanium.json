@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "type": "transmutation",
+  "inputs": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 3000
+    },
+    {
+      "substance": "rematter:silicon",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:hydrogen",
+      "phase": "gas",
+      "amount": 1500
+    }
+  ],
+  "outputs": [
+    {
+      "substance": "rematter:titanium",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "energy": 480000,
+  "ticks": 1200,
+  "industrial": {
+    "min_field": 4,
+    "requires_known_outputs": true,
+    "product": "rematter:titanium"
+  }
+}

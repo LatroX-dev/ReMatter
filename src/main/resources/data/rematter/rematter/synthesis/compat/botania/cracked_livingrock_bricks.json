@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:cracked_livingrock_bricks",
+  "disabled": true
+}

@@ -1,0 +1,71 @@
+{
+  "variants": {
+    "formed=false": {
+      "model": "rematter:block/energy_matrix_glass"
+    },
+    "formed=true": {
+      "type": "rematter:connected_glass",
+      "masks": [
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_0"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_1"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_2"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_3"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_4"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_5"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_6"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_7"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_8"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_9"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_10"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_11"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_12"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_13"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_ctm_14"
+        }
+      ],
+      "corners": [
+        {
+          "model": "rematter:block/energy_matrix_glass_corner_0"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_corner_1"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_corner_2"
+        },
+        {
+          "model": "rematter:block/energy_matrix_glass_corner_3"
+        }
+      ]
+    }
+  }
+}

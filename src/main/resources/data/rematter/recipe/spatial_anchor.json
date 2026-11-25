@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "EBE",
+    "FAF",
+    "RKR"
+  ],
+  "key": {
+    "E": "rematter:ender_conductor",
+    "B": "rematter:blue_matrix_crystal",
+    "F": "rematter:machine_frame",
+    "A": "rematter:anchor_upgrade",
+    "R": "rematter:rhevon_ingot",
+    "K": "rematter:energy_core"
+  },
+  "result": {
+    "id": "rematter:spatial_anchor",
+    "count": 1
+  }
+}

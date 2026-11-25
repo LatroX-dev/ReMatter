@@ -56,8 +56,8 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
     enum Detail {
         NONE, ITEMS, CELLS, MECHANISM;
         static Detail of(MachineKind kind){return switch(kind){
-            case TERMINAL,NETWORK_INTERFACE,PRIMAL_CONVERTER,CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR -> NONE;
-            case REACTOR,ATMOSPHERIC_COLLECTOR -> MECHANISM;
+            case TERMINAL,NETWORK_INTERFACE,PRIMAL_CONVERTER,CRYSTAL_GENERATOR,INDUSTRIAL_CRYSTAL_GENERATOR,ENERGY_MATRIX -> NONE;
+            case REACTOR,ATMOSPHERIC_COLLECTOR,DEEP_EXTRACTOR,TRANSMUTATION_REACTOR,PRIMAL_REACTOR,ENERGY_REACTOR -> MECHANISM;
             case DRIVE -> CELLS;
             default -> ITEMS;
         };}
@@ -98,6 +98,8 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         state.phase=work.phase(period(state.kind));state.turns=work.turns();state.drive=work.drive();state.engage=work.engage();state.waiting=work.waiting();state.progress=work.progress();
         state.preparationStage=machine.preparationStage();state.preparationMixing=machine.preparationMixing();
         state.industrialWidth=machine.industrialWidth();state.industrialHeight=machine.industrialHeight();state.industrialDepth=machine.industrialDepth();state.industrialColumn=machine.industrialControllerColumn();
+        state.matrixFill=machine.visualMatrixFill()/1000F;state.primalStability=machine.visualPrimalStability()/1000F;
+        state.reactorFlux=machine.visualReactorFlux()/1000F;state.reactorCooled=machine.visualReactorCooled();
         if(IndustrialStructure.isIndustrial(state.kind)&&state.industrialWidth>0&&machine.getLevel()!=null){
             // Chamber hardware and its product are lit where they stand, not inside the opaque controller.
             var right=state.facing.getClockWise();var back=state.facing.getOpposite();var position=machine.getBlockPos();
@@ -122,7 +124,7 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
             resolver.updateForTopItem(rendered[i],fade.shown,ItemDisplayContext.FIXED,machine.getLevel(),null,seed+i);
         }
     }
-    private static double period(MachineKind kind){return switch(kind){case REACTOR -> 80;case ANALYZER -> 48;case PREPARATOR -> 24;case DECOMPOSER -> 32;case SYNTHESIZER -> 40;default -> 64;};}
+    private static double period(MachineKind kind){return switch(kind){case REACTOR -> 80;case ANALYZER -> 48;case PREPARATOR, DEEP_EXTRACTOR -> 24;case DECOMPOSER -> 32;case SYNTHESIZER -> 40;default -> 64;};}
     private static void geometry(MachineRenderState s){
         var m=s.moving;float e=s.engage,p=s.phase,d=s.drive;
         int white=UiPalette.WHITE,lit=MovingBoxes.light(s.lightCoords,d),accent=UiPalette.machineAccent(s.kind);
@@ -161,11 +163,17 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
                 beam(s,8,10.5F,7.5F,8,6.3F+h,5.5F,e,accent,20);
             }
             case ATMOSPHERIC_COLLECTOR -> beam(s,8,14.5F,6,8,11.2F,6,e,accent,24);
+            case DEEP_EXTRACTOR -> {
+                var bit = RendererParts.BORE_BIT;
+                float plunge = 2.0F * (.5F - .5F * (float) Math.cos(p * Math.PI * 2)) * e;
+                m.box(bit.x0(), bit.y0() - plunge, bit.z0(), bit.x1(), bit.y1() - plunge, bit.z1(), METAL, MovingBoxes.ALL ^ MovingBoxes.UP, white, s.lightCoords, 0, 0, 0, null);
+                beam(s, 8, 12.5F - plunge, 5.5F, 8, 5.2F, 5.5F, e, accent, 18);
+            }
             case HAND_PREPARATOR -> {
                 var q=new Quaternionf().rotationZ((float)Math.toRadians(s.handAngle));
                 for(var a:new RendererParts.Part[]{RendererParts.HAND_ARM,RendererParts.HAND_GRIP})m.box(a.x0(),a.y0(),a.z0(),a.x1(),a.y1(),a.z1(),METAL,MovingBoxes.ALL,white,s.lightCoords,10.5F,11.5F,2.5F,q);
             }
-            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER, INDUSTRIAL_PREPARATOR -> field(s);
+            case INDUSTRIAL_REACTOR, INDUSTRIAL_DECOMPOSER, INDUSTRIAL_SYNTHESIZER, INDUSTRIAL_PREPARATOR, TRANSMUTATION_REACTOR, PRIMAL_REACTOR, ENERGY_REACTOR -> field(s);
             default -> { }
         }
         if(!dev.latrox.rematter.content.IndustrialStructure.isIndustrial(s.kind)){
@@ -188,13 +196,54 @@ public final class MachineRenderer implements BlockEntityRenderer<MachineBlockEn
         }
         if(interior>=3||odd)ring(s,x,y,z,scale,false,reactor?(interior>=3?25:15):(interior>=3?10:0),(float)((s.turns*1.8)%360));
         ring(s,x,y,z,scale,true,reactor&&interior>=3?50:0,(float)((s.turns*-3)%360));
+        if(s.kind==MachineKind.PRIMAL_REACTOR&&interior>=3){
+            // Third high-energy prismatic gimbal ring + orbiting singularity motes scaled by live Stability.
+            float stab = Math.clamp(s.primalStability, 0F, 1F);
+            float glow = Math.max(s.drive, .25F + .75F * stab);
+            int spectrum = UiPalette.primalSpectrum((float)(s.clock / (72.0 - 24.0 * stab)));
+            var parts = new RendererParts.Part[]{RendererParts.FIELD_INNER_FRONT,RendererParts.FIELD_INNER_BACK,RendererParts.FIELD_INNER_RIGHT,RendererParts.FIELD_INNER_LEFT};
+            var q = new Quaternionf().rotateZ((float)Math.toRadians(72)).rotateY((float)Math.toRadians((s.turns * (4.5 + 3.0 * stab)) % 360));
+            for(var a:parts)s.moving.box(x+a.x0()*scale*.85F,y+a.y0()*scale*.85F,z+a.z0()*scale*.85F,x+a.x1()*scale*.85F,y+a.y1()*scale*.85F,z+a.z1()*scale*.85F,MASK,MovingBoxes.ALL,UiPalette.multiply(spectrum,.55F+.45F*glow),MovingBoxes.light(s.lightCoords,glow),x,y,z,q);
+            for(int i=0;i<4;i++){
+                double ang = (s.turns * (0.08 + 0.06 * stab) + i * Math.PI / 2.0);
+                float r = (3.3F + 0.6F * stab) * scale;
+                float mx = x + (float)Math.cos(ang) * r, mz = z + (float)Math.sin(ang) * r;
+                float my = y + (float)Math.sin(ang * 2.0) * 1.4F * scale;
+                int moteCol = UiPalette.primalSpectrum((float)(s.clock / 64.0 + i * 0.25));
+                float w = (.55F + .35F * stab) * (.65F + .35F * glow);
+                s.moving.box(mx-w,my-w,mz-w,mx+w,my+w,mz+w,MASK,UiPalette.tint(moteCol,.35F),MovingBoxes.light(s.lightCoords,glow));
+            }
+        }
+        if(s.kind==MachineKind.ENERGY_REACTOR&&interior>=3){
+            // Counter-rotating induction containment ring (Blue dry, Teal/Cyan shimmer when Coolant Overdrive active).
+            float flux = Math.clamp(s.reactorFlux, 0F, 1F);
+            float glow = Math.max(s.drive, .2F + .8F * flux);
+            int ringColor = s.reactorCooled ? UiPalette.ACCENT : UiPalette.PORT_ENERGY_INPUT;
+            var parts = new RendererParts.Part[]{RendererParts.FIELD_INNER_FRONT,RendererParts.FIELD_INNER_BACK,RendererParts.FIELD_INNER_RIGHT,RendererParts.FIELD_INNER_LEFT};
+            var q = new Quaternionf().rotateZ((float)Math.toRadians(-55)).rotateY((float)Math.toRadians((s.turns * (2.6 + 2.8 * flux)) % 360));
+            for(var a:parts)s.moving.box(x+a.x0()*scale*.88F,y+a.y0()*scale*.88F,z+a.z0()*scale*.88F,x+a.x1()*scale*.88F,y+a.y1()*scale*.88F,z+a.z1()*scale*.88F,MASK,MovingBoxes.ALL,UiPalette.multiply(ringColor,.55F+.45F*glow),MovingBoxes.light(s.lightCoords,glow),x,y,z,q);
+        }
         if(reactor&&interior>=3){var a=RendererParts.FIELD_CORE;
-            s.moving.box(x+a.x0()*scale,y+a.y0()*scale,z+a.z0()*scale,x+a.x1()*scale,y+a.y1()*scale,z+a.z1()*scale,MASK,MovingBoxes.ALL,UiPalette.multiply(UiPalette.tint(UiPalette.machineAccent(s.kind),.45F),.5F+.5F*s.drive),MovingBoxes.light(s.lightCoords,s.drive),x,y,z,new Quaternionf().rotationZYX((float)Math.PI/4,(float)Math.PI/4,0));}
+            int coreColor = s.kind == MachineKind.PRIMAL_REACTOR
+                    ? UiPalette.tint(UiPalette.primalSpectrum((float)(s.clock / 48.0)), .65F)
+                    : s.kind == MachineKind.ENERGY_REACTOR
+                    ? UiPalette.mix(UiPalette.EMBER, UiPalette.AMBER, .25F + .65F * Math.clamp(s.reactorFlux, 0F, 1F))
+                    : s.kind == MachineKind.TRANSMUTATION_REACTOR
+                    ? UiPalette.tint(UiPalette.EMBER, .35F)
+                    : UiPalette.tint(UiPalette.machineAccent(s.kind), .45F);
+            float coreScale = s.kind == MachineKind.PRIMAL_REACTOR ? scale * (0.95F + 0.45F * Math.clamp(s.primalStability, 0F, 1F))
+                    : s.kind == MachineKind.ENERGY_REACTOR ? scale * (0.8F + 0.5F * Math.clamp(s.reactorFlux, 0F, 1F))
+                    : scale;
+            float coreGlow = s.kind == MachineKind.ENERGY_REACTOR ? Math.max(s.drive, .2F + .8F * Math.clamp(s.reactorFlux, 0F, 1F))
+                    : s.kind == MachineKind.PRIMAL_REACTOR ? Math.max(s.drive, .2F + .8F * Math.clamp(s.primalStability, 0F, 1F))
+                    : s.drive;
+            s.moving.box(x+a.x0()*coreScale,y+a.y0()*coreScale,z+a.z0()*coreScale,x+a.x1()*coreScale,y+a.y1()*coreScale,z+a.z1()*coreScale,MASK,MovingBoxes.ALL,UiPalette.multiply(coreColor,.5F+.5F*coreGlow),MovingBoxes.light(s.lightCoords,coreGlow),x,y,z,new Quaternionf().rotationZYX((float)Math.PI/4,(float)Math.PI/4,(float)Math.toRadians((s.turns*2.5)%360)));}
     }
     private static void ring(MachineRenderState s,float x,float y,float z,float scale,boolean inner,float tilt,float yaw){
         var parts=inner?new RendererParts.Part[]{RendererParts.FIELD_INNER_FRONT,RendererParts.FIELD_INNER_BACK,RendererParts.FIELD_INNER_RIGHT,RendererParts.FIELD_INNER_LEFT}:new RendererParts.Part[]{RendererParts.FIELD_OUTER_FRONT,RendererParts.FIELD_OUTER_BACK,RendererParts.FIELD_OUTER_RIGHT,RendererParts.FIELD_OUTER_LEFT};
         var q=new Quaternionf();if(inner)q.rotateX((float)Math.toRadians(tilt));else q.rotateZ((float)Math.toRadians(tilt));q.rotateY((float)Math.toRadians(yaw));
-        for(var a:parts)s.moving.box(x+a.x0()*scale,y+a.y0()*scale,z+a.z0()*scale,x+a.x1()*scale,y+a.y1()*scale,z+a.z1()*scale,MASK,MovingBoxes.ALL,inner?UiPalette.multiply(UiPalette.machineAccent(s.kind),.5F+.5F*s.drive):UiPalette.MOTION_STEEL,inner?MovingBoxes.light(s.lightCoords,s.drive):s.lightCoords,x,y,z,q);
+        int innerColor = s.kind == MachineKind.PRIMAL_REACTOR ? UiPalette.primalSpectrum((float)(s.clock / 96.0 + 0.35)) : UiPalette.machineAccent(s.kind);
+        for(var a:parts)s.moving.box(x+a.x0()*scale,y+a.y0()*scale,z+a.z0()*scale,x+a.x1()*scale,y+a.y1()*scale,z+a.z1()*scale,MASK,MovingBoxes.ALL,inner?UiPalette.multiply(innerColor,.5F+.5F*s.drive):UiPalette.MOTION_STEEL,inner?MovingBoxes.light(s.lightCoords,s.drive):s.lightCoords,x,y,z,q);
     }
     private static void beam(MachineRenderState s,float x,float y,float z,float X,float Y,float Z,float extent,int color,double period){
         if(extent<.001F)return;float d=s.drive;

@@ -32,10 +32,12 @@ import net.neoforged.neoforge.capabilities.Capabilities;
  */
 public final class MatterCableBlock extends PipeBlock {
     public static final MapCodec<MatterCableBlock> CODEC = simpleCodec(MatterCableBlock::new);
+    /** True while FE has recently flowed through or energized this cable segment (bright vs dimmed traces). */
+    public static final BooleanProperty POWERED = BooleanProperty.create("powered");
     /** north_device ... down_device: true while that side is connected to a machine, a port or an energy block. */
     public static final Map<Direction, BooleanProperty> DEVICE_BY_DIRECTION = deviceProperties();
     public enum Tier {
-        BASIC(256,128,2_048), REINFORCED(384,1_024,16_384), RESONANT(512,8_192,131_072);
+        BASIC(256,128,4_096), REINFORCED(384,1_024,65_536), RESONANT(512,8_192,524_288);
 
         private final int networkLimit, matterRate, energyRate;
         Tier(int networkLimit,int matterRate,int energyRate) { this.networkLimit=networkLimit;this.matterRate=matterRate;this.energyRate=energyRate; }
@@ -58,7 +60,7 @@ public final class MatterCableBlock extends PipeBlock {
     public MatterCableBlock(Tier tier, Properties properties) {
         super(4, properties);
         this.tier = tier;
-        BlockState state = stateDefinition.any();
+        BlockState state = stateDefinition.any().setValue(POWERED, false);
         for (var property : PROPERTY_BY_DIRECTION.values()) state = state.setValue(property, false);
         for (var property : DEVICE_BY_DIRECTION.values()) state = state.setValue(property, false);
         registerDefaultState(state);
@@ -69,7 +71,7 @@ public final class MatterCableBlock extends PipeBlock {
         return tier == Tier.BASIC ? CODEC : simpleCodec(properties -> new MatterCableBlock(tier, properties));
     }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN);
+        builder.add(NORTH, EAST, SOUTH, WEST, UP, DOWN, POWERED);
         for (Direction side : Direction.values()) builder.add(DEVICE_BY_DIRECTION.get(side));
     }
     public static int connections(BlockState state) {
@@ -96,41 +98,63 @@ public final class MatterCableBlock extends PipeBlock {
     private static boolean connects(LevelReader level, BlockPos position, BlockState neighbor, Direction towardsNeighbor) {
         if(level instanceof ServerLevel server) {
             BlockPos selfPos=position.relative(towardsNeighbor.getOpposite());
+            if(CableOwners.isSideBlocked(server,selfPos,towardsNeighbor))return false;
             var owner=CableOwners.owner(server,selfPos);
             if(owner==null)return false;
             var mode=CableOwners.mode(server,selfPos);
-            if(neighbor.getBlock() instanceof MatterCableBlock&&!MachineAccess.canConnect(server,owner,mode,CableOwners.owner(server,position),CableOwners.mode(server,position)))return false;
+            if(neighbor.getBlock() instanceof MatterCableBlock) {
+                if(CableOwners.isSideBlocked(server,position,towardsNeighbor.getOpposite()))return false;
+                if(!MachineAccess.canConnect(server,owner,mode,CableOwners.owner(server,position),CableOwners.mode(server,position)))return false;
+            }
             if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!MachineAccess.canConnect(server,owner,mode,machine.networkOwner(),machine.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!MachineAccess.canConnect(server,owner,mode,cube.owner(),cube.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof WirelessAccessPointBlockEntity ap&&!MachineAccess.canConnect(server,owner,mode,ap.owner(),ap.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof MatterLevelEmitterBlockEntity emitter&&!MachineAccess.canConnect(server,owner,mode,emitter.owner(),emitter.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof MatterCableRelayBlockEntity valve&&!MachineAccess.canConnect(server,owner,mode,valve.owner(),valve.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof SpatialAnchorBlockEntity anchor&&!MachineAccess.canConnect(server,owner,mode,anchor.owner(),anchor.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!MachineAccess.canConnect(server,owner,mode,link.owner(),link.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity dlink&&!MachineAccess.canConnect(server,owner,mode,dlink.owner(),dlink.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof MachinePortBlockEntity port) {
                 var controller=port.controller(null);if(controller==null||!MachineAccess.canConnect(server,owner,mode,controller.networkOwner(),controller.securityMode()))return false;
             }
         }
         if (neighbor.getBlock() instanceof MatterCableBlock) return true;
-        if(level instanceof ServerLevel server&&level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link) {
-            BlockPos selfPos=position.relative(towardsNeighbor.getOpposite());
-            return MachineAccess.canConnect(server,CableOwners.owner(server,selfPos),CableOwners.mode(server,selfPos),link.owner(),link.securityMode());
-        }
         Direction outward = towardsNeighbor.getOpposite();
+        if (neighbor.getBlock() instanceof dev.latrox.rematter.primal.EntangledLinkBlock) {
+            return level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link
+                    ? link.connectsCable(outward)
+                    : dev.latrox.rematter.primal.EntangledLinkBlock.connectsSide(neighbor, outward);
+        }
+        if (neighbor.getBlock() instanceof dev.latrox.rematter.primal.DimensionalEntangledLinkBlock) {
+            return level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity dlink
+                    ? dlink.connectsCable(outward)
+                    : dev.latrox.rematter.primal.DimensionalEntangledLinkBlock.connectsSide(neighbor, outward);
+        }
+        if (neighbor.getBlock() instanceof SpatialAnchorBlock) {
+            return level.getBlockEntity(position) instanceof SpatialAnchorBlockEntity anchor
+                    ? anchor.connectsCable(outward)
+                    : SpatialAnchorBlock.connectsSide(neighbor, outward);
+        }
         if (neighbor.getBlock() instanceof WirelessAccessPointBlock) {
             return WirelessAccessPointBlock.connectsSide(neighbor, outward);
         }
         if (neighbor.getBlock() instanceof MatterLevelEmitterBlock) {
             return MatterLevelEmitterBlock.connectsSide(neighbor, outward);
         }
+        if (neighbor.getBlock() instanceof MatterCableRelayBlock) {
+            return MatterCableRelayBlock.connectsSide(neighbor, outward);
+        }
         if (neighbor.getBlock() instanceof MachineBlock machine) {
             if (!MatterCableConnectionPolicy.acceptsMachine(machine.kind(), neighbor.getValue(MachineBlock.FACING), outward))
                 return false;
             return !(level.getBlockEntity(position) instanceof MachineBlockEntity entity) || entity.acceptsMatter(outward)
-                    || MatterCablePower.allowsEndpoint(neighbor, outward) && entity.allowsPort(outward, MachinePortMode.POWER);
+                    || MatterCablePower.allowsEndpoint(neighbor, outward)
+                    && (entity.allowsPort(outward, MachinePortMode.POWER) || entity.allowsPort(outward, MachinePortMode.POWER_OUTPUT));
         }
         if (neighbor.getBlock() instanceof MachinePortBlock) {
             var mode = neighbor.getValue(MachinePortBlock.MODE);
             return MatterCablePower.allowsEndpoint(neighbor, outward)
-                    && (mode.allows(MachinePortMode.MATTER) || mode.allows(MachinePortMode.POWER));
+                    && (mode.allows(MachinePortMode.MATTER) || mode.allows(MachinePortMode.POWER) || mode.allows(MachinePortMode.POWER_OUTPUT));
         }
         return !neighbor.isAir() && level instanceof ServerLevel server
                 && server.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4) != null
@@ -152,6 +176,7 @@ public final class MatterCableBlock extends PipeBlock {
     @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         // Also runs when a protection event restores the block captured before placement.
         CableOwners.discardPlacement(level,pos);
+        MatterCablePower.clearPowered(level, pos);
         super.affectNeighborsAfterRemoval(state, level, pos, moved);
         if(!(level.getBlockState(pos).getBlock() instanceof MatterCableBlock))CableOwners.set(level,pos,null);
         level.invalidateCapabilities(pos);
@@ -172,6 +197,7 @@ public final class MatterCableBlock extends PipeBlock {
         return withSide(state, side, connects(level, neighborPos, neighbor, side), neighbor);
     }
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (MatterCablePower.onCableTick(level, pos, state)) return;
         refreshLoadedAround(level, pos);
     }
     /** Restores saved connection shapes without loading the neighboring chunks. */
@@ -197,6 +223,50 @@ public final class MatterCableBlock extends PipeBlock {
         }
         if (updated != state) level.setBlock(pos, updated, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
     }
+    @Override protected net.minecraft.world.InteractionResult useWithoutItem(
+            BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.player.Player player,
+            net.minecraft.world.phys.BlockHitResult hit) {
+        if (!player.isShiftKeyDown() || !player.getMainHandItem().isEmpty() || player.isSpectator()) {
+            return net.minecraft.world.InteractionResult.PASS;
+        }
+        if (!(level instanceof ServerLevel server)) return net.minecraft.world.InteractionResult.SUCCESS;
+        return toggleSideInteraction(player, server, pos, hit);
+    }
+
+    /** Picks the clicked cable arm when hitting a protruding arm, or the clicked face on the center core/hub. */
+    static Direction clickedSide(BlockPos pos, net.minecraft.world.phys.BlockHitResult hit) {
+        var loc = hit.getLocation();
+        double dx = loc.x - (pos.getX() + 0.5);
+        double dy = loc.y - (pos.getY() + 0.5);
+        double dz = loc.z - (pos.getZ() + 0.5);
+        double ax = Math.abs(dx), ay = Math.abs(dy), az = Math.abs(dz);
+        double max = Math.max(ax, Math.max(ay, az));
+        if (max > 0.21) {
+            if (ax >= ay && ax >= az) return dx > 0 ? Direction.EAST : Direction.WEST;
+            if (ay >= ax && ay >= az) return dy > 0 ? Direction.UP : Direction.DOWN;
+            return dz > 0 ? Direction.SOUTH : Direction.NORTH;
+        }
+        return hit.getDirection();
+    }
+
+    static net.minecraft.world.InteractionResult toggleSideInteraction(
+            net.minecraft.world.entity.player.Player player, ServerLevel server, BlockPos pos,
+            net.minecraft.world.phys.BlockHitResult hit) {
+        if (!CableOwners.canRemove(server, pos, player)) {
+            player.sendSystemMessage(net.minecraft.network.chat.Component.translatable("message.rematter.private_machine"));
+            return net.minecraft.world.InteractionResult.FAIL;
+        }
+        Direction side = clickedSide(pos, hit);
+        boolean disconnected = CableOwners.toggleSideBlocked(server, pos, side, player);
+        net.minecraft.network.chat.Component sideName = net.minecraft.network.chat.Component.translatable(
+                "direction.rematter." + side.getName());
+        player.sendOverlayMessage(net.minecraft.network.chat.Component.translatable(
+                disconnected ? "message.rematter.cable_side_disconnected" : "message.rematter.cable_side_connected",
+                sideName));
+        ModSounds.play(server, pos, ModSounds.WRENCH_CONFIGURE, 1.0F, disconnected ? 0.88F : 1.08F);
+        return net.minecraft.world.InteractionResult.SUCCESS;
+    }
+
     @Override protected BlockState rotate(BlockState state, Rotation rotation) { return turned(state, rotation::rotate); }
     @Override protected BlockState mirror(BlockState state, Mirror mirror) { return turned(state, mirror::mirror); }
     /** An arm and its flange move to the same new side. */

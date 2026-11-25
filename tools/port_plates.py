@@ -24,11 +24,19 @@ FACE = {'front': 'north', 'right': 'west', 'back': 'south', 'left': 'east', 'top
 # The faces a sealed device closes. The front never carries a plate.
 CLOSED = ('left', 'right', 'back', 'bottom', 'top')
 ROLES = tuple(mode for mode in PORT_MODES if mode != 'disabled')
-# Casing families: the sprite of a plain face and the sprite of the same face with the seat painted on it.
-CASINGS = {'plain': ('casing_plain', 'casing_port'), 'reactor': ('reactor_casing', 'reactor_casing_port')}
-# Bench machines on the alcove chassis: their top is the open working area and never a connection.
+# Casing families: the sprite of a plain disabled face; every enabled plate uses the full Machine Port face & ring.
+CASINGS = {'plain': ('casing_plain', 'casing_port'), 'reactor': ('reactor_casing', 'reactor_casing')}
+# Bench machines on the alcove chassis and showcase-top network blocks: their top is never a connection.
 OPEN_TOP = ('chemical_processor', 'analyzer', 'decomposer', 'material_synthesizer', 'material_preparator',
-            'hand_preparator', 'sinter_furnace', 'atmospheric_collector')
+            'hand_preparator', 'sinter_furnace', 'atmospheric_collector', 'deep_extractor',
+            'entangled_link', 'dimensional_entangled_link', 'spatial_anchor')
+# Devices that expose only a dedicated subset of port roles instead of the full machine set.
+DEVICE_ROLES = {
+    'matter_terminal': ('automatic',),
+    'entangled_link': ('automatic', 'matter', 'power', 'redstone'),
+    'dimensional_entangled_link': ('automatic', 'matter', 'power', 'redstone'),
+    'spatial_anchor': ('automatic', 'power', 'redstone'),
+}
 # The ring: its outer edge on the face in pixels, one pixel wide, half a pixel proud.
 RING = (2, 14)
 RISE = .5
@@ -141,19 +149,20 @@ def plate_model(casing, side, role):
 
 
 def add_family_models(family):
-    """Every plate of the two casing families: per side one plain face and one plate per role."""
+    """Every plate of the two casing families: per side one plain face and one full Machine Port plate per role."""
     family.models.update(geometry_models())
-    for casing, (plain, seat) in CASINGS.items():
+    for casing, (plain, _seat) in CASINGS.items():
         for side in CLOSED:
             family.child(blank_model(casing, side), 'port_side_' + side, {'face': plain})
             for role in ROLES if side in plated() else ():
+                port_tex = 'machine_port_' + role
                 family.child(plate_model(casing, side, role), 'port_plate_' + side,
-                             {'face': seat, 'ring': 'machine_port_' + role})
+                             {'face': port_tex, 'ring': port_tex})
 
 
 def definition(device, casing='plain'):
     """The block state entry of the plates of one device, without its rotation."""
-    roles = ('automatic',) if device == 'matter_terminal' else ROLES
+    roles = DEVICE_ROLES.get(device, ROLES)
     sides = {}
     for side in faces_of(device):
         sides[side] = {'disabled': MODEL + blank_model(casing, side)}

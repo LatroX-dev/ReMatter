@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "required_mod": "botania",
+  "item": "botania:metamorphic_mountain_cobblestone",
+  "matter": [
+    {
+      "substance": "rematter:alumina",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:calcium_oxide",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 8000,
+  "synthesis_energy": 16000,
+  "ticks": 200
+}
