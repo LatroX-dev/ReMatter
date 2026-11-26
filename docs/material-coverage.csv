@@ -1381,7 +1381,7 @@ minecraft:coal_ore,item,coal,ore,1,rematter:coal[solid]=1000,false,8000,16000,20
 minecraft:coarse_dirt,item,coarse_dirt,natural,1,rematter:silica[solid]=500 + rematter:soil[solid]=500,true,6000,12000,140,,,material_synthesizer,1,
 minecraft:cobbled_deepslate,item,deepslate,natural,1,rematter:silica[solid]=1050 + rematter:alumina[solid]=1250 + rematter:calcium_oxide[solid]=700,true,8000,16000,200,,,material_synthesizer,1,
 minecraft:cobblestone,item,stone,natural,1,rematter:silica[solid]=1000 + rematter:alumina[solid]=1000 + rematter:calcium_oxide[solid]=1000,true,8000,16000,200,,,material_synthesizer,1,
-minecraft:cobweb,item,organic_fiber,natural,1,rematter:protein[solid]=2250,true,18000,36000,360,,,material_synthesizer,1,
+minecraft:cobweb,item,organic_fiber,natural,1,rematter:protein[solid]=1250,true,10000,20000,200,,mekanism,material_synthesizer,1,
 minecraft:cocoa_beans,item,cocoa,natural,1,rematter:cellulose[solid]=200 + rematter:pigment[solid]=800,true,4000,8000,80,,,material_synthesizer,1,
 minecraft:cod,item,raw_meat,natural,1,rematter:protein[solid]=400 + rematter:water[liquid]=200,true,4000,8000,80,,,material_synthesizer,1,
 minecraft:cooked_beef,item,cooked_meat,natural,1,rematter:protein[solid]=400,false,4000,8000,80,,,,,

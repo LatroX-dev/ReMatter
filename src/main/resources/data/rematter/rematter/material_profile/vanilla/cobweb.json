@@ -5,10 +5,10 @@
     {
       "substance": "rematter:protein",
       "phase": "solid",
-      "amount": 2250
+      "amount": 1250
     }
   ],
-  "decomposition_energy": 18000,
-  "synthesis_energy": 36000,
-  "ticks": 360
+  "decomposition_energy": 10000,
+  "synthesis_energy": 20000,
+  "ticks": 200
 }

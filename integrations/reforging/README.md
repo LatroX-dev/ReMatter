@@ -2,7 +2,7 @@
 
 This optional integration applies ReForging's pack balance rules, bonus-free milling overrides, crystal fuels and Embers Questing chapter. It is separate from the standalone mod and is not bundled or activated by the ReMatter JAR. ReForging no longer ships Replication or Equivox; the Replication deny tags and `merge_equivox.py` helper below remain included as optional coexistence safeguards for third-party modpacks that do install Replication or Equivox alongside ReMatter.
 
-> **Process gating notice:** In this reference pack, the 21 newer industrial chemistry routes added in ReMatter 0.50.0 (including the 13 Transmutation Reactor routes, Deep-Core refining routes, ammonia synthesis, and cellulose synthesis) are intentionally disabled by explicit `disabled: true` overrides under `datapack/data/rematter/rematter/process/` until ReForging performs its own pack-specific progression and balance audit for them. Standalone ReMatter enables all of these routes by default.
+> **Process gating notice:** In this reference pack, the 19 newer industrial chemistry routes added in ReMatter 0.50.0 (including the 13 Transmutation Reactor routes, 4 Deep-Core refining routes, ammonia synthesis, and cellulose synthesis) are intentionally disabled by explicit `disabled: true` overrides under `datapack/data/rematter/rematter/process/` until ReForging performs its own pack-specific progression and balance audit for them. Standalone ReMatter enables all of these routes by default.
 
 ## Quartz and silicon
 

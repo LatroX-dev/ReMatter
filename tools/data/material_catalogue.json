@@ -4868,7 +4868,7 @@
     "organic_fiber": {
       "category": "natural_material",
       "synthesis": true,
-      "basis": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+      "basis": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
       "batch": {
         "items": 1,
         "matter": [
@@ -52161,18 +52161,21 @@
         {
           "substance": "rematter:protein",
           "phase": "solid",
-          "amount": 2250
+          "amount": 1250
         }
       ],
-      "decomposition_energy": 18000,
-      "synthesis_energy": 36000,
-      "ticks": 360,
+      "decomposition_energy": 10000,
+      "synthesis_energy": 20000,
+      "ticks": 200,
       "synthesis": true,
+      "unavailable_with_mods": [
+        "mekanism"
+      ],
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "9 string upper bound matching Mekanism cobweb-to-9-string enriching.",
+        "quantity": "5 string conservative bound matching Botania cobweb crafting (1 mana_string + 4 string) to prevent protein duplication; synthesis disabled when Mekanism (cobweb -> 9 string enriching) is loaded.",
         "tags": [],
-        "synthesis": "Explicitly permitted natural or raw material output.",
+        "synthesis": "Available without Mekanism; disabled when Mekanism is loaded so cobweb cannot loop through cobweb-to-9-string enriching.",
         "recipe_basis": "minecraft:cobweb"
       }
     },
@@ -54828,7 +54831,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
         "tags": [],
         "synthesis": "Explicitly permitted natural or raw material output.",
         "recipe_basis": "minecraft:feather"
@@ -60493,7 +60496,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
         "tags": [],
         "synthesis": "Explicitly permitted natural or raw material output.",
         "recipe_basis": "minecraft:phantom_membrane"
@@ -62162,7 +62165,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
         "tags": [],
         "synthesis": "Explicitly permitted natural or raw material output.",
         "recipe_basis": "minecraft:rabbit_hide"
@@ -63072,7 +63075,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
         "tags": [],
         "synthesis": "Explicitly permitted natural or raw material output.",
         "recipe_basis": "minecraft:rotten_flesh"
@@ -64089,7 +64092,7 @@
       "synthesis": true,
       "evidence": {
         "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (minecraft).",
-        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 2,250 protein (9 string Mekanism enriching bound).",
+        "quantity": "Natural keratin/silk protein fiber: 1 string = 250 protein, 1 white wool = 1,000 protein (4 string), 1 cobweb = 1,250 protein (5 string Botania crafting bound; synthesis disabled with Mekanism).",
         "tags": [],
         "synthesis": "Explicitly permitted natural or raw material output.",
         "recipe_basis": "minecraft:string"
