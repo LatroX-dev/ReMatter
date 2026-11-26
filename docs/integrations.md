@@ -29,11 +29,11 @@ The recipe catalogue comes from the server, including its data packs. Viewers di
 JEI and EMI show the same categories: decomposition (including the Industrial Decomposer), synthesis (including the Industrial Synthesizer), electrolysis, reaction, separation, phase change crystallization and renewable air separation, plus one preparation category each for the Hand Preparator, Material Preparator, Industrial Preparator and Sinter Furnace. Process entries name the process first; a data-pack process without a translation shows a readable form of its ID. Only substances that a shown recipe consumes or produces are listed as ingredients.
 
 - **JEI:** built against JEI 29.53.0.115 for 26.1.2, with full substance hover lookups (`R`/`U`), Pressurized Canister hover support, non-container screen handlers (`ProcessSelectionScreen`, `PrimalTargetScreen`, `SubstanceDetailsScreen`), phase-distinct `MatterIngredient` identifiers, and GUI exclusion areas across all ReMatter screens.
-- **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2**, the continuation used in ReForging, with matching exclusion areas and substance hover lookups. The original EMI project currently has no 26.1.2 build. When SEMI and JEI are installed together, the native EMI integration supplies the ReMatter categories.
+- **EMI API:** built against **SEMI (Seasonal EMI) 1.1.24 for 26.1.2** and compatible with **EMI - Port Forward (PF-EMI)** for 26.1.2, with matching exclusion areas and substance hover lookups. The original EMI project currently has no 26.1.2 build. When an EMI implementation and JEI are installed together, the native EMI integration supplies the ReMatter categories.
 
 These integrations are optional. Viewer builds for other Minecraft versions are not supported.
 
-The SEMI integration is compiled against its 26.1.2 release and uses that release's reload manager to refresh recipes after server chemistry changes; the EMI API does not expose a runtime recipe replacement method. An incompatible reload implementation logs a warning instead of interrupting gameplay. Reconnecting rebuilds the viewer catalogue. This does not claim compatibility with every EMI fork or future release.
+The EMI integration is compiled against SEMI 1.1.24 for 26.1.2 and uses the EMI reload manager to refresh recipes after server chemistry changes; the EMI API does not expose a runtime recipe replacement method. An incompatible reload implementation logs a warning instead of interrupting gameplay. Reconnecting rebuilds the viewer catalogue. This does not claim compatibility with every EMI fork or future release.
 
 ## In-game guide
 

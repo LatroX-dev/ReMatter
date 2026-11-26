@@ -6,9 +6,7 @@
       "conditions": {
         "items": [
           {
-            "items": [
-              "#rematter:full_ender_pearl_powders"
-            ],
+            "items": "#rematter:full_ender_pearl_powders",
             "count": {
               "min": 2
             }
