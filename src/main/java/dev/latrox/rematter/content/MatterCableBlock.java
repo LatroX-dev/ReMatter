@@ -100,22 +100,22 @@ public final class MatterCableBlock extends PipeBlock {
             BlockPos selfPos=position.relative(towardsNeighbor.getOpposite());
             if(CableOwners.isSideBlocked(server,selfPos,towardsNeighbor))return false;
             var owner=CableOwners.owner(server,selfPos);
-            if(owner==null)return false;
             var mode=CableOwners.mode(server,selfPos);
+            if(owner==null&&mode!=SecurityMode.PUBLIC)return false;
             if(neighbor.getBlock() instanceof MatterCableBlock) {
                 if(CableOwners.isSideBlocked(server,position,towardsNeighbor.getOpposite()))return false;
-                if(!MachineAccess.canConnect(server,owner,mode,CableOwners.owner(server,position),CableOwners.mode(server,position)))return false;
+                if(!MachineAccess.canLinkCable(server,owner,mode,CableOwners.owner(server,position),CableOwners.mode(server,position)))return false;
             }
-            if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!MachineAccess.canConnect(server,owner,mode,machine.networkOwner(),machine.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!MachineAccess.canConnect(server,owner,mode,cube.owner(),cube.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof WirelessAccessPointBlockEntity ap&&!MachineAccess.canConnect(server,owner,mode,ap.owner(),ap.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof MatterLevelEmitterBlockEntity emitter&&!MachineAccess.canConnect(server,owner,mode,emitter.owner(),emitter.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof MatterCableRelayBlockEntity valve&&!MachineAccess.canConnect(server,owner,mode,valve.owner(),valve.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof SpatialAnchorBlockEntity anchor&&!MachineAccess.canConnect(server,owner,mode,anchor.owner(),anchor.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!MachineAccess.canConnect(server,owner,mode,link.owner(),link.securityMode()))return false;
-            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity dlink&&!MachineAccess.canConnect(server,owner,mode,dlink.owner(),dlink.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof MachineBlockEntity machine&&!MachineAccess.canConnectCableToDevice(server,owner,mode,machine.networkOwner(),machine.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.energy.EnergyCubeBlockEntity cube&&!MachineAccess.canConnectCableToDevice(server,owner,mode,cube.owner(),cube.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof WirelessAccessPointBlockEntity ap&&!MachineAccess.canConnectCableToDevice(server,owner,mode,ap.owner(),ap.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof MatterLevelEmitterBlockEntity emitter&&!MachineAccess.canConnectCableToDevice(server,owner,mode,emitter.owner(),emitter.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof MatterCableRelayBlockEntity valve&&!MachineAccess.canLinkCable(server,owner,mode,valve.owner(),valve.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof SpatialAnchorBlockEntity anchor&&!MachineAccess.canConnectCableToDevice(server,owner,mode,anchor.owner(),anchor.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity link&&!MachineAccess.canLinkCable(server,owner,mode,link.owner(),link.securityMode()))return false;
+            if(level.getBlockEntity(position) instanceof dev.latrox.rematter.primal.DimensionalEntangledLinkBlockEntity dlink&&!MachineAccess.canLinkCable(server,owner,mode,dlink.owner(),dlink.securityMode()))return false;
             if(level.getBlockEntity(position) instanceof MachinePortBlockEntity port) {
-                var controller=port.controller(null);if(controller==null||!MachineAccess.canConnect(server,owner,mode,controller.networkOwner(),controller.securityMode()))return false;
+                var controller=port.controller(null);if(controller==null||!MachineAccess.canConnectCableToDevice(server,owner,mode,controller.networkOwner(),controller.securityMode()))return false;
             }
         }
         if (neighbor.getBlock() instanceof MatterCableBlock) return true;

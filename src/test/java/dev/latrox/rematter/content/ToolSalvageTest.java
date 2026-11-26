@@ -121,6 +121,18 @@ class ToolSalvageTest {
         busyInterface.getCompound("automation_host").orElseThrow().getCompound("adapters").orElseThrow().put("ae2", ae2Data);
         assertFalse(ToolSalvage.isEmptyMachineTag(busyInterface, MachineKind.NETWORK_INTERFACE));
 
+        // Legacy 14-slot empty machine from 0.8.x/0.9.0/0.10.0 is accepted; 13-slot truncated tag is rejected.
+        CompoundTag legacy14 = emptyMachineTag(MachineKind.DECOMPOSER);
+        ListTag items14 = new ListTag();
+        for (int i = 0; i < 14; i++) items14.add(new CompoundTag());
+        legacy14.put("items", items14);
+        assertTrue(ToolSalvage.isEmptyMachineTag(legacy14, MachineKind.DECOMPOSER));
+        CompoundTag legacy13 = legacy14.copy();
+        ListTag items13 = new ListTag();
+        for (int i = 0; i < 13; i++) items13.add(new CompoundTag());
+        legacy13.put("items", items13);
+        assertFalse(ToolSalvage.isEmptyMachineTag(legacy13, MachineKind.DECOMPOSER));
+
         // Energy Cube empty vs charged vs slotted
         CompoundTag emptyCube = new CompoundTag();
         emptyCube.putInt("schema", 1);

@@ -133,7 +133,11 @@ public final class ToolSalvage {
 
         int expectedSlots = MachineCellAccess.inventorySize(kind);
         var items = tag.getList("items").orElse(null);
-        if (items == null || items.size() != expectedSlots) return false;
+        boolean legacySlots = items != null
+                && expectedSlots == MachineCellAccess.INVENTORY_SIZE
+                && items.size() >= MachineSchema.MIN_LEGACY_INVENTORY_SIZE
+                && items.size() < expectedSlots;
+        if (items == null || (items.size() != expectedSlots && !legacySlots)) return false;
         for (var item : items) {
             if (!(item instanceof CompoundTag compound) || !compound.isEmpty()) return false;
         }

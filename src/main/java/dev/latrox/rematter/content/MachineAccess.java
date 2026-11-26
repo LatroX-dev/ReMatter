@@ -96,6 +96,36 @@ public final class MachineAccess {
         return canConnect(ownerA, modeA, ownerB, modeB, aTrustsB, bTrustsA);
     }
 
+    /**
+     * Cable-to-cable (and inline conduit) linking check. Owned nodes obey full {@link #canConnect} rules; unowned
+     * legacy/{@code /setblock}/schematic conduits default to {@link SecurityMode#PUBLIC} and link with other
+     * {@link SecurityMode#PUBLIC} conduits/nodes while staying strictly isolated from {@link SecurityMode#TRUSTED}
+     * and {@link SecurityMode#PRIVATE} networks.
+     */
+    public static boolean canLinkCable(@Nullable Level level,
+                                       @Nullable UUID ownerA, SecurityMode modeA,
+                                       @Nullable UUID ownerB, SecurityMode modeB) {
+        Objects.requireNonNull(modeA);
+        Objects.requireNonNull(modeB);
+        if (ownerA != null && ownerB != null) return canConnect(level, ownerA, modeA, ownerB, modeB);
+        return modeA == SecurityMode.PUBLIC && modeB == SecurityMode.PUBLIC;
+    }
+
+    /**
+     * Cable-to-device linking check. Owned cables still require owned devices (unclaimed machines must be claimed
+     * before joining an owned network), whereas unowned legacy/{@code /setblock} {@link SecurityMode#PUBLIC} cables
+     * connect to any {@link SecurityMode#PUBLIC} device while staying isolated from {@link SecurityMode#TRUSTED}
+     * and {@link SecurityMode#PRIVATE} devices.
+     */
+    public static boolean canConnectCableToDevice(@Nullable Level level,
+                                                  @Nullable UUID cableOwner, SecurityMode cableMode,
+                                                  @Nullable UUID deviceOwner, SecurityMode deviceMode) {
+        Objects.requireNonNull(cableMode);
+        Objects.requireNonNull(deviceMode);
+        if (cableOwner != null) return canConnect(level, cableOwner, cableMode, deviceOwner, deviceMode);
+        return cableMode == SecurityMode.PUBLIC && deviceMode == SecurityMode.PUBLIC;
+    }
+
     private static boolean permitsPartner(SecurityMode mode, boolean trusted) {
         return switch (mode) {
             case PUBLIC -> true;

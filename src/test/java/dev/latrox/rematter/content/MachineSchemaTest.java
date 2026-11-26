@@ -20,11 +20,17 @@ class MachineSchemaTest {
         assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(10), 3, Optional.of(1), 1));
         assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.of(2), 3, Optional.of(1), 1));
         assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(), Optional.empty(), 3, Optional.of(1), 1));
-        // Pre-0.50 machines saved with 15 slots migrate cleanly when upgraded to 16 slots (empty Anchor Upgrade slot 15).
+        // Pre-0.50 machines saved with 14 (0.8.x/0.9.0/0.10.0) or 15 slots migrate cleanly to 16 slots.
         assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(),
-                Optional.of(MachineCellAccess.INVENTORY_SIZE - 1), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
+                Optional.of(14), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
+        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(),
+                Optional.of(15), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
+        assertNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(),
+                Optional.of(MachineCellAccess.INVENTORY_SIZE), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
         assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(),
-                Optional.of(MachineCellAccess.INVENTORY_SIZE - 2), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
+                Optional.of(13), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
+        assertNotNull(MachineSchema.rejection(Optional.of(MachineSchema.VERSION), Optional.empty(),
+                Optional.of(MachineCellAccess.INVENTORY_SIZE + 1), MachineCellAccess.INVENTORY_SIZE, Optional.of(1), 1));
     }
 
     @Test void anUnreadableOrResizedTankKeepsTheDataOpaqueInsteadOfEmptyingIt() {

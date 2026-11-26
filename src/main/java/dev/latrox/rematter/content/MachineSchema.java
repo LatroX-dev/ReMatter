@@ -8,6 +8,8 @@ import org.jspecify.annotations.Nullable;
 /** The single machine data schema. Data in any other shape is kept opaque: never interpreted, truncated or deleted. */
 final class MachineSchema {
     static final int VERSION = 3;
+    /** 0.8.x / 0.9.0 / 0.10.0 machines persisted 14 slots before Mass Compression (14) and Anchor Upgrade (15) were added. */
+    static final int MIN_LEGACY_INVENTORY_SIZE = 14;
 
     private MachineSchema() {}
 
@@ -17,9 +19,10 @@ final class MachineSchema {
         if (schema.isEmpty() || schema.get() != VERSION) return "unsupported schema " + schema.map(String::valueOf).orElse("(missing)");
         if (owner.isPresent() && owner(owner.get()) == null) return "malformed owner";
         if (storedItems.isEmpty()) return "unreadable items";
-        boolean legacyAnchorSlotUpgrade = inventorySize == MachineCellAccess.INVENTORY_SIZE
-                && storedItems.get() == MachineCellAccess.INVENTORY_SIZE - 1;
-        if (storedItems.get() != inventorySize && !legacyAnchorSlotUpgrade) {
+        boolean legacySlotUpgrade = inventorySize == MachineCellAccess.INVENTORY_SIZE
+                && storedItems.get() >= MIN_LEGACY_INVENTORY_SIZE
+                && storedItems.get() < inventorySize;
+        if (storedItems.get() != inventorySize && !legacySlotUpgrade) {
             return storedItems.get() + " item slots instead of " + inventorySize;
         }
         if (storedTanks.isEmpty()) return "unreadable tank";

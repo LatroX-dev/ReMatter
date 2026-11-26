@@ -47,7 +47,8 @@ final class MachineMatterNetwork {
     private static final int MAX_ACTIVITY_SEGMENT_LENGTH = 64;
     private static final int WITHDRAWAL = 1;
     private static final int DEPOSIT = 2;
-    private final UUID owner;
+    private static final UUID UNOWNED_PLANNING_KEY = new UUID(0L, 0L);
+    private final @Nullable UUID owner;
     private final SecurityMode originMode;
     private final List<Node> nodes;
     private final List<Node> endpoints;
@@ -608,7 +609,7 @@ final class MachineMatterNetwork {
         };
     }
     List<MachineBlockEntity> interfaces() { return interfaces; }
-    Object planningKey() { return List.of(owner, status, endpoints); }
+    Object planningKey() { return List.of(owner == null ? UNOWNED_PLANNING_KEY : owner, status, endpoints); }
     Set<?> planningMembers() { return inventory == null ? Set.of() : Set.copyOf(inventory.members()); }
     boolean hasManualWork(MachineBlockEntity except) {
         return workers.stream().anyMatch(machine -> machine != except && machine.hasManualWork());
@@ -733,7 +734,7 @@ final class MachineMatterNetwork {
         boolean matches(UUID owner, SecurityMode originMode) {
             if (level.getChunkSource().getChunkNow(position.getX() >> 4, position.getZ() >> 4) == null
                     || level.getBlockState(position).getBlock() != block || level.getBlockEntity(position) != entity) return false;
-            if (cable() && !MachineAccess.canConnect(level, owner, originMode, CableOwners.owner(level, position), CableOwners.mode(level, position))) return false;
+            if (cable() && !MachineAccess.canLinkCable(level, owner, originMode, CableOwners.owner(level, position), CableOwners.mode(level, position))) return false;
             if (entity instanceof MachineBlockEntity machine) {
                 if (!machine.networkLive() || !MachineAccess.canConnect(level, owner, originMode, machine.networkOwner(), machine.securityMode())) return false;
                 if (machine.kind().isStorage() && (!localStatus.equals(machine.networkStorageStatus())
@@ -749,15 +750,15 @@ final class MachineMatterNetwork {
                 return emitter.networkLive() && MachineAccess.canConnect(level, owner, originMode, emitter.owner(), emitter.securityMode());
             } else if (entity instanceof MatterCableRelayBlockEntity relay) {
                 return !relay.isRemoved() && relay.allowsMatter()
-                        && MachineAccess.canConnect(level, owner, originMode, relay.owner(), relay.securityMode())
+                        && MachineAccess.canLinkCable(level, owner, originMode, relay.owner(), relay.securityMode())
                         && expectedRevision == relay.stateRevision();
             } else if (entity instanceof EntangledLinkBlockEntity link) {
-                return MachineAccess.canConnect(level, owner, originMode, link.owner(), link.securityMode())
+                return MachineAccess.canLinkCable(level, owner, originMode, link.owner(), link.securityMode())
                         && localStatus.equals(EntangledLinks.peer(level, position, owner, originMode).map(p -> Long.toString(p.asLong())).orElse(""));
             } else if (entity instanceof DimensionalEntangledLinkBlockEntity dlink) {
                 return !dlink.isRemoved()
                         && dlink.stateRevision() == expectedRevision
-                        && MachineAccess.canConnect(level, owner, originMode, dlink.owner(), dlink.securityMode())
+                        && MachineAccess.canLinkCable(level, owner, originMode, dlink.owner(), dlink.securityMode())
                         && Objects.equals(expectedDimPeer, EntangledLinks.dimensionalPeer(level, position, owner, originMode).orElse(null));
             } else if (entity instanceof MachinePortBlockEntity port) {
                 return !port.isRemoved() && port.acceptsMatter() && port.controller(null) == controller && port.outward() == outward
@@ -967,7 +968,7 @@ final class MachineMatterNetwork {
             Node result = null;
             var noVoid = dev.latrox.rematter.chemistry.VoidPolicy.NONE;
             if (state.getBlock() instanceof MatterCableBlock cable
-                    && MachineAccess.canConnect(level, owner, originMode, CableOwners.owner(level, position), CableOwners.mode(level, position)))
+                    && MachineAccess.canLinkCable(level, owner, originMode, CableOwners.owner(level, position), CableOwners.mode(level, position)))
                 result = new Node(level, key, position, cable, cable.tier().ordinal(), entity, null, null, "", "", List.of(), noVoid, 0L, null);
             else if (entity instanceof MachineBlockEntity machine && machine.networkLive()
                     && MachineAccess.canConnect(level, owner, originMode, machine.networkOwner(), machine.securityMode())) {
@@ -987,16 +988,16 @@ final class MachineMatterNetwork {
                     && MachineAccess.canConnect(level, owner, originMode, emitter.owner(), emitter.securityMode())) {
                 result = new Node(level, key, position, state.getBlock(), -1, emitter, null, null, "", "", List.of(), noVoid, 0L, null);
             } else if (entity instanceof MatterCableRelayBlockEntity relay && relay.allowsMatter()
-                    && MachineAccess.canConnect(level, owner, originMode, relay.owner(), relay.securityMode())) {
+                    && MachineAccess.canLinkCable(level, owner, originMode, relay.owner(), relay.securityMode())) {
                 result = new Node(level, key, position, state.getBlock(), -1, relay, null, null, "", relay.revisionToken(), List.of(), noVoid, relay.stateRevision(), null);
             } else if (entity instanceof EntangledLinkBlockEntity link
-                    && MachineAccess.canConnect(level, owner, originMode, link.owner(), link.securityMode())) {
+                    && MachineAccess.canLinkCable(level, owner, originMode, link.owner(), link.securityMode())) {
                 String peer = EntangledLinks.peer(level, position, owner, originMode).map(p -> Long.toString(p.asLong())).orElse("");
                 result = new Node(level, key, position, state.getBlock(), -1, link, null, null, "",
                         peer + "#" + link.packedPortModes() + ":" + (link.redstoneAllows() ? 1 : 0), List.of(), noVoid, 0L, null);
             } else if (entity instanceof DimensionalEntangledLinkBlockEntity dlink
                     && !dlink.isRemoved()
-                    && MachineAccess.canConnect(level, owner, originMode, dlink.owner(), dlink.securityMode())) {
+                    && MachineAccess.canLinkCable(level, owner, originMode, dlink.owner(), dlink.securityMode())) {
                 DimPos peer = EntangledLinks.dimensionalPeer(level, position, owner, originMode).orElse(null);
                 String statusStr = peer == null ? "" : peer.dimension().identifier() + "@" + peer.pos().asLong();
                 result = new Node(level, key, position, state.getBlock(), -1, dlink, null, null, "", statusStr, List.of(), noVoid, dlink.stateRevision(), peer);

@@ -54,6 +54,7 @@ import org.jspecify.annotations.Nullable;
 public final class MatterCablePower {
     private static final int MAX_CACHED_CABLES = 2 * MachineMatterNetwork.SCAN_BUDGET;
     private static final int MAX_CACHED_ORIGINS = 64;
+    private static final UUID UNOWNED_PUBLIC_GROUP = new UUID(0L, 0L);
     public static final int POWERED_HOLD_TICKS = 40;
     private static final int ENERGIZE_REFRESH_INTERVAL = 20;
     private static final Direction[] DIRECTIONS = Direction.values();
@@ -254,10 +255,19 @@ public final class MatterCablePower {
             var chunk = loaded(level, origin);
             if (chunk == null) return 0;
             var state = chunk.getBlockState(origin);
-            if (state.getBlock() instanceof MatterCableBlock cable && CableOwners.owner(level, origin) != null) return cable.tier().energyRate();
+            if (state.getBlock() instanceof MatterCableBlock cable
+                    && (CableOwners.owner(level, origin) != null || CableOwners.mode(level, origin) == SecurityMode.PUBLIC)) {
+                return cable.tier().energyRate();
+            }
             var be = chunk.getBlockEntity(origin);
-            if (be instanceof EntangledLinkBlockEntity link && link.owner() != null) return MatterCableBlock.Tier.BASIC.energyRate();
-            if (be instanceof DimensionalEntangledLinkBlockEntity dlink && dlink.owner() != null) return MatterCableBlock.Tier.RESONANT.energyRate();
+            if (be instanceof EntangledLinkBlockEntity link
+                    && (link.owner() != null || link.securityMode() == SecurityMode.PUBLIC)) {
+                return MatterCableBlock.Tier.BASIC.energyRate();
+            }
+            if (be instanceof DimensionalEntangledLinkBlockEntity dlink
+                    && (dlink.owner() != null || dlink.securityMode() == SecurityMode.PUBLIC)) {
+                return MatterCableBlock.Tier.RESONANT.energyRate();
+            }
             return 0;
         }
 
@@ -286,20 +296,21 @@ public final class MatterCablePower {
 
                 var component = cache.component(level, originKey);
                 if (component.endpoints == null) return 0;
-                UUID cableOwner = component.owner;
-                if (cableOwner == null) return 0;
+                @Nullable UUID cableOwner = component.owner;
+                if (cableOwner == null && component.mode != SecurityMode.PUBLIC) return 0;
                 if (incomingEntity instanceof EnergyCubeBlockEntity cube
-                        && !MachineAccess.canConnect(level, cableOwner, component.mode, cube.owner(), cube.securityMode())) return 0;
+                        && !MachineAccess.canConnectCableToDevice(level, cableOwner, component.mode, cube.owner(), cube.securityMode())) return 0;
                 DimPos adjacentKey = new DimPos(level.dimension(), adjacent);
                 var routes = component.routes(originKey);
+                UUID routingGroup = cableOwner != null ? cableOwner : UNOWNED_PUBLIC_GROUP;
                 var candidates = new ArrayList<Candidate<Endpoint>>();
                 for (var endpoint : component.endpoints.active()) {
                     if (endpoint.key.equals(adjacentKey)
-                            || !MachineAccess.canConnect(endpoint.level, cableOwner, component.mode,
+                            || !MachineAccess.canConnectCableToDevice(endpoint.level, cableOwner, component.mode,
                                     owner(endpoint.level, endpoint.key.pos()), endpointMode(endpoint.level, endpoint.key.pos()))) continue;
                     int distance = endpoint.faces.stream().mapToInt(face -> routes.distance(face.cable)).min().orElse(Integer.MAX_VALUE);
                     if (distance == Integer.MAX_VALUE) continue;
-                    candidates.add(new Candidate<>(endpoint, cableOwner, distance, endpoint.key.pos()));
+                    candidates.add(new Candidate<>(endpoint, routingGroup, distance, endpoint.key.pos()));
                 }
                 var endpoints = recipients(candidates);
                 if (endpoints.isEmpty()) return 0;
@@ -349,7 +360,7 @@ public final class MatterCablePower {
             var cache = cache(level);
             if (cache.routing) return;
             var component = cache.component(level, originKey);
-            if (component.owner == null || component.cables.isEmpty()) return;
+            if ((component.owner == null && component.mode != SecurityMode.PUBLIC) || component.cables.isEmpty()) return;
             long now = level.getGameTime();
             if (!component.hasOneWayRelays) {
                 if (component.lastEnergizeTick != Long.MIN_VALUE && now - component.lastEnergizeTick < ENERGIZE_REFRESH_INTERVAL) return;
@@ -566,31 +577,31 @@ public final class MatterCablePower {
         boolean matches() { return stamp.matches(level); }
     }
 
-    private record LinkState(ServerLevel level, BlockPos pos, EntangledLinkBlockEntity entity, UUID owner, SecurityMode mode,
+    private record LinkState(ServerLevel level, BlockPos pos, EntangledLinkBlockEntity entity, @Nullable UUID owner, SecurityMode mode,
                              int portModes, boolean redstoneAllowed, Optional<BlockPos> peer) {
         boolean current() {
             var link = EntangledLinks.loaded(level, pos).orElse(null);
             return link == entity && link.packedPortModes() == portModes
                     && link.redstoneAllows() == redstoneAllowed
-                    && MachineAccess.canConnect(level, owner, mode, link.owner(), link.securityMode())
+                    && MachineAccess.canLinkCable(level, owner, mode, link.owner(), link.securityMode())
                     && peer.equals(EntangledLinks.peer(level, pos, owner, mode));
         }
     }
 
-    private record DimLinkState(ServerLevel level, BlockPos pos, DimensionalEntangledLinkBlockEntity entity, UUID owner,
+    private record DimLinkState(ServerLevel level, BlockPos pos, DimensionalEntangledLinkBlockEntity entity, @Nullable UUID owner,
                                 SecurityMode mode, long revision, Optional<DimPos> peer) {
         boolean current() {
             var link = EntangledLinks.loadedDimensional(level, pos).orElse(null);
             return link == entity && link.stateRevision() == revision
-                    && MachineAccess.canConnect(level, owner, mode, link.owner(), link.securityMode())
+                    && MachineAccess.canLinkCable(level, owner, mode, link.owner(), link.securityMode())
                     && peer.equals(EntangledLinks.dimensionalPeer(level, pos, owner, mode));
         }
     }
 
-    private record RelayState(ServerLevel level, MatterCableRelayBlockEntity entity, UUID owner, SecurityMode mode, long revision) {
+    private record RelayState(ServerLevel level, MatterCableRelayBlockEntity entity, @Nullable UUID owner, SecurityMode mode, long revision) {
         boolean current() {
             return !entity.isRemoved() && entity.stateRevision() == revision && entity.allowsPower()
-                    && MachineAccess.canConnect(level, owner, mode, entity.owner(), entity.securityMode());
+                    && MachineAccess.canLinkCable(level, owner, mode, entity.owner(), entity.securityMode());
         }
     }
 
@@ -738,7 +749,7 @@ public final class MatterCablePower {
                     cableMode = initDimLink == null ? SecurityMode.PUBLIC : initDimLink.securityMode();
                 }
             }
-            if (cableOwner == null || !transport(origin)) return result(originLevel, Set.of(), null);
+            if ((cableOwner == null && cableMode != SecurityMode.PUBLIC) || !transport(origin)) return result(originLevel, Set.of(), null);
 
             var cables = new LinkedHashSet<DimPos>();
             var ends = new LinkedHashMap<DimPos, List<EndpointSide>>();
@@ -842,14 +853,14 @@ public final class MatterCablePower {
             BlockPos pos = key.pos();
             var state = read(key);
             if (state.getBlock() instanceof MatterCableBlock cable) {
-                if (!MachineAccess.canConnect(level, cableOwner, cableMode, CableOwners.owner(level, pos), CableOwners.mode(level, pos))) return false;
+                if (!MachineAccess.canLinkCable(level, cableOwner, cableMode, CableOwners.owner(level, pos), CableOwners.mode(level, pos))) return false;
                 rates.put(key, cable.tier().energyRate());
                 return true;
             }
             if (state.getBlock() instanceof MatterCableRelayBlock) {
                 var chunk = loaded(level, pos);
                 if (chunk == null || !(chunk.getBlockEntity(pos) instanceof MatterCableRelayBlockEntity relay)) return false;
-                if (!relay.allowsPower() || !MachineAccess.canConnect(level, cableOwner, cableMode, relay.owner(), relay.securityMode())) return false;
+                if (!relay.allowsPower() || !MachineAccess.canLinkCable(level, cableOwner, cableMode, relay.owner(), relay.securityMode())) return false;
                 int rate = relay.effectiveEnergyRate();
                 if (rate <= 0) return false;
                 if (relay.isOneWay()) hasOneWayRelays = true;
@@ -859,7 +870,7 @@ public final class MatterCablePower {
             }
             var link = EntangledLinks.loaded(level, pos).orElse(null);
             if (link != null) {
-                if (!MachineAccess.canConnect(level, cableOwner, cableMode, link.owner(), link.securityMode())) return false;
+                if (!MachineAccess.canLinkCable(level, cableOwner, cableMode, link.owner(), link.securityMode())) return false;
                 rates.put(key, MatterCableBlock.Tier.BASIC.energyRate());
                 links.put(key, new LinkState(level, pos, link, cableOwner, cableMode, link.packedPortModes(),
                         link.redstoneAllows(), EntangledLinks.peer(level, pos, cableOwner, cableMode)));
@@ -867,7 +878,7 @@ public final class MatterCablePower {
             }
             var dlink = EntangledLinks.loadedDimensional(level, pos).orElse(null);
             if (dlink != null) {
-                if (!MachineAccess.canConnect(level, cableOwner, cableMode, dlink.owner(), dlink.securityMode())) return false;
+                if (!MachineAccess.canLinkCable(level, cableOwner, cableMode, dlink.owner(), dlink.securityMode())) return false;
                 rates.put(key, MatterCableBlock.Tier.RESONANT.energyRate());
                 dimLinks.put(key, new DimLinkState(level, pos, dlink, cableOwner, cableMode, dlink.stateRevision(),
                         EntangledLinks.dimensionalPeer(level, pos, cableOwner, cableMode)));

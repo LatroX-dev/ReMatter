@@ -58,6 +58,8 @@ public final class ReMatterGameTests {
         TESTS.put("machine_outlines_occlude_like_their_models",ReMatterGameTests::machineOcclusion);
         TESTS.put("reactor_glass_passes_light_like_glass",ReMatterGameTests::reactorGlassLight);
         TESTS.put("block_state_files_match_registered_states",ReMatterGameTests::blockStateFiles);
+        TESTS.put("legacy_14_slot_migration_and_external_fe",ReMatterGameTests::legacyFourteenSlotMigration);
+        TESTS.put("unowned_cables_connect_public_and_isolate_private",ReMatterGameTests::unownedCables);
     }
     private static void drivePreservedItems(GameTestHelper h) {
         var owner=h.makeMockPlayer(GameType.SURVIVAL);var drive=place(h,new BlockPos(2,2,2),MachineKind.DRIVE,owner);
@@ -844,5 +846,116 @@ public final class ReMatterGameTests {
             h.assertTrue(workers.getFirst().matterNetwork(true).inventory().amount(BuiltinChemistry.SILICA)==20000,"Large production did not commit exact batches");
             h.assertTrue(workers.stream().allMatch(w->w.getItem(0).isEmpty()&&w.energy().getAmountAsLong()==0),"Large production lost or duplicated an input/FE debit");
         });
+    }
+    private static void legacyFourteenSlotMigration(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var registries = h.getLevel().registryAccess();
+        var drive = place(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, owner);
+        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        var decomposer = place(h, new BlockPos(4, 2, 2), MachineKind.DECOMPOSER, owner);
+        decomposer.setItem(MachineCellAccess.SPEED_SLOT, new ItemStack(ModContent.SPEED_UPGRADE.get(), 2));
+        decomposer.setItem(MachineCellAccess.EFFICIENCY_SLOT, new ItemStack(ModContent.EFFICIENCY_UPGRADE.get(), 1));
+
+        // Rewrite both machines' saved NBT with 14 item slots (0.8.x / 0.9.0 / 0.10.0 layout) and reload live.
+        for (var machine : List.of(drive, decomposer)) {
+            var raw = machine.saveCustomOnly(registries);
+            var savedItems = raw.getList("items").orElseThrow();
+            var legacy14 = new net.minecraft.nbt.ListTag();
+            for (int i = 0; i < 14; i++) legacy14.add(savedItems.get(i).copy());
+            raw.put("items", legacy14);
+            machine.loadWithComponents(net.minecraft.world.level.storage.TagValueInput.create(
+                    net.minecraft.util.ProblemReporter.DISCARDING, registries, raw));
+        }
+
+        h.assertTrue(!drive.hasUnsupportedData(), "14-slot 0.9.0 Matter Drive locked as unsupported_data");
+        h.assertTrue(!decomposer.hasUnsupportedData(), "14-slot 0.9.0 Decomposer locked as unsupported_data");
+        h.assertTrue(drive.getContainerSize() == MachineCellAccess.INVENTORY_SIZE, "Migrated Drive inventory size != 16");
+        h.assertTrue(decomposer.getContainerSize() == MachineCellAccess.INVENTORY_SIZE, "Migrated Decomposer inventory size != 16");
+        h.assertTrue(drive.getItem(0).is(ModContent.MATTER_CELL_4M.get()), "Migrated Drive lost cell in slot 0");
+        h.assertTrue(decomposer.getItem(MachineCellAccess.SPEED_SLOT).getCount() == 2, "Migrated Decomposer lost speed upgrades");
+        h.assertTrue(decomposer.getItem(MachineCellAccess.EFFICIENCY_SLOT).getCount() == 1, "Migrated Decomposer lost efficiency upgrade");
+        h.assertTrue(decomposer.getItem(MachineCellAccess.MASS_COMPRESSION_SLOT).isEmpty()
+                && decomposer.getItem(MachineCellAccess.ANCHOR_SLOT).isEmpty(), "New slots 14/15 were not initialized empty");
+
+        // Connect owned cable between migrated Drive & Decomposer and inject external FE from an external block face.
+        var cableRel = new BlockPos(3, 2, 2);
+        var cableAbs = h.absolutePos(cableRel);
+        h.setBlock(cableRel, ModContent.MATTER_CABLE.get());
+        CableOwners.set(h.getLevel(), cableAbs, owner.getUUID());
+        h.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+        h.assertTrue(decomposer.matterNetwork(true).ready(), "Migrated 14-slot machines did not form Matter network");
+
+        var externalCap = h.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK,
+                cableAbs, net.minecraft.core.Direction.UP);
+        h.assertTrue(externalCap != null && externalCap.getCapacityAsLong() > 0, "Owned cable reported 0 FE capacity");
+        try (var tx = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
+            h.assertTrue(externalCap.insert(2000, tx) == 2000, "External FE injection into migrated 14-slot machine failed");
+            tx.commit();
+        }
+        h.assertTrue(decomposer.energy().getAmountAsLong() == 2000, "Migrated Decomposer did not receive external FE");
+        h.assertTrue(h.getBlockState(cableRel).getValue(MatterCableBlock.POWERED), "Cable did not energize after external FE flow");
+        h.succeed();
+    }
+    private static void unownedCables(GameTestHelper h) {
+        var owner = h.makeMockPlayer(GameType.SURVIVAL);
+        var drive = place(h, new BlockPos(2, 2, 2), MachineKind.DRIVE, owner);
+        drive.setItem(0, new ItemStack(ModContent.MATTER_CELL_4M.get()));
+        var pubDec = place(h, new BlockPos(5, 2, 2), MachineKind.DECOMPOSER, owner);
+        var privDec = place(h, new BlockPos(3, 2, 3), MachineKind.DECOMPOSER, owner);
+        privDec.setSecurityMode(owner, SecurityMode.PRIVATE);
+        var trustedDec = place(h, new BlockPos(4, 2, 3), MachineKind.DECOMPOSER, owner);
+        trustedDec.setSecurityMode(owner, SecurityMode.TRUSTED);
+
+        // Place unowned cables directly (simulating pre-0.8.0 worlds, /setblock, /fill, WorldEdit, schematics).
+        var c1 = new BlockPos(3, 2, 2);
+        var c2 = new BlockPos(4, 2, 2);
+        h.setBlock(c1, ModContent.MATTER_CABLE.get());
+        h.setBlock(c2, ModContent.MATTER_CABLE.get());
+        h.setBlock(new BlockPos(3, 3, 2), Blocks.STONE);
+        var c1Abs = h.absolutePos(c1);
+        var c2Abs = h.absolutePos(c2);
+        h.assertTrue(CableOwners.owner(h.getLevel(), c1Abs) == null && CableOwners.owner(h.getLevel(), c2Abs) == null,
+                "Command-placed cables should remain unowned");
+
+        // Chunk-load refresh must preserve connected arms to PUBLIC neighbors and reject PRIVATE/TRUSTED neighbors.
+        MatterCableBlock.refreshLoadedAround(h.getLevel(), c1Abs);
+        MatterCableBlock.refreshLoadedAround(h.getLevel(), c2Abs);
+        var s1 = h.getBlockState(c1);
+        var s2 = h.getBlockState(c2);
+        h.assertTrue(arm(s1, net.minecraft.core.Direction.WEST) && arm(s1, net.minecraft.core.Direction.EAST),
+                "Unowned cable c1 collapsed instead of connecting to PUBLIC Drive and c2");
+        h.assertTrue(arm(s2, net.minecraft.core.Direction.WEST) && arm(s2, net.minecraft.core.Direction.EAST),
+                "Unowned cable c2 collapsed instead of connecting to c1 and PUBLIC Decomposer");
+        h.assertTrue(!arm(s1, net.minecraft.core.Direction.SOUTH), "Unowned cable visually connected to PRIVATE machine");
+        h.assertTrue(!arm(s2, net.minecraft.core.Direction.SOUTH), "Unowned cable visually connected to TRUSTED machine");
+
+        // Matter network connects PUBLIC machines across unowned cables while isolating PRIVATE/TRUSTED machines.
+        h.assertTrue(pubDec.matterNetwork(true).ready(), "PUBLIC Decomposer did not reach PUBLIC Drive across unowned cables");
+        h.assertTrue(!privDec.matterNetwork(true).ready(), "PRIVATE machine leaked into unowned cable network");
+        h.assertTrue(!trustedDec.matterNetwork(true).ready(), "TRUSTED machine leaked into unowned cable network");
+
+        // External FE flows across unowned PUBLIC cables into PUBLIC machines and never into PRIVATE/TRUSTED machines.
+        var cap = h.getLevel().getCapability(net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK,
+                c1Abs, net.minecraft.core.Direction.UP);
+        h.assertTrue(cap != null && cap.getCapacityAsLong() > 0, "Unowned PUBLIC cable reported 0 FE capacity");
+        try (var tx = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
+            h.assertTrue(cap.insert(1500, tx) == 1500, "Unowned PUBLIC cable refused external FE");
+            tx.commit();
+        }
+        h.assertTrue(pubDec.energy().getAmountAsLong() == 1500, "PUBLIC Decomposer did not receive FE across unowned cable");
+        h.assertTrue(privDec.energy().getAmountAsLong() == 0, "Unowned cable leaked FE to PRIVATE machine");
+        h.assertTrue(trustedDec.energy().getAmountAsLong() == 0, "Unowned cable leaked FE to TRUSTED machine");
+        h.assertTrue(h.getBlockState(c1).getValue(MatterCableBlock.POWERED) && h.getBlockState(c2).getValue(MatterCableBlock.POWERED),
+                "Unowned cables did not energize after FE flow");
+
+        // Pure /setblock unowned cable + unowned machine (schematics / showcases) stays visually connected on refresh.
+        var unownedMachinePos = new BlockPos(7, 2, 2);
+        var unownedCablePos = new BlockPos(7, 2, 3);
+        h.setBlock(unownedMachinePos, ModContent.MACHINES.get(MachineKind.DECOMPOSER).get());
+        h.setBlock(unownedCablePos, ModContent.MATTER_CABLE.get());
+        MatterCableBlock.refreshLoadedAround(h.getLevel(), h.absolutePos(unownedCablePos));
+        h.assertTrue(arm(h.getBlockState(unownedCablePos), net.minecraft.core.Direction.NORTH),
+                "Unowned schematic cable did not connect to adjacent unowned PUBLIC machine");
+        h.succeed();
     }
 }

@@ -61,27 +61,27 @@ public final class EntangledLinks {
         return peer(level, position, requiredOwner, SecurityMode.PUBLIC);
     }
 
-    public static Optional<BlockPos> peer(ServerLevel level, BlockPos position, UUID requiredOwner, SecurityMode requiredMode) {
+    public static Optional<BlockPos> peer(ServerLevel level, BlockPos position, @Nullable UUID requiredOwner, SecurityMode requiredMode) {
         var local = loaded(level, position).orElse(null);
-        if (local == null || requiredOwner == null
+        if (local == null || (requiredOwner == null && requiredMode != SecurityMode.PUBLIC)
                 || !local.redstoneAllows()
-                || !MachineAccess.canConnect(level, requiredOwner, requiredMode, local.owner(), local.securityMode())
+                || !MachineAccess.canLinkCable(level, requiredOwner, requiredMode, local.owner(), local.securityMode())
                 || local.pair() == null || local.target() == null || !withinRange(position, local.target())) return Optional.empty();
         var remote = loaded(level, local.target()).orElse(null);
         return remote != null
                 && remote.redstoneAllows()
-                && MachineAccess.canConnect(level, requiredOwner, requiredMode, remote.owner(), remote.securityMode())
+                && MachineAccess.canLinkCable(level, requiredOwner, requiredMode, remote.owner(), remote.securityMode())
                 && MachineAccess.canConnect(level, local.owner(), local.securityMode(), remote.owner(), remote.securityMode())
                 && local.pair().equals(remote.pair()) && position.equals(remote.target())
                 ? Optional.of(remote.getBlockPos()) : Optional.empty();
     }
 
     /** Resolves a loaded cross-dimension peer without ever forcing the remote chunk to load. */
-    public static Optional<DimPos> dimensionalPeer(ServerLevel level, BlockPos position, UUID requiredOwner, SecurityMode requiredMode) {
+    public static Optional<DimPos> dimensionalPeer(ServerLevel level, BlockPos position, @Nullable UUID requiredOwner, SecurityMode requiredMode) {
         var local = loadedDimensional(level, position).orElse(null);
-        if (local == null || requiredOwner == null
+        if (local == null || (requiredOwner == null && requiredMode != SecurityMode.PUBLIC)
                 || !local.redstoneAllows()
-                || !MachineAccess.canConnect(level, requiredOwner, requiredMode, local.owner(), local.securityMode())
+                || !MachineAccess.canLinkCable(level, requiredOwner, requiredMode, local.owner(), local.securityMode())
                 || local.pair() == null || local.peerDimension() == null || local.peerPos() == null) {
             return Optional.empty();
         }
@@ -93,7 +93,7 @@ public final class EntangledLinks {
         var remote = loadedDimensional(targetLevel, local.peerPos()).orElse(null);
         if (remote == null
                 || !remote.redstoneAllows()
-                || !MachineAccess.canConnect(targetLevel, requiredOwner, requiredMode, remote.owner(), remote.securityMode())
+                || !MachineAccess.canLinkCable(targetLevel, requiredOwner, requiredMode, remote.owner(), remote.securityMode())
                 || !MachineAccess.canConnect(level, local.owner(), local.securityMode(), remote.owner(), remote.securityMode())
                 || !local.pair().equals(remote.pair())
                 || !level.dimension().equals(remote.peerDimension())

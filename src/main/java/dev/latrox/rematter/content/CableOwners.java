@@ -55,7 +55,11 @@ public final class CableOwners {
     static void finishPlacement(ServerLevel level,BlockPos pos) {
         var pending=takePlacement(level,pos);
         if(pending!=null&&pending.tick()==level.getGameTime())set(level,pos,pending.owner(),pending.mode());
-        else set(level,pos,null,SecurityMode.PUBLIC);
+        else {
+            set(level,pos,null,SecurityMode.PUBLIC);
+            // Command/schematic/WorldEdit placements arrive without a player owner; refresh arms immediately.
+            if(!level.captureBlockSnapshots)MatterCableBlock.refreshLoadedAround(level,pos);
+        }
     }
     static void discardPlacement(ServerLevel level,BlockPos pos) {takePlacement(level,pos);}
     private static @Nullable PlacementOwner takePlacement(ServerLevel level,BlockPos pos) {

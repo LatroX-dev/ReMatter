@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.50.1
+
+Hotfix release for **Minecraft 26.1.2**, **NeoForge 26.1.2.126**, and **Java 25**, fixing world upgrades from `0.8.x` / `0.9.0` / `0.10.0`, unowned/command-placed Matter Cables, and a recipe-book advancement log error.
+
+### Fixes
+- **Lossless 14-Slot Machine Migration (`0.8.x` / `0.9.0` / `0.10.0` → `0.50.1`):** Fixed `MachineSchema.rejection(...)` (and empty-device salvage checks in `ToolSalvage`) rejecting `14`-slot saved machines after slots `14` (`Mass Compression`) and `15` (`Anchor Upgrade`) were added in `0.50.0`. Existing machines now migrate directly to 16 slots with all stored items, cells, and upgrades intact, immediately restoring normal operation, Matter networks, and external-mod FE injection over Matter Cables.
+- **Unowned & Command-Placed Matter Cables (`PUBLIC` Compatibility):** Fixed unowned Matter Cables (from pre-`0.8.0` worlds, `/setblock`, `/fill`, WorldEdit, or schematics) collapsing into isolated cubes on chunk load or neighbor updates and refusing to route Matter or FE. Unowned `PUBLIC` cables now connect visually and functionally with each other, with `PUBLIC` devices/cables, and with external-mod FE sources while strictly preserving `PRIVATE` and `TRUSTED` isolation and unclaimed-machine claim behavior.
+- **Recipe-Book Advancement Predicate (`wireless_booster.json`):** Fixed `shaped_discovery` emitting `"items": ["#rematter:full_ender_pearl_powders"]` instead of `"items": "#rematter:full_ender_pearl_powders"`, eliminating the datapack load `DataResult.Error` log entry, with a permanent regression test across all shipped advancements.
+- **Documentation:** Documented **EMI - Port Forward (PF-EMI)** alongside JEI (including JEI++) and SEMI in `README.md` and `docs/integrations.md`.
+
 ## 0.50.0 — The Endgame, Power & Logistics Expansion
 
 ReMatter `0.50.0` is the largest feature expansion in the mod's history, turning ReMatter from a compact workshop chemistry mod into a complete end-to-end industrial, power, and multi-dimensional logistics platform for **Minecraft 26.1.2**, **NeoForge 26.1.2.126**, and **Java 25**.

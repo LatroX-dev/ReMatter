@@ -80,6 +80,22 @@ class MachineAccessTest {
         assertFalse(MachineAccess.canConnect(OWNER, SecurityMode.TRUSTED, TEAMMATE, SecurityMode.TRUSTED, true, false));
         assertFalse(MachineAccess.canConnect(OWNER, SecurityMode.PRIVATE, TEAMMATE, SecurityMode.PUBLIC, true, true));
         assertFalse(MachineAccess.canConnect(null, SecurityMode.PUBLIC, OWNER, SecurityMode.PUBLIC, false, false));
+
+        // Unowned legacy / command cables link with PUBLIC cables and devices, never TRUSTED or PRIVATE
+        assertTrue(MachineAccess.canLinkCable(null, null, SecurityMode.PUBLIC, null, SecurityMode.PUBLIC));
+        assertTrue(MachineAccess.canLinkCable(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.PUBLIC));
+        assertTrue(MachineAccess.canLinkCable(null, OWNER, SecurityMode.PUBLIC, null, SecurityMode.PUBLIC));
+        assertFalse(MachineAccess.canLinkCable(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.TRUSTED));
+        assertFalse(MachineAccess.canLinkCable(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.PRIVATE));
+        assertFalse(MachineAccess.canLinkCable(null, OWNER, SecurityMode.PRIVATE, null, SecurityMode.PUBLIC));
+        assertFalse(MachineAccess.canLinkCable(null, OWNER, SecurityMode.TRUSTED, null, SecurityMode.PUBLIC));
+
+        assertTrue(MachineAccess.canConnectCableToDevice(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.PUBLIC));
+        assertTrue(MachineAccess.canConnectCableToDevice(null, null, SecurityMode.PUBLIC, null, SecurityMode.PUBLIC));
+        assertFalse(MachineAccess.canConnectCableToDevice(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.TRUSTED));
+        assertFalse(MachineAccess.canConnectCableToDevice(null, null, SecurityMode.PUBLIC, OWNER, SecurityMode.PRIVATE));
+        // Owned cables still require an unclaimed machine to be claimed before attaching
+        assertFalse(MachineAccess.canConnectCableToDevice(null, OWNER, SecurityMode.PUBLIC, null, SecurityMode.PUBLIC));
     }
 
     @Test void anUnownedMachineIsClaimedOnlyByARealParticipatingPlayer() {
