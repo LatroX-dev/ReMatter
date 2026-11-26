@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Fresh Fruit",
   "items": [
+    "integrateddynamics:menril_berries",
     "minecraft:apple",
     "minecraft:melon",
     "minecraft:melon_slice",

@@ -2,9 +2,11 @@
   "schema": 1,
   "name": "Calcite",
   "items": [
+    "biomesoplenty:thermal_calcite",
     "jaopca:storage_blocks.calcite",
     "minecraft:calcite",
-    "occultism:crushed_calcite"
+    "occultism:crushed_calcite",
+    "regions_unexplored:chalk"
   ],
   "substances": [
     {

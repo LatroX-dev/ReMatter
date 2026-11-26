@@ -22,7 +22,7 @@ class ResearchCatalogueTest {
         var source = JsonParser.parseString(Files.readString(Path.of("tools/data/material_catalogue.json"))).getAsJsonObject();
         var expected = new HashMap<String, Set<String>>();
         source.getAsJsonArray("items").forEach(e -> { var row = e.getAsJsonObject(); expected.computeIfAbsent(row.get("family").getAsString(), ignored -> new HashSet<>()).add(row.get("item").getAsString()); });
-        assertEquals(381, expected.size()); var actual = new HashMap<String, Set<String>>(); int discoveries = 0;
+        assertEquals(387, expected.size()); var actual = new HashMap<String, Set<String>>(); int discoveries = 0;
         try (var paths = Files.list(Path.of("src/main/resources/data/rematter/rematter/material_research"))) {
             for (var path : paths.filter(p -> p.toString().endsWith(".json")).toList()) {
                 var doc = JsonParser.parseString(Files.readString(path)).getAsJsonObject(); var items = new HashSet<String>(); doc.getAsJsonArray("items").forEach(e -> items.add(e.getAsString()));

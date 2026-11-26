@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:matter_cable",
+    "rematter:reinforced_matter_cable",
+    "rematter:resonant_matter_cable",
+    "rematter:matter_cable_relay",
+    "rematter:entangled_link",
+    "rematter:dimensional_entangled_link",
+    "rematter:spatial_anchor"
+  ]
+}

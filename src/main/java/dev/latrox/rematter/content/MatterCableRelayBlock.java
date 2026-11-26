@@ -104,7 +104,9 @@ public final class MatterCableRelayBlock extends Block implements EntityBlock {
         if (block instanceof MachineBlock machine) {
             return MatterCableConnectionPolicy.acceptsMachine(machine.kind(), state.getValue(MachineBlock.FACING), faceOnNeighbor);
         }
-        return false;
+        return !state.isAir() && level instanceof ServerLevel server
+                && server.getChunkSource().getChunkNow(neighborPos.getX() >> 4, neighborPos.getZ() >> 4) != null
+                && server.getCapability(net.neoforged.neoforge.capabilities.Capabilities.Energy.BLOCK, neighborPos, state, null, faceOnNeighbor) != null;
     }
 
     @Override protected MapCodec<? extends Block> codec() { return CODEC; }
@@ -154,14 +156,23 @@ public final class MatterCableRelayBlock extends Block implements EntityBlock {
     }
 
     @Override protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
-        if (!level.isClientSide() && state.getBlock() != oldState.getBlock()) {
+        if (level.isClientSide()) return;
+        boolean replaced = state.getBlock() != oldState.getBlock();
+        boolean rotated = !replaced && state.getValue(FACING) != oldState.getValue(FACING);
+        if (replaced || rotated) {
             level.scheduleTick(pos, this, 1);
-            if (level instanceof ServerLevel server) ChunkRevisions.touchLoaded(server, pos);
+            level.invalidateCapabilities(pos);
+            if (level instanceof ServerLevel server) {
+                ChunkRevisions.touchLoaded(server, pos);
+                MatterCableBlock.refreshLoadedAround(server, pos);
+                server.updateNeighborsAt(pos, this);
+            }
         }
     }
 
     @Override protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean moved) {
         super.affectNeighborsAfterRemoval(state, level, pos, moved);
+        level.invalidateCapabilities(pos);
         ChunkRevisions.touchLoaded(level, pos);
         MatterCableBlock.refreshLoadedAround(level, pos);
     }

@@ -2,6 +2,12 @@
   "schema": 1,
   "name": "Dyed Silica",
   "items": [
+    "biomesoplenty:black_sand",
+    "biomesoplenty:black_sandstone",
+    "biomesoplenty:orange_sand",
+    "biomesoplenty:orange_sandstone",
+    "biomesoplenty:white_sand",
+    "biomesoplenty:white_sandstone",
     "exdeorum:compressed_red_sand",
     "minecraft:black_concrete",
     "minecraft:black_concrete_powder",

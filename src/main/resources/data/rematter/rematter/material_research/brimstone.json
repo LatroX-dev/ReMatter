@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Brimstone",
+  "items": [
+    "biomesoplenty:brimstone"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:sulfur",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

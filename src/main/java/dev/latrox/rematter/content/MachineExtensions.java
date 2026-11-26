@@ -324,12 +324,7 @@ final class MachineExtensions {
     }
 
     private boolean isDirectMatrixNeighbor(BlockPos portPos, Direction outward) {
-        BlockPos neighbor = portPos.relative(outward);
-        var chunk = level().getChunkSource().getChunkNow(neighbor.getX() >> 4, neighbor.getZ() >> 4);
-        if (chunk == null) return false;
-        return !(chunk.getBlockState(neighbor).getBlock() instanceof MatterCableBlock)
-                && !(chunk.getBlockEntity(neighbor) instanceof EntangledLinkBlockEntity)
-                && !(chunk.getBlockEntity(neighbor) instanceof DimensionalEntangledLinkBlockEntity);
+        return MatterCablePower.isDirectEnergyNeighbor(level(), portPos.relative(outward));
     }
 
     private void tickEnergyMatrix() {
@@ -1253,7 +1248,10 @@ final class MachineExtensions {
             var net=machine.matterNetwork(false);
             out.addProperty("primalTotal",Math.addExact(reserve.readable()?reserve.amount():0L,net.ready()?net.primalAmount():0L));
         }
-        if(!owned())return out;
+        if(!owned()){
+            if(machine.kind().synthesis())appendSynthesisStock(out);
+            return out;
+        }
         if(machine.kind().synthesis()){
             var knownTargets=new JsonArray();
             for(var choice:MachineChoices.forKind(machine.kind(),ReMatter.chemistry())){String target=choice.id().startsWith(MachineChoices.FLUID_PREFIX)?choice.id().substring(MachineChoices.FLUID_PREFIX.length()):choice.id();if(machine.researchAllows(target))knownTargets.add(target);}
@@ -1277,6 +1275,7 @@ final class MachineExtensions {
             }else out.add("conversionDestination",ConverterDestination.missing("choose_target").json());
         }
         out.add("targets",targets);
+        if(machine.kind().synthesis())appendSynthesisStock(out);
         if(machine.kind()==MachineKind.ANALYZER){
             var materials=new JsonArray();
             for(var material:ResearchService.materials(level().getServer(),owner())){
@@ -1294,6 +1293,74 @@ final class MachineExtensions {
         }
         return out;
     }
+    private void appendSynthesisStock(JsonObject out) {
+        var net = machine.matterNetwork(false);
+        boolean ready = net.ready() && net.inventory() != null;
+        if (!ready) {
+            populateSynthesisStockForView(out, false, Map.of(), List.of());
+            return;
+        }
+        var registry = ReMatter.chemistry();
+        var needed = new java.util.TreeSet<SubstanceKey>();
+        for (var choice : MachineChoices.forKind(machine.kind(), registry)) {
+            String id = choice.id();
+            if (id.startsWith(MachineChoices.FLUID_PREFIX)) {
+                registry.fluidProfile(id.substring(MachineChoices.FLUID_PREFIX.length())).ifPresent(p -> needed.addAll(p.matter().keySet()));
+            } else {
+                registry.profile(id).ifPresent(p -> needed.addAll(p.matter().keySet()));
+            }
+        }
+        populateSynthesisStockForView(out, true, net.inventory().contents(), needed);
+    }
+
+    /**
+     * Appends synthesis stock fields strictly inside {@link dev.latrox.rematter.network.MachineExtraPayload#MAX_CHARS}.
+     * Must be invoked after all other view fields (including {@code knownTargets} and {@code targets}) have been added.
+     * If {@code out} already sits within the wrapper overhead of the payload cap, no fields are added so previously
+     * sendable views never fail serialization.
+     */
+    static void populateSynthesisStockForView(JsonObject out, boolean ready, Map<SubstanceKey, Long> contents, Iterable<SubstanceKey> needed) {
+        int existingChars = out.toString().length();
+        // Exact JSON wrapper overhead:
+        //   not ready -> ,"synthesisStockReady":false,"synthesisStockComplete":true   (58 chars)
+        //   ready     -> ,"synthesisStockReady":true,"synthesisStockComplete":false,"synthesisStock": (76 chars) + stockObj (>=2 chars)
+        int maxChars = dev.latrox.rematter.network.MachineExtraPayload.MAX_CHARS;
+        if (!ready) {
+            if (existingChars + 58 > maxChars) return;
+            out.addProperty("synthesisStockReady", false);
+            out.addProperty("synthesisStockComplete", true);
+            return;
+        }
+        int remainingForObject = maxChars - existingChars - 76;
+        if (remainingForObject < 2) return;
+        out.addProperty("synthesisStockReady", true);
+        populateSynthesisStock(out, contents, needed, 1024, Math.min(96_000, remainingForObject));
+    }
+
+    static void populateSynthesisStock(JsonObject out, Map<SubstanceKey, Long> contents, Iterable<SubstanceKey> needed,
+                                       int maxEntries, int maxChars) {
+        var stockObj = new JsonObject();
+        boolean complete = true;
+        int count = 0;
+        int usedChars = 2; // "{}"
+        for (var key : needed) {
+            long amount = contents.getOrDefault(key, 0L);
+            if (amount <= 0L) continue;
+            String entryKey = key.id() + "|" + key.phase().name().toLowerCase(Locale.ROOT);
+            // Conservative upper bound for JSON key/value/quotes/colon/comma plus any escaping overhead.
+            int entryCost = entryKey.length() + Long.toString(amount).length() + 6;
+            if (count >= maxEntries || usedChars + entryCost > maxChars) {
+                complete = false;
+                break;
+            }
+            stockObj.addProperty(entryKey, amount);
+            usedChars += entryCost;
+            count++;
+        }
+        out.addProperty("synthesisStockComplete", complete);
+        out.add("synthesisStock", stockObj);
+    }
+
     JsonObject industrialInitView(){
         var out=new JsonObject();
         if(!IndustrialStructure.isIndustrial(machine.kind()))return out;

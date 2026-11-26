@@ -11,7 +11,8 @@
     "jaopca:storage_blocks.obsidian",
     "mekanism:dust_obsidian",
     "minecraft:obsidian",
-    "occultism:obsidian_dust"
+    "occultism:obsidian_dust",
+    "regions_unexplored:cobalt_obsidian"
   ],
   "substances": [
     {

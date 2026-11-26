@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "rematter:matter_cable",
+    "rematter:reinforced_matter_cable",
+    "rematter:resonant_matter_cable",
+    "rematter:matter_cable_relay",
+    "rematter:energy_cube",
+    "rematter:reinforced_energy_cube",
+    "rematter:resonant_energy_cube",
+    "rematter:primal_energy_cube"
+  ]
+}

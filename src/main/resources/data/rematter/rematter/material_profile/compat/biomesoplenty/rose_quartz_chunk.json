@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "biomesoplenty",
+  "item": "biomesoplenty:rose_quartz_chunk",
+  "matter": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid",
+      "amount": 1000
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid",
+      "amount": 12
+    }
+  ],
+  "decomposition_energy": 32000,
+  "synthesis_energy": 64000,
+  "ticks": 200
+}

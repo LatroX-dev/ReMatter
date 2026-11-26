@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "fluxnetworks",
+  "item": "fluxnetworks:flux_dust",
+  "disabled": true
+}

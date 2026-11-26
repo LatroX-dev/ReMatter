@@ -447,6 +447,10 @@ public final class ModContent {
         event.registerBlock(Capabilities.Energy.BLOCK,
                 (level, pos, state, blockEntity, side) -> MatterCablePower.capability(level, pos, side),
                 MATTER_CABLE.get(), REINFORCED_MATTER_CABLE.get(), RESONANT_MATTER_CABLE.get());
+        event.registerBlock(Capabilities.Energy.BLOCK, (level, pos, state, blockEntity, side) -> {
+            if (side == null || !MatterCableRelayBlock.connectsSide(state, side)) return null;
+            return MatterCablePower.capability(level, pos, side);
+        }, MATTER_CABLE_RELAY.get());
         event.registerBlockEntity(Capabilities.Energy.BLOCK,ENERGY_CUBE_ENTITY.get(),EnergyCubeBlockEntity::sidedEnergy);
         event.registerBlockEntity(Capabilities.Item.BLOCK,ENERGY_CUBE_ENTITY.get(),EnergyCubeBlockEntity::sidedItems);
         event.registerBlockEntity(Capabilities.Energy.BLOCK, MACHINE_ENTITY.get(), MachineBlockEntity::sidedEnergy);

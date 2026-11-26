@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "nautec",
+  "item": "nautec:aquarine_steel_block",
+  "matter": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid",
+      "amount": 1800
+    },
+    {
+      "substance": "rematter:prismarine_crystal",
+      "phase": "solid",
+      "amount": 900
+    }
+  ],
+  "decomposition_energy": 288000,
+  "synthesis_energy": 576000,
+  "ticks": 1800
+}

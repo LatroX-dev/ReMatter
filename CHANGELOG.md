@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.51.0
+
+Cross-mod interoperability, Synthesizer filtering, and ReForging material expansion release for **Minecraft 26.1.2**, **NeoForge 26.1.2.126**, and **Java 25**.
+
+### Energy, Cables & Relays (External-Mod Interoperability)
+- **Energized Matter Cable Border Glow (`POWERED`) with External FE Sources:** Matter Cables now keep their glowing outer border rails lit whenever fed by a live external FE buffer (such as Mekanism Universal Cables, Powah, Flux Points, or Oritech) — even when downstream machines are full or cables branch — and on any real committed FE transfer from stateless conduits, while empty `0 FE` probes (both aborted and committed) stay dark.
+- **Matter Cable Relay Full External-Mod Compatibility:** `MatterCableRelayBlock` now exposes `Capabilities.Energy.BLOCK` on its two axial faces, auto-aligns to external FE blocks on placement, supports unowned `PUBLIC` relays, invalidates capabilities and chunk topology on external rotation as well as Matter Wrench rotation, treats relays as conduits on `AUTOMATIC` Energy Matrix ports, and enforces Redstone gates, Power/Matter channel separation, One-Way diode direction, and exact `FE/t` caps on external FE.
+- **Bidirectional External FE Routing, Loop Safety & Security Hardening:** Matter Cables forward FE to external `Capabilities.Energy.BLOCK` sinks as well as ReMatter devices, with nested-transaction backflow detection (`Transaction.open`) for buffered external sources and a strict non-forwarding boundary for opaque zero-reporting pass-through proxies (e.g. Ender IO conduits) to prevent mixed-mod cable rings from voiding FE in Mekanism `EnergyNetwork`. Re-entrancy is scoped per active cable component (allowing separate ReMatter networks bridged externally), late-activated external FE ports are observed via `BlockCapabilityCache` and neighbor updates, incoming source authorization covers all ReMatter generators/matrices/reactors/cubes (including cable energize), edge-by-edge security prevents scan-order identity leakage, and `ChunkRevisions.trustEpoch()` invalidates cached cable components immediately on trust revocation.
+
+### Cross-Mod Tags, Wrenches & Machine Recipes
+- **Universal Wrench Passthrough:** `WrenchInteractions` now recognizes `#c:wrenches` alongside `#c:tools/wrench`, exposes `rematter:matter_wrench` in both tags, and passes Shift+Right-Click on non-ReMatter blocks cleanly through both `useOn` and `use` fallback so other mods' dismantle/rotate and off-hand interactions work untouched while Shift+Right-Click in air or on ReMatter blocks keeps cycling wrench mode.
+- **Routing, P2P & Relocation/Dupe Protection Tags:** Added `#c:books` & `#minecraft:bookshelf_books` for the ReMatter Guide, `#pipe_connector:pipe_block` & `#pipe_connector:placeable_items` for all three Matter Cable tiers, `#ae2:p2p_attunements/fe_p2p_tunnel` & `#appmek:p2p_attunements/chemical_p2p_tunnel`, `#entangled:invalid_targets` for routing/anchor conduits, and `#rematter:relocation_not_supported` wired into `#c:relocation_not_supported`, `#c:relocation_not_permitted`, Mekanism Cardboard Box, Building Gadgets 2, Just Dire Things, Oritech Black Hole, Productive Bees, Thaumaturge Portable Hole, and Carry On blacklists.
+- **Cross-Mod Dust Routes (`neoforge:mod_loaded` guarded):** Added bonus-free Ender IO SAG Mill (`rhevon`, `lumivex`, `amethyst`, `emerald`), Oritech Pulverizer (`amethyst`), and Occultism Crusher (`rhevon`, `lumivex`, `ignore_crushing_multiplier: true`) recipes.
+
+### Material Catalogue & Synthesizer Picker UX
+- **71 New ReForging `0.70.1` Material Profiles (+6 Families):** Added verified coverage for **Biomes O' Plenty** (25), **Regions Unexplored** (33), **Integrated Dynamics** (5), **Flux Networks** (`flux_dust`, 1), and **Nautec** (7), bringing the catalogue to **2,349 profiles**, **387 research families**, and **900 explicit synthesis outputs** (with strict conservation lower bounds for Menril sawmill/squeezer chains, Regions Unexplored Ash/Ashen Dirt, and Nautec Cast Iron/Aquarine Steel).
+- **Synthesizer Recipe Picker Categories & Live `In stock only` Filter:** Added 6 responsive category tabs (**All**, **Metals**, **Crystals**, **Stone**, **Organic**, **Fluids**) that wrap cleanly in narrow windows without overlapping the detail panel, plus a server-authoritative **In stock only** filter (`synthesisStock` in `MachineExtraPayload`) immune to the 512-row stock list cap and search truncation, with clear syncing and partial-stock indicators.
+
 ## 0.50.1
 
 Hotfix release for **Minecraft 26.1.2**, **NeoForge 26.1.2.126**, and **Java 25**, fixing world upgrades from `0.8.x` / `0.9.0` / `0.10.0`, unowned/command-placed Matter Cables, and a recipe-book advancement log error.

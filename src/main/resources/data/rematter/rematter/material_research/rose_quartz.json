@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "name": "Rose Quartz",
+  "items": [
+    "biomesoplenty:rose_quartz_block",
+    "biomesoplenty:rose_quartz_chunk"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:crystalline_silica",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:pigment",
+      "phase": "solid"
+    }
+  ],
+  "derive": true,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

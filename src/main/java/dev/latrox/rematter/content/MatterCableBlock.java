@@ -196,8 +196,19 @@ public final class MatterCableBlock extends PipeBlock {
         if (!(level instanceof ServerLevel)) return state;
         return withSide(state, side, connects(level, neighborPos, neighbor, side), neighbor);
     }
+    @Override protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+            net.minecraft.world.level.redstone.@org.jspecify.annotations.Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+        // External mods (e.g. Mekanism Configurator, Ender IO conduit bundles, Powah side config) may add or remove
+        // their FE capability without changing BlockState, so refresh our shape on neighbor notifications too.
+        if (level instanceof ServerLevel server) refreshLoadedPipe(server, pos);
+    }
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        if (MatterCablePower.onCableTick(level, pos, state)) return;
+        boolean handledPower = MatterCablePower.onCableTick(level, pos, state);
+        if (handledPower) {
+            refreshLoadedPipe(level, pos);
+            return;
+        }
         refreshLoadedAround(level, pos);
     }
     /** Restores saved connection shapes without loading the neighboring chunks. */
@@ -221,7 +232,10 @@ public final class MatterCableBlock extends PipeBlock {
             updated = withSide(updated, side, connected, neighbor);
 
         }
-        if (updated != state) level.setBlock(pos, updated, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
+        if (updated != state) {
+            level.setBlock(pos, updated, UPDATE_CLIENTS | UPDATE_KNOWN_SHAPE);
+            ChunkRevisions.touchLoaded(level, pos);
+        }
     }
     @Override protected net.minecraft.world.InteractionResult useWithoutItem(
             BlockState state, Level level, BlockPos pos, net.minecraft.world.entity.player.Player player,

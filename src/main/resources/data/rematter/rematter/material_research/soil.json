@@ -3,7 +3,10 @@
   "name": "Soil",
   "items": [
     "exdeorum:compressed_dirt",
-    "minecraft:dirt"
+    "minecraft:dirt",
+    "regions_unexplored:ashen_dirt",
+    "regions_unexplored:peat_dirt",
+    "regions_unexplored:silt_dirt"
   ],
   "substances": [
     {

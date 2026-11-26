@@ -2,6 +2,7 @@
   "schema": 1,
   "name": "Redstone",
   "items": [
+    "fluxnetworks:flux_dust",
     "mekanism:enriched_redstone",
     "minecraft:deepslate_redstone_ore",
     "minecraft:redstone",

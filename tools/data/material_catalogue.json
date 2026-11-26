@@ -1426,6 +1426,26 @@
         ]
       }
     },
+    "aquarine_steel": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Nautec mixes two raw iron and one prismarine crystal into five compounds, each yielding up to two ingots under dense laser transformation; recovery uses the exact 1/10 lower bound per ingot.",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:iron",
+            "phase": "solid",
+            "amount": 200
+          },
+          {
+            "substance": "rematter:prismarine_crystal",
+            "phase": "solid",
+            "amount": 100
+          }
+        ]
+      }
+    },
     "arcane_crystal": {
       "substance": "arcane_crystal",
       "phase": "solid",
@@ -2117,6 +2137,26 @@
         ]
       }
     },
+    "brimstone": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Abundant volcanic brimstone rock recovers conservative sulfur alongside silica; recovery-only.",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 750
+          },
+          {
+            "substance": "rematter:sulfur",
+            "phase": "solid",
+            "amount": 250
+          }
+        ]
+      }
+    },
     "bronze": {
       "category": "composed_material",
       "synthesis": true,
@@ -2250,6 +2290,21 @@
             "substance": "rematter:carbon",
             "phase": "solid",
             "amount": 1000
+          }
+        ]
+      }
+    },
+    "cast_iron": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Nautec crafts two cast iron compounds from one raw iron and two interchangeable coals; recovery keeps only the unambiguous half-ingot of iron per ingot.",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:iron",
+            "phase": "solid",
+            "amount": 500
           }
         ]
       }
@@ -5105,6 +5160,26 @@
         ]
       }
     },
+    "prismarine_sand": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Prismarine-bearing sand; conservative lower bound matching four colorless sand and one prismarine crystal shard (500 u) per four blocks.",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:prismarine_crystal",
+            "phase": "solid",
+            "amount": 125
+          },
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 1000
+          }
+        ]
+      }
+    },
     "prismarine_shard": {
       "substance": "prismarine_shard",
       "phase": "solid",
@@ -5642,6 +5717,46 @@
             "substance": "rematter:silica",
             "phase": "solid",
             "amount": 4851
+          }
+        ]
+      }
+    },
+    "rematter_anchor_upgrade": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Conservative floor recovery from ReMatter recipe for rematter:anchor_upgrade; decomposition-only (empty devices only).",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:arcanium",
+            "phase": "solid",
+            "amount": 1000
+          },
+          {
+            "substance": "rematter:copper",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:enderion",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:iron",
+            "phase": "solid",
+            "amount": 1000
+          },
+          {
+            "substance": "rematter:lapis",
+            "phase": "solid",
+            "amount": 1000
+          },
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 2000
           }
         ]
       }
@@ -6287,6 +6402,46 @@
             "substance": "rematter:silica",
             "phase": "solid",
             "amount": 500
+          }
+        ]
+      }
+    },
+    "rematter_dimensional_card": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Conservative floor recovery from ReMatter recipe for rematter:dimensional_card; decomposition-only (empty devices only).",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:arcanium",
+            "phase": "solid",
+            "amount": 1500
+          },
+          {
+            "substance": "rematter:copper",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:diamond",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:enderion",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:lapis",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 2000
           }
         ]
       }
@@ -7616,6 +7771,46 @@
         ]
       }
     },
+    "rematter_matter_cable_relay": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Conservative floor recovery from ReMatter recipe for rematter:matter_cable_relay; decomposition-only (empty devices only).",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:arcanium",
+            "phase": "solid",
+            "amount": 1500
+          },
+          {
+            "substance": "rematter:clay",
+            "phase": "solid",
+            "amount": 1436
+          },
+          {
+            "substance": "rematter:copper",
+            "phase": "solid",
+            "amount": 2332
+          },
+          {
+            "substance": "rematter:iron",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:lapis",
+            "phase": "solid",
+            "amount": 1000
+          },
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 2434
+          }
+        ]
+      }
+    },
     "rematter_matter_cell_16m": {
       "category": "composed_material",
       "synthesis": false,
@@ -7887,46 +8082,6 @@
             "substance": "rematter:iron",
             "phase": "solid",
             "amount": 2000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 2434
-          }
-        ]
-      }
-    },
-    "rematter_matter_cable_relay": {
-      "category": "composed_material",
-      "synthesis": false,
-      "basis": "Conservative floor recovery from ReMatter recipe for rematter:matter_cable_relay; decomposition-only (empty devices only).",
-      "batch": {
-        "items": 1,
-        "matter": [
-          {
-            "substance": "rematter:arcanium",
-            "phase": "solid",
-            "amount": 1500
-          },
-          {
-            "substance": "rematter:clay",
-            "phase": "solid",
-            "amount": 1436
-          },
-          {
-            "substance": "rematter:copper",
-            "phase": "solid",
-            "amount": 2332
-          },
-          {
-            "substance": "rematter:iron",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:lapis",
-            "phase": "solid",
-            "amount": 1000
           },
           {
             "substance": "rematter:silica",
@@ -10091,6 +10246,46 @@
         ]
       }
     },
+    "rematter_spatial_anchor": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Conservative floor recovery from ReMatter recipe for rematter:spatial_anchor; decomposition-only (empty devices only).",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:arcanium",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:copper",
+            "phase": "solid",
+            "amount": 4000
+          },
+          {
+            "substance": "rematter:enderion",
+            "phase": "solid",
+            "amount": 4000
+          },
+          {
+            "substance": "rematter:iron",
+            "phase": "solid",
+            "amount": 4000
+          },
+          {
+            "substance": "rematter:lapis",
+            "phase": "solid",
+            "amount": 2000
+          },
+          {
+            "substance": "rematter:silica",
+            "phase": "solid",
+            "amount": 3000
+          }
+        ]
+      }
+    },
     "rematter_spectrometer_lens": {
       "category": "composed_material",
       "synthesis": false,
@@ -10847,6 +11042,28 @@
             "substance": "rematter:water",
             "phase": "liquid",
             "amount": 100
+          }
+        ]
+      }
+    },
+    "rose_quartz": {
+      "category": "retained_crystal",
+      "synthesis": true,
+      "synthesis_machine": "material_synthesizer",
+      "crystallization_tier": 1,
+      "basis": "Rose quartz holds crystalline silica with a uniform pigment trace (4 chunks = 1 block).",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:crystalline_silica",
+            "phase": "solid",
+            "amount": 1000
+          },
+          {
+            "substance": "rematter:pigment",
+            "phase": "solid",
+            "amount": 12
           }
         ]
       }
@@ -11884,6 +12101,21 @@
         ]
       }
     },
+    "volcanic_ash": {
+      "category": "composed_material",
+      "synthesis": false,
+      "basis": "Volcanic ash is craftable from 4 gunpowder (2,000 carbon, no silica); recovery-only carbon lower bound without silica.",
+      "batch": {
+        "items": 1,
+        "matter": [
+          {
+            "substance": "rematter:carbon",
+            "phase": "solid",
+            "amount": 250
+          }
+        ]
+      }
+    },
     "wet_sponge": {
       "category": "composed_material",
       "synthesis": false,
@@ -11921,126 +12153,6 @@
             "substance": "rematter:zinc",
             "phase": "solid",
             "amount": 1000
-          }
-        ]
-      }
-    },
-    "rematter_dimensional_card": {
-      "category": "composed_material",
-      "synthesis": false,
-      "basis": "Conservative floor recovery from ReMatter recipe for rematter:dimensional_card; decomposition-only (empty devices only).",
-      "batch": {
-        "items": 1,
-        "matter": [
-          {
-            "substance": "rematter:arcanium",
-            "phase": "solid",
-            "amount": 1500
-          },
-          {
-            "substance": "rematter:copper",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:diamond",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:enderion",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:lapis",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 2000
-          }
-        ]
-      }
-    },
-    "rematter_anchor_upgrade": {
-      "category": "composed_material",
-      "synthesis": false,
-      "basis": "Conservative floor recovery from ReMatter recipe for rematter:anchor_upgrade; decomposition-only (empty devices only).",
-      "batch": {
-        "items": 1,
-        "matter": [
-          {
-            "substance": "rematter:arcanium",
-            "phase": "solid",
-            "amount": 1000
-          },
-          {
-            "substance": "rematter:copper",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:enderion",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:iron",
-            "phase": "solid",
-            "amount": 1000
-          },
-          {
-            "substance": "rematter:lapis",
-            "phase": "solid",
-            "amount": 1000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 2000
-          }
-        ]
-      }
-    },
-    "rematter_spatial_anchor": {
-      "category": "composed_material",
-      "synthesis": false,
-      "basis": "Conservative floor recovery from ReMatter recipe for rematter:spatial_anchor; decomposition-only (empty devices only).",
-      "batch": {
-        "items": 1,
-        "matter": [
-          {
-            "substance": "rematter:arcanium",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:copper",
-            "phase": "solid",
-            "amount": 4000
-          },
-          {
-            "substance": "rematter:enderion",
-            "phase": "solid",
-            "amount": 4000
-          },
-          {
-            "substance": "rematter:iron",
-            "phase": "solid",
-            "amount": 4000
-          },
-          {
-            "substance": "rematter:lapis",
-            "phase": "solid",
-            "amount": 2000
-          },
-          {
-            "substance": "rematter:silica",
-            "phase": "solid",
-            "amount": 3000
           }
         ]
       }
@@ -20886,6 +20998,680 @@
         ]
       },
       "synthesis_group": "dust:salt"
+    },
+    {
+      "item": "biomesoplenty:black_sand",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 12
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural pigmented sand matching minecraft:red_sand.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:black_sandstone",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 48
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 4000
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 800,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Four pigmented sands compressed into one sandstone block.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:brimstone",
+      "family": "brimstone",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 750
+        },
+        {
+          "substance": "rematter:sulfur",
+          "phase": "solid",
+          "amount": 250
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Abundant volcanic brimstone rock; recovery-only conservative sulfur share.",
+        "tags": []
+      }
+    },
+    {
+      "item": "biomesoplenty:dead_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:dried_salt",
+      "family": "salt",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:salt",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural evaporite salt deposit matching standard salt batches.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:empyreal_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:fir_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:hellbark_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:jacaranda_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:magic_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:mahogany_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:maple_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:orange_sand",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 12
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural pigmented sand matching minecraft:red_sand.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:orange_sandstone",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 48
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 4000
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 800,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Four pigmented sands compressed into one sandstone block.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:origin_oak_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:palm_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:pine_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:redwood_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:rose_quartz_block",
+      "family": "rose_quartz",
+      "form": "material_block",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:crystalline_silica",
+          "phase": "solid",
+          "amount": 4000
+        },
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 48
+        }
+      ],
+      "decomposition_energy": 128000,
+      "synthesis_energy": 256000,
+      "ticks": 800,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Four rose quartz chunks crafted into one rose quartz block.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:rose_quartz_chunk",
+      "family": "rose_quartz",
+      "form": "gem",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:crystalline_silica",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 12
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "One crystalline rose quartz chunk (crystalline silica + pigment).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:thermal_calcite",
+      "family": "calcite",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:calcium_oxide",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:carbon_dioxide",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural geothermal calcite matching minecraft:calcite.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:umbran_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:white_sand",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 12
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural pigmented sand matching minecraft:red_sand.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:white_sandstone",
+      "family": "dyed_silica",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:pigment",
+          "phase": "solid",
+          "amount": 48
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 4000
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 800,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Four pigmented sands compressed into one sandstone block.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "biomesoplenty:willow_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "biomesoplenty",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (biomesoplenty).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
     },
     {
       "item": "botania:bifrost_log",
@@ -33828,6 +34614,35 @@
       }
     },
     {
+      "item": "fluxnetworks:flux_dust",
+      "family": "redstone",
+      "form": "dust",
+      "reviewed": true,
+      "required_mod": "fluxnetworks",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (fluxnetworks).",
+        "quantity": "One redstone crushed into one Flux Dust; recovery-only to preserve bedrock crushing.",
+        "tags": []
+      }
+    },
+    {
       "item": "forbidden_arcanus:arcane_crystal",
       "family": "arcane_crystal",
       "form": "gem",
@@ -42642,6 +43457,133 @@
         "tags": [],
         "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
         "recipe_basis": "infinity_nexus_mod:zinc_wire"
+      }
+    },
+    {
+      "item": "integrateddynamics:crystalized_menril_block",
+      "family": "cellulose",
+      "form": "material_block",
+      "reviewed": true,
+      "required_mod": "integrateddynamics",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 400
+        }
+      ],
+      "decomposition_energy": 3000,
+      "synthesis_energy": 6000,
+      "ticks": 80,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (integrateddynamics).",
+        "quantity": "Conservative lower bound (400 cellulose per block = 2 cellulose batches): even 1 Menril log (1,200) -> 6 planks via sawmill -> Mechanical Squeezer + Drying Basin (19.5 chunks max) returns at most 867 <= 1,200; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "integrateddynamics:crystalized_menril_chunk",
+      "family": "cellulose",
+      "form": "material",
+      "reviewed": true,
+      "required_mod": "integrateddynamics",
+      "item_count": 9,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 400
+        }
+      ],
+      "decomposition_energy": 3000,
+      "synthesis_energy": 6000,
+      "ticks": 80,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (integrateddynamics).",
+        "quantity": "Nine crystallized Menril chunks equal one crystallized Menril block (400 cellulose per 9 chunks, bounded below 1,200/19.5 per chunk across sawmill + mechanical squeezer chains); recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "integrateddynamics:menril_berries",
+      "family": "fresh_fruit",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "integrateddynamics",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:sucrose",
+          "phase": "solid",
+          "amount": 100
+        },
+        {
+          "substance": "rematter:water",
+          "phase": "liquid",
+          "amount": 100
+        }
+      ],
+      "decomposition_energy": 2000,
+      "synthesis_energy": 4000,
+      "ticks": 40,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (integrateddynamics).",
+        "quantity": "Natural Menril berries matching minecraft:sweet_berries.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "integrateddynamics:menril_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "integrateddynamics",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (integrateddynamics).",
+        "quantity": "Natural Menril log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "integrateddynamics:menril_log_filled",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "integrateddynamics",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (integrateddynamics).",
+        "quantity": "Enriched Menril log; recovery-only to keep squeezer progression intact.",
+        "tags": []
       }
     },
     {
@@ -68739,6 +69681,189 @@
       }
     },
     {
+      "item": "nautec:aquarine_steel_block",
+      "family": "aquarine_steel",
+      "form": "material_block",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 1800
+        },
+        {
+          "substance": "rematter:prismarine_crystal",
+          "phase": "solid",
+          "amount": 900
+        }
+      ],
+      "decomposition_energy": 288000,
+      "synthesis_energy": 576000,
+      "ticks": 1800,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Nine aquarine steel ingots form one storage block; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:aquarine_steel_ingot",
+      "family": "aquarine_steel",
+      "form": "ingot",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 200
+        },
+        {
+          "substance": "rematter:prismarine_crystal",
+          "phase": "solid",
+          "amount": 100
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Exact 1/10 lower bound matching Nautec mixing + dense laser output; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:cast_iron_block",
+      "family": "cast_iron",
+      "form": "material_block",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 4500
+        }
+      ],
+      "decomposition_energy": 144000,
+      "synthesis_energy": 288000,
+      "ticks": 1800,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Nine cast iron ingots form one storage block; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:cast_iron_ingot",
+      "family": "cast_iron",
+      "form": "ingot",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 500
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Conservative half-iron recovery matching 1 raw iron -> 2 cast iron compounds; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:cast_iron_nugget",
+      "family": "cast_iron",
+      "form": "nugget",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 9,
+      "matter": [
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 500
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Nine cast iron nuggets equal one cast iron ingot; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:prismarine_crystal_shard",
+      "family": "prismarine_crystal",
+      "form": "material",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 2,
+      "matter": [
+        {
+          "substance": "rematter:prismarine_crystal",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Two shards equal one prismarine crystal under Nautec laser transformation; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "nautec:prismarine_sand",
+      "family": "prismarine_sand",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "nautec",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:prismarine_crystal",
+          "phase": "solid",
+          "amount": 125
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (nautec).",
+        "quantity": "Prismarine-bearing sand; recovery-only.",
+        "tags": []
+      }
+    },
+    {
       "item": "nautec:salt",
       "family": "salt",
       "form": "dust",
@@ -72701,6 +73826,671 @@
       "synthesis_group": "dust:salt"
     },
     {
+      "item": "regions_unexplored:alpha_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:argillite",
+      "family": "clay",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:clay",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural mudstone/argillite rock matching clay.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:ash",
+      "family": "volcanic_ash",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:carbon",
+          "phase": "solid",
+          "amount": 250
+        }
+      ],
+      "decomposition_energy": 4000,
+      "synthesis_energy": 8000,
+      "ticks": 100,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Craftable from 4 gunpowder (2,000 carbon, no silica); recovery-only carbon lower bound without silica.",
+        "tags": []
+      }
+    },
+    {
+      "item": "regions_unexplored:ashen_dirt",
+      "family": "soil",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 2,
+      "matter": [
+        {
+          "substance": "rematter:soil",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Crafted 2 dirt + 2 #regions_unexplored:ash -> 4 ashen_dirt (500 soil each, 1,000 per pair); recovery-only to prevent soil loops.",
+        "tags": []
+      }
+    },
+    {
+      "item": "regions_unexplored:ashen_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:bamboo_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:baobab_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:blackwood_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:brimwood_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:chalk",
+      "family": "calcite",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:calcium_oxide",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:carbon_dioxide",
+          "phase": "gas",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural sedimentary chalk (calcium carbonate) matching calcite.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:cobalt_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:cobalt_obsidian",
+      "family": "obsidian",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 256
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 32000,
+      "synthesis_energy": 64000,
+      "ticks": 800,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural volcanic glass variant matching obsidian; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "regions_unexplored:cypress_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:dead_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:eucalyptus_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:joshua_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:kapok_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:larch_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:large_prismarite_cluster",
+      "family": "prismarine_shard",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:prismarine_shard",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural prismarite crystal cluster; recovery-only.",
+        "tags": []
+      }
+    },
+    {
+      "item": "regions_unexplored:magnolia_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:maple_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:mossy_stone",
+      "family": "stone",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:alumina",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:calcium_oxide",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural stone variant matching minecraft:stone.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:palm_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:peat_dirt",
+      "family": "soil",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:soil",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural soil variant matching minecraft:dirt.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:pine_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:prismarite_cluster",
+      "family": "prismarine_shard",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:prismarine_shard",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 16000,
+      "synthesis_energy": 32000,
+      "ticks": 200,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural prismarite crystal cluster; recovery-only.",
+        "tags": []
+      }
+    },
+    {
       "item": "regions_unexplored:raw_redstone_block",
       "family": "redstone",
       "form": "ore",
@@ -72729,6 +74519,181 @@
         "tags": [
           "c:ores/redstone"
         ]
+      }
+    },
+    {
+      "item": "regions_unexplored:redwood_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:silt_dirt",
+      "family": "soil",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:soil",
+          "phase": "solid",
+          "amount": 1000
+        }
+      ],
+      "decomposition_energy": 8000,
+      "synthesis_energy": 16000,
+      "ticks": 200,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural soil variant matching minecraft:dirt.",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:silver_birch_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:small_oak_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:socotra_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:willow_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
+      }
+    },
+    {
+      "item": "regions_unexplored:wisteria_log",
+      "family": "cellulose",
+      "form": "natural",
+      "reviewed": true,
+      "required_mod": "regions_unexplored",
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:cellulose",
+          "phase": "solid",
+          "amount": 1200
+        }
+      ],
+      "decomposition_energy": 9000,
+      "synthesis_energy": 18000,
+      "ticks": 240,
+      "synthesis": true,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging 0.70.1 (regions_unexplored).",
+        "quantity": "Natural log matching minecraft:oak_log (1,200 u cellulose).",
+        "tags": [],
+        "synthesis": "Explicitly permitted natural or raw material output."
       }
     },
     {
@@ -72835,6 +74800,56 @@
         "tags": [],
         "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
         "recipe_basis": "rematter:analyzer"
+      }
+    },
+    {
+      "item": "rematter:anchor_upgrade",
+      "family": "rematter_anchor_upgrade",
+      "form": "device",
+      "reviewed": true,
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:copper",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:enderion",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:lapis",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 2000
+        }
+      ],
+      "decomposition_energy": 52000,
+      "synthesis_energy": 104000,
+      "ticks": 100,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
+        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:anchor_upgrade; decomposition-only (empty devices only).",
+        "tags": [],
+        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
+        "recipe_basis": "rematter:anchor_upgrade"
       }
     },
     {
@@ -73728,6 +75743,56 @@
         "tags": [],
         "composition": "Use the exact material amounts of minecraft:diamond.",
         "synthesis": "Use native grinding to produce this powder."
+      }
+    },
+    {
+      "item": "rematter:dimensional_card",
+      "family": "rematter_dimensional_card",
+      "form": "device",
+      "reviewed": true,
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 1500
+        },
+        {
+          "substance": "rematter:copper",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:diamond",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:enderion",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:lapis",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 2000
+        }
+      ],
+      "decomposition_energy": 64000,
+      "synthesis_energy": 128000,
+      "ticks": 100,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
+        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:dimensional_card; decomposition-only (empty devices only).",
+        "tags": [],
+        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
+        "recipe_basis": "rematter:dimensional_card"
       }
     },
     {
@@ -75637,6 +77702,56 @@
       }
     },
     {
+      "item": "rematter:matter_cable_relay",
+      "family": "rematter_matter_cable_relay",
+      "form": "device",
+      "reviewed": true,
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 1500
+        },
+        {
+          "substance": "rematter:clay",
+          "phase": "solid",
+          "amount": 1436
+        },
+        {
+          "substance": "rematter:copper",
+          "phase": "solid",
+          "amount": 2332
+        },
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:lapis",
+          "phase": "solid",
+          "amount": 1000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 2434
+        }
+      ],
+      "decomposition_energy": 43000,
+      "synthesis_energy": 86000,
+      "ticks": 100,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
+        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:matter_cable_relay; decomposition-only (empty devices only).",
+        "tags": [],
+        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
+        "recipe_basis": "rematter:matter_cable_relay"
+      }
+    },
+    {
       "item": "rematter:matter_cell_16m",
       "family": "rematter_matter_cell_16m",
       "form": "device",
@@ -75974,56 +78089,6 @@
         "tags": [],
         "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
         "recipe_basis": "rematter:matter_level_emitter"
-      }
-    },
-    {
-      "item": "rematter:matter_cable_relay",
-      "family": "rematter_matter_cable_relay",
-      "form": "device",
-      "reviewed": true,
-      "item_count": 1,
-      "matter": [
-        {
-          "substance": "rematter:arcanium",
-          "phase": "solid",
-          "amount": 1500
-        },
-        {
-          "substance": "rematter:clay",
-          "phase": "solid",
-          "amount": 1436
-        },
-        {
-          "substance": "rematter:copper",
-          "phase": "solid",
-          "amount": 2332
-        },
-        {
-          "substance": "rematter:iron",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:lapis",
-          "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 2434
-        }
-      ],
-      "decomposition_energy": 43000,
-      "synthesis_energy": 86000,
-      "ticks": 100,
-      "synthesis": false,
-      "evidence": {
-        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
-        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:matter_cable_relay; decomposition-only (empty devices only).",
-        "tags": [],
-        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
-        "recipe_basis": "rematter:matter_cable_relay"
       }
     },
     {
@@ -78751,6 +80816,56 @@
       }
     },
     {
+      "item": "rematter:spatial_anchor",
+      "family": "rematter_spatial_anchor",
+      "form": "device",
+      "reviewed": true,
+      "item_count": 1,
+      "matter": [
+        {
+          "substance": "rematter:arcanium",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:copper",
+          "phase": "solid",
+          "amount": 4000
+        },
+        {
+          "substance": "rematter:enderion",
+          "phase": "solid",
+          "amount": 4000
+        },
+        {
+          "substance": "rematter:iron",
+          "phase": "solid",
+          "amount": 4000
+        },
+        {
+          "substance": "rematter:lapis",
+          "phase": "solid",
+          "amount": 2000
+        },
+        {
+          "substance": "rematter:silica",
+          "phase": "solid",
+          "amount": 3000
+        }
+      ],
+      "decomposition_energy": 84000,
+      "synthesis_energy": 168000,
+      "ticks": 100,
+      "synthesis": false,
+      "evidence": {
+        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
+        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:spatial_anchor; decomposition-only (empty devices only).",
+        "tags": [],
+        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
+        "recipe_basis": "rematter:spatial_anchor"
+      }
+    },
+    {
       "item": "rematter:spectrometer_lens",
       "family": "rematter_spectrometer_lens",
       "form": "component",
@@ -81060,156 +83175,6 @@
         "tags": [
           "c:raw_materials/cinnabar"
         ]
-      }
-    },
-    {
-      "item": "rematter:dimensional_card",
-      "family": "rematter_dimensional_card",
-      "form": "device",
-      "reviewed": true,
-      "item_count": 1,
-      "matter": [
-        {
-          "substance": "rematter:arcanium",
-          "phase": "solid",
-          "amount": 1500
-        },
-        {
-          "substance": "rematter:copper",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:diamond",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:enderion",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:lapis",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 2000
-        }
-      ],
-      "decomposition_energy": 64000,
-      "synthesis_energy": 128000,
-      "ticks": 100,
-      "synthesis": false,
-      "evidence": {
-        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
-        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:dimensional_card; decomposition-only (empty devices only).",
-        "tags": [],
-        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
-        "recipe_basis": "rematter:dimensional_card"
-      }
-    },
-    {
-      "item": "rematter:anchor_upgrade",
-      "family": "rematter_anchor_upgrade",
-      "form": "device",
-      "reviewed": true,
-      "item_count": 1,
-      "matter": [
-        {
-          "substance": "rematter:arcanium",
-          "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:copper",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:enderion",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:iron",
-          "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:lapis",
-          "phase": "solid",
-          "amount": 1000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 2000
-        }
-      ],
-      "decomposition_energy": 52000,
-      "synthesis_energy": 104000,
-      "ticks": 100,
-      "synthesis": false,
-      "evidence": {
-        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
-        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:anchor_upgrade; decomposition-only (empty devices only).",
-        "tags": [],
-        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
-        "recipe_basis": "rematter:anchor_upgrade"
-      }
-    },
-    {
-      "item": "rematter:spatial_anchor",
-      "family": "rematter_spatial_anchor",
-      "form": "device",
-      "reviewed": true,
-      "item_count": 1,
-      "matter": [
-        {
-          "substance": "rematter:arcanium",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:copper",
-          "phase": "solid",
-          "amount": 4000
-        },
-        {
-          "substance": "rematter:enderion",
-          "phase": "solid",
-          "amount": 4000
-        },
-        {
-          "substance": "rematter:iron",
-          "phase": "solid",
-          "amount": 4000
-        },
-        {
-          "substance": "rematter:lapis",
-          "phase": "solid",
-          "amount": 2000
-        },
-        {
-          "substance": "rematter:silica",
-          "phase": "solid",
-          "amount": 3000
-        }
-      ],
-      "decomposition_energy": 84000,
-      "synthesis_energy": 168000,
-      "ticks": 100,
-      "synthesis": false,
-      "evidence": {
-        "registry": "Exact ID verified for Minecraft 26.1.2 / ReForging (rematter).",
-        "quantity": "Conservative floor recovery from ReMatter recipe for rematter:spatial_anchor; decomposition-only (empty devices only).",
-        "tags": [],
-        "synthesis": "Recovery only. Crafted, processed, or ore-chain forms stay outside synthesis.",
-        "recipe_basis": "rematter:spatial_anchor"
       }
     }
   ],

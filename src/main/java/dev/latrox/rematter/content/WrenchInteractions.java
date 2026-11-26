@@ -16,9 +16,13 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -33,15 +37,19 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import org.jspecify.annotations.Nullable;
 
-/** Handles Matter Wrench mode dispatch (Ports / Rotate / Dismantle) and generic #c:tools/wrench compatibility. */
+/** Handles Matter Wrench mode dispatch (Ports / Rotate / Dismantle) and generic #c:tools/wrench & #c:wrenches compatibility. */
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class WrenchInteractions {
+    private static final TagKey<Item> LEGACY_WRENCHES = ItemTags.create(Identifier.fromNamespaceAndPath("c", "wrenches"));
+
     private WrenchInteractions() {}
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         ItemStack stack = event.getItemStack();
-        if (!(stack.getItem() instanceof MatterWrenchItem) && !stack.is(Tags.Items.TOOLS_WRENCH)) return;
+        if (!(stack.getItem() instanceof MatterWrenchItem)
+                && !stack.is(Tags.Items.TOOLS_WRENCH)
+                && !stack.is(LEGACY_WRENCHES)) return;
         InteractionResult result = interact(event.getEntity(), event.getLevel(), event.getPos(), stack, event.getHitVec());
         if (result.consumesAction()) {
             event.setCancellationResult(result);
@@ -70,12 +78,14 @@ public final class WrenchInteractions {
     }
 
     public static InteractionResult interact(@Nullable Player player, Level level, BlockPos pos, ItemStack stack, BlockHitResult hit) {
+        BlockState state = level.getBlockState(pos);
+        // Let non-ReMatter blocks handle #c:tools/wrench / #c:wrenches (including Shift+Right-Click dismantle on Mekanism,
+        // AE2, Refined Storage, Powah, Ender IO, Oritech, Pipez, LaserIO, etc.). Shift+Right-Click in air still cycles mode.
+        if (!wrenchable(state)) return InteractionResult.PASS;
         if (stack.getItem() instanceof MatterWrenchItem && player != null && !player.isSpectator() && player.isShiftKeyDown()) {
             if (!level.isClientSide()) MatterWrenchItem.cycleMode(stack, player, level);
             return InteractionResult.SUCCESS;
         }
-        BlockState state = level.getBlockState(pos);
-        if (!wrenchable(state)) return InteractionResult.PASS;
         if (player == null || player.isSpectator() || !player.mayUseItemAt(pos, hit.getDirection(), stack)) {
             return InteractionResult.FAIL;
         }

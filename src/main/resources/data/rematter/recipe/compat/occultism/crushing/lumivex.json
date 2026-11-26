@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "occultism"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "occultism:crushing"
+    }
+  ],
+  "type": "occultism:crushing",
+  "ignore_crushing_multiplier": true,
+  "ingredient": "#c:ingots/lumivex",
+  "result": {
+    "type": "occultism:item",
+    "count": 1,
+    "id": "rematter:lumivex_dust"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "nautec",
+  "item": "nautec:prismarine_sand",
+  "matter": [
+    {
+      "substance": "rematter:prismarine_crystal",
+      "phase": "solid",
+      "amount": 125
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid",
+      "amount": 1000
+    }
+  ],
+  "decomposition_energy": 16000,
+  "synthesis_energy": 32000,
+  "ticks": 200
+}

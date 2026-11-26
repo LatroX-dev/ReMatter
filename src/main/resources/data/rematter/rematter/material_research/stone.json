@@ -10,7 +10,8 @@
     "minecraft:mossy_stone_bricks",
     "minecraft:smooth_stone",
     "minecraft:stone",
-    "minecraft:stone_bricks"
+    "minecraft:stone_bricks",
+    "regions_unexplored:mossy_stone"
   ],
   "substances": [
     {

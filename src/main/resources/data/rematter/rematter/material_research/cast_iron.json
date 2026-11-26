@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "name": "Cast Iron",
+  "items": [
+    "nautec:cast_iron_block",
+    "nautec:cast_iron_ingot",
+    "nautec:cast_iron_nugget"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:iron",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

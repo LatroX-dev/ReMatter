@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "name": "Prismarine Sand",
+  "items": [
+    "nautec:prismarine_sand"
+  ],
+  "substances": [
+    {
+      "substance": "rematter:prismarine_crystal",
+      "phase": "solid"
+    },
+    {
+      "substance": "rematter:silica",
+      "phase": "solid"
+    }
+  ],
+  "derive": false,
+  "starting_knowledge": false,
+  "discovery_tier": 0,
+  "requires_dimension": ""
+}

@@ -1,0 +1,25 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "enderio"
+    },
+    {
+      "type": "neoforge:registered",
+      "registry": "minecraft:recipe_serializer",
+      "value": "enderio:sag_milling"
+    }
+  ],
+  "type": "enderio:sag_milling",
+  "bonus": "none",
+  "energy": 2400,
+  "input": "#c:ingots/lumivex",
+  "outputs": [
+    {
+      "item": {
+        "id": "rematter:lumivex_dust",
+        "count": 1
+      }
+    }
+  ]
+}

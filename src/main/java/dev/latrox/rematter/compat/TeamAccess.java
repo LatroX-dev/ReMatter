@@ -6,7 +6,14 @@ import net.neoforged.fml.ModList;
 
 /** Optional team membership only. Ownership and network grouping remain unchanged. No cached memberships. */
 public final class TeamAccess {
+    private static volatile java.util.function.@org.jspecify.annotations.Nullable BiPredicate<UUID, UUID> sharedTestOverride;
+
     private TeamAccess() {}
+
+    /** Test-only hook to simulate FTB Teams party membership changes without requiring the optional mod at test time. */
+    public static void setSharedOverrideForTests(java.util.function.@org.jspecify.annotations.Nullable BiPredicate<UUID, UUID> override) {
+        sharedTestOverride = override;
+    }
     /** The current authoritative party/server team, including offline owners; personal FTB teams add no shared identity. */
     public static Optional<UUID> currentTeam(UUID player) {
         if (player == null || !ModList.get().isLoaded("ftbteams")) return Optional.empty();
@@ -25,7 +32,10 @@ public final class TeamAccess {
         } catch (ReflectiveOperationException | LinkageError unavailable) { return Optional.empty(); }
     }
     public static boolean shared(UUID owner, UUID actor) {
-        if(owner==null||!ModList.get().isLoaded("ftbteams"))return false;
+        if (owner == null || actor == null) return false;
+        var override = sharedTestOverride;
+        if (override != null) return override.test(owner, actor);
+        if(!ModList.get().isLoaded("ftbteams"))return false;
         try {
             var apiClass=Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
             var api=apiClass.getMethod("api").invoke(null);

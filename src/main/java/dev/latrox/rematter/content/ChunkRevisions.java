@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 @EventBusSubscriber(modid = ReMatter.MOD_ID)
 public final class ChunkRevisions {
     private static final AtomicLong EPOCH = new AtomicLong();
+    private static final AtomicLong TRUST_EPOCH = new AtomicLong();
     public record Revision(long value, int mutationDepth) { public boolean stable() { return mutationDepth == 0; } }
     /**
      * One chunk as an observation read it: absent, or loaded at a revision. It still matches only while the same chunk
@@ -74,8 +75,12 @@ public final class ChunkRevisions {
         if (chunk != null) touch(chunk);
     }
     public static long epoch() { return EPOCH.get(); }
+    public static long trustEpoch() { return TRUST_EPOCH.get(); }
     /** Invalidates cached observations globally when cross-chunk security trust changes. */
-    public static void touchGlobal() { EPOCH.incrementAndGet(); }
+    public static void touchGlobal() {
+        TRUST_EPOCH.incrementAndGet();
+        EPOCH.incrementAndGet();
+    }
 
     /**
      * Whether a block change can alter any ReMatter observation: networks, shells and cable endpoints depend on
@@ -85,6 +90,7 @@ public final class ChunkRevisions {
     public static boolean structural(BlockState previous, BlockState next) {
         if (previous.getBlock() != next.getBlock()) return true;
         if(next.getBlock() instanceof dev.latrox.rematter.energy.EnergyCubeBlock)return previous.getValue(dev.latrox.rematter.energy.EnergyCubeBlock.FACING)!=next.getValue(dev.latrox.rematter.energy.EnergyCubeBlock.FACING);
+        if (next.getBlock() instanceof MatterCableRelayBlock) return previous.getValue(MatterCableRelayBlock.FACING) != next.getValue(MatterCableRelayBlock.FACING);
         if (next.getBlock() instanceof MachineBlock) return previous.getValue(MachineBlock.FACING) != next.getValue(MachineBlock.FACING);
         if (next.getBlock() instanceof MachinePortBlock) {
             return previous.getValue(MachinePortBlock.FACING) != next.getValue(MachinePortBlock.FACING)

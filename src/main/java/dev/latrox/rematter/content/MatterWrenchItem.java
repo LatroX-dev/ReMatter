@@ -60,6 +60,10 @@ public final class MatterWrenchItem extends Item {
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         if (player.isSpectator() || !player.isShiftKeyDown()) return InteractionResult.PASS;
+        // Only cycle wrench mode in air: when the player aims at a non-ReMatter block that returned PASS in useOn,
+        // Minecraft falls through to use(); passing here preserves off-hand interactions and prevents unintended mode flips.
+        var povHit = getPlayerPOVHitResult(level, player, net.minecraft.world.level.ClipContext.Fluid.NONE);
+        if (povHit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) return InteractionResult.PASS;
         if (!level.isClientSide()) cycleMode(player.getItemInHand(hand), player, level);
         return InteractionResult.SUCCESS;
     }

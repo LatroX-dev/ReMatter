@@ -155,6 +155,13 @@ def crystal_powders():
             recipe("compat/mekanism/crushing/amethyst", optional("mekanism", {
                 "type": "mekanism:crushing", "input": {"count": 1, "ingredient": raw},
                 "output": {"id": "rematter:" + powder, "count": 1}}))
+            recipe("compat/oritech/pulverizer/amethyst", optional("oritech", {
+                "type": "oritech:pulverizer", "itemInputs": [raw],
+                "itemResults": [{"id": "rematter:" + powder, "count": 1}], "time": 100}))
+        if name in ("amethyst", "emerald"):
+            recipe("compat/enderio/sag_milling/" + name, optional("enderio", {
+                "type": "enderio:sag_milling", "bonus": "none", "energy": 2400, "input": raw,
+                "outputs": [{"item": {"id": "rematter:" + powder, "count": 1}}]}))
 
 
 def matrix_crystals():
@@ -293,6 +300,14 @@ def generate():
         recipe("compat/energizedpower/crusher/" + material, optional("energizedpower", {
             "type": "energizedpower:crusher", "ingredient": "#c:ingots/" + material,
             "result": {"id": dust, "count": 1}}))
+        recipe("compat/enderio/sag_milling/" + material, optional("enderio", {
+            "type": "enderio:sag_milling", "bonus": "none", "energy": 2400,
+            "input": "#c:ingots/" + material,
+            "outputs": [{"item": {"id": dust, "count": 1}}]}))
+        recipe("compat/occultism/crushing/" + material, optional("occultism", {
+            "type": "occultism:crushing", "ignore_crushing_multiplier": True,
+            "ingredient": "#c:ingots/" + material,
+            "result": {"type": "occultism:item", "count": 1, "id": dust}}))
         tag("c", "ingots/" + material, [ingot])
         tag("c", "dusts/" + material, [dust])
 

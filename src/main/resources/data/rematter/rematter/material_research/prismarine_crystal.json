@@ -3,7 +3,8 @@
   "name": "Prismarine Crystal",
   "items": [
     "jaopca:storage_blocks.prismarine",
-    "minecraft:prismarine_crystals"
+    "minecraft:prismarine_crystals",
+    "nautec:prismarine_crystal_shard"
   ],
   "substances": [
     {

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "required_mod": "biomesoplenty",
+  "item": "biomesoplenty:dead_log",
+  "category": "natural_material"
+}

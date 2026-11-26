@@ -271,11 +271,7 @@ public final class EnergyCubeBlockEntity extends BlockEntity implements WorldlyC
 
     private boolean isDirectNeighborPush(Direction side) {
         if (!(level instanceof ServerLevel server)) return false;
-        BlockPos neighbor = worldPosition.relative(side);
-        var chunk = server.getChunkSource().getChunkNow(neighbor.getX() >> 4, neighbor.getZ() >> 4);
-        if (chunk == null) return false;
-        return !(chunk.getBlockState(neighbor).getBlock() instanceof MatterCableBlock)
-                && !(chunk.getBlockEntity(neighbor) instanceof dev.latrox.rematter.primal.EntangledLinkBlockEntity);
+        return MatterCablePower.isDirectEnergyNeighbor(server, worldPosition.relative(side));
     }
 
     public @Nullable EnergyHandler sidedEnergy(@Nullable Direction side) {

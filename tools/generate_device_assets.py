@@ -1319,6 +1319,121 @@ def generate(check):
         category="equipment", unlock="rematter:structural_bars")
     out.json(COMMON_TAGS / "tools/wrench.json", {"replace": False, "values": ["rematter:matter_wrench"]})
     out.json(COMMON_TAGS / "tools.json", {"replace": False, "values": ["#c:tools/wrench"]})
+    out.json(COMMON_TAGS / "wrenches.json", {"replace": False, "values": ["rematter:matter_wrench"]})
+    out.json(COMMON_TAGS / "books.json", {"replace": False, "values": ["rematter:guide"]})
+
+    data_root = ROOT / "src/main/resources/data"
+    out.json(data_root / "minecraft/tags/item/bookshelf_books.json", {"replace": False, "values": ["rematter:guide"]})
+
+    # Pipe Connector auto-routing support for all three Matter Cable tiers.
+    cable_ids = [
+        "rematter:matter_cable",
+        "rematter:reinforced_matter_cable",
+        "rematter:resonant_matter_cable",
+    ]
+    out.json(data_root / "pipe_connector/tags/block/pipe_block.json", {"replace": False, "values": cable_ids})
+    out.json(data_root / "pipe_connector/tags/item/placeable_items.json", {"replace": False, "values": cable_ids})
+
+    # AE2 & Applied Mekanistics P2P Tunnel attunements.
+    out.json(data_root / "ae2/tags/item/p2p_attunements/fe_p2p_tunnel.json", {
+        "replace": False,
+        "values": [
+            *cable_ids,
+            "rematter:matter_cable_relay",
+            "rematter:energy_cube",
+            "rematter:reinforced_energy_cube",
+            "rematter:resonant_energy_cube",
+            "rematter:primal_energy_cube",
+        ],
+    })
+    out.json(data_root / "appmek/tags/item/p2p_attunements/chemical_p2p_tunnel.json", {
+        "replace": False,
+        "values": ["rematter:pressurized_canister"],
+    })
+
+    # Relocation, dupe & security protection tags across major tech/magic/building mods
+    # (Mekanism Cardboard Box, AE2 Spatial Storage, Building Gadgets 2, FTBIC, Just Dire Things,
+    # Oritech Black Hole, Productive Bees Quarry Bee, Thaumaturge Portable Hole, Carry On, Entangled).
+    relocation_protected = [
+        "rematter:analyzer",
+        "rematter:atmospheric_collector",
+        "rematter:cell_transfer_station",
+        "rematter:chemical_processor",
+        "rematter:chemical_reactor_controller",
+        "rematter:crystal_generator",
+        "rematter:decomposer",
+        "rematter:decomposer_reactor_controller",
+        "rematter:deep_extractor",
+        "rematter:dimensional_entangled_link",
+        "rematter:energy_cube",
+        "rematter:energy_matrix_controller",
+        "rematter:energy_matrix_port",
+        "rematter:energy_reactor_controller",
+        "rematter:energy_reactor_port",
+        "rematter:entangled_link",
+        "rematter:hand_preparator",
+        "rematter:industrial_crystal_generator",
+        "rematter:machine_port",
+        "rematter:material_preparator",
+        "rematter:material_synthesizer",
+        "rematter:matter_cable",
+        "rematter:matter_cable_relay",
+        "rematter:matter_drive",
+        "rematter:matter_level_emitter",
+        "rematter:matter_terminal",
+        "rematter:network_interface",
+        "rematter:preparation_reactor_controller",
+        "rematter:primal_converter",
+        "rematter:primal_energy_cube",
+        "rematter:primal_machine_port",
+        "rematter:primal_reactor_controller",
+        "rematter:reinforced_energy_cube",
+        "rematter:reinforced_matter_cable",
+        "rematter:resonant_energy_cube",
+        "rematter:resonant_matter_cable",
+        "rematter:sinter_furnace",
+        "rematter:spatial_anchor",
+        "rematter:synthesizer_reactor_controller",
+        "rematter:transmutation_machine_port",
+        "rematter:transmutation_reactor_controller",
+        "rematter:wireless_access_point",
+    ]
+    out.json(data_root / "rematter/tags/block/relocation_not_supported.json", {
+        "replace": False,
+        "values": relocation_protected,
+    })
+    for rel_tag in (
+        "c/tags/block/relocation_not_supported.json",
+        "c/tags/block/relocation_not_permitted.json",
+        "mekanism/tags/block/cardboard_blacklist.json",
+        "buildinggadgets2/tags/block/deny.json",
+        "justdirethings/tags/block/swapper_deny.json",
+        "thaumaturge/tags/block/portable_hole_blacklist.json",
+        "carryon/tags/block/block_blacklist.json",
+    ):
+        out.json(data_root / rel_tag, {"replace": False, "values": ["#rematter:relocation_not_supported"]})
+    for rel_and_primal_tag in (
+        "justdirethings/tags/block/paradox_absorb_deny.json",
+        "oritech/tags/block/blackhole_blacklist.json",
+    ):
+        out.json(data_root / rel_and_primal_tag, {
+            "replace": False,
+            "values": ["#rematter:relocation_not_supported", "#rematter:primal_ores"],
+        })
+    out.json(data_root / "productivebees/tags/block/dupe_blacklist.json", {
+        "replace": False,
+        "values": ["#rematter:primal_ores"],
+    })
+    out.json(data_root / "entangled/tags/block/invalid_targets.json", {
+        "replace": False,
+        "values": [
+            *cable_ids,
+            "rematter:matter_cable_relay",
+            "rematter:entangled_link",
+            "rematter:dimensional_entangled_link",
+            "rematter:spatial_anchor",
+        ],
+    })
     print(f"Verified {out.count} device/tool files" if check else f"Generated {out.count} device/tool files")
 
 

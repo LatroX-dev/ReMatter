@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "required_mod": "integrateddynamics",
+  "item": "integrateddynamics:menril_berries",
+  "matter": [
+    {
+      "substance": "rematter:sucrose",
+      "phase": "solid",
+      "amount": 100
+    },
+    {
+      "substance": "rematter:water",
+      "phase": "liquid",
+      "amount": 100
+    }
+  ],
+  "decomposition_energy": 2000,
+  "synthesis_energy": 4000,
+  "ticks": 40
+}

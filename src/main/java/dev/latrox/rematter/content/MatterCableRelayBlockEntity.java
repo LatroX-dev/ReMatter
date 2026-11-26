@@ -279,7 +279,8 @@ public final class MatterCableRelayBlockEntity extends BlockEntity implements Me
     }
 
     boolean networkLive() {
-        if (!(level instanceof ServerLevel server) || !server.getServer().isSameThread() || isRemoved() || owner == null) return false;
+        if (!(level instanceof ServerLevel server) || !server.getServer().isSameThread() || isRemoved()) return false;
+        if (owner == null && securityMode != SecurityMode.PUBLIC) return false;
         var chunk = server.getChunkSource().getChunkNow(worldPosition.getX() >> 4, worldPosition.getZ() >> 4);
         return chunk != null && chunk.getBlockEntity(worldPosition) == this;
     }
@@ -426,8 +427,10 @@ public final class MatterCableRelayBlockEntity extends BlockEntity implements Me
 
     private void touchTopology() {
         if (level instanceof ServerLevel server) {
+            server.invalidateCapabilities(worldPosition);
             ChunkRevisions.touchLoaded(server, worldPosition);
             MatterCableBlock.refreshLoadedAround(server, worldPosition);
+            server.updateNeighborsAt(worldPosition, getBlockState().getBlock());
         }
     }
 

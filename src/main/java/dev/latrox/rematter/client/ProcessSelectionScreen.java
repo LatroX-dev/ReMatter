@@ -55,9 +55,15 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
     private List<ProcessPresentation.Product> focusLookupList;
     private String focusedId="",focusLookupId="",lastClickedId="";
     private EditBox search;
-    private DarkButton confirm,clear,knownTab,lockedTab;
-    private boolean showLocked;
-    private com.google.gson.JsonObject knowledgeView;
+    private DarkButton confirm,clear,knownTab,lockedTab,craftableTab;
+    private final Map<SynthesizerCategory,DarkButton> categoryTabs=new java.util.EnumMap<>(SynthesizerCategory.class);
+    private SynthesizerCategory selectedCategory=SynthesizerCategory.ALL;
+    private boolean showLocked,onlyCraftable;
+    private com.google.gson.JsonObject knowledgeView,stockExtrasSource;
+    private MachineMenu.Stock stockFallbackSource;
+    private long stockFallbackCapacity=-1L;
+    private SynthesizerCategory.StockState stockState=SynthesizerCategory.StockState.SYNCING;
+    private Map<SubstanceKey,Long> stockCache=Map.of();
     private int left,top,panelWidth,panelHeight,resultsX,resultsWidth,resultsTop,detailX,detailWidth,footerY,ingredientTop;
 
     public ProcessSelectionScreen(MachineMenu menu) {
@@ -67,10 +73,13 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
 
     @Override protected void init() {
         rememberLayout();
-        panelWidth=Math.min(UiMetrics.PICKER_WIDTH,width-12);
-        panelHeight=Math.min(UiMetrics.PICKER_HEIGHT,height-12);
+        boolean synth=menu.kind().synthesis();
+        panelWidth=Math.min(synth?UiMetrics.SYNTH_PICKER_WIDTH:UiMetrics.PICKER_WIDTH,width-12);
+        panelHeight=Math.min(synth?UiMetrics.SYNTH_PICKER_HEIGHT:UiMetrics.PICKER_HEIGHT,height-12);
         left=(width-panelWidth)/2;top=(height-panelHeight)/2;
-        resultsX=left+8;resultsWidth=(panelWidth-36)/2;resultsTop=top+(menu.kind().synthesis()?62:42);
+        resultsX=left+8;resultsWidth=(panelWidth-36)/2;
+        var catLayout=SynthesizerCategory.layoutForWidth(resultsWidth);
+        resultsTop=top+(synth?60+catLayout.totalHeight():42);
         detailX=resultsX+resultsWidth+6;detailWidth=left+panelWidth-8-detailX;
         footerY=top+panelHeight-24;ingredientTop=top+45;
         results.setVisibleRows(Math.max(1,(footerY-resultsTop-6)/RESULT_PITCH));
@@ -82,9 +91,22 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         search.setValue(query);search.setResponder(value->{results.reset();filter();});
         clear=addRenderableWidget(DarkButton.icon(UiIcon.CLEAR,tr("clear_search"),tr("clear_search_hint"),
                 resultsX+resultsWidth-18,top+20,18,18,b->{search.setValue("");setFocused(search);}));
-        if(menu.kind().synthesis()){
-            knownTab=addRenderableWidget(DarkButton.icon(UiIcon.UNLOCKED,tr("known"),tr("known_hint"),resultsX,top+42,18,16,b->{showLocked=false;results.reset();filter();}));
-            lockedTab=addRenderableWidget(DarkButton.icon(UiIcon.LOCKED,tr("locked"),tr("locked_hint"),resultsX+22,top+42,18,16,b->{showLocked=true;results.reset();filter();}));
+        categoryTabs.clear();
+        knownTab=lockedTab=craftableTab=null;
+        if(synth){
+            knownTab=addRenderableWidget(DarkButton.icon(UiIcon.UNLOCKED,tr("known"),tr("known_hint"),resultsX,top+40,18,16,b->{showLocked=false;results.reset();filter();}));
+            lockedTab=addRenderableWidget(DarkButton.icon(UiIcon.LOCKED,tr("locked"),tr("locked_hint"),resultsX+20,top+40,18,16,b->{showLocked=true;results.reset();filter();}));
+            craftableTab=addRenderableWidget(DarkButton.icon(UiIcon.STOCK,tr("craftable"),tr("craftable_hint"),resultsX+42,top+40,18,16,b->{onlyCraftable=!onlyCraftable;results.reset();filter();}));
+            knownTab.setAccent(accent);lockedTab.setAccent(accent);craftableTab.setAccent(accent);
+            var categories=SynthesizerCategory.values();
+            for(int i=0;i<categories.length;i++){
+                var category=categories[i];
+                var btn=addRenderableWidget(DarkButton.icon(category.icon(),tr(category.labelKey()),tr(category.hintKey()),
+                        resultsX+catLayout.xOffset(i),top+58+catLayout.yOffset(i),catLayout.buttonWidth(),catLayout.buttonHeight(),
+                        b->{selectedCategory=category;results.reset();filter();}));
+                btn.setAccent(accent);
+                categoryTabs.put(category,btn);
+            }
         }
         resultButtons.clear();
         for(int row=0;row<results.visibleRows();row++) {
@@ -110,12 +132,66 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         if(focusedId.isEmpty())focusedId=menu.snapshot().selectedId();
         filter();
     }
+    private Map<SubstanceKey,Long> availableStock() {
+        var extras=menu.extras();
+        var fallbackStock=menu.stock();
+        long fallbackCap=menu.snapshot().capacity();
+        boolean useFallback=extras.has("researchEnabled")&&!extras.has("synthesisStockReady");
+        if(extras!=stockExtrasSource||(useFallback&&(fallbackStock!=stockFallbackSource||fallbackCap!=stockFallbackCapacity))) {
+            stockExtrasSource=extras;
+            stockFallbackSource=fallbackStock;
+            stockFallbackCapacity=fallbackCap;
+            if(!extras.has("synthesisStockReady")) {
+                if(!useFallback) {
+                    stockState=SynthesizerCategory.StockState.SYNCING;
+                    stockCache=Map.of();
+                } else if(fallbackCap<=0L) {
+                    stockState=SynthesizerCategory.StockState.NO_STORAGE;
+                    stockCache=Map.of();
+                } else {
+                    stockState=fallbackStock.complete()?SynthesizerCategory.StockState.COMPLETE:SynthesizerCategory.StockState.PARTIAL;
+                    Map<SubstanceKey,Long> built=new HashMap<>();
+                    for(var entry:fallbackStock.entries()) {
+                        var k=key(entry.id(),entry.phase());
+                        if(k!=null)built.put(k,entry.amount());
+                    }
+                    stockCache=built;
+                }
+            } else if(!extras.get("synthesisStockReady").getAsBoolean()) {
+                stockState=SynthesizerCategory.StockState.NO_STORAGE;
+                stockCache=Map.of();
+            } else {
+                boolean complete=!extras.has("synthesisStockComplete")||extras.get("synthesisStockComplete").getAsBoolean();
+                stockState=complete?SynthesizerCategory.StockState.COMPLETE:SynthesizerCategory.StockState.PARTIAL;
+                Map<SubstanceKey,Long> built=new HashMap<>();
+                if(extras.has("synthesisStock")&&extras.get("synthesisStock").isJsonObject()) {
+                    for(var entry:extras.getAsJsonObject("synthesisStock").entrySet()) {
+                        int sep=entry.getKey().lastIndexOf('|');
+                        if(sep<=0)continue;
+                        var k=key(entry.getKey().substring(0,sep),entry.getKey().substring(sep+1));
+                        if(k!=null)built.put(k,entry.getValue().getAsLong());
+                    }
+                }
+                stockCache=built;
+            }
+        }
+        return stockCache;
+    }
+
     private void filter() {
         String query=search.getValue().strip().toLowerCase(Locale.ROOT);
-        filtered=products.stream().filter(product->!menu.kind().synthesis()||known(product)!=showLocked).filter(product->product.name().toLowerCase(Locale.ROOT).contains(query)
-                ||product.id().toLowerCase(Locale.ROOT).contains(query)
-                ||Stream.concat(product.inputs().keySet().stream(),product.outputs().keySet().stream())
-                    .anyMatch(key->SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(key.id()),query))).toList();
+        boolean synth=menu.kind().synthesis();
+        Map<SubstanceKey,Long> available=synth&&onlyCraftable?availableStock():Map.of();
+        SynthesizerCategory.StockState currentStockState=synth&&onlyCraftable?stockState:SynthesizerCategory.StockState.COMPLETE;
+        filtered=products.stream()
+                .filter(product->!synth||known(product)!=showLocked)
+                .filter(product->!synth||selectedCategory.matches(product))
+                .filter(product->!synth||!onlyCraftable||SynthesizerCategory.isCraftable(product,available,currentStockState))
+                .filter(product->product.name().toLowerCase(Locale.ROOT).contains(query)
+                        ||product.id().toLowerCase(Locale.ROOT).contains(query)
+                        ||Stream.concat(product.inputs().keySet().stream(),product.outputs().keySet().stream())
+                            .anyMatch(key->SubstanceLabels.matchesSymbol(SubstanceLabels.iconLabel(key.id()),query)))
+                .toList();
         results.setSize(filtered.size());
         int selected=-1;
         for(int i=0;i<filtered.size();i++)if(filtered.get(i).id().equals(focusedId)){selected=i;break;}
@@ -131,6 +207,8 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         }
         confirm.active=focused()!=null&&(!menu.kind().synthesis()||known(focused()));
         if(knownTab!=null){knownTab.setSelected(!showLocked);lockedTab.setSelected(showLocked);}
+        if(craftableTab!=null){craftableTab.setSelected(onlyCraftable);}
+        for(var entry:categoryTabs.entrySet()){entry.getValue().setSelected(entry.getKey()==selectedCategory);}
         clear.visible=!search.getValue().isEmpty();
     }
     private ProcessPresentation.Product focused() {
@@ -154,6 +232,8 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
     @Override public void tick() {
         if(minecraft.player==null||minecraft.player.containerMenu!=menu){onClose();return;}
         if(menu.kind().synthesis()&&knowledgeView!=menu.extras()){knowledgeView=menu.extras();filter();}
+        if(menu.kind().synthesis()&&onlyCraftable&&menu.extras().has("researchEnabled")&&!menu.extras().has("synthesisStockReady")
+                &&(menu.stock()!=stockFallbackSource||menu.snapshot().capacity()!=stockFallbackCapacity)){filter();}
         if(registry!=ClientChemistry.current()||language!=net.minecraft.locale.Language.getInstance())loadChoices();
     }
     @Override public boolean isPauseScreen(){return false;}
@@ -234,9 +314,20 @@ public final class ProcessSelectionScreen extends SubstanceScreenLayer {
         ScreenChrome.inset(g,resultsX,top+20,resultsWidth,18);
         ScreenChrome.icon(g,UiIcon.SEARCH,resultsX+1,top+21,MUTED);
         ScreenChrome.inset(g,detailX,top+20,detailWidth,footerY-top-24);
-        if(menu.kind().synthesis())ScreenChrome.text(g,font,tr(showLocked?"locked":"known").getString(),resultsX+46,top+46,resultsWidth-48,MUTED);
+        if(menu.kind().synthesis()&&resultsWidth>=80){
+            String filterBadge=onlyCraftable&&stockState==SynthesizerCategory.StockState.PARTIAL
+                    ?tr("stock_partial").getString()
+                    :tr(selectedCategory.labelKey()).getString();
+            ScreenChrome.text(g,font,filterBadge,resultsX+64,top+44,resultsWidth-64,onlyCraftable?accent:MUTED);
+        }
         resultBar.extractRenderState(g);
-        if(filtered.isEmpty())ScreenChrome.twoLines(g,font,tr(menu.kind().synthesis()&&!showLocked?"no_known":"no_matches").getString(),resultsX+3,resultsTop+5,resultsWidth-10,MUTED);
+        if(filtered.isEmpty()){
+            String emptyKey=menu.kind().synthesis()&&onlyCraftable
+                    ?(stockState==SynthesizerCategory.StockState.SYNCING?"stock_syncing":"no_craftable")
+                    :menu.kind().synthesis()&&!showLocked&&selectedCategory==SynthesizerCategory.ALL&&search.getValue().isBlank()?"no_known"
+                    :"no_matches";
+            ScreenChrome.twoLines(g,font,tr(emptyKey).getString(),resultsX+3,resultsTop+5,resultsWidth-10,MUTED);
+        }
         String count=(filtered.size()==1?tr("count_one"):tr("count",filtered.size())).getString();
         ScreenChrome.text(g,font,count,resultsX,top+panelHeight-11,resultsWidth,MUTED);
         drawDetails(g,mouseX,mouseY);
